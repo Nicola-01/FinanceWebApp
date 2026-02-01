@@ -1,6 +1,8 @@
 package dev.busato.FinanceWebApp.backend.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +12,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "wallets")
 public class Wallet {
@@ -26,9 +30,11 @@ public class Wallet {
     private String icon;
 
     @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<WalletAccess> accesses = new ArrayList<>();
 
-    private String currencyCode = "EUR"; // Default
+    @Builder.Default
+    private String currency = "EUR"; // Default
 
     private LocalDate createdAt;
 
