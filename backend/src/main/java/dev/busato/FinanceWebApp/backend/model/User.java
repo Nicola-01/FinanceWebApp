@@ -46,9 +46,6 @@ public class User implements UserDetails {
         this.createdAt = LocalDate.now();
     }
 
-    @OneToMany(mappedBy = "owner")
-    private List<Tag> tags = new ArrayList<>();
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WalletAccess> walletAccesses = new ArrayList<>();
 

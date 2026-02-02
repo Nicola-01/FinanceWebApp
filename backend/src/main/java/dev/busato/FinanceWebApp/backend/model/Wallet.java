@@ -34,6 +34,9 @@ public class Wallet {
     @Builder.Default
     private List<WalletAccess> accesses = new ArrayList<>();
 
+    @OneToMany(mappedBy = "wallet")
+    private List<Tag> tags = new ArrayList<>();
+
     @Builder.Default
     private String currency = "EUR"; // Default
 

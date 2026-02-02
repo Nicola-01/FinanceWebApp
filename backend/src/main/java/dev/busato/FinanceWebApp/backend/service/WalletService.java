@@ -2,6 +2,8 @@ package dev.busato.FinanceWebApp.backend.service;
 
 import dev.busato.FinanceWebApp.backend.dto.WalletRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
+import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
+import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.*;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository; // <--- Nuovo import
@@ -27,8 +29,7 @@ public class WalletService {
     @Transactional
     public WalletResponse createWallet(WalletRequest request, UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         // Create the wallet
         Wallet wallet = Wallet.builder()
@@ -42,7 +43,7 @@ public class WalletService {
         wallet = walletRepository.save(wallet);
 
         // Set the access
-        WalletAccess.WalletAccessId accessId = new WalletAccess.WalletAccessId(user.getId(), wallet.getId());
+        WalletAccess.WalletAccessId accessId = new WalletAccess.WalletAccessId(userId, wallet.getId());
 
         WalletAccess access = new WalletAccess();
         access.setId(accessId);
@@ -57,14 +58,22 @@ public class WalletService {
         return mapToResponse(access);
     }
 
-    public List<WalletResponse> getMyWallets(UUID userId) {
-        return walletAccessRepository.findAllByUserId(userId).stream()
+    public List<WalletResponse> getWallets(UUID userId) {
+        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        return walletAccessRepository.findAllByUserId(userId)
+                .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    public WalletResponse getMyWalletsById(UUID userId, UUID walletID) {
-        return mapToResponse(walletAccessRepository.findByUserIdAndWalletId(userId, walletID));
+    public WalletResponse getWallet(UUID userId, UUID walletID) {
+        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        WalletAccess walletAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletID)
+                .orElseThrow(() -> new WalletNotFoundException(walletID));
+
+        return mapToResponse(walletAccess);
     }
 
     private WalletResponse mapToResponse(WalletAccess access) {

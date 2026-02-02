@@ -10,7 +10,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -19,17 +18,17 @@ import java.util.UUID;
 public class WalletController {
 
     private final WalletService walletService;
-    private final UUID TMP_userId = UUID.fromString("fcbda4aa-1e86-4366-ae1f-4e355fd669b2");
+    private final UUID TMP_userId = UUID.fromString("61a3c590-368d-4442-953e-2d37f60a29ba");
 
     @GetMapping
     public ResponseEntity<List<WalletResponse>> getMyWallets(@AuthenticationPrincipal User user) {
 //        return ResponseEntity.ok(walletService.getMyWallets(user.getId()));
-        return ResponseEntity.ok(walletService.getMyWallets(TMP_userId));
+        return ResponseEntity.ok(walletService.getWallets(TMP_userId));
     }
 
     @GetMapping("/{walletID}")
     public ResponseEntity<WalletResponse> getWalletById(@PathVariable UUID walletID) {
-        return ResponseEntity.ok(walletService.getMyWalletsById(TMP_userId, walletID));
+        return ResponseEntity.ok(walletService.getWallet(TMP_userId, walletID));
     }
 
     @PostMapping

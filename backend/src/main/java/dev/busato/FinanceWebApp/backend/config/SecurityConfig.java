@@ -30,7 +30,7 @@ public class SecurityConfig {
 
                         // Allow testing the wallet creation WITHOUT login (TEMPORARY FOR DEV)
                         // Remove this line later when JWT is ready!
-                        .requestMatchers("/api/wallets/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
 
                         // Lock everything else: You must be authenticated to access other URLs
                         .anyRequest().authenticated()

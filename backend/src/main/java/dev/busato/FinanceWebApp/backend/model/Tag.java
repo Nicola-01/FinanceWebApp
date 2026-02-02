@@ -10,7 +10,15 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "tags")
+@Table(
+    name = "tags",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_tag_wallet_name",
+            columnNames = {"wallet_id", "name"}
+        )
+    }
+)
 public class Tag {
 
     @Id
@@ -20,13 +28,13 @@ public class Tag {
     @Column(nullable = false)
     private String name;
 
-    @JoinColumn(name = "owner_id")
     @ManyToOne(fetch = FetchType.LAZY)
-    private User owner;
+    @JoinColumn(name = "wallet_id", nullable = false)
+    private Wallet wallet;
 
     private String icon;
     private String colorHex;
-    private String description;
+//    private String description;
 
     @ManyToOne
     @JoinColumn(name = "parent_id")

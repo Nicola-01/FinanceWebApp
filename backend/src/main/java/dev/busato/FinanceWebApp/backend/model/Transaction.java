@@ -2,14 +2,20 @@ package dev.busato.FinanceWebApp.backend.model;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "transactions")
 public class Transaction {
@@ -28,10 +34,13 @@ public class Transaction {
     private Tag tag;
 
     @Column(nullable = false)
-    private BigDecimal amount; // In wallet Value (EUR)
+    private String name;
 
+    @Column(nullable = false)
+    private BigDecimal amount; // In wallet Value (EUR)
     private BigDecimal originalAmount; // Es. 10.50
     private String originalCurrency;   // Es. USD
+    private BigDecimal exchangeVale;   // 1.35
 
     @Enumerated(EnumType.STRING)
     private Type type; // INCOME, EXPENSE
@@ -39,15 +48,9 @@ public class Transaction {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @Column(nullable = false)
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDate transactionDate;
-
-    @PrePersist
-    void onCreate() {
-        if (transactionDate == null)
-            transactionDate = LocalDate.now();
-    }
-
 
     public enum Type { INCOME, EXPENSE }
 }
