@@ -4,7 +4,7 @@ import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -13,7 +13,8 @@ public class WalletResponse {
     private UUID id;
     private String name;
     private String icon;
+    private String color;
     private String currency;
-    private LocalDateTime createdAt;
+    private LocalDate createdAt;
     private WalletAccess.WalletRole myRole;
 }

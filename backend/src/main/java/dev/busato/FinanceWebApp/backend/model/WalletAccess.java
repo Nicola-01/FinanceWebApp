@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,6 +41,7 @@ public class WalletAccess {
     @Column(nullable = false)
     private InvitationStatus status;
 
+    @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDate invitedAt;
 
@@ -48,7 +50,6 @@ public class WalletAccess {
         if (status == null) {
             status = InvitationStatus.PENDING;
         }
-        invitedAt = LocalDate.now();
     }
 
     @Embeddable

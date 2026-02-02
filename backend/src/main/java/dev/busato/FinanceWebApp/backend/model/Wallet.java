@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -36,10 +37,7 @@ public class Wallet {
     @Builder.Default
     private String currency = "EUR"; // Default
 
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDate createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDate.now();
-    }
 }

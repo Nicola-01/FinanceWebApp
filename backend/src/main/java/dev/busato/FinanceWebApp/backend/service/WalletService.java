@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -31,9 +33,10 @@ public class WalletService {
         // Create the wallet
         Wallet wallet = Wallet.builder()
                 .name(request.getName())
-                .currency(request.getCurrency())
-                .color(request.getColor())
+                .color(Optional.ofNullable(request.getColor()).orElse("#abababa"))
                 .icon(request.getIcon())
+                .currency(Optional.ofNullable(request.getCurrency()).orElse("EUR"))
+                .createdAt(LocalDate.now())
                 .build();
 
         wallet = walletRepository.save(wallet);
@@ -47,6 +50,7 @@ public class WalletService {
         access.setWallet(wallet);
         access.setRole(WalletAccess.WalletRole.OWNER);
         access.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+        access.setInvitedAt(LocalDate.now());
 
         walletAccessRepository.save(access);
 
@@ -54,9 +58,13 @@ public class WalletService {
     }
 
     public List<WalletResponse> getMyWallets(UUID userId) {
-        return walletAccessRepository.findByUserId(userId).stream()
+        return walletAccessRepository.findAllByUserId(userId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public WalletResponse getMyWalletsById(UUID userId, UUID walletID) {
+        return mapToResponse(walletAccessRepository.findByUserIdAndWalletId(userId, walletID));
     }
 
     private WalletResponse mapToResponse(WalletAccess access) {
@@ -65,7 +73,9 @@ public class WalletService {
                 .name(access.getWallet().getName())
                 .currency(access.getWallet().getCurrency())
                 .icon(access.getWallet().getIcon())
-                .myRole(access.getRole()) // Mappa il ruolo corretto
+                .color(access.getWallet().getColor())
+                .createdAt(access.getWallet().getCreatedAt())
+                .myRole(access.getRole())
                 .build();
     }
 }

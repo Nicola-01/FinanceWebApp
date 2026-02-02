@@ -27,6 +27,11 @@ public class WalletController {
         return ResponseEntity.ok(walletService.getMyWallets(TMP_userId));
     }
 
+    @GetMapping("/{walletID}")
+    public ResponseEntity<WalletResponse> getWalletById(@PathVariable UUID walletID) {
+        return ResponseEntity.ok(walletService.getMyWalletsById(TMP_userId, walletID));
+    }
+
     @PostMapping
     public ResponseEntity<WalletResponse> createWallet(
             @RequestBody WalletRequest request,
