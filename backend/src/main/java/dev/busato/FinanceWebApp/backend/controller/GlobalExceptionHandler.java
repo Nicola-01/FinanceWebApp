@@ -1,9 +1,6 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
-import dev.busato.FinanceWebApp.backend.exceptions.PermissionDeniedException;
-import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
-import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
-import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
+import dev.busato.FinanceWebApp.backend.exceptions.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -83,6 +80,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(PermissionDeniedException.class)
     public ResponseEntity<ProblemDetail> handlePermissionDeniedException(
             PermissionDeniedException ex, HttpServletRequest request) {
+//
+//        logger.warn("Product not found: {}", ex.getMessage());
+//
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
+        problemDetail.setTitle("Permission Denied");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("timestamp", LocalDateTime.now());
+//
+//        if (ex.getProductId() != null) {
+//            problemDetail.setProperty("productId", ex.getProductId());
+//        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidPasswordException(
+            InvalidPasswordException ex, HttpServletRequest request) {
 //
 //        logger.warn("Product not found: {}", ex.getMessage());
 //

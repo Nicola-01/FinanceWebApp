@@ -52,6 +52,7 @@ public class User implements UserDetails {
     // --- Spring Security Implementation ---
     // These methods allow Spring Security to understand permissions and login status
 
+    // use for @PreAuthorize("hasRole('ADMIN')")
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Converts our Enum Role to a Spring Security Authority
