@@ -1,16 +1,16 @@
 package dev.busato.FinanceWebApp.backend.service;
 
-import dev.busato.FinanceWebApp.backend.dto.TagDTO;
+import dev.busato.FinanceWebApp.backend.dto.TagRequest;
+import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
+import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
-import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.*;
-import dev.busato.FinanceWebApp.backend.repository.TagRepository;
-import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
-import dev.busato.FinanceWebApp.backend.repository.UserRepository;
-import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
+import dev.busato.FinanceWebApp.backend.repository.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,19 +27,17 @@ public class TransactionService {
     private final WalletAccessRepository walletAccessRepository;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final WalletRepository walletRepository;
 
-    public TransactionRequest createTransaction(TransactionRequest request, UUID walletID, UUID userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
-
-        WalletAccess walletAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletID)
-                .orElseThrow(() -> new WalletNotFoundException(walletID));
-        Wallet wallet = walletAccess.getWallet();
+    @Transactional
+    @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
+    public TransactionResponse createTransaction(TransactionRequest request, UUID walletId, UUID userId) {
+        Wallet wallet = walletRepository.findById(walletId).orElseThrow(() -> new WalletNotFoundException(walletId));
 
         Tag tag = null;
-        if (request.getTag() != null && request.getTag().getName() != null)
-            tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag().getName(), walletID)
-                    .orElseThrow(() -> new TagNotFoundException(request.getTag().getName(), walletID));
+        if (request.getTag() != null)
+            tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
+                    .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
 
         Transaction transaction = Transaction.builder()
                 .wallet(wallet)
@@ -58,28 +56,29 @@ public class TransactionService {
         return mapToResponse(transaction);
     }
 
-    public List<TransactionRequest> getTransactionsByWalletID(UUID walletId) {
+    @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
+    public List<TransactionResponse> getTransactionsByWalletID(UUID walletId, UUID userId) {
         return transactionRepository.getAllByWalletId(walletId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    private TransactionRequest mapToResponse(Transaction transaction) {
-        return TransactionRequest.builder()
+    private TransactionResponse mapToResponse(Transaction transaction) {
+        return TransactionResponse.builder()
+                .id(transaction.getId())
                 .name(transaction.getName())
                 .amount(transaction.getAmount())
                 .originalAmount(transaction.getOriginalAmount())
                 .originalCurrency(transaction.getOriginalCurrency())
                 .exchangeVale(transaction.getExchangeVale())
                 .tag(
-                    TagDTO.builder()
+                    TagResponse.builder()
                         .name(transaction.getTag().getName())
                         .icon(transaction.getTag().getIcon())
                         .colorHex(transaction.getTag().getColorHex())
-//                        .description(transaction.getTag().getDescription())
                         .parentName(Optional.ofNullable(transaction.getTag().getParent())
-                                .map(Tag::getName) // parent could be null
-                                .orElse(null))
+                            .map(Tag::getName) // parent could be null
+                            .orElse(null))
                         .build()
                 )
                 .transactionDate(transaction.getTransactionDate())

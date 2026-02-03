@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
+import dev.busato.FinanceWebApp.backend.exceptions.PermissionDeniedException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
@@ -25,7 +26,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
-        problemDetail.setTitle("Product Not Found");
+        problemDetail.setTitle("User Not Found");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         problemDetail.setProperty("timestamp", LocalDateTime.now());
 //
@@ -39,14 +40,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(WalletNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleWalletNotFoundException(
-            UserNotFoundException ex, HttpServletRequest request) {
+            WalletNotFoundException ex, HttpServletRequest request) {
 //
 //        logger.warn("Product not found: {}", ex.getMessage());
 //
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
-        problemDetail.setTitle("Product Not Found");
+        problemDetail.setTitle("Wallet Not Found");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         problemDetail.setProperty("timestamp", LocalDateTime.now());
 //
@@ -60,14 +61,35 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TagNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleTagNotFoundException(
-            UserNotFoundException ex, HttpServletRequest request) {
+            TagNotFoundException ex, HttpServletRequest request) {
 //
 //        logger.warn("Product not found: {}", ex.getMessage());
 //
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
-        problemDetail.setTitle("Product Not Found");
+        problemDetail.setTitle("Tag Not Found");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("timestamp", LocalDateTime.now());
+//
+//        if (ex.getProductId() != null) {
+//            problemDetail.setProperty("productId", ex.getProductId());
+//        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
+
+    @ExceptionHandler(PermissionDeniedException.class)
+    public ResponseEntity<ProblemDetail> handlePermissionDeniedException(
+            PermissionDeniedException ex, HttpServletRequest request) {
+//
+//        logger.warn("Product not found: {}", ex.getMessage());
+//
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
+        problemDetail.setTitle("Permission Denied");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         problemDetail.setProperty("timestamp", LocalDateTime.now());
 //

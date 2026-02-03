@@ -11,7 +11,7 @@ import java.time.LocalDate;
 public class TransactionRequest {
     private String name;
 
-    private TagDTO tag;
+    private String tag;
 
     private BigDecimal amount;
     private BigDecimal originalAmount;

@@ -14,7 +14,7 @@ public class TransactionResponse {
 
     private String name;
 
-    private TagDTO tag;
+    private TagResponse tag;
 
     private BigDecimal amount;
     private BigDecimal originalAmount;

@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
+import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.TransactionService;
 import lombok.RequiredArgsConstructor;
@@ -18,13 +19,15 @@ public class TransactionController {
     private final TransactionService transactionService;
     private final UUID TMP_userId = UUID.fromString("61a3c590-368d-4442-953e-2d37f60a29ba");
 
+    //ToDO: Get single transaction
+
     @GetMapping("/{walletID}")
-    public ResponseEntity<List<TransactionRequest>> getTransactions(@PathVariable UUID walletID) {
-        return ResponseEntity.ok(transactionService.getTransactionsByWalletID(walletID));
+    public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable UUID walletID, @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(transactionService.getTransactionsByWalletID(walletID, user.getId()));
     }
 
     @PostMapping("/{walletID}")
-    public ResponseEntity<TransactionRequest> createTransaction(@RequestBody TransactionRequest request,
+    public ResponseEntity<TransactionResponse> createTransaction(@RequestBody TransactionRequest request,
                                                                 @PathVariable UUID walletID,
                                                                 @AuthenticationPrincipal User user) {
 //        return ResponseEntity.ok(transactionService.createTransaction(walletID, user.getId()));

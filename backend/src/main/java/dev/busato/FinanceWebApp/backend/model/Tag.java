@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,16 +9,18 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Data
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(
-    name = "tags",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_tag_wallet_name",
-            columnNames = {"wallet_id", "name"}
-        )
-    }
+        name = "tags",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_tag_wallet_name",
+                        columnNames = {"wallet_id", "name"}
+                )
+        }
 )
 public class Tag {
 

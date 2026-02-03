@@ -9,6 +9,7 @@ import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository; // <--- Nuovo import
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
@@ -27,6 +28,7 @@ public class WalletService {
     private final UserRepository userRepository;
 
     @Transactional
+    @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
     public WalletResponse createWallet(WalletRequest request, UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
@@ -58,9 +60,8 @@ public class WalletService {
         return mapToResponse(access);
     }
 
+//    @PreAuthorize("@walletService.requireUser(#userId)")
     public List<WalletResponse> getWallets(UUID userId) {
-        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-
         return walletAccessRepository.findAllByUserId(userId)
                 .stream()
                 .map(this::mapToResponse)
@@ -68,8 +69,6 @@ public class WalletService {
     }
 
     public WalletResponse getWallet(UUID userId, UUID walletID) {
-        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-
         WalletAccess walletAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletID)
                 .orElseThrow(() -> new WalletNotFoundException(walletID));
 
