@@ -56,5 +56,4 @@ public class ManageUserService {
     private String generateRandomPassword(int length) {
         return UUID.randomUUID().toString().replace("-", "").substring(0, length);
     }
-
 }

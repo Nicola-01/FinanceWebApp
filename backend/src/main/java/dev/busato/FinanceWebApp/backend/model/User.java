@@ -1,10 +1,7 @@
 package dev.busato.FinanceWebApp.backend.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +29,8 @@ public class User implements UserDetails {
     private String password; // This will store the BCrypt hash, not the plain password
 
     @Enumerated(EnumType.STRING) // Saves "ADMIN" as text in DB, instead of a number (0, 1)
-    private Role role;
+    @Builder.Default
+    private Role role = Role.USER;
 
     @Column(nullable = false) // The user must change the psw at the first login
     @Builder.Default
@@ -47,6 +45,7 @@ public class User implements UserDetails {
     }
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private List<WalletAccess> walletAccesses = new ArrayList<>();
 
     // --- Spring Security Implementation ---

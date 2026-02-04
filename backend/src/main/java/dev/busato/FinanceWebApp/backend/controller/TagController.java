@@ -19,15 +19,12 @@ import java.util.UUID;
 public class TagController {
 
     private final TagService tagService;
-    private final UUID TMP_userId = UUID.fromString("61a3c590-368d-4442-953e-2d37f60a29ba");
 
 
     @GetMapping("/{walletID}")
     public ResponseEntity<List<TagResponse>> getTags(@PathVariable UUID walletID,
                                                      @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(tagService.getTags(walletID, TMP_userId));
-//        return ResponseEntity.ok(tagService.getTags(walletID, user.getId()));
-//        return ResponseEntity.ok(transactionService.getTransactionsByWalletID(walletID));
+        return ResponseEntity.ok(tagService.getTags(walletID, user.getId()));
     }
 
 
@@ -36,8 +33,6 @@ public class TagController {
                                                                @AuthenticationPrincipal User user,
                                                                @RequestBody TagRequest tagRequest
     ) {
-        return ResponseEntity.ok(tagService.createTag(tagRequest, walletID, TMP_userId));
-//        return ResponseEntity.ok(tagService.getTags(walletID, user.getId()));
-//        return ResponseEntity.ok(transactionService.getTransactionsByWalletID(walletID));
+        return ResponseEntity.ok(tagService.createTag(tagRequest, walletID, user.getId()));
     }
 }

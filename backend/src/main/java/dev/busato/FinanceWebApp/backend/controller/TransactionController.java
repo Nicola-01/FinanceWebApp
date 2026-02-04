@@ -17,7 +17,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TransactionController {
     private final TransactionService transactionService;
-    private final UUID TMP_userId = UUID.fromString("61a3c590-368d-4442-953e-2d37f60a29ba");
 
     //ToDO: Get single transaction
 
@@ -30,7 +29,6 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> createTransaction(@RequestBody TransactionRequest request,
                                                                 @PathVariable UUID walletID,
                                                                 @AuthenticationPrincipal User user) {
-//        return ResponseEntity.ok(transactionService.createTransaction(walletID, user.getId()));
-        return ResponseEntity.ok(transactionService.createTransaction(request, walletID, TMP_userId));
+        return ResponseEntity.ok(transactionService.createTransaction(request, walletID, user.getId()));
     }
 }
