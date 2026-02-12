@@ -28,7 +28,6 @@ public class WalletService {
     private final UserRepository userRepository;
 
     @Transactional
-    @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
     public WalletResponse createWallet(WalletRequest request, UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
