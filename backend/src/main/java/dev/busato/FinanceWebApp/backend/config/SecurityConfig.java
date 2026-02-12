@@ -73,7 +73,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Consentiamo al frontend di Vite di accedere
-        configuration.setAllowedOrigins(List.of(FRONTEND_URL));
+//        configuration.setAllowedOrigins(List.of(FRONTEND_URL));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
 
         // Consentiamo i metodi principali
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

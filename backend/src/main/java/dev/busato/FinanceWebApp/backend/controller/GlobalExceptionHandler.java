@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -22,8 +23,26 @@ public class GlobalExceptionHandler {
 //
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
-        problemDetail.setTitle("User Not Found");
+        problemDetail.setTitle("User_Not_Found");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("timestamp", LocalDateTime.now());
+//
+//        if (ex.getProductId() != null) {
+//            problemDetail.setProperty("productId", ex.getProductId());
+//        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ProblemDetail> handleBadCredentialsException(
+            BadCredentialsException ex, HttpServletRequest request) {
+//
+//        logger.warn("Product not found: {}", ex.getMessage());
+//
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN, ex.getMessage());
+        problemDetail.setTitle("Bad_Credentials");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         problemDetail.setProperty("timestamp", LocalDateTime.now());
 //
@@ -43,8 +62,7 @@ public class GlobalExceptionHandler {
 //
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
-        problemDetail.setTitle("Wallet Not Found");
+        problemDetail.setTitle("Wallet_Not_Found");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         problemDetail.setProperty("timestamp", LocalDateTime.now());
 //
@@ -64,8 +82,7 @@ public class GlobalExceptionHandler {
 //
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
-        problemDetail.setTitle("Tag Not Found");
+        problemDetail.setTitle("Tag_Not_Found");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         problemDetail.setProperty("timestamp", LocalDateTime.now());
 //
@@ -85,28 +102,6 @@ public class GlobalExceptionHandler {
 //
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
-        problemDetail.setTitle("Permission Denied");
-        problemDetail.setInstance(URI.create(request.getRequestURI()));
-        problemDetail.setProperty("timestamp", LocalDateTime.now());
-//
-//        if (ex.getProductId() != null) {
-//            problemDetail.setProperty("productId", ex.getProductId());
-//        }
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
-    }
-
-
-    @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidPasswordException(
-            InvalidPasswordException ex, HttpServletRequest request) {
-//
-//        logger.warn("Product not found: {}", ex.getMessage());
-//
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setType(URI.create("https://api.shopping.com/problems/product-not-found"));
         problemDetail.setTitle("Permission Denied");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         problemDetail.setProperty("timestamp", LocalDateTime.now());

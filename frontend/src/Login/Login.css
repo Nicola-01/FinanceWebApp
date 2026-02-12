@@ -43,7 +43,7 @@ body {
 .shape-1 {
     height: 400px;
     width: 400px;
-    background: linear-gradient(#ff0055, #ff2299);
+    background: linear-gradient(#ff3778, #ff22e2);
     top: -100px;
     left: 20%;
 }
@@ -111,7 +111,7 @@ body {
 /* Campi Input */
 .input-group {
     width: 100%;
-    margin-bottom: 25px;
+    margin-bottom: 35px;
 }
 .input-group label {
     display: none; /* Nascondiamo le label standard per replicare il design */
@@ -265,7 +265,7 @@ body {
     top: 1px;
     width: 5px;
     height: 10px;
-    border: solid #4d6dff; /* Colore della spunta (blu come il bottone) */
+    border: solid #210e3a; /* Colore della spunta (blu come il bottone) */
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 }
@@ -293,4 +293,43 @@ body {
 .forgot-pass:hover {
     color: #ffffff;
     text-decoration: underline;
+}
+
+.form-error {
+    animation: hard_shake 0.3s ease-in-out 2;
+}
+
+.error-border {
+    border-bottom: 1px solid #ff4d4d !important;
+    animation: shake 0.5s ease-in-out;
+}
+
+.error-msg {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Spazio tra icona e testo */
+    color: #ff4d4d;
+    font-size: 0.85rem;
+    margin-top: 5px;
+    position: absolute;
+
+    /* Effetto apparizione */
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes hard_shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
 }

@@ -8,23 +8,25 @@ const api = axios.create({
     }
 });
 
-// Intercettore Tipizzato
 api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        // 1. Cerca il token nel browser
+        // 1. Definiamo gli endpoint pubblici (che non vogliono il token)
+        const publicEndpoints = ['/auth/login', '/auth/register'];
+
+        // Controlliamo se l'URL attuale è tra quelli pubblici
+        const isPublic = publicEndpoints.some(endpoint => config.url?.endsWith(endpoint));
+
+        if (isPublic)
+            return config;
+
         const token = localStorage.getItem('jwtToken');
 
-        // 2. Se il token esiste...
-        if (token) {
-            // ...lo aggiunge agli headers della richiesta
+        if (token)
             config.headers.set('Authorization', `Bearer ${token}`);
-        }
 
-        // 3. Lascia passare la richiesta (modificata)
         return config;
     },
     (error) => {
-        // Se c'è un errore nella preparazione, blocca tutto
         return Promise.reject(error);
     }
 );
