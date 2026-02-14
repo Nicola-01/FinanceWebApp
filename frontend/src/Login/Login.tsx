@@ -19,6 +19,7 @@ interface Requirements {
 const Form: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false); // Per disabilitare il bottone mentre carica
     const [error, setError] = useState('');
     const [require, setRequire] = useState<Requirements>({});
@@ -51,8 +52,9 @@ const Form: React.FC = () => {
         try {
             // 2. CHIAMATA CON AXIOS
             const response = await api.post('/auth/login', {
-                username: username,
-                password: password
+                username,
+                password,
+                rememberMe
             });
 
             // 3. SUCCESSO
@@ -62,10 +64,14 @@ const Form: React.FC = () => {
             // 4. SALVA IL TOKEN (Fondamentale per il tuo interceptor!)
             localStorage.setItem('jwtToken', token);
 
-            console.log("Login effettuato!", response.data);
+            if (rememberMe)
+                localStorage.setItem('jwtToken', token);
+            else
+                sessionStorage.setItem('jwtToken', token)
 
-            // Qui dovresti reindirizzare l'utente, es:
-            // window.location.href = '/dashboard';
+            // console.log("Login effettuato!", response.data);
+
+            window.location.href = '/dashboard';
 
         } catch (err: any) {
             // 5. GESTIONE ERRORI MEGLIO DI FETCH
@@ -134,7 +140,10 @@ const Form: React.FC = () => {
             <div className="form-options">
                 {/* REMEMBER ME */}
                 <label className="remember-me">
-                    <input type="checkbox"/>
+                    <input type="checkbox"
+                           checked={rememberMe}
+                           onChange={(e) => setRememberMe(e.target.checked)}
+                    />
                     <span className="checkbox-custom"></span> {/* Finto checkbox per lo stile */}
                     <span className="label-text">Remember me</span>
                 </label>

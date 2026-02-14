@@ -2,6 +2,7 @@ package dev.busato.FinanceWebApp.backend.service;
 
 import dev.busato.FinanceWebApp.backend.dto.UserRequest;
 import dev.busato.FinanceWebApp.backend.dto.UserResponse;
+import dev.busato.FinanceWebApp.backend.exceptions.UserAlreadyExistsException;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.repository.ManageUserRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
@@ -33,6 +34,9 @@ public class ManageUserService {
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse createUser(UserRequest userRequest) {
         String tempPassword = generateRandomPassword(12);
+
+        if (userRepository.existsByUsernameIgnoreCase(userRequest.getName()))
+            throw new UserAlreadyExistsException(userRequest.getName());
 
         User user = User.builder()
                 .username(userRequest.getName())

@@ -16,4 +16,5 @@ COPY . .
 EXPOSE 5173
 
 # Avvia il server di sviluppo (Vite compila TS in memoria)
-CMD ["npm", "run", "dev", "--", "--host"]
+#CMD ["npm", "run", "dev", "--", "--host"]
+CMD ["npm", "run", "dev"]

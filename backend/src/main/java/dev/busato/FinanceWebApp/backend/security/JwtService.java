@@ -22,8 +22,10 @@ public class JwtService {
     @Value("${application.security.jwt.secret-key}")
     private String SECRET_KEY;
 
-    @Value("${application.security.jwt.expiration}")
-    private long JWT_EXPIRATION;
+    @Value("${application.security.jwt.long_expiration}")
+    private long JWT_EXPIRATION_LONG;
+    @Value("${application.security.jwt.short_expiration}")
+    private long JWT_EXPIRATION_SHORT;
 
     // 1. Estrae lo username dal token (Subject)
     public String extractUsername(String token) {
@@ -35,19 +37,22 @@ public class JwtService {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-
-    // 3. Genera il token senza dati extra (solo user details)
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
-    }
+//
+//    // 3. Genera il token senza dati extra (solo user details)
+//    public String generateToken(UserDetails userDetails) {
+//        return generateToken(new HashMap<>(), userDetails);
+//    }
 
     // 4. Genera il token CON dati extra (es. ruolo, ID, email, ecc.)
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, boolean rememberMe) {
+
+        long expirationTime = rememberMe ? JWT_EXPIRATION_LONG : JWT_EXPIRATION_SHORT;
+
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername()) // Imposta lo username come "soggetto"
                 .setIssuedAt(new Date(System.currentTimeMillis())) // Data creazione
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION)) // Scade tra 24 ore
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256) // Firma con la chiave segreta
                 .compact();
     }

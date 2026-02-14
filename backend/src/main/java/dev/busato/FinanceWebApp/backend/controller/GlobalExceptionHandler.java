@@ -15,101 +15,68 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // --- 404 NOT FOUND ---
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleUserNotFoundException(
             UserNotFoundException ex, HttpServletRequest request) {
-//
-//        logger.warn("Product not found: {}", ex.getMessage());
-//
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("User_Not_Found");
-        problemDetail.setInstance(URI.create(request.getRequestURI()));
-        problemDetail.setProperty("timestamp", LocalDateTime.now());
-//
-//        if (ex.getProductId() != null) {
-//            problemDetail.setProperty("productId", ex.getProductId());
-//        }
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+        return buildErrorResponse(ex, HttpStatus.NOT_FOUND, "User Not Found", request);
     }
-
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ProblemDetail> handleBadCredentialsException(
-            BadCredentialsException ex, HttpServletRequest request) {
-//
-//        logger.warn("Product not found: {}", ex.getMessage());
-//
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.FORBIDDEN, ex.getMessage());
-        problemDetail.setTitle("Bad_Credentials");
-        problemDetail.setInstance(URI.create(request.getRequestURI()));
-        problemDetail.setProperty("timestamp", LocalDateTime.now());
-//
-//        if (ex.getProductId() != null) {
-//            problemDetail.setProperty("productId", ex.getProductId());
-//        }
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
-    }
-
 
     @ExceptionHandler(WalletNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleWalletNotFoundException(
             WalletNotFoundException ex, HttpServletRequest request) {
-//
-//        logger.warn("Product not found: {}", ex.getMessage());
-//
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Wallet_Not_Found");
-        problemDetail.setInstance(URI.create(request.getRequestURI()));
-        problemDetail.setProperty("timestamp", LocalDateTime.now());
-//
-//        if (ex.getProductId() != null) {
-//            problemDetail.setProperty("productId", ex.getProductId());
-//        }
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+        return buildErrorResponse(ex, HttpStatus.NOT_FOUND, "Wallet Not Found", request);
     }
-
 
     @ExceptionHandler(TagNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleTagNotFoundException(
             TagNotFoundException ex, HttpServletRequest request) {
-//
-//        logger.warn("Product not found: {}", ex.getMessage());
-//
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Tag_Not_Found");
-        problemDetail.setInstance(URI.create(request.getRequestURI()));
-        problemDetail.setProperty("timestamp", LocalDateTime.now());
-//
-//        if (ex.getProductId() != null) {
-//            problemDetail.setProperty("productId", ex.getProductId());
-//        }
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+        return buildErrorResponse(ex, HttpStatus.NOT_FOUND, "Tag Not Found", request);
     }
 
+    // --- 409 CONFLICT ---
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handleUserAlreadyExistsException(
+            UserAlreadyExistsException ex, HttpServletRequest request) {
+        // 409 Conflict è lo standard quando si tenta di creare una risorsa che esiste già
+        return buildErrorResponse(ex, HttpStatus.CONFLICT, "User Already Exists", request);
+    }
+
+    // --- SECURITY (401 & 403) ---
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ProblemDetail> handleBadCredentialsException(
+            BadCredentialsException ex, HttpServletRequest request) {
+        // Corretto da NOT_FOUND a UNAUTHORIZED (401)
+        return buildErrorResponse(ex, HttpStatus.UNAUTHORIZED, "Bad Credentials", request);
+    }
 
     @ExceptionHandler(PermissionDeniedException.class)
     public ResponseEntity<ProblemDetail> handlePermissionDeniedException(
             PermissionDeniedException ex, HttpServletRequest request) {
-//
-//        logger.warn("Product not found: {}", ex.getMessage());
-//
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Permission Denied");
+        // Corretto da NOT_FOUND a FORBIDDEN (403)
+        return buildErrorResponse(ex, HttpStatus.FORBIDDEN, "Permission Denied", request);
+    }
+
+    /**
+     * Constructs the standardised ProblemDetail response.
+     * * @param ex The captured exception
+     * @param status The HTTP status to return
+     * @param title A short title for the error
+     * @param request The original HTTP request (for the URI)
+     * @return The ready ResponseEntity
+     */
+    private ResponseEntity<ProblemDetail> buildErrorResponse(
+            Exception ex, HttpStatus status, String title, HttpServletRequest request) {
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
+
+        problemDetail.setTitle(title);
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         problemDetail.setProperty("timestamp", LocalDateTime.now());
-//
-//        if (ex.getProductId() != null) {
-//            problemDetail.setProperty("productId", ex.getProductId());
-//        }
 
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problemDetail);
+        return ResponseEntity.status(status).body(problemDetail);
     }
 }

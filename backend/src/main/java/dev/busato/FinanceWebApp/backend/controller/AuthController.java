@@ -46,7 +46,7 @@ public class AuthController {
         extraClaims.put("role", user.getRole());
         extraClaims.put("userId", user.getId());
 
-        String token = jwtService.generateToken(extraClaims, user);
+        String token = jwtService.generateToken(extraClaims, user, request.isRememberMe());
 
         return ResponseEntity.ok(AuthResponse.builder().token(token).build());
     }

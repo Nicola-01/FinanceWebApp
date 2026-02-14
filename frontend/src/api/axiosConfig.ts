@@ -19,7 +19,7 @@ api.interceptors.request.use(
         if (isPublic)
             return config;
 
-        const token = localStorage.getItem('jwtToken');
+        const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
 
         if (token)
             config.headers.set('Authorization', `Bearer ${token}`);
