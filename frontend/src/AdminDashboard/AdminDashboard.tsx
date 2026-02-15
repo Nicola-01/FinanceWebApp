@@ -47,8 +47,8 @@ const AdminDashboard: React.FC = () => {
     };
 
     const triggerToast = (message: string) => {
-        setToast({ show: true, message });
-        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
+        setToast({show: true, message});
+        setTimeout(() => setToast(prev => ({...prev, show: false})), 3000);
     };
 
 
@@ -74,6 +74,12 @@ const AdminDashboard: React.FC = () => {
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (newUser.username.trim().length < 3) {
+            triggerToast("Username must be at least 3 characters.");
+            return;
+        }
+
         try {
             const response = await api.post('admin/management/newuser', {username: newUser.username});
 
@@ -168,7 +174,7 @@ const AdminDashboard: React.FC = () => {
                         )}
 
                         {!newUser.password ? (
-                            <button type="submit" className="add-btn">
+                            <button type="submit" className="add-btn" disabled={newUser.username.length < 3}>
                                 <FontAwesomeIcon icon={faUserPlus}/>
                             </button>
                         ) : (

@@ -1,16 +1,16 @@
-// src/Login/Login.tsx
 import React, {useEffect, useState} from 'react';
-// import React, { useState } from 'react';
-
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faUser, faLock, faTriangleExclamation} from '@fortawesome/free-solid-svg-icons';
-// import { useNavigate } from 'react-router-dom';
-// import type {AuthResponse} from '../types'; // Importiamo i tipi
-
-import './Login.css';
-import Sphere from '../assets/Sphere'
-import api from '../api/axiosConfig';
+import {
+    faUser,
+    faLock,
+    faTriangleExclamation,
+    faEye,
+    faEyeSlash
+} from '@fortawesome/free-solid-svg-icons';
 import {useNavigate} from "react-router-dom";
+import Sphere from '../assets/Sphere';
+import api from '../api/axiosConfig';
+import './Login.css';
 
 interface Requirements {
     username?: string;
@@ -21,60 +21,59 @@ const Form: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
-    const [loading, setLoading] = useState(false); // Per disabilitare il bottone mentre carica
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [require, setRequire] = useState<Requirements>({});
+    const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
 
     const navigate = useNavigate();
-
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
+        // Basic validation
         const requirements: Requirements = {};
         let isValid = true;
 
         if (!username) {
-            requirements.username = "Enter the username";
+            requirements.username = "Username is required";
             isValid = false;
         }
 
         if (!password) {
-            requirements.password = "Enter the password";
+            requirements.password = "Password is required";
             isValid = false;
         }
 
-        setRequire(requirements)
+        setRequire(requirements);
         if (!isValid) {
             setLoading(false);
             return;
         }
 
         try {
-            // 2. CHIAMATA CON AXIOS
+            // API Call
             const response = await api.post('/auth/login', {
                 username,
                 password,
                 rememberMe
             });
 
-            // 3. SUCCESSO
-            // Axios mette i dati della risposta direttamente in .data
-            const { token, role } = response.data;
+            const {token, role, passwordMustChange} = response.data;
 
-            // 4. SALVA IL TOKEN (Fondamentale per il tuo interceptor!)
-            localStorage.setItem('jwtToken', token);
+            // Store password expiration status to handle forced change after login
+            localStorage.setItem('mustChange', JSON.stringify(passwordMustChange));
 
+            // Persistent or Session storage based on Remember Me checkbox
             if (rememberMe)
                 localStorage.setItem('jwtToken', token);
             else
-                sessionStorage.setItem('jwtToken', token)
-
-            // console.log("Login effettuato!", response.data);
+                sessionStorage.setItem('jwtToken', token);
 
 
+            // Role-based redirection
             if (role === 'ADMIN')
                 navigate('/admin/dashboard');
             else
@@ -82,22 +81,19 @@ const Form: React.FC = () => {
 
 
         } catch (err: any) {
-            // 5. GESTIONE ERRORI MEGLIO DI FETCH
-            // Axios lancia un errore se lo status non è 2xx
-            // console.error(err);
+            // Error handling
             if (err.response && err.response.data) {
-                // Se il server risponde con un messaggio di errore personalizzato
-                setError(err.response.data.title);
+                setError(err.response.data.title || 'Invalid credentials');
             } else {
                 setError('Server Connection Error');
-                console.error(err)
+                console.error(err);
             }
         } finally {
             setLoading(false);
         }
     };
 
-    // Funzione per pulire l'errore quando l'utente scrive
+    // Clean validation errors as the user types
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value);
         if (require.username) setRequire({...require, username: undefined});
@@ -116,68 +112,86 @@ const Form: React.FC = () => {
                 </div>
             </div>
 
-            {/*{error && <div style={{ color: '#ff4d4d', marginBottom: '10px' }}>{error}</div>}*/}
+            {/* General error message */}
+            {error && <div className="general-error-msg">{error}</div>}
 
+            {/* USERNAME INPUT */}
             <div className="input-group">
                 <div className={`input-wrapper ${require.username ? 'error-border' : ''}`}>
-                            <span className="icon">
-                              <FontAwesomeIcon icon={faUser}/>
-                            </span>
-                    <input type="text" id="username" placeholder="Username" value={username}
-                           onChange={handleUsernameChange} required/>
+                    <span className="icon">
+                        <FontAwesomeIcon icon={faUser}/>
+                    </span>
+                    <input
+                        type="text"
+                        placeholder="Username"
+                        value={username}
+                        onChange={handleUsernameChange}
+                    />
                 </div>
-                {require.username && <span className="error-msg">
-                    <FontAwesomeIcon icon={faTriangleExclamation}/>{require.username}
-                </span>}
+                {require.username && (
+                    <span className="error-msg">
+                        <FontAwesomeIcon icon={faTriangleExclamation}/> {require.username}
+                    </span>
+                )}
             </div>
 
+            {/* PASSWORD INPUT */}
             <div className="input-group">
                 <div className={`input-wrapper ${require.password ? 'error-border' : ''}`}>
-                    <span className="icon"><FontAwesomeIcon icon={faLock}/></span>
+                    <span className="icon">
+                        <FontAwesomeIcon icon={faLock}/>
+                    </span>
                     <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder="Password"
                         value={password}
                         onChange={handlePasswordChange}
                     />
+                    {/* TOGGLE VISIBILITY ICON */}
+                    <span className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
+                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye}/>
+                    </span>
                 </div>
-                {require.password && <span className="error-msg">
-                    <FontAwesomeIcon icon={faTriangleExclamation}/>{require.password}
-                </span>}
+                {require.password && (
+                    <span className="error-msg">
+                        <FontAwesomeIcon icon={faTriangleExclamation}/> {require.password}
+                    </span>
+                )}
             </div>
 
             <div className="form-options">
-                {/* REMEMBER ME */}
                 <label className="remember-me">
-                    <input type="checkbox"
-                           checked={rememberMe}
-                           onChange={(e) => setRememberMe(e.target.checked)}
+                    <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
                     />
-                    <span className="checkbox-custom"></span> {/* Finto checkbox per lo stile */}
+                    <span className="checkbox-custom"></span>
                     <span className="label-text">Remember me</span>
                 </label>
-
-                {/* FORGOT PASSWORD */}
                 <a href="#" className="forgot-pass">Forgot Password?</a>
             </div>
 
-            <button type="submit" className="login-btn" disabled={loading}>{loading ? 'LOADING...' : 'LOGIN'}</button>
+            <button type="submit" className="login-btn" disabled={loading}>
+                {loading ? 'LOADING...' : 'LOGIN'}
+            </button>
         </form>
     );
 }
 
-
 const Login: React.FC = () => {
-
+    // Clear old tokens on login page mount
     useEffect(() => {
         localStorage.removeItem('jwtToken');
+        sessionStorage.removeItem('jwtToken');
+        localStorage.removeItem('mustChange');
     }, []);
 
     return (
         <div className="container">
-            {/* SFONDO ANIMATO */}
+            {/* ANIMATED BACKGROUND SPHERES */}
             <div className="background">
-                {/* Sfera Rossa/Viola (in alto) */}
+                {/* Red/Purple Sphere */}
                 <Sphere style={{
                     height: "400px",
                     width: "400px",
@@ -197,7 +211,7 @@ const Login: React.FC = () => {
                         }}
                 />
 
-
+                {/* Blue/Cyan Sphere */}
                 <Sphere style={{
                     height: "450px",
                     width: "450px",
@@ -215,6 +229,7 @@ const Login: React.FC = () => {
                     ease: "easeInOut",
                 }}/>
 
+                {/* Center Blurred Purple Sphere */}
                 <Sphere style={{
                     height: "300px",
                     width: "300px",
@@ -225,7 +240,6 @@ const Login: React.FC = () => {
                 }} animate={{x: [-20, 20], y: [-20, 20]}}
                         transition={{duration: 8, repeat: Infinity, repeatType: "reverse"}}
                 />
-
             </div>
 
             <Form/>

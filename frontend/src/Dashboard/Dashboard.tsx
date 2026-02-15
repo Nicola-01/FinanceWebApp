@@ -5,6 +5,7 @@ import Sphere from '../assets/Sphere'; // Riutilizziamo le sfere per lo stile
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faWallet, faArrowUp, faArrowDown, faSignOutAlt} from '@fortawesome/free-solid-svg-icons';
 import './Dashboard.css';
+import ChangePasswordModal from "../assets/ChangePasswordModal.tsx";
 
 // Definiamo i tipi dei dati che ci aspettiamo dal backend
 interface Transaction {
@@ -27,6 +28,14 @@ const Dashboard: React.FC = () => {
     const navigate = useNavigate();
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
+    const [mustChange, setMustChange] = useState(() => {
+        return JSON.parse(localStorage.getItem('mustChange') || 'false');
+    });
+
+    const handlePasswordChanged = () => {
+        setMustChange(false);
+        localStorage.setItem('mustChange', 'false');
+    };
 
     // Funzione di Logout
     const handleLogout = () => {
@@ -59,6 +68,9 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="dashboard-container">
+
+            {mustChange && <ChangePasswordModal onSuccess={handlePasswordChanged}/>}
+
             {/* Sfondo animato (opzionale, riusa quello del login se ti piace) */}
             <div className="background-dashboard">
                 <Sphere

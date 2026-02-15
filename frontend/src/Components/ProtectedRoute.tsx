@@ -2,7 +2,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 
 const ProtectedRoute = () => {
-    const token = localStorage.getItem('jwtToken');
+    const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
     if (!token)
         return <Navigate to="/" replace />;
 

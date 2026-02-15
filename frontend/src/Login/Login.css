@@ -317,6 +317,42 @@ body {
     animation: fadeIn 0.3s ease;
 }
 
+.input-wrapper {
+    position: relative; /* Essential for absolute positioning of the eye */
+    display: flex;
+    align-items: center;
+}
+
+.eye-icon {
+    position: absolute;
+    right: 15px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.3s ease;
+    z-index: 10;
+}
+
+.eye-icon:hover {
+    color: #fff;
+}
+
+/* Specific padding for password input to avoid text overlapping the eye */
+input[type="password"],
+input[type="text"] {
+    padding-right: 45px !important;
+}
+
+.general-error-msg {
+    color: #ff4d4d;
+    background: rgba(255, 77, 77, 0.1);
+    border: 1px solid rgba(255, 77, 77, 0.3);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-5px); }

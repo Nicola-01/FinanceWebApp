@@ -7,7 +7,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Data // Generates Getters, Setters, toString, equals, hashCode
@@ -34,7 +33,7 @@ public class User implements UserDetails {
 
     @Column(nullable = false) // The user must change the psw at the first login
     @Builder.Default
-    private boolean mustChangePassword = true; // default value
+    private boolean passwordMustChange = true; // default value
 
     @Column(updatable = false)
     private LocalDate createdAt; // Stores only YYYY-MM-DD
