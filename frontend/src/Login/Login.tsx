@@ -10,6 +10,7 @@ import {faUser, faLock, faTriangleExclamation} from '@fortawesome/free-solid-svg
 import './Login.css';
 import Sphere from '../assets/Sphere'
 import api from '../api/axiosConfig';
+import {useNavigate} from "react-router-dom";
 
 interface Requirements {
     username?: string;
@@ -23,6 +24,8 @@ const Form: React.FC = () => {
     const [loading, setLoading] = useState(false); // Per disabilitare il bottone mentre carica
     const [error, setError] = useState('');
     const [require, setRequire] = useState<Requirements>({});
+
+    const navigate = useNavigate();
 
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -59,7 +62,7 @@ const Form: React.FC = () => {
 
             // 3. SUCCESSO
             // Axios mette i dati della risposta direttamente in .data
-            const {token} = response.data;
+            const { token, role } = response.data;
 
             // 4. SALVA IL TOKEN (Fondamentale per il tuo interceptor!)
             localStorage.setItem('jwtToken', token);
@@ -71,7 +74,12 @@ const Form: React.FC = () => {
 
             // console.log("Login effettuato!", response.data);
 
-            window.location.href = '/dashboard';
+
+            if (role === 'ADMIN')
+                navigate('/admin/dashboard');
+            else
+                navigate('/dashboard');
+
 
         } catch (err: any) {
             // 5. GESTIONE ERRORI MEGLIO DI FETCH
@@ -82,6 +90,7 @@ const Form: React.FC = () => {
                 setError(err.response.data.title);
             } else {
                 setError('Server Connection Error');
+                console.error(err)
             }
         } finally {
             setLoading(false);

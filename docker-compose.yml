@@ -37,6 +37,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       # Validate schema matches entities (safer than 'update')
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      ADMIN_USERNAME: ${ADMIN_USERNAME}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+
+      FRONTEND_URL: ${FRONTEND_URL}
 
   frontend:
     build: ./frontend
@@ -50,4 +54,4 @@ services:
 #    depends_on:
 #      - backend
     environment:
-      - VITE_API_URL=http://localhost:8080
+      VITE_API_URL: ${BACKEND_URL}

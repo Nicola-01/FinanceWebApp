@@ -1,0 +1,190 @@
+.admin-container {
+    min-height: 100vh;
+    background-color: #1a1a1a;
+    color: white;
+    padding: 20px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* TABELLA GLASS */
+.glass-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.glass-table th {
+    text-align: left;
+    padding: 15px;
+    color: #aaa;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.glass-table td {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.glass-table tr:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+/* BOTTONI */
+.add-btn {
+    background: #00ff7f;
+    color: #000;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.delete-btn {
+    background: transparent;
+    color: #ff4d4d;
+    border: 1px solid #ff4d4d;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.delete-btn:hover {
+    background: #ff4d4d;
+    color: white;
+}
+
+/* FORM CREAZIONE */
+.create-user-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.create-user-form input {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    padding: 10px;
+    color: white;
+    border-radius: 5px;
+}
+
+.accent {
+    background: linear-gradient(45deg, #ff00cc, #3333ff); /* Sfumatura da Rosa a Blu */
+    -webkit-background-clip: text; /* Taglia lo sfondo a forma di testo */
+    -webkit-text-fill-color: transparent; /* Rende il testo trasparente per mostrare lo sfondo */
+    font-weight: bold;
+}
+
+.auto-password-field {
+    background: rgba(255, 255, 255, 0.05); /* Stesso sfondo degli altri input */
+    border: 1px dashed rgba(255, 255, 255, 0.3); /* Bordo tratteggiato = "sistema" */
+    color: #aaa;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-style: italic;
+    cursor: default;
+    user-select: none;
+    width: 200px; /* O la larghezza che preferisci */
+}
+
+.lock-icon {
+    font-size: 0.8rem;
+    color: #ff4d4d; /* O il colore accent che preferisci */
+}
+
+.generated-password-group {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    padding-right: 5px;
+    border: 1px solid #00ff7f; /* Bordo verde per indicare successo */
+    width: 250px; /* Adatta la larghezza */
+}
+
+.password-input {
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+    flex-grow: 1;
+    padding: 10px;
+    outline: none;
+    font-family: monospace; /* Meglio per leggere le password */
+    letter-spacing: 1px;
+}
+
+/* Bottoni icone (Occhio e Copia) */
+.icon-action-btn {
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    padding: 8px;
+    transition: 0.3s;
+    font-size: 0.9rem;
+}
+
+.icon-action-btn:hover {
+    color: white;
+}
+
+.copy-btn:hover {
+    color: #00ff7f; /* Verde al passaggio */
+}
+
+/* Bottone Reset (quando hai finito) */
+.reset-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.reset-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- IL TOAST POPUP --- */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px); /* Nascosto sopra */
+    background: rgba(0, 255, 127, 0.2); /* Sfondo verde vetro */
+    backdrop-filter: blur(10px);
+    border: 1px solid #00ff7f;
+    color: #00ff7f;
+    padding: 10px 20px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: all 0.5s ease;
+    z-index: 1000;
+}
+
+.toast-notification.show {
+    transform: translateX(-50%) translateY(0); /* Scende giù */
+    opacity: 1;
+}

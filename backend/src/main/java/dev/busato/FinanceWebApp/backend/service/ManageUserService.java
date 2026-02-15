@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.service;
 import dev.busato.FinanceWebApp.backend.dto.UserRequest;
 import dev.busato.FinanceWebApp.backend.dto.UserResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.UserAlreadyExistsException;
+import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.repository.ManageUserRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
@@ -26,7 +27,7 @@ public class ManageUserService {
     //    @PreAuthorize("adminUser.Role.equals(User.Role.ADMIN)")
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserResponse> getUsers() {
-        return userRepository.findAll()
+        return userRepository.findAllByRole(User.Role.USER)
                 .stream().map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -35,11 +36,11 @@ public class ManageUserService {
     public UserResponse createUser(UserRequest userRequest) {
         String tempPassword = generateRandomPassword(12);
 
-        if (userRepository.existsByUsernameIgnoreCase(userRequest.getName()))
-            throw new UserAlreadyExistsException(userRequest.getName());
+        if (userRepository.existsByUsernameIgnoreCase(userRequest.getUsername()))
+            throw new UserAlreadyExistsException(userRequest.getUsername());
 
         User user = User.builder()
-                .username(userRequest.getName())
+                .username(userRequest.getUsername())
                 .password(passwordEncoder.encode(tempPassword))
                 .build();
 
@@ -48,11 +49,17 @@ public class ManageUserService {
         return userResponse;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    public void deleteUser(UUID id) {
+        if (!userRepository.existsById(id))
+            throw new UserNotFoundException(id);
+        userRepository.deleteById(id);
+    }
+
     private UserResponse mapToResponse(User user) {
         return UserResponse.builder()
-                .name(user.getUsername())
-                .role(user.getRole())
-                .mustChangePassword(user.isMustChangePassword())
+                .id(user.getId())
+                .username(user.getUsername())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

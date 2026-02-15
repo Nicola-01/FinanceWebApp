@@ -1,0 +1,35 @@
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translate(-50%, 20px);
+
+    width: fit-content;
+    max-width: 300px;
+    /*background-color: #2ecc71;*/
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+            transform 0.3s ease,
+            opacity 0.3s ease,
+            visibility 0.3s;
+
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toast-notification.show {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}

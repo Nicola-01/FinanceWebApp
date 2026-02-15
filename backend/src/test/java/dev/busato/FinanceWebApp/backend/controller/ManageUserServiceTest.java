@@ -2,7 +2,6 @@ package dev.busato.FinanceWebApp.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.busato.FinanceWebApp.backend.dto.UserRequest;
-import dev.busato.FinanceWebApp.backend.model.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,7 +30,7 @@ class AdminUserIntegrationTest {
 
         // 1. Preparo i dati
         UserRequest request = UserRequest.builder()
-                .name("test.user").build();
+                .username("test.user").build();
 //        request.setRole(User.Role.USER);
 
         // 2. Chiamo l'endpoint simulando una richiesta HTTP
@@ -50,7 +49,7 @@ class AdminUserIntegrationTest {
     void testCreateUserAsSimpleUser_ShouldFail() throws Exception {
 
         UserRequest request = UserRequest.builder()
-                .name("hacker.user").build();
+                .username("hacker.user").build();
 
         mockMvc.perform(post("/api/admin/users")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -1,5 +1,5 @@
 # 1. Build Stage: Use an image with Java 17 and Gradle pre-installed
-FROM gradle:8.5-jdk21 AS builder
+FROM gradle:9-jdk21 AS builder
 WORKDIR /app
 
 # Copy configuration files first to leverage Docker cache

@@ -6,14 +6,17 @@ import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.ManageUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/management")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class ManageUserController {
 
     private final ManageUserService manageUserService;
@@ -26,6 +29,12 @@ public class ManageUserController {
     @PostMapping("/newuser")
     public ResponseEntity<UserResponse> newUser(@RequestBody UserRequest userRequest) {
         return ResponseEntity.ok(manageUserService.createUser(userRequest));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+        manageUserService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

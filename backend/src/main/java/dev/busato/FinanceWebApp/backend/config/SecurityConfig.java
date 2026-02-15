@@ -57,6 +57,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Allow everyone to access Login and Register endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/dashboard/**").hasRole("USER")
 
                         // Lock everything else: You must be authenticated to access other URLs
                         .anyRequest().authenticated()
@@ -73,8 +75,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // Consentiamo al frontend di Vite di accedere
-//        configuration.setAllowedOrigins(List.of(FRONTEND_URL));
-        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedOrigins(List.of(FRONTEND_URL));
 
         // Consentiamo i metodi principali
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
