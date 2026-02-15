@@ -1,7 +1,7 @@
 import React from 'react';
 import {Routes, Route, Navigate} from 'react-router-dom';
 import Login from './Login/Login';
-import Dashboard from './Dashboard/Dashboard';
+import Dashboard from './UserDashboard/UserDashboard.tsx';
 import AdminDashboard from './AdminDashboard/AdminDashboard'; // Importa la pagina Admin
 import ProtectedRoute from './Components/ProtectedRoute'; // Importa il buttafuori
 

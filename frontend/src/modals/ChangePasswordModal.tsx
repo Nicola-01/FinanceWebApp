@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../api/axiosConfig';
+import api from '../api/axiosConfig.ts';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLock, faEye, faEyeSlash, faShieldAlt, faCheck, faTimes, faKey } from '@fortawesome/free-solid-svg-icons';
 import './ChangePasswordModal.css';

@@ -9,7 +9,7 @@ import Sphere from '../assets/Sphere';
 import './AdminDashboard.css';
 import UserRow from "./UserRow";
 import {ToastNotification} from '../assets/ToastNotification';
-import {DeleteConfirmationModal} from "../assets/DeleteConfirmationModal";
+import {DeleteConfirmationModal} from "../modals/DeleteConfirmationModal.tsx";
 
 // ... (Interfaces remain the same) ...
 export interface User {

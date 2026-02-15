@@ -5,23 +5,35 @@ export interface User {
     token: string;
 }
 
-export interface AuthResponse {
-    token: string;
-}
-
-export interface WalletRequest {
+export interface Tag {
     name: string;
-    currency: string;
-    color: string;
     icon: string;
+    colorHex: string;
+    parentName?: string | null;
 }
 
 export interface Wallet {
-    id: string; // UUID è una stringa in JS
+    id: string;
     name: string;
     icon: string;
     color: string;
     currency: string;
-    createdAt: string; // LocalDate diventa stringa ISO
-    myRole: 'OWNER' | 'ADMIN' | 'EDITOR' | 'VIEWER'; // Enum mappato
+    createdAt: string;
+    myRole: 'OWNER' | 'EDITOR' | 'VIEWER';
+    // Nota: Il backend non invia il balance in WalletResponse.
+    // Lo calcoleremo lato frontend sommando le transazioni o useremo un valore mock per la demo visuale.
+    virtualBalance?: number;
+}
+
+export interface Transaction {
+    id: string;
+    name: string;
+    tag: Tag;
+    amount: number;
+    originalAmount?: number;
+    originalCurrency?: string;
+    exchangeVale?: number;
+    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+    notes?: string;
+    transactionDate: string;
 }

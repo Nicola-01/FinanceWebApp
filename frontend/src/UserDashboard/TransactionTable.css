@@ -1,0 +1,48 @@
+/* src/styles/TransactionTable.css */
+
+/* Rimuove background di default di Bootstrap */
+.table-transparent {
+    --bs-table-bg: transparent;
+    --bs-table-color: white;
+    margin-bottom: 0;
+}
+
+/* Header Tabella */
+.table-header-glass th {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #aaa;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+/* Righe Tabella */
+.table-row-glass td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 16px 10px;
+    vertical-align: middle;
+    transition: background 0.2s;
+}
+
+.table-row-glass:last-child td {
+    border-bottom: none;
+}
+
+.table-row-glass:hover td {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* Badge per i Tag */
+.tag-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
