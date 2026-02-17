@@ -30,6 +30,8 @@ services:
     depends_on:
       db: # Wait for DB to start
         condition: service_healthy
+    env_file:
+      - .env
     environment:
       # These variables override application.properties
       SPRING_DATASOURCE_URL: ${DATABASE_ROOT}/${POSTGRES_DB}
@@ -42,6 +44,10 @@ services:
 
       FRONTEND_URL: ${FRONTEND_URL}
 
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_LONG_EXPIRATION: ${JWT_LONG_EXPIRATION}
+      JWT_SHORT_EXPIRATION: ${JWT_SHORT_EXPIRATION}
+
   frontend:
     build: ./frontend
     container_name: finance_frontend
@@ -51,6 +57,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - ./.env:/app/.env
 #    depends_on:
 #      - backend
     environment:

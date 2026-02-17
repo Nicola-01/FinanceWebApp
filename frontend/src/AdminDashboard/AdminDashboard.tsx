@@ -8,8 +8,9 @@ import {
 import Sphere from '../assets/Sphere';
 import './AdminDashboard.css';
 import UserRow from "./UserRow";
-import {ToastNotification} from '../assets/ToastNotification';
 import {DeleteConfirmationModal} from "../modals/DeleteConfirmationModal.tsx";
+import {triggerToast} from '../Components/ToastNotification.tsx';
+import {StatCard} from "./StatCard.tsx";
 
 // ... (Interfaces remain the same) ...
 export interface User {
@@ -32,7 +33,6 @@ const AdminDashboard: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<SortConfig>(null);
-    const [toast, setToast] = useState({show: false, message: ''});
     const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
     // ... (useEffect and API functions remain the same) ...
@@ -44,36 +44,32 @@ const AdminDashboard: React.FC = () => {
         try {
             const res = await api.get('/admin/management/users');
             setUsers(res.data);
-        } catch (err) {
-            console.error("Error loading users", err);
+        } catch (err: any) {
+            triggerToast(err.response.data.title || 'Error loading users"', false);
         }
     };
 
     const handleCreate = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newUser.username.trim().length < 3) {
-            triggerToast("Username must be at least 3 characters.");
+            triggerToast("Username must be at least 3 characters.", false);
             return;
         }
         try {
             const response = await api.post('admin/management/newuser', {username: newUser.username});
             setNewUser({username: newUser.username, password: response.data.tempPassword});
-            triggerToast("User created!");
+            triggerToast("User created!", true);
             loadUsers();
-        } catch (err) {
-            triggerToast("User creation failed.");
+        } catch (err: any) {
+            triggerToast(err.response.data.title || 'User creation failed', false);
         }
     };
 
-    // ... (Delete and Copy helper functions remain the same) ...
-    const triggerToast = (msg: string) => {
-        setToast({show: true, message: msg});
-        setTimeout(() => setToast(prev => ({...prev, show: false})), 3000);
-    };
+
     const copyToClipboard = () => {
         if (newUser.password) {
             navigator.clipboard.writeText(newUser.password);
-            triggerToast('Copied!');
+            triggerToast('Copied!', true);
         }
     };
     const resetForm = (e: any) => {
@@ -89,9 +85,9 @@ const AdminDashboard: React.FC = () => {
             await api.delete(`/admin/management/${userId}`);
             setUsers(prev => prev.filter(u => u.id !== userId));
             closeDeleteModal();
-            triggerToast("Deleted!");
-        } catch (err) {
-            triggerToast("Error deleting.");
+            triggerToast("Deleted!", true);
+        } catch (err: any) {
+            triggerToast(err.response.data.title || 'Error deleting."', false);
         }
     };
 
@@ -129,13 +125,12 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             <header className="glass-header">
-                <h2>Admin<span className="accent">Panel</span></h2>
+                <h2>Admin<span className="accent text-gradient-neon animate-gradient-x ml-1">Panel</span></h2>
                 <button className="logout-btn" onClick={() => window.location.href = '/login'} title="Logout">
                     <FontAwesomeIcon icon={faSignOutAlt}/>
                 </button>
             </header>
 
-            <ToastNotification show={toast.show} message={toast.message}/>
             <DeleteConfirmationModal isOpen={!!userToDelete} user={userToDelete} onClose={closeDeleteModal}
                                      onConfirm={handleConfirmDelete}/>
 
@@ -143,29 +138,24 @@ const AdminDashboard: React.FC = () => {
 
                 {/* 1. STATS CARDS (Top Section) */}
                 <div className="stats-grid">
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper"><FontAwesomeIcon icon={faUsers}/></div>
-                        <div className="stat-info">
-                            <h4>Total Users</h4>
-                            <p>{users.length}</p>
-                        </div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper" style={{color: '#3333ff'}}><FontAwesomeIcon icon={faWallet}/>
-                        </div>
-                        <div className="stat-info">
-                            <h4>Active Wallets</h4>
-                            <p>{totalWallets}</p>
-                        </div>
-                    </div>
-                    <div className="stat-card">
-                        <div className="stat-icon-wrapper" style={{color: '#ff00cc'}}><FontAwesomeIcon
-                            icon={faExchangeAlt}/></div>
-                        <div className="stat-info">
-                            <h4>Transactions</h4>
-                            <p>{totalTransactions}</p>
-                        </div>
-                    </div>
+                    <StatCard
+                        title="Total Users"
+                        value={users.length}
+                        icon={faUsers}
+                        color="#3333ff"
+                    />
+                    <StatCard
+                        title="Active Wallets"
+                        value={totalWallets}
+                        icon={faWallet}
+                        color="#3333ff"
+                    />
+                    <StatCard
+                        title="Transactions"
+                        value={totalTransactions}
+                        icon={faExchangeAlt}
+                        color="#ff00cc"
+                    />
                 </div>
 
                 <div className="glass-card main-card">

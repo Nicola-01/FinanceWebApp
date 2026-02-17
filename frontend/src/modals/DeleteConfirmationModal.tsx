@@ -11,7 +11,7 @@ interface DeleteModalProps {
     onConfirm: (userId: string) => Promise<void>;
 }
 
-const countdown = 0
+const countdown = 3
 
 export const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({ isOpen, user, onClose, onConfirm }) => {
     const [confirmationText, setConfirmationText] = useState("");

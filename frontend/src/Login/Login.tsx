@@ -10,7 +10,10 @@ import {
 import {useNavigate} from "react-router-dom";
 import Sphere from '../assets/Sphere';
 import api from '../api/axiosConfig';
-import './Login.css';
+
+// Nota: Rimuovi l'import di Login.css!
+
+import {triggerToast} from '../Components/ToastNotification.tsx';
 
 interface Requirements {
     username?: string;
@@ -22,9 +25,9 @@ const Form: React.FC = () => {
     const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [error, setError] = useState(''); // Usato per l'animazione shake
     const [require, setRequire] = useState<Requirements>({});
-    const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
+    const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
 
@@ -33,7 +36,6 @@ const Form: React.FC = () => {
         setLoading(true);
         setError('');
 
-        // Basic validation
         const requirements: Requirements = {};
         let isValid = true;
 
@@ -48,13 +50,15 @@ const Form: React.FC = () => {
         }
 
         setRequire(requirements);
+
         if (!isValid) {
             setLoading(false);
+            setError('shake'); // Attiva animazione visiva
+            setTimeout(() => setError(''), 500); // Reset animazione
             return;
         }
 
         try {
-            // API Call
             const response = await api.post('/auth/login', {
                 username,
                 password,
@@ -63,37 +67,30 @@ const Form: React.FC = () => {
 
             const {token, role, passwordMustChange} = response.data;
 
-            // Store password expiration status to handle forced change after login
             localStorage.setItem('mustChange', JSON.stringify(passwordMustChange));
 
-            // Persistent or Session storage based on Remember Me checkbox
             if (rememberMe)
                 localStorage.setItem('jwtToken', token);
             else
                 sessionStorage.setItem('jwtToken', token);
 
-
-            // Role-based redirection
             if (role === 'ADMIN')
                 navigate('/admin/dashboard');
             else
                 navigate('/dashboard');
 
-
         } catch (err: any) {
-            // Error handling
-            if (err.response && err.response.data) {
-                setError(err.response.data.title || 'Invalid credentials');
-            } else {
-                setError('Server Connection Error');
-                console.error(err);
-            }
+            setError('shake');
+            setTimeout(() => setError(''), 500);
+
+            const title = err.response?.data?.title || "Connection Error.";
+            triggerToast(title, false);
+            console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
-    // Clean validation errors as the user types
     const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUsername(e.target.value);
         if (require.username) setRequire({...require, username: undefined});
@@ -105,20 +102,32 @@ const Form: React.FC = () => {
     };
 
     return (
-        <form className={`glass-form ${error ? 'form-error' : ''}`} onSubmit={handleSubmit} noValidate>
-            <div className="avatar-container">
-                <div className="avatar-circle">
-                    <FontAwesomeIcon icon={faUser} className="avatar-icon"/>
+        <form
+            className={`
+                relative z-10 flex flex-col items-center 
+                w-[380px] p-12 
+                bg-white/5 backdrop-blur-xl 
+                border border-white/10 rounded-3xl shadow-2xl
+                transition-transform duration-300
+                ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}
+            `}
+            onSubmit={handleSubmit}
+            noValidate
+        >
+            {/* AVATAR */}
+            <div className="mb-8">
+                <div
+                    className="w-20 h-20 rounded-full bg-white/15 flex items-center justify-center shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
+                    <FontAwesomeIcon icon={faUser} className="text-white/80 text-3xl"/>
                 </div>
             </div>
 
-            {/* General error message */}
-            {error && <div className="general-error-msg">{error}</div>}
-
-            {/* USERNAME INPUT */}
-            <div className="input-group">
-                <div className={`input-wrapper ${require.username ? 'error-border' : ''}`}>
-                    <span className="icon">
+            <div className="relative w-full mb-8">
+                <div className={`
+                    relative flex items-center border-b pb-1 transition-colors duration-300
+                    ${require.username ? 'border-red-500' : 'border-white/50 focus-within:border-white'}
+                `}>
+                    <span className="absolute left-0 text-white/80 text-lg">
                         <FontAwesomeIcon icon={faUser}/>
                     </span>
                     <input
@@ -126,19 +135,23 @@ const Form: React.FC = () => {
                         placeholder="Username"
                         value={username}
                         onChange={handleUsernameChange}
+                        className="w-full bg-transparent border-none outline-none text-white pl-8 py-2 placeholder-white/70"
                     />
                 </div>
                 {require.username && (
-                    <span className="error-msg">
+                    <span
+                        className="absolute -bottom-6 left-0 flex items-center gap-2 text-red-500 text-sm animate-pulse">
                         <FontAwesomeIcon icon={faTriangleExclamation}/> {require.username}
                     </span>
                 )}
             </div>
 
-            {/* PASSWORD INPUT */}
-            <div className="input-group">
-                <div className={`input-wrapper ${require.password ? 'error-border' : ''}`}>
-                    <span className="icon">
+            <div className="relative w-full mb-8">
+                <div className={`
+                    relative flex items-center border-b pb-1 transition-colors duration-300
+                    ${require.password ? 'border-red-500' : 'border-white/50 focus-within:border-white'}
+                `}>
+                    <span className="absolute left-0 text-white/80 text-lg">
                         <FontAwesomeIcon icon={faLock}/>
                     </span>
                     <input
@@ -146,33 +159,60 @@ const Form: React.FC = () => {
                         placeholder="Password"
                         value={password}
                         onChange={handlePasswordChange}
+                        className="w-full bg-transparent border-none outline-none text-white pl-8 pr-8 py-2 placeholder-white/70"
                     />
                     {/* TOGGLE VISIBILITY ICON */}
-                    <span className="eye-icon" onClick={() => setShowPassword(!showPassword)}>
+                    <span
+                        className="absolute right-0 cursor-pointer text-white/50 hover:text-white transition-colors z-20"
+                        onClick={() => setShowPassword(!showPassword)}
+                    >
                         <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye}/>
                     </span>
                 </div>
                 {require.password && (
-                    <span className="error-msg">
+                    <span
+                        className="absolute -bottom-6 left-0 flex items-center gap-2 text-red-500 text-sm animate-pulse">
                         <FontAwesomeIcon icon={faTriangleExclamation}/> {require.password}
                     </span>
                 )}
             </div>
 
-            <div className="form-options">
-                <label className="remember-me">
-                    <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    <span className="checkbox-custom"></span>
-                    <span className="label-text">Remember me</span>
+            {/* OPTIONS (Remember Me / Forgot) */}
+            <div className="w-full flex justify-between items-center text-sm text-white/80 mb-8">
+                <label className="flex items-center cursor-pointer select-none group">
+                    <div className="relative">
+                        <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            className="peer appearance-none w-4 h-4 border border-white/40 rounded bg-white/10 checked:bg-white checked:border-white cursor-pointer transition-all"
+                        />
+                        {/* Custom checkmark icon (simulated) */}
+                        <svg
+                            className="absolute top-0.5 left-0.5 w-3 h-3 text-[#230b38] opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <span className="ml-2 font-light group-hover:text-white transition-colors">Remember me</span>
                 </label>
-                <a href="#" className="forgot-pass">Forgot Password?</a>
+                <a href="#" className="font-light italic hover:text-white hover:underline transition-colors">Forgot
+                    Password?</a>
             </div>
 
-            <button type="submit" className="login-btn" disabled={loading}>
+            {/* LOGIN BUTTON */}
+            <button
+                type="submit"
+                disabled={loading}
+                className={`
+                    w-full py-3 rounded-full 
+                    bg-gradient-to-r from-[#4b1a69] to-[#4d6dff] 
+                    text-white font-semibold tracking-wider 
+                    shadow-lg hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 
+                    transition-all duration-200
+                    disabled:opacity-70 disabled:cursor-not-allowed
+                `}
+            >
                 {loading ? 'LOADING...' : 'LOGIN'}
             </button>
         </form>
@@ -180,7 +220,6 @@ const Form: React.FC = () => {
 }
 
 const Login: React.FC = () => {
-    // Clear old tokens on login page mount
     useEffect(() => {
         localStorage.removeItem('jwtToken');
         sessionStorage.removeItem('jwtToken');
@@ -188,16 +227,20 @@ const Login: React.FC = () => {
     }, []);
 
     return (
-        <div className="container">
+        <div className="relative flex items-center justify-center min-h-screen bg-slate-900 overflow-hidden">
+            {/* BACKGROUND GRADIENT */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#230b38] to-[#1a1a40] z-0"></div>
+
             {/* ANIMATED BACKGROUND SPHERES */}
-            <div className="background">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
                 {/* Red/Purple Sphere */}
                 <Sphere style={{
                     height: "400px",
                     width: "400px",
                     background: "linear-gradient(#ff0055, #ff2299)",
                     top: "-100px",
-                    left: "20%"
+                    left: "20%",
+                    opacity: 0.6,
                 }} animate={{
                     x: [0, 100, -50, 0],
                     y: [0, -50, 50, 0],
@@ -218,6 +261,7 @@ const Login: React.FC = () => {
                     background: "linear-gradient(#4d22ff, #22d3ff)",
                     bottom: "-100px",
                     right: "20%",
+                    opacity: 0.6
                 }} animate={{
                     x: [0, -70, 40, 0],
                     y: [0, 80, -30, 0],
@@ -236,7 +280,7 @@ const Login: React.FC = () => {
                     background: "#7a00cc",
                     top: "40%",
                     left: "40%",
-                    opacity: "0.3",
+                    opacity: "0.3"
                 }} animate={{x: [-20, 20], y: [-20, 20]}}
                         transition={{duration: 8, repeat: Infinity, repeatType: "reverse"}}
                 />
