@@ -22,20 +22,19 @@ services:
   backend:
     build:
       context: ./backend
-      target: development
+      target: production
     container_name: finance_backend
-    restart: on-failure
+    restart: always
     ports:
       - "8080:8080"
-    volumes:
-      - ./backend/src:/app/src
+      -
     depends_on:
       db: # Wait for DB to start
         condition: service_healthy
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: prod
       # These variables override application.properties
       SPRING_DATASOURCE_URL: ${DATABASE_ROOT}/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -55,11 +54,11 @@ services:
   frontend:
     build:
       context: ./frontend
-      target: development
+      target: production
     container_name: finance_frontend
     restart: always
     ports:
-      - "5173:5173"
+      - "3000:80"
     volumes:
       - ./frontend:/app
       - /app/node_modules
