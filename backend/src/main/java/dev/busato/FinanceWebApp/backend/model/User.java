@@ -43,6 +43,7 @@ public class User implements UserDetails {
         this.createdAt = LocalDate.now();
     }
 
+    @Builder.Default
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<WalletAccess> walletAccesses = new ArrayList<>();

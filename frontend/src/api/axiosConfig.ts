@@ -2,8 +2,7 @@
 import axios, {type InternalAxiosRequestConfig } from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api',
-    // baseURL: import.meta.env.VITE_API_URL + '/api',
+    baseURL: import.meta.env.VITE_API_URL + '/api',
     headers: {
         'Content-Type': 'application/json',
     }
@@ -11,10 +10,8 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        // 1. Definiamo gli endpoint pubblici (che non vogliono il token)
         const publicEndpoints = ['/auth/login', '/auth/register'];
 
-        // Controlliamo se l'URL attuale è tra quelli pubblici
         const isPublic = publicEndpoints.some(endpoint => config.url?.endsWith(endpoint));
 
         if (isPublic)

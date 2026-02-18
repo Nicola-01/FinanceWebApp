@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -40,54 +41,42 @@ public class SecurityConfig {
     @Value("${application.frontend.url}")
     private String FRONTEND_URL;
 
+    @Value("${application.backend.url}")
+    private String BACKEND_URL;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. Disable CSRF (Cross-Site Request Forgery)
-                // We don't need it because we use JWT (Stateless), not Browser Sessions/Cookies
                 .csrf(AbstractHttpConfigurer::disable)
-
-                .cors(Customizer.withDefaults())
-
-                // 2. Set Session Management to STATELESS
-                // This tells Spring: "Don't create a JSESSIONID cookie. We will verify every request."
+                .cors(Customizer.withDefaults()) // Usa il bean corsConfigurationSource qui sotto
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // 3. Define Access Rules
                 .authorizeHttpRequests(auth -> auth
-                        // Allow everyone to access Login and Register endpoints
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/dashboard/**").hasRole("USER")
-
-                        // Lock everything else: You must be authenticated to access other URLs
                         .anyRequest().authenticated()
                 )
-//                .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // 2. DEFINIAMO LE REGOLE CORS 👇
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Consentiamo al frontend di Vite di accedere
-        configuration.setAllowedOrigins(List.of(FRONTEND_URL));
+        configuration.setAllowedOrigins(List.of(
+                FRONTEND_URL, BACKEND_URL,
+                "http://localhost:5173", "http://localhost:3000"
+        ));
 
-        // Consentiamo i metodi principali
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // Consentiamo tutti gli header (incluso Authorization)
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
-        // Se in futuro userai i cookie, questo serve a true
+        // A volte "Authorization" non basta, meglio essere permissivi in fase di debug
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Applichiamo queste regole a tutti gli endpoint
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }

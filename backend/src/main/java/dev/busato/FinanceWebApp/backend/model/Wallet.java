@@ -35,6 +35,7 @@ public class Wallet {
     private List<WalletAccess> accesses = new ArrayList<>();
 
     @OneToMany(mappedBy = "wallet")
+    @Builder.Default
     private List<Tag> tags = new ArrayList<>();
 
     @Builder.Default
