@@ -20,17 +20,22 @@ services:
 
   # 2. Backend Service (Spring Boot)
   backend:
-    build: ./backend # context is the 'backend' folder
+    build:
+      context: ./backend
+      target: development
     container_name: finance_backend
     restart: on-failure
     ports:
       - "8080:8080"
+    volumes:
+      - ./backend/src:/app/src
     depends_on:
       db: # Wait for DB to start
         condition: service_healthy
     env_file:
       - .env
     environment:
+      SPRING_PROFILES_ACTIVE: dev
       # These variables override application.properties
       SPRING_DATASOURCE_URL: ${DATABASE_ROOT}/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
@@ -48,7 +53,9 @@ services:
       JWT_SHORT_EXPIRATION: ${JWT_SHORT_EXPIRATION}
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: development
     container_name: finance_frontend
     restart: always
     ports:
