@@ -14,7 +14,7 @@ jobs:
 
       - name: Copy .env from Host to Runner workspace
         run: |
-          cp /root/FinanceWebApp.env . 
+          cp /home/deployer/.env .
 
       - name: Prune Docker images
         run: docker system prune -af
