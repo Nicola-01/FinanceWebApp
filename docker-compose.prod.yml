@@ -1,69 +1,68 @@
 services:
-  # 1. Database Service (PostgreSQL)
+  # 1. Database Service
   db:
     image: postgres:16-alpine
-    container_name: finance_db
+    container_name: finance_db_prod
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432" # Expose port for external tools (DBeaver, IntelliJ, etc.)
+      - "5432:5432"
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data # Persist data if container stops
-    healthcheck: # Controllo salute per dire a Spring quando il DB è pronto
+      # CONSIGLIO: Usa un volume nominale invece di una cartella locale
+      # per evitare che il runner cancelli i dati per sbaglio durante le pulizie
+      - finance_db_data:/var/lib/postgresql/data
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # 2. Backend Service (Spring Boot)
+  # 2. Backend Service
   backend:
     build:
       context: ./backend
       target: production
-    container_name: finance_backend
+    container_name: finance_backend_prod
     restart: always
     ports:
       - "8080:8080"
     depends_on:
-      db: # Wait for DB to start
+      db:
         condition: service_healthy
     env_file:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      # These variables override application.properties
       SPRING_DATASOURCE_URL: ${DATABASE_ROOT}/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      # Validate schema matches entities (safer than 'update')
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-
       FRONTEND_URL: ${FRONTEND_URL}
       BACKEND_URL: ${BACKEND_URL}
-
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       JWT_LONG_EXPIRATION: ${JWT_LONG_EXPIRATION}
       JWT_SHORT_EXPIRATION: ${JWT_SHORT_EXPIRATION}
 
+  # 3. Frontend Service (PULITO)
   frontend:
     build:
       context: ./frontend
       target: production
-    container_name: finance_frontend
+      args:
+        # OTTIMO: Queste vengono usate durante la "npm run build"
+        VITE_API_URL: ${BACKEND_URL}
+        VITE_ALLOWED_HOSTS: ${FRONTEND_URL}
+    container_name: finance_frontend_prod
     restart: always
     ports:
       - "3000:80"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - ./.env:/app/.env
-#    depends_on:
-#      - backend
-    environment:
-      VITE_API_URL: ${BACKEND_URL}
-      VITE_ALLOWED_HOSTS: ${FRONTEND_URL}
+    # Niente volumes (il codice è dentro l'immagine)
+    # Niente environment (le variabili sono già "cotte" nel JS)
+
+volumes:
+  finance_db_data: # Definisce il volume persistente per il DB
