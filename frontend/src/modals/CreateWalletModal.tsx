@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faWallet, faCheck, faPalette } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faWallet} from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
 import './Modal.css'
 
