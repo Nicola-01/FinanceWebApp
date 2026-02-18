@@ -1,0 +1,20 @@
+name: CI/CD Deploy to Mini PC
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Prune Docker images
+        run: docker system prune -af
+
+      - name: Deploy with Production Compose
+        run: |
+          docker compose -f docker-compose.prod.yml up -d --build
