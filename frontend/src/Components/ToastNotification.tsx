@@ -1,19 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
-
-// Rimuovi l'import del CSS: import './ToastNotification.css';
+import {createPortal} from "react-dom";
 
 interface ToastData {
     message: string;
     success: boolean;
 }
 
-// Variabile globale per il pattern Observer
 let toastEvent: ((data: ToastData) => void) | null = null;
 const TIMEOUT_DURATION = 3000;
 
-// Funzione esterna da chiamare ovunque
 export const triggerToast = (message: string, success: boolean) => {
     toastEvent?.({ message, success });
 };
@@ -22,7 +19,6 @@ export const ToastNotification: React.FC = () => {
     const [show, setShow] = useState(false);
     const [data, setData] = useState<ToastData>({ message: '', success: true });
 
-    // Ref per gestire il timer e pulirlo se arrivano notifiche veloci
     const timerRef = useRef<number | null>(null);
 
     useEffect(() => {
@@ -30,18 +26,14 @@ export const ToastNotification: React.FC = () => {
             setData(newData);
             setShow(true);
 
-            // Se c'è già un timer attivo (es. hai cliccato due volte veloce), cancellalo
-            if (timerRef.current) {
+            if (timerRef.current)
                 clearTimeout(timerRef.current);
-            }
 
-            // Imposta il nuovo timer per nascondere
             timerRef.current = setTimeout(() => {
                 setShow(false);
             }, TIMEOUT_DURATION);
         };
 
-        // Collega la funzione interna alla variabile globale
         toastEvent = handleTrigger;
 
         return () => {
@@ -50,7 +42,7 @@ export const ToastNotification: React.FC = () => {
         };
     }, []);
 
-    return (
+    return createPortal(
         <div
             className={`
                 fixed top-5 left-1/2 z-[9999]
@@ -60,7 +52,7 @@ export const ToastNotification: React.FC = () => {
                 font-semibold tracking-wide shadow-2xl
                 transition-all duration-400 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]
                 
-                ${/* Logica di Visibilità e Posizione */
+                ${
                 show
                     ? 'opacity-100 -translate-x-1/2 translate-y-0 visible pointer-events-auto'
                     : 'opacity-0 -translate-x-1/2 translate-y-5 invisible pointer-events-none'
@@ -79,6 +71,7 @@ export const ToastNotification: React.FC = () => {
             </div>
 
             <span>{data.message}</span>
-        </div>
+        </div>,
+        document.getElementById('toast-root')!
     );
 };

@@ -1,15 +1,13 @@
 // src/types/index.ts
 
 export interface User {
-    username: string;
-    token: string;
-}
-
-export interface Tag {
+    id: string;
     name: string;
-    icon: string;
-    colorHex: string;
-    parentName?: string | null;
+    token: string;
+
+    createdAt?: string
+    wallets?: number
+    transactions?: number
 }
 
 export interface Wallet {
@@ -23,6 +21,14 @@ export interface Wallet {
     // Nota: Il backend non invia il balance in WalletResponse.
     // Lo calcoleremo lato frontend sommando le transazioni o useremo un valore mock per la demo visuale.
     virtualBalance?: number;
+}
+
+export interface Tag {
+    id: string;
+    name: string;
+    icon: string;
+    colorHex: string;
+    parentName?: string | null;
 }
 
 export interface Transaction {
