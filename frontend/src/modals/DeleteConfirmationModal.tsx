@@ -3,6 +3,7 @@ import {createPortal} from 'react-dom';
 import type {User, Wallet} from "../types";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
+import {ModalDialog} from './ModalDialog';
 
 export interface DeleteModalHandle {
     deleteObject: (object: User | Wallet,
@@ -59,18 +60,7 @@ export const DeleteConfirmationModal = forwardRef<DeleteModalHandle>(
 
         return createPortal(
             <>
-                <style>{`
-                    @keyframes fadeIn {
-                        from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-                        to { opacity: 1; transform: translateY(0) scale(1); }
-                    }
-                `}</style>
-
-                <dialog
-                    ref={dialogRef}
-                    className="m-auto w-[90vw] max-w-[450px] rounded-[20px] border border-white/10 bg-white/5 p-0 shadow-[0_20px_40px_rgba(0,0,0,0.4)] backdrop-blur-[15px] backdrop:bg-black/60 backdrop:backdrop-blur-[8px] open:animate-[fadeIn_0.3s_cubic-bezier(0.165,0.84,0.44,1)]"
-                >
-
+                <ModalDialog ref={dialogRef}>
                     <div className="p-[35px] text-center text-white">
 
                         <div className="mb-5">
@@ -117,7 +107,7 @@ export const DeleteConfirmationModal = forwardRef<DeleteModalHandle>(
 
                         </div>
                     </div>
-                </dialog>
+                </ModalDialog>
             </>,
             document.getElementById('modal-root')!
         );
