@@ -3,8 +3,8 @@ import {Routes, Route, Navigate} from 'react-router-dom';
 import Login from './Login/Login';
 import Dashboard from './UserDashboard/UserDashboard.tsx';
 import AdminDashboard from './AdminDashboard/AdminDashboard'; // Importa la pagina Admin
-import ProtectedRoute from './Components/ProtectedRoute';
-import {ToastNotification} from "./Components/ToastNotification.tsx";
+import ProtectedRoute from './components/ProtectedRoute';
+import {ToastNotification} from "./components/ToastNotification.tsx";
 import {DeleteConfirmationModal, type DeleteModalHandle} from "./modals/DeleteConfirmationModal.tsx";
 
 const App: React.FC = () => {

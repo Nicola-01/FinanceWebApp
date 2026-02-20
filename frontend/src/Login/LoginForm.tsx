@@ -1,9 +1,9 @@
-import React, { useRef, useState } from 'react';
-import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faLock, faTriangleExclamation, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import React, {useRef, useState} from 'react';
+import {useNavigate} from "react-router-dom";
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faUser, faLock, faTriangleExclamation, faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
-import { triggerToast } from '../Components/ToastNotification.tsx';
+import {triggerToast} from '../components/ToastNotification.tsx';
 
 interface Requirements {
     username?: string;
@@ -62,23 +62,23 @@ export const LoginForm: React.FC = () => {
                 rememberMe: rememberMe.current?.checked
             });
 
-            const { token, role, passwordMustChange } = response.data;
+            const {token, role, passwordMustChange} = response.data;
 
             localStorage.setItem('mustChange', JSON.stringify(passwordMustChange));
 
             // Store token based on 'Remember Me' preference
-            if (rememberMe.current?.checked) {
+            if (rememberMe.current?.checked)
                 localStorage.setItem('jwtToken', token);
-            } else {
+            else
                 sessionStorage.setItem('jwtToken', token);
-            }
+
 
             // Role-based routing
-            if (role === 'ADMIN') {
+            if (role === 'ADMIN')
                 navigate('/admin/dashboard');
-            } else {
+            else
                 navigate('/dashboard');
-            }
+
 
         } catch (err: any) {
             // Error handling & shake animation
@@ -101,16 +101,18 @@ export const LoginForm: React.FC = () => {
         >
             {/* Avatar Header */}
             <div className="mb-8">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
-                    <FontAwesomeIcon icon={faUser} className="text-3xl text-white/80" />
+                <div
+                    className="flex h-20 w-20 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
+                    <FontAwesomeIcon icon={faUser} className="text-3xl text-white/80"/>
                 </div>
             </div>
 
             {/* Username Input */}
             <div className="relative mb-8 w-full">
-                <div className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
+                <div
+                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
                     <span className="absolute left-0 text-lg text-white/80">
-                        <FontAwesomeIcon icon={faUser} />
+                        <FontAwesomeIcon icon={faUser}/>
                     </span>
                     <input
                         ref={username}
@@ -121,17 +123,19 @@ export const LoginForm: React.FC = () => {
                 </div>
                 {/* Username Error Tooltip */}
                 {require.username && (
-                    <span className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm text-red-500">
-                        <FontAwesomeIcon icon={faTriangleExclamation} /> {require.username}
+                    <span
+                        className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm text-red-500">
+                        <FontAwesomeIcon icon={faTriangleExclamation}/> {require.username}
                     </span>
                 )}
             </div>
 
             {/* Password Input */}
             <div className="relative mb-8 w-full">
-                <div className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
+                <div
+                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
                     <span className="absolute left-0 text-lg text-white/80">
-                        <FontAwesomeIcon icon={faLock} />
+                        <FontAwesomeIcon icon={faLock}/>
                     </span>
                     <input
                         ref={password}
@@ -144,13 +148,14 @@ export const LoginForm: React.FC = () => {
                         className="absolute right-0 z-20 cursor-pointer text-white/50 transition-colors hover:text-white"
                         onClick={() => setShowPassword(!showPassword)}
                     >
-                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye}/>
                     </span>
                 </div>
                 {/* Password Error Tooltip */}
                 {require.password && (
-                    <span className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm text-red-500">
-                        <FontAwesomeIcon icon={faTriangleExclamation} /> {require.password}
+                    <span
+                        className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm text-red-500">
+                        <FontAwesomeIcon icon={faTriangleExclamation}/> {require.password}
                     </span>
                 )}
             </div>
@@ -164,7 +169,9 @@ export const LoginForm: React.FC = () => {
                             ref={rememberMe}
                             className="peer h-4 w-4 appearance-none rounded border border-white/40 bg-white/10 transition-all checked:border-white checked:bg-white cursor-pointer"
                         />
-                        <svg className="pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 text-[#230b38] opacity-0 transition-opacity peer-checked:opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                        <svg
+                            className="pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 text-[#230b38] opacity-0 transition-opacity peer-checked:opacity-100"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>

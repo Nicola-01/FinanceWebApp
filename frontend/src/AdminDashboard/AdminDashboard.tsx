@@ -2,8 +2,8 @@ import React, {useEffect, useState} from 'react';
 import api from '../api/axiosConfig';
 import Sphere from '../assets/Sphere';
 import type {DeleteModalHandle} from "../modals/DeleteConfirmationModal.tsx";
-import {triggerToast} from '../Components/ToastNotification.tsx';
-import type {User} from "../types";
+import {triggerToast} from '../components/ToastNotification.tsx';
+import type {User} from "../utils/types.ts";
 
 // Import sub-components
 import {AdminHeader} from './AdminHeader';
