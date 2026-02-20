@@ -59,7 +59,7 @@ public class ManageUserService {
     private UserResponse mapToResponse(User user) {
         return UserResponse.builder()
                 .id(user.getId())
-                .username(user.getUsername())
+                .name(user.getUsername())
                 .createdAt(user.getCreatedAt())
                 .build();
     }
