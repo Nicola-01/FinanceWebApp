@@ -8,32 +8,27 @@ import {
 import Sphere from '../assets/Sphere';
 import './AdminDashboard.css';
 import UserRow from "./UserRow";
-import {DeleteConfirmationModal} from "../modals/DeleteConfirmationModal.tsx";
+import type {DeleteModalHandle} from "../modals/DeleteConfirmationModal.tsx";
 import {triggerToast} from '../Components/ToastNotification.tsx';
 import {StatCard} from "./StatCard.tsx";
-
-// ... (Interfaces remain the same) ...
-export interface User {
-    id: string;
-    username: string;
-    createdAt: string;
-    wallets: number;
-    transactions: number;
-}
+import type {User} from "../types";
 
 type SortConfig = {
     key: keyof User;
     direction: 'ascending' | 'descending';
 } | null;
 
-const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+    deleteModalRef: React.RefObject<DeleteModalHandle | null>,
+}
+
+const AdminDashboard: React.FC<AdminDashboardProps> = ({deleteModalRef}) => {
     // ... (States remain the same) ...
     const [users, setUsers] = useState<User[]>([]);
     const [newUser, setNewUser] = useState({username: '', password: ''});
     const [showPassword, setShowPassword] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<SortConfig>(null);
-    const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
     // ... (useEffect and API functions remain the same) ...
     useEffect(() => {
@@ -78,13 +73,11 @@ const AdminDashboard: React.FC = () => {
         setNewUser({username: '', password: ''});
         setShowPassword(false);
     };
-    const initiateDelete = (user: User) => setUserToDelete(user);
-    const closeDeleteModal = () => setUserToDelete(null);
+
     const handleConfirmDelete = async (userId: string) => {
         try {
             await api.delete(`/admin/management/${userId}`);
             setUsers(prev => prev.filter(u => u.id !== userId));
-            closeDeleteModal();
             triggerToast("Deleted!", true);
         } catch (err: any) {
             triggerToast(err.response.data.title || 'Error deleting."', false);
@@ -104,14 +97,24 @@ const AdminDashboard: React.FC = () => {
 
     const processedUsers = useMemo(() => {
         let sortableUsers = [...users];
-        if (searchTerm) sortableUsers = sortableUsers.filter(user => user.username.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        if (searchTerm)
+            sortableUsers = sortableUsers.filter(user =>
+                user.name?.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
         if (sortConfig !== null) {
+            const {key, direction} = sortConfig;
+
             sortableUsers.sort((a, b) => {
-                if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'ascending' ? -1 : 1;
-                if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'ascending' ? 1 : -1;
+                const valA = a[key] ?? '';
+                const valB = b[key] ?? '';
+                if (valA < valB) return direction === 'ascending' ? -1 : 1;
+                if (valA > valB) return direction === 'ascending' ? 1 : -1;
                 return 0;
             });
         }
+
         return sortableUsers;
     }, [users, sortConfig, searchTerm]);
 
@@ -130,9 +133,6 @@ const AdminDashboard: React.FC = () => {
                     <FontAwesomeIcon icon={faSignOutAlt}/>
                 </button>
             </header>
-
-            <DeleteConfirmationModal isOpen={!!userToDelete} user={userToDelete} onClose={closeDeleteModal}
-                                     onConfirm={handleConfirmDelete}/>
 
             <main className="admin-content">
 
@@ -232,8 +232,8 @@ const AdminDashboard: React.FC = () => {
                             <table className="glass-table">
                                 <thead>
                                 <tr>
-                                    <th onClick={() => requestSort('username')}>User <FontAwesomeIcon
-                                        icon={getSortIcon('username')} className="sort-icon"/></th>
+                                    <th onClick={() => requestSort('name')}>User <FontAwesomeIcon
+                                        icon={getSortIcon('name')} className="sort-icon"/></th>
                                     <th onClick={() => requestSort('createdAt')}>
                                         Joined <FontAwesomeIcon icon={getSortIcon('createdAt')} className="sort-icon"/>
                                     </th>
@@ -247,7 +247,11 @@ const AdminDashboard: React.FC = () => {
                                 <tbody>
                                 {processedUsers.length > 0 ? (
                                     processedUsers.map(user => (
-                                        <UserRow key={user.username} user={user} onDelete={initiateDelete}/>
+                                        <UserRow key={user.name} user={user}
+                                                 onDelete={(userToDelete: User) => {
+                                                     deleteModalRef.current?.deleteObject(userToDelete, 'user', () => handleConfirmDelete(userToDelete.id));
+                                                 }}
+                                        />
                                     ))
                                 ) : (
                                     <tr>

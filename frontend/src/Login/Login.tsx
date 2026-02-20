@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
     faUser,
@@ -21,11 +21,12 @@ interface Requirements {
 }
 
 const Form: React.FC = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [rememberMe, setRememberMe] = useState(false);
+    const username = useRef<HTMLInputElement>(null);
+    const password = useRef<HTMLInputElement>(null);
+    const rememberMe = useRef<HTMLInputElement>(null);
+
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(''); // Usato per l'animazione shake
+    const [error, setError] = useState('');
     const [require, setRequire] = useState<Requirements>({});
     const [showPassword, setShowPassword] = useState(false);
 
@@ -39,12 +40,12 @@ const Form: React.FC = () => {
         const requirements: Requirements = {};
         let isValid = true;
 
-        if (!username) {
+        if (!username.current?.value) {
             requirements.username = "Username is required";
             isValid = false;
         }
 
-        if (!password) {
+        if (!password.current?.value) {
             requirements.password = "Password is required";
             isValid = false;
         }
@@ -53,23 +54,23 @@ const Form: React.FC = () => {
 
         if (!isValid) {
             setLoading(false);
-            setError('shake'); // Attiva animazione visiva
-            setTimeout(() => setError(''), 500); // Reset animazione
+            setError('shake');
+            setTimeout(() => setError(''), 500);
             return;
         }
 
         try {
             const response = await api.post('/auth/login', {
-                username,
-                password,
-                rememberMe
+                username: username.current?.value,
+                password: password.current?.value,
+                rememberMe: rememberMe.current?.checked
             });
 
             const {token, role, passwordMustChange} = response.data;
 
             localStorage.setItem('mustChange', JSON.stringify(passwordMustChange));
 
-            if (rememberMe)
+            if (rememberMe.current?.value)
                 localStorage.setItem('jwtToken', token);
             else
                 sessionStorage.setItem('jwtToken', token);
@@ -89,16 +90,6 @@ const Form: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setUsername(e.target.value);
-        if (require.username) setRequire({...require, username: undefined});
-    };
-
-    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPassword(e.target.value);
-        if (require.password) setRequire({...require, password: undefined});
     };
 
     return (
@@ -131,10 +122,9 @@ const Form: React.FC = () => {
                         <FontAwesomeIcon icon={faUser}/>
                     </span>
                     <input
+                        ref={username}
                         type="text"
                         placeholder="Username"
-                        value={username}
-                        onChange={handleUsernameChange}
                         className="w-full bg-transparent border-none outline-none text-white pl-8 py-2 placeholder-white/70"
                     />
                 </div>
@@ -155,10 +145,9 @@ const Form: React.FC = () => {
                         <FontAwesomeIcon icon={faLock}/>
                     </span>
                     <input
+                        ref={password}
                         type={showPassword ? "text" : "password"}
                         placeholder="Password"
-                        value={password}
-                        onChange={handlePasswordChange}
                         className="w-full bg-transparent border-none outline-none text-white pl-8 pr-8 py-2 placeholder-white/70"
                     />
                     {/* TOGGLE VISIBILITY ICON */}
@@ -183,8 +172,7 @@ const Form: React.FC = () => {
                     <div className="relative">
                         <input
                             type="checkbox"
-                            checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
+                            ref={rememberMe}
                             className="peer appearance-none w-4 h-4 border border-white/40 rounded bg-white/10 checked:bg-white checked:border-white cursor-pointer transition-all"
                         />
                         {/* Custom checkmark icon (simulated) */}

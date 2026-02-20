@@ -1,7 +1,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
-import type { User } from './AdminDashboard';
+import type {User} from "../types";
 
 interface UserRowProps {
     user: User;
@@ -10,7 +10,7 @@ interface UserRowProps {
 
 const UserRow: React.FC<UserRowProps> = ({ user, onDelete }) => {
     // Funzione helper per formattare la data
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateString?: string) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
         // Formatta come "Oct 25, 2023" (o usa 'it-IT' per formato italiano)
@@ -23,7 +23,7 @@ const UserRow: React.FC<UserRowProps> = ({ user, onDelete }) => {
 
     return (
         <tr className="user-row-animation">
-            <td style={{fontWeight: 'bold', color: 'white'}}>{user.username}</td>
+            <td style={{fontWeight: 'bold', color: 'white'}}>{user.name}</td>
             <td style={{color: '#aaa', fontSize: '0.9rem'}}>
                 {formatDate(user.createdAt)}
             </td>
