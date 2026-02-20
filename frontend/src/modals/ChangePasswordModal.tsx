@@ -1,36 +1,43 @@
-import React, { useState } from 'react';
-import api from '../api/axiosConfig.ts';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLock, faEye, faEyeSlash, faShieldAlt, faCheck, faTimes, faKey } from '@fortawesome/free-solid-svg-icons';
-import './ChangePasswordModal.css';
+import React, {useState, useRef, useImperativeHandle, forwardRef} from 'react';
+import api from '../api/axiosConfig';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faLock, faShieldAlt, faCheck, faTimes, faKey} from '@fortawesome/free-solid-svg-icons';
+import {ModalDialog} from './ModalDialog';
+import {triggerToast} from '../components/ToastNotification';
+import {PasswordInput} from './PasswordInput'; // Import the new component
 
-interface Props {
-    onSuccess: () => void;
+export interface ChangePasswordModalHandle {
+    openModal: (mandatoryChange?: boolean) => void;
 }
 
-const ChangePasswordModal: React.FC<Props> = ({ onSuccess }) => {
-    // Added 'old' to state
-    const [passwords, setPasswords] = useState({ old: '', new: '', confirm: '' });
+export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref) => {
+    const dialogRef = useRef<HTMLDialogElement>(null);
 
-    // Independent states for visibility toggles (Added showOldPw)
-    const [showOldPw, setShowOldPw] = useState(false);
-    const [showNewPw, setShowNewPw] = useState(false);
-    const [showConfirmPw, setShowConfirmPw] = useState(false);
-
+    const [passwords, setPasswords] = useState({old: '', new: '', confirm: ''});
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [mandatory, setMandatory] = useState(false);
 
-    // Enhanced Security Requirements
+    useImperativeHandle(ref, () => ({
+        openModal: (mandatoryChange: boolean = false) => {
+            setPasswords({old: '', new: '', confirm: ''});
+            setLoading(false);
+            setMandatory(mandatoryChange);
+            dialogRef.current?.showModal();
+        }
+    }));
+
+    const closeDialog = () => dialogRef.current?.close();
+
+    // Security Requirements logic
     const requirements = [
-        { label: "At least 8 characters", test: (pw: string) => pw.length >= 8 },
-        { label: "One lowercase letter", test: (pw: string) => /[a-z]/.test(pw) },
-        { label: "One uppercase letter", test: (pw: string) => /[A-Z]/.test(pw) },
-        { label: "At least one number", test: (pw: string) => /[0-9]/.test(pw) },
-        { label: "One special symbol (!@#$...)", test: (pw: string) => /[^A-Za-z0-9]/.test(pw) },
-        { label: "Passwords match", test: (pw: string) => pw === passwords.confirm && pw !== '' }
+        {label: "At least 8 characters", test: (pw: string) => pw.length >= 8},
+        {label: "One lowercase letter", test: (pw: string) => /[a-z]/.test(pw)},
+        {label: "One uppercase letter", test: (pw: string) => /[A-Z]/.test(pw)},
+        {label: "At least one number", test: (pw: string) => /[0-9]/.test(pw)},
+        {label: "One special symbol (!@#$...)", test: (pw: string) => /[^A-Za-z0-9]/.test(pw)},
+        {label: "Passwords match", test: (pw: string) => pw === passwords.confirm && pw !== ''}
     ];
 
-    // Check if ALL requirements are met AND old password is not empty
     const isRequirementsMet = requirements.every(req => req.test(passwords.new));
     const isValid = isRequirementsMet && passwords.old.length > 0;
 
@@ -39,121 +46,103 @@ const ChangePasswordModal: React.FC<Props> = ({ onSuccess }) => {
         if (!isValid) return;
 
         setLoading(true);
-        setError('');
         try {
-            // Update payload to include oldPassword
             await api.post('/auth/change-password', {
                 currentPassword: passwords.old,
                 newPassword: passwords.new,
                 confirmPassword: passwords.confirm
             });
-            onSuccess();
+            triggerToast("Password updated successfully!", true);
+            localStorage.setItem('mustChangePWD', JSON.stringify(false));
+            closeDialog();
         } catch (err: any) {
-            setError(err.response?.data?.detail || "Error updating password");
+            const errorMessage = err.response?.data?.detail || "Error updating password";
+            triggerToast(errorMessage, false);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="glass-card modal-content">
-                <h3><FontAwesomeIcon icon={faShieldAlt} className="accent" /> Account Security</h3>
-                <p>Please enter your current password and set a new one.</p>
+        <ModalDialog ref={dialogRef}
+                     onCancel={(e) => {
+                         if (mandatory) e.preventDefault();
+                     }}
+        >
+            <div className="text-center">
+                <h3 className="mb-2 flex items-center justify-center gap-3 text-[1.6rem] font-semibold text-white">
+                    <FontAwesomeIcon icon={faShieldAlt}/> Account Security
+                </h3>
+                <p className="mb-[25px] text-[0.95rem] text-white/60">
+                    Please enter your current password and set a new one.
+                </p>
 
                 <form onSubmit={handleSubmit} noValidate>
+                    {/* Reusable Input for Old Password */}
+                    <PasswordInput
+                        label="Current Password"
+                        placeholder="Enter current password"
+                        value={passwords.old}
+                        icon={faKey}
+                        onChange={(val) => setPasswords({...passwords, old: val})}
+                    />
 
-                    {/* FIELD 1: CURRENT PASSWORD (NEW) */}
-                    <div className="input-block">
-                        <label className="field-label">Current Password</label>
-                        <div className="password-field-container">
-                            <FontAwesomeIcon icon={faKey} className="input-icon" />
-                            <input
-                                type={showOldPw ? "text" : "password"}
-                                placeholder="Enter current password"
-                                value={passwords.old}
-                                onChange={(e) => setPasswords({...passwords, old: e.target.value})}
-                            />
-                            <button
-                                type="button"
-                                className="eye-btn"
-                                onClick={() => setShowOldPw(!showOldPw)}
-                                tabIndex={-1}
-                            >
-                                <FontAwesomeIcon icon={showOldPw ? faEyeSlash : faEye} />
-                            </button>
-                        </div>
-                    </div>
+                    <hr className="my-5 h-[1px] border-0 bg-white/10"/>
 
-                    <hr className="divider" />
+                    {/* Reusable Input for New Password */}
+                    <PasswordInput
+                        label="New Password"
+                        placeholder="Enter new password"
+                        value={passwords.new}
+                        icon={faLock}
+                        onChange={(val) => setPasswords({...passwords, new: val})}
+                    />
 
-                    {/* FIELD 2: NEW PASSWORD */}
-                    <div className="input-block">
-                        <label className="field-label">New Password</label>
-                        <div className="password-field-container">
-                            <FontAwesomeIcon icon={faLock} className="input-icon" />
-                            <input
-                                type={showNewPw ? "text" : "password"}
-                                placeholder="Enter new password"
-                                value={passwords.new}
-                                onChange={(e) => setPasswords({...passwords, new: e.target.value})}
-                            />
-                            <button
-                                type="button"
-                                className="eye-btn"
-                                onClick={() => setShowNewPw(!showNewPw)}
-                                tabIndex={-1}
-                            >
-                                <FontAwesomeIcon icon={showNewPw ? faEyeSlash : faEye} />
-                            </button>
-                        </div>
-                    </div>
+                    {/* Reusable Input for Confirm Password */}
+                    <PasswordInput
+                        label="Confirm New Password"
+                        placeholder="Confirm new password"
+                        value={passwords.confirm}
+                        icon={faLock}
+                        onChange={(val) => setPasswords({...passwords, confirm: val})}
+                    />
 
-                    {/* FIELD 3: CONFIRM PASSWORD */}
-                    <div className="input-block">
-                        <label className="field-label">Confirm New Password</label>
-                        <div className="password-field-container">
-                            <FontAwesomeIcon icon={faLock} className="input-icon" />
-                            <input
-                                type={showConfirmPw ? "text" : "password"}
-                                placeholder="Confirm new password"
-                                value={passwords.confirm}
-                                onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
-                            />
-                            <button
-                                type="button"
-                                className="eye-btn"
-                                onClick={() => setShowConfirmPw(!showConfirmPw)}
-                                tabIndex={-1}
-                            >
-                                <FontAwesomeIcon icon={showConfirmPw ? faEyeSlash : faEye} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Dynamic Requirements List */}
-                    <div className="requirements-list">
+                    {/* Requirements List */}
+                    <div className="my-5 rounded-lg border border-white/5 bg-black/20 p-[15px] text-left">
                         {requirements.map((req, index) => (
-                            <div key={index} className={`requirement ${req.test(passwords.new) ? 'met' : 'unmet'}`}>
-                                <FontAwesomeIcon icon={req.test(passwords.new) ? faCheck : faTimes} />
+                            <div
+                                key={index}
+                                className={`mb-2 flex items-center gap-2.5 text-[0.85rem] transition-colors duration-300 last:mb-0 ${
+                                    req.test(passwords.new) ? 'text-[#00ff7f]' : 'text-white/30'
+                                }`}
+                            >
+                                <FontAwesomeIcon icon={req.test(passwords.new) ? faCheck : faTimes}/>
                                 <span>{req.label}</span>
                             </div>
                         ))}
                     </div>
 
-                    {error && <p className="error-text">{error}</p>}
-
-                    <button
-                        type="submit"
-                        className="add-btn"
-                        disabled={!isValid || loading}
-                    >
-                        {loading ? "Updating..." : "Update Password"}
-                    </button>
+                    {/* Actions */}
+                    <div className="mt-[25px] flex gap-[15px]">
+                        {!mandatory && (
+                            <button
+                                type="button"
+                                className="w-1/3 rounded-lg bg-white/10 p-3 text-base font-bold text-white transition-colors hover:bg-white/20"
+                                onClick={closeDialog}
+                            >
+                                Cancel
+                            </button>
+                        )}
+                        <button
+                            type="submit"
+                            className={`${mandatory ? 'w-full' : 'w-2/3'} rounded-lg border-none bg-[#00ff7f] p-3 text-base font-bold text-black transition-all duration-200 hover:-translate-y-[1px] hover:bg-[#00e673] hover:shadow-[0_4px_15px_rgba(0,255,127,0.3)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-[#333] disabled:text-[#666] disabled:shadow-none`}
+                            disabled={!isValid || loading}
+                        >
+                            {loading ? "Updating..." : "Update Password"}
+                        </button>
+                    </div>
                 </form>
             </div>
-        </div>
+        </ModalDialog>
     );
-};
-
-export default ChangePasswordModal;
+});

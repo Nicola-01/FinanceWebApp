@@ -8,7 +8,7 @@ const Login: React.FC = () => {
     useEffect(() => {
         localStorage.removeItem('jwtToken');
         sessionStorage.removeItem('jwtToken');
-        localStorage.removeItem('mustChange');
+        localStorage.removeItem('mustChangePWD');
     }, []);
 
     return (

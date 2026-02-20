@@ -1,4 +1,4 @@
-// src/types/index.ts
+// src/types/types.ts
 
 export interface User {
     id: string;
@@ -18,9 +18,6 @@ export interface Wallet {
     currency: string;
     createdAt: string;
     myRole: 'OWNER' | 'EDITOR' | 'VIEWER';
-    // Nota: Il backend non invia il balance in WalletResponse.
-    // Lo calcoleremo lato frontend sommando le transazioni o useremo un valore mock per la demo visuale.
-    virtualBalance?: number;
 }
 
 export interface Tag {

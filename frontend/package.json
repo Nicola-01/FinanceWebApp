@@ -13,8 +13,10 @@
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
     "@fortawesome/react-fontawesome": "^3.2.0",
+    "@uiw/react-color": "^2.9.5",
     "axios": "^1.13.5",
     "framer-motion": "^12.34.0",
+    "jwt-decode": "^4.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.0"
@@ -24,6 +26,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^24.10.13",
     "@types/react": "^19.2.7",
+    "@types/react-color": "^3.0.13",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "autoprefixer": "^10.4.24",

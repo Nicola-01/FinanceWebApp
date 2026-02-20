@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
 import UserRow from "./UserRow";
-import type { User } from "../types";
+import type { User } from "../utils/types.ts";
 
 type SortConfig = {
     key: keyof User;
