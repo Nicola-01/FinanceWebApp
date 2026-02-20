@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import api from '../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserPlus, faLock, faUserCheck, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
-import { triggerToast } from '../Components/ToastNotification.tsx';
+import { triggerToast } from '../components/ToastNotification.tsx';
 
 interface CreateUserFormProps {
     onUserCreated: () => void; // Callback to tell the parent to refresh the user list

@@ -1,7 +1,7 @@
 import React from 'react';
 import { faUsers, faWallet, faExchangeAlt } from '@fortawesome/free-solid-svg-icons';
 import { StatCard } from "./StatCard.tsx";
-import type { User } from "../types";
+import type { User } from "../utils/types.ts";
 
 interface AdminStatsProps {
     users: User[];

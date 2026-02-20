@@ -1,6 +1,6 @@
 import {useState, useEffect, useRef, useImperativeHandle, forwardRef} from 'react';
 import {createPortal} from 'react-dom';
-import type {User, Wallet} from "../types";
+import type {User, Wallet} from "../utils/types.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
 import {ModalDialog} from './ModalDialog';
