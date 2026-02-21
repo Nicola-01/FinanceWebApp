@@ -53,7 +53,15 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({ wallet, transa
             </div>
 
             <div className="flex-1 overflow-hidden">
-                {activeTab === 'transactions' && <TransactionsTab transactions={transactions} />}
+                {activeTab === 'transactions' && (
+    <TransactionsTab 
+        transactions={transactions} 
+        walletId={wallet.id} 
+        baseCurrency={wallet.currency as CurrencyCode} 
+        onRefresh={onRefresh} 
+    />
+)}
+
                 {activeTab === 'statistics' && <div className="text-white/50 p-8 text-center border border-dashed border-white/10 rounded-xl">Area Statistiche (Coming Soon)</div>}
             </div>
         </div>
