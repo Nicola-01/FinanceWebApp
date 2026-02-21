@@ -1,5 +1,5 @@
 import {Navigate, Outlet, useLocation} from 'react-router-dom';
-import {isTokenValid} from '../utils/authHelper';
+import {isTokenValid} from './authHelper.ts';
 
 const ProtectedRoute = () => {
     const location = useLocation();

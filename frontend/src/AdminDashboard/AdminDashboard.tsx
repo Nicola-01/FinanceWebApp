@@ -10,6 +10,7 @@ import {AdminHeader} from './AdminHeader';
 import {AdminStats} from './AdminStats';
 import {CreateUserForm} from './CreateUserForm';
 import {UserDirectory} from './UserDirectory';
+import {AccountSettings} from "../components/AccountSettings.tsx";
 
 interface AdminDashboardProps {
     deleteModalRef: React.RefObject<DeleteModalHandle | null>;
@@ -62,6 +63,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({deleteModalRef}) => {
             </div>
 
             <AdminHeader/>
+            <AccountSettings/>
 
             {/* Main Content Layout */}
             <main className="relative z-10 mx-auto my-10 flex w-[95%] max-w-[1600px] flex-col gap-[30px]">
@@ -77,7 +79,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({deleteModalRef}) => {
                     <UserDirectory
                         users={users}
                         onDeleteClick={(userToDelete: User) => {
-                            // Trigger the modal from the parent orchestrator
                             deleteModalRef.current?.deleteObject(
                                 userToDelete,
                                 'user',

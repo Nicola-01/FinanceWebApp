@@ -34,6 +34,10 @@ public class ManageUserService {
 
     @PreAuthorize("hasRole('ADMIN')")
     public UserResponse createUser(UserRequest userRequest) {
+
+        if (userRequest.getUsername().length() <= 3 || userRequest.getUsername().length() > 25)
+            throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
+
         String tempPassword = generateRandomPassword(12);
 
         if (userRepository.existsByUsernameIgnoreCase(userRequest.getUsername()))

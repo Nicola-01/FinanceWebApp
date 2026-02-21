@@ -63,6 +63,7 @@ public class WalletAccess {
         private UUID walletId;
     }
 
-    public enum WalletRole { OWNER, EDITOR, VIEWER }
-    public enum InvitationStatus { PENDING, ACCEPTED, REJECTED }
+    public enum WalletRole {OWNER, EDITOR, VIEWER}
+
+    public enum InvitationStatus {PENDING, ACCEPTED, REJECTED, LEFT, REVOKED}
 }

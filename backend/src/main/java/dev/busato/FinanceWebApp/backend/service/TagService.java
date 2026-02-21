@@ -38,6 +38,9 @@ public class TagService {
     @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
     public TagResponse createTag(TagRequest tagRequest, UUID walletId, UUID userId) {
 
+        if (tagRequest.getName().length() <= 3 || tagRequest.getName().length() > 25)
+            throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
+
         Wallet wallet = walletRepository.getReferenceById(walletId);
 
         Tag parentTag = null;

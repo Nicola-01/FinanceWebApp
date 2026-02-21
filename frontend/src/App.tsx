@@ -1,9 +1,9 @@
 import React, {useRef} from 'react';
 import {Routes, Route, Navigate} from 'react-router-dom';
 import Login from './Login/Login';
-import Dashboard from './UserDashboard/UserDashboard.tsx';
+import UserDashboard from './UserDashboard/UserDashboard.tsx';
 import AdminDashboard from './AdminDashboard/AdminDashboard'; // Importa la pagina Admin
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './utils/ProtectedRoute.tsx';
 import {ToastNotification} from "./components/ToastNotification.tsx";
 import {DeleteConfirmationModal, type DeleteModalHandle} from "./modals/DeleteConfirmationModal.tsx";
 
@@ -20,7 +20,10 @@ const App: React.FC = () => {
 
                 {/* 2. Rotte Protette (Serve il Token) */}
                 <Route element={<ProtectedRoute/>}>
-                    <Route path="/dashboard" element={<Dashboard/>}/>
+                    <Route
+                        path="/dashboard/:walletId?"
+                        element={<UserDashboard deleteModalRef={deleteModalRef}/>}
+                    />
 
                     {/* TODO Qui potresti fare un controllo extra per il ruolo ADMIN */}
                     <Route

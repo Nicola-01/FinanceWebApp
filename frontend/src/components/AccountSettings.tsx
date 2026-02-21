@@ -40,7 +40,6 @@ export const AccountSettings = () => {
                     <h3 className="font-mono text-lg font-bold text-white tracking-wide">
                         {user?.username}
                     </h3>
-                    {/*<p className="text-xs text-white/40 uppercase tracking-widest">Active Member</p>*/}
                 </div>
             </div>
 

@@ -34,6 +34,9 @@ public class TransactionService {
     public TransactionResponse createTransaction(TransactionRequest request, UUID walletId, UUID userId) {
         Wallet wallet = walletRepository.findById(walletId).orElseThrow(() -> new WalletNotFoundException(walletId));
 
+        if (request.getName().length() <= 3 || request.getName().length() > 25)
+            throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
+
         Tag tag = null;
         if (request.getTag() != null)
             tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
