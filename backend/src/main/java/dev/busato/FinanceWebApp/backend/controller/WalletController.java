@@ -34,9 +34,17 @@ public class WalletController {
             @RequestBody WalletRequest request,
             @AuthenticationPrincipal User user
     ) {
-        // Spring inietta automaticamente l'oggetto User dell'utente loggato
-//        return ResponseEntity.ok(walletService.createWallet(request, user.getId()));
         return ResponseEntity.ok(walletService.createWallet(request, user.getId()));
     }
 
+    @DeleteMapping("/{walletID}")
+    public ResponseEntity<Void> deleteWalletById(@AuthenticationPrincipal User user, @PathVariable UUID walletID) {
+        walletService.removeWallet(walletID, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{walletID}")
+    public ResponseEntity<WalletResponse> updateWallet(@PathVariable UUID walletID, @RequestBody WalletRequest request, @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(walletService.updateWallet(walletID, request, user.getId()));
+    }
 }

@@ -40,7 +40,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ProblemDetail> handleUserAlreadyExistsException(
             UserAlreadyExistsException ex, HttpServletRequest request) {
-        // 409 Conflict è lo standard quando si tenta di creare una risorsa che esiste già
         return buildErrorResponse(ex, HttpStatus.CONFLICT, "User Already Exists", request);
     }
 
@@ -49,14 +48,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentialsException(
             BadCredentialsException ex, HttpServletRequest request) {
-        // Corretto da NOT_FOUND a UNAUTHORIZED (401)
         return buildErrorResponse(ex, HttpStatus.UNAUTHORIZED, "Bad Credentials", request);
     }
 
     @ExceptionHandler(PermissionDeniedException.class)
     public ResponseEntity<ProblemDetail> handlePermissionDeniedException(
             PermissionDeniedException ex, HttpServletRequest request) {
-        // Corretto da NOT_FOUND a FORBIDDEN (403)
+        return buildErrorResponse(ex, HttpStatus.FORBIDDEN, "Permission Denied", request);
+    }
+
+    @ExceptionHandler(UnauthorizedAccessException.class)
+    public ResponseEntity<ProblemDetail> handleUnauthorizedAccessException(
+            UnauthorizedAccessException ex, HttpServletRequest request) {
         return buildErrorResponse(ex, HttpStatus.FORBIDDEN, "Permission Denied", request);
     }
 

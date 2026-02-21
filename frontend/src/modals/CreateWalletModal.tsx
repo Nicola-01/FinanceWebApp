@@ -64,13 +64,13 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
 
         const handleSubmit = async (e: React.FormEvent) => {
             e.preventDefault();
-            if (!name) return triggerToast("Wallet name is required", false);
+            if (!name) return triggerToast("WalletCard name is required", false);
 
             setLoading(true);
             try {
                 // Il backend riceverà la chiave testuale dell'icona (es. "piggyBank")
                 await api.post('/wallets', {name, icon: iconKey, color, currency});
-                triggerToast("Wallet created successfully!", true);
+                triggerToast("WalletCard created successfully!", true);
                 onSuccess();
                 dialogRef.current?.close();
             } catch (err: any) {
@@ -145,7 +145,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                                 disabled={loading}
                                 className="w-2/3 rounded-xl bg-[#00ff7f] py-3 font-bold text-black shadow-lg shadow-[#00ff7f]/20 transition-all hover:-translate-y-0.5 hover:bg-[#00e673]"
                             >
-                                {loading ? "Creating..." : "Create Wallet"}
+                                {loading ? "Creating..." : "Create WalletCard"}
                             </button>
                         </div>
                     </form>

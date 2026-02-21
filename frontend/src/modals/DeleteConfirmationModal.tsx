@@ -11,7 +11,7 @@ export interface DeleteModalHandle {
                    handleConfirmClick: () => void | Promise<void>) => void;
 }
 
-const TIMEOUT_DURATION = 3;
+const TIMEOUT_DURATION = 2;
 
 export const DeleteConfirmationModal = forwardRef<DeleteModalHandle>(
     ({}, ref) => {
