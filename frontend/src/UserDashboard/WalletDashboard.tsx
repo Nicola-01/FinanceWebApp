@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRotateRight } from '@fortawesome/free-solid-svg-icons';
 import { TransactionsTab } from './TransactionsTab';
 import type { Wallet, Transaction } from '../utils/types';
+import type { CurrencyCode } from '../utils/currencies'; // <-- AGGIUNGI QUESTA RIGA
 
 interface WalletDashboardProps {
     wallet: Wallet;
