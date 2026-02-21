@@ -64,7 +64,7 @@ export const LoginForm: React.FC = () => {
 
             const {token, role, passwordMustChange} = response.data;
 
-            localStorage.setItem('mustChange', JSON.stringify(passwordMustChange));
+            localStorage.setItem('mustChangePWD', JSON.stringify(passwordMustChange));
 
             // Store token based on 'Remember Me' preference
             if (rememberMe.current?.checked)
