@@ -13,7 +13,7 @@ interface WalletAreaProps {
     deleteModalRef: React.RefObject<DeleteModalHandle | null>;
 }
 
-export const WalletArea: React.FC<WalletAreaProps> = ({deleteModalRef}) => {
+export const WalletsArea: React.FC<WalletAreaProps> = ({deleteModalRef}) => {
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [loading, setLoading] = useState(true);
     const walletModal = useRef<CreateWalletModalHandle>(null);
@@ -47,7 +47,8 @@ export const WalletArea: React.FC<WalletAreaProps> = ({deleteModalRef}) => {
     }, []);
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 w-full">
+        <div
+            className="flex flex-row overflow-x-auto w-full p-4 gap-4 xl:flex-col xl:w-[320px] xl:h-screen xl:overflow-y-auto xl:overflow-x-hidden xl:border-r xl:border-white/10 md:p-6">
             {/* Render existing wallets */}
             {wallets.map((wallet) => (
                 <WalletCard
