@@ -2,6 +2,7 @@ package dev.busato.FinanceWebApp.backend.service;
 
 import dev.busato.FinanceWebApp.backend.dto.WalletRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
+import dev.busato.FinanceWebApp.backend.exceptions.UnauthorizedAccessException;
 import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.*;
@@ -59,9 +60,37 @@ public class WalletService {
         return mapToResponse(access);
     }
 
-//    @PreAuthorize("@walletService.requireUser(#userId)")
+    @Transactional
+    public WalletResponse updateWallet(UUID walletId, WalletRequest request, UUID userId) {
+
+        WalletAccess ownerAccess = walletAccessRepository.findByWalletIdAndUserIdAndRole(walletId, userId, WalletAccess.WalletRole.OWNER)
+                .orElseThrow(() -> new UnauthorizedAccessException("Only the owner can update this wallet"));
+
+        Wallet wallet = ownerAccess.getWallet();
+
+        if (request.getName() != null && !request.getName().isBlank())
+            wallet.setName(request.getName());
+        if (request.getColor() != null && !request.getColor().isBlank())
+            wallet.setColor(request.getColor());
+        if (request.getIcon() != null && !request.getIcon().isBlank())
+            wallet.setIcon(request.getIcon());
+
+        return mapToResponse(ownerAccess);
+    }
+
+    @Transactional
+    public void removeWallet(UUID walletId, UUID userId) {
+        WalletAccess userAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletId)
+                .orElseThrow(() -> new UnauthorizedAccessException("No access to this wallet"));
+
+        if (userAccess.getRole() == WalletAccess.WalletRole.OWNER)
+            walletRepository.delete(userAccess.getWallet());
+        else
+            userAccess.setStatus(WalletAccess.InvitationStatus.LEFT);
+    }
+
     public List<WalletResponse> getWallets(UUID userId) {
-        return walletAccessRepository.findAllByUserId(userId)
+        return walletAccessRepository.findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());

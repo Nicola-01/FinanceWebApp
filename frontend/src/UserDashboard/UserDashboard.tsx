@@ -1,7 +1,14 @@
 import {AccountSettings} from "../components/AccountSettings.tsx";
 import {WalletArea} from "./WalletArea.tsx";
+import React from "react";
+import type {DeleteModalHandle} from "../modals/DeleteConfirmationModal.tsx";
 
-export default function Dashboard() {
+interface UserDashboardProps {
+    deleteModalRef: React.RefObject<DeleteModalHandle | null>;
+}
+
+
+const UserDashboard: React.FC<UserDashboardProps> = ({deleteModalRef}) => {
     return (
         // Contenitore Esterno:
         // Mobile: Colonna (Sidebar sopra, contenuto sotto)
@@ -11,7 +18,7 @@ export default function Dashboard() {
             {/* --- SIDEBAR / TOPBAR --- */}
             {/* Mobile: w-full (striscia in alto) */}
             {/* Desktop: w-72 (colonna fissa a sinistra), h-screen (altezza piena) */}
-            <WalletArea/>
+            <WalletArea deleteModalRef={deleteModalRef}/>
 
             {/* --- CONTENUTO PRINCIPALE --- */}
             <div className="flex-1 p-8 bg-gray-900">
@@ -24,3 +31,5 @@ export default function Dashboard() {
         </div>
     );
 }
+
+export default UserDashboard;

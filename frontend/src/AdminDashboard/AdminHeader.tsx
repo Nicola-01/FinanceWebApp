@@ -1,7 +1,4 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
-
 export const AdminHeader: React.FC = () => {
     return (
         <header className="relative z-10 flex items-center justify-between border-b border-white/5 bg-white/[0.03] px-10 py-5 backdrop-blur-md">
@@ -11,13 +8,6 @@ export const AdminHeader: React.FC = () => {
                     Panel
                 </span>
             </h2>
-            <button
-                className="rounded-lg border border-white/20 bg-transparent px-3 py-2 text-white transition-all duration-300 hover:border-[#ff4d4d] hover:bg-[#ff4d4d]/20 hover:text-[#ff4d4d]"
-                onClick={() => window.location.href = '/login'}
-                title="Logout"
-            >
-                <FontAwesomeIcon icon={faSignOutAlt} />
-            </button>
         </header>
     );
 };

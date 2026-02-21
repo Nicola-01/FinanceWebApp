@@ -37,4 +37,6 @@ out/
 .vscode/
 
 .env
+.env_backup
+
 postgres_data/
