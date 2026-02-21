@@ -1,16 +1,15 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, {useState, useRef, useImperativeHandle, forwardRef, useEffect} from 'react';
 import api from '../api/axiosConfig';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { ModalDialog } from './ModalDialog';
-import { triggerToast } from '../components/ToastNotification';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faPlus} from '@fortawesome/free-solid-svg-icons';
+import {ModalDialog} from './ModalDialog';
+import {triggerToast} from '../components/ToastNotification';
 import type {CurrencyCode} from '../utils/currencies.ts';
 
 // Importiamo i nostri nuovi componenti puliti!
-import { WALLET_ICONS, type WalletIconKey } from '../utils/walletIcons';
-import { IconSelector } from '../components/IconSelector';
-import { ColorSelector } from '../components/ColorSelector';
-import { CurrencySelector } from '../components/CurrencySelector';
+import {WALLET_ICONS, type WalletIconKey} from '../utils/walletIcons';
+import {CurrencySelector} from '../components/CurrencySelector';
+import {IconColorSelector} from "../components/IconColorSelector.tsx";
 
 export interface CreateWalletModalHandle {
     openModal: () => void;
@@ -21,7 +20,7 @@ interface Props {
 }
 
 export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
-    ({ onSuccess }, ref) => {
+    ({onSuccess}, ref) => {
         const dialogRef = useRef<HTMLDialogElement>(null);
 
         // Stati
@@ -30,6 +29,9 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
         const [color, setColor] = useState('#00ff7f');
         const [currency, setCurrency] = useState<CurrencyCode>('EUR');
         const [loading, setLoading] = useState(false);
+        const [showSelectors, setShowSelectors] = useState(false);
+
+        const selectorRef = useRef<HTMLDivElement>(null);
 
         useImperativeHandle(ref, () => ({
             openModal: () => {
@@ -41,6 +43,25 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
             }
         }));
 
+        useEffect(() => {
+            const handleClickOutside = (event: MouseEvent) => {
+                // Se il contenitore esiste e il click NON è avvenuto al suo interno, chiudi il menu
+                if (selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
+                    setShowSelectors(false);
+                }
+            };
+
+            // Attacchiamo l'event listener solo quando il selettore è aperto
+            if (showSelectors) {
+                document.addEventListener('mousedown', handleClickOutside);
+            }
+
+            // Pulizia dell'event listener quando il componente si smonta o lo stato cambia
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
+        }, [showSelectors]);
+
         const handleSubmit = async (e: React.FormEvent) => {
             e.preventDefault();
             if (!name) return triggerToast("Wallet name is required", false);
@@ -48,7 +69,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
             setLoading(true);
             try {
                 // Il backend riceverà la chiave testuale dell'icona (es. "piggyBank")
-                await api.post('/api/wallets', { name, icon: iconKey, color, currency });
+                await api.post('/wallets', {name, icon: iconKey, color, currency});
                 triggerToast("Wallet created successfully!", true);
                 onSuccess();
                 dialogRef.current?.close();
@@ -59,28 +80,44 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
             }
         };
 
+        // @ts-ignore
         return (
             <ModalDialog ref={dialogRef}>
                 <div className="text-center">
                     <h3 className="mb-2 flex items-center justify-center gap-3 text-2xl font-semibold text-white">
-                        <FontAwesomeIcon icon={faPlus} className="text-[#00ff7f]" /> New Wallet
+                        <FontAwesomeIcon icon={faPlus} className="text-[#00ff7f]"/> New Wallet
                     </h3>
                     <p className="mb-6 text-sm text-white/60">Organize your finances with a custom wallet.</p>
 
                     <form onSubmit={handleSubmit} className="space-y-5 text-left">
                         {/* Anteprima Icona Real-time */}
-                        <div className="flex justify-center mb-6">
-                            <div
-                                className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-2xl shadow-lg transition-colors duration-300"
-                                style={{ color: color }}
+                        <div className="relative mb-6 flex flex-col items-center">
+
+                            <button
+                                type="button"
+                                // Ora possiamo semplificare: se clicchi, si apre/chiude
+                                onClick={() => setShowSelectors(!showSelectors)}
+                                className="group flex h-16 w-16 cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-2xl shadow-lg transition-all duration-300 hover:scale-105 hover:bg-white/10"
+                                style={{color: color}}
+                                title="Change Icon or Color"
                             >
-                                <FontAwesomeIcon icon={WALLET_ICONS[iconKey]} />
-                            </div>
+                                <FontAwesomeIcon icon={WALLET_ICONS[iconKey]}/>
+                            </button>
+
+                            {showSelectors && (
+                                <IconColorSelector ref={selectorRef}
+                                                   iconValue={iconKey}
+                                                   onChangeIcon={setIconKey}
+                                                   colorValue={color}
+                                                   onChangeColor={setColor}
+                                />
+                            )}
                         </div>
 
-                        {/* Input Nome */}
                         <div>
-                            <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Wallet Name</label>
+                            <label
+                                className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Wallet
+                                Name</label>
                             <input
                                 className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00ff7f]"
                                 type="text"
@@ -90,14 +127,9 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                             />
                         </div>
 
-                        {/* Riga con Icona e Colore affiancati */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <IconSelector value={iconKey} onChange={setIconKey} />
-                            <ColorSelector value={color} onChange={setColor} />
-                        </div>
 
                         {/* Input Valuta */}
-                        <CurrencySelector value={currency} onChange={setCurrency} />
+                        <CurrencySelector value={currency} onChange={setCurrency}/>
 
                         {/* Pulsanti Finali */}
                         <div className="flex gap-4 pt-4">
