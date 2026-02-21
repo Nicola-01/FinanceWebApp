@@ -3,7 +3,7 @@ import {Routes, Route, Navigate} from 'react-router-dom';
 import Login from './Login/Login';
 import UserDashboard from './UserDashboard/UserDashboard.tsx';
 import AdminDashboard from './AdminDashboard/AdminDashboard'; // Importa la pagina Admin
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './utils/ProtectedRoute.tsx';
 import {ToastNotification} from "./components/ToastNotification.tsx";
 import {DeleteConfirmationModal, type DeleteModalHandle} from "./modals/DeleteConfirmationModal.tsx";
 
@@ -21,7 +21,7 @@ const App: React.FC = () => {
                 {/* 2. Rotte Protette (Serve il Token) */}
                 <Route element={<ProtectedRoute/>}>
                     <Route
-                        path="/dashboard"
+                        path="/dashboard/:walletId?"
                         element={<UserDashboard deleteModalRef={deleteModalRef}/>}
                     />
 
