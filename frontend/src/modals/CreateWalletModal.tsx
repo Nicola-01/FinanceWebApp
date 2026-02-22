@@ -1,7 +1,7 @@
 import React, {useState, useRef, useImperativeHandle, forwardRef, useEffect} from 'react';
 import api from '../api/axiosConfig';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faPlus, faWallet} from '@fortawesome/free-solid-svg-icons';
+import {faWallet} from '@fortawesome/free-solid-svg-icons';
 import {ModalDialog} from './ModalDialog';
 import {triggerToast} from '../components/ToastNotification';
 import type {CurrencyCode} from '../utils/currencies.ts';
