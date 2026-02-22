@@ -17,7 +17,7 @@ interface IconPickerButtonProps {
 export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
                                                                       icon, color, onIconChange, onColorChange, size = "md", isOpen, onToggle
                                                                   }) => {
-    // Adatta dimensioni e posizione in base a se è un tag padre (md) o figlio (sm)
+    // Adapt size and position based on whether it is a parent (md) or child (sm) tag
     const sizeClasses = size === "sm" ? "h-6 w-6 rounded-md text-xs" : "h-10 w-10 rounded-lg text-lg";
     const popupTop = size === "sm" ? "top-8" : "top-12";
 

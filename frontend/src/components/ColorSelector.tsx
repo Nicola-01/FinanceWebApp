@@ -1,20 +1,20 @@
 import React, {useState} from 'react';
-import {Wheel} from '@uiw/react-color'; // Abbiamo rimosso 'Circle'
+import {Wheel} from '@uiw/react-color'; // We removed 'Circle'
 
-// 12 preset di colori in ordine cromatico (Arcobaleno)
+// 12 color presets in chromatic order (Rainbow)
 const FLUO_PRESETS = [
-    '#ff4d4d', // Rosso
-    '#ff8c00', // Arancione
-    '#ffff00', // Giallo
-    '#adff2f', // Verde-Giallo
-    '#00ff7f', // Verde Fluo
-    '#00ffff', // Ciano
-    '#00bfff', // Azzurro
-    '#1e90ff', // Blu (Nuovo)
-    '#8a2be2', // Viola
+    '#ff4d4d', // Red
+    '#ff8c00', // Orange
+    '#ffff00', // Yellow
+    '#adff2f', // Yellow-Green
+    '#00ff7f', // Fluo Green
+    '#00ffff', // Cyan
+    '#00bfff', // Light Blue
+    '#1e90ff', // Blue (New)
+    '#8a2be2', // Purple
     '#ff00ff', // Magenta
-    '#ff1493', // Rosa Shocking (Nuovo)
-    '#ff0055'  // Rosa/Rosso scuro
+    '#ff1493', // Hot Pink (New)
+    '#ff0055'  // Dark Pink/Red
 ];
 
 interface ColorSelectorProps {
@@ -40,11 +40,11 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({value, onChange}) =
                                 onClick={() => onChange(color)}
                                 className="h-7 w-7 rounded-full transition-all duration-200 hover:scale-110"
                                 style={{
-                                    // Se selezionato diventa nero, altrimenti prende il colore
+                                    // If selected becomes black, otherwise takes the color
                                     backgroundColor: isSelected ? '#1a1a1a' : color,
-                                    // Bordo colorato quando selezionato
+                                    // Colored border when selected
                                     border: isSelected ? `4px solid ${color}` : 'none',
-                                    // Effetto "Glow" fluo opzionale intorno al bottone selezionato
+                                    // Optional fluo \"Glow\" effect around the selected button
                                     boxShadow: isSelected ? `0 0 10px ${color}80` : 'none',
                                 }}
                                 title={color}

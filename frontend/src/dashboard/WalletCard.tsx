@@ -13,7 +13,7 @@ const WalletCard: React.FC<WalletProps> = ({wallet, isSelected, onClick}) => {
     return (
         <div
             onClick={onClick}
-            className={`cursor-pointer flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md transition-all hover:-translate-y-1 shrink-0 w-[260px] xl:w-full
+            className={`cursor-pointer flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md transition-all hover:-translate-y-1 shrink-0 w-65 xl:w-full
             ${isSelected ? 'border-[#00ff7f] bg-white/10 shadow-[0_0_15px_rgba(0,255,127,0.1)]' : 'border-white/10 bg-[rgba(20,20,20,0.6)]'}`}
         >
             <div
