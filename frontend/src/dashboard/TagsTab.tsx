@@ -5,7 +5,7 @@ import { faPlus, faSpinner, faCheck, faXmark } from '@fortawesome/free-solid-svg
 import { triggerToast } from '../components/ToastNotification';
 import type { Tag } from '../utils/types';
 import TagCard from "./TagCard";
-import { IconPickerButton } from '../components/IconPickerButton'; // <-- Importa il nuovo wrapper
+import { IconPickerButton } from '../components/IconPickerButton'; // <-- Import the new wrapper
 import type { WalletIconKey } from '../utils/walletIcons';
 
 interface TagsTabProps {

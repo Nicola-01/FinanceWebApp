@@ -6,7 +6,7 @@ import { WalletDashboard } from "./WalletDashboard.tsx";
 import api from '../api/axiosConfig';
 import { triggerToast } from '../components/ToastNotification';
 import type { DeleteModalHandle } from "../modals/DeleteConfirmationModal.tsx";
-import type { Wallet, Transaction } from "../utils/types"; // Controlla i tuoi percorsi
+import type { Wallet, Transaction } from "../utils/types"; // Check your paths
 
 interface UserDashboardProps {
     deleteModalRef: React.RefObject<DeleteModalHandle | null>;
@@ -16,13 +16,13 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ deleteModalRef }) => {
     const { walletId } = useParams<{ walletId: string }>();
     const navigate = useNavigate();
 
-    // Stati centralizzati
+    // Centralized states
     const [wallets, setWallets] = useState<Wallet[]>([]);
     const [transactionsMap, setTransactionsMap] = useState<Record<string, Transaction[]>>({});
     const [loading, setLoading] = useState(true);
     const [isRefreshingTx, setIsRefreshingTx] = useState(false);
 
-    // 1. Scarica tutti i wallet e TUTTE le loro transazioni in contemporanea
+    // 1. Download all wallets and ALL their transactions concurrently
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -33,20 +33,20 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ deleteModalRef }) => {
 
             const txMap: Record<string, Transaction[]> = {};
 
-            // Esegue tutte le chiamate /transactions/{id} in parallelo!
+            // Executes all /transactions/{id} calls in parallel!
             await Promise.all(fetchedWallets.map(async (w) => {
                 try {
                     const txRes = await api.get(`/transactions/${w.id}`);
                     txMap[w.id] = txRes.data;
                 } catch (e) {
-                    console.error(`Errore caricamento tx per wallet ${w.id}`);
+                    console.error(`Error loading tx for wallet ${w.id}`);
                     txMap[w.id] = [];
                 }
             }));
 
             setTransactionsMap(txMap);
 
-            // Auto-selezione: Se non c'è un ID nell'URL, seleziona il primo wallet automaticamente
+            // Auto-selection: If there's no ID in the URL, automatically select the first wallet
             if (!walletId && fetchedWallets.length > 0) {
                 navigate(`/dashboard/${fetchedWallets[0].id}`, { replace: true });
             }
@@ -57,7 +57,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ deleteModalRef }) => {
         }
     };
 
-    // 2. Funzione per il nuovo tastino "Refresh" del singolo wallet
+    // 2. Function for the new single wallet \"Refresh\" button
     const refreshSingleWallet = async (id: string) => {
         setIsRefreshingTx(true);
         try {
@@ -71,19 +71,19 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ deleteModalRef }) => {
         }
     };
 
-    // Esegui al primo caricamento (F5)
+    // Execute on first load (F5)
     useEffect(() => {
         fetchData();
     }, []);
 
-    // Gestione eliminazione: se elimino il wallet attualmente aperto, navigo al primo disponibile
+    // Deletion handling: if the currently open wallet is deleted, navigate to the first available one
     useEffect(() => {
         if (!loading && wallets.length > 0 && walletId && !wallets.find(w => w.id === walletId)) {
             navigate(`/dashboard/${wallets[0].id}`, { replace: true });
         }
     }, [walletId, wallets, loading, navigate]);
 
-    // Dati calcolati per il rendering
+    // Calculated data for rendering
     const selectedWallet = wallets.find(w => w.id === walletId) || null;
     const currentTransactions = walletId ? transactionsMap[walletId] || [] : [];
 

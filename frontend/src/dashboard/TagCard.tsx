@@ -5,7 +5,8 @@ import type { Tag } from "../utils/types";
 import type { WalletIconKey } from "../utils/walletIcons";
 import { faArrowTurnUp, faPlus, faSpinner, faCheck, faXmark, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from '../components/ToastNotification';
-import { IconPickerButton } from "../components/IconPickerButton"; // <-- Importa il nuovo wrapper
+import { IconPickerButton } from "../components/IconPickerButton";
+import { TagChildRow } from "./TagChildRow";
 
 interface TagCardProps {
     parent: Tag;
@@ -27,12 +28,6 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
     const [parentIcon, setParentIcon] = useState<WalletIconKey>(parent.icon as WalletIconKey);
     const [parentColor, setParentColor] = useState(parent.colorHex);
 
-    const [editingChildName, setEditingChildName] = useState<string | null>(null);
-    const [childNameVal, setChildNameVal] = useState("");
-
-    const [showChildSelector, setShowChildSelector] = useState<string | null>(null);
-    const [childIcon, setChildIcon] = useState<WalletIconKey>('tag');
-    const [childColor, setChildColor] = useState('#00ff7f');
 
     const updateTag = async (oldName: string, updatedTag: Partial<Tag>) => {
         try { await api.put(`/tags/${walletId}/${encodeURIComponent(oldName)}`, updatedTag); onSuccess(); }
@@ -58,20 +53,12 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
     const handleAddChild = async () => {
         if (!newChildName.trim()) { setIsAddingChild(false); return; }
         setLoading(true);
-        try { await api.post(`/tags/${walletId}`, { name: newChildName.trim(), icon: parent.icon, colorHex: parent.colorHex, parentName: parent.name });
+        try {
+            await api.post(`/tags/${walletId}`, { name: newChildName.trim(), icon: parent.icon, colorHex: parent.colorHex, parentName: parent.name });
             setNewChildName(""); setIsAddingChild(false); onSuccess();
         } catch (err: any) { triggerToast(err.response?.data?.title || "Error", false); } finally { setLoading(false); }
     };
 
-    const handleSaveChildName = (child: Tag) => {
-        if (childNameVal.trim() && childNameVal !== child.name) updateTag(child.name, { ...child, name: childNameVal.trim() });
-        setEditingChildName(null);
-    };
-
-    const handleCloseChildSelector = (child: Tag) => {
-        setShowChildSelector(null);
-        if (childIcon !== child.icon || childColor !== child.colorHex) updateTag(child.name, { ...child, icon: childIcon, colorHex: childColor });
-    };
 
     return (
         <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3 transition-all">
@@ -126,7 +113,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
                         <input
                             autoFocus className="bg-transparent text-sm font-medium text-white outline-none w-full placeholder-white/30"
                             placeholder="Name..." value={newChildName} onChange={(e) => setNewChildName(e.target.value)}
-                            onKeyDown={e => { if(e.key === 'Enter') handleAddChild(); if(e.key === 'Escape') setIsAddingChild(false); }} disabled={loading}
+                            onKeyDown={e => { if (e.key === 'Enter') handleAddChild(); if (e.key === 'Escape') setIsAddingChild(false); }} disabled={loading}
                         />
                         {loading ? <FontAwesomeIcon icon={faSpinner} spin className="text-[#00ff7f] text-xs shrink-0" /> : (
                             <>
@@ -143,45 +130,13 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
                 )}
 
                 {children.map(child => (
-                    <div key={child.name} className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 group/child">
-                        <FontAwesomeIcon icon={faArrowTurnUp} className="rotate-90 text-white/20 text-xs shrink-0" />
-
-                        {/* Componente Pulito Figlio (con parametro size="sm") */}
-                        <IconPickerButton
-                            size="sm"
-                            icon={showChildSelector === child.name ? childIcon : (child.icon as WalletIconKey)}
-                            color={showChildSelector === child.name ? childColor : child.colorHex}
-                            onIconChange={setChildIcon}
-                            onColorChange={setChildColor}
-                            isOpen={showChildSelector === child.name}
-                            onToggle={(open) => {
-                                if (open) { setChildIcon(child.icon as WalletIconKey); setChildColor(child.colorHex); setShowChildSelector(child.name); }
-                                else { handleCloseChildSelector(child); }
-                            }}
-                        />
-
-                        <div className="flex-1 min-w-0">
-                            {editingChildName === child.name ? (
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        autoFocus className="bg-black/40 border border-[#00ff7f]/50 rounded px-2 py-0.5 text-white text-sm outline-none w-full"
-                                        value={childNameVal} onChange={e => setChildNameVal(e.target.value)}
-                                        onKeyDown={e => { if (e.key === 'Enter') handleSaveChildName(child); if (e.key === 'Escape') setEditingChildName(null); }}
-                                    />
-                                    <button onClick={() => handleSaveChildName(child)} className="text-[#00ff7f] hover:text-white transition-colors"><FontAwesomeIcon icon={faCheck} /></button>
-                                    <button onClick={() => setEditingChildName(null)} className="text-white/40 hover:text-red-500 transition-colors"><FontAwesomeIcon icon={faXmark} /></button>
-                                </div>
-                            ) : (
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-medium text-white/80 truncate pr-2">{child.name}</span>
-                                    <div className="flex items-center gap-2 opacity-0 group-hover/child:opacity-100 transition-opacity">
-                                        <button onClick={() => { setChildNameVal(child.name); setEditingChildName(child.name); }} className="text-white/30 hover:text-amber-400 transition-colors"><FontAwesomeIcon icon={faPenToSquare} className="text-xs" /></button>
-                                        <button onClick={() => handleDeleteTag(child.name)} className="text-white/30 hover:text-red-500 transition-colors"><FontAwesomeIcon icon={faTrash} className="text-xs" /></button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <TagChildRow
+                        key={child.name}
+                        child={child}
+                        walletId={walletId}
+                        onSuccess={onSuccess}
+                        onDelete={handleDeleteTag}
+                    />
                 ))}
             </div>
         </div>
