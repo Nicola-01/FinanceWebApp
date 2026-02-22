@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRotateRight } from '@fortawesome/free-solid-svg-icons';
-import { TransactionsTab } from './TransactionsTab';
-import type { Wallet, Transaction } from '../utils/types';
-import type { CurrencyCode } from '../utils/currencies'; // <-- AGGIUNGI QUESTA RIGA
+import React, {useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faRotateRight} from '@fortawesome/free-solid-svg-icons';
+import {TransactionsTab} from './TransactionsTab';
+import type {Wallet, Transaction} from '../utils/types';
+import type {CurrencyCode} from '../utils/currencies';
+import {TagsTab} from './TagsTab';
 
 interface WalletDashboardProps {
     wallet: Wallet;
@@ -12,9 +13,9 @@ interface WalletDashboardProps {
     isRefreshing: boolean;
 }
 
-type TabType = 'transactions' | 'statistics' | 'budget';
+type TabType = 'transactions' | 'tags' | 'statistics' | 'budget';
 
-export const WalletDashboard: React.FC<WalletDashboardProps> = ({ wallet, transactions, onRefresh, isRefreshing }) => {
+export const WalletDashboard: React.FC<WalletDashboardProps> = ({wallet, transactions, onRefresh, isRefreshing}) => {
     const [activeTab, setActiveTab] = useState<TabType>('transactions');
 
     const getTabClass = (tabName: TabType) => {
@@ -40,30 +41,40 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({ wallet, transa
                     className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-white/60 transition-all hover:bg-white/10 hover:text-white disabled:opacity-50"
                     title="Refresh Data"
                 >
-                    <FontAwesomeIcon icon={faRotateRight} className={isRefreshing ? "animate-spin text-[#00ff7f]" : ""} />
+                    <FontAwesomeIcon icon={faRotateRight}
+                                     className={isRefreshing ? "animate-spin text-[#00ff7f]" : ""}/>
                 </button>
             </div>
 
             <div className="flex items-center gap-2 border-b border-white/10 mb-6">
                 <button onClick={() => setActiveTab('transactions')} className={getTabClass('transactions')}>
-                    Transactions {activeTab === 'transactions' && <span className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-[#00ff7f] shadow-[0_0_10px_#00ff7f]"></span>}
+                    Transactions {activeTab === 'transactions' && <span
+                    className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-[#00ff7f] shadow-[0_0_10px_#00ff7f]"></span>}
+                </button>
+                <button onClick={() => setActiveTab('tags')} className={getTabClass('tags')}>
+                    Tags {activeTab === 'tags' && <span
+                    className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-[#00ff7f] shadow-[0_0_10px_#00ff7f]"></span>}
                 </button>
                 <button onClick={() => setActiveTab('statistics')} className={getTabClass('statistics')}>
-                    Statistics {activeTab === 'statistics' && <span className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-[#00ff7f] shadow-[0_0_10px_#00ff7f]"></span>}
+                    Statistics {activeTab === 'statistics' && <span
+                    className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-[#00ff7f] shadow-[0_0_10px_#00ff7f]"></span>}
                 </button>
             </div>
 
             <div className="flex-1 overflow-hidden">
                 {activeTab === 'transactions' && (
-    <TransactionsTab 
-        transactions={transactions} 
-        walletId={wallet.id} 
-        baseCurrency={wallet.currency as CurrencyCode} 
-        onRefresh={onRefresh} 
-    />
-)}
+                    <TransactionsTab
+                        transactions={transactions}
+                        walletId={wallet.id}
+                        baseCurrency={wallet.currency as CurrencyCode}
+                        onRefresh={onRefresh}
+                    />
+                )}
+                {activeTab === 'tags' && (<TagsTab walletId={wallet.id}/>)}
 
-                {activeTab === 'statistics' && <div className="text-white/50 p-8 text-center border border-dashed border-white/10 rounded-xl">Area Statistiche (Coming Soon)</div>}
+                {activeTab === 'statistics' &&
+                    <div className="text-white/50 p-8 text-center border border-dashed border-white/10 rounded-xl">Area
+                        Statistiche (Coming Soon)</div>}
             </div>
         </div>
     );
