@@ -1,7 +1,7 @@
 import React, {useState, useRef, useImperativeHandle, forwardRef, useEffect} from 'react';
 import api from '../api/axiosConfig';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faPlus} from '@fortawesome/free-solid-svg-icons';
+import {faPlus, faWallet} from '@fortawesome/free-solid-svg-icons';
 import {ModalDialog} from './ModalDialog';
 import {triggerToast} from '../components/ToastNotification';
 import type {CurrencyCode} from '../utils/currencies.ts';
@@ -85,7 +85,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
             <ModalDialog ref={dialogRef}>
                 <div className="text-center">
                     <h3 className="mb-2 flex items-center justify-center gap-3 text-2xl font-semibold text-white">
-                        <FontAwesomeIcon icon={faPlus} className="text-[#00ff7f]"/> New Wallet
+                        <FontAwesomeIcon icon={faWallet} className="text-[#00ff7f]"/> New Wallet
                     </h3>
                     <p className="mb-6 text-sm text-white/60">Organize your finances with a custom wallet.</p>
 
@@ -103,6 +103,10 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                             >
                                 <FontAwesomeIcon icon={WALLET_ICONS[iconKey]}/>
                             </button>
+
+                            <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/30">
+                                Click icon to edit
+                            </span>
 
                             {showSelectors && (
                                 <IconColorSelector ref={selectorRef}
