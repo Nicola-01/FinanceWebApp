@@ -4,17 +4,17 @@ import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { CURRENCY_META, type CurrencyCode } from '../utils/currencies';
 
 interface CurrencySelectorProps {
-    value: CurrencyCode | string; // Accettiamo anche string per sicurezza
+    value: CurrencyCode | string; // Accept string as well for safety
     onChange: (currency: CurrencyCode) => void;
 }
 
 export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
 
-    // 1. Assicuriamoci che il codice sia SEMPRE maiuscolo e abbia un fallback ('EUR' di base)
+    // 1. Ensure the code is ALWAYS uppercase and has a fallback (default 'EUR')
     const safeCode = (value ? String(value).toUpperCase() : 'EUR') as CurrencyCode;
 
-    // 2. Recuperiamo i metadati sicuri
+    // 2. Retrieve safe metadata
     const meta = CURRENCY_META[safeCode];
 
     return (

@@ -19,13 +19,13 @@ export const IconColorSelector =
          colorValue,
          onChangeColor
      }: ColorSelectorPropsProps) => {
-        // Stato per gestire il tab attivo
+        // State to manage active tab
         const [activeTab, setActiveTab] = useState<'icons' | 'colors'>('icons');
 
         return (
             <div
                 ref={ref}
-                className="absolute left-1/2 top-[75px] z-50 w-full max-w-[260px] -translate-x-1/2 mx-auto flex flex-col items-center gap-4 rounded-xl border border-white/10 bg-[#1a1a1a] p-4 shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+                className="absolute left-1/2 top-18.25 z-50 w-full max-w-65 -translate-x-1/2 mx-auto flex flex-col items-center gap-4 rounded-xl border border-white/10 bg-[#1a1a1a] p-4 shadow-2xl animate-[fadeIn_0.2s_ease-out]">
 
                 {/* Selettore Tabs: ICONS | COLORS */}
                 <div className="flex w-full rounded-lg bg-white/5 p-1">
@@ -48,7 +48,7 @@ export const IconColorSelector =
                 {/* Contenuto Dinamico */}
                 <div className="flex w-full justify-center">
                     {activeTab === 'icons' ? (
-                        // Passiamo il colorValue all'IconSelector!
+                        // Pass the colorValue to the IconSelector!
                         <IconSelector value={iconValue} onChange={onChangeIcon} currentColor={colorValue}/>
                     ) : (
                         <ColorSelector value={colorValue} onChange={onChangeColor}/>
