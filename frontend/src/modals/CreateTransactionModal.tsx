@@ -123,7 +123,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                     transactionDate: date,
                     originalCurrency: currency,
                     exchangeValue: Number(exchangeRate), // Inviamo il tasso (modificato o meno) al backend
-                    tag: selectedTag === 'ADD_CUSTOM' ? { name: customTagName } : { name: selectedTag },
+                    tag: selectedTag,
                     notes,
                 };
 

@@ -33,7 +33,7 @@ public class WalletService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        if (request.getName().length() <= 3 || request.getName().length() > 25)
+        if (request.getName().length() < 3 || request.getName().length() > 25)
             throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
 
         // Create the wallet
@@ -66,7 +66,7 @@ public class WalletService {
     @Transactional
     public WalletResponse updateWallet(UUID walletId, WalletRequest request, UUID userId) {
 
-        if (request.getName().length() <= 3 || request.getName().length() > 25)
+        if (request.getName().length() < 3 || request.getName().length() > 25)
             throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
 
         WalletAccess ownerAccess = walletAccessRepository.findByWalletIdAndUserIdAndRole(walletId, userId, WalletAccess.WalletRole.OWNER)

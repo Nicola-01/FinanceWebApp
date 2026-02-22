@@ -58,7 +58,7 @@ export const WalletsArea: React.FC<WalletsAreaProps> =
 
                 <button
                     onClick={() => walletModal.current?.openModal()}
-                    className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-white/30 bg-white/5 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/50 w-full shrink-0 text-left"
+                    className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-white/30 bg-white/5 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/50 w-[260px] shrink-0 text-left"
                 >
                     <div
                         className="flex justify-center items-center w-12 h-12 rounded-full bg-white/5 text-xl text-white/40 group-hover:text-[#00ff7f] transition-colors shrink-0">
