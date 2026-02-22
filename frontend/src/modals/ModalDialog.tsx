@@ -23,10 +23,10 @@ export const ModalDialog = ({ref, children, className = "", onClose, onCancel}: 
             onClose={onClose}
             onCancel={onCancel}
             className={`
-                    m-auto w-[90vw] max-w-[450px] 
-                    rounded-[20px] border border-white/10 bg-white/5 p-[35px] text-white 
+                    m-auto w-screen md:w-[90vw] max-w-112.5 
+                    rounded-[20px] border border-white/10 bg-white/5 p-8.75 text-white 
                     shadow-[0_20px_40px_rgba(0,0,0,0.4)] backdrop-blur-[15px] 
-                    backdrop:bg-black/75 backdrop:backdrop-blur-[8px] 
+                    backdrop:bg-black/75 backdrop:backdrop-blur-sm 
                     open:animate-[modalFadeIn_0.3s_ease-out]
                     ${className}
                 `}
