@@ -1,4 +1,4 @@
-import React, { useRef, useImperativeHandle, forwardRef, useState } from 'react';
+import { useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faPenToSquare, faTrash, faArrowRightArrowLeft, faStickyNote } from '@fortawesome/free-solid-svg-icons';
 import { ModalDialog } from './ModalDialog';
