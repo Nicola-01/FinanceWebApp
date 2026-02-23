@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faChevronLeft, faChevronRight, faFilter } from '@fortawesome/free-solid-svg-icons';
-import type { Transaction } from '../utils/types';
-import { CreateTransactionModal, type CreateTransactionModalHandle } from "../modals/CreateTransactionModal.tsx";
-import type { CurrencyCode } from "../utils/currencies.ts";
+import type { Transaction } from '../../utils/types.ts';
+import { CreateTransactionModal, type CreateTransactionModalHandle } from "../../modals/CreateTransactionModal.tsx";
+import type { CurrencyCode } from "../../utils/currencies.ts";
 import { TransactionsTable } from "./TransactionsTable.tsx";
 
 interface TransactionsTabProps {

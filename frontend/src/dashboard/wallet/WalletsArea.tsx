@@ -1,12 +1,12 @@
 import React, {useRef} from 'react';
-import api from '../api/axiosConfig';
+import api from '../../api/axiosConfig.ts';
 import {faPlus} from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {triggerToast} from '../components/ToastNotification';
-import {CreateWalletModal, type CreateWalletModalHandle} from "../modals/CreateWalletModal.tsx";
-import type {DeleteModalHandle} from "../modals/DeleteConfirmationModal.tsx";
+import {triggerToast} from '../../components/ToastNotification.tsx';
+import {CreateWalletModal, type CreateWalletModalHandle} from "../../modals/CreateWalletModal.tsx";
+import type {DeleteModalHandle} from "../../modals/DeleteConfirmationModal.tsx";
 import WalletCard from "./WalletCard.tsx";
-import type {Wallet} from '../utils/types.ts';
+import type {Wallet} from '../../utils/types.ts';
 
 interface WalletsAreaProps {
     deleteModalRef: React.RefObject<DeleteModalHandle | null>;

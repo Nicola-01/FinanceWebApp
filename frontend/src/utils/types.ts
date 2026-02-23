@@ -21,7 +21,7 @@ export interface Wallet {
 }
 
 export interface Tag {
-    id: string;
+    id?: string;
     name: string;
     icon: string;
     colorHex: string;

@@ -1,5 +1,5 @@
 import React from 'react';
-import type {Transaction} from '../utils/types';
+import type {Transaction} from '../../utils/types.ts';
 
 interface TransactionsTableProps {
     transactions: Transaction[];

@@ -1,7 +1,7 @@
 import React from "react";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {WALLET_ICONS, type WalletIconKey} from '../utils/walletIcons';
-import type {Wallet} from "../utils/types.ts";
+import {WALLET_ICONS, type WalletIconKey} from '../../utils/walletIcons.ts';
+import type {Wallet} from "../../utils/types.ts";
 
 interface WalletProps {
     wallet: Wallet;
