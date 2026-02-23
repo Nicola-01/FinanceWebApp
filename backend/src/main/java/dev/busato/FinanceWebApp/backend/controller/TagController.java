@@ -30,9 +30,24 @@ public class TagController {
 
     @PostMapping("/{walletID}")
     public ResponseEntity<TagResponse> createTag(@PathVariable UUID walletID,
-                                                               @AuthenticationPrincipal User user,
-                                                               @RequestBody TagRequest tagRequest
+                                                 @AuthenticationPrincipal User user,
+                                                 @RequestBody TagRequest tagRequest
     ) {
         return ResponseEntity.ok(tagService.createTag(tagRequest, walletID, user.getId()));
+    }
+
+    @DeleteMapping("/{walletID}/{tagName}")
+    public ResponseEntity<TagResponse> deleteTag(@PathVariable String tagName, @PathVariable UUID walletID, @AuthenticationPrincipal User user) {
+        tagService.deleteTag(tagName, walletID, user.getId());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{walletID}/{tagName}")
+    public ResponseEntity<TagResponse> updateTag(@PathVariable String tagName,
+                                                 @PathVariable UUID walletID,
+                                                 @AuthenticationPrincipal User user,
+                                                 @RequestBody TagRequest tagRequest
+    ) {
+        return ResponseEntity.ok(tagService.updateTag(tagName, tagRequest, walletID, user.getId()));
     }
 }

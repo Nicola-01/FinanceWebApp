@@ -1,20 +1,19 @@
 import React, { useState } from "react";
-import api from '../api/axiosConfig';
+import api from '../../api/axiosConfig.ts';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowTurnUp, faCheck, faXmark, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
-import type { Tag } from "../utils/types";
-import type { WalletIconKey } from "../utils/walletIcons";
-import { triggerToast } from '../components/ToastNotification';
-import { IconPickerButton } from "../components/IconPickerButton";
+import type { Tag } from "../../utils/types.ts";
+import type { WalletIconKey } from "../../utils/walletIcons.ts";
+import { triggerToast } from '../../components/ToastNotification.tsx';
+import { IconPickerButton } from "../../components/IconPickerButton.tsx";
 
 interface TagChildRowProps {
     child: Tag;
     walletId: string;
     onSuccess: () => void;
-    onDelete: (name: string) => void;
 }
 
-export const TagChildRow: React.FC<TagChildRowProps> = ({ child, walletId, onSuccess, onDelete }) => {
+export const TagChildRow: React.FC<TagChildRowProps> = ({ child, walletId, onSuccess }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [nameVal, setNameVal] = useState(child.name);
 
@@ -25,6 +24,16 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, walletId, onSuc
     const updateTag = async (oldName: string, updatedTag: Partial<Tag>) => {
         try {
             await api.put(`/tags/${walletId}/${encodeURIComponent(oldName)}`, updatedTag);
+            onSuccess();
+        } catch (err: any) {
+            triggerToast(err.response?.data?.title || "Error updating tag", false);
+        }
+    };
+
+    const deleteTag = async (tagName: string) => {
+        try {
+            console.log((walletId))
+            await api.delete(`/tags/${walletId}/${encodeURIComponent(tagName)}`);
             onSuccess();
         } catch (err: any) {
             triggerToast(err.response?.data?.title || "Error updating tag", false);
@@ -102,7 +111,7 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, walletId, onSuc
                                 <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
                             </button>
                             <button
-                                onClick={() => onDelete(child.name)}
+                                onClick={() => deleteTag(child.name)}
                                 className="text-white/30 hover:text-red-500 transition-colors"
                             >
                                 <FontAwesomeIcon icon={faTrash} className="text-xs" />

@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faRotateRight} from '@fortawesome/free-solid-svg-icons';
-import {TransactionsTab} from './TransactionsTab';
-import type {Wallet, Transaction} from '../utils/types';
-import type {CurrencyCode} from '../utils/currencies';
-import {TagsTab} from './TagsTab';
+import {TransactionsTab} from '../transaction/TransactionsTab.tsx';
+import type {Wallet, Transaction} from '../../utils/types.ts';
+import type {CurrencyCode} from '../../utils/currencies.ts';
+import {TagsTab} from '../tag/TagsTab.tsx';
 
 interface WalletDashboardProps {
     wallet: Wallet;
