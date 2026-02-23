@@ -1,20 +1,19 @@
-import React, { useState } from "react";
-import api from '../api/axiosConfig';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowTurnUp, faCheck, faXmark, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
-import type { Tag } from "../utils/types";
-import type { WalletIconKey } from "../utils/walletIcons";
-import { triggerToast } from '../components/ToastNotification';
-import { IconPickerButton } from "../components/IconPickerButton";
+import React, {useState} from "react";
+import api from '../../api/axiosConfig.ts';
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faArrowTurnUp, faCheck, faXmark, faPenToSquare, faTrash} from "@fortawesome/free-solid-svg-icons";
+import type {Tag} from "../../utils/types.ts";
+import type {WalletIconKey} from "../../utils/walletIcons.ts";
+import {triggerToast} from '../../components/ToastNotification.tsx';
+import {IconPickerButton} from "../../components/IconPickerButton.tsx";
 
 interface TagChildRowProps {
-    child: Tag;
-    walletId: string;
-    onSuccess: () => void;
-    onDelete: (name: string) => void;
+    child: Tag,
+    walletId: string,
+    onSuccess: () => void,
 }
 
-export const TagChildRow: React.FC<TagChildRowProps> = ({ child, walletId, onSuccess, onDelete }) => {
+export const TagChildRow: React.FC<TagChildRowProps> = ({child, walletId, onSuccess}) => {
     const [isEditing, setIsEditing] = useState(false);
     const [nameVal, setNameVal] = useState(child.name);
 
@@ -31,9 +30,19 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, walletId, onSuc
         }
     };
 
+    const deleteTag = async (tagName: string) => {
+        try {
+            console.log((walletId))
+            await api.delete(`/tags/${walletId}/${encodeURIComponent(tagName)}`);
+            onSuccess();
+        } catch (err: any) {
+            triggerToast(err.response?.data?.title || "Error updating tag", false);
+        }
+    };
+
     const handleSaveName = () => {
         if (nameVal.trim() && nameVal !== child.name) {
-            updateTag(child.name, { ...child, name: nameVal.trim() });
+            updateTag(child.name, {...child, name: nameVal.trim()});
         }
         setIsEditing(false);
     };
@@ -41,13 +50,13 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, walletId, onSuc
     const handleCloseSelector = () => {
         setShowSelector(false);
         if (iconVal !== child.icon || colorVal !== child.colorHex) {
-            updateTag(child.name, { ...child, icon: iconVal, colorHex: colorVal });
+            updateTag(child.name, {...child, icon: iconVal, colorHex: colorVal});
         }
     };
 
     return (
         <div className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 group/child">
-            <FontAwesomeIcon icon={faArrowTurnUp} className="rotate-90 text-white/20 text-xs shrink-0" />
+            <FontAwesomeIcon icon={faArrowTurnUp} className="rotate-90 text-white/20 text-xs shrink-0"/>
 
             {/* Clean Child Component (with size="sm" parameter) */}
             <IconPickerButton
@@ -82,16 +91,18 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, walletId, onSuc
                             }}
                         />
                         <button onClick={handleSaveName} className="text-[#00ff7f] hover:text-white transition-colors">
-                            <FontAwesomeIcon icon={faCheck} />
+                            <FontAwesomeIcon icon={faCheck}/>
                         </button>
-                        <button onClick={() => setIsEditing(false)} className="text-white/40 hover:text-red-500 transition-colors">
-                            <FontAwesomeIcon icon={faXmark} />
+                        <button onClick={() => setIsEditing(false)}
+                                className="text-white/40 hover:text-red-500 transition-colors">
+                            <FontAwesomeIcon icon={faXmark}/>
                         </button>
                     </div>
                 ) : (
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-white/80 truncate pr-2">{child.name}</span>
-                        <div className="flex items-center gap-2 opacity-0 group-hover/child:opacity-100 transition-opacity">
+                        <div
+                            className="flex items-center gap-2 opacity-0 group-hover/child:opacity-100 transition-opacity">
                             <button
                                 onClick={() => {
                                     setNameVal(child.name);
@@ -99,13 +110,13 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, walletId, onSuc
                                 }}
                                 className="text-white/30 hover:text-amber-400 transition-colors"
                             >
-                                <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
+                                <FontAwesomeIcon icon={faPenToSquare} className="text-xs"/>
                             </button>
                             <button
-                                onClick={() => onDelete(child.name)}
+                                onClick={() => deleteTag(child.name)}
                                 className="text-white/30 hover:text-red-500 transition-colors"
                             >
-                                <FontAwesomeIcon icon={faTrash} className="text-xs" />
+                                <FontAwesomeIcon icon={faTrash} className="text-xs"/>
                             </button>
                         </div>
                     </div>

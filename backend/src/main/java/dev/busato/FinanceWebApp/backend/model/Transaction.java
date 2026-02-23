@@ -40,7 +40,7 @@ public class Transaction {
     private BigDecimal amount; // In wallet Value (EUR)
     private BigDecimal originalAmount; // Es. 10.50
     private String originalCurrency;   // Es. USD
-    private BigDecimal exchangeVale;   // 1.35
+    private BigDecimal exchangeValue;   // 1.35
 
     @Enumerated(EnumType.STRING)
     private Type type; // INCOME, EXPENSE

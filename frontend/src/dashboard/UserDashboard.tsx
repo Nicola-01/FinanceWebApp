@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AccountSettings } from "../components/AccountSettings.tsx";
-import { WalletsArea } from "./WalletsArea.tsx";
-import { WalletDashboard } from "./WalletDashboard.tsx";
+import { WalletsArea } from "./wallet/WalletsArea.tsx";
+import { WalletDashboard } from "./wallet/WalletDashboard.tsx";
 import api from '../api/axiosConfig';
 import { triggerToast } from '../components/ToastNotification';
 import type { DeleteModalHandle } from "../modals/DeleteConfirmationModal.tsx";

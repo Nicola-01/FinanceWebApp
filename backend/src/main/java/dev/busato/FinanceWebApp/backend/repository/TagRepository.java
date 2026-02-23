@@ -13,4 +13,6 @@ import java.util.UUID;
 public interface TagRepository extends JpaRepository<Tag, Long> {
     List<Tag> getTagsByWalletId(UUID walletId);
     Optional<Tag> findByNameIgnoreCaseAndWalletId(String tagName,  UUID walletID);
+    boolean existsByNameIgnoreCaseAndWalletId(String name, UUID walletId);
+    boolean existsByParent(Tag parent);
 }

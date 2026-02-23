@@ -21,7 +21,7 @@ export interface Wallet {
 }
 
 export interface Tag {
-    id: string;
+    id?: string;
     name: string;
     icon: string;
     colorHex: string;
@@ -35,8 +35,8 @@ export interface Transaction {
     amount: number;
     originalAmount?: number;
     originalCurrency?: string;
-    exchangeVale?: number;
-    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+    exchangeValue?: number;
+    type: 'INCOME' | 'EXPENSE';
     notes?: string;
     transactionDate: string;
 }

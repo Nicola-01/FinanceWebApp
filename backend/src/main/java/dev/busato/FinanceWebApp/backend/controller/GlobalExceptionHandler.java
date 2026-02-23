@@ -63,11 +63,23 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex, HttpStatus.FORBIDDEN, "Permission Denied", request);
     }
 
+    @ExceptionHandler(TagHasChildrenException.class)
+    public ResponseEntity<ProblemDetail> handleTagHasChildrenException(
+            TagHasChildrenException ex, HttpServletRequest request) {
+        return buildErrorResponse(ex, HttpStatus.BAD_REQUEST, "The tag has sub-tag", request);
+    }
+
+    @ExceptionHandler(TagInUseException.class)
+    public ResponseEntity<ProblemDetail> handleTagInUseException(TagInUseException ex, HttpServletRequest request) {
+        return buildErrorResponse(ex, HttpStatus.CONFLICT, "Tag in Use", request);
+    }
+
     /**
      * Constructs the standardised ProblemDetail response.
      * * @param ex The captured exception
-     * @param status The HTTP status to return
-     * @param title A short title for the error
+     *
+     * @param status  The HTTP status to return
+     * @param title   A short title for the error
      * @param request The original HTTP request (for the URI)
      * @return The ready ResponseEntity
      */
