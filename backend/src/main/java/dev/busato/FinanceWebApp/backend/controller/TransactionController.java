@@ -18,8 +18,6 @@ import java.util.UUID;
 public class TransactionController {
     private final TransactionService transactionService;
 
-    //ToDO: Get single transaction
-
     @GetMapping("/{walletID}")
     public ResponseEntity<List<TransactionResponse>> getTransactions(@PathVariable UUID walletID, @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(transactionService.getTransactionsByWalletID(walletID, user.getId()));
@@ -30,5 +28,25 @@ public class TransactionController {
                                                                 @PathVariable UUID walletID,
                                                                 @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(transactionService.createTransaction(request, walletID, user.getId()));
+    }
+
+    @PutMapping("/{walletID}/{transactionID}")
+    public ResponseEntity<TransactionResponse> updateTransaction(
+            @PathVariable UUID walletID,
+            @PathVariable UUID transactionID,
+            @RequestBody TransactionRequest request,
+            @AuthenticationPrincipal User user) {
+
+        return ResponseEntity.ok(transactionService.updateTransaction(transactionID, request, walletID, user.getId()));
+    }
+
+    @DeleteMapping("/{walletID}/{transactionID}")
+    public ResponseEntity<Void> deleteTransaction(
+            @PathVariable UUID walletID,
+            @PathVariable UUID transactionID,
+            @AuthenticationPrincipal User user) {
+
+        transactionService.deleteTransaction(transactionID, walletID, user.getId());
+        return ResponseEntity.noContent().build();
     }
 }

@@ -4,6 +4,7 @@ import dev.busato.FinanceWebApp.backend.dto.TagRequest;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.TagHasChildrenException;
+import dev.busato.FinanceWebApp.backend.exceptions.TagInUseException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.UnauthorizedAccessException;
 import dev.busato.FinanceWebApp.backend.model.Tag;
@@ -80,6 +81,9 @@ public class TagService {
 
         if (tagRepository.existsByParent(tag))
             throw new TagHasChildrenException(tagName);
+
+        if (transactionRepository.existsByTag(tag))
+            throw new TagInUseException(tagName);
 
         tagRepository.delete(tag);
     }
