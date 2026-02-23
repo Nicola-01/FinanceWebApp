@@ -35,8 +35,8 @@ export interface Transaction {
     amount: number;
     originalAmount?: number;
     originalCurrency?: string;
-    exchangeVale?: number;
-    type: 'INCOME' | 'EXPENSE' | 'TRANSFER';
+    exchangeValue?: number;
+    type: 'INCOME' | 'EXPENSE';
     notes?: string;
     transactionDate: string;
 }

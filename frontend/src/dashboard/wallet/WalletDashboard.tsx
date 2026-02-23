@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faRotateRight} from '@fortawesome/free-solid-svg-icons';
-import {TransactionsTab} from '../transaction/TransactionsTab.tsx';
-import type {Wallet, Transaction} from '../../utils/types.ts';
-import type {CurrencyCode} from '../../utils/currencies.ts';
-import {TagsTab} from '../tag/TagsTab.tsx';
+import {TransactionsTab} from '../transaction/TransactionsTab';
+import {StatisticsTab} from '../statistics/StatisticsTab'; // <-- 1. IMPORTA LA NUOVA TAB
+import type {Wallet, Transaction} from '../../utils/types';
+import type {CurrencyCode} from '../../utils/currencies';
+import {TagsTab} from "../tag/TagsTab.tsx";
 
 interface WalletDashboardProps {
     wallet: Wallet;
@@ -70,11 +71,12 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({wallet, transac
                         onRefresh={onRefresh}
                     />
                 )}
+
                 {activeTab === 'tags' && (<TagsTab walletId={wallet.id}/>)}
 
-                {activeTab === 'statistics' &&
-                    <div className="text-white/50 p-8 text-center border border-dashed border-white/10 rounded-xl">Area
-                        Statistiche (Coming Soon)</div>}
+                {activeTab === 'statistics' && (
+                    <StatisticsTab transactions={transactions} />
+                )}
             </div>
         </div>
     );

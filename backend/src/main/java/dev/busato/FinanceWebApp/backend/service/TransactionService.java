@@ -49,7 +49,7 @@ public class TransactionService {
                 .amount(request.getAmount())
                 .originalAmount(request.getOriginalAmount())
                 .originalCurrency(request.getOriginalCurrency())
-                .exchangeVale(request.getExchangeVale())
+                .exchangeValue(request.getExchangeValue())
                 .transactionDate(LocalDate.now())
                 .type(Transaction.Type.valueOf(request.getType()))
                 .notes(request.getNotes())
@@ -66,6 +66,52 @@ public class TransactionService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
+    public TransactionResponse updateTransaction(UUID transactionId, TransactionRequest request, UUID walletId, UUID userId) {
+        // 1. Cerchiamo la transazione assicurandoci che appartenga a questo wallet
+        Transaction transaction = transactionRepository.findByIdAndWalletId(transactionId, walletId)
+                .orElseThrow(() -> new IllegalArgumentException("Transaction not found or does not belong to this wallet"));
+
+        // 2. Validazione del nome
+        if (request.getName() != null) {
+            if (request.getName().length() < 3 || request.getName().length() > 25) {
+                throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
+            }
+            transaction.setName(request.getName());
+        }
+
+        // 3. Gestione del Tag (può essere null o vuoto se l'utente lo rimuove)
+        Tag tag = null;
+        if (request.getTag() != null && !request.getTag().isBlank()) {
+            tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
+                    .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
+        }
+        transaction.setTag(tag);
+
+        transaction.setAmount(request.getAmount());
+        transaction.setOriginalAmount(request.getOriginalAmount());
+        transaction.setOriginalCurrency(request.getOriginalCurrency());
+        transaction.setExchangeValue(request.getExchangeValue()); // P.S. Ricordati del typo "exchangeValue" ;)
+        transaction.setType(Transaction.Type.valueOf(request.getType()));
+        transaction.setNotes(request.getNotes());
+
+        if (request.getTransactionDate() != null) {
+            transaction.setTransactionDate(request.getTransactionDate());
+        }
+
+        return mapToResponse(transaction);
+    }
+
+    @Transactional
+    @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
+    public void deleteTransaction(UUID transactionId, UUID walletId, UUID userId) {
+        Transaction transaction = transactionRepository.findByIdAndWalletId(transactionId, walletId)
+                .orElseThrow(() -> new IllegalArgumentException("Transaction not found or does not belong to this wallet"));
+
+        transactionRepository.delete(transaction);
+    }
+
     private TransactionResponse mapToResponse(Transaction transaction) {
         return TransactionResponse.builder()
                 .id(transaction.getId())
@@ -73,7 +119,7 @@ public class TransactionService {
                 .amount(transaction.getAmount())
                 .originalAmount(transaction.getOriginalAmount())
                 .originalCurrency(transaction.getOriginalCurrency())
-                .exchangeVale(transaction.getExchangeVale())
+                .exchangeValue(transaction.getExchangeValue())
                 .tag(
                     TagResponse.builder()
                         .name(transaction.getTag().getName())

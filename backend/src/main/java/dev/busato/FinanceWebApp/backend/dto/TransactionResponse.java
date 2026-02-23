@@ -19,7 +19,7 @@ public class TransactionResponse {
     private BigDecimal amount;
     private BigDecimal originalAmount;
     private String originalCurrency;
-    private BigDecimal exchangeVale;
+    private BigDecimal exchangeValue;
 
     private String type;
     private String notes;

@@ -1,8 +1,9 @@
-import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { WALLET_ICONS, type WalletIconKey } from "../utils/walletIcons";
-import { faTags } from "@fortawesome/free-solid-svg-icons";
-import { IconColorSelector } from "./IconColorSelector";
+import React, {useRef, useEffect, useState} from "react";
+import {createPortal} from "react-dom";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {WALLET_ICONS, type WalletIconKey} from "../utils/walletIcons";
+import {faTags} from "@fortawesome/free-solid-svg-icons";
+import {IconColorSelector} from "./IconColorSelector";
 
 interface IconPickerButtonProps {
     icon: WalletIconKey;
@@ -15,29 +16,55 @@ interface IconPickerButtonProps {
 }
 
 export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
-                                                                      icon, color, onIconChange, onColorChange, size = "md", isOpen, onToggle
+                                                                      icon,
+                                                                      color,
+                                                                      onIconChange,
+                                                                      onColorChange,
+                                                                      size = "md",
+                                                                      isOpen,
+                                                                      onToggle
                                                                   }) => {
-    // Adapt size and position based on whether it is a parent (md) or child (sm) tag
+    const buttonRef = useRef<HTMLDivElement>(null);
+    const [coords, setCoords] = useState({top: 0, left: 0});
+
     const sizeClasses = size === "sm" ? "h-6 w-6 rounded-md text-xs" : "h-10 w-10 rounded-lg text-lg";
-    const popupTop = size === "sm" ? "top-8" : "top-12";
+
+    // Calcola le coordinate esatte ogni volta che si apre
+    useEffect(() => {
+        if (isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+
+            // Sicurezza: Evita che il menu esca dallo schermo se cliccato troppo a destra
+            let leftPos = rect.left;
+            if (leftPos + 280 > window.innerWidth) {
+                leftPos = window.innerWidth - 280;
+            }
+
+            setCoords({
+                top: rect.bottom + 8, // 8 pixel di margine sotto il bottone
+                left: leftPos,
+            });
+        }
+    }, [isOpen]);
 
     return (
-        <div className="relative shrink-0">
+        <>
             <div
+                ref={buttonRef}
                 onClick={() => onToggle(!isOpen)}
-                className={`flex items-center justify-center bg-white/10 shadow-sm cursor-pointer hover:scale-110 transition-transform ${sizeClasses}`}
-                style={{ color }}
+                className={`shrink-0 flex items-center justify-center bg-white/10 shadow-sm cursor-pointer hover:scale-110 transition-transform ${sizeClasses}`}
+                style={{color}}
                 title="Change Icon & Color">
-                <FontAwesomeIcon icon={WALLET_ICONS[icon] || faTags} />
+                <FontAwesomeIcon icon={WALLET_ICONS[icon] || faTags}/>
             </div>
 
-            {isOpen && (
+            {isOpen && createPortal(
                 <>
-                    {/* Sfondo invisibile per chiudere cliccando fuori */}
-                    <div className="fixed inset-0 z-40" onClick={() => onToggle(false)} />
-
-                    {/* Il popup vero e proprio */}
-                    <div className={`absolute ${popupTop} left-0 z-50`}>
+                    <div className="fixed inset-0 z-[100]" onClick={() => onToggle(false)}/>
+                        <div
+                            className="fixed z-[110]"
+                            style={{top: coords.top, left: coords.left}}
+                        >
                         <IconColorSelector
                             iconValue={icon}
                             onChangeIcon={onIconChange}
@@ -45,8 +72,9 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
                             onChangeColor={onColorChange}
                         />
                     </div>
-                </>
+                </>,
+                document.body
             )}
-        </div>
+        </>
     );
 };

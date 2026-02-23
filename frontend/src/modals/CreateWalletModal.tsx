@@ -32,6 +32,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
         const [showSelectors, setShowSelectors] = useState(false);
 
         const selectorRef = useRef<HTMLDivElement>(null);
+        const buttonRef = useRef<HTMLButtonElement>(null);
 
         useImperativeHandle(ref, () => ({
             openModal: () => {
@@ -45,18 +46,18 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
 
         useEffect(() => {
             const handleClickOutside = (event: MouseEvent) => {
-                // Se il contenitore esiste e il click NON è avvenuto al suo interno, chiudi il menu
-                if (selectorRef.current && !selectorRef.current.contains(event.target as Node)) {
+                const target = event.target as Node
+                if (
+                    selectorRef.current && !selectorRef.current.contains(target) &&
+                    buttonRef.current && !buttonRef.current.contains(target)
+                ) {
                     setShowSelectors(false);
                 }
             };
 
-            // Attacchiamo l'event listener solo quando il selettore è aperto
-            if (showSelectors) {
+            if (showSelectors)
                 document.addEventListener('mousedown', handleClickOutside);
-            }
 
-            // Pulizia dell'event listener quando il componente si smonta o lo stato cambia
             return () => {
                 document.removeEventListener('mousedown', handleClickOutside);
             };
@@ -94,8 +95,8 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                         <div className="relative mb-6 flex flex-col items-center">
 
                             <button
+                                ref={buttonRef}
                                 type="button"
-                                // Ora possiamo semplificare: se clicchi, si apre/chiude
                                 onClick={() => setShowSelectors(!showSelectors)}
                                 className="group flex h-16 w-16 cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-2xl shadow-lg transition-all duration-300 hover:scale-105 hover:bg-white/10"
                                 style={{color: color}}
@@ -109,12 +110,14 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                             </span>
 
                             {showSelectors && (
-                                <IconColorSelector ref={selectorRef}
-                                                   iconValue={iconKey}
-                                                   onChangeIcon={setIconKey}
-                                                   colorValue={color}
-                                                   onChangeColor={setColor}
-                                />
+                                <div className="absolute top-24 left-1/2 -translate-x-1/2 z-50">
+                                    <IconColorSelector ref={selectorRef}
+                                                       iconValue={iconKey}
+                                                       onChangeIcon={setIconKey}
+                                                       colorValue={color}
+                                                       onChangeColor={setColor}
+                                    />
+                                </div>
                             )}
                         </div>
 

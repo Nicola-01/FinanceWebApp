@@ -7,7 +7,6 @@ import { faArrowTurnUp, faPlus, faSpinner, faCheck, faXmark, faPenToSquare, faTr
 import { triggerToast } from '../../components/ToastNotification.tsx';
 import { IconPickerButton } from "../../components/IconPickerButton.tsx";
 import { TagChildRow } from "./TagChildRow.tsx";
-import {IconColorSelector} from "../../components/IconColorSelector.tsx";
 
 interface TagCardProps {
     parent: Tag;
@@ -28,14 +27,6 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
     const [showParentSelector, setShowParentSelector] = useState(false);
     const [parentIcon, setParentIcon] = useState<WalletIconKey>(parent.icon as WalletIconKey);
     const [parentColor, setParentColor] = useState(parent.colorHex);
-
-    const [newTag, setNewTag] = useState<Tag>({
-        name: '',
-        icon: 'tag',
-        colorHex: '#00ff7f',
-        parentName: null
-    });
-
 
     const updateTag = async (oldName: string, updatedTag: Partial<Tag>) => {
         try { await api.put(`/tags/${walletId}/${encodeURIComponent(oldName)}`, updatedTag); onSuccess(); }
@@ -73,19 +64,25 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
 
             {/* HEADER DEL PADRE */}
             <div className="flex items-center gap-3 group/header">
-                {/* Componente Pulito Padre */}
 
-                {/*{showSelectors && (*/}
-                {/*    <div className="absolute top-20 z-50">*/}
-                {/*        <IconColorSelector*/}
-                {/*            ref={selectorRef}*/}
-                {/*            iconValue={iconKey}*/}
-                {/*            onChangeIcon={setIconKey}*/}
-                {/*            colorValue={colorHex}*/}
-                {/*            onChangeColor={setColorHex}*/}
-                {/*        />*/}
-                {/*    </div>*/}
-                {/*)}*/}
+                {/* Componente Pulito Padre: Ripristinato IconPickerButton */}
+                <IconPickerButton
+                    icon={showParentSelector ? parentIcon : (parent.icon as WalletIconKey)}
+                    color={showParentSelector ? parentColor : parent.colorHex}
+                    onIconChange={setParentIcon}
+                    onColorChange={setParentColor}
+                    isOpen={showParentSelector}
+                    onToggle={(open) => {
+                        if (open) {
+                            setParentIcon(parent.icon as WalletIconKey);
+                            setParentColor(parent.colorHex);
+                            setShowParentSelector(true);
+                        }
+                        else {
+                            handleCloseParentSelector();
+                        }
+                    }}
+                />
 
                 <div className="flex-1 min-w-0">
                     {editingParentName ? (
@@ -101,8 +98,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
                     ) : (
                         <div className="flex items-center justify-between">
                             <div className="min-w-0">
-                                <h4 className="font-bold text-white text-lg truncate pr-2">{parent.name}</h4>
-                                <span className="text-xs text-white/40 uppercase tracking-widest block">Main Category</span>
+                                <h1 className="font-bold text-white text-2xl truncate pr-2">{parent.name}</h1>
                             </div>
                             <div className="flex items-center gap-2 opacity-0 group-hover/header:opacity-100 transition-opacity">
                                 <button onClick={() => { setParentNameVal(parent.name); setEditingParentName(true); }} className="text-white/30 hover:text-amber-400 transition-colors"><FontAwesomeIcon icon={faPenToSquare} className="text-sm" /></button>
@@ -144,7 +140,6 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
                         child={child}
                         walletId={walletId}
                         onSuccess={onSuccess}
-                        onDelete={handleDeleteTag}
                     />
                 ))}
             </div>
