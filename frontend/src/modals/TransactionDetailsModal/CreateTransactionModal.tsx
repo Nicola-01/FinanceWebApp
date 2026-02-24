@@ -1,15 +1,15 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from 'react';
-import api from '../api/axiosConfig';
+import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
+import api from '../../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faArrowRightArrowLeft, faTags, faCalendarAlt,
-    faStickyNote, faRepeat, faMoneyBillTransfer
-} from '@fortawesome/free-solid-svg-icons';
-import { ModalDialog } from './ModalDialog';
-import { triggerToast } from '../components/ToastNotification';
-import { CurrencySelector } from '../components/CurrencySelector';
-import type { CurrencyCode } from '../utils/currencies';
-import type { Tag } from "../utils/types.ts";
+import { faCalendarAlt, faStickyNote, faRepeat, faMoneyBillTransfer } from '@fortawesome/free-solid-svg-icons';
+import { ModalDialog } from '..//ModalDialog';
+import { triggerToast } from '../../components/ToastNotification';
+import type { CurrencyCode } from '../../utils/currencies';
+import type { Tag } from "../../utils/types.ts";
+
+// Import the new components
+import { ExchangeRateSection } from './ExchangeRateSection.tsx';
+import { HierarchicalTagSelector } from './HierarchicalTagSelector.tsx';
 
 export interface CreateTransactionModalHandle {
     openModal: () => void;
@@ -30,24 +30,16 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
         const [name, setName] = useState('');
         const [amount, setAmount] = useState<number | ''>('');
         const [currency, setCurrency] = useState<CurrencyCode>(baseCurrency);
-
-        // Tasso di cambio reso editabile (può essere vuoto temporaneamente durante la digitazione)
         const [exchangeRate, setExchangeRate] = useState<number | ''>(1);
-
-        // Date (Default to today: YYYY-MM-DD)
         const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-
-        // Tags
-        const [tags, setTags] = useState<Tag[]>([]);
-        const [selectedTag, setSelectedTag] = useState<string>('');
-        const [customTagName, setCustomTagName] = useState('');
-
-        // Extra features
         const [notes, setNotes] = useState('');
         const [isRecurring, setIsRecurring] = useState(false);
         const [loading, setLoading] = useState(false);
 
-        // --- Expose openModal to parent ---
+        // Tags States
+        const [tags, setTags] = useState<Tag[]>([]);
+        const [selectedTagName, setSelectedTagName] = useState<string>('');
+
         useImperativeHandle(ref, () => ({
             openModal: () => {
                 setType('EXPENSE');
@@ -56,8 +48,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                 setCurrency(baseCurrency);
                 setExchangeRate(1);
                 setDate(new Date().toISOString().split('T')[0]);
-                setSelectedTag('');
-                setCustomTagName('');
+                setSelectedTagName('');
                 setNotes('');
                 setIsRecurring(false);
 
@@ -70,49 +61,18 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
             try {
                 const response = await api.get(`/tags/${walletId}`);
                 setTags(response.data);
-                if (response.data.length > 0) {
-                    setSelectedTag(response.data[0].name);
-                }
             } catch (err) {
                 triggerToast("Failed to load tags", false);
             }
         };
 
-        // --- CHIAMATA API FRANKFURTER PER IL CAMBIO ---
-        useEffect(() => {
-            const fetchExchangeRate = async () => {
-                if (currency === baseCurrency) {
-                    setExchangeRate(1);
-                    return;
-                }
-                try {
-                    // Chiamata all'API pubblica. Usa symbols=baseCurrency per farsi restituire esattamente il tasso verso la valuta del wallet
-                    const response = await fetch(`https://api.frankfurter.dev/v1/latest?base=${currency}&symbols=${baseCurrency}`);
-                    const data = await response.json();
-
-                    if (data && data.rates && data.rates[baseCurrency]) {
-                        // Imposta il valore di default appena trovato!
-                        setExchangeRate(data.rates[baseCurrency]);
-                    } else {
-                        triggerToast("Could not retrieve exchange rate.", false);
-                    }
-                } catch (error) {
-                    console.error("Frankfurter API Error:", error);
-                    triggerToast("Error fetching exchange rate.", false);
-                }
-            };
-
-            fetchExchangeRate();
-        }, [currency, baseCurrency]);
-
-        // --- Submit Handler ---
         const handleSubmit = async (e: React.FormEvent) => {
             e.preventDefault();
 
             if (name.trim().length < 3) return triggerToast("Name must be at least 3 characters.", false);
             if (!amount || Number(amount) <= 0) return triggerToast("Please enter a valid amount.", false);
             if (!exchangeRate || Number(exchangeRate) <= 0) return triggerToast("Please enter a valid exchange rate.", false);
-            if (selectedTag === 'ADD_CUSTOM' && customTagName.trim().length < 2) return triggerToast("Invalid custom tag name.", false);
+            if (!selectedTagName) return triggerToast("Please select a tag.", false);
 
             setLoading(true);
             try {
@@ -122,8 +82,8 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                     type,
                     transactionDate: date,
                     originalCurrency: currency,
-                    exchangeValue: Number(exchangeRate), // Inviamo il tasso (modificato o meno) al backend
-                    tag: selectedTag,
+                    exchangeValue: Number(exchangeRate),
+                    tag: selectedTagName, // Assuming backend now expects ID, not name, for better integrity
                     notes,
                 };
 
@@ -131,7 +91,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
 
                 triggerToast("Transaction added successfully!", true);
                 onSuccess();
-                dialogRef.current?.close();
+                if (dialogRef.current?.open) dialogRef.current.close();
             } catch (err: any) {
                 triggerToast(err.response?.data?.title || "Error creating transaction", false);
             } finally {
@@ -152,6 +112,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
 
                         {/* 1. Type Toggle */}
                         <div className="flex rounded-xl bg-black/40 p-1 border border-white/10">
+                            {/* ... (Keep existing Type Toggle buttons) ... */}
                             <button
                                 type="button"
                                 onClick={() => setType('EXPENSE')}
@@ -170,6 +131,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
 
                         {/* 2. Amount and Name */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {/* ... (Keep existing Name input) ... */}
                             <div>
                                 <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Name *</label>
                                 <input
@@ -185,7 +147,8 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                                 <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Amount *</label>
                                 <div className="relative">
                                     <input
-                                        className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 pr-12 text-white outline-none transition-all focus:border-[#00ff7f]"
+                                        // Aggiunte qui le classi per nascondere le frecce!
+                                        className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 pr-12 text-white outline-none transition-all focus:border-[#00ff7f] [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                                         type="number"
                                         step="0.01"
                                         min="0.01"
@@ -194,44 +157,24 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                                         onChange={(e) => setAmount(Number(e.target.value) || '')}
                                         required
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-white/40">
-                                        {currency}
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-white/40 pointer-events-none">
+                                        {currency === baseCurrency ? baseCurrency : currency}
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 3. Currency and Exchange Rate (Editabile) */}
-                        <div className={`grid grid-cols-1 gap-4 ${currency !== baseCurrency ? 'sm:grid-cols-2' : ''}`}>
-                            <div>
-                                <CurrencySelector value={currency} onChange={setCurrency} />
-                            </div>
+                        {/* 3. NEW: Exchange Rate Section */}
+                        <ExchangeRateSection
+                            baseCurrency={baseCurrency}
+                            selectedCurrency={currency}
+                            onCurrencyChange={setCurrency}
+                            exchangeRate={exchangeRate}
+                            onExchangeRateChange={setExchangeRate}
+                            amount={amount}
+                        />
 
-                            {currency !== baseCurrency && (
-                                <div className="animate-[fadeIn_0.2s_ease-out]">
-                                    <label className="mb-2 ml-1 flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-[#00bfff]">
-                                        <FontAwesomeIcon icon={faArrowRightArrowLeft} />
-                                        Rate (1 {currency} = ?)
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            className="h-[48px] w-full rounded-xl border border-[#00bfff]/30 bg-[#00bfff]/5 px-4 text-white outline-none transition-all focus:border-[#00bfff]"
-                                            type="number"
-                                            step="0.000001" // Permette molta precisione per i tassi
-                                            min="0.000001"
-                                            value={exchangeRate}
-                                            onChange={(e) => setExchangeRate(e.target.value ? Number(e.target.value) : '')}
-                                            required
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#00bfff]/50">
-                                            {baseCurrency}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* 4. Date and Tag */}
+                        {/* 4. Date and NEW Hierarchical Tag */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">
@@ -246,39 +189,19 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                                     required
                                 />
                             </div>
+
+                            {/* Use the new Component */}
                             <div>
-                                <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">
-                                    <FontAwesomeIcon icon={faTags} className="mr-2" />
-                                    Tag
-                                </label>
-                                <select
-                                    className="h-[48px] w-full rounded-xl border border-white/10 bg-[#1a1a1a] px-4 text-white outline-none transition-all focus:border-[#00ff7f] appearance-none"
-                                    value={selectedTag}
-                                    onChange={(e) => setSelectedTag(e.target.value)}
-                                >
-                                    <option value="" disabled>Select a tag</option>
-                                    {tags.map((t) => (
-                                        <option key={t.name} value={t.name}>{t.name}</option>
-                                    ))}
-                                    <option value="ADD_CUSTOM" className="text-[#00ff7f] font-bold">+ Add Custom Tag</option>
-                                </select>
+                                <HierarchicalTagSelector
+                                    tags={tags}
+                                    selectedTagName={selectedTagName}
+                                    onSelectTag={setSelectedTagName}
+                                />
                             </div>
                         </div>
 
-                        {selectedTag === 'ADD_CUSTOM' && (
-                            <div className="animate-[fadeIn_0.2s_ease-out]">
-                                <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Custom Tag Name</label>
-                                <input
-                                    className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00ff7f]"
-                                    type="text"
-                                    placeholder="Enter new tag name..."
-                                    value={customTagName}
-                                    onChange={(e) => setCustomTagName(e.target.value)}
-                                />
-                            </div>
-                        )}
-
                         {/* 5. Notes */}
+                        {/* ... (Keep existing Notes textarea) ... */}
                         <div>
                             <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">
                                 <FontAwesomeIcon icon={faStickyNote} className="mr-2" />
@@ -293,6 +216,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                         </div>
 
                         {/* 6. Recurring Toggle */}
+                        {/* ... (Keep existing Recurring toggle logic) ... */}
                         <div className="rounded-xl border border-white/10 bg-black/20 p-4 transition-all">
                             <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsRecurring(!isRecurring)}>
                                 <div className="flex items-center gap-3">
@@ -321,7 +245,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                             <button
                                 type="button"
                                 className="w-1/3 rounded-xl bg-white/5 py-3 font-bold text-white transition-colors hover:bg-white/10"
-                                onClick={() => dialogRef.current?.close()}
+                                onClick={() => { if (dialogRef.current?.open) dialogRef.current.close() }}
                             >
                                 Cancel
                             </button>

@@ -2,7 +2,7 @@ import React, {useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faPlus} from '@fortawesome/free-solid-svg-icons';
 import type {Transaction, Wallet} from '../../utils/types.ts';
-import {CreateTransactionModal, type CreateTransactionModalHandle} from "../../modals/CreateTransactionModal.tsx";
+import {CreateTransactionModal, type CreateTransactionModalHandle} from "../../modals/TransactionDetailsModal/CreateTransactionModal.tsx";
 import type {CurrencyCode} from "../../utils/currencies.ts";
 import {TransactionsTable} from "./TransactionsTable.tsx";
 import {PeriodStats} from "./PeriodStats.tsx";
@@ -58,7 +58,7 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({transactions, w
             {/* Tabella con Dati Filtrati */}
             <TransactionsTable
                 transactions={filteredTransactions}
-                walletId={wallet.id}
+                wallet={wallet}
                 onRefresh={onRefresh}
             />
         </div>

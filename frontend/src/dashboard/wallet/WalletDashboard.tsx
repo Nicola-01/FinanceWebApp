@@ -125,7 +125,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
 
                             <button
                                 onClick={() => {
-                                    setShowMenu(false); /* TODO: Logica Delete */
+                                    setShowMenu(false);
                                     onWalletDelete();
                                 }}
                                 className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-[#ff4d4d]/70 transition-colors hover:bg-[#ff4d4d]/20 hover:text-[#ff4d4d]"

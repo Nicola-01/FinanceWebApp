@@ -1,16 +1,14 @@
-import React, { useRef } from 'react';
-import type { Transaction } from '../../utils/types.ts';
+import React from 'react';
+import type {Transaction, Wallet} from '../../utils/types.ts';
 import TransactionRow from "./TransactionRow.tsx";
-import { TransactionDetailsModal, type TransactionDetailsModalHandle } from '../../modals/TransactionDetailsModal.tsx';
-
 interface TransactionsTableProps {
     transactions: Transaction[];
-    walletId: string;
+    wallet: Wallet;
     onRefresh: () => void;
 }
 
-export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactions, walletId, onRefresh }) => {
-    const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
+export const TransactionsTable: React.FC<TransactionsTableProps> = ({transactions, wallet}) => {
+    // const detailsModalRef = useRef<CreateTransactionModalHandle>(null);
 
     // Raggruppamento per Data
     const groupedTransactions = transactions.reduce((acc, tx) => {
@@ -18,6 +16,9 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
         acc[tx.transactionDate].push(tx);
         return acc;
     }, {} as Record<string, Transaction[]>);
+
+    // TODO da risolvere
+    wallet = wallet
 
     // Ordiniamo le date in ordine decrescente (le più recenti prima)
     const sortedDates = Object.keys(groupedTransactions).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
@@ -30,7 +31,12 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
 
-        const formatedDate = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+        const formatedDate = date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
 
         if (date.toDateString() === today.toDateString()) return `Today - ${formatedDate}`;
         if (date.toDateString() === yesterday.toDateString()) return `Yesterday - ${formatedDate}`;
@@ -58,10 +64,13 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
                             {/* Transazioni di quel giorno */}
                             <div>
                                 {groupedTransactions[date].map(tx => (
+                                    //TODO
                                     <TransactionRow
                                         key={tx.id}
-                                        transaction={tx}
-                                        onClick={(tx) => detailsModalRef.current?.openModal(tx)}
+                                        // @ts-ignore
+                                        transaction={tx} onClick={function (tx: Transaction): void {
+                                        throw new Error("Function not implemented.");
+                                    }}                                        // onClick={(tx) => detailsModalRef.current?.openModal()}
                                     />
                                 ))}
                             </div>
@@ -71,15 +80,15 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
             </div>
 
             {/* Modale dei Dettagli */}
-            <TransactionDetailsModal
-                ref={detailsModalRef}
-                walletId={walletId}
-                onSuccess={onRefresh}
-                onEdit={(tx) => {
-                    // TODO: Per riutilizzare il CreateModal per l'editing
-                    console.log("Edit requested for", tx.name);
-                }}
-            />
+            {/*<CreateTransactionModal*/}
+            {/*    ref={detailsModalRef}*/}
+            {/*    walletId={wallet.id}*/}
+            {/*    onSuccess={onRefresh} */}
+            {/*    baseCurrency={wallet.currency}               */}
+            {/*    onEdit={(tx) => {*/}
+            {/*        console.log("Edit requested for", tx.name);*/}
+            {/*    }}*/}
+            {/*/>*/}
         </div>
     );
 };
