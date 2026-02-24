@@ -7,9 +7,10 @@ import {triggerToast} from '../components/ToastNotification';
 import type {CurrencyCode} from '../utils/currencies.ts';
 
 // Importiamo i nostri nuovi componenti puliti!
-import {WALLET_ICONS, type WalletIconKey} from '../utils/walletIcons';
+import {ICONS, type IconKey} from '../utils/icons.ts';
 import {CurrencySelector} from '../components/CurrencySelector';
 import {IconColorSelector} from "../components/IconColorSelector.tsx";
+// import {IconPickerButton} from "../components/IconPickerButton.tsx";
 
 export interface CreateWalletModalHandle {
     openModal: () => void;
@@ -25,7 +26,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
 
         // Stati
         const [name, setName] = useState('');
-        const [iconKey, setIconKey] = useState<WalletIconKey>('wallet');
+        const [iconKey, setIconKey] = useState<IconKey>('wallet');
         const [color, setColor] = useState('#00ff7f');
         const [currency, setCurrency] = useState<CurrencyCode>('EUR');
         const [loading, setLoading] = useState(false);
@@ -102,7 +103,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                                 style={{color: color}}
                                 title="Change Icon or Color"
                             >
-                                <FontAwesomeIcon icon={WALLET_ICONS[iconKey]}/>
+                                <FontAwesomeIcon icon={ICONS[iconKey]}/>
                             </button>
 
                             <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/30">
@@ -120,6 +121,13 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                                 </div>
                             )}
                         </div>
+
+                        {/*<IconPickerButton*/}
+                        {/*    icon={iconKey} color={color}*/}
+                        {/*    onIconChange={setIconKey}*/}
+                        {/*    onColorChange={setColor}*/}
+                        {/*    isOpen={showSelectors} onToggle={setShowSelectors}*/}
+                        {/*/>*/}
 
                         <div>
                             <label

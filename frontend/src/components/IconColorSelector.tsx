@@ -1,12 +1,12 @@
 import React, {useState} from "react";
-import type {WalletIconKey} from "../utils/walletIcons.ts";
+import type {IconKey} from "../utils/icons.ts";
 import {IconSelector} from "./IconSelector.tsx";
 import {ColorSelector} from "./ColorSelector.tsx";
 
 interface ColorSelectorPropsProps {
     ref?: React.Ref<HTMLDivElement>;
-    iconValue: WalletIconKey;
-    onChangeIcon: (icon: WalletIconKey) => void;
+    iconValue: IconKey;
+    onChangeIcon: (icon: IconKey) => void;
     colorValue: string;
     onChangeColor: (color: string) => void;
 }
