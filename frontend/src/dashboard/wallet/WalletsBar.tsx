@@ -1,15 +1,11 @@
 import React, {useRef} from 'react';
-import api from '../../api/axiosConfig.ts';
 import {faPlus} from '@fortawesome/free-solid-svg-icons';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {triggerToast} from '../../components/ToastNotification.tsx';
 import {CreateWalletModal, type CreateWalletModalHandle} from "../../modals/CreateWalletModal.tsx";
-import type {DeleteModalHandle} from "../../modals/DeleteConfirmationModal.tsx";
 import WalletCard from "./WalletCard.tsx";
 import type {Wallet} from '../../utils/types.ts';
 
 interface WalletsAreaProps {
-    deleteModalRef: React.RefObject<DeleteModalHandle | null>;
     wallets: Wallet[];
     setWallets: React.Dispatch<React.SetStateAction<Wallet[]>>;
     loading: boolean;
@@ -18,29 +14,15 @@ interface WalletsAreaProps {
     onRefreshAll: () => void;
 }
 
-export const WalletsArea: React.FC<WalletsAreaProps> =
+export const WalletsBar: React.FC<WalletsAreaProps> =
     ({
-         // @ts-ignore
-         deleteModalRef,
          wallets,
-         setWallets,
          loading,
          selectedWalletId,
          onSelectWallet,
          onRefreshAll
      }) => {
         const walletModal = useRef<CreateWalletModalHandle>(null);
-
-        // @ts-ignore
-        const handleConfirmDelete = async (walletId: string) => {
-            try {
-                await api.delete(`/wallets/${walletId}`);
-                setWallets(prev => prev.filter(w => w.id !== walletId));
-                triggerToast("Deleted!", true);
-            } catch (err: any) {
-                triggerToast(err.response?.data?.title || "Error deleting.", false);
-            }
-        };
 
         return (
             <div

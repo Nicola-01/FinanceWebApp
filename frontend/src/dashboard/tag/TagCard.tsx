@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import api from '../../api/axiosConfig.ts';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { Tag } from "../../utils/types.ts";
-import type { WalletIconKey } from "../../utils/walletIcons.ts";
+import type { IconKey } from "../../utils/icons.ts";
 import { faArrowTurnUp, faPlus, faSpinner, faCheck, faXmark, faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from '../../components/ToastNotification.tsx';
 import { IconPickerButton } from "../../components/IconPickerButton.tsx";
@@ -25,7 +25,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
     const [parentNameVal, setParentNameVal] = useState(parent.name);
 
     const [showParentSelector, setShowParentSelector] = useState(false);
-    const [parentIcon, setParentIcon] = useState<WalletIconKey>(parent.icon as WalletIconKey);
+    const [parentIcon, setParentIcon] = useState<IconKey>(parent.icon as IconKey);
     const [parentColor, setParentColor] = useState(parent.colorHex);
 
     const updateTag = async (oldName: string, updatedTag: Partial<Tag>) => {
@@ -67,14 +67,14 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, walletId, onSuccess
 
                 {/* Componente Pulito Padre: Ripristinato IconPickerButton */}
                 <IconPickerButton
-                    icon={showParentSelector ? parentIcon : (parent.icon as WalletIconKey)}
+                    icon={showParentSelector ? parentIcon : (parent.icon as IconKey)}
                     color={showParentSelector ? parentColor : parent.colorHex}
                     onIconChange={setParentIcon}
                     onColorChange={setParentColor}
                     isOpen={showParentSelector}
                     onToggle={(open) => {
                         if (open) {
-                            setParentIcon(parent.icon as WalletIconKey);
+                            setParentIcon(parent.icon as IconKey);
                             setParentColor(parent.colorHex);
                             setShowParentSelector(true);
                         }

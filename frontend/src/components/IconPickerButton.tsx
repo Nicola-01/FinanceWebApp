@@ -1,14 +1,14 @@
 import React, {useRef, useEffect, useState} from "react";
 import {createPortal} from "react-dom";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {WALLET_ICONS, type WalletIconKey} from "../utils/walletIcons";
+import {ICONS, type IconKey} from "../utils/icons.ts";
 import {faTags} from "@fortawesome/free-solid-svg-icons";
 import {IconColorSelector} from "./IconColorSelector";
 
 interface IconPickerButtonProps {
-    icon: WalletIconKey;
+    icon: IconKey;
     color: string;
-    onIconChange: (icon: WalletIconKey) => void;
+    onIconChange: (icon: IconKey) => void;
     onColorChange: (color: string) => void;
     size?: "sm" | "md";
     isOpen: boolean;
@@ -55,7 +55,7 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
                 className={`shrink-0 flex items-center justify-center bg-white/10 shadow-sm cursor-pointer hover:scale-110 transition-transform ${sizeClasses}`}
                 style={{color}}
                 title="Change Icon & Color">
-                <FontAwesomeIcon icon={WALLET_ICONS[icon] || faTags}/>
+                <FontAwesomeIcon icon={ICONS[icon] || faTags}/>
             </div>
 
             {isOpen && createPortal(

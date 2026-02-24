@@ -3,7 +3,7 @@ import api from '../../api/axiosConfig.ts';
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faArrowTurnUp, faCheck, faXmark, faPenToSquare, faTrash} from "@fortawesome/free-solid-svg-icons";
 import type {Tag} from "../../utils/types.ts";
-import type {WalletIconKey} from "../../utils/walletIcons.ts";
+import type {IconKey} from "../../utils/icons.ts";
 import {triggerToast} from '../../components/ToastNotification.tsx';
 import {IconPickerButton} from "../../components/IconPickerButton.tsx";
 
@@ -18,7 +18,7 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({child, walletId, onSucc
     const [nameVal, setNameVal] = useState(child.name);
 
     const [showSelector, setShowSelector] = useState(false);
-    const [iconVal, setIconVal] = useState<WalletIconKey>(child.icon as WalletIconKey);
+    const [iconVal, setIconVal] = useState<IconKey>(child.icon as IconKey);
     const [colorVal, setColorVal] = useState(child.colorHex);
 
     const updateTag = async (oldName: string, updatedTag: Partial<Tag>) => {
@@ -61,14 +61,14 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({child, walletId, onSucc
             {/* Clean Child Component (with size="sm" parameter) */}
             <IconPickerButton
                 size="sm"
-                icon={showSelector ? iconVal : (child.icon as WalletIconKey)}
+                icon={showSelector ? iconVal : (child.icon as IconKey)}
                 color={showSelector ? colorVal : child.colorHex}
                 onIconChange={setIconVal}
                 onColorChange={setColorVal}
                 isOpen={showSelector}
                 onToggle={(open) => {
                     if (open) {
-                        setIconVal(child.icon as WalletIconKey);
+                        setIconVal(child.icon as IconKey);
                         setColorVal(child.colorHex);
                         setShowSelector(true);
                     } else {

@@ -2,7 +2,7 @@ import { useRef, useImperativeHandle, forwardRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faPenToSquare, faTrash, faArrowRightArrowLeft, faStickyNote } from '@fortawesome/free-solid-svg-icons';
 import { ModalDialog } from './ModalDialog';
-import { WALLET_ICONS, type WalletIconKey } from '../utils/walletIcons';
+import { ICONS, type IconKey } from '../utils/icons.ts';
 import type { Transaction } from '../utils/types';
 import api from '../api/axiosConfig';
 import { triggerToast } from '../components/ToastNotification';
@@ -64,7 +64,7 @@ export const TransactionDetailsModal = forwardRef<TransactionDetailsModalHandle,
                             className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-3xl shadow-lg"
                             style={{ color: transaction.tag.colorHex }}
                         >
-                            <FontAwesomeIcon icon={WALLET_ICONS[transaction.tag.icon as WalletIconKey] || WALLET_ICONS['tag']} />
+                            <FontAwesomeIcon icon={ICONS[transaction.tag.icon as IconKey] || ICONS['tag']} />
                         </div>
                         <div>
                             <h3 className="text-2xl font-bold text-white">{transaction.name}</h3>

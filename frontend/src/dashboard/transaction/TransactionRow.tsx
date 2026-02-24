@@ -1,7 +1,7 @@
 import React from "react";
 import type { Transaction } from "../../utils/types.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { WALLET_ICONS, type WalletIconKey } from "../../utils/walletIcons.ts";
+import { ICONS, type IconKey } from "../../utils/icons.ts";
 import { faTags } from "@fortawesome/free-solid-svg-icons";
 
 interface TransactionRowProps {
@@ -23,7 +23,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({ transaction, onC
                     className="flex shrink-0 h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-xl shadow-sm"
                     style={{ color: transaction.tag.colorHex }}
                 >
-                    <FontAwesomeIcon icon={WALLET_ICONS[transaction.tag.icon as WalletIconKey] || faTags} />
+                    <FontAwesomeIcon icon={ICONS[transaction.tag.icon as IconKey] || faTags} />
                 </div>
 
                 {/* Dettagli (Responsivi: Tag a fianco su Desktop, sotto su Mobile) */}
