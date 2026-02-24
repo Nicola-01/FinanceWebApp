@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChartPie, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import type { Transaction } from '../../utils/types';
-import { WALLET_ICONS, type WalletIconKey } from '../../utils/walletIcons';
+import { ICONS, type IconKey } from '../../utils/icons.ts';
 
 interface PeriodStatsProps {
     transactions: Transaction[];
@@ -78,7 +78,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
                                     <div key={tagName} className="flex flex-col gap-1.5">
                                         <div className="flex justify-between items-center text-xs">
                                             <div className="flex items-center gap-1.5 font-medium" style={{ color: stats.color }}>
-                                                <FontAwesomeIcon icon={WALLET_ICONS[stats.icon as WalletIconKey] || 'tag'} />
+                                                <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'} />
                                                 <span className="truncate max-w-[100px]">{tagName}</span>
                                             </div>
                                             <div className="flex items-center gap-2 font-mono text-white/80">
@@ -112,7 +112,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
                                     <div key={tagName} className="flex flex-col gap-1.5">
                                         <div className="flex justify-between items-center text-xs">
                                             <div className="flex items-center gap-1.5 font-medium" style={{ color: stats.color }}>
-                                                <FontAwesomeIcon icon={WALLET_ICONS[stats.icon as WalletIconKey] || 'tag'} />
+                                                <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'} />
                                                 <span className="truncate max-w-[100px]">{tagName}</span>
                                             </div>
                                             <div className="flex items-center gap-2 font-mono text-white/80">

@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTags } from '@fortawesome/free-solid-svg-icons';
 import { ModalDialog } from './ModalDialog';
 import { triggerToast } from '../components/ToastNotification';
-import { WALLET_ICONS, type WalletIconKey } from '../utils/walletIcons';
+import { ICONS, type IconKey } from '../utils/icons.ts';
 import { IconColorSelector } from '../components/IconColorSelector';
 
 export interface CreateTagModalHandle {
@@ -22,7 +22,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
         const selectorRef = useRef<HTMLDivElement>(null);
 
         const [name, setName] = useState('');
-        const [iconKey, setIconKey] = useState<WalletIconKey>('tag');
+        const [iconKey, setIconKey] = useState<IconKey>('tag');
         const [colorHex, setColorHex] = useState('#00ff7f');
         const [showSelectors, setShowSelectors] = useState(false);
         const [loading, setLoading] = useState(false);
@@ -87,7 +87,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
                                 style={{ color: colorHex }}
                                 title="Change Icon or Color"
                             >
-                                <FontAwesomeIcon icon={WALLET_ICONS[iconKey] || WALLET_ICONS['tag']} />
+                                <FontAwesomeIcon icon={ICONS[iconKey] || ICONS['tag']} />
                             </button>
 
                             {showSelectors && (

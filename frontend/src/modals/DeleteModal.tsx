@@ -13,7 +13,7 @@ export interface DeleteModalHandle {
 
 const TIMEOUT_DURATION = 2;
 
-export const DeleteConfirmationModal = forwardRef<DeleteModalHandle>(
+export const DeleteModal = forwardRef<DeleteModalHandle>(
     ({}, ref) => {
         const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -51,7 +51,8 @@ export const DeleteConfirmationModal = forwardRef<DeleteModalHandle>(
             if (!onConfirmCb) return;
             setIsDeleting(true);
             await onConfirmCb();
-            dialogRef.current?.close();
+            if (dialogRef.current?.open)
+                dialogRef.current?.close();
         };
 
         const isButtonDisabled = deleteTimer > 0 || confirmationText !== objToDelete?.name || isDeleting;

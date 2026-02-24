@@ -6,7 +6,7 @@ import {triggerToast} from '../../components/ToastNotification.tsx';
 import type {Tag} from '../../utils/types.ts';
 import TagCard from "./TagCard.tsx";
 import {IconPickerButton} from '../../components/IconPickerButton.tsx'; // <-- Import the new wrapper
-import type {WalletIconKey} from '../../utils/walletIcons.ts';
+import type {IconKey} from '../../utils/icons.ts';
 
 interface TagsTabProps {
     walletId: string;
@@ -105,8 +105,8 @@ export const TagsTab: React.FC<TagsTabProps> = ({walletId}) => {
 
                                 {/* USO DEL NUOVO COMPONENTE PULITO! */}
                                 <IconPickerButton
-                                    icon={newTag.icon as WalletIconKey} color={newTag.colorHex as string}
-                                    onIconChange={(icon: WalletIconKey) => setNewTag({...newTag, icon: icon})}
+                                    icon={newTag.icon as IconKey} color={newTag.colorHex as string}
+                                    onIconChange={(icon: IconKey) => setNewTag({...newTag, icon: icon})}
                                     onColorChange={(color: string) => setNewTag({...newTag, colorHex: color})}
                                     isOpen={showNewMainSelector} onToggle={setShowNewMainSelector}
                                 />

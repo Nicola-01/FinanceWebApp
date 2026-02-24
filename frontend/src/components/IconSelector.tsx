@@ -1,10 +1,10 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { WALLET_ICONS, type WalletIconKey } from '../utils/walletIcons';
+import { ICONS, type IconKey } from '../utils/icons.ts';
 
 interface IconSelectorProps {
-    value: WalletIconKey;
-    onChange: (icon: WalletIconKey) => void;
+    value: IconKey;
+    onChange: (icon: IconKey) => void;
     currentColor: string; // <-- Added to receive the updated color
 }
 
@@ -12,7 +12,7 @@ export const IconSelector: React.FC<IconSelectorProps> = ({ value, onChange, cur
     return (
         <div className="w-full">
             <div className="custom-scrollbar grid max-h-[190px] grid-cols-6 gap-2 overflow-y-auto pr-1">
-                {(Object.keys(WALLET_ICONS) as WalletIconKey[]).map((key) => {
+                {(Object.keys(ICONS) as IconKey[]).map((key) => {
                     const isActive = value === key;
                     return (
                         <div
@@ -26,7 +26,7 @@ export const IconSelector: React.FC<IconSelectorProps> = ({ value, onChange, cur
                             onClick={() => onChange(key)}
                             title={key}
                         >
-                            <FontAwesomeIcon icon={WALLET_ICONS[key]} />
+                            <FontAwesomeIcon icon={ICONS[key]} />
                         </div>
                     );
                 })}
