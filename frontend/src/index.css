@@ -54,3 +54,7 @@ div:has(> a[href*="mui.com/r/x-license"]) {
   opacity: 0 !important;
   visibility: hidden !important;
 }
+
+.btn-dynamic-hover:hover {
+  filter: brightness(0.9);
+}

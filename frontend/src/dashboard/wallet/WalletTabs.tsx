@@ -1,0 +1,49 @@
+import React from 'react';
+
+type TabType = 'transactions' | 'tags' | 'statistics' | 'budget';
+
+interface WalletTabsProps {
+    activeTab: TabType;
+    setActiveTab: (tab: TabType) => void;
+    walletColor: string;
+}
+
+export const WalletTabs: React.FC<WalletTabsProps> = ({ activeTab, setActiveTab, walletColor }) => {
+
+    const tabs: { id: TabType; label: string }[] = [
+        { id: 'transactions', label: 'Transactions' },
+        { id: 'tags', label: 'Tags' },
+        { id: 'statistics', label: 'Statistics' }
+    ];
+
+    const getTabClass = (tabId: TabType) => {
+        const isActive = activeTab === tabId;
+        return `relative px-5 py-3 text-sm font-bold uppercase tracking-wider transition-all duration-300 ${
+            isActive ? 'text-white' : 'text-white/40 hover:text-white/70'
+        }`;
+    };
+
+    return (
+        <div className="flex items-center gap-2 border-b border-white/10 mb-6">
+            {tabs.map((tab) => (
+                <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={getTabClass(tab.id)}
+                    style={{ color: activeTab === tab.id ? walletColor : '' }}
+                >
+                    {tab.label}
+                    {activeTab === tab.id && (
+                        <span
+                            className="absolute -bottom-px left-0 w-full h-0.5 transition-all duration-300"
+                            style={{
+                                backgroundColor: walletColor,
+                                boxShadow: `0 0 10px ${walletColor}`
+                            }}
+                        />
+                    )}
+                </button>
+            ))}
+        </div>
+    );
+};
