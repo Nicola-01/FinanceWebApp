@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,9 @@ public class TransactionService {
             tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
                     .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
 
+        if (request.getAmount().compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("The amount cannot be negative.");
+
         Transaction transaction = Transaction.builder()
                 .wallet(wallet)
                 .tag(tag)
@@ -69,11 +73,9 @@ public class TransactionService {
     @Transactional
     @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
     public TransactionResponse updateTransaction(UUID transactionId, TransactionRequest request, UUID walletId, UUID userId) {
-        // 1. Cerchiamo la transazione assicurandoci che appartenga a questo wallet
         Transaction transaction = transactionRepository.findByIdAndWalletId(transactionId, walletId)
                 .orElseThrow(() -> new IllegalArgumentException("Transaction not found or does not belong to this wallet"));
 
-        // 2. Validazione del nome
         if (request.getName() != null) {
             if (request.getName().length() < 3 || request.getName().length() > 25) {
                 throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
@@ -81,7 +83,9 @@ public class TransactionService {
             transaction.setName(request.getName());
         }
 
-        // 3. Gestione del Tag (può essere null o vuoto se l'utente lo rimuove)
+        if (request.getAmount().compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("The amount cannot be negative.");
+
         Tag tag = null;
         if (request.getTag() != null && !request.getTag().isBlank()) {
             tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)

@@ -1,63 +1,25 @@
-import React, { useRef, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faChevronLeft, faChevronRight, faFilter } from '@fortawesome/free-solid-svg-icons';
-import type { Transaction } from '../../utils/types.ts';
-import { CreateTransactionModal, type CreateTransactionModalHandle } from "../../modals/CreateTransactionModal.tsx";
-import type { CurrencyCode } from "../../utils/currencies.ts";
-import { TransactionsTable } from "./TransactionsTable.tsx";
-import { PeriodStats } from "./PeriodStats.tsx"; // <-- IMPORTA IL NUOVO COMPONENTE
+import React, {useRef, useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faPlus} from '@fortawesome/free-solid-svg-icons';
+import type {Transaction, Wallet} from '../../utils/types.ts';
+import {CreateTransactionModal, type CreateTransactionModalHandle} from "../../modals/TransactionDetailsModal/CreateTransactionModal.tsx";
+import type {CurrencyCode} from "../../utils/currencies.ts";
+import {TransactionsTable} from "./TransactionsTable.tsx";
+import {PeriodStats} from "./PeriodStats.tsx";
+import {TransactionsFilter} from "./TransactionsFilter.tsx"; // <-- IMPORTA IL NUOVO COMPONENTE
 
 interface TransactionsTabProps {
     transactions: Transaction[];
-    walletId: string;
+    wallet: Wallet;
     baseCurrency: CurrencyCode;
     onRefresh: () => void;
 }
 
-export const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, walletId, baseCurrency, onRefresh }) => {
-    const [viewMode, setViewMode] = useState<'MONTH' | 'YEAR' | 'CUSTOM'>('MONTH');
-    const [currentDate, setCurrentDate] = useState(new Date());
-    const [tagFilter, setTagFilter] = useState('ALL');
-
-    const [customStartDate, setCustomStartDate] = useState('');
-    const [customEndDate, setCustomEndDate] = useState('');
-
-    const uniqueTags = Array.from(new Set(transactions.map(t => t.tag.name)));
+export const TransactionsTab: React.FC<TransactionsTabProps> = ({transactions, wallet, baseCurrency, onRefresh}) => {
     const transactionModalRef = useRef<CreateTransactionModalHandle>(null);
 
-    const handlePrev = () => {
-        const newDate = new Date(currentDate);
-        viewMode === 'MONTH' ? newDate.setMonth(newDate.getMonth() - 1) : newDate.setFullYear(newDate.getFullYear() - 1);
-        setCurrentDate(newDate);
-    };
-
-    const handleNext = () => {
-        const newDate = new Date(currentDate);
-        viewMode === 'MONTH' ? newDate.setMonth(newDate.getMonth() + 1) : newDate.setFullYear(newDate.getFullYear() + 1);
-        setCurrentDate(newDate);
-    };
-
-    const displayDate = () => {
-        if (viewMode === 'YEAR') return currentDate.getFullYear().toString();
-        return currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    };
-
-    const filteredTransactions = transactions.filter(tx => {
-        if (tagFilter !== 'ALL' && tx.tag.name !== tagFilter) return false;
-
-        const txDate = new Date(tx.transactionDate);
-        if (viewMode === 'MONTH') {
-            return txDate.getMonth() === currentDate.getMonth() && txDate.getFullYear() === currentDate.getFullYear();
-        }
-        if (viewMode === 'YEAR') {
-            return txDate.getFullYear() === currentDate.getFullYear();
-        }
-        if (viewMode === 'CUSTOM') {
-            if (customStartDate && txDate < new Date(customStartDate)) return false;
-            if (customEndDate && txDate > new Date(customEndDate)) return false;
-        }
-        return true;
-    });
+    // Stato per salvare le transazioni filtrate restituite dal componente TransactionsFilter
+    const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>(transactions);
 
     return (
         <div className="flex flex-col h-full animate-[fadeIn_0.3s_ease-out]">
@@ -66,76 +28,37 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({ transactions, 
                 <h2 className="text-2xl font-bold text-white">Transactions</h2>
                 <button
                     onClick={() => transactionModalRef.current?.openModal()}
-                    className="flex items-center gap-2 rounded-xl bg-[#00ff7f] px-4 py-2.5 text-sm font-bold text-black shadow-lg shadow-[#00ff7f]/20 transition-all hover:-translate-y-0.5 hover:bg-[#00e673]">
-                    <FontAwesomeIcon icon={faPlus} />
+                    className="btn-dynamic-hover flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-black shadow-lg transition-all hover:-translate-y-0.5"
+                    style={{
+                        backgroundColor: wallet.color,
+                        boxShadow: `0 0 20px ${wallet.color}26`
+                    }}
+
+                >
+                    <FontAwesomeIcon icon={faPlus}/>
                     New Transaction
                 </button>
                 <CreateTransactionModal
                     ref={transactionModalRef}
-                    walletId={walletId}
+                    walletId={wallet.id}
                     baseCurrency={baseCurrency}
                     onSuccess={onRefresh}
                 />
             </div>
 
-            {/* Controlli Filtro/Data */}
-            <div className="flex flex-wrap items-center gap-4 mb-6 p-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
-                <div className="flex items-center gap-2 bg-black/20 rounded-lg p-1 border border-white/5">
-                    {['MONTH', 'YEAR', 'CUSTOM'].map(mode => (
-                        <button
-                            key={mode}
-                            onClick={() => setViewMode(mode as any)}
-                            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${viewMode === mode ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/70'}`}
-                        >
-                            {mode}
-                        </button>
-                    ))}
-                </div>
+            {/* Nuovo Elemento Filtro Separato */}
+            <TransactionsFilter
+                transactions={transactions}
+                onFilterChange={setFilteredTransactions}
+            />
 
-                {viewMode !== 'CUSTOM' && (
-                    <div className="flex items-center gap-3 ml-2">
-                        <button onClick={handlePrev} className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors">
-                            <FontAwesomeIcon icon={faChevronLeft} className="text-xs" />
-                        </button>
-                        <span className="w-32 text-center text-sm font-bold capitalize text-white tracking-wide">
-                            {displayDate()}
-                        </span>
-                        <button onClick={handleNext} className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-white/60 hover:bg-white/10 hover:text-white transition-colors">
-                            <FontAwesomeIcon icon={faChevronRight} className="text-xs" />
-                        </button>
-                    </div>
-                )}
+            {/* Statistiche del Periodo Filtrato */}
+            <PeriodStats transactions={filteredTransactions}/>
 
-                {viewMode === 'CUSTOM' && (
-                    <div className="flex items-center gap-2 ml-2">
-                        <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="bg-black/40 border border-white/10 text-sm text-white rounded-lg px-3 py-1.5 outline-none focus:border-[#00ff7f]" />
-                        <span className="text-white/40">-</span>
-                        <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="bg-black/40 border border-white/10 text-sm text-white rounded-lg px-3 py-1.5 outline-none focus:border-[#00ff7f]" />
-                    </div>
-                )}
-
-                <div className="ml-auto flex items-center gap-2">
-                    <FontAwesomeIcon icon={faFilter} className="text-white/40 text-xs" />
-                    <select
-                        className="bg-black/40 border border-white/10 text-sm text-white rounded-lg px-3 py-1.5 outline-none focus:border-[#00ff7f] appearance-none cursor-pointer"
-                        value={tagFilter}
-                        onChange={(e) => setTagFilter(e.target.value)}
-                    >
-                        <option value="ALL">All Tags</option>
-                        {uniqueTags.map(tagName => (
-                            <option key={tagName} value={tagName}>{tagName}</option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-
-            {/* NUOVO: Statistiche del Periodo */}
-            <PeriodStats transactions={filteredTransactions} />
-
-            {/* Tabella ripulita */}
+            {/* Tabella con Dati Filtrati */}
             <TransactionsTable
                 transactions={filteredTransactions}
-                walletId={walletId}
+                wallet={wallet}
                 onRefresh={onRefresh}
             />
         </div>

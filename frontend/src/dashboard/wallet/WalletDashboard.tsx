@@ -9,6 +9,7 @@ import {TagsTab} from "../tag/TagsTab.tsx";
 import {Icon} from "../../components/Icon.tsx";
 import api from "../../api/axiosConfig.ts";
 import {triggerToast} from "../../components/ToastNotification.tsx";
+import {WalletTabs} from "./WalletTabs.tsx";
 
 type TabType = 'transactions' | 'tags' | 'statistics' | 'budget';
 
@@ -25,38 +26,30 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
 
     const [isLoading, setIsLoading] = useState<boolean>(false)
 
-
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    const getTabClass = (tabName: TabType) => {
-        const isActive = activeTab === tabName;
-        return `relative px-5 py-3 text-sm font-bold uppercase tracking-wider transition-all duration-300 ${isActive ? 'text-[#00ff7f]' : 'text-white/40 hover:text-white/70'}`;
-    };
-
     useEffect(() => {
         fetchData()
-    }, []);
+    }, [_wallet.id]);
 
     const fetchData = async () => {
-        // Controllo di sicurezza: se non c'è l'id, non facciamo le chiamate
-        if (!wallet?.id) return;
+        // 2. Usiamo _wallet.id invece di wallet.id (perché wallet è lo stato vecchio)
+        if (!_wallet?.id) return;
 
         try {
             setIsLoading(true);
 
-            // Eseguiamo le chiamate in parallelo per la massima velocità!
             const [wRes, txRes] = await Promise.all([
-                api.get(`/wallets/${wallet.id}`),
-                api.get(`/transactions/${wallet.id}`)
+                api.get(`/wallets/${_wallet.id}`),
+                api.get(`/transactions/${_wallet.id}`)
             ]);
 
-            // Aggiorniamo gli stati del componente con i dati ricevuti
             setWallet(wRes.data);
             setTransactions(txRes.data);
 
         } catch (err) {
-            triggerToast(`Error loading data for ${wallet.name}`, false);
+            triggerToast(`Error loading data for ${_wallet.name}`, false);
         } finally {
             setIsLoading(false);
         }
@@ -73,7 +66,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
     }, [showMenu]);
 
     return (
-        <div className="flex flex-col h-full w-full max-w-[1400px] mx-auto p-4 lg:p-8 overflow-hidden">
+        <div className="flex flex-col h-full w-full max-w-350 mx-auto p-4 lg:p-8 overflow-hidden">
 
             {/* INTESTAZIONE: Nome Wallet e Menu Azioni */}
             <div className="flex items-center justify-between mb-8">
@@ -132,7 +125,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
 
                             <button
                                 onClick={() => {
-                                    setShowMenu(false); /* TODO: Logica Delete */
+                                    setShowMenu(false);
                                     onWalletDelete();
                                 }}
                                 className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-[#ff4d4d]/70 transition-colors hover:bg-[#ff4d4d]/20 hover:text-[#ff4d4d]"
@@ -146,26 +139,17 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 border-b border-white/10 mb-6">
-                <button onClick={() => setActiveTab('transactions')} className={getTabClass('transactions')}>
-                    Transactions {activeTab === 'transactions' && <span
-                    className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-[#00ff7f] shadow-[0_0_10px_#00ff7f]"></span>}
-                </button>
-                <button onClick={() => setActiveTab('tags')} className={getTabClass('tags')}>
-                    Tags {activeTab === 'tags' && <span
-                    className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-[#00ff7f] shadow-[0_0_10px_#00ff7f]"></span>}
-                </button>
-                <button onClick={() => setActiveTab('statistics')} className={getTabClass('statistics')}>
-                    Statistics {activeTab === 'statistics' && <span
-                    className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-[#00ff7f] shadow-[0_0_10px_#00ff7f]"></span>}
-                </button>
-            </div>
+            <WalletTabs
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                walletColor={wallet.color}
+            />
 
             <div className="flex-1 overflow-hidden">
                 {activeTab === 'transactions' && (
                     <TransactionsTab
                         transactions={transactions}
-                        walletId={wallet.id}
+                        wallet={wallet}
                         baseCurrency={wallet.currency as CurrencyCode}
                         onRefresh={fetchData}
                     />
