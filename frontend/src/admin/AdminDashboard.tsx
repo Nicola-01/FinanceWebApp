@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import api from '../api/axiosConfig';
 import Sphere from '../assets/Sphere';
-import type {DeleteModalHandle} from "../modals/DeleteConfirmationModal.tsx";
 import {triggerToast} from '../components/ToastNotification.tsx';
 import type {User} from "../utils/types.ts";
 
@@ -11,14 +10,12 @@ import {AdminStats} from './AdminStats';
 import {CreateUserForm} from './CreateUserForm';
 import {UserDirectory} from './UserDirectory';
 import {AccountSettings} from "../components/AccountSettings.tsx";
+import {useDeleteModal} from "../modals/DeleteModalContext.tsx";
 
-interface AdminDashboardProps {
-    deleteModalRef: React.RefObject<DeleteModalHandle | null>;
-}
-
-const AdminDashboard: React.FC<AdminDashboardProps> = ({deleteModalRef}) => {
+const AdminDashboard: React.FC = () => {
     // Global state for the dashboard
     const [users, setUsers] = useState<User[]>([]);
+    const deleteModalRef = useDeleteModal();
 
     useEffect(() => {
         loadUsers();

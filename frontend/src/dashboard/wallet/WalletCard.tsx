@@ -1,6 +1,6 @@
 import React from "react";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {WALLET_ICONS, type WalletIconKey} from '../../utils/walletIcons.ts';
+import {ICONS, type IconKey} from '../../utils/icons.ts';
 import type {Wallet} from "../../utils/types.ts";
 
 interface WalletProps {
@@ -20,7 +20,7 @@ const WalletCard: React.FC<WalletProps> = ({wallet, isSelected, onClick}) => {
                 className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/5 text-xl"
                 style={{color: wallet.color || '#00ff7f'}}
             >
-                <FontAwesomeIcon icon={WALLET_ICONS[wallet.icon as WalletIconKey] || WALLET_ICONS['wallet']}/>
+                <FontAwesomeIcon icon={ICONS[wallet.icon as IconKey] || ICONS['wallet']}/>
             </div>
 
             <div className="flex flex-1 flex-col min-w-0">
