@@ -30,7 +30,7 @@ const WalletCard: React.FC<WalletProps> = ({wallet, isSelected, onClick}) => {
             </div>
 
             <div className="flex flex-1 flex-col min-w-0">
-                <h4 className={'m-0 truncate font-mono text-sm font-extrabold transition-colors'}
+                <h4 className={'m-0 truncate font-app-mono text-sm font-extrabold transition-colors'}
                     style={{
                         color: isSelected ? wallet.color : 'rgba(255, 255, 255, 0.5)'
                     }}

@@ -10,6 +10,7 @@ import type {Tag} from "../../utils/types.ts";
 // import {ExchangeRateSection} from './ExchangeRateSection.tsx';
 import {HierarchicalTagSelector} from './HierarchicalTagSelector.tsx';
 import {AmountInput} from "./AmountInput.tsx";
+import {ExchangeRateSection} from "./ExchangeRateSection.tsx";
 
 export interface CreateTransactionModalHandle {
     openModal: () => void;
@@ -25,7 +26,6 @@ interface Props {
 export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, Props>(
     ({walletId, baseCurrency, walletColor, onSuccess}, ref) => {
         const dialogRef = useRef<HTMLDialogElement>(null);
-        const amountRef = useRef<HTMLInputElement>(null)
 
         // --- Form States ---
         const [type, setType] = useState<'EXPENSE' | 'INCOME' | ''>('');
@@ -69,23 +69,6 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
             }
         };
 
-        // Gestione Intelligente dell'Importo
-        // const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        //     const val = e.target.value;
-        //
-        //     // Se digita il "meno", lo convertiamo in positivo e passiamo a EXPENSE
-        //     if (val.includes('-') || Number(val) < 0) {
-        //         setType('EXPENSE');
-        //         setAmount(Math.abs(Number(val)));
-        //     } else {
-        //         // Se è un numero positivo, impostiamo INCOME (se non è già Expense per scelta dell'utente)
-        //         if (Number(val) > 0 && type !== 'EXPENSE') {
-        //             setType('INCOME');
-        //         }
-        //         setAmount(val === '' ? '' : Number(val));
-        //     }
-        // };
-
         const handleSubmit = async (e: React.FormEvent) => {
             e.preventDefault();
 
@@ -123,8 +106,8 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
 
         const currencySymbol = CURRENCY_META[currency]?.symbol || currency;
 
-        // Il bottone appare solo se i campi obbligatori ci sono
         const canSave = amount !== '' && Number(amount) > 0 && selectedTagName !== '';
+        console.log(canSave)
 
         return (
             <ModalDialog ref={dialogRef} className="max-w-[550px]">
@@ -141,10 +124,10 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                         {/* 1. AREA IMPORTO GIGANTE */}
                         <div className="flex flex-col items-center justify-center py-4">
                             <AmountInput
-                                ref={amountRef}
                                 type={type}
                                 setType={setType}
                                 currencySymbol={currencySymbol}
+                                onAmountChange={(val) => setAmount(val)}
                             />
 
                             {/* Type Toggle Sub-menu */}
@@ -198,7 +181,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                                 <label
                                     className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">
                                     <FontAwesomeIcon icon={faTag} className="mr-2"/>
-                                    Name (Optional)
+                                    Name
                                 </label>
                                 <input
                                     className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00ff7f]"
@@ -224,15 +207,16 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                             </div>
                         </div>
 
-                        {/* 4. EXCHANGE RATE SECTION */}
-                        {/*<ExchangeRateSection*/}
-                        {/*    baseCurrency={baseCurrency}*/}
-                        {/*    selectedCurrency={currency}*/}
-                        {/*    onCurrencyChange={setCurrency}*/}
-                        {/*    exchangeRate={exchangeRate}*/}
-                        {/*    onExchangeRateChange={setExchangeRate}*/}
-                        {/*    amount={amount}*/}
-                        {/*/>*/}
+                        <hr className="my-2 border-white/10" />
+
+                        <ExchangeRateSection
+                            baseCurrency={baseCurrency}
+                            selectedCurrency={currency}
+                            onCurrencyChange={setCurrency}
+                            exchangeRate={exchangeRate}
+                            onExchangeRateChange={setExchangeRate}
+                            amount={Number(amount)}
+                        />
 
                         {/* 5. RECURRING TOGGLE */}
                         <div className="rounded-xl border border-white/10 bg-black/20 p-4 transition-all">
@@ -274,20 +258,20 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                                 Cancel
                             </button>
 
-                            {/* Appare solo se Tag e Importo sono compilati! */}
-                            {canSave && (
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="flex-[2] rounded-xl py-4 font-bold text-black transition-all hover:-translate-y-1 animate-[fadeIn_0.3s_ease-out]"
-                                    style={{
-                                        backgroundColor: walletColor,
-                                        boxShadow: `0 10px 20px -5px ${walletColor}66`
-                                    }}
-                                >
-                                    {loading ? "Saving..." : "Save Transaction"}
-                                </button>
-                            )}
+
+                            <button
+                                type="submit"
+                                disabled={!canSave}
+                                className="flex-1 rounded-xl py-4 font-bold text-black transition-all animate-[fadeIn_0.3s_ease-out]
+                                hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                style={{
+                                    backgroundColor: walletColor,
+                                    boxShadow: !canSave ? 'none' : `0 10px 20px -5px ${walletColor}66`
+                                }}
+                            >
+                                {loading ? "Saving..." : "Save Transaction"}
+                            </button>
+
                         </div>
                     </form>
                 </div>

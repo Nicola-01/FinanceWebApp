@@ -66,7 +66,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
                 <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col transition-all">
                     <div className="text-center">
                         <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Period Income</p>
-                        <p className="text-[#00ff7f] font-bold font-mono text-xl">+{totals.income.toFixed(2)}</p>
+                        <p className="text-[#00ff7f] font-bold font-app-mono text-xl">+{totals.income.toFixed(2)}</p>
                     </div>
 
                     {/* Distribuzione Entrate espandibile */}
@@ -81,7 +81,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
                                                 <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'} />
                                                 <span className="truncate max-w-[100px]">{tagName}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 font-mono text-white/80">
+                                            <div className="flex items-center gap-2 font-app-mono text-white/80">
                                                 {stats.income.toFixed(2)}
                                                 <span className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
                                             </div>
@@ -100,7 +100,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
                 <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col transition-all">
                     <div className="text-center">
                         <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Period Expense</p>
-                        <p className="text-[#ff4d4d] font-bold font-mono text-xl">-{totals.expense.toFixed(2)}</p>
+                        <p className="text-[#ff4d4d] font-bold font-app-mono text-xl">-{totals.expense.toFixed(2)}</p>
                     </div>
 
                     {/* Distribuzione Uscite espandibile */}
@@ -115,7 +115,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
                                                 <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'} />
                                                 <span className="truncate max-w-[100px]">{tagName}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 font-mono text-white/80">
+                                            <div className="flex items-center gap-2 font-app-mono text-white/80">
                                                 {stats.expense.toFixed(2)}
                                                 <span className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
                                             </div>
@@ -134,7 +134,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
                 {/* Questa card è allineata all'inizio (flex-start/justify-center) quindi rimarrà pulita in alto anche se le altre due si allungano */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col text-center justify-center min-h-[76px]">
                     <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Net Balance</p>
-                    <p className={`font-bold font-mono text-xl ${netTotal >= 0 ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
+                    <p className={`font-bold font-app-mono text-xl ${netTotal >= 0 ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
                         {netTotal >= 0 ? '+' : ''}{netTotal.toFixed(2)}
                     </p>
                 </div>
