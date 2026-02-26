@@ -42,6 +42,7 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({transactions, w
                     ref={transactionModalRef}
                     walletId={wallet.id}
                     baseCurrency={baseCurrency}
+                    walletColor={wallet.color}
                     onSuccess={onRefresh}
                 />
             </div>
