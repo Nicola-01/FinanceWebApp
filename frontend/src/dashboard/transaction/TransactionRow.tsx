@@ -43,7 +43,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({ transaction, onC
             </div>
 
             {/* Cifra */}
-            <div className={`shrink-0 pl-4 text-right text-lg font-bold font-mono ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
+            <div className={`shrink-0 pl-4 text-right text-lg font-bold font-app-mono ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
                 {isIncome ? '+' : '-'}{transaction.amount.toFixed(2)}
             </div>
         </div>

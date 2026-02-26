@@ -37,7 +37,7 @@ export const AccountSettings = () => {
 
                 <div>
                     {/* Replace with actual user name variable if available */}
-                    <h3 className="font-mono text-lg font-bold text-white tracking-wide">
+                    <h3 className="font-app-mono text-lg font-bold text-white tracking-wide">
                         {user?.username}
                     </h3>
                 </div>

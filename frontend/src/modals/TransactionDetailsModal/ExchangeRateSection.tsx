@@ -146,7 +146,7 @@ export const ExchangeRateSection: React.FC<ExchangeRateSectionProps> = ({
                     {/* Total Converted Display */}
                     <div className="flex items-center justify-between rounded-lg bg-white/5 p-3 mt-2 border border-white/5">
                         <span className="text-xs font-bold text-white/50 uppercase tracking-wider">Total in Wallet ({baseCurrency})</span>
-                        <span className="text-lg font-bold text-[#00bfff] font-mono">{convertedAmount} {baseCurrency}</span>
+                        <span className="text-lg font-bold text-[#00bfff] font-app-mono">{convertedAmount} {baseCurrency}</span>
                     </div>
                 </div>
             )}
