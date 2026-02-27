@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from "react";
 import {useParams, useNavigate} from "react-router-dom";
-import {AccountSettings} from "../components/AccountSettings.tsx";
 import {WalletsBar} from "./wallet/WalletsBar.tsx";
 import {WalletDashboard} from "./wallet/WalletDashboard.tsx";
 import api from '../api/axiosConfig';
 import {triggerToast} from '../components/ToastNotification';
-import type {Wallet, Transaction} from "../utils/types";
-import {useDeleteModal} from "../modals/DeleteModalContext.tsx"; // Check your paths
+import type {Wallet} from "../utils/types";
+import {useDeleteModal} from "../modals/DeleteModalContext.tsx";
+import {AppHeader} from "../header/AppHeader.tsx";
 
 const UserDashboard: React.FC = () => {
     const {walletId} = useParams<{ walletId: string }>();
@@ -25,20 +25,7 @@ const UserDashboard: React.FC = () => {
             const fetchedWallets: Wallet[] = wRes.data;
             setWallets(fetchedWallets);
 
-            const txMap: Record<string, Transaction[]> = {};
-
-            // Executes all /transactions/{id} calls in parallel!
-            await Promise.all(fetchedWallets.map(async (w) => {
-                try {
-                    const txRes = await api.get(`/transactions/${w.id}`);
-                    txMap[w.id] = txRes.data;
-                } catch (e) {
-                    console.error(`Error loading tx for wallet ${w.id}`);
-                    txMap[w.id] = [];
-                }
-            }));
-
-            // Auto-selection: If there's no ID in the URL, automatically select the first wallet
+            // Se non c'è un ID nell'URL, seleziona automaticamente il primo wallet
             if (!walletId && fetchedWallets.length > 0) {
                 navigate(`/dashboard/${fetchedWallets[0].id}`, {replace: true});
             }
@@ -49,67 +36,70 @@ const UserDashboard: React.FC = () => {
         }
     };
 
-    // Execute on first load (F5)
+    // Execute on first load
     useEffect(() => {
         fetchData();
     }, []);
 
-    // Deletion handling: if the currently open wallet is deleted, navigate to the first available one
+    // Deletion handling: se il wallet selezionato sparisce, naviga al primo disponibile
     useEffect(() => {
         if (!loading && wallets.length > 0 && walletId && !wallets.find(w => w.id === walletId)) {
             navigate(`/dashboard/${wallets[0].id}`, {replace: true});
         }
     }, [walletId, wallets, loading, navigate]);
 
-    // Calculated data for rendering
-    let selectedWallet = wallets.find(w => w.id === walletId) || null;
+    const selectedWallet = wallets.find(w => w.id === walletId) || null;
 
     const deleteModalRef = useDeleteModal();
 
-    const handleConfirmDelete = async (walletId: string) => {
+    const handleConfirmDelete = async (idToDelete: string) => {
         try {
-            await api.delete(`/wallets/${walletId}`);
-            if (walletId === selectedWallet?.id)
-                selectedWallet = wallets[0]
-            setWallets(prev => prev.filter(w => w.id !== walletId));
+            await api.delete(`/wallets/${idToDelete}`);
+            setWallets(prev => prev.filter(w => w.id !== idToDelete));
             triggerToast("Deleted!", true);
         } catch (err: any) {
             triggerToast(err.response?.data?.title || "Error deleting.", false);
         }
     };
 
+    function handleChangeWallet(id: string) {
+        navigate(`/dashboard/${id}`);
+    }
+
     return (
-        <div className="flex flex-col xl:flex-row min-h-screen bg-gray-900 text-white overflow-hidden">
-            <AccountSettings/>
+        <>
+            <AppHeader page={{text: "My", accent: "Wallet"}}/>
+            <div className="flex flex-col xl:flex-row min-h-screen bg-[#0d0d12] text-white overflow-hidden">
 
-            {/* Passiamo i dati anziché farli scaricare a lui */}
-            <WalletsBar
-                wallets={wallets}
-                setWallets={setWallets}
-                loading={loading}
-                selectedWalletId={walletId}
-                onSelectWallet={(id) => navigate(`/dashboard/${id}`)}
-                onRefreshAll={fetchData}
-            />
+                <WalletsBar
+                    wallets={wallets}
+                    setWallets={setWallets}
+                    loading={loading}
+                    selectedWalletId={walletId}
+                    onSelectWallet={(id) => handleChangeWallet(id)}
+                    onRefreshAll={fetchData}
+                />
 
-            <div className="flex-1 overflow-y-auto h-screen bg-[#0d0d12]">
-                {selectedWallet ? (
-                    <WalletDashboard
-                        _wallet={selectedWallet}
-                        onWalletDelete={() => {
-                            deleteModalRef.current?.deleteObject(
-                                selectedWallet!, 'wallet',
-                                async () => await handleConfirmDelete(selectedWallet!.id)
-                            );
-                        }}
-                    />
-                ) : (
-                    <div className="flex h-full items-center justify-center text-white/40">
-                        {loading ? "Loading data..." : "No wallet selected. Create one to get started."}
-                    </div>
-                )}
+                <div className="flex-1 overflow-y-auto h-screen bg-[#0d0d12]">
+                    {selectedWallet ? (
+                        <WalletDashboard
+                            _wallet={selectedWallet}
+                            key={selectedWallet.id}
+                            onWalletDelete={() => {
+                                deleteModalRef.current?.deleteObject(
+                                    selectedWallet, 'wallet',
+                                    async () => await handleConfirmDelete(selectedWallet.id)
+                                );
+                            }}
+                        />
+                    ) : (
+                        <div className="flex h-full items-center justify-center text-white/40">
+                            {loading ? "Loading data..." : "No wallet selected. Create one to get started."}
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

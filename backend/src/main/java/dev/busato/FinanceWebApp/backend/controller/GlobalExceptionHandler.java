@@ -74,6 +74,11 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex, HttpStatus.CONFLICT, "Tag in Use", request);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request) {
+        return buildErrorResponse(ex, HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
     /**
      * Constructs the standardised ProblemDetail response.
      * * @param ex The captured exception

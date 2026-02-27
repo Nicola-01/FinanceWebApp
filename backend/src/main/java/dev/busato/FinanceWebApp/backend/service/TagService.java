@@ -43,8 +43,8 @@ public class TagService {
     @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
     public TagResponse createTag(TagRequest tagRequest, UUID walletId, UUID userId) {
 
-        if (tagRequest.getName().length() < 3 || tagRequest.getName().length() > 25)
-            throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
+        if (tagRequest.getName().length() < 2 || tagRequest.getName().length() > 25)
+            throw new IllegalArgumentException("The name must be between 2 and 15 characters long.");
 
         if (tagRepository.existsByNameIgnoreCaseAndWalletId(tagRequest.getName(), walletId))
             throw new IllegalArgumentException("A tag with the name '" + tagRequest.getName() + "' already exists.");
@@ -95,8 +95,8 @@ public class TagService {
                 .orElseThrow(() -> new TagNotFoundException(tagName, walletId));
 
         if (request.getName() != null && !request.getName().isBlank() && !tag.getName().equalsIgnoreCase(request.getName())) {
-            if (request.getName().length() < 3 || request.getName().length() > 25)
-                throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
+            if (request.getName().length() < 2 || request.getName().length() > 15)
+                throw new IllegalArgumentException("The name must be between 2 and 15 characters long.");
             if (tagRepository.existsByNameIgnoreCaseAndWalletId(request.getName(), walletId))
                 throw new IllegalArgumentException("A tag with the name '" + request.getName() + "' already exists.");
             tag.setName(request.getName());

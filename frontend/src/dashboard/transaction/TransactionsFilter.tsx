@@ -19,7 +19,7 @@ const VIEW_MODES = [
 type ViewModeType = typeof VIEW_MODES[number]['id'];
 
 export const TransactionsFilter: React.FC<TransactionsFilterProps> = ({ transactions, onFilterChange }) => {
-    const [viewMode, setViewMode] = useState<ViewModeType>('LAST_30_DAYS');
+    const [viewMode, setViewMode] = useState<ViewModeType>('MONTH');
     const [currentDate, setCurrentDate] = useState(new Date());
     const [tagFilter, setTagFilter] = useState('ALL');
 

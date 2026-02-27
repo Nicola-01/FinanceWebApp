@@ -16,7 +16,6 @@ const App: React.FC = () => {
             <ToastNotification/>
             <DeleteModalProvider deleteModalRef={deleteModalRef}>
                 <DeleteModal ref={deleteModalRef}/>
-
                 <Routes>
                     {/* 1. Rotta Pubblica (Login) */}
                     <Route path="/" element={<Login/>}/>

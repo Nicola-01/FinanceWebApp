@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
-import {createPortal} from "react-dom";
+import { createPortal } from "react-dom";
 
 interface ToastData {
     message: string;
@@ -20,6 +20,17 @@ export const ToastNotification: React.FC = () => {
     const [data, setData] = useState<ToastData>({ message: '', success: true });
 
     const timerRef = useRef<number | null>(null);
+    const toastRef = useRef<HTMLDivElement>(null); // 1. Aggiungiamo un ref per il Toast
+
+    useEffect(() => {
+        if (toastRef.current && !toastRef.current.matches(':popover-open')) {
+            try {
+                toastRef.current.showPopover();
+            } catch (e) {
+                console.warn("Popover API not supported by this browser");
+            }
+        }
+    }, []);
 
     useEffect(() => {
         const handleTrigger = (newData: ToastData) => {
@@ -44,12 +55,14 @@ export const ToastNotification: React.FC = () => {
 
     return createPortal(
         <div
+            ref={toastRef}
+            popover="manual"
             className={`
                 fixed top-5 left-1/2 z-[9999]
                 flex items-center gap-3 px-6 py-3
                 min-w-[300px] w-fit max-w-[90vw]
                 rounded-xl border backdrop-blur-md
-                font-semibold tracking-wide shadow-2xl
+                font-semibold tracking-wide shadow-2xl m-0
                 transition-all duration-400 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]
                 
                 ${
@@ -58,7 +71,7 @@ export const ToastNotification: React.FC = () => {
                     : 'opacity-0 -translate-x-1/2 translate-y-5 invisible pointer-events-none'
             }
 
-                ${/* Logica Colori Successo / Errore */
+                ${
                 data.success
                     ? 'bg-green-500/15 border-green-500/40 text-green-400 shadow-[0_0_15px_rgba(0,255,127,0.2)]'
                     : 'bg-red-500/15 border-red-500/40 text-red-500 shadow-[0_0_15px_rgba(255,77,77,0.2)]'

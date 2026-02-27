@@ -5,12 +5,11 @@ import {triggerToast} from '../components/ToastNotification.tsx';
 import type {User} from "../utils/types.ts";
 
 // Import sub-components
-import {AdminHeader} from './AdminHeader';
 import {AdminStats} from './AdminStats';
 import {CreateUserForm} from './CreateUserForm';
 import {UserDirectory} from './UserDirectory';
-import {AccountSettings} from "../components/AccountSettings.tsx";
 import {useDeleteModal} from "../modals/DeleteModalContext.tsx";
+import {AppHeader} from "../header/AppHeader.tsx";
 
 const AdminDashboard: React.FC = () => {
     // Global state for the dashboard
@@ -59,9 +58,7 @@ const AdminDashboard: React.FC = () => {
                 />
             </div>
 
-            <AdminHeader/>
-            <AccountSettings/>
-
+            <AppHeader page={{text: "Admin", accent: "Panel"}}/>
             {/* Main Content Layout */}
             <main className="relative z-10 mx-auto my-10 flex w-[95%] max-w-[1600px] flex-col gap-[30px]">
 
