@@ -56,10 +56,13 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({transaction
                 ) : (
                     sortedDates.map(date => (
                         <div key={date} className="mb-6">
-                            {/* Intestazione Data */}
-                            <h4 className="sticky top-0 z-10 bg-[#141414]/95 backdrop-blur-md py-2 mb-3 text-xs font-bold uppercase tracking-widest text-white/40 border-b border-white/5">
-                                {formatDateHeader(date)}
-                            </h4>
+                            <div className="mb-4 mt-2 flex items-center gap-4">
+                                <div className="h-px w-8 bg-white/10 rounded-full"></div>
+                                <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 whitespace-nowrap">
+                                    {formatDateHeader(date)}
+                                </h4>
+                                <div className="h-px flex-1 bg-white/10 rounded-full"></div>
+                            </div>
 
                             {/* Transazioni di quel giorno */}
                             <div>

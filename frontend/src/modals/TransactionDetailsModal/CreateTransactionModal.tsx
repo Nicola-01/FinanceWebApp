@@ -107,7 +107,6 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
         const currencySymbol = CURRENCY_META[currency]?.symbol || currency;
 
         const canSave = amount !== '' && Number(amount) > 0 && selectedTagName !== '';
-        console.log(canSave)
 
         return (
             <ModalDialog ref={dialogRef} className="max-w-[550px]">

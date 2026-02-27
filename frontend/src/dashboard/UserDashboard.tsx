@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from "react";
 import {useParams, useNavigate} from "react-router-dom";
-import {AccountSettings} from "../components/AccountSettings.tsx";
 import {WalletsBar} from "./wallet/WalletsBar.tsx";
 import {WalletDashboard} from "./wallet/WalletDashboard.tsx";
 import api from '../api/axiosConfig';
 import {triggerToast} from '../components/ToastNotification';
 import type {Wallet, Transaction} from "../utils/types";
-import {useDeleteModal} from "../modals/DeleteModalContext.tsx"; // Check your paths
+import {useDeleteModal} from "../modals/DeleteModalContext.tsx";
+import {AppHeader} from "../header/AppHeader.tsx"; // Check your paths
 
 const UserDashboard: React.FC = () => {
     const {walletId} = useParams<{ walletId: string }>();
@@ -79,37 +79,40 @@ const UserDashboard: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col xl:flex-row min-h-screen bg-gray-900 text-white overflow-hidden">
-            <AccountSettings/>
+        <>
+            <AppHeader page={{text: "My", accent: "Wallet"}}/>
+            <div className="flex flex-col xl:flex-row min-h-screen bg-[#0d0d12] text-white overflow-hidden">
+                {/*<AccountSettings/>*/}
 
-            {/* Passiamo i dati anziché farli scaricare a lui */}
-            <WalletsBar
-                wallets={wallets}
-                setWallets={setWallets}
-                loading={loading}
-                selectedWalletId={walletId}
-                onSelectWallet={(id) => navigate(`/dashboard/${id}`)}
-                onRefreshAll={fetchData}
-            />
+                {/* Passiamo i dati anziché farli scaricare a lui */}
+                <WalletsBar
+                    wallets={wallets}
+                    setWallets={setWallets}
+                    loading={loading}
+                    selectedWalletId={walletId}
+                    onSelectWallet={(id) => navigate(`/dashboard/${id}`)}
+                    onRefreshAll={fetchData}
+                />
 
-            <div className="flex-1 overflow-y-auto h-screen bg-[#0d0d12]">
-                {selectedWallet ? (
-                    <WalletDashboard
-                        _wallet={selectedWallet}
-                        onWalletDelete={() => {
-                            deleteModalRef.current?.deleteObject(
-                                selectedWallet!, 'wallet',
-                                async () => await handleConfirmDelete(selectedWallet!.id)
-                            );
-                        }}
-                    />
-                ) : (
-                    <div className="flex h-full items-center justify-center text-white/40">
-                        {loading ? "Loading data..." : "No wallet selected. Create one to get started."}
-                    </div>
-                )}
+                <div className="flex-1 overflow-y-auto h-screen bg-[#0d0d12]">
+                    {selectedWallet ? (
+                        <WalletDashboard
+                            _wallet={selectedWallet}
+                            onWalletDelete={() => {
+                                deleteModalRef.current?.deleteObject(
+                                    selectedWallet!, 'wallet',
+                                    async () => await handleConfirmDelete(selectedWallet!.id)
+                                );
+                            }}
+                        />
+                    ) : (
+                        <div className="flex h-full items-center justify-center text-white/40">
+                            {loading ? "Loading data..." : "No wallet selected. Create one to get started."}
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+        </>
     );
 };
 

@@ -32,7 +32,6 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({child, walletId, onSucc
 
     const deleteTag = async (tagName: string) => {
         try {
-            console.log((walletId))
             await api.delete(`/tags/${walletId}/${encodeURIComponent(tagName)}`);
             onSuccess();
         } catch (err: any) {

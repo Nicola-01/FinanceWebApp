@@ -26,7 +26,12 @@ export const WalletsBar: React.FC<WalletsAreaProps> =
 
         return (
             <div
-                className="flex flex-row overflow-x-auto w-full p-4 gap-4 xl:flex-col xl:w-[320px] xl:h-screen xl:overflow-y-auto xl:overflow-x-hidden xl:border-r xl:border-white/10 xl:p-6">
+                className="
+                    flex flex-row overflow-x-auto w-full p-4 gap-4
+                    xl:flex-col xl:w-[320px] xl:h-screen xl:overflow-y-auto xl:overflow-x-hidden
+                    xl:border-r xl:border-white/5 xl:p-6
+                    bg-white/2 backdrop-blur-md
+                    [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
                 {wallets.map((wallet) => (
                     <WalletCard

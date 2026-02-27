@@ -4,7 +4,12 @@ import {isTokenValid} from './authHelper.ts';
 const ProtectedRoute = () => {
     const location = useLocation();
     const isValid = isTokenValid();
-    if (!isValid) return <Navigate to="/" state={{from: location}} replace/>;
+    if (!isValid) {
+        localStorage.removeItem('jwtToken');
+        sessionStorage.removeItem('jwtToken');
+        localStorage.removeItem('mustChangePWD');
+        return <Navigate to="/" state={{from: location}} replace/>;
+    }
     return <Outlet/>;
 };
 
