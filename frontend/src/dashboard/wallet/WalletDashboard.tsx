@@ -29,25 +29,43 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
     const shareModalRef = useRef<ShareWalletModalHandle>(null);
 
     useEffect(() => {
-        fetchData()
+        const controller = new AbortController();
+
+        setWallet(_wallet);
+        setTransactions([]);
+        setTags([]);
+
+        fetchData(controller.signal);
+
+        return () => {
+            controller.abort();
+        };
     }, [_wallet.id]);
 
-    const fetchData = async () => {
+    const fetchData = async (signal?: AbortSignal) => {
         if (!_wallet?.id) return;
         try {
             setIsLoading(true);
+
             const [walletRes, transactionRes, tagRes] = await Promise.all([
-                api.get(`/wallets/${_wallet.id}`),
-                api.get(`/transactions/${_wallet.id}`),
-                api.get(`/tags/${_wallet.id}`)
+                api.get(`/wallets/${_wallet.id}`, { signal }),
+                api.get(`/transactions/${_wallet.id}`, { signal }),
+                api.get(`/tags/${_wallet.id}`, { signal })
             ]);
+
             setWallet(walletRes.data);
             setTransactions(transactionRes.data);
             setTags(tagRes.data);
-        } catch (err) {
+        } catch (err: any) {
+            if (err.name === 'CanceledError' || err.name === 'AbortError') {
+                console.log("Fetch aborted: wallet changed");
+                return;
+            }
             triggerToast(`Error loading data for ${_wallet.name}`, false);
         } finally {
-            setIsLoading(false);
+            if (!signal?.aborted) {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -123,7 +141,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
             <div className="flex-1 overflow-hidden">
                 {activeTab === 'transactions' && (
                     <TransactionsTab transactions={transactions} wallet={wallet}
-                                     baseCurrency={wallet.currency as CurrencyCode} onRefresh={fetchData}/>
+                                     baseCurrency={wallet.currency as CurrencyCode} onRefresh={fetchData} isLoading={isLoading}/>
                 )}
 
                 {activeTab === 'tags' && (
@@ -132,6 +150,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
                         onAddTag={handleAddTag}
                         onUpdateTag={handleUpdateTag}
                         onDeleteTag={handleDeleteTag}
+                        isLoading={isLoading}
                     />
                 )}
 

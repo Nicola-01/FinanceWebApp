@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChartPie, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
-import type { Transaction } from '../../utils/types';
-import { ICONS, type IconKey } from '../../utils/icons.ts';
+import React, {useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faChartPie, faChevronDown, faChevronUp} from '@fortawesome/free-solid-svg-icons';
+import type {Transaction} from '../../utils/types';
+import {ICONS, type IconKey} from '../../utils/icons.ts';
 
 interface PeriodStatsProps {
-    transactions: Transaction[];
+    transactions: Transaction[],
+    isLoading: boolean
 }
 
-export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
+// --- COMPONENTE SKELETON PER GLI IMPORTI ---
+const SkeletonAmount = () => (
+    <div className="h-7 w-24 bg-white/10 rounded-md animate-pulse mx-auto mt-0.5"></div>
+);
+
+export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading}) => {
     const [showDistribution, setShowDistribution] = useState(false);
 
     // 1. Calcolo Totali
@@ -18,14 +24,14 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
             else if (tx.type === 'EXPENSE') acc.expense += tx.amount;
             return acc;
         },
-        { income: 0, expense: 0 }
+        {income: 0, expense: 0}
     );
     const netTotal = totals.income - totals.expense;
 
     // 2. Raggruppamento per Tag
     const tagStats = transactions.reduce((acc, tx) => {
         if (!acc[tx.tag.name]) {
-            acc[tx.tag.name] = { income: 0, expense: 0, color: tx.tag.colorHex, icon: tx.tag.icon };
+            acc[tx.tag.name] = {income: 0, expense: 0, color: tx.tag.colorHex, icon: tx.tag.icon};
         }
         if (tx.type === 'INCOME') acc[tx.tag.name].income += tx.amount;
         if (tx.type === 'EXPENSE') acc[tx.tag.name].expense += tx.amount;
@@ -44,50 +50,54 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
     return (
         <div className="mb-6 flex flex-col gap-3 animate-[fadeIn_0.3s_ease-out]">
 
-            {/* Header con Pulsante Toggle */}
             <div className="flex items-center justify-between">
                 <h3 className="text-white/80 font-bold text-sm">Period Overview</h3>
-                {transactions.length > 0 && (
+                {!isLoading && transactions.length > 0 && (
                     <button
                         onClick={() => setShowDistribution(!showDistribution)}
                         className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-wider"
                     >
-                        <FontAwesomeIcon icon={faChartPie} />
+                        <FontAwesomeIcon icon={faChartPie}/>
                         {showDistribution ? 'Hide Details' : 'Show Details'}
-                        <FontAwesomeIcon icon={showDistribution ? faChevronUp : faChevronDown} />
+                        <FontAwesomeIcon icon={showDistribution ? faChevronUp : faChevronDown}/>
                     </button>
                 )}
             </div>
 
-            {/* Griglia delle Statistiche */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
 
-                {/* --- CARD ENTRATE (INCOME) --- */}
                 <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col transition-all">
                     <div className="text-center">
                         <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Period Income</p>
-                        <p className="text-[#00ff7f] font-bold font-app-mono text-xl">+{totals.income.toFixed(2)}</p>
+                        {isLoading ? (
+                            <SkeletonAmount />
+                        ) : (
+                            <p className="text-[#00ff7f] font-bold font-app-mono text-xl">+{totals.income.toFixed(2)}</p>
+                        )}
                     </div>
 
-                    {/* Distribuzione Entrate espandibile */}
-                    {showDistribution && incomeTags.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3 animate-[fadeIn_0.2s_ease-out]">
+                    {!isLoading && showDistribution && incomeTags.length > 0 && (
+                        <div
+                            className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3 animate-[fadeIn_0.2s_ease-out]">
                             {incomeTags.map(([tagName, stats]) => {
                                 const percentage = totals.income > 0 ? (stats.income / totals.income) * 100 : 0;
                                 return (
                                     <div key={tagName} className="flex flex-col gap-1.5">
                                         <div className="flex justify-between items-center text-xs">
-                                            <div className="flex items-center gap-1.5 font-medium" style={{ color: stats.color }}>
-                                                <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'} />
+                                            <div className="flex items-center gap-1.5 font-medium"
+                                                 style={{color: stats.color}}>
+                                                <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'}/>
                                                 <span className="truncate max-w-[100px]">{tagName}</span>
                                             </div>
                                             <div className="flex items-center gap-2 font-app-mono text-white/80">
                                                 {stats.income.toFixed(2)}
-                                                <span className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
+                                                <span
+                                                    className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
                                             </div>
                                         </div>
                                         <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
-                                            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${percentage}%`, backgroundColor: stats.color }} />
+                                            <div className="h-full rounded-full transition-all duration-500"
+                                                 style={{width: `${percentage}%`, backgroundColor: stats.color}}/>
                                         </div>
                                     </div>
                                 );
@@ -96,32 +106,38 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
                     )}
                 </div>
 
-                {/* --- CARD USCITE (EXPENSE) --- */}
                 <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col transition-all">
                     <div className="text-center">
                         <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Period Expense</p>
-                        <p className="text-[#ff4d4d] font-bold font-app-mono text-xl">-{totals.expense.toFixed(2)}</p>
+                        {isLoading ? (
+                            <SkeletonAmount />
+                        ) : (
+                            <p className="text-[#ff4d4d] font-bold font-app-mono text-xl">-{totals.expense.toFixed(2)}</p>
+                        )}
                     </div>
 
-                    {/* Distribuzione Uscite espandibile */}
-                    {showDistribution && expenseTags.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3 animate-[fadeIn_0.2s_ease-out]">
+                    {!isLoading && showDistribution && expenseTags.length > 0 && (
+                        <div
+                            className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3 animate-[fadeIn_0.2s_ease-out]">
                             {expenseTags.map(([tagName, stats]) => {
                                 const percentage = totals.expense > 0 ? (stats.expense / totals.expense) * 100 : 0;
                                 return (
                                     <div key={tagName} className="flex flex-col gap-1.5">
                                         <div className="flex justify-between items-center text-xs">
-                                            <div className="flex items-center gap-1.5 font-medium" style={{ color: stats.color }}>
-                                                <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'} />
+                                            <div className="flex items-center gap-1.5 font-medium"
+                                                 style={{color: stats.color}}>
+                                                <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'}/>
                                                 <span className="truncate max-w-[100px]">{tagName}</span>
                                             </div>
                                             <div className="flex items-center gap-2 font-app-mono text-white/80">
                                                 {stats.expense.toFixed(2)}
-                                                <span className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
+                                                <span
+                                                    className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
                                             </div>
                                         </div>
                                         <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
-                                            <div className="h-full rounded-full transition-all duration-500" style={{ width: `${percentage}%`, backgroundColor: stats.color }} />
+                                            <div className="h-full rounded-full transition-all duration-500"
+                                                 style={{width: `${percentage}%`, backgroundColor: stats.color}}/>
                                         </div>
                                     </div>
                                 );
@@ -130,13 +146,15 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({ transactions }) => {
                     )}
                 </div>
 
-                {/* --- CARD NETTO (NET BALANCE) --- */}
-                {/* Questa card è allineata all'inizio (flex-start/justify-center) quindi rimarrà pulita in alto anche se le altre due si allungano */}
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col text-center justify-center min-h-[76px]">
                     <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Net Balance</p>
-                    <p className={`font-bold font-app-mono text-xl ${netTotal >= 0 ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
-                        {netTotal >= 0 ? '+' : ''}{netTotal.toFixed(2)}
-                    </p>
+                    {isLoading ? (
+                        <SkeletonAmount />
+                    ) : (
+                        <p className={`font-bold font-app-mono text-xl ${netTotal >= 0 ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
+                            {netTotal >= 0 ? '+' : ''}{netTotal.toFixed(2)}
+                        </p>
+                    )}
                 </div>
 
             </div>
