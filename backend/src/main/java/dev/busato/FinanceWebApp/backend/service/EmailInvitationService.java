@@ -8,6 +8,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
+@Deprecated // TODO
 public class EmailInvitationService {
 
     @Autowired

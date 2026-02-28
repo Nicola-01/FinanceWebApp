@@ -1,5 +1,5 @@
-import React, { createContext, useContext } from 'react';
-import type { DeleteModalHandle } from './DeleteModal.tsx';
+import React, {createContext, useContext} from 'react';
+import type {DeleteModalHandle} from './DeleteModal.tsx';
 
 const DeleteModalContext = createContext<React.RefObject<DeleteModalHandle | null> | null>(null);
 

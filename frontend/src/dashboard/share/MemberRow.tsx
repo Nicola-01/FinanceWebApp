@@ -1,7 +1,7 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
-import type { WalletMember } from '../../utils/types';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faTrash} from '@fortawesome/free-solid-svg-icons';
+import type {WalletMember} from '../../utils/types';
 import {getUserAuth} from "../../utils/authHelper.ts";
 
 interface MemberRowProps {

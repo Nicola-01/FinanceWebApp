@@ -1,9 +1,9 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import api from '../api/axiosConfig';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShareNodes, faUser, faEye, faPen } from '@fortawesome/free-solid-svg-icons';
-import { ModalDialog } from './ModalDialog';
-import { triggerToast } from '../components/ToastNotification';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faEye, faPen, faShareNodes, faUser} from '@fortawesome/free-solid-svg-icons';
+import {ModalDialog} from './ModalDialog';
+import {triggerToast} from '../components/ToastNotification';
 import type {Wallet} from "../utils/types.ts";
 
 export interface ShareWalletModalHandle {

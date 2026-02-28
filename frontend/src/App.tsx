@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import {Routes, Route, Navigate} from 'react-router-dom';
+import {Navigate, Route, Routes} from 'react-router-dom';
 import Login from './auth/Login';
 import UserDashboard from './dashboard/UserDashboard.tsx';
 import AdminDashboard from './admin/AdminDashboard'; // Importa la pagina Admin

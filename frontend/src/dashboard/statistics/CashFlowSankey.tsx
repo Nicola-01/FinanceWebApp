@@ -2,16 +2,11 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { useTheme } from '@mui/material/styles';
-import {
-    SankeyLinkPlot,
-    SankeyNodePlot,
-    SankeyTooltip,
-    SankeyDataProvider,
-} from '@mui/x-charts-pro/SankeyChart';
-import { ChartsWrapper } from '@mui/x-charts-pro/ChartsWrapper';
-import { ChartsSurface } from '@mui/x-charts-pro/ChartsSurface';
-import type { Transaction } from '../../utils/types';
+import {useTheme} from '@mui/material/styles';
+import {SankeyDataProvider, SankeyLinkPlot, SankeyNodePlot, SankeyTooltip,} from '@mui/x-charts-pro/SankeyChart';
+import {ChartsWrapper} from '@mui/x-charts-pro/ChartsWrapper';
+import {ChartsSurface} from '@mui/x-charts-pro/ChartsSurface';
+import type {Transaction} from '../../utils/types';
 
 interface CashFlowSankeyProps {
     transactions: Transaction[];

@@ -42,15 +42,12 @@ public class MemberService {
         Wallet wallet = walletRepository.findById(walletId)
                 .orElseThrow(() -> new WalletNotFoundException(walletId));
 
-        Optional<User> targetUserOpt = userRepository.findByUsernameIgnoreCase(request.getUsername());
+        Optional<User> targetUserOpt = userRepository.findByUsernameIgnoreCaseOrEmailIgnoreCase(request.getUser(), request.getUser());
 
-        // PREVENZIONE USER ENUMERATION:
-        // Se l'utente non esiste, restituiamo una risposta fittizia di successo.
-        // L'attaccante crederà che l'invito sia partito, ma noi non tocchiamo il DB.
         if (targetUserOpt.isEmpty()) {
             return MemberResponse.builder()
-                    .userId(UUID.randomUUID()) // Generiamo un ID falso
-                    .username(request.getUsername())
+                    .userId(UUID.randomUUID()) // TODO da vedere. stesso user UUID diverso
+                    .username(request.getUser())
                     .role(request.getRole().toUpperCase())
                     .status(WalletAccess.InvitationStatus.PENDING.name())
                     .invitedAt(LocalDate.now())
@@ -59,24 +56,18 @@ public class MemberService {
 
         User targetUser = targetUserOpt.get();
 
-        // L'utente non può invitare se stesso
-        if (targetUser.getId().equals(userId)) {
+        if (targetUser.getId().equals(userId))
             throw new IllegalArgumentException("You cannot invite yourself");
-        }
 
-        // Se l'utente è già membro o ha già un invito pendente, qui è ok lanciare eccezione
-        // perché chi fa la richiesta sta agendo su un utente che sa già esistere nel suo wallet
-        if (walletAccessRepository.existsByWalletIdAndUserId(walletId, targetUser.getId())) {
+        if (walletAccessRepository.existsByWalletIdAndUserId(walletId, targetUser.getId()))
             throw new IllegalArgumentException("User is already a member or has a pending invite");
-        }
 
-        // Se arriviamo qui, l'utente esiste e non è ancora nel wallet. Salviamo l'invito reale!
         WalletAccess access = new WalletAccess();
         access.setId(new WalletAccess.WalletAccessId(targetUser.getId(), wallet.getId()));
         access.setUser(targetUser);
         access.setWallet(wallet);
         access.setRole(WalletAccess.WalletRole.valueOf(request.getRole().toUpperCase()));
-        access.setStatus(WalletAccess.InvitationStatus.PENDING); // Stato iniziale
+        access.setStatus(WalletAccess.InvitationStatus.PENDING);
 
         walletAccessRepository.save(access);
 

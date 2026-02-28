@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faChartPie, faChevronDown, faChevronUp} from '@fortawesome/free-solid-svg-icons';
 import type {Transaction} from '../../utils/types';
-import {ICONS, type IconKey} from '../../utils/icons.ts';
+import {type IconKey, ICONS} from '../../utils/icons.ts';
 
 interface PeriodStatsProps {
     transactions: Transaction[],

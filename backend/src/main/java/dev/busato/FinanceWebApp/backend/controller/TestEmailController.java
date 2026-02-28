@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Deprecated // TODO
 public class TestEmailController {
 
     // 1. INIETTA IL SERVIZIO INVECE DI FARE "NEW"

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import { CURRENCY_META, type CurrencyCode } from '../utils/currencies';
+import React, {useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faChevronDown} from '@fortawesome/free-solid-svg-icons';
+import {CURRENCY_META, type CurrencyCode} from '../utils/currencies';
 
 interface CurrencySelectorProps {
     value: CurrencyCode | string;

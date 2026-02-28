@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import React, {useEffect, useRef, useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
-    faTags,
-    faChevronRight,
-    faChevronLeft,
     faCheck,
     faChevronDown,
-    faChevronUp
+    faChevronLeft,
+    faChevronRight,
+    faChevronUp,
+    faTags
 } from '@fortawesome/free-solid-svg-icons';
-import type { Tag } from '../../utils/types';
-import { Icon } from '../../components/Icon.tsx'; // Assicurati che il percorso sia corretto
+import type {Tag} from '../../utils/types';
+import {Icon} from '../../components/Icon.tsx'; // Assicurati che il percorso sia corretto
 
 interface HierarchicalTagSelectorProps {
     tags: Tag[];

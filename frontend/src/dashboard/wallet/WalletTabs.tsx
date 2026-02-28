@@ -11,8 +11,8 @@ export const WalletTabs: React.FC<WalletTabsProps> = ({ activeTab, setActiveTab,
 
     const tabs: { id: TabType; label: string }[] = [
         { id: 'transactions', label: 'Transactions' },
-        { id: 'tags', label: 'Tags' },
         { id: 'statistics', label: 'Statistics' },
+        { id: 'tags', label: 'Tags' },
         { id: 'share', label: 'Share' }
     ];
 

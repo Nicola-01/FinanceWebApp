@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCoins, faArrowRightArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { CurrencySelector } from '../../components/CurrencySelector';
-import type { CurrencyCode } from '../../utils/currencies';
-import { triggerToast } from '../../components/ToastNotification';
+import React, {useEffect, useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faArrowRightArrowLeft, faCoins} from '@fortawesome/free-solid-svg-icons';
+import {CurrencySelector} from '../../components/CurrencySelector';
+import type {CurrencyCode} from '../../utils/currencies';
+import {triggerToast} from '../../components/ToastNotification';
 
 interface ExchangeRateSectionProps {
     baseCurrency: CurrencyCode;

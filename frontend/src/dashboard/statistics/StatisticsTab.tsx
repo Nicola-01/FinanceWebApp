@@ -1,9 +1,9 @@
 import React from 'react';
-import { PieChart, pieArcLabelClasses } from '@mui/x-charts/PieChart';
-import { ThemeProvider, createTheme, styled } from '@mui/material/styles';
-import { useDrawingArea } from '@mui/x-charts/hooks';
-import type { Transaction } from '../../utils/types.ts';
-import { CashFlowSankey } from './CashFlowSankey.tsx';
+import {pieArcLabelClasses, PieChart} from '@mui/x-charts/PieChart';
+import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
+import {useDrawingArea} from '@mui/x-charts/hooks';
+import type {Transaction} from '../../utils/types.ts';
+import {CashFlowSankey} from './CashFlowSankey.tsx';
 
 interface StatisticsTabProps {
     transactions: Transaction[];

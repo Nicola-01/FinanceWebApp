@@ -1,8 +1,8 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, } from '@fortawesome/free-solid-svg-icons';
-import { ModalDialog } from './ModalDialog';
-import { triggerToast } from '../components/ToastNotification';
+import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faUser,} from '@fortawesome/free-solid-svg-icons';
+import {ModalDialog} from './ModalDialog';
+import {triggerToast} from '../components/ToastNotification';
 import api from '../api/axiosConfig';
 
 export interface ProfileModalHandle {

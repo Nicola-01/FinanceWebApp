@@ -1,7 +1,7 @@
 import React, {useRef, useState} from 'react';
 import {useNavigate} from "react-router-dom";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faUser, faLock, faTriangleExclamation, faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
+import {faEye, faEyeSlash, faLock, faTriangleExclamation, faUser} from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
 import {triggerToast} from '../components/ToastNotification.tsx';
 

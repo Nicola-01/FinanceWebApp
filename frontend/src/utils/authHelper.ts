@@ -1,4 +1,4 @@
-import { jwtDecode } from 'jwt-decode';
+import {jwtDecode} from 'jwt-decode';
 
 /**
  * Interface representing the structure of your JWT payload.

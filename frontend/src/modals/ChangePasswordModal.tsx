@@ -1,7 +1,7 @@
-import React, {useState, useRef, useImperativeHandle, forwardRef} from 'react';
+import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import api from '../api/axiosConfig';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faLock, faShieldAlt, faCheck, faTimes, faKey} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faKey, faLock, faShieldAlt, faTimes} from '@fortawesome/free-solid-svg-icons';
 import {ModalDialog} from './ModalDialog';
 import {triggerToast} from '../components/ToastNotification';
 import {PasswordInput} from './PasswordInput'; // Import the new component

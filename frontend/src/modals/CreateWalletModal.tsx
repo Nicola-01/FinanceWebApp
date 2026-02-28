@@ -1,4 +1,4 @@
-import React, {useState, useRef, useImperativeHandle, forwardRef, useEffect} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import api from '../api/axiosConfig';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faWallet} from '@fortawesome/free-solid-svg-icons';
@@ -7,9 +7,10 @@ import {triggerToast} from '../components/ToastNotification';
 import type {CurrencyCode} from '../utils/currencies.ts';
 
 // Importiamo i nostri nuovi componenti puliti!
-import {ICONS, type IconKey} from '../utils/icons.ts';
+import {type IconKey, ICONS} from '../utils/icons.ts';
 import {CurrencySelector} from '../components/CurrencySelector';
 import {IconColorSelector} from "../components/IconColorSelector.tsx";
+
 // import {IconPickerButton} from "../components/IconPickerButton.tsx";
 
 export interface CreateWalletModalHandle {

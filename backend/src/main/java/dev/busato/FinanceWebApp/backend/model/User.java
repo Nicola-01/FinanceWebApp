@@ -17,12 +17,15 @@ import java.util.*;
 @Table(name = "app_users") // 'user' is a reserved keyword in Postgres, so we use 'app_users'
 public class User implements UserDetails {
 
-    @Id // set Primary Key
+    @Id
     @GeneratedValue(strategy = GenerationType.UUID) // Automatically generates a UUID v4
     private UUID id;
 
     @Column(unique = true, nullable = false)
     private String username;
+
+    @Column(unique = true, nullable = false)
+    private String email;
 
     @Column(nullable = false)
     private String password; // This will store the BCrypt hash, not the plain password
