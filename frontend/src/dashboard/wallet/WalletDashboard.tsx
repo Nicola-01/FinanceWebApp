@@ -10,8 +10,9 @@ import {WalletTabs} from "./WalletTabs.tsx";
 import {WalletMenu} from "./WalletMenu.tsx";
 import {ShareWalletModal, type ShareWalletModalHandle} from "../../modals/ShareWalletModal.tsx";
 import {TagsTab} from "../tag/TagsTab.tsx";
+import {ShareTab} from "../share/ShareTab.tsx";
 
-type TabType = 'transactions' | 'tags' | 'statistics' | 'budget';
+export type TabType = 'transactions' | 'tags' | 'statistics' | 'budget' | 'share';
 
 interface WalletDashboardProps {
     _wallet: Wallet;
@@ -140,7 +141,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
 
             <div className="flex-1 overflow-hidden">
                 {activeTab === 'transactions' && (
-                    <TransactionsTab transactions={transactions} wallet={wallet}
+                    <TransactionsTab transactions={transactions} wallet={wallet} tags={tags}
                                      baseCurrency={wallet.currency as CurrencyCode} onRefresh={fetchData} isLoading={isLoading}/>
                 )}
 
@@ -155,9 +156,14 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
                 )}
 
                 {activeTab === 'statistics' && (<StatisticsTab transactions={transactions}/>)}
+
+                {activeTab === 'share' && <ShareTab wallet={wallet}/>}
             </div>
 
-            <ShareWalletModal ref={shareModalRef} wallet={wallet}/>
+
+
+            {/*<ShareWalletModal ref={shareModalRef} wallet={wallet}/>*/}
+
         </div>
     );
 };

@@ -64,7 +64,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                 )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
 
                 <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col transition-all">
                     <div className="text-center">
@@ -146,7 +146,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                     )}
                 </div>
 
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col text-center justify-center min-h-[76px]">
+                <div className="bg-white/5 border sm:col-span-2 lg:col-auto border-white/10 rounded-2xl p-4 flex flex-col text-center justify-center min-h-19">
                     <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Net Balance</p>
                     {isLoading ? (
                         <SkeletonAmount />

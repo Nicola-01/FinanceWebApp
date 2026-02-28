@@ -5,7 +5,7 @@ import {faCalendarAlt, faStickyNote, faRepeat, faMoneyBillTransfer, faTag} from 
 import {ModalDialog} from '../ModalDialog';
 import {triggerToast} from '../../components/ToastNotification';
 import {CURRENCY_META, type CurrencyCode} from '../../utils/currencies';
-import type {Tag} from "../../utils/types.ts";
+import type {Tag, Wallet} from "../../utils/types.ts";
 
 // import {ExchangeRateSection} from './ExchangeRateSection.tsx';
 import {HierarchicalTagSelector} from './HierarchicalTagSelector.tsx';
@@ -17,14 +17,14 @@ export interface CreateTransactionModalHandle {
 }
 
 interface Props {
-    walletId: string;
+    wallet: Wallet;
+    tags: Tag[];
     baseCurrency: CurrencyCode;
-    walletColor: string; // <-- Aggiunto per il bottone dinamico
     onSuccess: () => void;
 }
 
 export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, Props>(
-    ({walletId, baseCurrency, walletColor, onSuccess}, ref) => {
+    ({wallet, tags, baseCurrency, onSuccess}, ref) => {
         const dialogRef = useRef<HTMLDialogElement>(null);
 
         // --- Form States ---
@@ -38,9 +38,6 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
         const [isRecurring, setIsRecurring] = useState(false);
         const [loading, setLoading] = useState(false);
 
-
-        // Tags States
-        const [tags, setTags] = useState<Tag[]>([]);
         const [selectedTagName, setSelectedTagName] = useState<string>('');
 
         useImperativeHandle(ref, () => ({
@@ -54,20 +51,9 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                 setSelectedTagName('');
                 setNotes('');
                 setIsRecurring(false);
-
-                fetchTags();
                 dialogRef.current?.showModal();
             }
         }));
-
-        const fetchTags = async () => {
-            try {
-                const response = await api.get(`/tags/${walletId}`);
-                setTags(response.data);
-            } catch (err) {
-                triggerToast("Failed to load tags", false);
-            }
-        };
 
         const handleSubmit = async (e: React.FormEvent) => {
             e.preventDefault();
@@ -92,7 +78,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                     notes,
                 };
 
-                await api.post(`/transactions/${walletId}`, payload);
+                await api.post(`/transactions/${wallet.id}`, payload);
 
                 triggerToast("Transaction added successfully!", true);
                 onSuccess();
@@ -114,7 +100,10 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
 
                     {/* Header Semplificato */}
                     <h3 className="mb-6 flex items-center justify-center gap-3 text-xl font-semibold text-white/60">
-                        <FontAwesomeIcon icon={faMoneyBillTransfer}/>
+                        <FontAwesomeIcon
+                            icon={faMoneyBillTransfer}
+                            color={wallet.color}
+                        />
                         New Transaction
                     </h3>
 
@@ -264,8 +253,8 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                                 className="flex-1 rounded-xl py-4 font-bold text-black transition-all animate-[fadeIn_0.3s_ease-out]
                                 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                                 style={{
-                                    backgroundColor: walletColor,
-                                    boxShadow: !canSave ? 'none' : `0 10px 20px -5px ${walletColor}66`
+                                    backgroundColor: wallet.color,
+                                    boxShadow: !canSave ? 'none' : `0 10px 20px -5px ${wallet.color}66`
                                 }}
                             >
                                 {loading ? "Saving..." : "Save Transaction"}

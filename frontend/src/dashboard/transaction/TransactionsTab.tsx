@@ -1,7 +1,7 @@
 import React, {useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faPlus} from '@fortawesome/free-solid-svg-icons';
-import type {Transaction, Wallet} from '../../utils/types.ts';
+import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
 import {
     CreateTransactionModal,
     type CreateTransactionModalHandle
@@ -16,7 +16,8 @@ interface TransactionsTabProps {
     wallet: Wallet,
     baseCurrency: CurrencyCode,
     onRefresh: () => void,
-    isLoading: boolean
+    isLoading: boolean,
+    tags: Tag[]
 }
 
 export const TransactionsTab: React.FC<TransactionsTabProps> = ({
@@ -24,7 +25,8 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
                                                                     wallet,
                                                                     baseCurrency,
                                                                     onRefresh,
-                                                                    isLoading
+                                                                    isLoading,
+                                                                    tags
                                                                 }) => {
     const transactionModalRef = useRef<CreateTransactionModalHandle>(null);
 
@@ -48,9 +50,9 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
                 </button>
                 <CreateTransactionModal
                     ref={transactionModalRef}
-                    walletId={wallet.id}
+                    wallet={wallet}
+                    tags={tags}
                     baseCurrency={baseCurrency}
-                    walletColor={wallet.color}
                     onSuccess={onRefresh}
                 />
             </div>
@@ -63,6 +65,8 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
             <PeriodStats transactions={filteredTransactions} isLoading={isLoading}/>
 
             <TransactionsTable
+                wallet={wallet}
+                tags={tags}
                 transactions={filteredTransactions}
                 onRefresh={onRefresh}
                 isLoading={isLoading}
