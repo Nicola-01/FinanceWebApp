@@ -8,7 +8,7 @@ import {
     faTrash
 } from "@fortawesome/free-solid-svg-icons";
 
-import {ShareWalletModal, type ShareWalletModalHandle} from "../../modals/ShareWalletModal.tsx";
+import {type ShareWalletModalHandle} from "../../modals/ShareWalletModal.tsx";
 import type {Wallet} from "../../utils/types.ts";
 
 interface WalletMenuProps {
@@ -18,7 +18,7 @@ interface WalletMenuProps {
     onWalletDelete: () => void;
 }
 
-export const WalletMenu: React.FC<WalletMenuProps> = ({wallet, isLoading, onWalletDelete, onRefresh}) => {
+export const WalletMenu: React.FC<WalletMenuProps> = ({isLoading, onWalletDelete, onRefresh}) => {
 
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);

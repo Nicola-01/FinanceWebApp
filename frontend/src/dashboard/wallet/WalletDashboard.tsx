@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {TransactionsTab} from '../transaction/TransactionsTab';
 import {StatisticsTab} from '../statistics/StatisticsTab';
 import type {Wallet, Transaction, Tag} from '../../utils/types';
@@ -8,7 +8,6 @@ import api from "../../api/axiosConfig.ts";
 import {triggerToast} from "../../components/ToastNotification.tsx";
 import {WalletTabs} from "./WalletTabs.tsx";
 import {WalletMenu} from "./WalletMenu.tsx";
-import {ShareWalletModal, type ShareWalletModalHandle} from "../../modals/ShareWalletModal.tsx";
 import {TagsTab} from "../tag/TagsTab.tsx";
 import {ShareTab} from "../share/ShareTab.tsx";
 
@@ -26,8 +25,6 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
 
     const [activeTab, setActiveTab] = useState<TabType>('transactions');
     const [isLoading, setIsLoading] = useState<boolean>(false)
-
-    const shareModalRef = useRef<ShareWalletModalHandle>(null);
 
     useEffect(() => {
         const controller = new AbortController();
