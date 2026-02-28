@@ -25,7 +25,7 @@ export const MemberCategory: React.FC<MemberCategoryProps> = ({
             </h4>
             {members.map(m => (
                 <MemberRow
-                    key={m.id}
+                    key={m.userId}
                     member={m}
                     icon={icon}
                     iconColor={iconColor}
