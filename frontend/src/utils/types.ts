@@ -11,13 +11,14 @@ export interface User {
 }
 
 export interface Wallet {
-    id: string;
-    name: string;
-    icon: string;
-    color: string;
-    currency: string;
-    createdAt: string;
-    myRole: 'OWNER' | 'EDITOR' | 'VIEWER';
+    id: string,
+    name: string,
+    icon: string,
+    color: string,
+    currency: string,
+    createdAt: string,
+    myRole: 'OWNER' | 'EDITOR' | 'VIEWER',
+    wallet?: Wallet
 }
 
 export interface Tag {
@@ -39,4 +40,13 @@ export interface Transaction {
     type: 'INCOME' | 'EXPENSE';
     notes?: string;
     transactionDate: string;
+}
+
+export interface WalletMember {
+    userId: string;
+    username: string;
+    email: string;
+    role: 'OWNER' | 'EDITOR' | 'VIEWER';
+    status: 'ACTIVE' | 'PENDING';
+    invitedAt: string;
 }

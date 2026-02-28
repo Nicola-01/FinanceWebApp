@@ -103,7 +103,7 @@ export const WalletMenu: React.FC<WalletMenuProps> = ({wallet, isLoading, onWall
                 )}
             </div>
 
-            <ShareWalletModal ref={shareModalRef} wallet={wallet}/>
+            {/*<ShareWalletModal ref={shareModalRef} wallet={wallet}/>*/}
         </>
     );
 }

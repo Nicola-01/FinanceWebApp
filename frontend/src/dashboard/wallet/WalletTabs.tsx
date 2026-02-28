@@ -1,6 +1,5 @@
 import React from 'react';
-
-type TabType = 'transactions' | 'tags' | 'statistics' | 'budget';
+import type {TabType} from "./WalletDashboard.tsx";
 
 interface WalletTabsProps {
     activeTab: TabType;
@@ -13,7 +12,8 @@ export const WalletTabs: React.FC<WalletTabsProps> = ({ activeTab, setActiveTab,
     const tabs: { id: TabType; label: string }[] = [
         { id: 'transactions', label: 'Transactions' },
         { id: 'tags', label: 'Tags' },
-        { id: 'statistics', label: 'Statistics' }
+        { id: 'statistics', label: 'Statistics' },
+        { id: 'share', label: 'Share' }
     ];
 
     const getTabClass = (tabId: TabType) => {

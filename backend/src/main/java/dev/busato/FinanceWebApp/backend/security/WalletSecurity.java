@@ -31,6 +31,16 @@ public class WalletSecurity {
         return true;
     }
 
+    public boolean isWalletOwner(UUID walletId, UUID userId) {
+        WalletAccess access = walletAccessRepository.findByUserIdAndWalletId(userId, walletId)
+                .orElseThrow(() -> new WalletNotFoundException(walletId));
+
+        if (access.getRole() != WalletAccess.WalletRole.OWNER)
+            throw new PermissionDeniedException(access.getUser().getUsername(), walletId);
+
+        return true;
+    }
+
     public boolean hasWriteAccess(UUID userId, UUID walletId) {
         WalletAccess access = walletAccessRepository.findByUserIdAndWalletId(userId, walletId)
                 .orElseThrow(() -> new WalletNotFoundException(walletId));

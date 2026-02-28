@@ -1,8 +1,12 @@
-import React from 'react';
-import type {Transaction} from '../../utils/types.ts';
+import { TransactionDetailsModal, type TransactionDetailsModalHandle } from "../../modals/TransactionDetailsModal/TransactionDetailsModal.tsx";
+import React, {useRef} from 'react';
+import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
 import TransactionRow from "./TransactionRow.tsx";
+import type {CurrencyCode} from "../../utils/currencies.ts";
 
 interface TransactionsTableProps {
+    wallet: Wallet,
+    tags: Tag[],
     transactions: Transaction[],
     onRefresh: () => void,
     isLoading: boolean
@@ -30,7 +34,9 @@ const SkeletonRow = () => (
 );
 // ---------------------------
 
-export const TransactionsTable: React.FC<TransactionsTableProps> = ({transactions, isLoading}) => {
+export const TransactionsTable: React.FC<TransactionsTableProps> = ({wallet, tags, transactions, isLoading}) => {
+
+    const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
 
     // Raggruppamento per Data
     const groupedTransactions = transactions.reduce((acc, tx) => {
@@ -61,6 +67,10 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({transaction
 
         return formatedDate;
     };
+
+    // const handleDeleteTransaction : (id: string) => {
+    //     return ()
+    // }
 
     return (
         <div className="flex flex-col h-full">
@@ -113,17 +123,23 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({transaction
                                         {groupedTransactions[date].map(tx => (
                                             <TransactionRow
                                                 key={tx.id}
-                                                // @ts-ignore
                                                 transaction={tx}
-                                                onClick={function (): void {
-                                                    throw new Error("Function not implemented.");
-                                                }}
+                                                onClick={(tx) => detailsModalRef.current?.openModal(tx)}
                                             />
                                         ))}
                                     </div>
                                 </div>
                             ))
                         )}
+
+                <TransactionDetailsModal
+                    ref={detailsModalRef}
+                    walletId={wallet.id}
+                    baseCurrency={wallet.currency as CurrencyCode}
+                    walletColor={wallet.color}
+                    tags={tags}
+                />
+
             </div>
         </div>
     );
