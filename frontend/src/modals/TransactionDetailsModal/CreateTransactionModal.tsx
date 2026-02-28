@@ -1,7 +1,7 @@
-import React, {useState, useRef, useImperativeHandle, forwardRef} from 'react';
+import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import api from '../../api/axiosConfig';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCalendarAlt, faStickyNote, faRepeat, faMoneyBillTransfer, faTag} from '@fortawesome/free-solid-svg-icons';
+import {faCalendarAlt, faMoneyBillTransfer, faRepeat, faStickyNote, faTag} from '@fortawesome/free-solid-svg-icons';
 import {ModalDialog} from '../ModalDialog';
 import {triggerToast} from '../../components/ToastNotification';
 import {CURRENCY_META, type CurrencyCode} from '../../utils/currencies';

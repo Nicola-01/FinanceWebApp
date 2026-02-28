@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight, faFilter } from '@fortawesome/free-solid-svg-icons';
-import type { Transaction } from '../../utils/types.ts';
+import React, {useEffect, useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faChevronLeft, faChevronRight, faFilter} from '@fortawesome/free-solid-svg-icons';
+import type {Transaction} from '../../utils/types.ts';
 
 interface TransactionsFilterProps {
     transactions: Transaction[];

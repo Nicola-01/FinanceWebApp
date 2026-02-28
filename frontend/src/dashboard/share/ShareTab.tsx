@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import api from '../../api/axiosConfig';
 import {triggerToast} from '../../components/ToastNotification';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCrown, faPen, faEye, faClock, faSpinner} from '@fortawesome/free-solid-svg-icons';
+import {faClock, faCrown, faEye, faPen, faSpinner} from '@fortawesome/free-solid-svg-icons';
 import type {Wallet, WalletMember} from '../../utils/types';
 
 // Importiamo i nuovi sotto-componenti
@@ -45,14 +45,13 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
     // Handler per InviteSection (ritorna un booleano così il form sa se resettarsi)
     const handleInvite = async (identifier: string, role: 'EDITOR' | 'VIEWER'): Promise<boolean> => {
         try {
-            // Endpoint aggiornato a /members/{walletId}
             await api.post(`/members/${wallet.id}`, {
-                identifier: identifier.trim(),
+                user: identifier.trim(),
                 role: role
             });
 
             triggerToast(`Invitation sent to ${identifier}!`, true);
-            fetchMembers(); // Ricarica la lista per mostrare l'utente tra i pending
+            fetchMembers();
             return true;
         } catch (err: any) {
             triggerToast(err.response?.data?.title || "Error sending invite", false);

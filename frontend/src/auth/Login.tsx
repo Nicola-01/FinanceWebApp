@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { LoginBackground } from './LoginBackground.tsx';
-import { LoginForm } from './LoginForm.tsx';
+import React, {useEffect} from 'react';
+import {LoginBackground} from './LoginBackground.tsx';
+import {LoginForm} from './LoginForm.tsx';
 
 const Login: React.FC = () => {
 

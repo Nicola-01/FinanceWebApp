@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { createPortal } from "react-dom";
+import React, {useEffect, useRef, useState} from 'react';
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faCheck, faXmark} from "@fortawesome/free-solid-svg-icons";
+import {createPortal} from "react-dom";
 
 interface ToastData {
     message: string;

@@ -1,13 +1,6 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {
-    faUserCircle,
-    faUser,
-    faEnvelope,
-    faSignOutAlt,
-    faKey,
-    faChevronDown
-} from '@fortawesome/free-solid-svg-icons';
+import {faChevronDown, faEnvelope, faKey, faSignOutAlt, faUser, faUserCircle} from '@fortawesome/free-solid-svg-icons';
 
 // Importiamo i modali che creeremo nel passaggio successivo
 import {ProfileModal, type ProfileModalHandle} from '../modals/ProfileModal';

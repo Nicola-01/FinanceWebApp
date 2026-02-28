@@ -1,19 +1,25 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import api from '../../api/axiosConfig';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
-    faCalendarAlt, faStickyNote, faTag, faEdit, faTrash,
-    faArrowLeft, faRepeat, faExchangeAlt
+    faArrowLeft,
+    faCalendarAlt,
+    faEdit,
+    faExchangeAlt,
+    faRepeat,
+    faStickyNote,
+    faTag,
+    faTrash
 } from '@fortawesome/free-solid-svg-icons';
-import { ModalDialog } from '../ModalDialog';
-import { triggerToast } from '../../components/ToastNotification';
-import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
-import type { Transaction, Tag } from "../../utils/types.ts";
-import { ICONS, type IconKey } from "../../utils/icons.ts";
+import {ModalDialog} from '../ModalDialog';
+import {triggerToast} from '../../components/ToastNotification';
+import {CURRENCY_META, type CurrencyCode} from '../../utils/currencies';
+import type {Tag, Transaction} from "../../utils/types.ts";
+import {type IconKey, ICONS} from "../../utils/icons.ts";
 
-import { HierarchicalTagSelector } from './HierarchicalTagSelector.tsx';
-import { AmountInput } from "./AmountInput.tsx";
-import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
+import {HierarchicalTagSelector} from './HierarchicalTagSelector.tsx';
+import {AmountInput} from "./AmountInput.tsx";
+import {ExchangeRateSection} from "./ExchangeRateSection.tsx";
 
 export interface TransactionDetailsModalHandle {
     openModal: (transaction: Transaction) => void;

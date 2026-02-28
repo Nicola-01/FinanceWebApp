@@ -1,4 +1,7 @@
-import { TransactionDetailsModal, type TransactionDetailsModalHandle } from "../../modals/TransactionDetailsModal/TransactionDetailsModal.tsx";
+import {
+    TransactionDetailsModal,
+    type TransactionDetailsModalHandle
+} from "../../modals/TransactionDetailsModal/TransactionDetailsModal.tsx";
 import React, {useRef} from 'react';
 import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
 import TransactionRow from "./TransactionRow.tsx";

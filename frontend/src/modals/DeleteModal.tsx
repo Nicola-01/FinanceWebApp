@@ -1,4 +1,4 @@
-import {useState, useEffect, useRef, useImperativeHandle, forwardRef} from 'react';
+import {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import type {User, Wallet} from "../utils/types.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";

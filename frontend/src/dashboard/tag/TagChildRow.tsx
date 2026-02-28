@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faArrowTurnUp, faCheck, faXmark, faPenToSquare, faTrash} from "@fortawesome/free-solid-svg-icons";
+import {faArrowTurnUp, faCheck, faPenToSquare, faTrash, faXmark} from "@fortawesome/free-solid-svg-icons";
 import type {Tag} from "../../utils/types.ts";
 import type {IconKey} from "../../utils/icons.ts";
 import {IconPickerButton} from "../../components/IconPickerButton.tsx";

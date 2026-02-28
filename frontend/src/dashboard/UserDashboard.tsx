@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {useParams, useNavigate} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {WalletsBar} from "./wallet/WalletsBar.tsx";
 import {WalletDashboard} from "./wallet/WalletDashboard.tsx";
 import api from '../api/axiosConfig';

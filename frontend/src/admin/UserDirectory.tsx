@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faSort, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons';
+import React, {useMemo, useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faSearch, faSort, faSortDown, faSortUp} from '@fortawesome/free-solid-svg-icons';
 import UserRow from "./UserRow";
-import type { User } from "../utils/types.ts";
+import type {User} from "../utils/types.ts";
 
 type SortConfig = {
     key: keyof User;

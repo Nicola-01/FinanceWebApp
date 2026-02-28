@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {TransactionsTab} from '../transaction/TransactionsTab';
 import {StatisticsTab} from '../statistics/StatisticsTab';
-import type {Wallet, Transaction, Tag} from '../../utils/types';
+import type {Tag, Transaction, Wallet} from '../../utils/types';
 import type {CurrencyCode} from '../../utils/currencies';
 import {Icon} from "../../components/Icon.tsx";
 import api from "../../api/axiosConfig.ts";

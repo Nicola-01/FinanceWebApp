@@ -1,6 +1,6 @@
 import React from 'react';
-import { MemberRow } from './MemberRow';
-import type { WalletMember } from '../../utils/types';
+import {MemberRow} from './MemberRow';
+import type {WalletMember} from '../../utils/types';
 
 interface MemberCategoryProps {
     title: string;

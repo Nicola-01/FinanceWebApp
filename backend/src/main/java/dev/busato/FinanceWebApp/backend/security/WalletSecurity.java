@@ -31,7 +31,7 @@ public class WalletSecurity {
         return true;
     }
 
-    public boolean isWalletOwner(UUID walletId, UUID userId) {
+    public boolean isWalletOwner(UUID userId, UUID walletId) {
         WalletAccess access = walletAccessRepository.findByUserIdAndWalletId(userId, walletId)
                 .orElseThrow(() -> new WalletNotFoundException(walletId));
 

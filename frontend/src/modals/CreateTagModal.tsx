@@ -1,11 +1,11 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import api from '../api/axiosConfig';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTags } from '@fortawesome/free-solid-svg-icons';
-import { ModalDialog } from './ModalDialog';
-import { triggerToast } from '../components/ToastNotification';
-import { ICONS, type IconKey } from '../utils/icons.ts';
-import { IconColorSelector } from '../components/IconColorSelector';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faTags} from '@fortawesome/free-solid-svg-icons';
+import {ModalDialog} from './ModalDialog';
+import {triggerToast} from '../components/ToastNotification';
+import {type IconKey, ICONS} from '../utils/icons.ts';
+import {IconColorSelector} from '../components/IconColorSelector';
 
 export interface CreateTagModalHandle {
     openModal: () => void;

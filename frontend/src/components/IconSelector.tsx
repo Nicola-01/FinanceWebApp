@@ -1,6 +1,6 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ICONS, type IconKey } from '../utils/icons.ts';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {type IconKey, ICONS} from '../utils/icons.ts';
 
 interface IconSelectorProps {
     value: IconKey;

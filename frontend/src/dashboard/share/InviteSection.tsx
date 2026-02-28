@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUserPlus, faSpinner, faEye, faPen } from '@fortawesome/free-solid-svg-icons';
+import React, {useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faEye, faPen, faSpinner, faUserPlus} from '@fortawesome/free-solid-svg-icons';
 
 interface InviteSectionProps {
     walletColor: string;
@@ -18,7 +18,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
 
         const success = await onInvite(identifier, role);
         if (success) {
-            setIdentifier(''); // Pulisce l'input solo se l'invito va a buon fine
+            setIdentifier('');
         }
 
         setIsInviting(false);
@@ -42,7 +42,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
                     </label>
                     <input
                         className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-sm text-white outline-none transition-all focus:border-white/30"
-                        type="text"
+                        type="search"
                         placeholder="Username or Email"
                         value={identifier}
                         onChange={(e) => setIdentifier(e.target.value)}

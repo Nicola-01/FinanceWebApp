@@ -1,7 +1,7 @@
 import React from "react";
 import type {Transaction} from "../../utils/types.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {ICONS, type IconKey} from "../../utils/icons.ts";
+import {type IconKey, ICONS} from "../../utils/icons.ts";
 import {faTags} from "@fortawesome/free-solid-svg-icons";
 
 interface TransactionRowProps {

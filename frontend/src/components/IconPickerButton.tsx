@@ -1,7 +1,7 @@
-import React, {useRef, useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {ICONS, type IconKey} from "../utils/icons.ts";
+import {type IconKey, ICONS} from "../utils/icons.ts";
 import {faTags} from "@fortawesome/free-solid-svg-icons";
 import {IconColorSelector} from "./IconColorSelector";
 
