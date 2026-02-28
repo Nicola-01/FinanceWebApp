@@ -137,8 +137,9 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({wallet, tag
                     walletId={wallet.id}
                     baseCurrency={wallet.currency as CurrencyCode}
                     walletColor={wallet.color}
-                    tags={tags}
-                />
+                    tags={tags} onSuccess={function (): void {
+                    throw new Error("Function not implemented.");
+                }}                />
 
             </div>
         </div>
