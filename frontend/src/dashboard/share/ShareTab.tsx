@@ -65,7 +65,7 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
         if (!window.confirm(`Are you sure you want to remove ${memberName}?`)) return;
         try {
             await api.delete(`/wallets/${wallet.id}/members/${memberId}`);
-            setMembers(prev => prev.filter(m => m.id !== memberId));
+            setMembers(prev => prev.filter(m => m.userId !== memberId));
             triggerToast(`${memberName} removed successfully.`, true);
         } catch (err) {
             triggerToast("Error removing member.", false);
@@ -75,7 +75,7 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
     const handleChangeRole = async (memberId: string, newRole: 'EDITOR' | 'VIEWER') => {
         try {
             await api.put(`/wallets/${wallet.id}/members/${memberId}/role`, {role: newRole});
-            setMembers(prev => prev.map(m => m.id === memberId ? {...m, role: newRole} : m));
+            setMembers(prev => prev.map(m => m.userId === memberId ? {...m, role: newRole} : m));
             triggerToast("Role updated successfully.", true);
         } catch (err) {
             triggerToast("Error updating role.", false);
