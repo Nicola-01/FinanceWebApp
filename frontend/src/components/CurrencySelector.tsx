@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faChevronDown} from '@fortawesome/free-solid-svg-icons';
-import {CURRENCY_META, type CurrencyCode} from '../utils/currencies';
+import React, { useState, useRef, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { CURRENCY_META, type CurrencyCode } from '../utils/currencies';
 
 interface CurrencySelectorProps {
     value: CurrencyCode | string;
@@ -11,30 +11,96 @@ interface CurrencySelectorProps {
 
 export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onChange, excludeCurrency }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
-    // 1. Assicurati che il codice sia sempre uppercase
+    const triggerRef = useRef<HTMLDivElement>(null);
+    const popoverRef = useRef<HTMLDivElement>(null);
+
     const safeCode = (value ? String(value).toUpperCase() : 'EUR') as CurrencyCode;
-
-    // 2. Recupera i metadati in modo sicuro
     const meta = CURRENCY_META[safeCode];
 
-    // 3. Filtra le valute (rimuovendo quella esclusa)
     const availableCurrencies = Object.entries(CURRENCY_META).filter(
         ([code]) => code !== excludeCurrency
     );
 
+    const toggleDropdown = () => {
+        if (!isOpen && triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            setDropdownStyle({
+                position: 'absolute',
+                top: rect.bottom + 8,
+                left: rect.left,
+                width: rect.width,
+            });
+        }
+        setIsOpen(!isOpen);
+    };
+
+    useEffect(() => {
+        const handleScroll = (e: Event) => {
+            // IL FIX: Se l'utente sta scrollando dentro la tendina, non facciamo nulla!
+            const target = e.target as HTMLElement;
+            if (target && target.classList && target.classList.contains('currency-scroll-container')) {
+                return;
+            }
+            // Se scrolla il modal dietro, chiudiamo la tendina per evitare che rimanga fluttuante in giro
+            if (isOpen) setIsOpen(false);
+        };
+
+        const handleResize = () => {
+            if (isOpen) setIsOpen(false);
+        };
+
+        if (isOpen) {
+            window.addEventListener('scroll', handleScroll, true);
+            window.addEventListener('resize', handleResize);
+
+            if (popoverRef.current) {
+                try {
+                    popoverRef.current.showPopover();
+                } catch (e) {
+                    console.warn("Popover API not supported by this browser");
+                }
+            }
+        }
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll, true);
+            window.removeEventListener('resize', handleResize);
+
+            if (popoverRef.current) {
+                try {
+                    if (popoverRef.current.matches(':popover-open')) {
+                        popoverRef.current.hidePopover();
+                    }
+                } catch (e) {}
+            }
+        };
+    }, [isOpen]);
+
     return (
-        <div className="relative w-full">
-            {/* HO RIMOSSO LA LABEL INTERNA: Ora l'allineamento con il Rate sarà perfetto! */}
+        <div className="relative w-full text-left">
+            <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">
+                Currency
+            </label>
 
             <div
-                className={`flex h-[48px] w-full cursor-pointer items-center justify-between rounded-xl border bg-[#1a1a1a] px-4 text-white outline-none transition-all ${isOpen ? 'border-[#00ff7f]' : 'border-white/10 hover:border-white/30'}`}
-                onClick={() => setIsOpen(!isOpen)}
+                ref={triggerRef}
+                className={`flex h-[48px] w-full cursor-pointer items-center justify-between rounded-xl border bg-white/5 px-4 outline-none transition-all ${isOpen ? 'border-[#00ff7f]' : 'border-white/10 hover:border-white/30'}`}
+                onClick={toggleDropdown}
             >
-                {/* Aggiunto truncate per evitare che nomi troppo lunghi sballino il layout */}
-                <span className="truncate pr-2">
-                    {meta ? `${meta.symbol} - ${meta.name} (${safeCode})` : `Unknown (${safeCode})`}
-                </span>
+                {/* Nuova formattazione del testo identica agli elementi della tendina */}
+                <div className="flex items-center flex-1 truncate pr-2 text-sm text-white">
+                    {meta ? (
+                        <>
+                            <span className="inline-block w-[30px] font-bold text-white">{meta.symbol}</span>
+                            <span className="truncate text-white/90">{meta.name}</span>
+                            <span className="ml-1 text-white/40">({safeCode})</span>
+                        </>
+                    ) : (
+                        <span className="truncate">Unknown ({safeCode})</span>
+                    )}
+                </div>
 
                 <FontAwesomeIcon
                     icon={faChevronDown}
@@ -43,18 +109,31 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onCha
             </div>
 
             {isOpen && (
-                <>
-                    <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-                    {/* Top aggiustato a 55px (visto che non c'è più la label) */}
-                    <div className="absolute left-0 top-[55px] z-50 w-full rounded-xl border border-white/10 bg-[#1a1a1a] py-2 shadow-2xl animate-[fadeIn_0.2s_ease-out]">
-                        <div className="max-h-[200px] overflow-y-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
+                <div
+                    ref={popoverRef}
+                    popover="manual"
+                    className="fixed inset-0 m-0 h-screen w-screen border-none bg-transparent p-0 z-[99999]"
+                >
+                    {/* Sfondo invisibile per chiudere cliccando fuori */}
+                    <div className="absolute inset-0" onClick={(e) => {
+                        e.stopPropagation();
+                        setIsOpen(false);
+                    }} />
 
-                            {/* ORA USIAMO availableCurrencies (la lista filtrata!) */}
+                    <div
+                        style={dropdownStyle}
+                        className="absolute z-10 rounded-xl border border-white/10 bg-[#1a1a1a] py-2 shadow-2xl animate-[fadeIn_0.2s_ease-out]"
+                    >
+                        {/* Aggiunta la classe vitale 'currency-scroll-container' */}
+                        <div className="currency-scroll-container max-h-[200px] overflow-y-auto pointer-events-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
                             {availableCurrencies.map(([code, data]: [string, any]) => (
                                 <div
                                     key={code}
                                     className={`cursor-pointer px-4 py-2.5 text-sm transition-colors hover:bg-white/10 ${safeCode === code ? 'border-l-2 border-[#00ff7f] bg-[#00ff7f]/10 text-[#00ff7f]' : 'border-l-2 border-transparent text-white/80'}`}
-                                    onClick={() => {
+                                    // IL FIX: onMouseDown è istantaneo, a differenza di onClick che aspetta il rilascio del mouse
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
                                         onChange(code as CurrencyCode);
                                         setIsOpen(false);
                                     }}
@@ -63,10 +142,9 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onCha
                                     {data.name} <span className="text-white/40">({code})</span>
                                 </div>
                             ))}
-
                         </div>
                     </div>
-                </>
+                </div>
             )}
         </div>
     );

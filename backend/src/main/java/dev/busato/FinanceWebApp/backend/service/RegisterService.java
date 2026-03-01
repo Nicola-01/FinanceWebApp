@@ -1,8 +1,11 @@
 package dev.busato.FinanceWebApp.backend.service;
 
+import dev.busato.FinanceWebApp.backend.dto.MemberResponse;
 import dev.busato.FinanceWebApp.backend.dto.RegisterInviteRequest;
+import dev.busato.FinanceWebApp.backend.dto.RegisterInviteResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.UserInvitation;
+import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.repository.UserInvitationRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,16 +17,23 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
-public class AuthenticationService {
+public class RegisterService {
 
     private final UserInvitationRepository userInvitationRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public void registerViaInvite(RegisterInviteRequest request) {
 
-        UserInvitation invitation = userInvitationRepository.findByToken(request.getToken())
+    public RegisterInviteResponse getRegisterInvite(String token) {
+        UserInvitation invitation = userInvitationRepository.findByToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid or missing invitation link."));
+        return mapToResponse(invitation);
+    }
+
+    @Transactional
+    public void registerViaInvite(String token, RegisterInviteRequest request) {
+
+        UserInvitation invitation = userInvitationRepository.findByToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid or missing invitation link."));
 
         if (invitation.getStatus() != UserInvitation.InvitationStatus.PENDING)
@@ -40,10 +50,22 @@ public class AuthenticationService {
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(User.Role.USER)
+                .passwordMustChange(false)
                 .build();
 
         userRepository.save(newUser);
 
         invitation.setStatus(UserInvitation.InvitationStatus.ACCEPTED);
+    }
+
+    private RegisterInviteResponse mapToResponse(UserInvitation invitation) {
+        String maskedEmail = invitation.getEmail().replaceAll("(^[^@]{2})[^@]+", "$1***");
+
+        return RegisterInviteResponse.builder()
+                .email(maskedEmail)
+                .createdAt(invitation.getCreatedAt())
+                .expiresAt(invitation.getExpiresAt())
+                .status(invitation.getStatus().toString())
+                .build();
     }
 }

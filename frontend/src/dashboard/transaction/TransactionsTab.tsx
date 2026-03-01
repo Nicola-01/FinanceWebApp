@@ -5,7 +5,7 @@ import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
 import {
     CreateTransactionModal,
     type CreateTransactionModalHandle
-} from "../../modals/TransactionDetailsModal/CreateTransactionModal.tsx";
+} from "../../modals/TransactionModal/CreateTransactionModal.tsx";
 import type {CurrencyCode} from "../../utils/currencies.ts";
 import {TransactionsTable} from "./TransactionsTable.tsx";
 import {PeriodStats} from "./PeriodStats.tsx";

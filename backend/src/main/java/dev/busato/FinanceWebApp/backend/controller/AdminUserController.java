@@ -14,13 +14,19 @@ import java.util.UUID;
 @RequestMapping("/api/admin/management")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-public class AdminUserInviteController {
+public class AdminUserController {
 
     private final AdminUserInviteService manageUserService;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> getUsers() {
         return ResponseEntity.ok(manageUserService.getUsers());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+        manageUserService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/invites")
@@ -33,10 +39,9 @@ public class AdminUserInviteController {
         return ResponseEntity.ok(manageUserService.createInvite(inviteRequest));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        manageUserService.deleteUser(id);
+    @DeleteMapping("invite/{email}")
+    public ResponseEntity<Void> revokeInvite(@PathVariable String email) {
+        manageUserService.revokeInvite(email);
         return ResponseEntity.noContent().build();
     }
-
 }
