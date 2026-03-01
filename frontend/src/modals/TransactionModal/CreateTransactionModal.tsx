@@ -31,6 +31,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
         const [type, setType] = useState<'EXPENSE' | 'INCOME' | ''>('');
         const [name, setName] = useState('');
         const [amount, setAmount] = useState<string>('');
+        const [convertedAmount, setConvertedAmount] = useState<number>(0);
         const [currency, setCurrency] = useState<CurrencyCode>(baseCurrency);
         const [exchangeRate, setExchangeRate] = useState<number | ''>(1);
         const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -59,21 +60,22 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
             e.preventDefault();
 
             // Validazioni obbligatorie
-            if (!amount || Number(amount) <= 0) return triggerToast("Please enter a valid amount.", false);
+            if (!amount || Number(amount) == 0) return triggerToast("Please enter a valid amount.", false);
             if (!selectedTagName) return triggerToast("Please select a tag.", false);
+
 
             setLoading(true);
             try {
-                // Se il nome è vuoto, usa il nome del Tag!
                 const finalName = name.trim().length > 0 ? name.trim() : selectedTagName;
 
                 const payload = {
                     name: finalName,
-                    amount: Number(amount),
+                    amount: Math.abs(Number(convertedAmount)),
+                    originalAmount: Math.abs(Number(amount)),
                     type,
                     transactionDate: date,
                     originalCurrency: currency,
-                    exchangeValue: Number(exchangeRate),
+                    exchangeValue: Number(exchangeRate) || 1,
                     tag: selectedTagName,
                     notes,
                 };
@@ -92,7 +94,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
 
         const currencySymbol = CURRENCY_META[currency]?.symbol || currency;
 
-        const canSave = amount !== '' && Number(amount) > 0 && selectedTagName !== '';
+        const canSave = amount !== '' && Number(amount) != 0 && selectedTagName !== '';
 
         return (
             <ModalDialog ref={dialogRef} className="max-w-[550px]">
@@ -112,6 +114,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                         {/* 1. AREA IMPORTO GIGANTE */}
                         <div className="flex flex-col items-center justify-center py-4">
                             <AmountInput
+                                value={amount}
                                 type={type}
                                 setType={setType}
                                 currencySymbol={currencySymbol}
@@ -195,7 +198,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                             </div>
                         </div>
 
-                        <hr className="my-2 border-white/10" />
+                        <hr className="my-2 border-white/10"/>
 
                         <ExchangeRateSection
                             baseCurrency={baseCurrency}
@@ -204,6 +207,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
                             exchangeRate={exchangeRate}
                             onExchangeRateChange={setExchangeRate}
                             amount={Number(amount)}
+                            onConvertedAmountChange={setConvertedAmount}
                         />
 
                         {/* 5. RECURRING TOGGLE */}

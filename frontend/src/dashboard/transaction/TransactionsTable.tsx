@@ -1,11 +1,10 @@
 import {
     TransactionDetailsModal,
     type TransactionDetailsModalHandle
-} from "../../modals/TransactionDetailsModal/TransactionDetailsModal.tsx";
+} from "../../modals/TransactionModal/TransactionDetailsModal.tsx";
 import React, {useRef} from 'react';
 import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
 import TransactionRow from "./TransactionRow.tsx";
-import type {CurrencyCode} from "../../utils/currencies.ts";
 
 interface TransactionsTableProps {
     wallet: Wallet,
@@ -137,12 +136,10 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({wallet, tag
 
                 <TransactionDetailsModal
                     ref={detailsModalRef}
-                    walletId={wallet.id}
-                    baseCurrency={wallet.currency as CurrencyCode}
-                    walletColor={wallet.color}
+                    wallet={wallet}
                     tags={tags} onSuccess={function (): void {
                     throw new Error("Function not implemented.");
-                }}                />
+                }}/>
 
             </div>
         </div>

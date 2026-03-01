@@ -7,6 +7,7 @@ import ProtectedRoute from './utils/ProtectedRoute.tsx';
 import {ToastNotification} from "./components/ToastNotification.tsx";
 import {DeleteModal, type DeleteModalHandle} from "./modals/DeleteModal.tsx";
 import {DeleteModalProvider} from "./modals/DeleteModalContext.tsx";
+import Register from "./register/Register.tsx";
 
 const App: React.FC = () => {
 
@@ -17,11 +18,12 @@ const App: React.FC = () => {
             <DeleteModalProvider deleteModalRef={deleteModalRef}>
                 <DeleteModal ref={deleteModalRef}/>
                 <Routes>
-                    {/* 1. Rotta Pubblica (Login) */}
-                    <Route path="/" element={<Login/>}/>
+                    <Route path="/login" element={<Login/>}/>
+                    <Route path="/register" element={<Register/>}/>
 
-                    {/* 2. Rotte Protette (Serve il Token) */}
                     <Route element={<ProtectedRoute/>}>
+
+                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
                         <Route
                             path="/dashboard/:walletId?"
@@ -33,9 +35,11 @@ const App: React.FC = () => {
                             path="/admin/dashboard"
                             element={<AdminDashboard/>}
                         />
+
                     </Route>
 
-                    {/* 3. Gestione 404: Qualsiasi altra rotta rimanda al login */}
+                    {/* CATCH-ALL: Se l'utente digita un URL che non esiste, mandalo alla root
+            (che a sua volta lo manderà alla dashboard o al login a seconda del token) */}
                     <Route path="*" element={<Navigate to="/" replace/>}/>
                 </Routes>
             </DeleteModalProvider>

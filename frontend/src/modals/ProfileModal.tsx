@@ -61,6 +61,7 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
                             className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00bfff]"
                         />
                     </div>
+
                     <div>
                         <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Email</label>
                         <input
@@ -70,18 +71,8 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
                             className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00bfff]"
                         />
                     </div>
-                    <div className="pt-2 border-t border-white/5 mt-2">
-                        <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">New Password (leave blank to keep current)</label>
-                        <input
-                            type="password"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00bfff]"
-                        />
-                    </div>
 
-                    <div className="flex gap-4 pt-4 border-t border-white/10">
+                    <div className="flex gap-4 pt-4 ">
                         <button type="button" onClick={() => dialogRef.current?.close()} className="flex-1 rounded-xl bg-white/5 py-3 font-bold text-white transition-colors hover:bg-white/10">Cancel</button>
                         <button type="submit" disabled={loading} className="flex-1 rounded-xl bg-[#00bfff] py-3 font-bold text-black transition-all hover:-translate-y-1 hover:bg-[#0099cc]">
                             {loading ? "Saving..." : "Save Changes"}

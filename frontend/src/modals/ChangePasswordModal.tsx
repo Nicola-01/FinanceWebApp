@@ -1,10 +1,11 @@
 import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import api from '../api/axiosConfig';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCheck, faKey, faLock, faShieldAlt, faTimes} from '@fortawesome/free-solid-svg-icons';
+import {faKey, faLock, faShieldAlt} from '@fortawesome/free-solid-svg-icons';
 import {ModalDialog} from './ModalDialog';
 import {triggerToast} from '../components/ToastNotification';
-import {PasswordInput} from './PasswordInput'; // Import the new component
+import {PasswordInput} from './PasswordInput';
+import {PasswordRequirements, isPasswordValid} from '../components/PasswordRequirements'; // <-- IMPORT
 
 export interface ChangePasswordModalHandle {
     openModal: (mandatoryChange?: boolean) => void;
@@ -28,18 +29,7 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref
 
     const closeDialog = () => dialogRef.current?.close();
 
-    // Security Requirements logic
-    const requirements = [
-        {label: "At least 8 characters", test: (pw: string) => pw.length >= 8},
-        {label: "One lowercase letter", test: (pw: string) => /[a-z]/.test(pw)},
-        {label: "One uppercase letter", test: (pw: string) => /[A-Z]/.test(pw)},
-        {label: "At least one number", test: (pw: string) => /[0-9]/.test(pw)},
-        {label: "One special symbol (!@#$...)", test: (pw: string) => /[^A-Za-z0-9]/.test(pw)},
-        {label: "Passwords match", test: (pw: string) => pw === passwords.confirm && pw !== ''}
-    ];
-
-    const isRequirementsMet = requirements.every(req => req.test(passwords.new));
-    const isValid = isRequirementsMet && passwords.old.length > 0;
+    const isValid = isPasswordValid(passwords.new, passwords.confirm) && passwords.old.length > 0;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,11 +54,7 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref
     };
 
     return (
-        <ModalDialog ref={dialogRef}
-                     onCancel={(e) => {
-                         if (mandatory) e.preventDefault();
-                     }}
-        >
+        <ModalDialog ref={dialogRef} onCancel={(e) => { if (mandatory) e.preventDefault(); }}>
             <div className="text-center">
                 <h3 className="mb-2 flex items-center justify-center gap-3 text-[1.6rem] font-semibold text-white">
                     <FontAwesomeIcon icon={faShieldAlt}/> Account Security
@@ -78,66 +64,29 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref
                 </p>
 
                 <form onSubmit={handleSubmit} noValidate>
-                    {/* Reusable Input for Old Password */}
                     <PasswordInput
-                        label="Current Password"
-                        placeholder="Enter current password"
-                        value={passwords.old}
-                        icon={faKey}
-                        onChange={(val) => setPasswords({...passwords, old: val})}
+                        label="Current Password" placeholder="Enter current password" value={passwords.old}
+                        icon={faKey} onChange={(val) => setPasswords({...passwords, old: val})}
                     />
-
                     <hr className="my-5 h-[1px] border-0 bg-white/10"/>
-
-                    {/* Reusable Input for New Password */}
                     <PasswordInput
-                        label="New Password"
-                        placeholder="Enter new password"
-                        value={passwords.new}
-                        icon={faLock}
-                        onChange={(val) => setPasswords({...passwords, new: val})}
+                        label="New Password" placeholder="Enter new password" value={passwords.new}
+                        icon={faLock} onChange={(val) => setPasswords({...passwords, new: val})}
+                    />
+                    <PasswordInput
+                        label="Confirm New Password" placeholder="Confirm new password" value={passwords.confirm}
+                        icon={faLock} onChange={(val) => setPasswords({...passwords, confirm: val})}
                     />
 
-                    {/* Reusable Input for Confirm Password */}
-                    <PasswordInput
-                        label="Confirm New Password"
-                        placeholder="Confirm new password"
-                        value={passwords.confirm}
-                        icon={faLock}
-                        onChange={(val) => setPasswords({...passwords, confirm: val})}
-                    />
+                    <PasswordRequirements password={passwords.new} confirmPassword={passwords.confirm} />
 
-                    {/* Requirements List */}
-                    <div className="my-5 rounded-lg border border-white/5 bg-black/20 p-[15px] text-left">
-                        {requirements.map((req, index) => (
-                            <div
-                                key={index}
-                                className={`mb-2 flex items-center gap-2.5 text-[0.85rem] transition-colors duration-300 last:mb-0 ${
-                                    req.test(passwords.new) ? 'text-[#00ff7f]' : 'text-white/30'
-                                }`}
-                            >
-                                <FontAwesomeIcon icon={req.test(passwords.new) ? faCheck : faTimes}/>
-                                <span>{req.label}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Actions */}
                     <div className="mt-[25px] flex gap-[15px]">
                         {!mandatory && (
-                            <button
-                                type="button"
-                                className="w-1/3 rounded-lg bg-white/10 p-3 text-base font-bold text-white transition-colors hover:bg-white/20"
-                                onClick={closeDialog}
-                            >
+                            <button type="button" className="w-1/3 rounded-lg bg-white/10 p-3 text-base font-bold text-white transition-colors hover:bg-white/20" onClick={closeDialog}>
                                 Cancel
                             </button>
                         )}
-                        <button
-                            type="submit"
-                            className={`${mandatory ? 'w-full' : 'w-2/3'} rounded-lg border-none bg-[#00ff7f] p-3 text-base font-bold text-black transition-all duration-200 hover:-translate-y-[1px] hover:bg-[#00e673] hover:shadow-[0_4px_15px_rgba(0,255,127,0.3)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-[#333] disabled:text-[#666] disabled:shadow-none`}
-                            disabled={!isValid || loading}
-                        >
+                        <button type="submit" disabled={!isValid || loading} className={`${mandatory ? 'w-full' : 'w-2/3'} rounded-lg border-none bg-[#00ff7f] p-3 text-base font-bold text-black transition-all duration-200 hover:-translate-y-[1px] hover:bg-[#00e673] hover:shadow-[0_4px_15px_rgba(0,255,127,0.3)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-[#333] disabled:text-[#666] disabled:shadow-none`}>
                             {loading ? "Updating..." : "Update Password"}
                         </button>
                     </div>

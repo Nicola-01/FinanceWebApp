@@ -44,6 +44,22 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
+    const handleRevokeInvite = async (email: string) => {
+        if (!window.confirm(`Are you sure you want to revoke the invite for ${email}?`)) return;
+
+        try {
+            await api.delete(`/admin/management/invite/${email}`);
+
+            setInvites(prev => prev.map(inv =>
+                inv.email === email ? { ...inv, status: 'REVOKED' } : inv
+            ));
+
+            triggerToast("Invite revoked!", true);
+        } catch (err: any) {
+            triggerToast(err.response?.data?.title || 'Error revoking invite.', false);
+        }
+    };
+
     return (
         <div className="relative min-h-screen overflow-x-hidden bg-[#0f0f10] text-white font-semibold">
 
@@ -73,7 +89,7 @@ const AdminDashboard: React.FC = () => {
                     <CreateInviteForm onInviteCreated={loadData} />
 
                     {/* Nuova tabella con timer in tempo reale */}
-                    <InvitesTable invites={invites} />
+                    <InvitesTable invites={invites} onRevoke={handleRevokeInvite}/>
 
                     <UserDirectory
                         users={users}

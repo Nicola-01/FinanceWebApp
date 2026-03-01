@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 
 interface AmountInputProps {
+    value: string;
     currencySymbol: string;
     type: "EXPENSE" | "INCOME" | ""
     setType: (type: "EXPENSE" | "INCOME" | "") => void;
@@ -8,19 +9,32 @@ interface AmountInputProps {
 }
 
 
-export const AmountInput = ({ currencySymbol, type, setType, onAmountChange }: AmountInputProps) => {
+export const AmountInput = ({ value, currencySymbol, type, setType, onAmountChange }: AmountInputProps) => {
     const internalRef = useRef<HTMLInputElement>(null);
 
     const [color, setColor] = useState<string>('')
     const [textSize, setTextSize] = useState<'text-6xl' | 'text-5xl' | 'text-4xl'>('text-6xl');
 
+    // <-- 2. Aggiunto questo useEffect per ascoltare il reset dal padre
     useEffect(() => {
-        if (type === '')
+        if (value === '' && internalRef.current) {
+            internalRef.current.value = '';
+            setColor('text-white/10');
+            setTextSize('text-6xl');
+        }
+    }, [value]);
+
+    useEffect(() => {
+        if (type === '') {
             return;
+        }
         setColor(type === 'EXPENSE' ? 'text-[#ff4d4d]' : 'text-[#00ff7f]')
 
         if (internalRef && typeof internalRef !== 'function' && internalRef.current) {
             const currentValue = internalRef.current.value;
+
+            // Evita di aggiungere segni + o - se il campo è vuoto
+            if (!currentValue) return;
 
             if (type === 'EXPENSE' && !currentValue.startsWith('-'))
                 internalRef.current.value = '-' + currentValue.replace('+', '');
@@ -63,7 +77,7 @@ export const AmountInput = ({ currencySymbol, type, setType, onAmountChange }: A
             return;
         }
 
-        const nextValue = currentValue.slice(0, start) + e.key + currentValue.slice(end);
+        let nextValue = currentValue.slice(0, start) + e.key + currentValue.slice(end);
         const isValid = /^[-+]?\d*[.,]?\d{0,2}$/.test(nextValue);
 
         if (!isValid) {
@@ -73,12 +87,11 @@ export const AmountInput = ({ currencySymbol, type, setType, onAmountChange }: A
         e.preventDefault();
 
         let newCursorPos = start + 1;
-        if (/^[+-]/.test(currentValue))
-            input.value = nextValue;
-        else {
-            input.value = '+' + nextValue;
+        if (!/^[+-]/.test(currentValue)) {
+            nextValue = '-' + nextValue
             newCursorPos += 1
         }
+        input.value = nextValue;
 
         input.setSelectionRange(newCursorPos, newCursorPos);
         setType(nextValue.startsWith('-') ? 'EXPENSE' : 'INCOME');
@@ -96,10 +109,6 @@ export const AmountInput = ({ currencySymbol, type, setType, onAmountChange }: A
 
     return (
         <div className="flex items-center justify-center gap-2 h-18.75">
-            {/* Indicatore visivo del segno decommentabile in futuro */}
-            {/*<span className={`text-4xl font-app-mono pb-2 transition-colors ${type === 'EXPENSE' ? 'text-[#ff4d4d]' : 'text-[#00ff7f]'}`}>*/}
-            {/* {type === 'EXPENSE' ? '-' : '+'}*/}
-            {/*</span>*/}
             <input
                 ref={internalRef}
                 className={`w-[200px] bg-transparent font-amount font-app-mono text-center outline-none placeholder-white/10 transition-all duration-200 ${textSize} ${color || 'text-white/10'}`}
@@ -113,8 +122,8 @@ export const AmountInput = ({ currencySymbol, type, setType, onAmountChange }: A
             />
 
             <span className="text-4xl text-white/30 font-app-mono pb-2">
-                    {currencySymbol}
-                </span>
+                {currencySymbol}
+            </span>
         </div>
     );
 };

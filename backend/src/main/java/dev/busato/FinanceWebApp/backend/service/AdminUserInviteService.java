@@ -2,9 +2,7 @@ package dev.busato.FinanceWebApp.backend.service;
 
 import dev.busato.FinanceWebApp.backend.dto.AdminInviteRequest;
 import dev.busato.FinanceWebApp.backend.dto.AdminInviteResponse;
-import dev.busato.FinanceWebApp.backend.dto.UserRequest;
 import dev.busato.FinanceWebApp.backend.dto.UserResponse;
-import dev.busato.FinanceWebApp.backend.exceptions.UserAlreadyExistsException;
 import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.UserInvitation;
@@ -47,13 +45,6 @@ public class AdminUserInviteService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public List<AdminInviteResponse> getInvites() {
-        return userInvitationRepository.findAll().stream()
-                .map(this::mapToAdminInviteResponse)
-                .collect(Collectors.toList());
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(UUID id) {
         if (!userRepository.existsById(id))
             throw new UserNotFoundException(id);
@@ -85,7 +76,7 @@ public class AdminUserInviteService {
                 .note(request.getNote())
                 .url(url)
                 .expiresAt(LocalDateTime.now().plusDays(3))
-                .status("PENDING")
+                .status(UserInvitation.InvitationStatus.PENDING.toString())
                 .build();
 
         try {
@@ -104,10 +95,29 @@ public class AdminUserInviteService {
                 .build();
     }
 
-    @Scheduled(cron = "0 0 0 * * *")
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<AdminInviteResponse> getInvites() {
+        return userInvitationRepository.findAll().stream()
+                .map(this::mapToAdminInviteResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void revokeInvite(String email) {
+        UserInvitation invitation = userInvitationRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+
+        invitation.setStatus(UserInvitation.InvitationStatus.REVOKED);
+    }
+
+    @Scheduled(cron = "0 0 0 * * *") // Ogni giorno a mezzanotte
     @Transactional
     public void cleanupExpiredInvitations() {
-        userInvitationRepository.deleteExpiredPendingInvitations(LocalDateTime.now());
+        int daysToKeep = 7;
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysToKeep);
+        userInvitationRepository.deleteExpiredInvitations(cutoffDate);
     }
 
     private UserResponse mapToResponse(User user) {

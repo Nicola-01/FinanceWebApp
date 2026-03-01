@@ -13,8 +13,10 @@ import java.util.UUID;
 public interface UserInvitationRepository extends JpaRepository<UserInvitation, UUID> {
     Optional<UserInvitation> findByToken(String token);
     Optional<UserInvitation> findByEmailIgnoreCase(String email);
+    boolean existsByEmailIgnoreCase(String email);
+    void deleteByEmailIgnoreCase(String email);
 
     @Modifying
-    @Query("DELETE FROM UserInvitation u WHERE u.expiresAt < :now AND u.status = 'PENDING'")
-    void deleteExpiredPendingInvitations(@Param("now") LocalDateTime now);
+    @Query("DELETE FROM UserInvitation u WHERE u.expiresAt < :cutoffDate")
+    void deleteExpiredInvitations(@Param("cutoffDate") LocalDateTime cutoffDate);
 }
