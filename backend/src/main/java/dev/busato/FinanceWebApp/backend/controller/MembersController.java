@@ -4,6 +4,7 @@ import dev.busato.FinanceWebApp.backend.dto.MemberRequest;
 import dev.busato.FinanceWebApp.backend.dto.MemberResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.MemberService;
+import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,6 +34,14 @@ public class MembersController {
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(memberService.inviteMember(walletID, request, user.getId()));
     }
+
+//    @PutMapping("/{walletID}")
+//    public ResponseEntity<MemberResponse> inviteResponse(
+//            @PathVariable UUID walletID,
+//            @RequestBody MemberRequest request,
+//            @AuthenticationPrincipal User user) {
+//        return ResponseEntity.ok(memberService.updateMemberRole(walletID, request, user.getId()));
+//    }
 
     @PutMapping("/{walletID}/{memberID}")
     public ResponseEntity<MemberResponse> updateMemberRole(

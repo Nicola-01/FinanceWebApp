@@ -10,6 +10,7 @@ import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +29,8 @@ public class MemberService {
     private final WalletAccessRepository walletAccessRepository;
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
+
+    private final SendEmailService sendEmailService;
 
     @PreAuthorize("@walletSecurity.isWalletOwner(#userId, #walletId)")
     public List<MemberResponse> getMembers(UUID walletId, UUID userId) {
@@ -68,6 +71,12 @@ public class MemberService {
         access.setWallet(wallet);
         access.setRole(WalletAccess.WalletRole.valueOf(request.getRole().toUpperCase()));
         access.setStatus(WalletAccess.InvitationStatus.PENDING);
+
+        try {
+            sendEmailService.sendWalletInvitation(userRepository.findById(userId).get().getUsername(), wallet, targetUser.getEmail(), access.getRole() == WalletAccess.WalletRole.EDITOR);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Unable to send the invitation email to " + targetUser.getEmail(), e);
+        }
 
         walletAccessRepository.save(access);
 

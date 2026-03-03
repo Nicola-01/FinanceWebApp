@@ -5,14 +5,14 @@ import {
     faChevronDown,
     faChevronLeft,
     faChevronRight,
-    faChevronUp,
-    faTags
+    faChevronUp, faHashtag,
 } from '@fortawesome/free-solid-svg-icons';
 import type {Tag} from '../../utils/types';
 import {Icon} from '../../components/Icon.tsx'; // Assicurati che il percorso sia corretto
 
 interface HierarchicalTagSelectorProps {
     tags: Tag[];
+    showLabel?: boolean;
     selectedTagName: string;
     onSelectTag: (tagName: string) => void;
 }
@@ -21,6 +21,7 @@ export const HierarchicalTagSelector: React.FC<HierarchicalTagSelectorProps> = (
                                                                                     tags,
                                                                                     selectedTagName,
                                                                                     onSelectTag,
+                                                                                    showLabel = true,
                                                                                 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [currentParentName, setCurrentParentName] = useState<string | null>(null);
@@ -72,10 +73,12 @@ export const HierarchicalTagSelector: React.FC<HierarchicalTagSelectorProps> = (
 
     return (
         <div className="relative w-full" ref={dropdownRef}>
+            {showLabel &&
             <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">
-                <FontAwesomeIcon icon={faTags} className="mr-2" />
-                Tag *
+                <FontAwesomeIcon icon={faHashtag} className="mr-2" />
+                Category *
             </label>
+            }
 
             {/* Bottone Principale */}
             <button
@@ -94,7 +97,7 @@ export const HierarchicalTagSelector: React.FC<HierarchicalTagSelectorProps> = (
                         <span className="text-white font-medium">{selectedTag.name}</span>
                     </div>
                 ) : (
-                    <span className="text-white/40">Select a tag...</span>
+                    <span className="text-white/40">Select a category...</span>
                 )}
 
                 <FontAwesomeIcon

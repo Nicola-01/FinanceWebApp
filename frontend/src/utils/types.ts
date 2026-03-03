@@ -50,3 +50,11 @@ export interface WalletMember {
     status: 'ACTIVE' | 'PENDING';
     invitedAt: string;
 }
+
+
+export interface Invitation {
+    username: string;
+    role: string;
+    status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'LEFT' | 'REVOKED';
+    invitedAt: string;
+}

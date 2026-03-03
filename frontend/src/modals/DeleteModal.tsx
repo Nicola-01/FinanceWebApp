@@ -1,14 +1,16 @@
 import {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
-import type {User, Wallet} from "../utils/types.ts";
+import type {Transaction, User, Wallet} from "../utils/types.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
 import {ModalDialog} from './ModalDialog';
 
 export interface DeleteModalHandle {
-    deleteObject: (object: User | Wallet,
+    deleteObject: (object: User | Wallet | Transaction,
                    typeName: string,
-                   handleConfirmClick: () => void | Promise<void>) => void;
+                   handleConfirmClick: () => void | Promise<void>,
+                   requireTyping?: boolean,
+                   timeout?: number) => void;
 }
 
 const TIMEOUT_DURATION = 2;
@@ -18,28 +20,32 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
         const dialogRef = useRef<HTMLDialogElement>(null);
 
         // Stati interni del modale
-        const [objToDelete, setObjToDelete] = useState<User | Wallet | null>(null);
+        const [objToDelete, setObjToDelete] = useState<User | Wallet | Transaction | null>(null);
         const [onConfirmCb, setOnConfirmCb] = useState<(() => void | Promise<void>) | null>(null);
 
         const [confirmationText, setConfirmationText] = useState("");
         const [deleteTimer, setDeleteTimer] = useState(TIMEOUT_DURATION);
         const [isDeleting, setIsDeleting] = useState(false);
-
         const [itemType, setItemType] = useState<string>("");
 
+        // FIX 1: requireTyping deve essere uno state, non una let!
+        const [isTypingRequired, setIsTypingRequired] = useState(false);
+
         useImperativeHandle(ref, () => ({
-            deleteObject: (object, typeName, handleConfirmClick) => {
+            deleteObject: (object, typeName, handleConfirmClick, requireTyping = false, timeout = TIMEOUT_DURATION ) => {
                 setObjToDelete(object);
                 setItemType(typeName)
                 setOnConfirmCb(() => handleConfirmClick);
 
                 setConfirmationText("");
-                setDeleteTimer(TIMEOUT_DURATION);
+                setDeleteTimer(timeout);
                 setIsDeleting(false);
+                setIsTypingRequired(requireTyping); // Salviamo nello state
 
                 dialogRef.current?.showModal();
             }
         }));
+
         useEffect(() => {
             if (deleteTimer > 0) {
                 const timer = setInterval(() => setDeleteTimer(prev => prev - 1), 1000);
@@ -55,9 +61,9 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
                 dialogRef.current?.close();
         };
 
-        const isButtonDisabled = deleteTimer > 0 || confirmationText !== objToDelete?.name || isDeleting;
-
-        // if (!objToDelete) return createPortal(<dialog ref={dialogRef}/>, document.getElementById('modal-root')!);
+        // FIX 2: Il bottone controlla il testo SOLO se isTypingRequired è true!
+        const isTextMismatch = isTypingRequired && confirmationText !== objToDelete?.name;
+        const isButtonDisabled = !objToDelete || deleteTimer > 0 || isTextMismatch || isDeleting;
 
         return createPortal(
             <>
@@ -77,17 +83,23 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
                             {objToDelete?.name}
                         </h3>
 
-                        <p className="mb-5 text-[0.9rem] text-white/70"> To confirm, type the username below: </p>
 
-                        <input
-                            className="w-full p-3 bg-black/20 border border-white/20 rounded-lg text-white text-base text-center transition-all duration-300
+                        {isTypingRequired && (
+                            <>
+                                <p className="mb-5 text-[0.9rem] text-white/70"> To confirm, type the name below: </p>
+
+                                <input
+                                    className="w-full p-3 bg-black/20 border border-white/20 rounded-lg text-white text-base text-center transition-all duration-300
                             focus:border-[#e74c3c] focus:bg-black/40 focus:outline-none focus:shadow-[0_0_10px_rgba(231,76,60,0.3)]"
-                            type="search"
-                            value={confirmationText}
-                            onChange={(e) => setConfirmationText(e.target.value)}
-                            placeholder={objToDelete?.name}
-                            autoFocus
-                        />
+                                    type="text"
+                                    value={confirmationText}
+                                    onChange={(e) => setConfirmationText(e.target.value)}
+                                    placeholder={objToDelete?.name}
+                                    autoFocus
+                                />
+                            </>
+                        )}
+
 
                         <div className="mt-[30px] flex justify-center gap-[15px]">
                             <button

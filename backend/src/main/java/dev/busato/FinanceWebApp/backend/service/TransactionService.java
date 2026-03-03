@@ -77,7 +77,7 @@ public class TransactionService {
                 .orElseThrow(() -> new IllegalArgumentException("Transaction not found or does not belong to this wallet"));
 
         if (request.getName() != null) {
-            if (request.getName().length() < 3 || request.getName().length() > 25) {
+            if (request.getName().length() < 2 || request.getName().length() > 25) {
                 throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
             }
             transaction.setName(request.getName());
@@ -96,13 +96,12 @@ public class TransactionService {
         transaction.setAmount(request.getAmount());
         transaction.setOriginalAmount(request.getOriginalAmount());
         transaction.setOriginalCurrency(request.getOriginalCurrency());
-        transaction.setExchangeValue(request.getExchangeValue()); // P.S. Ricordati del typo "exchangeValue" ;)
+        transaction.setExchangeValue(request.getExchangeValue());
         transaction.setType(Transaction.Type.valueOf(request.getType()));
         transaction.setNotes(request.getNotes());
 
-        if (request.getTransactionDate() != null) {
+        if (request.getTransactionDate() != null)
             transaction.setTransactionDate(request.getTransactionDate());
-        }
 
         return mapToResponse(transaction);
     }
