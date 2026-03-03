@@ -10,7 +10,6 @@ import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository; // <--- Nuovo import
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 
@@ -60,7 +59,7 @@ public class WalletService {
 
         walletAccessRepository.save(access);
 
-        return mapToResponse(access);
+        return mapWalletToResponse(access);
     }
 
     @Transactional
@@ -81,7 +80,7 @@ public class WalletService {
         if (request.getIcon() != null && !request.getIcon().isBlank())
             wallet.setIcon(request.getIcon());
 
-        return mapToResponse(ownerAccess);
+        return mapWalletToResponse(ownerAccess);
     }
 
     @Transactional
@@ -98,7 +97,7 @@ public class WalletService {
     public List<WalletResponse> getWallets(UUID userId) {
         return walletAccessRepository.findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED)
                 .stream()
-                .map(this::mapToResponse)
+                .map(this::mapWalletToResponse)
                 .collect(Collectors.toList());
     }
 
@@ -106,10 +105,10 @@ public class WalletService {
         WalletAccess walletAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletID)
                 .orElseThrow(() -> new WalletNotFoundException(walletID));
 
-        return mapToResponse(walletAccess);
+        return mapWalletToResponse(walletAccess);
     }
 
-    private WalletResponse mapToResponse(WalletAccess access) {
+    public WalletResponse mapWalletToResponse(WalletAccess access) {
         return WalletResponse.builder()
                 .id(access.getWallet().getId())
                 .name(access.getWallet().getName())

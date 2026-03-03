@@ -53,8 +53,9 @@ export interface WalletMember {
 
 
 export interface Invitation {
-    username: string;
+    walletOwner: string;
     role: string;
     status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'LEFT' | 'REVOKED';
     invitedAt: string;
+    wallet: Wallet
 }

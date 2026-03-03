@@ -7,6 +7,8 @@ import {ProfileModal, type ProfileModalHandle} from '../modals/ProfileModal';
 import {InvitationsModal, type InvitationsModalHandle} from '../modals/InvitationsModal';
 import {ChangePasswordModal, type ChangePasswordModalHandle} from "../modals/ChangePasswordModal.tsx";
 import {getUserAuth} from "../utils/authHelper.ts";
+import api from "../api/axiosConfig.ts";
+import type {Invitation} from "../utils/types.ts";
 // import type {Invitation} from "../utils/types.ts";
 // import api from "../api/axiosConfig.ts";
 
@@ -24,6 +26,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
     const changePwModalRef = useRef<ChangePasswordModalHandle>(null);
     const profileModalRef = useRef<ProfileModalHandle>(null);
     const invitationsModalRef = useRef<InvitationsModalHandle>(null);
+
+    const [invitations, setInvitations] = useState<Invitation[]>([])
 
     const user = getUserAuth();
 
@@ -47,7 +51,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
         window.location.href = '/login';
     };
 
-
     useEffect(() => {
         const mustChangeValue = localStorage.getItem('mustChangePWD');
 
@@ -60,9 +63,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
             }
         }
 
-        // await api.put(`/wallets/${wallet.id}/members/${memberId}/role`, {role: newRole});
+        const fetchInvites = async () => {
+            try {
+                const invitesResp = await api.get('/invitations');
+                setInvitations(invitesResp.data);
+            } catch (error) {
+                console.error("Failed to fetch invites:", error);
+            }
+        };
 
-
+        fetchInvites();
     }, []);
 
     return (
@@ -162,16 +172,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
                         <button
                             onClick={() => {
                                 setShowMenu(false);
-                                invitationsModalRef.current?.openModal();
+                                invitationsModalRef.current?.openModal(invitations);
                             }}
                             className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
                         >
                             <FontAwesomeIcon icon={faEnvelope} className="w-4"/>
                             Invitations
-                            {/* TODO: Collega questo numero al backend per mostrare i pending reali */}
                             <span
                                 className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[#00bfff] text-[10px] font-bold text-black">
-                                1
+                                {invitations.length}
                             </span>
                         </button>
 

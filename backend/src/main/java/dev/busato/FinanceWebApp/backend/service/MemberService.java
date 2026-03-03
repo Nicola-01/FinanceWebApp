@@ -2,6 +2,8 @@ package dev.busato.FinanceWebApp.backend.service;
 
 import dev.busato.FinanceWebApp.backend.dto.MemberRequest;
 import dev.busato.FinanceWebApp.backend.dto.MemberResponse;
+import dev.busato.FinanceWebApp.backend.dto.WalletInviteResponse;
+import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.UnauthorizedAccessException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -31,6 +33,8 @@ public class MemberService {
     private final UserRepository userRepository;
 
     private final SendEmailService sendEmailService;
+
+    private final WalletService walletService;
 
     @PreAuthorize("@walletSecurity.isWalletOwner(#userId, #walletId)")
     public List<MemberResponse> getMembers(UUID walletId, UUID userId) {
@@ -114,6 +118,16 @@ public class MemberService {
         access.setStatus(WalletAccess.InvitationStatus.REVOKED);
     }
 
+    @Transactional
+    public List<WalletInviteResponse> getInvites(User user) {
+        List<WalletAccess> accesses = walletAccessRepository.findAllByUserId(user.getId());
+
+        return accesses.stream()
+//                .filter(access -> access.getStatus() == WalletAccess.InvitationStatus.PENDING)
+                .map(this::mapToWalletInviteResponse)
+                .collect(Collectors.toList());
+    }
+
     private MemberResponse mapToResponse(WalletAccess access) {
         return MemberResponse.builder()
                 .userId(access.getUser().getId())
@@ -123,4 +137,20 @@ public class MemberService {
                 .invitedAt(access.getInvitedAt())
                 .build();
     }
+
+    private WalletInviteResponse mapToWalletInviteResponse(WalletAccess access) {
+        String ownerUsername = walletAccessRepository
+                .findByWalletIdAndRole(access.getWallet().getId(), WalletAccess.WalletRole.OWNER)
+                .map(wa -> wa.getUser().getUsername())
+                .orElse("User no found");
+
+        return WalletInviteResponse.builder()
+                .walletOwner(ownerUsername)
+                .wallet(walletService.mapWalletToResponse(access))
+                .role(access.getRole().name())
+                .status(access.getStatus().name())
+                .invitedAt(access.getInvitedAt())
+                .build();
+    }
+
 }

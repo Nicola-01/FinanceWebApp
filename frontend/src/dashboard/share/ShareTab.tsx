@@ -27,7 +27,7 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
     const fetchMembers = async () => {
         setIsLoading(true);
         try {
-            const response = await api.get(`/members/${wallet.id}`);
+            const response = await api.get(`/invitations/${wallet.id}`);
             setMembers(response.data);
         } catch (err) {
             triggerToast("Error loading wallet members.", false);
@@ -45,7 +45,7 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
     // Handler per InviteSection (ritorna un booleano così il form sa se resettarsi)
     const handleInvite = async (identifier: string, role: 'EDITOR' | 'VIEWER'): Promise<boolean> => {
         try {
-            await api.post(`/members/${wallet.id}`, {
+            await api.post(`/invitations/${wallet.id}`, {
                 user: identifier.trim(),
                 role: role
             });
@@ -63,7 +63,7 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
     const handleRemoveMember = async (memberId: string, memberName: string) => {
         if (!window.confirm(`Are you sure you want to remove ${memberName}?`)) return;
         try {
-            await api.delete(`/wallets/${wallet.id}/members/${memberId}`);
+            await api.delete(`/wallets/${wallet.id}/invitations/${memberId}`);
             setMembers(prev => prev.filter(m => m.userId !== memberId));
             triggerToast(`${memberName} removed successfully.`, true);
         } catch (err) {
@@ -73,7 +73,7 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
 
     const handleChangeRole = async (memberId: string, newRole: 'EDITOR' | 'VIEWER') => {
         try {
-            await api.put(`/wallets/${wallet.id}/members/${memberId}/role`, {role: newRole});
+            await api.put(`/wallets/${wallet.id}/invitations/${memberId}/role`, {role: newRole});
             setMembers(prev => prev.map(m => m.userId === memberId ? {...m, role: newRole} : m));
             triggerToast("Role updated successfully.", true);
         } catch (err) {

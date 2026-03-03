@@ -9,9 +9,9 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class MemberResponse {
-    private UUID userId;
-    private String username;
+public class WalletInviteResponse {
+    private String walletOwner;
+    private WalletResponse wallet;
     private String role;
     private String status;
     private LocalDate invitedAt;
