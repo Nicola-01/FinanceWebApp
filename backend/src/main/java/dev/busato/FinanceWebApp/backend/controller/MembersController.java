@@ -2,7 +2,9 @@ package dev.busato.FinanceWebApp.backend.controller;
 
 import dev.busato.FinanceWebApp.backend.dto.MemberRequest;
 import dev.busato.FinanceWebApp.backend.dto.MemberResponse;
+import dev.busato.FinanceWebApp.backend.dto.WalletInviteResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
+import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.service.MemberService;
 import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import lombok.RequiredArgsConstructor;
@@ -14,12 +16,13 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/members")
+@RequestMapping("/api/invitations")
 @RequiredArgsConstructor
 public class MembersController {
 
     private final MemberService memberService;
 
+    // Get members of a wallet
     @GetMapping("/{walletID}")
     public ResponseEntity<List<MemberResponse>> getMembers(
             @PathVariable UUID walletID,
@@ -27,6 +30,7 @@ public class MembersController {
         return ResponseEntity.ok(memberService.getMembers(walletID, user.getId()));
     }
 
+    // Invite a member to a wallet
     @PostMapping("/{walletID}")
     public ResponseEntity<MemberResponse> inviteMember(
             @PathVariable UUID walletID,
@@ -35,14 +39,7 @@ public class MembersController {
         return ResponseEntity.ok(memberService.inviteMember(walletID, request, user.getId()));
     }
 
-//    @PutMapping("/{walletID}")
-//    public ResponseEntity<MemberResponse> inviteResponse(
-//            @PathVariable UUID walletID,
-//            @RequestBody MemberRequest request,
-//            @AuthenticationPrincipal User user) {
-//        return ResponseEntity.ok(memberService.updateMemberRole(walletID, request, user.getId()));
-//    }
-
+    // Update member role
     @PutMapping("/{walletID}/{memberID}")
     public ResponseEntity<MemberResponse> updateMemberRole(
             @PathVariable UUID walletID,
@@ -60,4 +57,30 @@ public class MembersController {
         memberService.removeMember(walletID, memberID, user.getId());
         return ResponseEntity.noContent().build();
     }
+
+    // get invites of a user
+    @GetMapping()
+    public ResponseEntity<List<WalletInviteResponse>> getInvites(
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(memberService.getInvites(user));
+    }
+
+    // accept an invitation
+    @PostMapping("/{walletID}/accept")
+    public ResponseEntity<Void> acceptInvite(
+            @PathVariable UUID walletID,
+            @AuthenticationPrincipal User user) {
+        memberService.setStatus(user.getId(), walletID, WalletAccess.InvitationStatus.ACCEPTED);
+        return ResponseEntity.noContent().build();
+    }
+
+    // refuse an invitation
+    @PostMapping("/{walletID}/reject")
+    public ResponseEntity<Void> rejectInvite(
+            @PathVariable UUID walletID,
+            @AuthenticationPrincipal User user) {
+        memberService.setStatus(user.getId(), walletID, WalletAccess.InvitationStatus.REJECTED);
+        return ResponseEntity.noContent().build();
+    }
+
 }

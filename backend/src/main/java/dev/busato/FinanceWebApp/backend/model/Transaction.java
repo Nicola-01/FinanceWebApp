@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,6 +37,8 @@ public class Transaction {
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount; // In wallet Value (EUR)
+
+    private String encryptedAmount;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal originalAmount;

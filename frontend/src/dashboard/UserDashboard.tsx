@@ -7,6 +7,8 @@ import {triggerToast} from '../components/ToastNotification';
 import type {Wallet} from "../utils/types";
 import {useDeleteModal} from "../modals/DeleteModalContext.tsx";
 import {AppHeader} from "../header/AppHeader.tsx";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faPiggyBank} from "@fortawesome/free-solid-svg-icons";
 
 const UserDashboard: React.FC = () => {
     const {walletId} = useParams<{ walletId: string }>();
@@ -94,7 +96,18 @@ const UserDashboard: React.FC = () => {
                         />
                     ) : (
                         <div className="flex h-full items-center justify-center text-white/40">
-                            {loading ? "Loading data..." : "No wallet selected. Create one to get started."}
+                            {loading ? "Loading data..."
+                                : (
+                                    <div className="flex flex-col items-center justify-center py-24 text-white/40">
+                                        <div
+                                            className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+                                            <FontAwesomeIcon icon={faPiggyBank} className="text-2xl opacity-50"/>
+                                        </div>
+                                        <p className="text-sm font-medium">No wallets found.</p>
+                                        <p className="mt-1 text-xs opacity-60">Click "New Wallet" to add your first
+                                            one.</p>
+                                    </div>
+                                )}
                         </div>
                     )}
                 </div>

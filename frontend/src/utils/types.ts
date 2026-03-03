@@ -47,14 +47,15 @@ export interface WalletMember {
     username: string;
     email: string;
     role: 'OWNER' | 'EDITOR' | 'VIEWER';
-    status: 'ACTIVE' | 'PENDING';
+    status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'LEFT' | 'REVOKED';
     invitedAt: string;
 }
 
 
 export interface Invitation {
-    username: string;
+    walletOwner: string;
     role: string;
     status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'LEFT' | 'REVOKED';
     invitedAt: string;
+    wallet: Wallet
 }
