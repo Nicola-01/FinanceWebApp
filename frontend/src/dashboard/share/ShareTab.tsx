@@ -83,8 +83,8 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
 
     // Raggruppamenti logici
     const owners = members.filter(m => m.role === 'OWNER');
-    const editors = members.filter(m => m.role === 'EDITOR' && m.status === 'ACTIVE');
-    const viewers = members.filter(m => m.role === 'VIEWER' && m.status === 'ACTIVE');
+    const editors = members.filter(m => m.role === 'EDITOR' && m.status === 'ACCEPTED');
+    const viewers = members.filter(m => m.role === 'VIEWER' && m.status === 'ACCEPTED');
     const pending = members.filter(m => m.status === 'PENDING');
 
     return (

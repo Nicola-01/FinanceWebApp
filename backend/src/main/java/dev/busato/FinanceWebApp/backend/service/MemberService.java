@@ -36,7 +36,7 @@ public class MemberService {
 
     private final WalletService walletService;
 
-    @PreAuthorize("@walletSecurity.isWalletOwner(#userId, #walletId)")
+    @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
     public List<MemberResponse> getMembers(UUID walletId, UUID userId) {
         return walletAccessRepository.findAllByWalletId(walletId).stream()
                 .map(this::mapToResponse)
@@ -93,13 +93,10 @@ public class MemberService {
         WalletAccess access = walletAccessRepository.findByWalletIdAndUserId(walletId, memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found in this wallet"));
 
-        if (access.getRole() == WalletAccess.WalletRole.OWNER) {
+        if (access.getRole() == WalletAccess.WalletRole.OWNER)
             throw new IllegalArgumentException("Cannot change the role of the wallet owner");
-        }
 
         access.setRole(WalletAccess.WalletRole.valueOf(request.getRole().toUpperCase()));
-        // Grazie al @Transactional il salvataggio avviene in automatico (Dirty Checking)
-
         return mapToResponse(access);
     }
 
@@ -113,8 +110,6 @@ public class MemberService {
             throw new IllegalArgumentException("Cannot remove the wallet owner");
         }
 
-        // Puoi scegliere se eliminare il record o impostare lo status a REVOKED.
-        // Qui lo impostiamo a REVOKED per mantenere lo storico.
         access.setStatus(WalletAccess.InvitationStatus.REVOKED);
     }
 
@@ -153,4 +148,11 @@ public class MemberService {
                 .build();
     }
 
+    public void setStatus(UUID id, UUID walletID, WalletAccess.InvitationStatus invitationStatus) {
+        WalletAccess access = walletAccessRepository.findByWalletIdAndUserId(walletID, id)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found in this wallet"));
+
+        access.setStatus(invitationStatus);
+        walletAccessRepository.save(access);
+    }
 }

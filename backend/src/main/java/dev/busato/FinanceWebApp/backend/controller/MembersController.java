@@ -4,6 +4,7 @@ import dev.busato.FinanceWebApp.backend.dto.MemberRequest;
 import dev.busato.FinanceWebApp.backend.dto.MemberResponse;
 import dev.busato.FinanceWebApp.backend.dto.WalletInviteResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
+import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.service.MemberService;
 import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,24 @@ public class MembersController {
     public ResponseEntity<List<WalletInviteResponse>> getInvites(
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(memberService.getInvites(user));
+    }
+
+    // accept an invitation
+    @PostMapping("/{walletID}/accept")
+    public ResponseEntity<Void> acceptInvite(
+            @PathVariable UUID walletID,
+            @AuthenticationPrincipal User user) {
+        memberService.setStatus(user.getId(), walletID, WalletAccess.InvitationStatus.ACCEPTED);
+        return ResponseEntity.noContent().build();
+    }
+
+    // refuse an invitation
+    @PostMapping("/{walletID}/reject")
+    public ResponseEntity<Void> rejectInvite(
+            @PathVariable UUID walletID,
+            @AuthenticationPrincipal User user) {
+        memberService.setStatus(user.getId(), walletID, WalletAccess.InvitationStatus.REJECTED);
+        return ResponseEntity.noContent().build();
     }
 
 }
