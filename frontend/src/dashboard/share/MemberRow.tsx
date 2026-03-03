@@ -41,7 +41,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
             <div className="flex items-center gap-3">
                 {canManage && !isCurrentUser && member.role !== 'OWNER' && (
                     <>
-                        {member.status === 'ACTIVE' && (
+                        {member.status === 'ACCEPTED' && (
                             <select
                                 value={member.role}
                                 onChange={(e) => onChangeRole(member.userId, e.target.value as 'EDITOR' | 'VIEWER')}
