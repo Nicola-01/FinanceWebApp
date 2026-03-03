@@ -14,7 +14,7 @@ export interface AdminInvite {
 
 interface InvitesTableProps {
     invites: AdminInvite[];
-    onRevoke: (email: string) => void; // Nuova prop per gestire l'eliminazione
+    onRevoke: (email: string) => void;
 }
 
 export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke }) => {
@@ -67,37 +67,58 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                         </thead>
                         <tbody className="divide-y divide-white/5">
                         {invites.map((invite, index) => {
-                            const isExpired = new Date(invite.expiresAt).getTime() - Date.now() <= 0;
-                            const isRevoked = invite.status === 'REVOKED';
+                            // Calcolo dello stato effettivo
+                            const isExpiredTime = new Date(invite.expiresAt).getTime() - Date.now() <= 0;
+
+                            let displayStatus = invite.status;
+                            if (displayStatus === 'PENDING' && isExpiredTime) {
+                                displayStatus = 'EXPIRED';
+                            }
+
+                            // Assegnazione dei colori in base allo stato
+                            let statusColorClasses = '';
+                            switch (displayStatus) {
+                                case 'ACCEPTED':
+                                    statusColorClasses = 'bg-[#00ff7f]/10 text-[#00ff7f] border border-[#00ff7f]/20';
+                                    break;
+                                case 'EXPIRED':
+                                case 'REVOKED':
+                                    statusColorClasses = 'bg-red-500/10 text-red-500 border border-red-500/20';
+                                    break;
+                                case 'PENDING':
+                                default:
+                                    statusColorClasses = 'bg-amber-500/10 text-amber-500 border border-amber-500/20';
+                                    break;
+                            }
+
+                            const isRevoked = displayStatus === 'REVOKED';
+                            const isExpired = displayStatus === 'EXPIRED';
+                            const isAccepted = displayStatus === 'ACCEPTED';
+                            const isPending = displayStatus === 'PENDING';
 
                             return (
                                 <tr key={index} className="transition-colors hover:bg-white/5">
                                     <td className="px-6 py-4 font-medium text-white">{invite.email}</td>
                                     <td className="px-6 py-4">{invite.note || <span className="text-white/20 italic">No note</span>}</td>
                                     <td className="px-6 py-4">
-                                        {/* Logica badge aggiornata per supportare REVOKED */}
-                                        <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${
-                                            isExpired || isRevoked || invite.status === 'EXPIRED'
-                                                ? 'bg-red-500/10 text-red-500 border border-red-500/20'
-                                                : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                                        }`}>
-                                                {isRevoked ? 'REVOKED' : (isExpired ? 'EXPIRED' : invite.status)}
-                                            </span>
+                                        <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${statusColorClasses}`}>
+                                            {displayStatus}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4 font-app-mono text-[#00bfff]">
-                                        {/* Nascondiamo il timer se l'invito è stato revocato */}
-                                        {isRevoked ? (
-                                            <span className="text-white/30 italic font-sans text-xs">N/A</span>
-                                        ) : (
+                                        {/* Nascondiamo il timer se l'invito non è più PENDING */}
+                                        {!isRevoked && !isExpired && !isAccepted ? (
                                             <>
                                                 <FontAwesomeIcon icon={faClock} className="mr-2 opacity-50" />
                                                 {getTimeRemaining(invite.expiresAt)}
                                             </>
+                                        ) : (
+                                            <span className="text-white/30 italic font-sans text-xs">N/A</span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        {/* Il pulsante di copia è visibile solo se l'invito è ancora attivo */}
-                                        {!isRevoked && !isExpired && (
+                                        {/* Il pulsante di copia è visibile solo se l'invito è ancora attivo/PENDING */}
+                                        {!isRevoked && !isExpired && !isAccepted && (
                                             <button
                                                 onClick={() => handleCopyUrl(invite.url)}
                                                 className="rounded-lg bg-white/5 p-2 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
@@ -107,8 +128,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                                             </button>
                                         )}
 
-                                        {/* Pulsante per revocare l'invito */}
-                                        {!isRevoked && (
+                                        {isPending && (
                                             <button
                                                 onClick={() => onRevoke(invite.email)}
                                                 className="ml-2 rounded-lg bg-red-500/10 p-2 text-red-500 transition-colors hover:bg-red-500 hover:text-white"

@@ -28,6 +28,7 @@ export const ModalDialog = ({ref, children, className = "", onClose, onCancel}: 
                     shadow-[0_20px_40px_rgba(0,0,0,0.4)] backdrop-blur-[15px] 
                     backdrop:bg-black/75 backdrop:backdrop-blur-sm 
                     open:animate-[modalFadeIn_0.3s_ease-out]
+                    focus:outline-none
                     ${className}
                 `}
         >

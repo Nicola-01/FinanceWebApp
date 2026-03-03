@@ -80,7 +80,7 @@ public class AdminUserInviteService {
                 .build();
 
         try {
-            sendEmailService.sendHtmlInvitation(inviteResponse);
+            sendEmailService.sendRegistrationInvitation(inviteResponse);
         } catch (MessagingException e) {
             throw new RuntimeException("Unable to send the invitation email to " + request.getEmail(), e);
         }
@@ -141,6 +141,6 @@ public class AdminUserInviteService {
 
 
     private String generateInviteUrl(String token) {
-        return FRONTEND_URL + "register?token=" + token;
+        return FRONTEND_URL + "/register?token=" + token;
     }
 }

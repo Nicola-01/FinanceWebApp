@@ -4,11 +4,9 @@ import {
     faEllipsisVertical,
     faPenToSquare,
     faRotateRight,
-    faShareNodes,
     faTrash
 } from "@fortawesome/free-solid-svg-icons";
 
-import {type ShareWalletModalHandle} from "../../modals/ShareWalletModal.tsx";
 import type {Wallet} from "../../utils/types.ts";
 
 interface WalletMenuProps {
@@ -23,7 +21,7 @@ export const WalletMenu: React.FC<WalletMenuProps> = ({isLoading, onWalletDelete
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    const shareModalRef = useRef<ShareWalletModalHandle>(null);
+    // const shareModalRef = useRef<ShareWalletModalHandle>(null);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -52,18 +50,6 @@ export const WalletMenu: React.FC<WalletMenuProps> = ({isLoading, onWalletDelete
                 {showMenu && (
                     <div
                         className="absolute right-0 top-14 z-50 w-48 rounded-xl border border-white/10 bg-[#1a1a1a] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)] animate-[fadeIn_0.1s_ease-out]">
-
-                        <button
-                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
-                            onClick={() => {
-                                setShowMenu(false);
-                                // 3. APRI IL MODALE QUI!
-                                shareModalRef.current?.openModal();
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faShareNodes} className="w-4"/>
-                            Share Wallet
-                        </button>
 
                         <button
                             className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"

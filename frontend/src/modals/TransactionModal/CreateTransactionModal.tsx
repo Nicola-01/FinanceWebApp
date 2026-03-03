@@ -61,7 +61,7 @@ export const CreateTransactionModal = forwardRef<CreateTransactionModalHandle, P
 
             // Validazioni obbligatorie
             if (!amount || Number(amount) == 0) return triggerToast("Please enter a valid amount.", false);
-            if (!selectedTagName) return triggerToast("Please select a tag.", false);
+            if (!selectedTagName) return triggerToast("Please select a category.", false);
 
 
             setLoading(true);

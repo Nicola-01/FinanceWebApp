@@ -11,7 +11,7 @@ import {WalletMenu} from "./WalletMenu.tsx";
 import {TagsTab} from "../tag/TagsTab.tsx";
 import {ShareTab} from "../share/ShareTab.tsx";
 
-export type TabType = 'transactions' | 'tags' | 'statistics' | 'budget' | 'share';
+export type TabType = 'transactions' | 'category' | 'statistics' | 'budget' | 'share';
 
 interface WalletDashboardProps {
     _wallet: Wallet;
@@ -142,7 +142,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({_wallet, onWall
                                      baseCurrency={wallet.currency as CurrencyCode} onRefresh={fetchData} isLoading={isLoading}/>
                 )}
 
-                {activeTab === 'tags' && (
+                {activeTab === 'category' && (
                     <TagsTab
                         tags={tags}
                         onAddTag={handleAddTag}

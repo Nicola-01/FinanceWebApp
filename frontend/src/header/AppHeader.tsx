@@ -7,6 +7,8 @@ import {ProfileModal, type ProfileModalHandle} from '../modals/ProfileModal';
 import {InvitationsModal, type InvitationsModalHandle} from '../modals/InvitationsModal';
 import {ChangePasswordModal, type ChangePasswordModalHandle} from "../modals/ChangePasswordModal.tsx";
 import {getUserAuth} from "../utils/authHelper.ts";
+// import type {Invitation} from "../utils/types.ts";
+// import api from "../api/axiosConfig.ts";
 
 interface AppHeaderProps {
     page: {
@@ -24,6 +26,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
     const invitationsModalRef = useRef<InvitationsModalHandle>(null);
 
     const user = getUserAuth();
+
+    // const [invitations, setInvitations] = useState<Invitation>()
 
     // Chiude il menu se si clicca fuori
     useEffect(() => {
@@ -55,6 +59,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
                 console.error("Error parsing mustChange from localStorage", e);
             }
         }
+
+        // await api.put(`/wallets/${wallet.id}/members/${memberId}/role`, {role: newRole});
+
+
     }, []);
 
     return (
