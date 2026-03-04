@@ -44,4 +44,6 @@ public class Wallet {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDate createdAt;
+
+    private boolean encryptedWallet = false;
 }
