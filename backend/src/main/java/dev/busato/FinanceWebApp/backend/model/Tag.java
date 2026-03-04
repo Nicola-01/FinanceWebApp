@@ -14,13 +14,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(
-        name = "tags",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_tag_wallet_name",
-                        columnNames = {"wallet_id", "name"}
-                )
-        }
+    name = "tags",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_tag_wallet_name",
+            columnNames = {"wallet_id", "name"}
+        )
+    }
 )
 public class Tag {
 

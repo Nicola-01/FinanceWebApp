@@ -22,6 +22,7 @@ public class RegisterService {
     private final UserInvitationRepository userInvitationRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DemoService demoService;
 
 
     public RegisterInviteResponse getRegisterInvite(String token) {
@@ -54,6 +55,8 @@ public class RegisterService {
                 .build();
 
         userRepository.save(newUser);
+
+        demoService.generateDemoWallet(newUser.getId());
 
         invitation.setStatus(UserInvitation.InvitationStatus.ACCEPTED);
     }
