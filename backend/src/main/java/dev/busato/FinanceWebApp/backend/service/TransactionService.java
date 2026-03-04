@@ -54,7 +54,7 @@ public class TransactionService {
                 .originalAmount(request.getOriginalAmount())
                 .originalCurrency(request.getOriginalCurrency())
                 .exchangeValue(request.getExchangeValue())
-                .transactionDate(LocalDate.now())
+                .transactionDate(request.getTransactionDate() != null ? request.getTransactionDate() : LocalDate.now())
                 .type(Transaction.Type.valueOf(request.getType()))
                 .notes(request.getNotes())
                 .build();
