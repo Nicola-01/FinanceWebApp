@@ -1,9 +1,8 @@
 import {forwardRef, useImperativeHandle, useRef, useState} from 'react';
 import {ModalDialog} from '../ModalDialog';
-import type {Tag, Transaction, Wallet} from "../../utils/types.ts";
+import type {Transaction, Wallet} from "../../utils/types.ts";
 
 import {TransactionView} from './TransactionView';
-import {TransactionEdit} from './TransactionEdit';
 
 export interface TransactionDetailsModalHandle {
     openModal: (transaction: Transaction) => void;
@@ -11,23 +10,19 @@ export interface TransactionDetailsModalHandle {
 
 interface Props {
     wallet: Wallet;
-    tags: Tag[];
     handleDeleteSuccess: (transactionId: string) => void;
-    // handleUpdateSuccess: (transaction: Transaction) => void;
-    handleUpdateSuccess: () => void;
+    onEditRequest: (tx: Transaction) => void;
 }
 
 export const TransactionDetailsModal = forwardRef<TransactionDetailsModalHandle, Props>(
-    ({wallet, tags, handleDeleteSuccess, handleUpdateSuccess}, ref) => {
+    ({wallet, handleDeleteSuccess, onEditRequest}, ref) => {
         const dialogRef = useRef<HTMLDialogElement>(null);
 
         const [tx, setTx] = useState<Transaction | null>(null);
-        const [isEditing, setIsEditing] = useState(false);
 
         useImperativeHandle(ref, () => ({
             openModal: (transaction: Transaction) => {
                 setTx(transaction);
-                setIsEditing(false);
                 dialogRef.current?.showModal();
             }
         }));
@@ -41,32 +36,21 @@ export const TransactionDetailsModal = forwardRef<TransactionDetailsModalHandle,
             handleDeleteSuccess(tx!.id);
         };
 
-        const handleUpdateAndClose = () => {
-            handleClose();
-            // handleUpdateSuccess(tx!);
-            handleUpdateSuccess();
+        const handleEditAndClose = (transaction: Transaction) => {
+            handleClose(); // Chiudiamo questo modal di View
+            onEditRequest(transaction); // Lanciamo l'evento verso il componente padre
         };
 
         return (
             <ModalDialog ref={dialogRef} className="max-w-[550px]">
                 {tx && (
-                    !isEditing ? (
-                        <TransactionView
-                            tx={tx}
-                            wallet={wallet}
-                            onClose={handleClose}
-                            onEdit={() => setIsEditing(true)}
-                            onDeleteSuccess={handleDeleteAndClose}
-                        />
-                    ) : (
-                        <TransactionEdit
-                            tx={tx}
-                            wallet={wallet}
-                            tags={tags}
-                            onCancel={() => setIsEditing(false)}
-                            onUpdateSuccess={handleUpdateAndClose}
-                        />
-                    )
+                    <TransactionView
+                        tx={tx}
+                        wallet={wallet}
+                        onClose={handleClose}
+                        onDeleteSuccess={handleDeleteAndClose}
+                        onEditRequest={handleEditAndClose} // <-- PASSATA LA FUNZIONE
+                    />
                 )}
             </ModalDialog>
         );

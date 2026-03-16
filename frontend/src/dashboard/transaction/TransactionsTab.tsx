@@ -1,9 +1,9 @@
 import React, {useRef, useState} from 'react';
 import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
 import {
-    CreateTransactionModal,
-    type CreateTransactionModalHandle
-} from "../../modals/TransactionModal/CreateTransactionModal.tsx";
+    TransactionModal,
+    type TransactionModalHandle
+} from "../../modals/TransactionModal/TransactionModal.tsx";
 import type {CurrencyCode} from "../../utils/currencies.ts";
 import {TransactionsTable} from "./TransactionsTable.tsx";
 import {TransactionsFilter} from "./TransactionsFilter.tsx";
@@ -25,14 +25,14 @@ export const TransactionsTab: React.FC<TransactionsTabProps> = ({
                                                                     isLoading,
                                                                     tags
                                                                 }) => {
-    const transactionModalRef = useRef<CreateTransactionModalHandle>(null);
+    const transactionModalRef = useRef<TransactionModalHandle>(null);
 
     const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>(transactions);
 
     return (
         <div className="flex flex-col h-full animate-[fadeIn_0.3s_ease-out]">
             <div className="flex items-center justify-between mb-6">
-                <CreateTransactionModal
+                <TransactionModal
                     ref={transactionModalRef}
                     wallet={wallet}
                     tags={tags}

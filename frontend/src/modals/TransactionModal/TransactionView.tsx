@@ -13,22 +13,22 @@ import type {Transaction, Wallet} from "../../utils/types.ts";
 import {type IconKey, ICONS} from "../../utils/icons.ts";
 import {CURRENCY_META, type CurrencyCode} from '../../utils/currencies';
 import {useDeleteModal} from "../DeleteModalContext.tsx";
-import { ExchangeRateSection } from './ExchangeRateSection.tsx'; // Assicurati che il percorso sia corretto
+import { ExchangeRateSection } from './ExchangeRateSection.tsx';
 
 interface TransactionViewProps {
     tx: Transaction;
     wallet: Wallet;
     onClose: () => void;
-    onEdit: () => void;
     onDeleteSuccess: () => void;
+    onEditRequest: (tx: Transaction) => void; // <-- NUOVA PROP
 }
 
 export const TransactionView: React.FC<TransactionViewProps> = ({
                                                                     tx,
                                                                     wallet,
                                                                     onClose,
-                                                                    onEdit,
-                                                                    onDeleteSuccess
+                                                                    onDeleteSuccess,
+                                                                    onEditRequest // <-- RECUPERIAMO LA PROP
                                                                 }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const deleteModalRef = useDeleteModal();
@@ -77,7 +77,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                                 <button
                                     onClick={() => {
                                         setIsMenuOpen(false);
-                                        onEdit();
+                                        onEditRequest(tx); // <-- CHIAMIAMO LA CALLBACK INVECE DEL REF
                                     }}
                                     className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white text-left"
                                 >
@@ -96,16 +96,14 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                 </div>
             </div>
 
-            {/* Importo in primo piano */}
+            {/* ... RESTO DEL COMPONENTE INVARIATO ... */}
             <div className="text-center mt-2">
                 <p className={`text-6xl font-app-mono ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
                     {isIncome ? '+' : '-'}{tx.amount.toFixed(2)} <span className="text-3xl">{CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}</span>
                 </p>
             </div>
 
-            {/* Griglia Dettagli */}
             <div className="w-full bg-black/20 border border-white/5 rounded-2xl p-5 text-left flex flex-col gap-2">
-
                 {/* 1. Categoria */}
                 <div className="flex justify-between items-center">
                     <span className="text-white/40 text-xs font-bold uppercase tracking-wider">
@@ -153,7 +151,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                     </>
                 )}
 
-                {/* 5. Box Cambio Valuta (INTEGRATO CON IL NUOVO COMPONENTE) */}
+                {/* 5. Box Cambio Valuta */}
                 {(tx as any).originalCurrency && (tx as any).originalCurrency !== wallet.currency && (
                     <>
                         <hr className="my-2 border-white/10"/>

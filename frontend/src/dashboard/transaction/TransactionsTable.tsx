@@ -3,9 +3,9 @@ import {
     type TransactionDetailsModalHandle
 } from "../../modals/TransactionModal/TransactionDetailsModal.tsx";
 import {
-    CreateTransactionModal,
-    type CreateTransactionModalHandle
-} from "../../modals/TransactionModal/CreateTransactionModal.tsx";
+    TransactionModal,
+    type TransactionModalHandle
+} from "../../modals/TransactionModal/TransactionModal.tsx";
 import React, {useRef} from 'react';
 import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
 import TransactionRow from "./TransactionRow.tsx";
@@ -42,10 +42,16 @@ const SkeletonRow = () => (
     </div>
 );
 
-export const TransactionsTable: React.FC<TransactionsTableProps> = ({wallet, tags, transactions, isLoading, onRefresh}) => {
+export const TransactionsTable: React.FC<TransactionsTableProps> = ({
+                                                                        wallet,
+                                                                        tags,
+                                                                        transactions,
+                                                                        isLoading,
+                                                                        onRefresh
+                                                                    }) => {
 
     const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
-    const transactionModalRef = useRef<CreateTransactionModalHandle>(null);
+    const transactionModalRef = useRef<TransactionModalHandle>(null);
 
     // Raggruppamento per Data
     const groupedTransactions = transactions.reduce((acc, tx) => {
@@ -103,9 +109,10 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({wallet, tag
                         className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-white/10 bg-transparent p-4 text-white/50 transition-all hover:border-white/30 hover:bg-white/5 hover:text-white"
                     >
                         {/* Icona circolare che simula la categoria della transazione */}
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-white/10 group-hover:scale-105"
-                             style={{ color: wallet.color }}>
-                            <FontAwesomeIcon icon={faPlus} />
+                        <div
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-white/10 group-hover:scale-105"
+                            style={{color: wallet.color}}>
+                            <FontAwesomeIcon icon={faPlus}/>
                         </div>
 
                         {/* Testo allineato come il nome della transazione */}
@@ -136,7 +143,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({wallet, tag
                     transactions.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-24 text-white/40">
                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
-                                    <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50" />
+                                    <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50"/>
                                 </div>
                                 <p className="text-sm font-medium">No transactions found for this period.</p>
                                 <p className="mt-1 text-xs opacity-60">Click "New Transaction" to add your first one.</p>
@@ -173,12 +180,13 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({wallet, tag
                 <TransactionDetailsModal
                     ref={detailsModalRef}
                     wallet={wallet}
-                    tags={tags}
                     handleDeleteSuccess={onSuccessDelete}
-                    handleUpdateSuccess={onRefresh}
+                    onEditRequest={(tx) => {
+                        transactionModalRef.current?.openModal(tx);
+                    }}
                 />
 
-                <CreateTransactionModal
+                <TransactionModal
                     ref={transactionModalRef}
                     wallet={wallet}
                     tags={tags}
