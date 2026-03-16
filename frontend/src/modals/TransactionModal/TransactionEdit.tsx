@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import api from '../../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faArrowRight,
     faCalendarAlt,
     faEdit,
-    faExchangeAlt, faHashtag,
+    faHashtag,
     faSave,
     faStickyNote,
     faTag,
@@ -16,6 +15,7 @@ import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
 import type { Tag, Transaction, Wallet } from "../../utils/types.ts";
 import { HierarchicalTagSelector } from './HierarchicalTagSelector.tsx';
 import { AmountInput } from "./AmountInput.tsx";
+import { ExchangeRateSection } from './ExchangeRateSection.tsx'; // Assicurati che il percorso sia corretto
 
 interface TransactionEditProps {
     tx: Transaction;
@@ -37,7 +37,6 @@ export const TransactionEdit: React.FC<TransactionEditProps> = ({
     const [notes, setNotes] = useState(tx.notes || '');
     const [selectedTagName, setSelectedTagName] = useState<string>(tx.tag.name);
 
-    const isForeignCurrency = (tx as any).originalCurrency && (tx as any).originalCurrency !== wallet.currency;
     // @ts-ignore
     const [currency, setCurrency] = useState<CurrencyCode>((tx as any).originalCurrency || wallet.currency);
     const [originalAmountInput, setOriginalAmountInput] = useState<string>((tx as any).originalAmount?.toFixed(2) || '');
@@ -53,8 +52,8 @@ export const TransactionEdit: React.FC<TransactionEditProps> = ({
             const finalName = name.trim().length > 0 ? name.trim() : selectedTagName;
 
             const numericAmount = Math.abs(Number(amount));
-            const numericOriginalAmount = isForeignCurrency ? (Number(originalAmountInput) || numericAmount) : numericAmount;
-            const numericExchangeRate = isForeignCurrency ? (Number(exchangeRateInput) || 1) : 1;
+            const numericOriginalAmount = (currency !== wallet.currency) ? (Number(originalAmountInput) || numericAmount) : numericAmount;
+            const numericExchangeRate = (currency !== wallet.currency) ? (Number(exchangeRateInput) || 1) : 1;
 
             const payload = {
                 name: finalName,
@@ -78,26 +77,14 @@ export const TransactionEdit: React.FC<TransactionEditProps> = ({
         }
     };
 
-    const handleForeignCurrencyChange = (newOriginal: string, newRate: string) => {
-        setOriginalAmountInput(newOriginal);
-        setExchangeRateInput(newRate);
-        if (newOriginal && newRate) {
-            const newTotal = (Number(newOriginal) * Number(newRate)).toFixed(2);
-            setAmount(newTotal);
-        }
-    };
-
-    // Funziona per il main input gigante o per l'input convertito a destra!
+    // Questa funzione sincronizza l'input grande in cima con i calcoli della valuta estera in basso
     const handleMainAmountChange = (newAmount: string) => {
         setAmount(newAmount);
-        if (isForeignCurrency && originalAmountInput && Number(originalAmountInput) > 0) {
+        if (currency !== wallet.currency && originalAmountInput && Number(originalAmountInput) > 0) {
             const newRate = Number(newAmount) / Number(originalAmountInput);
             setExchangeRateInput(newRate.toFixed(6).replace(/\.?0+$/, ''));
         }
     };
-
-    // Una classe condivisa per pulire tutti gli input type="number"
-    const hideArrowsClass = "[-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
     return (
         <form onSubmit={handleUpdate} className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">
@@ -191,75 +178,22 @@ export const TransactionEdit: React.FC<TransactionEditProps> = ({
                     </div>
                 </div>
 
-                {isForeignCurrency && (
-                    <>
-                        <hr className="my-2 border-white/10"/>
-                        <div className="flex flex-col gap-3">
-                            <span className="text-[#00bfff]/70 text-xs font-bold uppercase tracking-wider">
-                                <FontAwesomeIcon icon={faExchangeAlt} className="mr-2"/>
-                                Currency Exchange (TO FIX)
-                                {/*TODO da sistemare la modifica*/}
-                            </span>
+                {/* Sezione Cambio Valuta Unificata */}
+                <div className="mt-4">
+                    <ExchangeRateSection
+                        mode="edit"
+                        baseCurrency={wallet.currency as CurrencyCode}
+                        selectedCurrency={currency}
+                        onCurrencyChange={setCurrency}
+                        originalAmount={originalAmountInput}
+                        onOriginalAmountChange={setOriginalAmountInput}
+                        exchangeRate={exchangeRateInput}
+                        onExchangeRateChange={setExchangeRateInput}
+                        convertedAmount={amount}
+                        onConvertedAmountChange={handleMainAmountChange}
+                    />
+                </div>
 
-                            <div className="flex items-center justify-between rounded-xl bg-[#00bfff]/5 p-4 border border-[#00bfff]/20">
-                                {/* Importo Originale (Input) */}
-                                <div className="flex flex-col items-center flex-1 group">
-                                    <div className="flex items-center border-b border-transparent focus-within:border-[#00bfff]/50 transition-colors">
-                                        <input
-                                            type="number" step="0.01" min="0"
-                                            className={`w-[80px] bg-transparent text-center text-base font-bold font-app-mono text-white outline-none placeholder-white/20 ${hideArrowsClass}`}
-                                            placeholder={(tx as any).originalAmount?.toFixed(2)}
-                                            value={originalAmountInput}
-                                            onChange={(e) => handleForeignCurrencyChange(e.target.value, exchangeRateInput)}
-                                        />
-                                        <FontAwesomeIcon icon={faEdit} className="text-[#00bfff]/30 text-[10px] ml-1 opacity-0 group-focus-within:opacity-100" />
-                                    </div>
-                                    <span className="text-[10px] text-[#00bfff]/70 font-bold uppercase tracking-wider mt-1">
-                                        {CURRENCY_META[currency as CurrencyCode]?.symbol || currency}
-                                    </span>
-                                </div>
-
-                                {/* Freccia e Tasso di Cambio (Input) */}
-                                <div className="flex flex-col items-center justify-center flex-[1.5] px-2 group">
-                                    <div className="flex items-center text-[10px] font-bold text-[#00bfff]/70 mb-1 whitespace-nowrap border-b border-transparent focus-within:border-[#00bfff]/50 transition-colors">
-                                        <span>1 {currency} = </span>
-                                        <input
-                                            type="number" step="0.000001" min="0"
-                                            className={`w-[65px] bg-transparent text-center outline-none mx-1 text-white placeholder-white/20 ${hideArrowsClass}`}
-                                            placeholder={(tx as any).exchangeValue?.toFixed(6)}
-                                            value={exchangeRateInput}
-                                            onChange={(e) => handleForeignCurrencyChange(originalAmountInput, e.target.value)}
-                                        />
-                                        <span>{wallet.currency}</span>
-                                        <FontAwesomeIcon icon={faEdit} className="text-[#00bfff]/30 ml-1 opacity-0 group-focus-within:opacity-100" />
-                                    </div>
-                                    <div className="flex w-full items-center">
-                                        <div className="h-[1px] flex-1 bg-[#00bfff]/30"></div>
-                                        <FontAwesomeIcon icon={faArrowRight} className="text-[#00bfff]/50 px-2 text-xs" />
-                                        <div className="h-[1px] flex-1 bg-[#00bfff]/30"></div>
-                                    </div>
-                                </div>
-
-                                {/* Importo Convertito a Destra (ORA EDITABILE) */}
-                                <div className="flex flex-col items-center flex-1 group">
-                                    <div className="flex items-center border-b border-transparent focus-within:border-[#00bfff]/50 transition-colors">
-                                        <input
-                                            type="number" step="0.01" min="0"
-                                            className={`w-[80px] bg-transparent text-center text-base font-bold font-app-mono text-[#00bfff] outline-none placeholder-[#00bfff]/50 ${hideArrowsClass}`}
-                                            placeholder={tx.amount.toFixed(2)}
-                                            value={amount}
-                                            onChange={(e) => handleMainAmountChange(e.target.value)}
-                                        />
-                                        <FontAwesomeIcon icon={faEdit} className="text-[#00bfff]/30 text-[10px] ml-1 opacity-0 group-focus-within:opacity-100" />
-                                    </div>
-                                    <span className="text-[10px] text-[#00bfff]/70 font-bold uppercase tracking-wider mt-1">
-                                        {CURRENCY_META[wallet.currency as CurrencyCode]?.symbol || wallet.currency}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </>
-                )}
             </div>
         </form>
     );

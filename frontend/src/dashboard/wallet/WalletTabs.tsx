@@ -13,7 +13,8 @@ export const WalletTabs: React.FC<WalletTabsProps> = ({ activeTab, setActiveTab,
         { id: 'transactions', label: 'Transactions' },
         { id: 'statistics', label: 'Statistics' },
         { id: 'category', label: 'Categories' },
-        { id: 'share', label: 'Share' }
+        { id: 'share', label: 'Share' },
+        // { id: 'settings', label: 'Settings' }
     ];
 
     const getTabClass = (tabId: TabType) => {

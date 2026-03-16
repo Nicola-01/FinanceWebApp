@@ -78,7 +78,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
     return (
         <> {/* 1. Aggiungiamo questo Fragment per racchiudere tutto */}
 
-            <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#0d0d12]/80 px-6 backdrop-blur-md">
+            {/*sticky top-0*/}
+            <header className="z-40 flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#0d0d12]/80 px-6 backdrop-blur-md">
                 {/* Logo e Nome App */}
                 <h2 className="m-0 text-2xl font-bold tracking-wide text-white capitalize">
                     {page.text}

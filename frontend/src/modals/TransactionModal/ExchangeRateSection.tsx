@@ -1,52 +1,50 @@
 import React, {useEffect, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faArrowRightArrowLeft, faCoins} from '@fortawesome/free-solid-svg-icons';
+import {faArrowRight, faCoins, faEdit, faExchangeAlt} from '@fortawesome/free-solid-svg-icons';
 import {CurrencySelector} from '../../components/CurrencySelector';
-import type {CurrencyCode} from '../../utils/currencies';
+import {CURRENCY_META, type CurrencyCode} from '../../utils/currencies';
 import {triggerToast} from '../../components/ToastNotification';
 
-interface ExchangeRateSectionProps {
+export interface UnifiedExchangeRateProps {
+    mode: 'view' | 'edit' | 'create';
     baseCurrency: CurrencyCode;
     selectedCurrency: CurrencyCode;
-    onCurrencyChange: (currency: CurrencyCode) => void;
-    exchangeRate: number | '';
-    onExchangeRateChange: (rate: number | '') => void;
-    amount: number | '';
-    onConvertedAmountChange: (amount: number) => void; // <-- NUOVA PROP: Invia il totale calcolato al padre
+    onCurrencyChange?: (currency: CurrencyCode) => void;
+
+    originalAmount: number | string;
+    onOriginalAmountChange?: (amount: string) => void;
+
+    exchangeRate: number | string;
+    onExchangeRateChange?: (rate: string) => void;
+
+    convertedAmount: number | string;
+    onConvertedAmountChange?: (amount: string) => void;
 }
 
-export const ExchangeRateSection: React.FC<ExchangeRateSectionProps> = ({
+export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
+                                                                            mode,
                                                                             baseCurrency,
                                                                             selectedCurrency,
                                                                             onCurrencyChange,
+                                                                            originalAmount,
+                                                                            onOriginalAmountChange,
+                                                                            exchangeRate,
                                                                             onExchangeRateChange,
-                                                                            amount,
+                                                                            convertedAmount,
                                                                             onConvertedAmountChange
                                                                         }) => {
-    const [isForeignCurrency, setIsForeignCurrency] = useState(false);
+    const isViewOnly = mode === 'view';
+
+    // Inizializza il toggle aperto se siamo in edit con valuta diversa
+    const [isForeignCurrency, setIsForeignCurrency] = useState(
+        mode === 'create' ? false : selectedCurrency !== baseCurrency
+    );
     const [loadingRate, setLoadingRate] = useState(false);
 
-    const [fetchedRate, setFetchedRate] = useState<number | null>(null);
-    const [rateInput, setRateInput] = useState<string>('');
-    const [totalInput, setTotalInput] = useState<string>('');
-
-    // 1. Reset e Fallback se la modalità valuta estera viene spenta
-    useEffect(() => {
-        if (!isForeignCurrency) {
-            onCurrencyChange(baseCurrency);
-            onExchangeRateChange(1);
-            setFetchedRate(null);
-            setRateInput('');
-            setTotalInput('');
-            onConvertedAmountChange(Number(amount) || 0); // Torna l'importo base
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isForeignCurrency]);
-
-    // 2. Fetch del Rate dalle API
+    // Fetching del tasso di cambio automatico
     useEffect(() => {
         const fetchExchangeRate = async () => {
-            if (selectedCurrency === baseCurrency || !isForeignCurrency) return;
+            if (isViewOnly || selectedCurrency === baseCurrency || !isForeignCurrency) return;
 
             setLoadingRate(true);
             try {
@@ -55,14 +53,13 @@ export const ExchangeRateSection: React.FC<ExchangeRateSectionProps> = ({
 
                 if (data?.rates?.[baseCurrency]) {
                     const rate = data.rates[baseCurrency];
-                    setFetchedRate(rate);
-                    setRateInput('');
-                    onExchangeRateChange(rate);
+                    onExchangeRateChange?.(rate.toString());
 
-                    // Calcola il totale iniziale
-                    const newTotal = (Number(amount) * rate).toFixed(2);
-                    setTotalInput(newTotal);
-                    onConvertedAmountChange(Number(newTotal));
+                    // Se c'è già un importo originale, ricalcola il convertito
+                    if (originalAmount) {
+                        const newTotal = (Number(originalAmount) * rate).toFixed(2);
+                        onConvertedAmountChange?.(newTotal);
+                    }
                 } else {
                     triggerToast("Could not retrieve exchange rate.", false);
                 }
@@ -76,54 +73,152 @@ export const ExchangeRateSection: React.FC<ExchangeRateSectionProps> = ({
 
         fetchExchangeRate();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedCurrency, isForeignCurrency]);
+    }, [selectedCurrency, isForeignCurrency, isViewOnly]);
 
-    // 3. Reagisce ai cambiamenti dell'importo "Gigante" iniziale in tempo reale
-    useEffect(() => {
-        if (isForeignCurrency) {
-            const currentRate = rateInput !== '' ? Number(rateInput) : (fetchedRate || 1);
-            const newTotal = (Number(amount) * currentRate).toFixed(2);
-            if (totalInput !== newTotal) {
-                setTotalInput(newTotal);
-                onConvertedAmountChange(Number(newTotal));
-            }
-        } else {
-            onConvertedAmountChange(Number(amount) || 0);
+    // Gestione del Toggle "Foreign Currency"
+    const handleToggle = () => {
+        if (isViewOnly) return;
+        const newValue = !isForeignCurrency;
+        setIsForeignCurrency(newValue);
+
+        // Se spengo il toggle, resetto tutto alla valuta base
+        if (!newValue) {
+            onCurrencyChange?.(baseCurrency);
+            onExchangeRateChange?.('1');
+            onOriginalAmountChange?.(convertedAmount.toString());
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [amount]);
+    };
 
-    // 4. Modifica manuale del Rate (ricalcola il Totale)
+    // --- FUNZIONI DI CALCOLO A 3 VIE ---
+    const handleOriginalChange = (val: string) => {
+        onOriginalAmountChange?.(val);
+        if (val && exchangeRate) {
+            onConvertedAmountChange?.((Number(val) * Number(exchangeRate)).toFixed(2));
+        }
+    };
+
     const handleRateChange = (val: string) => {
-        setRateInput(val);
-        const rateToApply = val !== '' ? Number(val) : (fetchedRate || 1);
-        onExchangeRateChange(rateToApply);
-
-        const newTotal = (Number(amount) * rateToApply).toFixed(2);
-        setTotalInput(newTotal);
-        onConvertedAmountChange(Number(newTotal));
-    };
-
-    // 5. Modifica manuale del Totale (ricalcola inversamente il Rate)
-    const handleTotalChange = (val: string) => {
-        setTotalInput(val);
-        const totalToApply = val !== '' ? Number(val) : 0;
-        onConvertedAmountChange(totalToApply);
-
-        if (Number(amount) != 0) {
-            const newRate = totalToApply / Number(amount);
-            setRateInput(newRate.toFixed(6).replace(/\.?0+$/, ''));
-            onExchangeRateChange(newRate);
+        onExchangeRateChange?.(val);
+        if (val && originalAmount) {
+            onConvertedAmountChange?.((Number(originalAmount) * Number(val)).toFixed(2));
         }
     };
 
+    const handleConvertedChange = (val: string) => {
+        onConvertedAmountChange?.(val);
+        if (val && originalAmount && Number(originalAmount) > 0) {
+            const newRate = Number(val) / Number(originalAmount);
+            onExchangeRateChange?.(newRate.toFixed(6).replace(/\.?0+$/, ''));
+        }
+    };
+
+    // Se siamo in modalità view e non c'è cambio valuta, il componente scompare
+    if (isViewOnly && selectedCurrency === baseCurrency) {
+        return null;
+    }
+
+    const hideArrowsClass = "[-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
+
+    // Il cuore del componente: Il box a 3 colonne (AGGIORNATO - RESPONSIVE)
+    const exchangeBoxContent = (
+        <div className="flex flex-col gap-3 mt-2 animate-[fadeIn_0.2s_ease-out] w-full">
+            {isViewOnly && (
+                <span className="text-[#00bfff]/70 text-xs font-bold uppercase tracking-wider">
+                    <FontAwesomeIcon icon={faExchangeAlt} className="mr-2"/>
+                    Currency Exchange
+                </span>
+            )}
+            {/* Rimosso p-5 fisso, inserito p-3 responsive e gap per gestire meglio lo spazio */}
+            <div className="flex items-center justify-between rounded-xl bg-[#00bfff]/5 p-3 sm:p-4 border border-[#00bfff]/20 overflow-hidden w-full gap-1 sm:gap-2">
+
+                {/* SINISTRA: Importo Originale */}
+                <div className="flex justify-center flex-1 min-w-0 group">
+                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'border-transparent focus-within:border-[#00bfff]/50 transition-colors pb-1' : 'border-transparent'}`}>
+                        {isViewOnly ? (
+                            <span className="text-lg sm:text-xl font-bold font-app-mono text-white truncate">
+                                {Number(originalAmount).toFixed(2)}
+                            </span>
+                        ) : (
+                            <input
+                                type="number" step="0.01" min="0"
+                                className={`w-full min-w-[40px] bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-white outline-none placeholder-white/20 ${hideArrowsClass}`}
+                                placeholder="0.00"
+                                value={originalAmount}
+                                onChange={(e) => handleOriginalChange(e.target.value)}
+                            />
+                        )}
+                        <span className="text-sm sm:text-lg text-[#00bfff]/70 font-bold uppercase tracking-wider shrink-0">
+                            {CURRENCY_META[selectedCurrency as CurrencyCode]?.symbol || selectedCurrency}
+                        </span>
+                        {!isViewOnly && <FontAwesomeIcon icon={faEdit} className="text-[#00bfff]/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100" />}
+                    </div>
+                </div>
+
+                {/* CENTRO: Tasso di Cambio */}
+                <div className="flex flex-col items-center justify-center flex-[1.4] min-w-0 group px-1">
+                    <div className={`flex items-center justify-center gap-1 text-[10px] sm:text-xs font-bold text-[#00bfff]/70 whitespace-nowrap border-b w-full ${!isViewOnly ? 'border-transparent focus-within:border-[#00bfff]/50 transition-colors pb-1' : 'border-transparent'}`}>
+                        <span className="shrink-0">1 {selectedCurrency} = </span>
+                        {isViewOnly ? (
+                            <span className="text-white mx-1 tracking-tight">
+                                {Number(exchangeRate).toFixed(6).replace(/\.?0+$/, '')}
+                            </span>
+                            ) : (
+                            <input
+                            type="number" step="0.000001" min="0"
+                         className={`w-full min-w-[60px] max-w-[80px] bg-transparent text-center outline-none text-white placeholder-white/20 tracking-tight ${hideArrowsClass}`}
+                         placeholder="1.00"
+                         value={exchangeRate}
+                         onChange={(e) => handleRateChange(e.target.value)}
+                    />
+                    )}
+                    <span className="shrink-0">{baseCurrency}</span>
+                    {!isViewOnly && <FontAwesomeIcon icon={faEdit} className="text-[#00bfff]/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100" />}
+                </div>
+                <div className="flex w-full items-center">
+                    <div className="h-[2px] flex-1 bg-[#00bfff]/30 rounded-full"></div>
+                    <FontAwesomeIcon icon={faArrowRight} className="text-[#00bfff]/50 px-2 text-[10px] sm:text-sm shrink-0" />
+                    <div className="h-[2px] flex-1 bg-[#00bfff]/30 rounded-full"></div>
+                </div>
+            </div>
+
+                {/* DESTRA: Importo Convertito */}
+                <div className="flex justify-center flex-1 min-w-0 group">
+                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'border-transparent focus-within:border-[#00bfff]/50 transition-colors pb-1' : 'border-transparent'}`}>
+                        {isViewOnly ? (
+                            <span className="text-lg sm:text-xl font-bold font-app-mono text-[#00bfff] truncate">
+                                {Number(convertedAmount).toFixed(2)}
+                            </span>
+                        ) : (
+                            <input
+                                type="number" step="0.01" min="0"
+                                className={`w-full min-w-[40px] bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-[#00bfff] outline-none placeholder-[#00bfff]/50 ${hideArrowsClass}`}
+                                placeholder="0.00"
+                                value={convertedAmount}
+                                onChange={(e) => handleConvertedChange(e.target.value)}
+                            />
+                        )}
+                        <span className="text-sm sm:text-lg text-[#00bfff]/70 font-bold uppercase tracking-wider shrink-0">
+                            {CURRENCY_META[baseCurrency as CurrencyCode]?.symbol || baseCurrency}
+                        </span>
+                        {!isViewOnly && <FontAwesomeIcon icon={faEdit} className="text-[#00bfff]/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100" />}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    // Se è solo in View, stampa direttamente la riga a 3 colonne (senza l'involucro grande)
+    if (isViewOnly) {
+        return exchangeBoxContent;
+    }
+
+    // Altrimenti stampa la versione Edit/Create con Toggle e Selettore
     return (
         <div className="rounded-xl border border-white/10 bg-black/20 p-4 transition-all">
-            {/* Toggle Header */}
-            <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsForeignCurrency(!isForeignCurrency)}>
+            <div className="flex items-center justify-between cursor-pointer" onClick={handleToggle}>
                 <div className="flex items-center gap-3">
                     <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${isForeignCurrency ? 'bg-[#00bfff]/20 text-[#00bfff]' : 'bg-white/5 text-white/40'}`}>
-                        <FontAwesomeIcon icon={faCoins} />
+                        <FontAwesomeIcon icon={faCoins}/>
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-white">Foreign Currency</h4>
@@ -131,52 +226,21 @@ export const ExchangeRateSection: React.FC<ExchangeRateSectionProps> = ({
                     </div>
                 </div>
                 <div className={`relative w-12 h-6 rounded-full transition-colors ${isForeignCurrency ? 'bg-[#00bfff]' : 'bg-white/10'}`}>
-                    <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isForeignCurrency ? 'translate-x-6' : ''}`} />
+                    <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isForeignCurrency ? 'translate-x-6' : ''}`}/>
                 </div>
             </div>
 
-            {/* Contenuto Espanso */}
             {isForeignCurrency && (
                 <div className="mt-4 pt-4 border-t border-white/5 animate-[fadeIn_0.2s_ease-out] space-y-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1.5fr_1fr] items-end">
-                        <div className="w-full">
-                            <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-[#00bfff]">Select Currency</label>
-                            <CurrencySelector value={selectedCurrency} onChange={onCurrencyChange} excludeCurrency={baseCurrency}/>
-                        </div>
-
-                        <div className="w-full">
-                            <label className="mb-2 ml-1 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-[#00bfff]">
-                                <span><FontAwesomeIcon icon={faArrowRightArrowLeft} className="mr-2" /> 1 {selectedCurrency} = {fetchedRate || '?'} {baseCurrency}</span>
-                                {loadingRate && <span className="text-[10px] animate-pulse">Fetching...</span>}
-                            </label>
-
-                            <div className="relative">
-                                <input
-                                    className="h-[48px] w-full rounded-xl border border-[#00bfff]/30 bg-[#00bfff]/5 px-4 pr-14 text-white outline-none transition-all focus:border-[#00bfff] [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder-[#00bfff]/30"
-                                    type="number" step="0.000001" min="0"
-                                    placeholder={fetchedRate ? fetchedRate.toString() : '...'}
-                                    value={rateInput}
-                                    onChange={(e) => handleRateChange(e.target.value)}
-                                    required={!fetchedRate}
-                                />
-                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#00bfff]/50 pointer-events-none">{baseCurrency}</span>
-                            </div>
-                        </div>
+                    <div className="w-full">
+                        <label className="mb-2 ml-1 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-[#00bfff]">
+                            Select Currency
+                            {loadingRate && <span className="text-[10px] animate-pulse">Fetching rate...</span>}
+                        </label>
+                        <CurrencySelector value={selectedCurrency} onChange={(val) => onCurrencyChange?.(val)} excludeCurrency={baseCurrency}/>
                     </div>
-
-                    {/* L'area TOTAL è ora interattiva! */}
-                    <div className="flex items-center justify-between rounded-lg bg-[#00bfff]/5 p-3 mt-2 border border-[#00bfff]/20 focus-within:border-[#00bfff]/60 transition-colors shadow-inner">
-                        <span className="text-xs font-bold text-[#00bfff]/70 uppercase tracking-wider shrink-0 mr-4">Total</span>
-                        <div className="flex items-center flex-1 justify-end">
-                            <input
-                                className="w-full bg-transparent text-right text-lg font-bold text-[#00bfff] font-app-mono outline-none [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none placeholder-[#00bfff]/30"
-                                type="number" step="0.01" placeholder="0.00"
-                                value={totalInput}
-                                onChange={(e) => handleTotalChange(e.target.value)}
-                            />
-                            <span className="ml-2 text-lg font-bold text-[#00bfff] font-app-mono">{baseCurrency}</span>
-                        </div>
-                    </div>
+                    {/* Inseriamo la costante aggiornata */}
+                    {exchangeBoxContent}
                 </div>
             )}
         </div>

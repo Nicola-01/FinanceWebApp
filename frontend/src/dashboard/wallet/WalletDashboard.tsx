@@ -11,7 +11,7 @@ import {WalletMenu} from "./WalletMenu.tsx";
 import {TagsTab} from "../tag/TagsTab.tsx";
 import {ShareTab} from "../share/ShareTab.tsx";
 
-export type TabType = 'transactions' | 'category' | 'statistics' | 'budget' | 'share';
+export type TabType = 'transactions' | 'category' | 'statistics' | 'budget' | 'share'; //  | 'settings'
 
 interface WalletDashboardProps {
     _wallet: Wallet;

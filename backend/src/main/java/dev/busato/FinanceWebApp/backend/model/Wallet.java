@@ -34,12 +34,16 @@ public class Wallet {
     @Builder.Default
     private List<WalletAccess> accesses = new ArrayList<>();
 
-    @OneToMany(mappedBy = "wallet")
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Tag> tags = new ArrayList<>();
 
+    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private String currency = "EUR"; // Default
+    private List<Transaction> transactions = new ArrayList<>();
+
+    @Builder.Default
+    private String currency = "EUR";
 
     @CreationTimestamp
     @Column(updatable = false)
