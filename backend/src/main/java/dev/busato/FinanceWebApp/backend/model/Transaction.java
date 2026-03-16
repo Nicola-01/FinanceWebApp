@@ -54,7 +54,7 @@ public class Transaction {
     @Column(columnDefinition = "TEXT")
     private String notes;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     private LocalDate transactionDate;
 
     public enum Type { INCOME, EXPENSE }

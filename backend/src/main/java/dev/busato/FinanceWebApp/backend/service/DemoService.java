@@ -31,7 +31,6 @@ public class DemoService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
-        // 1. Creazione del Wallet (usando la chiave "wallet" dal tuo ICONS)
         Wallet demoWallet = Wallet.builder()
                 .name("Portafoglio Demo")
                 .color("#3b82f6") // Blu
@@ -43,7 +42,6 @@ public class DemoService {
 
         walletRepository.save(demoWallet);
 
-        // 2. Creazione dell'Accesso (Owner)
         WalletAccess.WalletAccessId accessId = new WalletAccess.WalletAccessId(userId, demoWallet.getId());
         WalletAccess access = new WalletAccess();
         access.setId(accessId);
@@ -55,10 +53,8 @@ public class DemoService {
 
         walletAccessRepository.save(access);
 
-        // 3. Creazione delle Categorie (Tags)
         List<Tag> tags = createDemoTags(demoWallet);
 
-        // 4. Generazione Transazioni (~2 anni)
         generateTransactions(demoWallet, tags);
     }
 
@@ -212,6 +208,9 @@ public class DemoService {
 
     private void addTx(List<Transaction> txList, Wallet wallet, List<Tag> tags, String tagName,
                        String title, double amount, LocalDate date, Transaction.Type type) {
+
+        if (date.isAfter(LocalDate.now()))
+            return;
 
         Tag selectedTag = tags.stream()
                 .filter(t -> t.getName().equalsIgnoreCase(tagName))
