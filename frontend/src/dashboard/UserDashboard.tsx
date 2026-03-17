@@ -69,10 +69,12 @@ const UserDashboard: React.FC = () => {
     }
 
     return (
-        <>
-            <AppHeader page={{text: "My", accent: "Wallet"}}/>
-            <div className="flex flex-col xl:flex-row min-h-screen bg-[#0d0d12] text-white overflow-hidden">
+        // 1. IL FIX È QUI: Un unico div contenitore alto ESATTAMENTE 100vh che blocca l'overflow del body
+        <div className="flex flex-col h-screen bg-[#0d0d12] text-white overflow-hidden">
 
+            <AppHeader page={{text: "My", accent: "Wallet"}}/>
+
+            <div className="flex flex-col xl:flex-row flex-1 overflow-hidden">
                 <WalletsBar
                     wallets={wallets}
                     setWallets={setWallets}
@@ -82,7 +84,8 @@ const UserDashboard: React.FC = () => {
                     onRefreshAll={fetchData}
                 />
 
-                <div className="flex-1 overflow-y-auto h-screen bg-[#0d0d12]">
+                {/* Il flex-1 gestisce da solo lo scorrimento senza sforare lo schermo */}
+                <div className="flex-1 overflow-y-auto bg-[#0d0d12]">
                     {selectedWallet ? (
                         <WalletDashboard
                             _wallet={selectedWallet}
@@ -99,20 +102,18 @@ const UserDashboard: React.FC = () => {
                             {loading ? "Loading data..."
                                 : (
                                     <div className="flex flex-col items-center justify-center py-24 text-white/40">
-                                        <div
-                                            className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+                                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
                                             <FontAwesomeIcon icon={faPiggyBank} className="text-2xl opacity-50"/>
                                         </div>
                                         <p className="text-sm font-medium">No wallets found.</p>
-                                        <p className="mt-1 text-xs opacity-60">Click "New Wallet" to add your first
-                                            one.</p>
+                                        <p className="mt-1 text-xs opacity-60">Click "New Wallet" to add your first one.</p>
                                     </div>
                                 )}
                         </div>
                     )}
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
