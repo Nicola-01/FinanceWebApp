@@ -19,7 +19,7 @@ interface AppHeaderProps {
     };
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -78,17 +78,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
     return (
         <> {/* 1. Aggiungiamo questo Fragment per racchiudere tutto */}
 
-            <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#0d0d12]/80 px-6 backdrop-blur-md">
+            <header
+                className=" top-0 z-40 flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#0d0d12]/80 px-6 backdrop-blur-md">
                 {/* Logo e Nome App */}
                 <h2 className="m-0 text-2xl font-bold tracking-wide text-white capitalize">
                     {page.text}
-                    <span className="ml-1 animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                    <span
+                        className="ml-1 animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                         {page.accent}
                     </span>
                 </h2>
 
                 {/* Menu Utente Dropdown */}
-                <div className="relative" ref={menuRef}>
+                <div className="relative z-40 " ref={menuRef}>
                     <button
                         onClick={() => setShowMenu(!showMenu)}
                         className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${
@@ -177,10 +179,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
                             >
                                 <FontAwesomeIcon icon={faEnvelope} className="w-4"/>
                                 Invitations
-                                <span
-                                    className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[#00bfff] text-[10px] font-bold text-black">
-                                    {invitations.length}
-                                </span>
+                                {
+                                    invitations.filter(i => i.status === 'PENDING').length > 0 &&
+                                    <span
+                                        className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[#00bfff] text-[10px] font-bold text-black">
+                                        {invitations.length}
+                                    </span>
+                                }
                             </button>
 
                             <div className="my-1 h-px w-full bg-white/5"/>
@@ -203,5 +208,5 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
             <InvitationsModal ref={invitationsModalRef}/>
 
         </>
-);
+    );
 };

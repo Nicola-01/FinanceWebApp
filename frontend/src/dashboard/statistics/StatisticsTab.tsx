@@ -91,7 +91,7 @@ const TransactionPieChart = ({ transactions, type, title }: { transactions: Tran
     const middleRadius = 140;
 
     return (
-        <div className="flex flex-col items-center w-full bg-black/20 rounded-2xl border border-white/10 p-6">
+        <div className="flex flex-col items-center w-full bg-black/20 rounded-2xl border border-white/10 py-3 md:p-6">
             <h3 className="text-xl font-bold text-white mb-6 uppercase tracking-wider">{title}</h3>
 
             <div className="w-full flex justify-center h-[400px]">
