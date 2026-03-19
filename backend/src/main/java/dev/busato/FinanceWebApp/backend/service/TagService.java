@@ -37,6 +37,7 @@ public class TagService {
     public List<TagResponse> getTags(UUID walletId, UUID userId) {
         return tagRepository.getTagsByWalletId(walletId).stream()
                 .map(this::mapToResponse)
+                .sorted((t1, t2) -> t2.getName().compareTo(t1.getName()))
                 .collect(Collectors.toList());
     }
 
