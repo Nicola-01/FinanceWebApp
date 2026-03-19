@@ -69,12 +69,16 @@ const UserDashboard: React.FC = () => {
     }
 
     return (
-        // 1. IL FIX È QUI: Un unico div contenitore alto ESATTAMENTE 100vh che blocca l'overflow del body
-        <div className="flex flex-col h-screen bg-[#0d0d12] text-white overflow-hidden">
+        // 1. Mobile: min-h-screen (scorre tutto). Desktop: h-screen e overflow-hidden (layout fisso)
+        <div className="flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-[#0d0d12] text-white">
 
+            {/* L'Header occupa il suo spazio fisso in alto */}
             <AppHeader page={{text: "My", accent: "Wallet"}}/>
 
-            <div className="flex flex-col xl:flex-row flex-1 overflow-hidden">
+            {/* 2. Desktop: Nascondiamo gli overflow che sbordano dal layout flessibile */}
+            <div className="flex flex-col xl:flex-row flex-1 xl:overflow-hidden">
+
+                {/* La barra laterale prenderà xl:h-full e scorrerà da sola */}
                 <WalletsBar
                     wallets={wallets}
                     setWallets={setWallets}
@@ -84,8 +88,8 @@ const UserDashboard: React.FC = () => {
                     onRefreshAll={fetchData}
                 />
 
-                {/* Il flex-1 gestisce da solo lo scorrimento senza sforare lo schermo */}
-                <div className="flex-1 overflow-y-auto bg-[#0d0d12]">
+                {/* 3. Desktop: Permettiamo SOLO a quest'area destra di scorrere verticalmente */}
+                <div className="flex-1 bg-[#0d0d12] xl:overflow-y-auto custom-scrollbar">
                     {selectedWallet ? (
                         <WalletDashboard
                             _wallet={selectedWallet}
@@ -98,7 +102,7 @@ const UserDashboard: React.FC = () => {
                             }}
                         />
                     ) : (
-                        <div className="flex h-full items-center justify-center text-white/40">
+                        <div className="flex h-full min-h-[50vh] items-center justify-center text-white/40">
                             {loading ? "Loading data..."
                                 : (
                                     <div className="flex flex-col items-center justify-center py-24 text-white/40">
