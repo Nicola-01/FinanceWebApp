@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { CreateWalletModal, type CreateWalletModalHandle } from "../../modals/CreateWalletModal.tsx";
-import WalletCard, { WalletCardUI } from "./WalletCard.tsx"; // Importiamo anche la UI!
+import WalletCard, { WalletCardUI } from "./WalletCard.tsx";
 import type { Wallet } from '../../utils/types.ts';
 
 import {
@@ -45,22 +45,57 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                                                            wallets, setWallets, loading, selectedWalletId, onSelectWallet, onRefreshAll
                                                        }) => {
     const walletModal = useRef<CreateWalletModalHandle>(null);
-
-    // Stato per tracciare QUALE wallet stiamo trascinando
     const [activeId, setActiveId] = useState<string | null>(null);
 
+    // --- 1. SINCRONIZZAZIONE ORDINE INIZIALE DA LOCAL STORAGE ---
+    useEffect(() => {
+        if (!loading && wallets.length > 0) {
+            const savedOrderStr = localStorage.getItem('wallet_order');
+
+            if (savedOrderStr) {
+                try {
+                    const savedOrder = JSON.parse(savedOrderStr) as string[];
+                    const currentIds = wallets.map(w => w.id).join(',');
+
+                    // Riordiniamo i wallet basandoci sugli ID salvati nel localStorage
+                    const sortedWallets = [...wallets].sort((a, b) => {
+                        const indexA = savedOrder.indexOf(a.id);
+                        const indexB = savedOrder.indexOf(b.id);
+
+                        // Se ci sono wallet "nuovi" non presenti nel localStorage, li mettiamo in fondo
+                        if (indexA === -1 && indexB === -1) return 0;
+                        if (indexA === -1) return 1;
+                        if (indexB === -1) return -1;
+
+                        return indexA - indexB;
+                    });
+
+                    const sortedIds = sortedWallets.map(w => w.id).join(',');
+
+                    // Se l'ordine effettivo è diverso da quello salvato, aggiorniamo lo state genitore
+                    if (currentIds !== sortedIds) {
+                        setWallets(sortedWallets);
+                        // Aggiorniamo anche il localStorage (utile se è stato aggiunto un wallet nuovo)
+                        localStorage.setItem('wallet_order', JSON.stringify(sortedWallets.map(w => w.id)));
+                    }
+                } catch (e) {
+                    console.error("Error parsing wallet_order from localStorage", e);
+                }
+            }
+        }
+    }, [wallets, loading, setWallets]);
+
+
     const sensors = useSensors(
-        // Su PC (Mouse): il drag parte se ti muovi di 5 pixel
         useSensor(MouseSensor, {
             activationConstraint: {
                 distance: 5,
             },
         }),
-        // Su Mobile (Touch): il drag parte SOLO se tieni premuto per 250 millisecondi
         useSensor(TouchSensor, {
             activationConstraint: {
                 delay: 250,
-                tolerance: 5, // Permette un leggerissimo tremolio del dito mentre si tiene premuto
+                tolerance: 5,
             },
         })
     );
@@ -69,33 +104,32 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
         setActiveId(event.active.id as string);
     };
 
+    // --- 2. SALVATAGGIO ORDINE AL TERMINE DEL DRAG ---
     const handleDragEnd = (event: DragEndEvent) => {
-        setActiveId(null); // Resetta l'ID
+        setActiveId(null);
         const { active, over } = event;
 
         if (over && active.id !== over.id) {
             setWallets((items) => {
                 const oldIndex = items.findIndex(i => i.id === active.id);
                 const newIndex = items.findIndex(i => i.id === over.id);
-                return arrayMove(items, oldIndex, newIndex);
+                const newArray = arrayMove(items, oldIndex, newIndex);
+                localStorage.setItem('wallet_order', JSON.stringify(newArray.map(w => w.id)));
+                return newArray;
             });
         }
     };
 
-    // Troviamo il wallet attivo per passarlo all'ologramma
     const activeWallet = activeId ? wallets.find(w => w.id === activeId) : null;
 
     return (
-        // 1. DndContext ora avvolge TUTTO, diventando il padre principale
         <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             onDragCancel={() => setActiveId(null)}
-            autoScroll={false}
         >
-            {/* 2. Il div della WalletsBar con il backdrop-blur è ora un figlio */}
             <div className="
                 flex flex-row overflow-x-auto overflow-y-hidden w-full p-4 gap-4
                 xl:flex-col xl:w-[320px] xl:shrink-0 xl:h-full xl:overflow-y-auto xl:overflow-x-hidden xl:border-r xl:border-white/5 xl:p-6
@@ -140,7 +174,6 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                 <CreateWalletModal ref={walletModal} onSuccess={onRefreshAll} />
             </div>
 
-            {/* 3. L'OLOGRAMMA È LIBERO! Ora è fuori dal div con il blur e si posizionerà perfettamente */}
             <DragOverlay dropAnimation={{ duration: 250, easing: 'ease-out' }}>
                 {activeWallet ? (
                     <WalletCardUI

@@ -98,6 +98,7 @@ public class WalletService {
         return walletAccessRepository.findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED)
                 .stream()
                 .map(this::mapWalletToResponse)
+                .sorted((w1, w2) -> w2.getCreatedAt().compareTo(w1.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 
