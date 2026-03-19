@@ -99,29 +99,8 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     // }
 
     return (
-        <div className="flex flex-col h-full">
-
-            {/* AZIONE PRINCIPALE: Ora è isolata, allineata a destra come da design */}
-            {!isLoading && (
-                <div className="mb-6 mt-2 w-full">
-                    <button
-                        onClick={() => transactionModalRef.current?.openModal()}
-                        className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-white/10 bg-transparent p-4 text-white/50 transition-all hover:border-white/30 hover:bg-white/5 hover:text-white"
-                    >
-                        {/* Icona circolare che simula la categoria della transazione */}
-                        <div
-                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-white/10 group-hover:scale-105"
-                            style={{color: wallet.color}}>
-                            <FontAwesomeIcon icon={faPlus}/>
-                        </div>
-
-                        {/* Testo allineato come il nome della transazione */}
-                        <div className="flex-1 text-left font-bold tracking-wide">
-                            Add New Transaction
-                        </div>
-                    </button>
-                </div>
-            )}
+        // Aggiunto "relative" al contenitore principale
+        <div className="flex flex-col h-full relative">
 
             <div className="flex-1 overflow-auto pr-2 custom-scrollbar">
 
@@ -139,14 +118,14 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                         </>
                     ) :
 
-                    /* 2. STATO VUOTO (Nessuna transazione) - Migliorato visivamente */
+                    /* 2. STATO VUOTO (Nessuna transazione) */
                     transactions.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-24 text-white/40">
                                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
                                     <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50"/>
                                 </div>
                                 <p className="text-sm font-medium">No transactions found for this period.</p>
-                                <p className="mt-1 text-xs opacity-60">Click "New Transaction" to add your first one.</p>
+                                <p className="mt-1 text-xs opacity-60">Click the "+" button to add your first one.</p>
                             </div>
                         ) :
 
@@ -175,26 +154,42 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                             ))
                         )
                 }
-
-                {/* MODALS */}
-                <TransactionDetailsModal
-                    ref={detailsModalRef}
-                    wallet={wallet}
-                    handleDeleteSuccess={onSuccessDelete}
-                    onEditRequest={(tx) => {
-                        transactionModalRef.current?.openModal(tx);
-                    }}
-                />
-
-                <TransactionModal
-                    ref={transactionModalRef}
-                    wallet={wallet}
-                    tags={tags}
-                    baseCurrency={wallet.currency as CurrencyCode}
-                    onSuccess={onRefresh}
-                />
-
             </div>
+
+            {!isLoading && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] flex items-center justify-center">
+                    <button
+                        onClick={() => transactionModalRef.current?.openModal()}
+                        className="group flex h-16 w-16 items-center justify-center rounded-xl text-[#0d0d12] transition-all duration-300 hover:scale-110 active:scale-95 shadow-2xl"
+                        style={{
+                            backgroundColor: wallet?.color || '#00bfff', // Fallback colore
+                            boxShadow: `0 10px 30px -5px ${wallet?.color || '#00bfff'}CC` // Ombra del colore del wallet più intensa
+                        }}
+                        title="Add New Transaction"
+                    >
+                        <FontAwesomeIcon icon={faPlus} className="text-3xl transition-transform group-hover:rotate-90"/>
+                    </button>
+                </div>
+            )}
+
+            {/* MODALS */}
+            <TransactionDetailsModal
+                ref={detailsModalRef}
+                wallet={wallet}
+                handleDeleteSuccess={onSuccessDelete}
+                onEditRequest={(tx) => {
+                    transactionModalRef.current?.openModal(tx);
+                }}
+            />
+
+            <TransactionModal
+                ref={transactionModalRef}
+                wallet={wallet}
+                tags={tags}
+                baseCurrency={wallet.currency as CurrencyCode}
+                onSuccess={onRefresh}
+            />
+
         </div>
     );
 };
