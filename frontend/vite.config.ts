@@ -1,13 +1,13 @@
-import {defineConfig, loadEnv} from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig(({mode}) => {
+export default defineConfig(({ mode }) => {
     const envDirectory = path.resolve(__dirname, '..');
     const env = loadEnv(mode, envDirectory, '');
 
-    // Logica di pulizia: rimuove protocollo e slash finali
     const rawHosts = env.VITE_ALLOWED_HOSTS ? env.VITE_ALLOWED_HOSTS.split(',') : [];
     const allowedHosts = rawHosts.map(host =>
         host.trim()
@@ -24,7 +24,66 @@ export default defineConfig(({mode}) => {
     console.log('-------------------------')
 
     return {
-        plugins: [react(), tailwindcss()],
+        plugins: [
+            react(),
+            tailwindcss(),
+            VitePWA({
+                registerType: 'autoUpdate',
+                includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+                manifest: {
+                    name: 'Finance Web App',
+                    short_name: 'FinanceApp',
+                    description: 'Track your wallets and transactions offline!',
+                    theme_color: '#0d0d12',
+                    background_color: '#0d0d12',
+                    display: 'standalone',
+                    icons: [
+                        {
+                            src: 'pwa-192x192.png',
+                            sizes: '192x192',
+                            type: 'image/png'
+                        },
+                        {
+                            src: 'pwa-512x512.png',
+                            sizes: '512x512',
+                            type: 'image/png'
+                        }
+                    ]
+                },
+                workbox: {
+                    runtimeCaching: [
+                        {
+                            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+                            handler: 'CacheFirst',
+                            options: {
+                                cacheName: 'google-fonts-cache',
+                                expiration: {
+                                    maxEntries: 10,
+                                    maxAgeSeconds: 60 * 60 * 24 * 365
+                                },
+                                cacheableResponse: {
+                                    statuses: [0, 200]
+                                }
+                            }
+                        },
+                        {
+                            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+                            handler: 'CacheFirst',
+                            options: {
+                                cacheName: 'gstatic-fonts-cache',
+                                expiration: {
+                                    maxEntries: 10,
+                                    maxAgeSeconds: 60 * 60 * 24 * 365
+                                },
+                                cacheableResponse: {
+                                    statuses: [0, 200]
+                                }
+                            }
+                        }
+                    ]
+                }
+            })
+        ],
         server: {
             allowedHosts: allowedHosts.length > 0 ? allowedHosts : true,
             host: true,
