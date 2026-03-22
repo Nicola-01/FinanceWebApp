@@ -162,12 +162,15 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                                         <div className="h-px flex-1 bg-white/10 rounded-full"></div>
                                     </div>
 
-                                    <div className="flex flex-col gap-2">
-                                        {groupedTransactions[date].map(tx => (
+                                    {/* RIMOSSO IL GAP-2 PER ATTACCARE GLI ELEMENTI */}
+                                    <div className="flex flex-col">
+                                        {groupedTransactions[date].map((tx, index, array) => (
                                             <TransactionRow
                                                 key={tx.id}
                                                 transaction={tx}
                                                 onClick={(tx) => detailsModalRef.current?.openModal(tx)}
+                                                isFirst={index === 0}
+                                                isLast={index === array.length - 1}
                                             />
                                         ))}
                                     </div>

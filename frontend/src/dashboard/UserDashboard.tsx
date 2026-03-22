@@ -1,17 +1,17 @@
-import React, {useEffect, useState} from "react";
-import {useNavigate, useParams} from "react-router-dom";
-import {WalletsBar} from "./wallet/WalletsBar.tsx";
-import {WalletDashboard} from "./wallet/WalletDashboard.tsx";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { WalletsBar } from "./wallet/WalletsBar.tsx";
+import { WalletDashboard } from "./wallet/WalletDashboard.tsx";
 import api from '../api/axiosConfig';
-import {triggerToast} from '../components/ToastNotification';
-import type {Wallet} from "../utils/types";
-import {useDeleteModal} from "../modals/DeleteModalContext.tsx";
-import {AppHeader} from "../header/AppHeader.tsx";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPiggyBank} from "@fortawesome/free-solid-svg-icons";
+import { triggerToast } from '../components/ToastNotification';
+import type { Wallet } from "../utils/types";
+import { useDeleteModal } from "../modals/DeleteModalContext.tsx";
+import { AppHeader } from "../header/AppHeader.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPiggyBank } from "@fortawesome/free-solid-svg-icons";
 
 const UserDashboard: React.FC = () => {
-    const {walletId} = useParams<{ walletId: string }>();
+    const { walletId } = useParams<{ walletId: string }>();
     const navigate = useNavigate();
 
     // Centralized states
@@ -29,7 +29,7 @@ const UserDashboard: React.FC = () => {
 
             // Se non c'è un ID nell'URL, seleziona automaticamente il primo wallet
             if (!walletId && fetchedWallets.length > 0) {
-                navigate(`/dashboard/${fetchedWallets[0].id}`, {replace: true});
+                navigate(`/dashboard/${fetchedWallets[0].id}`, { replace: true });
             }
         } catch (err) {
             triggerToast("Error loading data", false);
@@ -46,7 +46,7 @@ const UserDashboard: React.FC = () => {
     // Deletion handling: se il wallet selezionato sparisce, naviga al primo disponibile
     useEffect(() => {
         if (!loading && wallets.length > 0 && walletId && !wallets.find(w => w.id === walletId)) {
-            navigate(`/dashboard/${wallets[0].id}`, {replace: true});
+            navigate(`/dashboard/${wallets[0].id}`, { replace: true });
         }
     }, [walletId, wallets, loading, navigate]);
 
@@ -73,7 +73,7 @@ const UserDashboard: React.FC = () => {
         <div className="flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-[#0d0d12] text-white">
 
             {/* L'Header occupa il suo spazio fisso in alto */}
-            <AppHeader page={{text: "My", accent: "Wallet"}}/>
+            <AppHeader page={{ text: "My", accent: "Wallet" }} />
 
             {/* 2. Desktop: Nascondiamo gli overflow che sbordano dal layout flessibile */}
             <div className="flex flex-col xl:flex-row flex-1 xl:overflow-hidden">
@@ -94,6 +94,7 @@ const UserDashboard: React.FC = () => {
                         <WalletDashboard
                             _wallet={selectedWallet}
                             key={selectedWallet.id}
+                            onWalletUpdate={fetchData}
                             onWalletDelete={() => {
                                 deleteModalRef.current?.deleteObject(
                                     selectedWallet, 'wallet',
@@ -107,7 +108,7 @@ const UserDashboard: React.FC = () => {
                                 : (
                                     <div className="flex flex-col items-center justify-center py-24 text-white/40">
                                         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
-                                            <FontAwesomeIcon icon={faPiggyBank} className="text-2xl opacity-50"/>
+                                            <FontAwesomeIcon icon={faPiggyBank} className="text-2xl opacity-50" />
                                         </div>
                                         <p className="text-sm font-medium">No wallets found.</p>
                                         <p className="mt-1 text-xs opacity-60">Click "New Wallet" to add your first one.</p>

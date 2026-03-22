@@ -27,6 +27,7 @@ export interface Tag {
     icon: string;
     colorHex: string;
     parentName?: string | null;
+    parent?: Tag | null;
 }
 
 export interface Transaction {

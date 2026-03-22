@@ -1,5 +1,5 @@
-import React, {useEffect, useRef, useState} from "react";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import React, { useEffect, useRef, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faEllipsisVertical,
     faPenToSquare,
@@ -7,16 +7,11 @@ import {
     faTrash
 } from "@fortawesome/free-solid-svg-icons";
 
-import type {Wallet} from "../../utils/types.ts";
+import { useWalletContext } from "./WalletContext.tsx";
 
-interface WalletMenuProps {
-    wallet: Wallet;
-    isLoading: boolean;
-    onRefresh: () => Promise<void>;
-    onWalletDelete: () => void;
-}
-
-export const WalletMenu: React.FC<WalletMenuProps> = ({isLoading, onWalletDelete, onRefresh}) => {
+export const WalletMenu: React.FC = () => {
+    const { isLoading, fetchData, setActiveTab, onWalletDelete } = useWalletContext();
+    const onRefresh = () => fetchData();
 
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -44,7 +39,7 @@ export const WalletMenu: React.FC<WalletMenuProps> = ({isLoading, onWalletDelete
                     className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all ${showMenu ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white'}`}
                     title="Wallet Options"
                 >
-                    <FontAwesomeIcon icon={faEllipsisVertical} className="text-lg"/>
+                    <FontAwesomeIcon icon={faEllipsisVertical} className="text-lg" />
                 </button>
 
                 {showMenu && (
@@ -60,19 +55,22 @@ export const WalletMenu: React.FC<WalletMenuProps> = ({isLoading, onWalletDelete
                             disabled={isLoading}
                         >
                             <FontAwesomeIcon icon={faRotateRight}
-                                             className={`w-4 ${isLoading ? "animate-spin text-[#00ff7f]" : ""}`}/>
+                                className={`w-4 ${isLoading ? "animate-spin text-[#00ff7f]" : ""}`} />
                             Refresh Data
                         </button>
 
                         <button
                             className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-white/70 transition-colors hover:bg-amber-400/20 hover:text-amber-400"
-                            onClick={() => setShowMenu(false)}
+                            onClick={() => {
+                                setShowMenu(false);
+                                setActiveTab('settings');
+                            }}
                         >
-                            <FontAwesomeIcon icon={faPenToSquare} className="w-4"/>
+                            <FontAwesomeIcon icon={faPenToSquare} className="w-4" />
                             Edit Wallet
                         </button>
 
-                        <div className="my-1 h-px w-full bg-white/5"/>
+                        <div className="my-1 h-px w-full bg-white/5" />
 
                         <button
                             className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-[#ff4d4d]/70 transition-colors hover:bg-[#ff4d4d]/20 hover:text-[#ff4d4d]"
@@ -81,7 +79,7 @@ export const WalletMenu: React.FC<WalletMenuProps> = ({isLoading, onWalletDelete
                                 onWalletDelete();
                             }}
                         >
-                            <FontAwesomeIcon icon={faTrash} className="w-4"/>
+                            <FontAwesomeIcon icon={faTrash} className="w-4" />
                             Delete Wallet
                         </button>
 
