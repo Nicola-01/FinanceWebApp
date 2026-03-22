@@ -1,22 +1,21 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosConfig';
-import {triggerToast} from '../../components/ToastNotification';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faClock, faCrown, faEye, faPen, faSpinner} from '@fortawesome/free-solid-svg-icons';
-import type {Wallet, WalletMember} from '../../utils/types';
+import { triggerToast } from '../../components/ToastNotification';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClock, faCrown, faEye, faPen, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import type { WalletMember } from '../../utils/types';
 
 // Importiamo i nuovi sotto-componenti
-import {InviteSection} from './InviteSection';
-import {MemberCategory} from './MemberCategory';
-import {getUserAuth} from "../../utils/authHelper.ts";
+import { InviteSection } from './InviteSection';
+import { MemberCategory } from './MemberCategory';
+import { getUserAuth } from "../../utils/authHelper.ts";
 
-interface ShareTabProps {
-    wallet: Wallet;
-}
+import { useWalletContext } from "../wallet/WalletContext.tsx";
 
 const user = getUserAuth();
 
-export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
+export const ShareTab: React.FC = () => {
+    const { wallet } = useWalletContext();
     const [members, setMembers] = useState<WalletMember[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -73,8 +72,8 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
 
     const handleChangeRole = async (memberId: string, newRole: 'EDITOR' | 'VIEWER') => {
         try {
-            await api.put(`/wallets/${wallet.id}/invitations/${memberId}/role`, {role: newRole});
-            setMembers(prev => prev.map(m => m.userId === memberId ? {...m, role: newRole} : m));
+            await api.put(`/wallets/${wallet.id}/invitations/${memberId}/role`, { role: newRole });
+            setMembers(prev => prev.map(m => m.userId === memberId ? { ...m, role: newRole } : m));
             triggerToast("Role updated successfully.", true);
         } catch (err) {
             triggerToast("Error updating role.", false);
@@ -92,13 +91,13 @@ export const ShareTab: React.FC<ShareTabProps> = ({wallet}) => {
             className="flex flex-col gap-8 h-full overflow-y-auto pr-2 custom-scrollbar animate-[fadeIn_0.3s_ease-out]">
 
             {isOwner && (
-                <InviteSection walletColor={wallet.color} onInvite={handleInvite}/>
+                <InviteSection walletColor={wallet.color} onInvite={handleInvite} />
             )}
 
             <div className="flex flex-col gap-6">
                 {isLoading ? (
                     <div className="flex justify-center py-10 text-white/30">
-                        <FontAwesomeIcon icon={faSpinner} spin className="text-2xl"/>
+                        <FontAwesomeIcon icon={faSpinner} spin className="text-2xl" />
                     </div>
                 ) : (
                     <>

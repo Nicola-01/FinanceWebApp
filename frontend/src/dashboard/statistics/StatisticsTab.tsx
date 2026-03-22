@@ -1,13 +1,10 @@
 import React from 'react';
-import {pieArcLabelClasses, PieChart} from '@mui/x-charts/PieChart';
-import {createTheme, styled, ThemeProvider} from '@mui/material/styles';
-import {useDrawingArea} from '@mui/x-charts/hooks';
-import type {Transaction} from '../../utils/types.ts';
-import {CashFlowSankey} from './CashFlowSankey.tsx';
-
-interface StatisticsTabProps {
-    transactions: Transaction[];
-}
+import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
+import { createTheme, styled, ThemeProvider } from '@mui/material/styles';
+import { useDrawingArea } from '@mui/x-charts/hooks';
+import type { Transaction } from '../../utils/types.ts';
+import { CashFlowSankey } from './CashFlowSankey.tsx';
+import { useWalletContext } from '../wallet/WalletContext.tsx';
 
 const darkTheme = createTheme({
     palette: {
@@ -131,7 +128,8 @@ const TransactionPieChart = ({ transactions, type, title }: { transactions: Tran
     );
 };
 
-export const StatisticsTab: React.FC<StatisticsTabProps> = ({ transactions }) => {
+export const StatisticsTab: React.FC = () => {
+    const { transactions } = useWalletContext();
     return (
         <ThemeProvider theme={darkTheme}>
             {/* Contenitore con scroll per vedere bene tutti i grafici */}

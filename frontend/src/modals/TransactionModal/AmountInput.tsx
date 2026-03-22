@@ -10,7 +10,15 @@ interface AmountInputProps {
     autoFocus?: boolean; // <-- 1. AGGIUNTO QUI
 }
 
-export const AmountInput = ({ value, placeholder, currencySymbol, type, setType, onAmountChange, autoFocus = true }: AmountInputProps) => {
+export const AmountInput = ({
+                                value,
+                                placeholder,
+                                currencySymbol,
+                                type,
+                                setType,
+                                onAmountChange,
+                                autoFocus = true
+                            }: AmountInputProps) => {
     const internalRef = useRef<HTMLInputElement>(null);
 
     const [color, setColor] = useState<string>('')
@@ -41,13 +49,11 @@ export const AmountInput = ({ value, placeholder, currencySymbol, type, setType,
         setColor(type === 'EXPENSE' ? 'text-[#ff4d4d]' : 'text-[#00ff7f]')
 
         if (internalRef.current) {
-            const currentValue = internalRef.current.value;
+            let currentValue = internalRef.current.value;
             if (!currentValue) return;
 
-            if (type === 'EXPENSE' && !currentValue.startsWith('-'))
-                internalRef.current.value = '-' + currentValue.replace('+', '');
-            else if (type === 'INCOME' && currentValue.startsWith('-'))
-                internalRef.current.value = '+' + currentValue.replace('-', '');
+            currentValue = currentValue.replace(/^[+-]/, '')
+            internalRef.current.value = (type === 'EXPENSE' ? '-' : '+') + currentValue;
         }
     }, [type]);
 
