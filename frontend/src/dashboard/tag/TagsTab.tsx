@@ -9,7 +9,6 @@ import { useWalletContext } from "../wallet/WalletContext.tsx";
 
 // --- COMPONENTE SKELETON INTERNO ---
 const TagSkeleton = () => (
-    // Aggiunto break-inside-avoid e mb-6 per il layout masonry
     <div className="break-inside-avoid mb-6 rounded-xl border border-white/5 bg-white/5 p-4 flex flex-col gap-4 animate-pulse">
         <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-white/10 shrink-0"></div>
@@ -63,9 +62,83 @@ export const TagsTab: React.FC = () => {
     return (
         <div className="flex-1 overflow-auto rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-md">
 
-            {/* RIMOSSO grid, INSERITO columns-1 md:columns-2 xl:columns-3 */}
-            <div className="columns-1 md:columns-2 xl:columns-3 gap-6">
+            {/* 1. SEZIONE AGGIUNGI MAIN CATEGORY (Sopra a tutto, larghezza intera) */}
+            {!isLoading && (
+                <div className="mb-8 w-full">
+                    {isAddingTag ? (
+                        /* GRAFICA AGGIORNATA: Form quando si sta aggiungendo */
+                        <div className="group flex w-full items-center gap-4 rounded-2xl border-2 border-[#00ff7f]/30 bg-[#00ff7f]/5 p-4 text-white transition-all shadow-[0_0_20px_rgba(0,255,127,0.05)]">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5">
+                                <IconPickerButton
+                                    icon={newTag.icon as IconKey}
+                                    color={newTag.colorHex as string}
+                                    onIconChange={(icon: IconKey) => setNewTag({ ...newTag, icon: icon })}
+                                    onColorChange={(color: string) => setNewTag({ ...newTag, colorHex: color })}
+                                    isOpen={showNewMainSelector}
+                                    onToggle={setShowNewMainSelector}
+                                />
+                            </div>
 
+                            <input
+                                autoFocus
+                                className="flex-1 bg-transparent text-left font-bold tracking-wide text-white outline-none placeholder-white/20"
+                                placeholder="Category Name..."
+                                value={newTag.name}
+                                onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
+                                disabled={savingMain}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleAddMainTag();
+                                    if (e.key === 'Escape') {
+                                        setIsAddingTag(false);
+                                        setNewTag({ ...newTag, name: '' });
+                                    }
+                                }}
+                            />
+
+                            {savingMain ? (
+                                <FontAwesomeIcon icon={faSpinner} spin className="text-[#00ff7f] mx-2" />
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={handleAddMainTag}
+                                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#00ff7f]/20 text-[#00ff7f] hover:bg-[#00ff7f] hover:text-black transition-all"
+                                        title="Confirm"
+                                    >
+                                        <FontAwesomeIcon icon={faCheck} />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setIsAddingTag(false);
+                                            setNewTag({ ...newTag, name: '' });
+                                        }}
+                                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-white/40 hover:bg-red-500/20 hover:text-red-500 transition-all"
+                                        title="Cancel"
+                                    >
+                                        <FontAwesomeIcon icon={faXmark} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        /* NUOVO STILE RICHIESTO: Pulsante tratteggiato */
+                        <button
+                            onClick={() => setIsAddingTag(true)}
+                            className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-white/10 bg-transparent p-4 text-white/50 transition-all hover:border-white/30 hover:bg-white/5 hover:text-white"
+                        >
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-white/10 group-hover:scale-105">
+                                <FontAwesomeIcon icon={faPlus}/>
+                            </div>
+
+                            <div className="flex-1 text-left font-bold tracking-wide">
+                                Add Main Category
+                            </div>
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* 2. GRIGLIA DEI TAG (Masonry Layout) */}
+            <div className="columns-1 md:columns-2 xl:columns-3 gap-6">
                 {isLoading ? (
                     <>
                         <TagSkeleton />
@@ -76,7 +149,6 @@ export const TagsTab: React.FC = () => {
                 ) : (
                     <>
                         {Object.values(organizedTags).map(({ parent, children }) => (
-                            /* WRAPPER OBBLIGATORIO: Evita che la card si tagli a metà tra le colonne */
                             <div key={parent.name} className="break-inside-avoid mb-6">
                                 <TagCard
                                     parent={parent}
@@ -87,62 +159,6 @@ export const TagsTab: React.FC = () => {
                                 />
                             </div>
                         ))}
-
-                        {/* WRAPPER PER L'AGGIUNTA: Anch'esso con break-inside-avoid */}
-                        <div className="break-inside-avoid mb-6">
-                            {isAddingTag ? (
-                                <div className="rounded-xl border border-[#00ff7f]/50 bg-[#00ff7f]/5 p-4 flex flex-col justify-center gap-3 min-h-[100px] shadow-[0_0_15px_rgba(0,255,127,0.1)]">
-                                    <div className="flex items-center gap-3">
-                                        <IconPickerButton
-                                            icon={newTag.icon as IconKey} color={newTag.colorHex as string}
-                                            onIconChange={(icon: IconKey) => setNewTag({ ...newTag, icon: icon })}
-                                            onColorChange={(color: string) => setNewTag({ ...newTag, colorHex: color })}
-                                            isOpen={showNewMainSelector} onToggle={setShowNewMainSelector}
-                                        />
-                                        <input
-                                            autoFocus
-                                            className="bg-transparent text-lg font-bold text-white outline-none w-full placeholder-white/30"
-                                            placeholder="Name..." value={newTag.name}
-                                            onChange={(e) => setNewTag({ ...newTag, name: e.target.value })} disabled={savingMain}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') handleAddMainTag();
-                                                if (e.key === 'Escape') {
-                                                    setIsAddingTag(false);
-                                                    setNewTag({ ...newTag, name: '' })
-                                                }
-                                            }}
-                                        />
-                                        {savingMain ?
-                                            <FontAwesomeIcon icon={faSpinner} spin className="text-[#00ff7f] ml-auto" /> : (
-                                                <div className="flex items-center gap-1 ml-auto">
-                                                    <button onClick={handleAddMainTag}
-                                                        className="flex h-8 w-8 items-center justify-center rounded-md bg-[#00ff7f]/20 text-[#00ff7f] hover:bg-[#00ff7f] hover:text-black transition-colors"
-                                                        title="Save"><FontAwesomeIcon icon={faCheck} /></button>
-                                                    <button onClick={() => {
-                                                        setIsAddingTag(false);
-                                                        setNewTag({ ...newTag, name: '' })
-                                                    }}
-                                                        className="flex h-8 w-8 items-center justify-center rounded-md bg-white/5 text-white/40 hover:bg-red-500/20 hover:text-red-500 transition-colors"
-                                                        title="Cancel"><FontAwesomeIcon icon={faXmark} /></button>
-                                                </div>
-                                            )}
-                                    </div>
-                                </div>
-                            ) : (
-                                /* Aggiunto w-full al bottone in modo che riempia la colonna in larghezza */
-                                <button onClick={() => setIsAddingTag(true)}
-                                    className="w-full cursor-pointer group flex items-center justify-center gap-4 p-4 rounded-2xl border border-dashed border-white/30 bg-white/5 backdrop-blur-md transition-all hover:bg-white/10 hover:border-white/50 text-left min-h-[100px]">
-                                    <div className="flex justify-center items-center w-12 h-12 rounded-full bg-white/5 text-xl text-white/40 group-hover:text-[#00ff7f] transition-colors shrink-0">
-                                        <FontAwesomeIcon icon={faPlus} />
-                                    </div>
-                                    <div className="flex flex-col min-w-0">
-                                        <h4 className="m-0 text-lg font-bold text-white/40 group-hover:text-white transition-colors truncate">
-                                            Add Main Category
-                                        </h4>
-                                    </div>
-                                </button>
-                            )}
-                        </div>
                     </>
                 )}
             </div>

@@ -84,7 +84,7 @@ const TransactionPieChart = ({ transactions, type, title }: { transactions: Tran
         });
     });
 
-    const innerRadius = 70;
+    const innerRadius = 50;
     const middleRadius = 140;
 
     return (

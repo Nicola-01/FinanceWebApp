@@ -103,7 +103,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
             {/* AZIONE PRINCIPALE: Ora è isolata, allineata a destra come da design */}
             {!isLoading && (
-                <div className="mb-6 mt-2 w-full">
+                <div className="my-4 mt-2 w-full">
                     <button
                         onClick={() => transactionModalRef.current?.openModal()}
                         className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-white/10 bg-transparent p-4 text-white/50 transition-all hover:border-white/30 hover:bg-white/5 hover:text-white"
