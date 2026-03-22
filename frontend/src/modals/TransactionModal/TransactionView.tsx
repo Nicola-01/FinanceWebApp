@@ -3,17 +3,17 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
     faCalendarAlt,
     faEdit,
-    faEllipsisV,
+    faEllipsisV, faHashtag,
     faStickyNote,
     faTag,
     faTimes,
     faTrash
 } from '@fortawesome/free-solid-svg-icons';
 import type {Transaction, Wallet} from "../../utils/types.ts";
-import {type IconKey, ICONS} from "../../utils/icons.ts";
 import {CURRENCY_META, type CurrencyCode} from '../../utils/currencies';
 import {useDeleteModal} from "../DeleteModalContext.tsx";
-import { ExchangeRateSection } from './ExchangeRateSection.tsx';
+import {ExchangeRateSection} from './ExchangeRateSection.tsx';
+import {TagBadge} from "../../components/TagBadge.tsx";
 
 interface TransactionViewProps {
     tx: Transaction;
@@ -73,7 +73,8 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                     {isMenuOpen && (
                         <>
                             <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)}/>
-                            <div className="absolute right-0 top-full mt-2 z-50 flex w-40 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#1a1a1a] shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+                            <div
+                                className="absolute right-0 top-full mt-2 z-50 flex w-40 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#1a1a1a] shadow-2xl animate-[fadeIn_0.2s_ease-out]">
                                 <button
                                     onClick={() => {
                                         setIsMenuOpen(false);
@@ -99,7 +100,8 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
             {/* ... RESTO DEL COMPONENTE INVARIATO ... */}
             <div className="text-center mt-2">
                 <p className={`text-6xl font-app-mono ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
-                    {isIncome ? '+' : '-'}{tx.amount.toFixed(2)} <span className="text-3xl">{CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}</span>
+                    {isIncome ? '+' : '-'}{tx.amount.toFixed(2)} <span
+                    className="text-3xl">{CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}</span>
                 </p>
             </div>
 
@@ -107,15 +109,11 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                 {/* 1. Categoria */}
                 <div className="flex justify-between items-center">
                     <span className="text-white/40 text-xs font-bold uppercase tracking-wider">
-                        <FontAwesomeIcon icon={faTag} className="mr-2"/>Category
+                        <FontAwesomeIcon icon={faHashtag} className="mr-2"/>Category
                     </span>
-                    <div
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider"
-                        style={{ backgroundColor: `${tx.tag.colorHex}20`, color: tx.tag.colorHex, border: `1px solid ${tx.tag.colorHex}40` }}
-                    >
-                        <FontAwesomeIcon icon={ICONS[tx.tag.icon as IconKey] || faTag}/>
-                        {tx.tag.name}
-                    </div>
+
+                    <TagBadge tag={tx.tag} forceShowParent={true}/>
+
                 </div>
                 <hr className="my-2 border-white/10"/>
 

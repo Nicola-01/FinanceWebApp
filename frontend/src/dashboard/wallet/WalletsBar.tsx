@@ -1,9 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { CreateWalletModal, type CreateWalletModalHandle } from "../../modals/CreateWalletModal.tsx";
-import WalletCard, { WalletCardUI } from "./WalletCard.tsx";
-import type { Wallet } from '../../utils/types.ts';
+import React, {useRef, useState, useEffect} from 'react';
+import {faPlus} from '@fortawesome/free-solid-svg-icons';
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {CreateWalletModal, type CreateWalletModalHandle} from "../../modals/CreateWalletModal.tsx";
+import WalletCard, {WalletCardUI} from "./WalletCard.tsx";
+import type {Wallet} from '../../utils/types.ts';
 
 import {
     DndContext,
@@ -32,7 +32,8 @@ interface WalletsAreaProps {
 }
 
 const WalletSkeleton = () => (
-    <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-white/5 animate-pulse shrink-0 w-65 xl:w-full">
+    <div
+        className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-white/5 animate-pulse shrink-0 w-65 xl:w-full">
         <div className="h-12 w-12 rounded-full bg-white/10 shrink-0"></div>
         <div className="flex flex-1 flex-col min-w-0 gap-2">
             <div className="h-4 w-3/4 rounded bg-white/10"></div>
@@ -42,7 +43,12 @@ const WalletSkeleton = () => (
 );
 
 export const WalletsBar: React.FC<WalletsAreaProps> = ({
-                                                           wallets, setWallets, loading, selectedWalletId, onSelectWallet, onRefreshAll
+                                                           wallets,
+                                                           setWallets,
+                                                           loading,
+                                                           selectedWalletId,
+                                                           onSelectWallet,
+                                                           onRefreshAll
                                                        }) => {
     const walletModal = useRef<CreateWalletModalHandle>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -107,7 +113,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
     // --- 2. SALVATAGGIO ORDINE AL TERMINE DEL DRAG ---
     const handleDragEnd = (event: DragEndEvent) => {
         setActiveId(null);
-        const { active, over } = event;
+        const {active, over} = event;
 
         if (over && active.id !== over.id) {
             setWallets((items) => {
@@ -119,6 +125,11 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
             });
         }
     };
+
+    const handleCreate = (walletId: string) => {
+        onRefreshAll()
+        onSelectWallet(walletId)
+    }
 
     const activeWallet = activeId ? wallets.find(w => w.id === activeId) : null;
 
@@ -138,9 +149,9 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
             ">
                 {loading && wallets.length === 0 ? (
                     <>
-                        <WalletSkeleton />
-                        <WalletSkeleton />
-                        <WalletSkeleton />
+                        <WalletSkeleton/>
+                        <WalletSkeleton/>
+                        <WalletSkeleton/>
                     </>
                 ) : (
                     <SortableContext items={wallets.map(w => w.id)} strategy={rectSortingStrategy}>
@@ -160,8 +171,9 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                         onClick={() => walletModal.current?.openModal()}
                         className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-white/30 bg-white/5 transition-all hover:bg-white/10 hover:border-white/50 w-[260px] xl:w-[272px] shrink-0 text-left"
                     >
-                        <div className="flex justify-center items-center w-12 h-12 rounded-full bg-white/5 text-xl text-white/40 group-hover:text-[#00ff7f] transition-colors shrink-0">
-                            <FontAwesomeIcon icon={faPlus} />
+                        <div
+                            className="flex justify-center items-center w-12 h-12 rounded-full bg-white/5 text-xl text-white/40 group-hover:text-[#00ff7f] transition-colors shrink-0">
+                            <FontAwesomeIcon icon={faPlus}/>
                         </div>
                         <div className="flex flex-col min-w-0">
                             <h4 className="m-0 text-sm font-medium text-white/40 group-hover:text-white transition-colors truncate">
@@ -171,10 +183,10 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                     </button>
                 )}
 
-                <CreateWalletModal ref={walletModal} onSuccess={onRefreshAll} />
+                <CreateWalletModal ref={walletModal} onSuccess={handleCreate}/>
             </div>
 
-            <DragOverlay dropAnimation={{ duration: 250, easing: 'ease-out' }}>
+            <DragOverlay dropAnimation={{duration: 250, easing: 'ease-out'}}>
                 {activeWallet ? (
                     <WalletCardUI
                         wallet={activeWallet}

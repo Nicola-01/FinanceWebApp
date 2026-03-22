@@ -18,7 +18,7 @@ export interface CreateWalletModalHandle {
 }
 
 interface Props {
-    onSuccess: () => void;
+    onSuccess: (walletId: string) => void;
 }
 
 export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
@@ -72,9 +72,9 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
             setLoading(true);
             try {
                 // Il backend riceverà la chiave testuale dell'icona (es. "piggyBank")
-                await api.post('/wallets', {name, icon: iconKey, color, currency});
+                const response = await api.post('/wallets', {name, icon: iconKey, color, currency});
                 triggerToast("WalletCard created successfully!", true);
-                onSuccess();
+                onSuccess(response.data.id);
                 dialogRef.current?.close();
             } catch (err: any) {
                 triggerToast(err.response?.data?.title || "Error creating wallet", false);
