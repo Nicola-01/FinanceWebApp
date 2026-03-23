@@ -3,16 +3,19 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faChevronLeft, faChevronRight, faFilter} from '@fortawesome/free-solid-svg-icons';
 import type {Transaction} from '../../utils/types.ts';
 
+// Importiamo il nuovo componente CustomDatePicker
+import CustomDatePicker, {type DateRangeValue } from '../../components/DataPicker/CustomDatePicker.tsx';
+
 interface TransactionsFilterProps {
     transactions: Transaction[];
     onFilterChange: (filtered: Transaction[]) => void;
 }
 
-// Definiamo i tipi di vista possibili e le loro etichette per i bottoni
 const VIEW_MODES = [
     { id: 'LAST_30_DAYS', label: '30 DAYS' },
     { id: 'MONTH', label: 'MONTH' },
     { id: 'YEAR', label: 'YEAR' },
+    { id: 'ALL', label: 'ALL' },
     { id: 'CUSTOM', label: 'CUSTOM' }
 ] as const;
 
@@ -23,8 +26,8 @@ export const TransactionsFilter: React.FC<TransactionsFilterProps> = ({ transact
     const [currentDate, setCurrentDate] = useState(new Date());
     const [tagFilter, setTagFilter] = useState('ALL');
 
-    const [customStartDate, setCustomStartDate] = useState('');
-    const [customEndDate, setCustomEndDate] = useState('');
+    // Nuovo stato per gestire il CustomDatePicker
+    const [customDateRange, setCustomDateRange] = useState<DateRangeValue>({ start: null, end: null });
 
     // Estrai i Tag unici per la select
     const uniqueTags = Array.from(new Set(transactions.map(t => t.tag.name)));
@@ -43,7 +46,7 @@ export const TransactionsFilter: React.FC<TransactionsFilterProps> = ({ transact
 
     const displayDate = () => {
         if (viewMode === 'YEAR') return currentDate.getFullYear().toString();
-        return currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        return currentDate.toLocaleDateString('en-UK', { month: 'long', year: 'numeric' });
     };
 
     // Applica i filtri ogni volta che cambia uno stato o le transazioni originali
@@ -65,21 +68,28 @@ export const TransactionsFilter: React.FC<TransactionsFilterProps> = ({ transact
                 const today = new Date();
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(today.getDate() - 30);
-                // Imposta l'inizio della giornata per coprire tutto il 30esimo giorno
                 thirtyDaysAgo.setHours(0, 0, 0, 0);
-
                 return txDate >= thirtyDaysAgo && txDate <= today;
             }
             if (viewMode === 'CUSTOM') {
-                if (customStartDate && txDate < new Date(customStartDate)) return false;
-                if (customEndDate && txDate > new Date(customEndDate)) return false;
+                // Controllo con il nuovo state customDateRange
+                if (customDateRange.start) {
+                    const start = new Date(customDateRange.start);
+                    start.setHours(0, 0, 0, 0); // Inizio della giornata
+                    if (txDate < start) return false;
+                }
+                if (customDateRange.end) {
+                    const end = new Date(customDateRange.end);
+                    end.setHours(23, 59, 59, 999); // Fine della giornata
+                    if (txDate > end) return false;
+                }
             }
             return true;
         });
 
         onFilterChange(filtered);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions, viewMode, currentDate, tagFilter, customStartDate, customEndDate]);
+    }, [transactions, viewMode, currentDate, tagFilter, customDateRange]);
 
     return (
         <div className="flex flex-wrap items-center gap-4 mb-6 p-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
@@ -112,12 +122,14 @@ export const TransactionsFilter: React.FC<TransactionsFilterProps> = ({ transact
                 </div>
             )}
 
-            {/* Selettori Date Custom */}
+            {/* Selettori Date Custom (Sostituito con il tuo nuovo componente) */}
             {viewMode === 'CUSTOM' && (
-                <div className="flex items-center gap-2 ml-2">
-                    <input type="date" value={customStartDate} onChange={e => setCustomStartDate(e.target.value)} className="bg-black/40 border border-white/10 text-sm text-white rounded-lg px-3 py-1.5 outline-none focus:border-[#00ff7f]" />
-                    <span className="text-white/40">-</span>
-                    <input type="date" value={customEndDate} onChange={e => setCustomEndDate(e.target.value)} className="bg-black/40 border border-white/10 text-sm text-white rounded-lg px-3 py-1.5 outline-none focus:border-[#00ff7f]" />
+                <div className="flex items-center gap-2 ml-2 min-w-[280px]">
+                    <CustomDatePicker
+                        isRange={true}
+                        color="#00ff7f" // Ho usato il verde fluo dei tuoi input precedenti
+                        onChange={(val) => setCustomDateRange(val as DateRangeValue)}
+                    />
                 </div>
             )}
 

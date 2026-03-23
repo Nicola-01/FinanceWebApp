@@ -1,103 +1,41 @@
-import React, {useState} from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faCalendarAlt,
-    faEdit,
-    faEllipsisV, faHashtag,
     faStickyNote,
-    faTag,
-    faTimes,
-    faTrash
+    faTag
 } from '@fortawesome/free-solid-svg-icons';
-import type {Transaction, Wallet} from "../../utils/types.ts";
-import {CURRENCY_META, type CurrencyCode} from '../../utils/currencies';
-import {useDeleteModal} from "../DeleteModalContext.tsx";
-import {ExchangeRateSection} from './ExchangeRateSection.tsx';
-import {TagBadge} from "../../components/TagBadge.tsx";
+import type { Transaction, Wallet } from "../../utils/types.ts";
+import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
+import { ExchangeRateSection } from './ExchangeRateSection.tsx';
+import { TagBadge } from "../../components/TagBadge.tsx";
 
 interface TransactionViewProps {
     tx: Transaction;
     wallet: Wallet;
-    onClose: () => void;
-    onDeleteSuccess: () => void;
-    onEditRequest: (tx: Transaction) => void; // <-- NUOVA PROP
 }
 
 export const TransactionView: React.FC<TransactionViewProps> = ({
                                                                     tx,
-                                                                    wallet,
-                                                                    onClose,
-                                                                    onDeleteSuccess,
-                                                                    onEditRequest // <-- RECUPERIAMO LA PROP
+                                                                    wallet
                                                                 }) => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const deleteModalRef = useDeleteModal();
-
     const isIncome = tx.type === 'INCOME';
 
     const displayExchangeRate = (tx as any).exchangeValue
         ? Number((tx as any).exchangeValue).toFixed(6).replace(/\.?0+$/, '')
         : '1';
 
-    const handleDelete = async () => {
-        setIsMenuOpen(false);
-        deleteModalRef.current?.deleteObject(
-            tx,
-            'transaction',
-            async () => onDeleteSuccess(),
-            false,
-            0
-        );
-    };
+    const date = new Date(tx.transactionDate);
+    const formatedDate = date.toLocaleDateString('en-UK', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
 
     return (
         <div className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">
-
-            {/* Header (Barra superiore) */}
-            <div className="flex w-full items-center justify-between -mb-2">
-                <button
-                    onClick={onClose}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
-                >
-                    <FontAwesomeIcon icon={faTimes} className="text-xl"/>
-                </button>
-
-                <div className="relative">
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${isMenuOpen ? 'bg-white/10 text-white' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}`}
-                    >
-                        <FontAwesomeIcon icon={faEllipsisV} className="text-lg"/>
-                    </button>
-
-                    {isMenuOpen && (
-                        <>
-                            <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)}/>
-                            <div
-                                className="absolute right-0 top-full mt-2 z-50 flex w-40 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#1a1a1a] shadow-2xl animate-[fadeIn_0.2s_ease-out]">
-                                <button
-                                    onClick={() => {
-                                        setIsMenuOpen(false);
-                                        onEditRequest(tx); // <-- CHIAMIAMO LA CALLBACK INVECE DEL REF
-                                    }}
-                                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white text-left"
-                                >
-                                    <FontAwesomeIcon icon={faEdit} className="w-4"/> Edit
-                                </button>
-                                <div className="h-[1px] w-full bg-white/5"/>
-                                <button
-                                    onClick={handleDelete}
-                                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/10 text-left"
-                                >
-                                    <FontAwesomeIcon icon={faTrash} className="w-4"/> Delete
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
-
-            {/* ... RESTO DEL COMPONENTE INVARIATO ... */}
+            {/* 1. IMPORTO (Invariato) */}
             <div className="text-center mt-2">
                 <p className={`text-6xl font-app-mono ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
                     {isIncome ? '+' : '-'}{tx.amount.toFixed(2)} <span
@@ -105,54 +43,48 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                 </p>
             </div>
 
-            <div className="w-full bg-black/20 border border-white/5 rounded-2xl p-5 text-left flex flex-col gap-2">
-                {/* 1. Categoria */}
-                <div className="flex justify-between items-center">
-                    <span className="text-white/40 text-xs font-bold uppercase tracking-wider">
-                        <FontAwesomeIcon icon={faHashtag} className="mr-2"/>Category
+            {/* --- NUOVA SEZIONE CATEGORIA --- */}
+            {/* Posizionata FUORI dall'elenco "divide-y" per darle maggiore rilievo visivo, centrandola. */}
+            <div className="flex items-center gap-2 -mt-2">
+                <TagBadge tag={tx.tag} forceShowParent={true} />
+            </div>
+
+            {/* 2. DETTAGLI: Uso divide-y per le righe automatiche, rimosso il padding generale.
+               Questa box ora contiene solo dettagli tecnici, SENZA la Categoria. */}
+            <div className="w-full bg-black/20 border border-white/5 rounded-2xl text-left flex flex-col divide-y divide-white/10">
+
+                {/* Nome */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
+                    <span className="text-white/40 text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
+                        {/* W-5 text-center assicura che il testo sia perfettamente allineato indipendentemente dalla larghezza dell'icona. */}
+                        <FontAwesomeIcon icon={faTag} className="w-5 text-center mr-2" />Name
                     </span>
-
-                    <TagBadge tag={tx.tag} forceShowParent={true}/>
-
-                </div>
-                <hr className="my-2 border-white/10"/>
-
-                {/* 2. Nome */}
-                <div className="flex justify-between items-center">
-                    <span className="text-white/40 text-xs font-bold uppercase tracking-wider">
-                        <FontAwesomeIcon icon={faTag} className="mr-2"/>Name
-                    </span>
-                    <span className="text-white font-medium text-right">{tx.name}</span>
-                </div>
-                <hr className="my-2 border-white/10"/>
-
-                {/* 3. Data */}
-                <div className="flex justify-between items-center">
-                    <span className="text-white/40 text-xs font-bold uppercase tracking-wider">
-                        <FontAwesomeIcon icon={faCalendarAlt} className="mr-2"/>Date
-                    </span>
-                    <span className="text-white font-medium">{new Date(tx.transactionDate).toLocaleDateString()}</span>
+                    <span className="text-white font-medium sm:text-right truncate">{tx.name}</span>
                 </div>
 
-                {/* 4. Note */}
+                {/* Data */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
+                    <span className="text-white/40 text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
+                        <FontAwesomeIcon icon={faCalendarAlt} className="w-5 text-center mr-2" />Date
+                    </span>
+                    <span className="text-white font-medium">{formatedDate}</span>
+                </div>
+
+                {/* Note (Mostrate solo se presenti) */}
                 {tx.notes && (
-                    <>
-                        <hr className="my-2 border-white/10"/>
-                        <div className="flex flex-col gap-2">
-                            <span className="text-white/40 text-xs font-bold uppercase tracking-wider">
-                                <FontAwesomeIcon icon={faStickyNote} className="mr-2"/>Notes
-                            </span>
-                            <span className="text-white/80 text-sm bg-white/5 p-3 rounded-lg border border-white/5">
-                                {tx.notes}
-                            </span>
-                        </div>
-                    </>
+                    <div className="flex flex-col gap-3 p-5">
+                        <span className="text-white/40 text-xs font-bold uppercase tracking-wider flex items-center">
+                            <FontAwesomeIcon icon={faStickyNote} className="w-5 text-center mr-2" />Notes
+                        </span>
+                        <span className="text-white/80 text-sm bg-white/5 p-3 rounded-lg border border-white/5">
+                            {tx.notes}
+                        </span>
+                    </div>
                 )}
 
-                {/* 5. Box Cambio Valuta */}
+                {/* Box Cambio Valuta (Integrato nell'elenco) */}
                 {(tx as any).originalCurrency && (tx as any).originalCurrency !== wallet.currency && (
-                    <>
-                        <hr className="my-2 border-white/10"/>
+                    <div className="p-4 sm:p-5">
                         <ExchangeRateSection
                             mode="view"
                             baseCurrency={wallet.currency as CurrencyCode}
@@ -161,7 +93,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                             exchangeRate={displayExchangeRate}
                             convertedAmount={tx.amount}
                         />
-                    </>
+                    </div>
                 )}
             </div>
         </div>

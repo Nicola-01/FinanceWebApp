@@ -1,10 +1,10 @@
-import {forwardRef, useImperativeHandle, useRef, useState} from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCheck, faEnvelope, faHistory, faXmark} from '@fortawesome/free-solid-svg-icons';
-import {ModalDialog} from './ModalDialog';
-import {triggerToast} from '../components/ToastNotification';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faEnvelope, faHistory, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { ModalDialog } from './ModalDialog';
+import { triggerToast } from '../components/ToastNotification';
 import api from '../api/axiosConfig';
-import type {Invitation} from "../utils/types.ts";
+import type { Invitation } from "../utils/types.ts";
 import { type IconKey, ICONS } from "../utils/icons.ts"; // Importiamo le icone
 
 export interface InvitationsModalHandle {
@@ -44,13 +44,13 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>((_props, ref)
     const historyInvites = invitations.filter(i => i.status !== 'PENDING');
 
     return (
-        <ModalDialog ref={dialogRef} className="max-w-[500px]">
-            <div className="text-center">
-                <h3 className="mb-4 flex items-center justify-center gap-3 text-2xl font-semibold text-white">
-                    <FontAwesomeIcon icon={faEnvelope} className="text-[#00ff7f]" />
-                    Invitations
-                </h3>
-
+        <ModalDialog
+            ref={dialogRef}
+            className="max-w-[500px]"
+            onCloseClick={() => dialogRef.current?.close()}
+            title={<><FontAwesomeIcon icon={faEnvelope} className="text-[#00ff7f]" /> Invitations</>}
+        >
+            <div className="text-center pb-2">
                 {/* Tabs */}
                 <div className="flex rounded-xl bg-black/40 p-1 border border-white/10 mb-4">
                     <button
@@ -147,12 +147,6 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>((_props, ref)
                             <p className="text-white/40 text-sm text-center py-8 italic">No past invitations.</p>
                         )
                     )}
-                </div>
-
-                <div className="pt-4 border-t border-white/10 mt-4">
-                    <button type="button" onClick={() => dialogRef.current?.close()} className="w-full rounded-xl bg-white/5 py-3 font-bold text-white transition-colors hover:bg-white/10 border border-white/5">
-                        Close
-                    </button>
                 </div>
             </div>
         </ModalDialog>

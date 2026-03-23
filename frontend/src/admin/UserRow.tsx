@@ -14,7 +14,7 @@ const UserRow: React.FC<UserRowProps> = ({user, onDelete}) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
         // Formatta come "Oct 25, 2023" (o usa 'it-IT' per formato italiano)
-        return date.toLocaleDateString('en-US', {
+        return date.toLocaleDateString('en-UK', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
