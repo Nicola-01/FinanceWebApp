@@ -69,10 +69,10 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
 
-        const formatedDate = date.toLocaleDateString('en-US', {
+        const formatedDate = date.toLocaleDateString('en-UK', {
             weekday: 'short',
-            month: 'short',
             day: 'numeric',
+            month: 'short',
             year: 'numeric'
         });
 

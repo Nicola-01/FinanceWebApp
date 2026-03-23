@@ -1,14 +1,14 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import api from '../../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faCalendarAlt, faMoneyBillTransfer, faEdit, faTimes, faSave} from '@fortawesome/free-solid-svg-icons';
+import { faCalendarAlt, faMoneyBillTransfer, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { ModalDialog } from '../ModalDialog';
 import { triggerToast } from '../../components/ToastNotification';
 import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
 import type { Tag, Wallet, Transaction } from "../../utils/types.ts";
 
 // Sub-components
-import { HierarchicalTagSelector } from './HierarchicalTagSelector.tsx';
+import { TagPicker } from './TagPicker/TagPicker.tsx';
 import { AmountInput } from "./AmountInput.tsx";
 import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
 import { TransactionTypeToggle } from './TransactionTypeToggle.tsx';
@@ -136,44 +136,27 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
         const canSave = amount !== '' && Number(amount) !== 0 && selectedTagName !== '';
         const isEditing = !!editingTxId;
 
+        const headerRight = (
+            <button
+                type="submit"
+                form="transaction-form"
+                disabled={!canSave || loading}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10"
+                style={{ color: canSave ? wallet.color : undefined }}
+            >
+                <FontAwesomeIcon icon={faCheck} className="text-xl" />
+            </button>
+        );
+
         return (
-            <ModalDialog ref={dialogRef} className="max-w-137.5 p-6">
-                <form key={resetKey} onSubmit={handleSubmit} className="text-left flex flex-col gap-6">
-
-                    <div className="flex w-full items-center justify-between">
-
-                        <div className="flex flex-1 justify-start">
-                            <button
-                                type="button"
-                                onClick={handleClose}
-                                className="flex h-10 items-center justify-center gap-2 rounded-full bg-white/5 px-4 text-sm font-bold text-white/40 transition-colors hover:bg-white/10 hover:text-white"
-                            >
-                                <FontAwesomeIcon icon={faTimes} className="text-lg" />
-                                Cancel
-                            </button>
-                        </div>
-
-                        <h3 className="flex items-center justify-center gap-2 text-lg font-semibold text-white/60 m-0">
-                            <FontAwesomeIcon icon={isEditing ? faEdit : faMoneyBillTransfer} color={wallet.color} />
-                            {isEditing ? "Edit" : "New"} Transaction
-                        </h3>
-
-                        <div className="flex flex-1 justify-end">
-                            <button
-                                type="submit"
-                                disabled={!canSave || loading}
-                                className="flex h-10 items-center justify-center gap-2 rounded-full px-5 text-sm font-bold text-black transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                                style={{
-                                    backgroundColor: wallet.color,
-                                    boxShadow: !canSave ? 'none' : `0 5px 15px -5px ${wallet.color}cc`
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faSave} />
-                                {loading ? "Saving..." : "Save"}
-                            </button>
-                        </div>
-
-                    </div>
+            <ModalDialog
+                ref={dialogRef}
+                className="max-w-160 p-6"
+                onCloseClick={handleClose}
+                title={<><FontAwesomeIcon icon={isEditing ? faEdit : faMoneyBillTransfer} color={wallet.color} /> {isEditing ? "Edit" : "New"} Transaction</>}
+                headerRight={headerRight}
+            >
+                <form id="transaction-form" key={resetKey} onSubmit={handleSubmit} className="text-left flex flex-col gap-6">
 
                     {/* 1. AMOUNT AREA */}
                     <div className="flex flex-col items-center justify-center py-2">
@@ -196,7 +179,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                     {/* 2. TAGS & DATE */}
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <HierarchicalTagSelector
+                            <TagPicker
                                 tags={tags}
                                 selectedTagName={selectedTagName}
                                 onSelectTag={setSelectedTagName}

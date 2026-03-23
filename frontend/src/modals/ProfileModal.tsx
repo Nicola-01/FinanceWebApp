@@ -1,8 +1,8 @@
-import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faUser,} from '@fortawesome/free-solid-svg-icons';
-import {ModalDialog} from './ModalDialog';
-import {triggerToast} from '../components/ToastNotification';
+import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { ModalDialog } from './ModalDialog';
+import { triggerToast } from '../components/ToastNotification';
 import api from '../api/axiosConfig';
 
 export interface ProfileModalHandle {
@@ -44,14 +44,19 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
     };
 
     return (
-        <ModalDialog ref={dialogRef} className="max-w-[450px]">
-            <div className="text-center">
-                <h3 className="mb-6 flex items-center justify-center gap-3 text-2xl font-semibold text-white">
-                    <FontAwesomeIcon icon={faUser} className="text-[#00bfff]" />
-                    Profile Settings
-                </h3>
-
-                <form onSubmit={handleSubmit} className="space-y-4 text-left">
+        <ModalDialog
+            ref={dialogRef}
+            className="max-w-[450px]"
+            onCloseClick={() => dialogRef.current?.close()}
+            title={<><FontAwesomeIcon icon={faUser} className="text-[#00bfff]" /> Profile Settings</>}
+            headerRight={
+                <button type="submit" form="profile-form" disabled={loading} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-[#00bfff]">
+                    <FontAwesomeIcon icon={faCheck} className="text-xl" />
+                </button>
+            }
+        >
+            <div className="text-center pb-2">
+                <form id="profile-form" onSubmit={handleSubmit} className="space-y-4 text-left">
                     <div>
                         <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Name</label>
                         <input
@@ -72,12 +77,6 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
                         />
                     </div>
 
-                    <div className="flex gap-4 pt-4 ">
-                        <button type="button" onClick={() => dialogRef.current?.close()} className="flex-1 rounded-xl bg-white/5 py-3 font-bold text-white transition-colors hover:bg-white/10">Cancel</button>
-                        <button type="submit" disabled={loading} className="flex-1 rounded-xl bg-[#00bfff] py-3 font-bold text-black transition-all hover:-translate-y-1 hover:bg-[#0099cc]">
-                            {loading ? "Saving..." : "Save Changes"}
-                        </button>
-                    </div>
                 </form>
             </div>
         </ModalDialog>
