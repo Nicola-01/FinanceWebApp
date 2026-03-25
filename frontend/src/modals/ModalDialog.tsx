@@ -2,6 +2,8 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { ModalDialogRightAction } from './ModalDialogRightAction';
+import type { ModalDialogRightActionProp } from './ModalDialogRightAction';
 
 interface ModalDialogProps {
     ref?: React.Ref<HTMLDialogElement>;
@@ -11,29 +13,36 @@ interface ModalDialogProps {
     onCancel?: (e: any) => void;
     showClose?: boolean;
     onCloseClick?: () => void;
-    headerRight?: React.ReactNode;
     title?: React.ReactNode;
     subtitle?: React.ReactNode;
+    rightActions?: ModalDialogRightActionProp[];
 }
 
 export const ModalDialog = ({
-                                ref,
-                                children,
-                                className = "",
-                                onClose,
-                                onCancel,
-                                showClose = true,
-                                onCloseClick,
-                                headerRight,
-                                title,
-                                subtitle
-                            }: ModalDialogProps) => {
+    ref,
+    children,
+    className = "",
+    onClose,
+    onCancel,
+    showClose = true,
+    onCloseClick,
+    rightActions,
+    title,
+    subtitle
+}: ModalDialogProps) => {
     const modalRoot = document.getElementById('modal-root');
 
     if (!modalRoot) {
         console.error("L'elemento con id 'modal-root' non è stato trovato nel DOM.");
         return null;
     }
+
+    const handleCloseClick = () => {
+        if (onCloseClick)
+            onCloseClick();
+        else if (ref && 'current' in ref && ref.current)
+            ref.current.close();
+    };
 
     return createPortal(
         <dialog
@@ -51,7 +60,7 @@ export const ModalDialog = ({
                 `}
         >
             {/* INTESTAZIONE (Pulsante X - Titolo - Custom Actions) */}
-            {(showClose || headerRight || title) && (
+            {(showClose || rightActions || title) && (
                 <div className="flex w-full items-center justify-between mb-2">
 
                     {/* Sinistra: Pulsante X (con flex-1) */}
@@ -59,7 +68,7 @@ export const ModalDialog = ({
                         {showClose && (
                             <button
                                 type="button"
-                                onClick={onCloseClick}
+                                onClick={handleCloseClick}
                                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
                             >
                                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
@@ -78,10 +87,8 @@ export const ModalDialog = ({
 
                     {/* Destra: Pulsanti aggiuntivi (con flex-1) */}
                     <div className="flex flex-1 justify-end">
-                        {headerRight && (
-                            <div className="flex items-center gap-2">
-                                {headerRight}
-                            </div>
+                        {rightActions && rightActions.length > 0 && (
+                            <ModalDialogRightAction actions={rightActions} />
                         )}
                     </div>
 
@@ -98,7 +105,7 @@ export const ModalDialog = ({
             )}
 
             {/* CONTENUTO */}
-            <div className={(showClose || headerRight || title || subtitle) ? "mt-4" : ""}>
+            <div className={(showClose || rightActions || title || subtitle) ? "mt-4" : ""}>
                 {children}
             </div>
         </dialog>

@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { ModalDialog } from './ModalDialog';
@@ -26,8 +26,7 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
         }
     }));
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         setLoading(true);
         try {
             const payload: any = { name, email };
@@ -47,16 +46,20 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
         <ModalDialog
             ref={dialogRef}
             className="max-w-[450px]"
-            onCloseClick={() => dialogRef.current?.close()}
             title={<><FontAwesomeIcon icon={faUser} className="text-[#00bfff]" /> Profile Settings</>}
-            headerRight={
-                <button type="submit" form="profile-form" disabled={loading} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-[#00bfff]">
-                    <FontAwesomeIcon icon={faCheck} className="text-xl" />
-                </button>
-            }
+            rightActions={[
+                {
+                    icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
+                    onClick: async () => {
+                        if (!loading)
+                            await handleSubmit()
+                    },
+                    hoverColor: 'hover:text-[#00bfff]'
+                }
+            ]}
         >
             <div className="text-center pb-2">
-                <form id="profile-form" onSubmit={handleSubmit} className="space-y-4 text-left">
+                <div id="profile-form" className="space-y-4 text-left">
                     <div>
                         <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Name</label>
                         <input
@@ -77,7 +80,7 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
                         />
                     </div>
 
-                </form>
+                </div>
             </div>
         </ModalDialog>
     );

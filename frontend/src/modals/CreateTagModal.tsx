@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import api from '../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTags, faCheck } from '@fortawesome/free-solid-svg-icons';
@@ -46,8 +46,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
             return () => document.removeEventListener('mousedown', handleClickOutside);
         }, [showSelectors]);
 
-        const handleSubmit = async (e: React.FormEvent) => {
-            e.preventDefault();
+        const handleSubmit = async () => {
             if (name.trim().length < 2) return triggerToast("Name must be at least 2 characters", false);
 
             setLoading(true);
@@ -73,16 +72,21 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
         return (
             <ModalDialog
                 ref={dialogRef}
-                onCloseClick={() => dialogRef.current?.close()}
                 title={<><FontAwesomeIcon icon={faTags} className="text-[#00ff7f]" /> New Main Category</>}
                 subtitle="Organize your transactions better."
-                headerRight={
-                    <button type="submit" form="create-tag-form" disabled={loading} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-[#00ff7f]">
-                        <FontAwesomeIcon icon={faCheck} className="text-xl" />
-                    </button>
-                }
+                rightActions={[
+                    {
+                        icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
+                        onClick: async () => {
+                            if (!loading)
+                                await handleSubmit();
+                        },
+                        hoverColor: 'hover:text-[#00ff7f]',
+                        disabled: loading
+                    }
+                ]}
             >
-                <form id="create-tag-form" onSubmit={handleSubmit} className="space-y-5 text-left">
+                <div id="create-tag-form" className="space-y-5 text-left">
                     <div className="relative mb-6 flex flex-col items-center">
                         <button
                             type="button"
@@ -119,7 +123,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
                         />
                     </div>
 
-                </form>
+                </div>
             </ModalDialog>
         );
     }
