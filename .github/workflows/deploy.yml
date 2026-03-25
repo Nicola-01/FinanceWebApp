@@ -16,9 +16,9 @@ jobs:
         run: |
           cp /home/deployer/.env .
 
-      - name: Prune Docker images
-        run: docker system prune -af
-
       - name: Deploy with Production Compose
         run: |
           docker compose -f docker-compose.prod.yml up -d --build
+
+      - name: Cleanup unused Docker resources
+        run: docker builder prune -f && docker image prune -f
