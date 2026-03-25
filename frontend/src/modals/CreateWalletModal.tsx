@@ -1,4 +1,4 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import api from '../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWallet, faCheck } from '@fortawesome/free-solid-svg-icons';
@@ -65,8 +65,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
             };
         }, [showSelectors]);
 
-        const handleSubmit = async (e: React.FormEvent) => {
-            e.preventDefault();
+        const handleSubmit = async () => {
             if (!name) return triggerToast("WalletCard name is required", false);
 
             setLoading(true);
@@ -87,16 +86,21 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
         return (
             <ModalDialog
                 ref={dialogRef}
-                onCloseClick={() => dialogRef.current?.close()}
                 title={<><FontAwesomeIcon icon={faWallet} className="text-[#00ff7f]" /> New Wallet</>}
                 subtitle="Organize your finances with a custom wallet."
-                headerRight={
-                    <button type="submit" form="create-wallet-form" disabled={loading} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-[#00ff7f]">
-                        <FontAwesomeIcon icon={faCheck} className="text-xl" />
-                    </button>
-                }
+                rightActions={[
+                    {
+                        icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
+                        onClick: async () => {
+                            if (!loading)
+                                await handleSubmit();
+                        },
+                        hoverColor: 'hover:text-[#00ff7f]',
+                        disabled: loading
+                    }
+                ]}
             >
-                <form id="create-wallet-form" onSubmit={handleSubmit} className="space-y-5 text-left">
+                <div id="create-wallet-form" className="space-y-5 text-left">
                     {/* Anteprima Icona Real-time */}
                     <div className="relative mb-6 flex flex-col items-center">
 
@@ -151,7 +155,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                     {/* Input Valuta */}
                     <CurrencySelector value={currency} onChange={setCurrency} />
 
-                </form>
+                </div>
             </ModalDialog>
         );
     }

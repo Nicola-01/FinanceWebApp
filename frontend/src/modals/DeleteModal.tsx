@@ -1,22 +1,22 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import type { Transaction, User, Wallet } from "../utils/types.ts";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTriangleExclamation, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { ModalDialog } from './ModalDialog';
+import {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {createPortal} from 'react-dom';
+import type {Transaction, User, Wallet} from "../utils/types.ts";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
+import {ModalDialog} from './ModalDialog';
 
 export interface DeleteModalHandle {
     deleteObject: (object: User | Wallet | Transaction,
-        typeName: string,
-        handleConfirmClick: () => void | Promise<void>,
-        requireTyping?: boolean,
-        timeout?: number) => void;
+                   typeName: string,
+                   handleConfirmClick: () => void | Promise<void>,
+                   requireTyping?: boolean,
+                   timeout?: number) => void;
 }
 
 const TIMEOUT_DURATION = 2;
 
 export const DeleteModal = forwardRef<DeleteModalHandle>(
-    ({ }, ref) => {
+    ({}, ref) => {
         const dialogRef = useRef<HTMLDialogElement>(null);
 
         // Stati interni del modale
@@ -32,7 +32,7 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
         const [isTypingRequired, setIsTypingRequired] = useState(false);
 
         useImperativeHandle(ref, () => ({
-            deleteObject: (object, typeName, handleConfirmClick, requireTyping = false, timeout = TIMEOUT_DURATION) => {
+            deleteObject: (object, typeName, handleConfirmClick, requireTyping = false, timeout = TIMEOUT_DURATION ) => {
                 setObjToDelete(object);
                 setItemType(typeName)
                 setOnConfirmCb(() => handleConfirmClick);
@@ -67,21 +67,8 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
 
         return createPortal(
             <>
-                <ModalDialog
-                    ref={dialogRef}
-                    onCloseClick={() => dialogRef.current?.close()}
-                    headerRight={
-                        <button
-                            onClick={handleConfirm}
-                            disabled={isButtonDisabled}
-                            className="flex h-10 items-center justify-center gap-2 rounded-full px-4 font-bold transition-all bg-[#e74c3c]/10 text-[#e74c3c] hover:bg-[#e74c3c]/20 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:bg-transparent disabled:text-[#e74c3c]/50"
-                        >
-                            <FontAwesomeIcon icon={faTrash} />
-                            {isDeleting ? "..." : deleteTimer > 0 ? `${deleteTimer}s` : ""}
-                        </button>
-                    }
-                >
-                    <div className="p-[35px] pt-4 text-center text-white">
+                <ModalDialog ref={dialogRef}>
+                    <div className="p-[35px] text-center text-white">
 
                         <div className="mb-5">
                             <FontAwesomeIcon
@@ -114,6 +101,17 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
                         )}
 
 
+                        <div className="mt-7.5 flex justify-center">
+                            <button
+                                className="rounded-lg w-50 bg-[#e74c3c] px-6.25 py-3 font-bold text-white transition-all duration-300 hover:bg-[#c0392b] disabled:cursor-not-allowed disabled:bg-[#e74c3c]/30 disabled:opacity-60"
+                                onClick={handleConfirm}
+                                disabled={isButtonDisabled}
+                            >
+                                {isDeleting ? "Deleting..." :
+                                    deleteTimer > 0 ? `Wait ${deleteTimer}s` : "DELETE"}
+                            </button>
+
+                        </div>
                     </div>
                 </ModalDialog>
             </>,

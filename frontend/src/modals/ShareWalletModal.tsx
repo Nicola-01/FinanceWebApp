@@ -30,9 +30,7 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
             }
         }));
 
-        const handleSubmit = async (e: React.FormEvent) => {
-            e.preventDefault();
-
+        const handleSubmit = async () => {
             if (identifier.trim().length < 3) {
                 return triggerToast("Please enter a valid username or email.", false);
             }
@@ -62,17 +60,22 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
         return (
             <ModalDialog
                 ref={dialogRef}
-                className="max-w-[450px]"
-                onCloseClick={() => { if (dialogRef.current?.open) dialogRef.current.close() }}
+                className="max-w-112.5"
                 title={<><FontAwesomeIcon icon={faShareNodes} style={{ color: wallet.color }} /> Share "{wallet.name}"</>}
                 subtitle="Invite someone to view or edit this wallet."
-                headerRight={
-                    <button type="submit" form="share-wallet-form" disabled={loading || identifier.trim().length < 3} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-[#00ff7f]">
-                        <FontAwesomeIcon icon={faCheck} className="text-xl" />
-                    </button>
-                }
+                rightActions={[
+                    {
+                        icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
+                        onClick: async () => {
+                            if (!loading && identifier.trim().length >= 3)
+                                await handleSubmit();
+                        },
+                        hoverColor: 'hover:text-[#00ff7f]',
+                        disabled: loading || identifier.trim().length < 3
+                    }
+                ]}
             >
-                <form id="share-wallet-form" onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
+                <div id="share-wallet-form" onSubmit={handleSubmit} className="flex flex-col gap-5 text-left">
 
                     {/* 1. Input Username/Email */}
                     <div>
@@ -128,7 +131,7 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
                         </p>
                     </div>
 
-                </form>
+                </div>
             </ModalDialog >
         );
     }

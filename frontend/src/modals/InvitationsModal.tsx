@@ -47,7 +47,6 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>((_props, ref)
         <ModalDialog
             ref={dialogRef}
             className="max-w-[500px]"
-            onCloseClick={() => dialogRef.current?.close()}
             title={<><FontAwesomeIcon icon={faEnvelope} className="text-[#00ff7f]" /> Invitations</>}
         >
             <div className="text-center pb-2">

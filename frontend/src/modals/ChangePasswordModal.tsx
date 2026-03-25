@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import api from '../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faKey, faLock, faShieldAlt, faCheck } from '@fortawesome/free-solid-svg-icons';
@@ -27,12 +27,9 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref
         }
     }));
 
-    const closeDialog = () => dialogRef.current?.close();
-
     const isValid = isPasswordValid(passwords.new, passwords.confirm) && passwords.old.length > 0;
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         if (!isValid) return;
 
         setLoading(true);
@@ -44,7 +41,6 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref
             });
             triggerToast("Password updated successfully!", true);
             localStorage.setItem('mustChangePWD', JSON.stringify(false));
-            closeDialog();
         } catch (err: any) {
             const errorMessage = err.response?.data?.detail || "Error updating password";
             triggerToast(errorMessage, false);
@@ -58,17 +54,22 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref
             ref={dialogRef}
             onCancel={(e) => { if (mandatory) e.preventDefault(); }}
             showClose={!mandatory}
-            onCloseClick={closeDialog}
             title={<><FontAwesomeIcon icon={faShieldAlt} /> Account Security</>}
             subtitle="Please enter your current password and set a new one."
-            headerRight={
-                <button type="submit" form="change-password-form" disabled={!isValid || loading} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-[#00ff7f]">
-                    <FontAwesomeIcon icon={faCheck} className="text-xl" />
-                </button>
-            }
+            rightActions={[
+                {
+                    icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
+                    onClick: async () => {
+                        if (isValid && !loading)
+                            await handleSubmit()
+                    },
+                    hoverColor: 'hover:text-[#00ff7f]',
+                    disabled: !isValid || loading
+                }
+            ]}
         >
             <div className="text-center pb-2">
-                <form id="change-password-form" onSubmit={handleSubmit} noValidate>
+                <div id="change-password-form">
                     <PasswordInput
                         label="Current Password" placeholder="Enter current password" value={passwords.old}
                         icon={faKey} onChange={(val) => setPasswords({ ...passwords, old: val })}
@@ -90,7 +91,7 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref
                             icon={faLock} onChange={(val) => setPasswords({ ...passwords, confirm: val })}
                         />
                     </div>
-                </form>
+                </div>
             </div>
         </ModalDialog>
     );

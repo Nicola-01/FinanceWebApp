@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import api from '../../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faMoneyBillTransfer, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
@@ -88,9 +88,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
             }
         }));
 
-        const handleSubmit = async (e: React.FormEvent) => {
-            e.preventDefault();
-
+        const handleSave = async () => {
             if (!amount || Number(amount) === 0) return triggerToast("Please enter a valid amount.", false);
             if (!selectedTagName) return triggerToast("Please select a category.", false);
 
@@ -128,35 +126,31 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
             }
         };
 
-        const handleClose = () => {
-            if (dialogRef.current?.open) dialogRef.current.close();
-        };
-
         const currencySymbol = CURRENCY_META[currency]?.symbol || currency;
         const canSave = amount !== '' && Number(amount) !== 0 && selectedTagName !== '';
         const isEditing = !!editingTxId;
 
-        const headerRight = (
-            <button
-                type="submit"
-                form="transaction-form"
-                disabled={!canSave || loading}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10"
-                style={{ color: canSave ? wallet.color : undefined }}
-            >
-                <FontAwesomeIcon icon={faCheck} className="text-xl" />
-            </button>
-        );
+        const rightActions = [
+            {
+                icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
+                onClick: async () => {
+                    if (canSave && !loading)
+                        await handleSave();
+                },
+                color: canSave ? wallet.color : undefined,
+                hoverColor: 'hover:text-white',
+                disabled: !canSave || loading
+            }
+        ];
 
         return (
             <ModalDialog
                 ref={dialogRef}
                 className="max-w-160 p-6"
-                onCloseClick={handleClose}
                 title={<><FontAwesomeIcon icon={isEditing ? faEdit : faMoneyBillTransfer} color={wallet.color} /> {isEditing ? "Edit" : "New"} Transaction</>}
-                headerRight={headerRight}
+                rightActions={rightActions}
             >
-                <form id="transaction-form" key={resetKey} onSubmit={handleSubmit} className="text-left flex flex-col gap-6">
+                <div id="transaction-form" key={resetKey} className="text-left flex flex-col gap-6">
 
                     {/* 1. AMOUNT AREA */}
                     <div className="flex flex-col items-center justify-center py-2">
@@ -232,7 +226,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                             setIsRecurring={setIsRecurring}
                         />
                     )}
-                </form>
+                </div>
             </ModalDialog>
         );
     }
