@@ -1,5 +1,6 @@
 import React from 'react';
-import { format, isSameMonth, isSameDay, isAfter, isBefore } from 'date-fns';
+import {format, isSameMonth, isSameDay, isAfter, isBefore} from 'date-fns';
+import type {PresetType} from './CustomDatePicker';
 
 export interface DayCellProps {
     day: Date;
@@ -8,61 +9,77 @@ export interface DayCellProps {
     endDate: Date | null;
     onClick: () => void;
     isRange: boolean;
+    preset: PresetType;
     color: string;
+    isDark: boolean;
 }
 
-export default function DayCell({ day, monthStart, startDate, endDate, onClick, isRange, color }: DayCellProps) {
+export default function DayCell({
+                                    day,
+                                    monthStart,
+                                    startDate,
+                                    endDate,
+                                    onClick,
+                                    isRange,
+                                    preset,
+                                    color,
+                                    isDark
+                                }: DayCellProps) {
     const isCurrentMonth = isSameMonth(day, monthStart);
-    const isStart = startDate && isSameDay(day, startDate);
-    const isEnd = endDate && isSameDay(day, endDate);
+    const isToday = isSameDay(day, new Date());
+
+    const isStart = startDate && isSameDay(day, startDate) && preset !== 'all';
+    const isEnd = endDate && isSameDay(day, endDate) && preset !== 'all';
     const isSelected = isStart || isEnd;
-    const isBetween = startDate && endDate && isAfter(day, startDate) && isBefore(day, endDate);
 
-    // Logica per range "Infinito" sfumato
-    const isInfiniteRangeFading = isRange && startDate && !endDate && isAfter(day, startDate) && isCurrentMonth;
+    const isBetween = (startDate && endDate && isAfter(day, startDate) && isBefore(day, endDate)) || preset === 'all';
 
-    let cellStyles = "relative flex items-center justify-center h-10 w-full text-sm transition-all cursor-pointer ";
+    let cellStyles = "relative flex items-center justify-center h-10 w-full text-sm transition-all ";
     let textStyles = "z-10 ";
     let inlineStyles: React.CSSProperties = {};
 
     if (!isCurrentMonth) {
-        cellStyles += "text-gray-300 pointer-events-none ";
+        cellStyles += isDark ? "text-gray-600 pointer-events-none " : "text-gray-300 pointer-events-none ";
     } else {
-        textStyles += "text-gray-700 hover:text-white ";
+        cellStyles += "cursor-pointer ";
+        textStyles += isDark ? "text-gray-300 hover:text-white " : "text-gray-700 hover:text-black ";
 
         if (isSelected) {
             textStyles += "font-bold text-white ";
             inlineStyles.backgroundColor = color;
 
-            if (isRange && isStart && endDate) {
-                cellStyles += "rounded-l-full ";
-            } else if (isRange && isEnd && startDate) {
-                cellStyles += "rounded-r-full ";
-            } else {
-                cellStyles += "rounded-full ";
-            }
+            if (isRange && isStart && endDate) cellStyles += "rounded-l-full ";
+            else if (isRange && isEnd && startDate) cellStyles += "rounded-r-full ";
+            else cellStyles += "rounded-full ";
+
         } else if (isBetween) {
-            inlineStyles.backgroundColor = `${color}33`; // 20% opacità
-        } else if (isInfiniteRangeFading && startDate) {
-            const distance = day.getDate() - startDate.getDate();
-            const opacity = Math.max(0, 0.4 - (distance * 0.05));
-
-            inlineStyles.background = `linear-gradient(to right, ${color}${Math.floor(opacity * 255).toString(16).padStart(2, '0')}, transparent)`;
-            inlineStyles.borderTop = `1px dashed ${color}`;
-            inlineStyles.borderBottom = `1px dashed ${color}`;
-
-            if (distance === 1) cellStyles += "border-l-0 ";
+            inlineStyles.backgroundColor = `${color}33`;
+            textStyles += isDark ? "text-white " : "text-gray-800 ";
         } else {
-            cellStyles += "hover:bg-gray-100 rounded-full ";
+            cellStyles += isDark ? "hover:bg-gray-800 rounded-full " : "hover:bg-gray-100 rounded-full ";
+        }
+
+        if (isToday && !isSelected) {
+            textStyles += "font-bold ";
+            if (!isBetween) inlineStyles.color = color;
         }
     }
 
     return (
-        <div className={cellStyles} style={inlineStyles} onClick={onClick}>
-            {isSelected && <div className="absolute inset-2 rounded-full" style={{ backgroundColor: color, zIndex: 0 }}></div>}
-            <span className={textStyles} style={{ zIndex: 10, position: 'relative' }}>
-        {format(day, 'd')}
-      </span>
+        <div className={cellStyles} style={inlineStyles} onClick={isCurrentMonth ? onClick : undefined}>
+            {isSelected &&
+                <div className="absolute inset-2 rounded-full" style={{backgroundColor: color, zIndex: 0}}></div>}
+
+            <span className={textStyles} style={{zIndex: 10, position: 'relative'}}>
+                {format(day, 'd')}
+            </span>
+
+            {isCurrentMonth && isToday && (
+                <div
+                    className="absolute bottom-1 w-1 h-1 rounded-full"
+                    style={{backgroundColor: isSelected ? '#fff' : color, zIndex: 10}}
+                ></div>
+            )}
         </div>
     );
 }
