@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useMemo } from '
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Tag, Transaction, Wallet } from '../../utils/types';
-import type { DateRangeValue } from '../../components/DataPicker/CustomDatePicker.tsx';
+import type { DateRangeValue, PresetType } from '../../components/DataPicker/CustomDatePicker.tsx';
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ToastNotification";
 
@@ -18,6 +18,8 @@ interface WalletContextType {
     setSelectedTags: (tags: string[] | null) => void;
     dateRange: DateRangeValue;
     setDateRange: (range: DateRangeValue) => void;
+    datePreset: PresetType;
+    setDatePreset: (preset: PresetType) => void;
     activeTab: TabType;
     setActiveTab: (tab: TabType) => void;
     fetchData: (signal?: AbortSignal) => Promise<void>;
@@ -53,6 +55,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ _wallet, onWalle
 
     const [selectedTags, setSelectedTags] = useState<string[] | null>(null);
     const [dateRange, setDateRange] = useState<DateRangeValue>({ start: null, end: null });
+    const [datePreset, setDatePreset] = useState<PresetType>('month');
 
     const filteredTransactions = useMemo(() => {
         const currentActiveTags = selectedTags ?? tags.map(t => t.name);
@@ -194,7 +197,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ _wallet, onWalle
     return (
         <WalletContext.Provider value={{
             wallet, transactions, filteredTransactions, tags, isLoading, activeTab, setActiveTab, fetchData,
-            selectedTags, setSelectedTags, dateRange, setDateRange,
+            selectedTags, setSelectedTags, dateRange, setDateRange, datePreset, setDatePreset,
             handleAddTag, handleUpdateTag, handleDeleteTag, handleUpdateWallet, onWalletDelete
         }}>
             {children}

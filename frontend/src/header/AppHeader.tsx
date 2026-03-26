@@ -79,7 +79,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
         <> {/* 1. Aggiungiamo questo Fragment per racchiudere tutto */}
 
             <header
-                className=" top-0 z-40 flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#0d0d12]/80 px-6 backdrop-blur-md">
+                className="sticky top-0 z-[120] flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#0d0d12]/80 px-6 backdrop-blur-md">
                 {/* Logo e Nome App */}
                 <h2 className="m-0 text-2xl font-bold tracking-wide text-white capitalize">
                     {page.text}
@@ -90,7 +90,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
                 </h2>
 
                 {/* Menu Utente Dropdown */}
-                <div className="relative z-40 " ref={menuRef}>
+                <div className="relative z-[120]" ref={menuRef}>
                     <button
                         onClick={() => setShowMenu(!showMenu)}
                         className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${

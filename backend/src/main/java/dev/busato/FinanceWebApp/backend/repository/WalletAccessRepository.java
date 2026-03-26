@@ -17,7 +17,7 @@ public interface WalletAccessRepository extends JpaRepository<WalletAccess, Wall
     List<WalletAccess> findAllByUserId(UUID uuid);
     List<WalletAccess> findAllByWalletId(UUID walletId);
     Optional<WalletAccess> findByUserIdAndWalletId(UUID userID, UUID walletID);
-    Collection<WalletAccess> findAllByUserIdAndStatus(UUID userId, WalletAccess.InvitationStatus invitationStatus);
+    List<WalletAccess> findAllByUserIdAndStatus(UUID userId, WalletAccess.InvitationStatus invitationStatus);
     Optional<WalletAccess> findByWalletIdAndUserIdAndRole(UUID walletId, UUID userId, WalletAccess.WalletRole role);
     Optional<WalletAccess> findByWalletIdAndUserId(UUID walletId, UUID userId);
     boolean existsByWalletIdAndUserId(UUID walletId, UUID userId);

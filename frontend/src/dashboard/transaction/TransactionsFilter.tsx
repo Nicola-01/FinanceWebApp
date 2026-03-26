@@ -4,12 +4,12 @@ import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { TagFilter } from '../../components/TagFilter/TagFilter.tsx';
 
 export const TransactionsFilter: React.FC = () => {
-    const { wallet, tags, selectedTags, setSelectedTags, setDateRange } = useWalletContext();
+    const { wallet, tags, selectedTags, setSelectedTags, setDateRange, dateRange, datePreset, setDatePreset } = useWalletContext();
 
     const activeTags = selectedTags ?? tags.map(t => t.name); // Using context state
 
     return (
-        <div className="relative z-50 flex items-center justify-between gap-4 p-2 rounded-2xl sm:rounded-full border border-white/10 bg-black/40 backdrop-blur-xl shadow-lg">
+        <div className="relative z-50 flex items-center justify-between gap-4 p-2 rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-lg">
 
             {/* Spacer a sinistra (nascosto su mobile) per bilanciare il bottone dei filtri a destra e permettere al date picker di essere perfettamente centrato */}
             <div className="hidden sm:block w-[48px] h-[48px] shrink-0"></div>
@@ -21,6 +21,10 @@ export const TransactionsFilter: React.FC = () => {
                         color={wallet.color}
                         isDark={true}
                         onChange={(val) => setDateRange(val as DateRangeValue)}
+                        initialPreset={datePreset}
+                        initialStartDate={dateRange.start}
+                        initialEndDate={dateRange.end}
+                        onPresetChange={(preset) => setDatePreset(preset)}
                     />
                 </div>
             </div>

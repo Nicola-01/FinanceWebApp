@@ -95,20 +95,20 @@ export const LoginForm: React.FC = () => {
 
     return (
         <form
-            className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-white/10 bg-white/5 p-8 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
+            className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
             onSubmit={handleSubmit}
             noValidate
         >
             {/* Avatar Header */}
-            <div className="mb-8">
+            <div className="mb-5 sm:mb-8">
                 <div
-                    className="flex h-20 w-20 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
-                    <FontAwesomeIcon icon={faUser} className="text-3xl text-white/80"/>
+                    className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
+                    <FontAwesomeIcon icon={faUser} className="text-2xl sm:text-3xl text-white/80"/>
                 </div>
             </div>
 
             {/* Username Input */}
-            <div className="relative mb-8 w-full">
+            <div className="relative mb-5 sm:mb-8 w-full">
                 <div
                     className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
                     <span className="absolute left-0 text-lg text-white/80">
@@ -131,7 +131,7 @@ export const LoginForm: React.FC = () => {
             </div>
 
             {/* Password Input */}
-            <div className="relative mb-8 w-full">
+            <div className="relative mb-5 sm:mb-8 w-full">
                 <div
                     className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
                     <span className="absolute left-0 text-lg text-white/80">
@@ -161,7 +161,7 @@ export const LoginForm: React.FC = () => {
             </div>
 
             {/* Options (Remember Me / Forgot Password) */}
-            <div className="mb-8 flex w-full items-center justify-between text-sm text-white/80">
+            <div className="mb-6 sm:mb-8 flex w-full items-center justify-between text-sm text-white/80">
                 <label className="group flex cursor-pointer select-none items-center">
                     <div className="relative">
                         <input
