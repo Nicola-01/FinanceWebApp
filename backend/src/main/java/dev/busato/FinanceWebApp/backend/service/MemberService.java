@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -66,8 +67,25 @@ public class MemberService {
         if (targetUser.getId().equals(userId))
             throw new IllegalArgumentException("You cannot invite yourself");
 
-        if (walletAccessRepository.existsByWalletIdAndUserId(walletId, targetUser.getId()))
+        if (walletAccessRepository.existsByWalletIdAndUserIdAndStatusIn(
+                walletId,
+                targetUser.getId(),
+                new WalletAccess.InvitationStatus[]{
+                        WalletAccess.InvitationStatus.PENDING,
+                        WalletAccess.InvitationStatus.ACCEPTED
+                }
+        )) {
             throw new IllegalArgumentException("User is already a member or has a pending invite");
+        }
+
+        LocalDate threeDaysAgo = LocalDate.now().minusDays(3);
+        if (walletAccessRepository.existsByWalletIdAndUserIdAndStatusInAndUpdatedAtAfter(
+                walletId,
+                targetUser.getId(),
+                List.of(WalletAccess.InvitationStatus.REJECTED, WalletAccess.InvitationStatus.LEFT),
+                threeDaysAgo
+        ))
+            throw new IllegalArgumentException("L'utente ha rifiutato l'invito o ha abbandonato il wallet di recente. Devi aspettare 3 giorni dall'evento prima di poterlo reinvitare.");
 
         WalletAccess access = new WalletAccess();
         access.setId(new WalletAccess.WalletAccessId(targetUser.getId(), wallet.getId()));
@@ -78,7 +96,7 @@ public class MemberService {
 
         try {
             sendEmailService.sendWalletInvitation(userRepository.findById(userId).get().getUsername(), wallet, targetUser.getEmail(), access.getRole() == WalletAccess.WalletRole.EDITOR);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Unable to send the invitation email to " + targetUser.getEmail(), e);
         }
 

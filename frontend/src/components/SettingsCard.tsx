@@ -25,7 +25,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
     actionText, actionIcon, actionColor, onAction, actionDisabled, isActionLoading
 }) => {
     return (
-        <div className={`flex flex-col gap-6 border rounded-2xl p-6 backdrop-blur-md relative overflow-hidden group ${danger ? 'bg-red-500/5 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
+        <div className={`flex flex-col gap-6 border rounded-2xl p-6 backdrop-blur-md relative overflow-hidden group shrink-0 ${danger ? 'bg-red-500/5 border-red-500/20' : 'bg-white/5 border-white/10'}`}>
 
             {danger && (
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-500/10 rounded-full blur-3xl transition-all group-hover:bg-red-500/20 pointer-events-none"></div>

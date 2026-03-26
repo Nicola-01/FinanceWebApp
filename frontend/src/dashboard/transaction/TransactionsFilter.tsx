@@ -9,20 +9,24 @@ export const TransactionsFilter: React.FC = () => {
     const activeTags = selectedTags ?? tags.map(t => t.name); // Using context state
 
     return (
-        <div
-            className="relative z-50 flex flex-wrap items-center gap-4 mb-6 p-4 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
+        <div className="relative z-50 flex items-center justify-between gap-4 p-2 rounded-2xl sm:rounded-full border border-white/10 bg-black/40 backdrop-blur-xl shadow-lg">
 
-            <div className="flex-1 min-w-[280px] max-w-sm">
-                <CustomDatePicker
-                    isRange={true}
-                    color={wallet.color}
-                    isDark={true}
-                    onChange={(val) => setDateRange(val as DateRangeValue)}
-                />
+            {/* Spacer a sinistra (nascosto su mobile) per bilanciare il bottone dei filtri a destra e permettere al date picker di essere perfettamente centrato */}
+            <div className="hidden sm:block w-[48px] h-[48px] shrink-0"></div>
+
+            <div className="flex-1 flex justify-center min-w-[240px]">
+                <div className="w-full max-w-sm">
+                    <CustomDatePicker
+                        isRange={true}
+                        color={wallet.color}
+                        isDark={true}
+                        onChange={(val) => setDateRange(val as DateRangeValue)}
+                    />
+                </div>
             </div>
 
             {/* Filtro Tag Dinamico */}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="shrink-0 flex items-center justify-center">
                 <TagFilter
                     tags={tags}
                     selectedTags={activeTags}
