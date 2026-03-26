@@ -6,14 +6,14 @@ import {
     TransactionModal,
     type TransactionModalHandle
 } from "../../modals/TransactionModal/TransactionModal.tsx";
-import React, {useRef} from 'react';
-import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
+import React, { useRef } from 'react';
+import type { Tag, Transaction, Wallet } from '../../utils/types.ts';
 import TransactionRow from "./TransactionRow.tsx";
 import api from "../../api/axiosConfig.ts";
-import {triggerToast} from "../../components/ToastNotification.tsx";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faPlus, faReceipt} from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
-import type {CurrencyCode} from "../../utils/currencies.ts";
+import { triggerToast } from "../../components/ToastNotification.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus, faReceipt } from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
+import type { CurrencyCode } from "../../utils/currencies.ts";
 
 interface TransactionsTableProps {
     wallet: Wallet,
@@ -43,12 +43,12 @@ const SkeletonRow = () => (
 );
 
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({
-                                                                        wallet,
-                                                                        tags,
-                                                                        transactions,
-                                                                        isLoading,
-                                                                        onRefresh
-                                                                    }) => {
+    wallet,
+    tags,
+    transactions,
+    isLoading,
+    onRefresh
+}) => {
 
     const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
     const transactionModalRef = useRef<TransactionModalHandle>(null);
@@ -102,7 +102,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
         <div className="flex flex-col h-full">
 
             {/* AZIONE PRINCIPALE: Ora è isolata, allineata a destra come da design */}
-            {!isLoading && (
+            {!isLoading && wallet.myRole !== 'VIEWER' && (
                 <div className="my-4 mt-2 w-full">
                     <button
                         onClick={() => transactionModalRef.current?.openModal()}
@@ -111,8 +111,8 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                         {/* Icona circolare che simula la categoria della transazione */}
                         <div
                             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-white/10 group-hover:scale-105"
-                            style={{color: wallet.color}}>
-                            <FontAwesomeIcon icon={faPlus}/>
+                            style={{ color: wallet.color }}>
+                            <FontAwesomeIcon icon={faPlus} />
                         </div>
 
                         {/* Testo allineato come il nome della transazione */}
@@ -127,28 +127,28 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
                 {/* 1. STATO DI CARICAMENTO */}
                 {isLoading ? (
-                        <>
-                            <div className="mb-6">
-                                <SkeletonDateHeader/>
-                                <div>
-                                    <SkeletonRow/>
-                                    <SkeletonRow/>
-                                    <SkeletonRow/>
-                                </div>
+                    <>
+                        <div className="mb-6">
+                            <SkeletonDateHeader />
+                            <div>
+                                <SkeletonRow />
+                                <SkeletonRow />
+                                <SkeletonRow />
                             </div>
-                        </>
-                    ) :
+                        </div>
+                    </>
+                ) :
 
                     /* 2. STATO VUOTO (Nessuna transazione) - Migliorato visivamente */
                     transactions.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-24 text-white/40">
-                                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
-                                    <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50"/>
-                                </div>
-                                <p className="text-sm font-medium">No transactions found for this period.</p>
-                                <p className="mt-1 text-xs opacity-60">Click "New Transaction" to add your first one.</p>
+                        <div className="flex flex-col items-center justify-center py-24 text-white/40">
+                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+                                <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50" />
                             </div>
-                        ) :
+                            <p className="text-sm font-medium">No transactions found for this period.</p>
+                            <p className="mt-1 text-xs opacity-60">Click "New Transaction" to add your first one.</p>
+                        </div>
+                    ) :
 
                         /* 3. STATO CON DATI */
                         (

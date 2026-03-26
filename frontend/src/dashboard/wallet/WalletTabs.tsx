@@ -6,7 +6,6 @@ import {
     faReceipt,
     faChartPie,
     faTags,
-    faShareNodes,
     faGear
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -19,15 +18,13 @@ export const WalletTabs: React.FC = () => {
         { id: 'transactions', label: 'Transactions', icon: faReceipt },
         { id: 'statistics', label: 'Statistics', icon: faChartPie },
         { id: 'category', label: 'Categories', icon: faTags },
-        { id: 'share', label: 'Share', icon: faShareNodes },
         { id: 'settings', label: 'Settings', icon: faGear }
     ];
 
     const getTabClass = (tabId: TabType) => {
         const isActive = activeTab === tabId;
-        return `relative flex-1 flex items-center justify-center gap-2 whitespace-nowrap min-w-max px-4 py-3 text-sm font-bold uppercase tracking-wider transition-all duration-300 ${
-            isActive ? 'text-white' : 'text-white/40 hover:text-white/70'
-        }`;
+        return `relative flex-1 flex items-center justify-center gap-2 whitespace-nowrap min-w-max px-4 py-3 text-sm font-bold uppercase tracking-wider transition-all duration-300 ${isActive ? 'text-white' : 'text-white/40 hover:text-white/70'
+            }`;
     };
 
     return (

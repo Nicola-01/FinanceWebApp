@@ -22,7 +22,7 @@ const TagSkeleton = () => (
 );
 
 export const TagsTab: React.FC = () => {
-    const { tags, handleAddTag: onAddTag, handleUpdateTag: onUpdateTag, handleDeleteTag: onDeleteTag, isLoading } = useWalletContext();
+    const { wallet, tags, handleAddTag: onAddTag, handleUpdateTag: onUpdateTag, handleDeleteTag: onDeleteTag, isLoading } = useWalletContext();
     const [isAddingTag, setIsAddingTag] = useState(false);
     const [showNewMainSelector, setShowNewMainSelector] = useState(false);
     const [savingMain, setSavingMain] = useState(false);
@@ -63,7 +63,7 @@ export const TagsTab: React.FC = () => {
         <div className="flex-1 overflow-auto rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-md">
 
             {/* 1. SEZIONE AGGIUNGI MAIN CATEGORY (Sopra a tutto, larghezza intera) */}
-            {!isLoading && (
+            {!isLoading && wallet.myRole !== 'VIEWER' && (
                 <div className="mb-8 w-full">
                     {isAddingTag ? (
                         /* GRAFICA AGGIORNATA: Form quando si sta aggiungendo */
@@ -126,7 +126,7 @@ export const TagsTab: React.FC = () => {
                             className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-white/10 bg-transparent p-4 text-white/50 transition-all hover:border-white/30 hover:bg-white/5 hover:text-white"
                         >
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-white/10 group-hover:scale-105">
-                                <FontAwesomeIcon icon={faPlus}/>
+                                <FontAwesomeIcon icon={faPlus} />
                             </div>
 
                             <div className="flex-1 text-left font-bold tracking-wide">

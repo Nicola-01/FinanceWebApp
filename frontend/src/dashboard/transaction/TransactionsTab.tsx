@@ -1,22 +1,18 @@
-import React, { useRef, useState } from 'react';
-import type { Transaction } from '../../utils/types.ts';
+import React, { useRef } from 'react';
 import {
     TransactionModal,
     type TransactionModalHandle
 } from "../../modals/TransactionModal/TransactionModal.tsx";
 import type { CurrencyCode } from "../../utils/currencies.ts";
 import { TransactionsTable } from "./TransactionsTable.tsx";
-import { TransactionsFilter } from "./TransactionsFilter.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 
 export const TransactionsTab: React.FC = () => {
-    const { transactions, wallet, isLoading, tags, fetchData } = useWalletContext();
+    const { wallet, isLoading, tags, fetchData, filteredTransactions } = useWalletContext();
     const baseCurrency = wallet.currency as CurrencyCode;
     const onRefresh = () => fetchData();
 
     const transactionModalRef = useRef<TransactionModalHandle>(null);
-
-    const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>(transactions);
 
     return (
         <div className="flex flex-col flex-1 h-full xl:overflow-hidden animate-[fadeIn_0.3s_ease-out]">
@@ -30,11 +26,6 @@ export const TransactionsTab: React.FC = () => {
                     onSuccess={onRefresh}
                 />
             </div>
-
-            <TransactionsFilter
-                transactions={transactions}
-                onFilterChange={setFilteredTransactions}
-            />
 
             <div className="w-full xl:flex-1 xl:overflow-y-auto custom-scrollbar xl:pr-2">
                 <TransactionsTable

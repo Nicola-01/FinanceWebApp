@@ -6,9 +6,9 @@ import { Icon } from "../../components/Icon.tsx";
 import { WalletTabs } from "./WalletTabs.tsx";
 // import { WalletMenu } from "./WalletMenu.tsx";
 import { TagsTab } from "../tag/TagsTab.tsx";
-import { ShareTab } from "../share/ShareTab.tsx";
 import { SettingsTab } from "../settings/SettingsTab.tsx";
 import { WalletProvider, useWalletContext } from './WalletContext.tsx';
+import { TransactionsFilter } from '../transaction/TransactionsFilter.tsx';
 
 interface WalletDashboardProps {
     _wallet: Wallet;
@@ -36,11 +36,14 @@ const WalletDashboardContent: React.FC = () => {
 
             <WalletTabs />
 
+            <div className={activeTab === 'transactions' || activeTab === 'statistics' ? "block mb-2 mt-4" : "hidden"}>
+                <TransactionsFilter />
+            </div>
+
             <div className="flex-1 overflow-hidden">
                 {activeTab === 'transactions' && <TransactionsTab />}
                 {activeTab === 'category' && <TagsTab />}
                 {activeTab === 'statistics' && <StatisticsTab />}
-                {activeTab === 'share' && <ShareTab />}
                 {activeTab === 'settings' && <SettingsTab />}
             </div>
 

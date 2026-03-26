@@ -1,17 +1,23 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Tag, Transaction, Wallet } from '../../utils/types';
+import type { DateRangeValue } from '../../components/DataPicker/CustomDatePicker.tsx';
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ToastNotification";
 
-export type TabType = 'transactions' | 'category' | 'statistics' | 'budget' | 'share' | 'settings';
+export type TabType = 'transactions' | 'category' | 'statistics' | 'budget' | 'settings';
 
 interface WalletContextType {
     wallet: Wallet;
     transactions: Transaction[];
+    filteredTransactions: Transaction[];
     tags: Tag[];
     isLoading: boolean;
+    selectedTags: string[] | null;
+    setSelectedTags: (tags: string[] | null) => void;
+    dateRange: DateRangeValue;
+    setDateRange: (range: DateRangeValue) => void;
     activeTab: TabType;
     setActiveTab: (tab: TabType) => void;
     fetchData: (signal?: AbortSignal) => Promise<void>;
@@ -45,8 +51,35 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ _wallet, onWalle
     const [tags, setTags] = useState<Tag[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    const [selectedTags, setSelectedTags] = useState<string[] | null>(null);
+    const [dateRange, setDateRange] = useState<DateRangeValue>({ start: null, end: null });
+
+    const filteredTransactions = useMemo(() => {
+        const currentActiveTags = selectedTags ?? tags.map(t => t.name);
+
+        return transactions.filter(tx => {
+            if (!currentActiveTags.includes(tx.tag.name))
+                return false;
+
+            const txDate = new Date(tx.transactionDate);
+
+            if (dateRange?.start) {
+                const start = new Date(dateRange.start);
+                start.setHours(0, 0, 0, 0);
+                if (txDate < start) return false;
+            }
+
+            if (dateRange?.end) {
+                const end = new Date(dateRange.end);
+                end.setHours(23, 59, 59, 999);
+                if (txDate > end) return false;
+            }
+            return true;
+        });
+    }, [transactions, tags, selectedTags, dateRange]);
+
     const [searchParams, setSearchParams] = useSearchParams();
-    const validTabs: TabType[] = ['transactions', 'category', 'statistics', 'budget', 'share', 'settings'];
+    const validTabs: TabType[] = ['transactions', 'category', 'statistics', 'budget', 'settings'];
     const urlTab = searchParams.get('tab') as TabType;
     const activeTab: TabType = validTabs.includes(urlTab) ? urlTab : 'transactions';
 
@@ -160,7 +193,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ _wallet, onWalle
 
     return (
         <WalletContext.Provider value={{
-            wallet, transactions, tags, isLoading, activeTab, setActiveTab, fetchData, handleAddTag, handleUpdateTag, handleDeleteTag, handleUpdateWallet, onWalletDelete
+            wallet, transactions, filteredTransactions, tags, isLoading, activeTab, setActiveTab, fetchData,
+            selectedTags, setSelectedTags, dateRange, setDateRange,
+            handleAddTag, handleUpdateTag, handleDeleteTag, handleUpdateWallet, onWalletDelete
         }}>
             {children}
         </WalletContext.Provider>
