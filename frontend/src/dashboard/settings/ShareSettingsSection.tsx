@@ -56,7 +56,7 @@ export const ShareSettingsSection: React.FC = () => {
     const handleRemoveMember = async (memberId: string, memberName: string) => {
         if (!window.confirm(`Are you sure you want to remove ${memberName}?`)) return;
         try {
-            await api.delete(`/wallets/${wallet.id}/invitations/${memberId}`);
+            await api.delete(`/invitations/${wallet.id}/${memberId}`);
             setMembers(prev => prev.filter(m => m.userId !== memberId));
             triggerToast(`${memberName} removed successfully.`, true);
         } catch (err) {
@@ -66,9 +66,8 @@ export const ShareSettingsSection: React.FC = () => {
 
     const handleChangeRole = async (memberId: string, newRole: 'EDITOR' | 'VIEWER') => {
         try {
-            await api.put(`/wallets/${wallet.id}/invitations/${memberId}/role`, { role: newRole });
+            await api.put(`/invitations/${wallet.id}/${memberId}`, { role: newRole });
             setMembers(prev => prev.map(m => m.userId === memberId ? { ...m, role: newRole } : m));
-            triggerToast("Role updated successfully.", true);
         } catch (err) {
             triggerToast("Error updating role.", false);
         }

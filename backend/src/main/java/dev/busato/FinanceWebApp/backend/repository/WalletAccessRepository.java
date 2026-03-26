@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,12 @@ public interface WalletAccessRepository extends JpaRepository<WalletAccess, Wall
     Optional<WalletAccess> findByWalletIdAndUserIdAndRole(UUID walletId, UUID userId, WalletAccess.WalletRole role);
     Optional<WalletAccess> findByWalletIdAndUserId(UUID walletId, UUID userId);
     boolean existsByWalletIdAndUserId(UUID walletId, UUID userId);
-
+    boolean existsByWalletIdAndUserIdAndStatusIn(UUID walletId, UUID userId, WalletAccess.InvitationStatus[] statuses);
+    boolean existsByWalletIdAndUserIdAndStatusInAndUpdatedAtAfter(
+            UUID walletId,
+            UUID userId,
+            Collection<WalletAccess.InvitationStatus> statuses,
+            LocalDate date
+    );
     Optional<WalletAccess> findByWalletIdAndRole(UUID walletId, WalletAccess.WalletRole role);
 }

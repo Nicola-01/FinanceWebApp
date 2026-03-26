@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -44,6 +45,10 @@ public class WalletAccess {
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDate invitedAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDate updatedAt;
 
     @PrePersist
     void onCreate() {

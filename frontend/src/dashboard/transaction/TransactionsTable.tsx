@@ -99,31 +99,9 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     // }
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full relative">
 
-            {/* AZIONE PRINCIPALE: Ora è isolata, allineata a destra come da design */}
-            {!isLoading && wallet.myRole !== 'VIEWER' && (
-                <div className="my-4 mt-2 w-full">
-                    <button
-                        onClick={() => transactionModalRef.current?.openModal()}
-                        className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-white/10 bg-transparent p-4 text-white/50 transition-all hover:border-white/30 hover:bg-white/5 hover:text-white"
-                    >
-                        {/* Icona circolare che simula la categoria della transazione */}
-                        <div
-                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-white/10 group-hover:scale-105"
-                            style={{ color: wallet.color }}>
-                            <FontAwesomeIcon icon={faPlus} />
-                        </div>
-
-                        {/* Testo allineato come il nome della transazione */}
-                        <div className="flex-1 text-left font-bold tracking-wide">
-                            Add New Transaction
-                        </div>
-                    </button>
-                </div>
-            )}
-
-            <div className="flex-1 overflow-auto pr-2 custom-scrollbar">
+            <div className="flex-1 overflow-auto pr-2 pb-10 custom-scrollbar">
 
                 {/* 1. STATO DI CARICAMENTO */}
                 {isLoading ? (
@@ -198,6 +176,25 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 />
 
             </div>
+
+            {/* FLOATING ACTION BUTTON */}
+            {!isLoading && wallet.myRole !== 'VIEWER' && (
+                <div className="fixed xl:absolute bottom-8 left-0 right-0 mx-auto w-max z-[100] pointer-events-none">
+                    <button
+                        onClick={() => transactionModalRef.current?.openModal()}
+                        className="group flex items-center justify-center gap-3 rounded-2xl border backdrop-blur-md px-6 py-4 shadow-xl hover:brightness-125 transition-all font-bold pointer-events-auto"
+                        style={{ 
+                            backgroundColor: wallet.color + '26', // 15% opacity
+                            borderColor: wallet.color + '40', // 25% opacity
+                            boxShadow: `0 8px 32px 0 ${wallet.color}33` // 20% opacity
+                        }}
+                    >
+                        <FontAwesomeIcon icon={faPlus} className="text-xl transition-transform group-hover:scale-110" style={{ color: wallet.color }} />
+                        <span className="hidden sm:inline text-white tracking-wide">Add New Transaction</span>
+                        <span className="inline sm:hidden text-white tracking-wide">Add</span>
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

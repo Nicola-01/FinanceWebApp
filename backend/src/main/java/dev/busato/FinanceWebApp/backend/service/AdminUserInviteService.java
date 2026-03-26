@@ -69,7 +69,7 @@ public class AdminUserInviteService {
 
         userInvitationRepository.save(invitation);
 
-        String url =generateInviteUrl(token);
+        String url = generateInviteUrl(token);
 
         AdminInviteResponse inviteResponse = AdminInviteResponse.builder()
                 .email(request.getEmail())

@@ -5,12 +5,22 @@ import dev.busato.FinanceWebApp.backend.model.Wallet;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import org.springframework.core.io.ByteArrayResource;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 
@@ -19,6 +29,9 @@ public class SendEmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    @Value("${application.frontend.url}")
+    private String FRONTEND_URL;
 
     public void sendRegistrationInvitation(AdminInviteResponse inviteResponse) throws MessagingException {
         String htmlTemplate = getHtmlTemplate("templates/email/registrationInviteEmail.html");
@@ -41,28 +54,6 @@ public class SendEmailService {
         mailSender.send(message);
     }
 
-    public void sendWalletInvitation(String inviterUsername, Wallet wallet, String recipientEmail, boolean editor) throws MessagingException {
-        String htmlTemplate = getHtmlTemplate("templates/email/walletInviteEmail.html");
-
-        // Sostituisci i segnaposto nel template HTML con i valori reali
-        String finalHtml = htmlTemplate
-                .replace("{{walletColor}}", wallet.getColor())
-                .replace("{{walletIconClass}}", toFontAwesomeIcon(wallet.getIcon()))
-                .replace("{{inviterUsername}}", inviterUsername)
-                .replace("{{walletName}}", wallet.getName());
-
-        // Crea e configura il messaggio email
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-        helper.setFrom("noreply@busato.dev");
-        helper.setTo(recipientEmail);
-        helper.setSubject(inviterUsername + " has invited you to " + (editor ? "edit" : "view") + " a wallet!");
-        helper.setText(finalHtml, true);
-
-        mailSender.send(message);
-    }
-
     private String getHtmlTemplate(String path) {
         try {
             ClassPathResource resource = new ClassPathResource(path);
@@ -80,5 +71,95 @@ public class SendEmailService {
         return "fa-" + input.replaceAll("([a-z0-9])([A-Z])", "$1-$2")
                 .replaceAll("([A-Z])([A-Z][a-z])", "$1-$2")
                 .toLowerCase();
+    }
+
+    public void sendWalletInvitation(String inviterUsername, Wallet wallet, String recipientEmail, boolean editor) throws Exception {
+        String htmlTemplate = getHtmlTemplate("templates/email/walletInviteEmail.html");
+
+        // Sostituisci i segnaposto (rimuoviamo {{walletIconClass}} perché usiamo l'immagine)
+        String finalHtml = htmlTemplate
+                .replace("{{walletColor}}", wallet.getColor())
+                .replace("{{inviterUsername}}", inviterUsername)
+                .replace("{{appUrl}}", FRONTEND_URL)
+                .replace("{{walletName}}", wallet.getName());
+
+        // ATTENZIONE: Il parametro 'true' abilita il multipart (necessario per le immagini inline)
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom("noreply@busato.dev", "FinanceWebApp");
+        helper.setTo(recipientEmail);
+        helper.setSubject(inviterUsername + " has invited you to " + (editor ? "edit" : "view") + " a wallet!");
+
+        // 1. Imposta l'HTML
+        helper.setText(finalHtml, true);
+
+        // 2. Genera l'icona FontAwesome come immagine PNG
+        byte[] iconBytes = generateIconImage(wallet.getIcon(), wallet.getColor());
+
+        // 3. Inietta l'immagine nell'HTML usando il Content-ID "walletIcon"
+        helper.addInline("walletIcon", new ByteArrayResource(iconBytes), "image/png");
+
+        mailSender.send(message);
+    }
+
+// --- METODI DI SUPPORTO PER GENERARE L'IMMAGINE ---
+
+    private byte[] generateIconImage(String iconName, String hexColor) throws Exception {
+        int size = 64; // Dimensione ottimale per i display ad alta risoluzione
+        BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = image.createGraphics();
+
+        // Migliora la qualità dell'immagine
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+        // Carica il font dalla cartella resources
+        try (InputStream is = getClass().getResourceAsStream("/fonts/fa-solid-900.ttf")) {
+            if (is == null) {
+                throw new RuntimeException("File font non trovato! Assicurati di avere src/main/resources/fonts/fa-solid-900.ttf");
+            }
+            Font font = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(Font.PLAIN, 36f);
+            g2d.setFont(font);
+        }
+
+        // Colora l'icona col colore del wallet
+        g2d.setColor(Color.decode(hexColor != null && !hexColor.isEmpty() ? hexColor : "#000000"));
+
+        // Ottieni il carattere unicode corrispondente
+        String unicode = getUnicodeForIcon(iconName);
+
+        // Centra l'icona nel riquadro
+        FontMetrics fm = g2d.getFontMetrics();
+        int x = (size - fm.stringWidth(unicode)) / 2;
+        int y = ((size - fm.getHeight()) / 2) + fm.getAscent();
+
+        g2d.drawString(unicode, x, y);
+        g2d.dispose();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", baos);
+        return baos.toByteArray();
+    }
+
+    // Mappa i nomi testuali ai codici Unicode di FontAwesome
+    private String getUnicodeForIcon(String iconName) {
+        if (iconName == null) return "\uf555"; // Default: wallet
+
+        return switch (iconName.toLowerCase()) {
+            case "cart" -> "\uf07a";
+            case "wallet" -> "\uf555";
+            case "home" -> "\uf015";
+            case "piggybank" -> "\uf4d3";
+            case "car" -> "\uf1b9";
+            case "plane" -> "\uf072";
+            case "utensils" -> "\uf2e7";
+            case "gamepad" -> "\uf11b";
+            case "heart" -> "\uf004";
+            case "gift" -> "\uf06b";
+            case "briefcase" -> "\uf0b1";
+            // Puoi aggiungere qui tutte le altre icone che gestisci nella tua app
+            default -> "\uf555";
+        };
     }
 }

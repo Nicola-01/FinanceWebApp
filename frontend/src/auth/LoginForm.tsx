@@ -95,7 +95,7 @@ export const LoginForm: React.FC = () => {
 
     return (
         <form
-            className={`relative z-10 flex w-[380px] flex-col items-center rounded-3xl border border-white/10 bg-white/5 p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
+            className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-white/10 bg-white/5 p-8 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
             onSubmit={handleSubmit}
             noValidate
         >

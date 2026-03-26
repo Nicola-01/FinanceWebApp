@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFilter, faChevronDown, faChevronUp, faCheckSquare, faSquare, faMinusSquare } from '@fortawesome/free-solid-svg-icons';
+import { faFilter, faCheckSquare, faSquare, faMinusSquare } from '@fortawesome/free-solid-svg-icons';
 import type { Tag } from '../../utils/types.ts';
 import { TagFilterRow } from './TagFilterRow.tsx';
 
@@ -99,22 +99,31 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
         allColorClass = "";
     }
 
-    // Determine button text
-    let buttonText = "All Tags";
-    if (allState === 'unchecked') buttonText = "No Tags";
-    else if (allState === 'indeterminate') buttonText = `${selectedTags.length} Tags`;
+    const isFilterActive = selectedTags.length !== tags.length;
 
     return (
         <div className="relative" ref={dropdownRef}>
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 bg-black/40 border border-white/10 text-base text-white rounded-xl px-4 py-2.5 outline-none transition-colors"
-                style={isOpen ? { borderColor: color } : {}}
+                className={`flex items-center justify-center w-[48px] h-[48px] rounded-xl border transition-all ${
+                    isFilterActive || isOpen
+                        ? 'shadow-lg' 
+                        : 'bg-black/40 border-white/10 text-white/50 hover:bg-white/5 hover:text-white'
+                }`}
+                style={
+                    isFilterActive || isOpen 
+                        ? { backgroundColor: color + '26', color: color, borderColor: color + '40' } 
+                        : {}
+                }
+                title="Filter by Tags"
             >
-                <FontAwesomeIcon icon={faFilter} className="text-white/40 text-sm" />
-                <span>{buttonText}</span>
-                <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} className="text-white/40 text-sm ml-1 transition-transform" />
+                <div className="relative">
+                    <FontAwesomeIcon icon={faFilter} className="text-lg transition-transform hover:scale-110" />
+                    {isFilterActive && (
+                        <div className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}></div>
+                    )}
+                </div>
             </button>
 
             {isOpen && (

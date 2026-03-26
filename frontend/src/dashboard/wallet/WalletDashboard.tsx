@@ -36,9 +36,9 @@ const WalletDashboardContent: React.FC = () => {
 
             <WalletTabs />
 
-            <div className={activeTab === 'transactions' || activeTab === 'statistics' ? "block mb-2 mt-4" : "hidden"}>
+            {(activeTab === 'transactions' || activeTab === 'statistics') &&
                 <TransactionsFilter />
-            </div>
+            }
 
             <div className="flex-1 overflow-hidden">
                 {activeTab === 'transactions' && <TransactionsTab />}

@@ -12,7 +12,7 @@ const Login: React.FC = () => {
     }, []);
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-900">
+        <div className="relative flex min-h-[100dvh] items-start pt-[12dvh] sm:items-center sm:pt-0 justify-center overflow-hidden bg-slate-900 px-4 sm:px-0">
             {/* Renders the visual background and animations */}
             <LoginBackground />
 
