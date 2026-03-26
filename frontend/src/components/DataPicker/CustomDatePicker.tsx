@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, addMonths, subYears, addYears } from 'date-fns';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import CalendarContainer from './CalendarContainer';
 
 export type DateRangeValue = { start: Date | null; end: Date | null };
@@ -13,19 +13,27 @@ export interface CustomDatePickerProps {
     color?: string;
     isDark?: boolean;
     onChange?: (value: DatePickerValue) => void;
+    initialPreset?: PresetType;
+    initialStartDate?: Date | null;
+    initialEndDate?: Date | null;
+    onPresetChange?: (preset: PresetType) => void;
 }
 
 export default function CustomDatePicker({
     isRange = true,
     color = '#00ff7f',
     isDark = true,
-    onChange
+    onChange,
+    initialPreset = 'month',
+    initialStartDate = null,
+    initialEndDate = null,
+    onPresetChange
 }: CustomDatePickerProps) {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const [preset, setPreset] = useState<PresetType>('month');
-    const [currentDate, setCurrentDate] = useState<Date>(new Date());
-    const [startDate, setStartDate] = useState<Date | null>(null);
-    const [endDate, setEndDate] = useState<Date | null>(null);
+    const [preset, setPreset] = useState<PresetType>(initialPreset);
+    const [currentDate, setCurrentDate] = useState<Date>(initialStartDate || new Date());
+    const [startDate, setStartDate] = useState<Date | null>(initialStartDate);
+    const [endDate, setEndDate] = useState<Date | null>(initialEndDate);
     const [isMobile, setIsMobile] = useState<boolean>(false);
 
     const popoverRef = useRef<HTMLDivElement>(null);
@@ -56,6 +64,12 @@ export default function CustomDatePicker({
         window.addEventListener('resize', checkMobile);
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    useEffect(() => {
+        if (onPresetChange) {
+            onPresetChange(preset);
+        }
+    }, [preset, onPresetChange]);
 
     useEffect(() => {
         if (onChangeRef.current) {
@@ -118,7 +132,19 @@ export default function CustomDatePicker({
     const bgInput = isDark ? 'bg-gray-800' : 'bg-gray-50';
     const borderInput = isDark ? 'border-gray-600' : 'border-gray-100';
 
+    // Auto-close on single-date selection
+    useEffect(() => {
+        if (!isRange && startDate && isOpen) {
+            setIsOpen(false);
+        }
+    }, [startDate, isRange]);
+
     const renderTriggerContent = () => {
+        // Single-date mode: show just the selected date
+        if (!isRange) {
+            return <span className={`${textMain} font-medium text-sm flex-1 text-center`}>{startDate ? format(startDate, 'MMM d, yyyy') : 'Select a date'}</span>;
+        }
+
         if (preset === 'all') return <span className={`${textMain} font-medium text-sm flex-1 text-center`}>All transactions</span>;
 
         // Aggiunta la visualizzazione del testo statico per "Last 30 Days"
@@ -157,7 +183,7 @@ export default function CustomDatePicker({
         <div className="relative w-full max-w-sm font-sans flex items-center gap-3" ref={popoverRef}>
 
             {/* Icona del Calendario fissa a sinistra */}
-            <CalendarIcon className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+            {/*<CalendarIcon className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />*/}
 
             {/* Box Cliccabile */}
             <div
@@ -173,45 +199,47 @@ export default function CustomDatePicker({
             {isOpen && (() => {
                 const popoverContent = (
                     <>
-                        {/* SIDEBAR PRESET */}
-                        <div className={`flex flex-row sm:flex-col p-2 overflow-x-auto no-scrollbar sm:w-36 flex-shrink-0 border-b sm:border-b-0 sm:border-r ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
+                        {/* SIDEBAR PRESET — hidden in single-date mode */}
+                        {isRange && (
+                            <div className={`flex flex-row sm:flex-col p-2 overflow-x-auto no-scrollbar sm:w-36 flex-shrink-0 border-b sm:border-b-0 sm:border-r ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
 
-                            <div className="flex flex-row sm:flex-col gap-1 flex-1">
-                                {mainPresets.map((p) => {
-                                    const isSelected = preset === p.id;
-                                    const btnBg = isSelected
-                                        ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
-                                        : (isDark ? 'text-gray-400 hover:bg-gray-700/50' : 'text-gray-600 hover:bg-gray-200/50');
-                                    return (
-                                        <button
-                                            key={p.id}
-                                            onClick={() => setPreset(p.id)}
-                                            className={`text-left px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap sm:whitespace-normal ${btnBg}`}
-                                            style={isSelected ? { color } : {}}
-                                        >
-                                            {p.label}
-                                        </button>
-                                    );
-                                })}
+                                <div className="flex flex-row sm:flex-col gap-1 flex-1">
+                                    {mainPresets.map((p) => {
+                                        const isSelected = preset === p.id;
+                                        const btnBg = isSelected
+                                            ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
+                                            : (isDark ? 'text-gray-400 hover:bg-gray-700/50' : 'text-gray-600 hover:bg-gray-200/50');
+                                        return (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => setPreset(p.id)}
+                                                className={`text-left px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap sm:whitespace-normal ${btnBg}`}
+                                                style={isSelected ? { color } : {}}
+                                            >
+                                                {p.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className={`hidden sm:block h-px w-full my-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
+                                <div className={`sm:hidden w-px h-auto mx-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
+
+                                <div className="flex flex-row sm:flex-col gap-1">
+                                    <button
+                                        onClick={() => setPreset('today')}
+                                        className={`text-left px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap sm:whitespace-normal ${preset === 'today'
+                                            ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
+                                            : (isDark ? 'text-gray-400 hover:bg-gray-700/50' : 'text-gray-600 hover:bg-gray-200/50')
+                                            }`}
+                                        style={preset === 'today' ? { color } : {}}
+                                    >
+                                        Today
+                                    </button>
+                                </div>
+
                             </div>
-
-                            <div className={`hidden sm:block h-px w-full my-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
-                            <div className={`sm:hidden w-px h-auto mx-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
-
-                            <div className="flex flex-row sm:flex-col gap-1">
-                                <button
-                                    onClick={() => setPreset('today')}
-                                    className={`text-left px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap sm:whitespace-normal ${preset === 'today'
-                                        ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
-                                        : (isDark ? 'text-gray-400 hover:bg-gray-700/50' : 'text-gray-600 hover:bg-gray-200/50')
-                                        }`}
-                                    style={preset === 'today' ? { color } : {}}
-                                >
-                                    Today
-                                </button>
-                            </div>
-
-                        </div>
+                        )}
 
                         {/* CALENDARIO */}
                         <div className="flex-1 p-4 overflow-hidden">
@@ -245,7 +273,7 @@ export default function CustomDatePicker({
                 }
 
                 return (
-                    <div ref={modalRef} className={`absolute top-full mt-2 left-0 rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] w-[380px] sm:w-auto sm:min-w-[550px] overflow-hidden ${bgMain} ${borderMain}`}>
+                    <div ref={modalRef} className={`absolute top-full mt-2 left-0 rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] ${isRange ? 'w-[380px] sm:w-auto sm:min-w-[550px]' : 'w-[320px]'} overflow-hidden ${bgMain} ${borderMain}`}>
                         {popoverContent}
                     </div>
                 );

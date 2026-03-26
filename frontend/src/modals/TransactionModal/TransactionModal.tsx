@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import api from '../../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarAlt, faMoneyBillTransfer, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faMoneyBillTransfer, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { ModalDialog } from '../ModalDialog';
 import { triggerToast } from '../../components/ToastNotification';
 import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
@@ -14,6 +14,7 @@ import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
 import { TransactionTypeToggle } from './TransactionTypeToggle.tsx';
 import { TransactionMetadataInputs } from './TransactionMetadataInputs.tsx';
 import { RecurringPaymentToggle } from './RecurringPaymentToggle.tsx';
+import CustomDatePicker from '../../components/DataPicker/CustomDatePicker.tsx';
 
 export interface TransactionModalHandle {
     openModal: (tx?: Transaction) => void;
@@ -38,7 +39,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
         const [convertedAmount, setConvertedAmount] = useState<string>('0');
         const [currency, setCurrency] = useState<CurrencyCode>(baseCurrency);
         const [exchangeRate, setExchangeRate] = useState<string>('1');
-        const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+        const [date, setDate] = useState<Date>(new Date());
         const [notes, setNotes] = useState('');
         const [isRecurring, setIsRecurring] = useState(false);
         const [loading, setLoading] = useState(false);
@@ -66,7 +67,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                     const exRate = (tx as any).exchangeValue || 1;
                     setExchangeRate(exRate.toString());
 
-                    setDate(tx.transactionDate.split('T')[0]);
+                    setDate(new Date(tx.transactionDate));
                     setSelectedTagName(tx.tag.name);
                     setNotes(tx.notes || '');
                     setIsRecurring(false);
@@ -79,7 +80,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                     setConvertedAmount('0');
                     setCurrency(baseCurrency);
                     setExchangeRate('1');
-                    setDate(new Date().toISOString().split('T')[0]);
+                    setDate(new Date());
                     setSelectedTagName('');
                     setNotes('');
                     setIsRecurring(false);
@@ -101,7 +102,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                     amount: Math.abs(Number(convertedAmount)),
                     originalAmount: Math.abs(Number(amount)),
                     type,
-                    transactionDate: date,
+                    transactionDate: date.toISOString().split('T')[0],
                     originalCurrency: currency,
                     exchangeValue: Number(exchangeRate) || 1,
                     tag: selectedTagName,
@@ -181,15 +182,17 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                         </div>
                         <div>
                             <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">
-                                <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
                                 Date
                             </label>
-                            <input
-                                className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00ff7f] [color-scheme:dark]"
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                required
+                            <CustomDatePicker
+                                isRange={false}
+                                color={wallet.color}
+                                isDark={true}
+                                initialPreset="custom"
+                                initialStartDate={date}
+                                onChange={(val) => {
+                                    if (val instanceof Date) setDate(val);
+                                }}
                             />
                         </div>
                     </div>

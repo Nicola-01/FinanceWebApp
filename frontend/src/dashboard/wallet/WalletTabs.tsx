@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faReceipt,
     faChartPie,
-    faTags,
+    faChartLine,
     faGear
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -16,8 +16,8 @@ export const WalletTabs: React.FC = () => {
     // Aggiunta la proprietà "icon" per ogni tab
     const tabs: { id: TabType; label: string; icon: any }[] = [
         { id: 'transactions', label: 'Transactions', icon: faReceipt },
-        { id: 'statistics', label: 'Statistics', icon: faChartPie },
-        { id: 'category', label: 'Categories', icon: faTags },
+        { id: 'category', label: 'Categories', icon: faChartPie },
+        { id: 'statistics', label: 'Statistics', icon: faChartLine },
         { id: 'settings', label: 'Settings', icon: faGear }
     ];
 
@@ -28,8 +28,7 @@ export const WalletTabs: React.FC = () => {
     };
 
     return (
-        // Aggiunto "w-full" al container principale
-        <div className="flex w-full items-center gap-2 border-b border-white/10 mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex w-full items-center gap-2 border-b border-white/10 mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] xl:sticky xl:top-0 xl:z-[90] xl:bg-[#0d0d12]/90 xl:backdrop-blur-md xl:-mx-8 xl:px-8 xl:w-[calc(100%+4rem)] xl:pt-6 xl:pb-0">
             {tabs.map((tab) => (
                 <button
                     key={tab.id}

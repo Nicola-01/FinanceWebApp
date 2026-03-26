@@ -1,0 +1,55 @@
+import React, { useMemo } from 'react';
+import { format, differenceInDays, differenceInMonths, differenceInYears } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { useWalletContext } from '../wallet/WalletContext.tsx';
+
+export const DateRangeBanner: React.FC = () => {
+    const { filteredTransactions } = useWalletContext();
+
+    const info = useMemo(() => {
+        if (filteredTransactions.length === 0) return null;
+
+        const dates = filteredTransactions.map(t => new Date(t.transactionDate).getTime());
+        const start = new Date(Math.min(...dates));
+        const end = new Date(Math.max(...dates));
+        start.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+
+        const startStr = format(start, 'dd MMM yyyy', { locale: it });
+        const endStr = format(end, 'dd MMM yyyy', { locale: it });
+
+        let years = differenceInYears(end, start);
+        let tempDate = new Date(start);
+        tempDate.setFullYear(tempDate.getFullYear() + years);
+        let months = differenceInMonths(end, tempDate);
+        tempDate.setMonth(tempDate.getMonth() + months);
+        let days = differenceInDays(end, tempDate);
+
+        const parts: string[] = [];
+        if (years > 0) parts.push(`${years} ${years === 1 ? 'anno' : 'anni'}`);
+        if (months > 0) parts.push(`${months} ${months === 1 ? 'mese' : 'mesi'}`);
+        if (days > 0) parts.push(`${days} ${days === 1 ? 'giorno' : 'giorni'}`);
+
+        const durationStr = parts.length > 0
+            ? parts.length === 1
+                ? parts[0]
+                : parts.slice(0, -1).join(', ') + ' e ' + parts[parts.length - 1]
+            : 'stesso giorno';
+
+        return { startStr, endStr, durationStr, count: filteredTransactions.length };
+    }, [filteredTransactions]);
+
+    if (!info) return null;
+
+    return (
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-white/60 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 mb-4">
+            <span className="font-semibold text-white/80">{info.startStr}</span>
+            <span>→</span>
+            <span className="font-semibold text-white/80">{info.endStr}</span>
+            <span className="text-white/30 hidden sm:inline">|</span>
+            <span className="text-white/50 italic">{info.durationStr}</span>
+            <span className="text-white/30 hidden sm:inline">|</span>
+            <span className="text-white/50">{info.count} {info.count === 1 ? 'transazione' : 'transazioni'}</span>
+        </div>
+    );
+};

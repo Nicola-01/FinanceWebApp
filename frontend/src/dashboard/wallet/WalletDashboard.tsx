@@ -8,7 +8,6 @@ import { WalletTabs } from "./WalletTabs.tsx";
 import { TagsTab } from "../tag/TagsTab.tsx";
 import { SettingsTab } from "../settings/SettingsTab.tsx";
 import { WalletProvider, useWalletContext } from './WalletContext.tsx';
-import { TransactionsFilter } from '../transaction/TransactionsFilter.tsx';
 
 interface WalletDashboardProps {
     _wallet: Wallet;
@@ -20,7 +19,7 @@ const WalletDashboardContent: React.FC = () => {
     const { wallet, activeTab } = useWalletContext();
 
     return (
-        <div className="flex flex-col h-full w-full max-w-350 mx-auto p-4 lg:p-8 xl:overflow-hidden">
+        <div className="flex flex-col min-h-screen w-full max-w-350 mx-auto p-4 lg:p-8 relative">
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-3xl flex items-center gap-3 font-bold text-white mb-1">
@@ -36,15 +35,13 @@ const WalletDashboardContent: React.FC = () => {
 
             <WalletTabs />
 
-            {(activeTab === 'transactions' || activeTab === 'statistics') &&
-                <TransactionsFilter />
-            }
-
-            <div className="flex-1 overflow-hidden">
-                {activeTab === 'transactions' && <TransactionsTab />}
-                {activeTab === 'category' && <TagsTab />}
-                {activeTab === 'statistics' && <StatisticsTab />}
-                {activeTab === 'settings' && <SettingsTab />}
+            <div className="flex-1 relative flex flex-col w-full">
+                <div className="flex-1 w-full">
+                    {activeTab === 'transactions' && <TransactionsTab />}
+                    {activeTab === 'category' && <TagsTab />}
+                    {activeTab === 'statistics' && <StatisticsTab />}
+                    {activeTab === 'settings' && <SettingsTab />}
+                </div>
             </div>
 
         </div>

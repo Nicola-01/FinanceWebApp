@@ -6,6 +6,7 @@ import {
 import type { CurrencyCode } from "../../utils/currencies.ts";
 import { TransactionsTable } from "./TransactionsTable.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { TransactionsFilter } from "./TransactionsFilter.tsx";
 
 export const TransactionsTab: React.FC = () => {
     const { wallet, isLoading, tags, fetchData, filteredTransactions } = useWalletContext();
@@ -15,9 +16,10 @@ export const TransactionsTab: React.FC = () => {
     const transactionModalRef = useRef<TransactionModalHandle>(null);
 
     return (
-        <div className="flex flex-col flex-1 h-full xl:overflow-hidden animate-[fadeIn_0.3s_ease-out]">
+        <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out]">
 
-            <div className="flex items-center justify-between mb-6">
+            {/* Modal hidden element at the top */}
+            <div className="hidden">
                 <TransactionModal
                     ref={transactionModalRef}
                     wallet={wallet}
@@ -27,7 +29,16 @@ export const TransactionsTab: React.FC = () => {
                 />
             </div>
 
-            <div className="w-full xl:flex-1 xl:overflow-y-auto custom-scrollbar xl:pr-2">
+            <div className="w-full flex-1 relative">
+                
+                {/* 
+                  Sticky container INSIDE the scrolling element natively guarantees 
+                  that elements scrolling past will simply slide underneath its z-index!
+                */}
+                <div className="sticky top-2 xl:top-[80px] z-[80] pb-4 transition-all">
+                    <TransactionsFilter />
+                </div>
+                
                 <TransactionsTable
                     wallet={wallet}
                     tags={tags}

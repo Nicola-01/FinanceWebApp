@@ -179,7 +179,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
             {/* FLOATING ACTION BUTTON */}
             {!isLoading && wallet.myRole !== 'VIEWER' && (
-                <div className="fixed xl:absolute bottom-8 left-0 right-0 mx-auto w-max z-[100] pointer-events-none">
+                <div className="sticky bottom-8 mt-auto mx-auto w-max z-[100] pointer-events-none">
                     <button
                         onClick={() => transactionModalRef.current?.openModal()}
                         className="group flex items-center justify-center gap-3 rounded-2xl border backdrop-blur-md px-6 py-4 shadow-xl hover:brightness-125 transition-all font-bold pointer-events-auto"

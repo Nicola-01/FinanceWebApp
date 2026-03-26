@@ -133,10 +133,12 @@ public class MemberService {
 
     @Transactional
     public List<WalletInviteResponse> getInvites(User user) {
-        List<WalletAccess> accesses = walletAccessRepository.findAllByUserId(user.getId());
-
+        List<WalletAccess> accesses = walletAccessRepository.findAllByUserIdAndStatus(
+                user.getId(),
+                WalletAccess.InvitationStatus.PENDING
+        );
         return accesses.stream()
-//                .filter(access -> access.getStatus() == WalletAccess.InvitationStatus.PENDING)
+                .filter(access -> access.getStatus() == WalletAccess.InvitationStatus.PENDING)
                 .map(this::mapToWalletInviteResponse)
                 .collect(Collectors.toList());
     }
