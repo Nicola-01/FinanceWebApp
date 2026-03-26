@@ -36,7 +36,7 @@ export const WalletMenu: React.FC = () => {
 
                 <button
                     onClick={() => setShowMenu(!showMenu)}
-                    className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all ${showMenu ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white'}`}
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all ${showMenu ? 'bg-app-surface border-white/20 text-white' : 'bg-app-input border-app-border text-app-muted hover:bg-app-surface hover:text-white'}`}
                     title="Wallet Options"
                 >
                     <FontAwesomeIcon icon={faEllipsisVertical} className="text-lg" />
@@ -44,10 +44,10 @@ export const WalletMenu: React.FC = () => {
 
                 {showMenu && (
                     <div
-                        className="absolute right-0 top-14 z-50 w-48 rounded-xl border border-white/10 bg-[#1a1a1a] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)] animate-[fadeIn_0.1s_ease-out]">
+                        className="absolute right-0 top-14 z-50 w-48 rounded-xl border border-app-border bg-[#1a1a1a] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)] animate-[fadeIn_0.1s_ease-out]">
 
                         <button
-                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-surface hover:text-white disabled:opacity-50"
                             onClick={() => {
                                 setShowMenu(false);
                                 onRefresh();
@@ -60,7 +60,7 @@ export const WalletMenu: React.FC = () => {
                         </button>
 
                         <button
-                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-white/70 transition-colors hover:bg-amber-400/20 hover:text-amber-400"
+                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-amber-400/20 hover:text-amber-400"
                             onClick={() => {
                                 setShowMenu(false);
                                 setActiveTab('settings');
@@ -70,7 +70,7 @@ export const WalletMenu: React.FC = () => {
                             Edit Wallet
                         </button>
 
-                        <div className="my-1 h-px w-full bg-white/5" />
+                        <div className="my-1 h-px w-full bg-app-input" />
 
                         <button
                             className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-[#ff4d4d]/70 transition-colors hover:bg-[#ff4d4d]/20 hover:text-[#ff4d4d]"

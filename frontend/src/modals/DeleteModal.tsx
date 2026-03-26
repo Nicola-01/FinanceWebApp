@@ -79,14 +79,14 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
 
                         <p>You are about to permanently delete this {itemType}:</p>
 
-                        <h3 className="my-[15px] rounded-lg border border-dashed border-white/30 bg-white/10 p-3 text-lg break-words font-['JetBrains_Mono',_monospace]">
+                        <h3 className="my-[15px] rounded-lg border border-dashed border-white/30 bg-app-surface p-3 text-lg break-words font-['JetBrains_Mono',_monospace]">
                             {objToDelete?.name}
                         </h3>
 
 
                         {isTypingRequired && (
                             <>
-                                <p className="mb-5 text-[0.9rem] text-white/70"> To confirm, type the name below: </p>
+                                <p className="mb-5 text-[0.9rem] text-app-muted"> To confirm, type the name below: </p>
 
                                 <input
                                     className="w-full p-3 bg-black/20 border border-white/20 rounded-lg text-white text-base text-center transition-all duration-300

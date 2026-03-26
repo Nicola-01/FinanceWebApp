@@ -27,7 +27,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
     }, [member.role]);
 
     return (
-        <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl transition-all hover:bg-white/10 group">
+        <div className="flex items-center justify-between p-4 bg-app-input border border-app-border rounded-2xl transition-all hover:bg-app-surface group">
             <div className="flex items-center gap-4 min-w-0">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/40 text-lg shadow-sm" style={{ color: iconColor }}>
                     <FontAwesomeIcon icon={icon} />
@@ -42,7 +42,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                             <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-500">PENDING</span>
                         )}
                     </div>
-                    <span className="text-xs text-white/40 truncate">{member.email}</span>
+                    <span className="text-xs text-app-muted truncate">{member.email}</span>
                 </div>
             </div>
 
@@ -51,13 +51,13 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                     <>
                         {member.status === 'ACCEPTED' && (
                             <div className="flex items-center gap-2">
-                                <div className="flex rounded-lg bg-black/40 p-1 border border-white/10 w-36">
+                                <div className="flex rounded-lg bg-black/40 p-1 border border-app-border w-36">
                                     <button
                                         type="button"
                                         onClick={() => setSelectedRole('VIEWER')}
                                         className={`flex-1 rounded py-1 text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${selectedRole === 'VIEWER'
-                                            ? 'bg-white/10 text-white shadow-sm'
-                                            : 'text-white/40 hover:text-white/70'
+                                            ? 'bg-app-surface text-white shadow-sm'
+                                            : 'text-app-muted hover:text-app-muted'
                                             }`}
                                     >
                                         <FontAwesomeIcon icon={faEye} />
@@ -68,7 +68,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                                         onClick={() => setSelectedRole('EDITOR')}
                                         className={`flex-1 rounded py-1 text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${selectedRole === 'EDITOR'
                                             ? 'bg-amber-400/20 text-amber-400 shadow-sm'
-                                            : 'text-white/40 hover:text-white/70'
+                                            : 'text-app-muted hover:text-app-muted'
                                             }`}
                                     >
                                         <FontAwesomeIcon icon={faPen} />

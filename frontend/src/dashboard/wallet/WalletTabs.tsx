@@ -23,12 +23,12 @@ export const WalletTabs: React.FC = () => {
 
     const getTabClass = (tabId: TabType) => {
         const isActive = activeTab === tabId;
-        return `relative flex-1 flex items-center justify-center gap-2 whitespace-nowrap min-w-max px-4 py-3 text-sm font-bold uppercase tracking-wider transition-all duration-300 ${isActive ? 'text-white' : 'text-white/40 hover:text-white/70'
+        return `relative flex-1 flex items-center justify-center gap-2 whitespace-nowrap min-w-max px-4 py-3 text-sm font-bold uppercase tracking-wider transition-all duration-300 ${isActive ? 'text-app-text' : 'text-app-muted hover:text-app-text'
             }`;
     };
 
     return (
-        <div className="flex w-full items-center gap-2 border-b border-white/10 mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] xl:sticky xl:top-0 xl:z-[90] xl:bg-[#0d0d12]/90 xl:backdrop-blur-md xl:-mx-8 xl:px-8 xl:w-[calc(100%+4rem)] xl:pt-6 xl:pb-0">
+        <div className="flex w-full items-center gap-2 border-b border-app-border mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] xl:sticky xl:top-0 xl:z-[90] xl:bg-app-bg/90 xl:backdrop-blur-md xl:-mx-8 xl:px-8 xl:w-[calc(100%+4rem)] xl:pt-6 xl:pb-0">
             {tabs.map((tab) => (
                 <button
                     key={tab.id}

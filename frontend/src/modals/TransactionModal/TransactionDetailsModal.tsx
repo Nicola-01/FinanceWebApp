@@ -64,7 +64,7 @@ export const TransactionDetailsModal = forwardRef<TransactionDetailsModalHandle,
                 onClick: () => handleEditAndClose(tx),
                 color: 'text-white/80',
                 hoverColor: 'hover:text-white',
-                hoverBg: 'hover:bg-white/10'
+                hoverBg: 'hover:bg-app-surface'
             },
             {
                 icon: <FontAwesomeIcon icon={faTrash} className="w-4" />,

@@ -19,18 +19,18 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({transaction, onCl
         <div
             onClick={() => onClick(transaction)}
             className={`
-                flex items-center justify-between p-4 bg-white/5 cursor-pointer transition-all hover:bg-white/10
+                flex items-center justify-between p-4 bg-app-input cursor-pointer transition-all hover:bg-app-surface
                 
-                ${isFirst && isLast ? 'rounded-2xl border border-white/5' : ''}
-                ${isFirst && !isLast ? 'rounded-t-2xl border-t border-l border-r border-white/5' : ''}
-                ${!isFirst && isLast ? 'rounded-b-2xl border-b border-l border-r border-white/5' : ''}
-                ${!isFirst && !isLast ? 'border-l border-r border-white/5' : ''}
-                ${!isLast ? 'border-b border-b-white/5' : ''}
+                ${isFirst && isLast ? 'rounded-2xl border border-app-border' : ''}
+                ${isFirst && !isLast ? 'rounded-t-2xl border-t border-l border-r border-app-border' : ''}
+                ${!isFirst && isLast ? 'rounded-b-2xl border-b border-l border-r border-app-border' : ''}
+                ${!isFirst && !isLast ? 'border-l border-r border-app-border' : ''}
+                ${!isLast ? 'border-b border-app-border/40' : ''}
             `}
         >
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 shrink max-w-[65%] lg:max-w-[75%]">
                 <div
-                    className="flex shrink-0 h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-xl shadow-sm"
+                    className="flex shrink-0 h-12 w-12 items-center justify-center rounded-xl bg-app-surface text-xl shadow-sm"
                     style={{color: transaction.tag.colorHex}}
                 >
                     <FontAwesomeIcon icon={ICONS[transaction.tag.icon as IconKey] || faTags}/>
@@ -39,7 +39,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({transaction, onCl
                 <div className="flex flex-col md:flex-row md:items-center items-start gap-1.5 md:gap-3 min-w-0 py-0.5">
                     {
                         transaction.name !== transaction.tag.name &&
-                        <span className="text-base font-bold text-white truncate">{transaction.name}</span>
+                        <span className="text-base font-bold text-app-text truncate">{transaction.name}</span>
                     }
                     <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
                         <TagBadge tag={transaction.tag}/>
@@ -49,8 +49,8 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({transaction, onCl
 
             <div className="flex items-center justify-start flex-1 min-w-0 pl-3 md:pl-4">
                 {transaction.notes && (
-                    <div className="flex items-center gap-1.5 text-sm font-medium text-white/70 truncate">
-                        <FontAwesomeIcon icon={faCommentAlt} className="text-[11px] text-white/30 shrink-0 mt-0.5"/>
+                    <div className="flex items-center gap-1.5 text-sm font-medium text-app-muted truncate">
+                        <FontAwesomeIcon icon={faCommentAlt} className="text-[11px] text-app-muted/50 shrink-0 mt-0.5"/>
                         <span className="truncate">{transaction.notes}</span>
                     </div>
                 )}

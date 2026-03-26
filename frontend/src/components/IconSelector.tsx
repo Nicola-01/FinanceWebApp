@@ -17,7 +17,7 @@ export const IconSelector: React.FC<IconSelectorProps> = ({ value, onChange, cur
                     return (
                         <div
                             key={key}
-                            className={`flex aspect-square cursor-pointer items-center justify-center rounded-lg text-lg transition-all hover:scale-110 ${isActive ? '' : 'text-white/60 hover:bg-white/10'}`}
+                            className={`flex aspect-square cursor-pointer items-center justify-center rounded-lg text-lg transition-all hover:scale-110 ${isActive ? '' : 'text-app-muted hover:bg-app-surface'}`}
                             // Apply dynamic color inline
                             style={{
                                 color: isActive ? currentColor : undefined,

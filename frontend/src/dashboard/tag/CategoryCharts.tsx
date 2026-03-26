@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../../utils/ThemeContext.tsx';
 import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
 import { styled } from '@mui/material/styles';
 import { useDrawingArea } from '@mui/x-charts/hooks';
@@ -12,8 +13,8 @@ const hexToRgba = (hex: string, alpha: number): string => {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-const StyledText = styled('text')(() => ({
-    fill: '#ffffff',
+const StyledText = styled('text')(({ theme }) => ({
+    fill: 'currentColor',
     textAnchor: 'middle',
     dominantBaseline: 'central',
     fontSize: 16,
@@ -30,13 +31,14 @@ function PieCenterLabel({ children }: { children: React.ReactNode }): React.Reac
 }
 
 export const TransactionPieChart = ({ transactions, type, title }: { transactions: Transaction[], type: 'INCOME' | 'EXPENSE', title: string }) => {
+    const { resolvedTheme } = useTheme();
     const txs = transactions.filter(t => t.type === type);
     const totalAmount = txs.reduce((acc, t) => acc + t.amount, 0);
 
     if (totalAmount === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-[400px] w-full bg-white/5 rounded-2xl border border-white/10">
-                <p className="text-white/40">No {title.toLowerCase()} data available.</p>
+            <div className="flex flex-col items-center justify-center h-[400px] w-full bg-app-input rounded-2xl border border-app-border">
+                <p className="text-app-muted">No {title.toLowerCase()} data available.</p>
             </div>
         );
     }
@@ -79,8 +81,8 @@ export const TransactionPieChart = ({ transactions, type, title }: { transaction
     const middleRadius = 140;
 
     return (
-        <div className="flex flex-col items-center w-full bg-black/20 rounded-2xl border border-white/10 py-3 md:p-6">
-            <h3 className="text-xl font-bold text-white mb-6 uppercase tracking-wider">{title}</h3>
+        <div className="flex flex-col items-center w-full bg-app-card/20 rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
+            <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider">{title}</h3>
 
             <div className="w-full flex justify-center h-[400px]">
                 <PieChart
@@ -108,7 +110,7 @@ export const TransactionPieChart = ({ transactions, type, title }: { transaction
                         },
                     ]}
                     sx={{
-                        [`& .${pieArcLabelClasses.root}`]: { fill: '#ffffff', fontSize: '11px', fontWeight: 'bold' },
+                        [`& .${pieArcLabelClasses.root}`]: { fill: resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a', fontSize: '11px', fontWeight: 'bold' },
                     }}
                     hideLegend
                 >

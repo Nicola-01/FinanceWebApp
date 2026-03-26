@@ -37,8 +37,8 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, onUpdateTag, on
     };
 
     return (
-        <div className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 group/child">
-            <FontAwesomeIcon icon={faArrowTurnUp} className="rotate-90 text-white/20 text-xs shrink-0" />
+        <div className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-app-input group/child">
+            <FontAwesomeIcon icon={faArrowTurnUp} className="rotate-90 text-app-muted/30 text-xs shrink-0" />
 
             <IconPickerButton
                 size="sm"
@@ -62,7 +62,7 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, onUpdateTag, on
                     <div className="flex items-center gap-2">
                         <input
                             autoFocus
-                            className="bg-black/40 border border-[#00ff7f]/50 rounded px-2 py-0.5 text-white text-sm outline-none w-full"
+                            className="bg-app-card/40 border border-[#00ff7f]/50 rounded px-2 py-0.5 text-app-text text-sm outline-none w-full"
                             value={nameVal}
                             onChange={(e) => setNameVal(e.target.value)}
                             onKeyDown={(e) => {
@@ -70,10 +70,10 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, onUpdateTag, on
                                 if (e.key === 'Escape') setIsEditing(false);
                             }}
                         />
-                        <button onClick={handleSaveName} className="text-[#00ff7f] hover:text-white transition-colors">
+                        <button onClick={handleSaveName} className="text-[#00ff7f] hover:text-app-text transition-colors">
                             <FontAwesomeIcon icon={faCheck} />
                         </button>
-                        <button onClick={() => setIsEditing(false)} className="text-white/40 hover:text-red-500 transition-colors">
+                        <button onClick={() => setIsEditing(false)} className="text-app-muted hover:text-red-500 transition-colors">
                             <FontAwesomeIcon icon={faXmark} />
                         </button>
                     </div>

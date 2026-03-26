@@ -75,7 +75,7 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref
                         icon={faKey} onChange={(val) => setPasswords({ ...passwords, old: val })}
                     />
 
-                    <hr className="my-5 h-[1px] border-0 bg-white/10" />
+                    <hr className="my-5 h-[1px] border-0 bg-app-surface" />
 
                     {/* I requisiti tornano a essere fissi e inline! */}
                     <PasswordRequirements password={passwords.new} confirmPassword={passwords.confirm} />

@@ -26,7 +26,7 @@ export const TagFilterRow: React.FC<TagFilterRowProps> = ({
     const hasChildren = childrenTags.length > 0;
 
     let checkboxIcon = faSquare;
-    let iconClass = "text-white/40";
+    let iconClass = "text-app-muted";
     if (selectionState === 'checked') {
         checkboxIcon = faCheckSquare;
         iconClass = "";
@@ -36,7 +36,7 @@ export const TagFilterRow: React.FC<TagFilterRowProps> = ({
     }
 
     return (
-        <div className="flex items-center justify-between px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group">
+        <div className="flex items-center justify-between px-3 py-2 hover:bg-app-input rounded-lg cursor-pointer transition-colors group">
             <div className="flex items-center gap-3 flex-1" onClick={onToggleSelection}>
                 <FontAwesomeIcon
                     icon={checkboxIcon}
@@ -44,7 +44,7 @@ export const TagFilterRow: React.FC<TagFilterRowProps> = ({
                     style={selectionState !== 'unchecked' ? { color } : {}}
                 />
                 <div
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/5 text-xs"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-app-input text-xs"
                     style={{ color: tag.colorHex || '#ffffff' }}
                 >
                     <Icon icon={tag.icon} color={tag.colorHex || '#ffffff'} />
@@ -54,7 +54,7 @@ export const TagFilterRow: React.FC<TagFilterRowProps> = ({
 
             {hasChildren && (
                 <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 transition-colors ml-2"
+                    className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-app-surface transition-colors ml-2"
                     onClick={(e) => {
                         e.stopPropagation();
                         onToggleExpand();
@@ -62,7 +62,7 @@ export const TagFilterRow: React.FC<TagFilterRowProps> = ({
                 >
                     <FontAwesomeIcon
                         icon={isExpanded ? faChevronDown : faChevronRight}
-                        className="text-white/40 text-xs transition-transform duration-300"
+                        className="text-app-muted text-xs transition-transform duration-300"
                     />
                 </div>
             )}

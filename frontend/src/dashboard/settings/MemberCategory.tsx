@@ -14,7 +14,7 @@ interface MemberCategoryProps {
 }
 
 export const MemberCategory: React.FC<MemberCategoryProps> = ({
-                                                                  title, titleColor = "text-white/40", members, icon, iconColor, canManage, onRemove, onChangeRole
+                                                                  title, titleColor = "text-app-muted", members, icon, iconColor, canManage, onRemove, onChangeRole
                                                               }) => {
     if (members.length === 0) return null;
 

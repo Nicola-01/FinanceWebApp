@@ -108,7 +108,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                             ref={buttonRef}
                             type="button"
                             onClick={() => setShowSelectors(!showSelectors)}
-                            className="group flex h-16 w-16 cursor-pointer items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-2xl shadow-lg transition-all duration-300 hover:scale-105 hover:bg-white/10"
+                            className="group flex h-16 w-16 cursor-pointer items-center justify-center rounded-2xl border border-app-border bg-app-input text-2xl shadow-lg transition-all duration-300 hover:scale-105 hover:bg-app-surface"
                             style={{ color: color }}
                             title="Change Icon or Color"
                         >
@@ -140,10 +140,10 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
 
                     <div>
                         <label
-                            className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Wallet
+                            className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">Wallet
                             Name</label>
                         <input
-                            className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00ff7f]"
+                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-white outline-none transition-all focus:border-[#00ff7f]"
                             type="text"
                             placeholder="e.g. Personal Savings"
                             value={name}

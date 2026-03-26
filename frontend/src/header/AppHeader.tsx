@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faChevronDown, faEnvelope, faKey, faSignOutAlt, faUser, faUserCircle} from '@fortawesome/free-solid-svg-icons';
+import {faChevronDown, faEnvelope, faKey, faSignOutAlt, faUser, faUserCircle, faSun, faMoon, faDesktop} from '@fortawesome/free-solid-svg-icons';
 
 // Importiamo i modali che creeremo nel passaggio successivo
 import {ProfileModal, type ProfileModalHandle} from '../modals/ProfileModal';
@@ -9,8 +9,7 @@ import {ChangePasswordModal, type ChangePasswordModalHandle} from "../modals/Cha
 import {getUserAuth} from "../utils/authHelper.ts";
 import api from "../api/axiosConfig.ts";
 import type {Invitation} from "../utils/types.ts";
-// import type {Invitation} from "../utils/types.ts";
-// import api from "../api/axiosConfig.ts";
+import {useTheme, type Theme} from "../utils/ThemeContext.tsx";
 
 interface AppHeaderProps {
     page: {
@@ -20,6 +19,7 @@ interface AppHeaderProps {
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
+    const { theme, setTheme } = useTheme();
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -79,9 +79,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
         <> {/* 1. Aggiungiamo questo Fragment per racchiudere tutto */}
 
             <header
-                className="sticky top-0 z-[120] flex h-16 w-full items-center justify-between border-b border-white/10 bg-[#0d0d12]/80 px-6 backdrop-blur-md">
+                className="top-0 z-[120] flex h-16 w-full items-center justify-between border-b border-app-border bg-app-bg/80 px-6 backdrop-blur-md">
                 {/* Logo e Nome App */}
-                <h2 className="m-0 text-2xl font-bold tracking-wide text-white capitalize">
+                <h2 className="m-0 text-2xl font-bold tracking-wide text-app-text capitalize">
                     {page.text}
                     <span
                         className="ml-1 animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
@@ -95,19 +95,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
                         onClick={() => setShowMenu(!showMenu)}
                         className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${
                             showMenu
-                                ? 'bg-white/10 border-white/10 shadow-sm'
-                                : 'border-transparent hover:bg-white/5'
+                                ? 'bg-app-input border-app-border shadow-sm'
+                                : 'border-transparent hover:bg-app-input'
                         }`}
                     >
                         {/* Icona Profilo */}
                         <FontAwesomeIcon
                             icon={faUserCircle}
-                            className={`text-2xl transition-colors ${showMenu ? 'text-[#00ff7f]' : 'text-white/70 group-hover:text-white'}`}
+                            className={`text-2xl transition-colors ${showMenu ? 'text-[#00ff7f]' : 'text-app-muted group-hover:text-app-text'}`}
                         />
 
                         {/* Nome Utente */}
                         <span className={`text-sm font-semibold tracking-wide transition-colors ${
-                            showMenu ? 'text-white' : 'text-white/70'
+                            showMenu ? 'text-app-text' : 'text-app-muted'
                         }`}>
                             {user?.username || 'Profile'}
                         </span>
@@ -116,19 +116,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
                         <FontAwesomeIcon
                             icon={faChevronDown}
                             className={`ml-1 text-[10px] transition-transform duration-300 ${
-                                showMenu ? 'rotate-180 text-white' : 'text-white/40'
+                                showMenu ? 'rotate-180 text-app-text' : 'text-app-muted'
                             }`}
                         />
                     </button>
 
                     {showMenu && (
                         <div
-                            className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-white/10 bg-[#1a1a1a] p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out]">
+                            className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-app-border bg-app-card p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out]">
 
-                            <div className="px-3 py-2 border-b border-white/5 mb-1 flex flex-col">
+                            <div className="px-3 py-2 border-b border-app-border mb-1 flex flex-col">
                                 <div className="flex items-center justify-between gap-2">
                                     {/* Username */}
-                                    <p className="text-sm font-bold text-white truncate">
+                                    <p className="text-sm font-bold text-app-text truncate">
                                         {user?.username || 'User'}
                                     </p>
 
@@ -142,7 +142,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
                                 </div>
 
                                 {/* Email */}
-                                <p className="mt-0.5 text-xs text-white/50 truncate">
+                                <p className="mt-0.5 text-xs text-app-muted truncate">
                                     {/*{user?.email}*/}
                                     email@placeholder.com
                                 </p>
@@ -153,7 +153,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
                                     setShowMenu(false);
                                     profileModalRef.current?.openModal();
                                 }}
-                                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
                             >
                                 <FontAwesomeIcon icon={faUser} className="w-4"/>
                                 Profile Settings
@@ -162,20 +162,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
 
                             <button
                                 onClick={() => changePwModalRef.current?.openModal()}
-                                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
                                 title="Change Password"
                             >
                                 <FontAwesomeIcon icon={faKey} className="w-/"/>
                                 Change Password
                             </button>
 
-
                             <button
                                 onClick={() => {
                                     setShowMenu(false);
                                     invitationsModalRef.current?.openModal(invitations);
                                 }}
-                                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
                             >
                                 <FontAwesomeIcon icon={faEnvelope} className="w-4"/>
                                 Invitations
@@ -188,7 +187,31 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
                                 }
                             </button>
 
-                            <div className="my-1 h-px w-full bg-white/5"/>
+                            <div className="my-1 h-px w-full bg-app-border"/>
+
+
+                            <div className="px-2 my-2">
+                                {/*<p className="mb-2 ml-1 block text-[10px] font-bold uppercase tracking-wider text-app-muted">App Theme</p>*/}
+                                <div className="flex gap-1 p-1 rounded-xl bg-app-input border border-app-border">
+                                    {(['light', 'dark', 'system'] as Theme[]).map((t) => (
+                                        <button
+                                            key={t}
+                                            onClick={() => setTheme(t)}
+                                            className={`
+                                                flex flex-1 items-center justify-center py-2 rounded-lg text-xs font-bold transition-all
+                                                ${theme === t
+                                                ? 'bg-app-surface text-[#00bfff] shadow-sm ring-1 ring-[#00bfff]/10'
+                                                : 'text-app-muted hover:text-app-text hover:bg-app-surface/50'}
+                                            `}
+                                            title={t.charAt(0).toUpperCase() + t.slice(1)}
+                                        >
+                                            <FontAwesomeIcon icon={t === 'light' ? faSun : t === 'dark' ? faMoon : faDesktop} />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="my-1 h-px w-full bg-app-border"/>
 
                             <button
                                 onClick={handleLogout}

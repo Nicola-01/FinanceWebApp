@@ -40,8 +40,8 @@ export const WalletCardUI = forwardRef<HTMLDivElement, WalletProps & React.HTMLA
         ...style,
         borderColor: isSelected ? wallet.color : 'transparent',
         boxShadow: isOverlay
-            ? `0 30px 40px -10px rgba(0, 0, 0, 0.8), 0 0 30px ${wallet.color}60`
-            : isSelected ? `0 0 20px ${wallet.color}26` : 'none',
+            ? `0 30px 60px -12px rgba(0, 0, 0, 0.3), 0 0 40px ${wallet.color}40`
+            : isSelected ? `0 0 25px ${wallet.color}20` : 'none',
         opacity: isDragging && !isOverlay ? 0.3 : 1,
         zIndex: isOverlay ? 50 : (isSelected ? 10 : 1),
     };
@@ -56,17 +56,16 @@ export const WalletCardUI = forwardRef<HTMLDivElement, WalletProps & React.HTMLA
             className={`
                 group relative overflow-hidden flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md shrink-0 
                 
-                /* FIX: Larghezze bloccate al pixel per combaciare perfettamente con l'ologramma */
+                /* Larghezze bloccate per consistenza */
                 w-[260px] xl:w-[272px]
                 
-                /* FIX: Cursore a doppie frecce (move) e rimozione dello scale */
-                ${isOverlay || isDragging ? 'cursor-move ring-1 ring-white/20 shadow-2xl' : 'cursor-pointer hover:bg-white/5'}
+                ${isOverlay || isDragging ? 'cursor-move ring-2 ring-app-border shadow-2xl scale-[1.02]' : 'cursor-pointer hover:bg-app-input/50'}
                 
-                transition-colors duration-200
-                bg-[rgba(20,20,20,0.6)] ${isSelected ? '' : 'border-white/10'}
+                transition-all duration-300
+                bg-app-surface/60 ${isSelected ? '' : 'border-app-border'}
             `}
         >
-            <div className={`absolute inset-0 pointer-events-none transition-opacity duration-300 z-0 ${isSelected ? 'bg-white/10 opacity-100' : 'bg-white/5 opacity-0 group-hover:opacity-100'}`} />
+            <div className={`absolute inset-0 pointer-events-none transition-opacity duration-300 z-0 ${isSelected ? 'bg-app-input opacity-100' : 'bg-app-input opacity-0 group-hover:opacity-100'}`} />
 
             <div className="absolute inset-0 pointer-events-none rounded-2xl overflow-hidden z-0">
                 {ripples.map((ripple) => (
@@ -82,15 +81,15 @@ export const WalletCardUI = forwardRef<HTMLDivElement, WalletProps & React.HTMLA
                 ))}
             </div>
 
-            <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/5 text-xl" style={{ color: wallet.color || '#00ff7f' }}>
+            <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-app-input text-xl shadow-inner" style={{ color: wallet.color || '#00ff7f' }}>
                 <FontAwesomeIcon icon={ICONS[wallet.icon as IconKey] || ICONS['wallet']} />
             </div>
 
             <div className="relative z-10 flex flex-1 flex-col min-w-0">
-                <h4 className="m-0 truncate font-app-mono text-sm font-extrabold transition-colors" style={{ color: isSelected ? wallet.color : 'rgba(255, 255, 255, 0.5)' }}>
+                <h4 className="m-0 truncate font-app-mono text-sm font-black tracking-tight transition-colors" style={{ color: isSelected ? wallet.color : 'var(--text-secondary)' }}>
                     {wallet.name}
                 </h4>
-                <p className="mt-1 w-fit rounded-md bg-white/5 px-2 py-0.5 text-[10px] uppercase tracking-widest text-white/50 transition-colors group-hover:bg-white/10 group-hover:text-white/70 border border-white/5">
+                <p className="mt-1 w-fit rounded-lg bg-app-input px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-app-muted transition-all group-hover:bg-app-surface group-hover:text-app-text border border-app-border shadow-sm">
                     {wallet.currency}
                 </p>
             </div>

@@ -23,17 +23,17 @@ export const PasswordInput: React.FC<PasswordInputProps> =
         return (
             <div className="mb-[15px] text-left">
                 {/* Field Label */}
-                <label className="ml-1 mb-2 block text-[0.85rem] font-medium text-white/70">
+                <label className="ml-1 mb-2 block text-[0.85rem] font-medium text-app-muted">
                     {label}
                 </label>
                 <div className="relative flex w-full items-center">
                     {/* Left Side Icon */}
                     <FontAwesomeIcon
                         icon={icon}
-                        className="pointer-events-none absolute left-[14px] z-10 text-base text-white/40"
+                        className="pointer-events-none absolute left-[14px] z-10 text-base text-app-muted"
                     />
                     <input
-                        className="w-full rounded-lg border border-white/10 bg-white/5 py-3 pl-[45px] pr-[45px] text-base text-white outline-none transition-all duration-300 placeholder:text-white/30 focus:border-white/30 focus:bg-white/10"
+                        className="w-full rounded-lg border border-app-border bg-app-input py-3 pl-[45px] pr-[45px] text-base text-white outline-none transition-all duration-300 placeholder:text-white/30 focus:border-white/30 focus:bg-app-surface"
                         type={isVisible ? "text" : "password"}
                         placeholder={placeholder}
                         value={value}
@@ -42,7 +42,7 @@ export const PasswordInput: React.FC<PasswordInputProps> =
                     {/* Visibility Toggle Button */}
                     <button
                         type="button"
-                        className="absolute right-[12px] z-10 flex cursor-pointer border-none bg-transparent p-1.5 text-base text-white/40 transition-colors hover:text-white"
+                        className="absolute right-[12px] z-10 flex cursor-pointer border-none bg-transparent p-1.5 text-base text-app-muted transition-colors hover:text-white"
                         onClick={() => setIsVisible(!isVisible)}
                         tabIndex={-1}
                     >

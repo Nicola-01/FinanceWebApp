@@ -18,6 +18,8 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+
+
     useImperativeHandle(ref, () => ({
         openModal: () => {
             // TODO: Fai una chiamata api.get('/users/me') per pre-compilare name ed email
@@ -59,24 +61,24 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
             ]}
         >
             <div className="text-center pb-2">
-                <div id="profile-form" className="space-y-4 text-left">
+                <div id="profile-form" className="space-y-6 text-left">
                     <div>
-                        <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Name</label>
+                        <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">Name</label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00bfff]"
+                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
                         />
                     </div>
 
                     <div>
-                        <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">Email</label>
+                        <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">Email</label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition-all focus:border-[#00bfff]"
+                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
                         />
                     </div>
 

@@ -70,7 +70,7 @@ const UserDashboard: React.FC = () => {
 
     return (
         // 1. Mobile: min-h-screen (scorre tutto). Desktop: h-screen e overflow-hidden (layout fisso)
-        <div className="flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-[#0d0d12] text-white">
+        <div className="flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-app-bg text-app-text transition-colors">
 
             {/* L'Header occupa il suo spazio fisso in alto */}
             <AppHeader page={{ text: "My", accent: "Wallet" }} />
@@ -89,7 +89,7 @@ const UserDashboard: React.FC = () => {
                 />
 
                 {/* 3. Desktop: Permettiamo SOLO a quest'area destra di scorrere verticalmente */}
-                <div className="flex-1 bg-[#0d0d12] xl:overflow-y-auto custom-scrollbar">
+                <div className="flex-1 bg-app-bg xl:overflow-y-auto custom-scrollbar">
                     {selectedWallet ? (
                         <WalletDashboard
                             _wallet={selectedWallet}
@@ -103,15 +103,15 @@ const UserDashboard: React.FC = () => {
                             }}
                         />
                     ) : (
-                        <div className="flex h-full min-h-[50vh] items-center justify-center text-white/40">
+                        <div className="flex h-full min-h-[50vh] items-center justify-center text-app-muted">
                             {loading ? "Loading data..."
                                 : (
-                                    <div className="flex flex-col items-center justify-center py-24 text-white/40">
-                                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+                                    <div className="flex flex-col items-center justify-center py-24 text-app-muted">
+                                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input">
                                             <FontAwesomeIcon icon={faPiggyBank} className="text-2xl opacity-50" />
                                         </div>
-                                        <p className="text-sm font-medium">No wallets found.</p>
-                                        <p className="mt-1 text-xs opacity-60">Click "New Wallet" to add your first one.</p>
+                                        <p className="text-sm font-bold">No wallets found.</p>
+                                        <p className="mt-1 text-xs opacity-60 font-medium">Click "New Wallet" to add your first one.</p>
                                     </div>
                                 )}
                         </div>

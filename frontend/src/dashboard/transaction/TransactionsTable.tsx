@@ -25,20 +25,20 @@ interface TransactionsTableProps {
 
 const SkeletonDateHeader = () => (
     <div className="mb-4 mt-2 flex items-center gap-4 animate-pulse">
-        <div className="h-px w-8 bg-white/10 rounded-full"></div>
-        <div className="h-3 w-24 bg-white/10 rounded-full"></div>
-        <div className="h-px flex-1 bg-white/10 rounded-full"></div>
+        <div className="h-px w-8 bg-app-border rounded-full"></div>
+        <div className="h-3 w-24 bg-app-border rounded-full"></div>
+        <div className="h-px flex-1 bg-app-border rounded-full"></div>
     </div>
 );
 
 const SkeletonRow = () => (
-    <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 mb-2 animate-pulse border border-white/5">
-        <div className="h-10 w-10 shrink-0 rounded-full bg-white/10"></div>
+    <div className="flex items-center gap-4 p-4 rounded-2xl bg-app-input mb-2 animate-pulse border border-app-border">
+        <div className="h-10 w-10 shrink-0 rounded-full bg-app-surface"></div>
         <div className="flex-1 flex flex-col gap-2.5">
-            <div className="h-3.5 w-1/3 rounded-md bg-white/10"></div>
-            <div className="h-2.5 w-1/4 rounded-md bg-white/5"></div>
+            <div className="h-3.5 w-1/3 rounded-md bg-app-surface"></div>
+            <div className="h-2.5 w-1/4 rounded-md bg-app-input"></div>
         </div>
-        <div className="h-4 w-16 rounded-md bg-white/10"></div>
+        <div className="h-4 w-16 rounded-md bg-app-surface"></div>
     </div>
 );
 
@@ -119,12 +119,12 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
                     /* 2. STATO VUOTO (Nessuna transazione) - Migliorato visivamente */
                     transactions.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-24 text-white/40">
-                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+                        <div className="flex flex-col items-center justify-center py-24 text-app-muted">
+                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input">
                                 <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50" />
                             </div>
-                            <p className="text-sm font-medium">No transactions found for this period.</p>
-                            <p className="mt-1 text-xs opacity-60">Click "New Transaction" to add your first one.</p>
+                            <p className="text-sm font-bold">No transactions found for this period.</p>
+                            <p className="mt-1 text-xs font-medium opacity-60">Click "New Transaction" to add your first one.</p>
                         </div>
                     ) :
 
@@ -133,11 +133,11 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                             sortedDates.map(date => (
                                 <div key={date} className="mb-6">
                                     <div className="mb-4 mt-2 flex items-center gap-4">
-                                        <div className="h-px w-8 bg-white/10 rounded-full"></div>
-                                        <h4 className="text-xs font-bold uppercase tracking-widest text-white/40 whitespace-nowrap">
+                                        <div className="h-px w-8 bg-app-border rounded-full"></div>
+                                        <h4 className="text-xs font-black uppercase tracking-widest text-app-muted whitespace-nowrap">
                                             {formatDateHeader(date)}
                                         </h4>
-                                        <div className="h-px flex-1 bg-white/10 rounded-full"></div>
+                                        <div className="h-px flex-1 bg-app-border rounded-full"></div>
                                     </div>
 
                                     {/* RIMOSSO IL GAP-2 PER ATTACCARE GLI ELEMENTI */}
@@ -182,16 +182,17 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 <div className="sticky bottom-8 mt-auto mx-auto w-max z-[100] pointer-events-none">
                     <button
                         onClick={() => transactionModalRef.current?.openModal()}
-                        className="group flex items-center justify-center gap-3 rounded-2xl border backdrop-blur-md px-6 py-4 shadow-xl hover:brightness-125 transition-all font-bold pointer-events-auto"
+                        className="group flex items-center justify-center gap-3 rounded-2xl border backdrop-blur-md px-6 py-4 shadow-xl hover:brightness-110 active:scale-95 transition-all font-black pointer-events-auto"
                         style={{ 
                             backgroundColor: wallet.color + '26', // 15% opacity
                             borderColor: wallet.color + '40', // 25% opacity
-                            boxShadow: `0 8px 32px 0 ${wallet.color}33` // 20% opacity
+                            boxShadow: `0 8px 32px 0 ${wallet.color}33`, // 20% opacity
+                            color: wallet.color // Force text color to follow wallet color for better visibility on light themes
                         }}
                     >
-                        <FontAwesomeIcon icon={faPlus} className="text-xl transition-transform group-hover:scale-110" style={{ color: wallet.color }} />
-                        <span className="hidden sm:inline text-white tracking-wide">Add New Transaction</span>
-                        <span className="inline sm:hidden text-white tracking-wide">Add</span>
+                        <FontAwesomeIcon icon={faPlus} className="text-xl transition-transform group-hover:rotate-90" />
+                        <span className="hidden sm:inline tracking-wide font-black">Add New Transaction</span>
+                        <span className="inline sm:hidden tracking-wide font-black">Add</span>
                     </button>
                 </div>
             )}

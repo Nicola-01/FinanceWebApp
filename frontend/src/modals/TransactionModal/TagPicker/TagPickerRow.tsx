@@ -22,9 +22,9 @@ export const TagPickerRow: React.FC<TagPickerRowProps> = ({
     const isMainCategory = !tag.parentName;
 
     // Determina la classe visiva (Normale, Selezionato, o Padre di un tag selezionato)
-    let visualClass = 'hover:bg-white/5 border border-transparent cursor-pointer';
+    let visualClass = 'hover:bg-app-input border border-transparent cursor-pointer';
     if (isSelected) {
-        visualClass = 'bg-white/10 border border-transparent';
+        visualClass = 'bg-app-surface border border-transparent';
     } else if (isAncestor && !isParentHeader) {
         visualClass = 'bg-[#00ff7f]/10 border border-[#00ff7f]/20';
     }
@@ -52,7 +52,7 @@ export const TagPickerRow: React.FC<TagPickerRowProps> = ({
                 {isMainCategory && !isParentHeader ? (
                     <FontAwesomeIcon
                         icon={faChevronRight}
-                        className={isAncestor ? "text-[#00ff7f] text-sm" : "text-xs text-white/30 group-hover:text-white/70"}
+                        className={isAncestor ? "text-[#00ff7f] text-sm" : "text-xs text-white/30 group-hover:text-app-muted"}
                     />
                 ) : isSelected ? (
                     <FontAwesomeIcon icon={faCheck} className="text-[#00ff7f] text-sm" />

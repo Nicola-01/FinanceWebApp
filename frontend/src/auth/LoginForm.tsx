@@ -95,7 +95,7 @@ export const LoginForm: React.FC = () => {
 
     return (
         <form
-            className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
+            className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-app-border bg-app-input p-6 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
             onSubmit={handleSubmit}
             noValidate
         >
@@ -110,7 +110,7 @@ export const LoginForm: React.FC = () => {
             {/* Username Input */}
             <div className="relative mb-5 sm:mb-8 w-full">
                 <div
-                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
+                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'border-red-500' : 'border-app-border0 focus-within:border-white'}`}>
                     <span className="absolute left-0 text-lg text-white/80">
                         <FontAwesomeIcon icon={faUser}/>
                     </span>
@@ -133,7 +133,7 @@ export const LoginForm: React.FC = () => {
             {/* Password Input */}
             <div className="relative mb-5 sm:mb-8 w-full">
                 <div
-                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
+                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'border-red-500' : 'border-app-border0 focus-within:border-white'}`}>
                     <span className="absolute left-0 text-lg text-white/80">
                         <FontAwesomeIcon icon={faLock}/>
                     </span>
@@ -145,7 +145,7 @@ export const LoginForm: React.FC = () => {
                     />
                     {/* Toggle Visibility Button */}
                     <span
-                        className="absolute right-0 z-20 cursor-pointer text-white/50 transition-colors hover:text-white"
+                        className="absolute right-0 z-20 cursor-pointer text-app-muted transition-colors hover:text-white"
                         onClick={() => setShowPassword(!showPassword)}
                     >
                         <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye}/>
@@ -167,7 +167,7 @@ export const LoginForm: React.FC = () => {
                         <input
                             type="checkbox"
                             ref={rememberMe}
-                            className="peer h-4 w-4 appearance-none rounded border border-white/40 bg-white/10 transition-all checked:border-white checked:bg-white cursor-pointer"
+                            className="peer h-4 w-4 appearance-none rounded border border-white/40 bg-app-surface transition-all checked:border-white checked:bg-white cursor-pointer"
                         />
                         <svg
                             className="pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 text-[#230b38] opacity-0 transition-opacity peer-checked:opacity-100"
