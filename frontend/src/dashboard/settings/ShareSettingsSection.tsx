@@ -81,7 +81,7 @@ export const ShareSettingsSection: React.FC = () => {
     const pending = members.filter(m => m.status === 'PENDING');
 
     return (
-        <div className="flex flex-col gap-6 w-full animate-[fadeIn_0.3s_ease-out]">
+        <div className="flex flex-col gap-6 w-full shrink-0 animate-[fadeIn_0.3s_ease-out]">
 
             {isOwner && (
                 <InviteSection walletColor={wallet.color} onInvite={handleInvite} />

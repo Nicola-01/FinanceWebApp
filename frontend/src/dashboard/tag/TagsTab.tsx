@@ -60,7 +60,7 @@ export const TagsTab: React.FC = () => {
     });
 
     return (
-        <div className="flex-1 overflow-auto rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-md">
+        <div className="h-full overflow-y-auto custom-scrollbar rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-md animate-[fadeIn_0.3s_ease-out]">
 
             {/* 1. SEZIONE AGGIUNGI MAIN CATEGORY (Sopra a tutto, larghezza intera) */}
             {!isLoading && wallet.myRole !== 'VIEWER' && (

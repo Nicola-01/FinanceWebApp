@@ -28,7 +28,7 @@ export const SettingsTab: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col gap-6 h-full overflow-y-auto pr-2 custom-scrollbar animate-[fadeIn_0.3s_ease-out]">
+        <div className="flex flex-col gap-6 h-full overflow-y-auto pr-2 pb-6 custom-scrollbar animate-[fadeIn_0.3s_ease-out]">
 
             {/* GENERAL SETTINGS CARD */}
             {wallet.myRole !== 'VIEWER' && (
