@@ -1,9 +1,9 @@
 import React from 'react';
-import { useTheme } from '../../utils/ThemeContext.tsx';
-import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
-import { styled } from '@mui/material/styles';
-import { useDrawingArea } from '@mui/x-charts/hooks';
-import type { Transaction } from '../../utils/types.ts';
+import {useTheme} from '../../utils/ThemeContext.tsx';
+import {pieArcLabelClasses, PieChart} from '@mui/x-charts/PieChart';
+import {styled} from '@mui/material/styles';
+import {useDrawingArea} from '@mui/x-charts/hooks';
+import type {Transaction} from '../../utils/types.ts';
 
 const hexToRgba = (hex: string, alpha: number): string => {
     if (!hex) return `rgba(0, 255, 127, ${alpha})`;
@@ -13,7 +13,7 @@ const hexToRgba = (hex: string, alpha: number): string => {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
-const StyledText = styled('text')(({ theme }) => ({
+const StyledText = styled('text')(() => ({
     fill: 'currentColor',
     textAnchor: 'middle',
     dominantBaseline: 'central',
@@ -21,8 +21,8 @@ const StyledText = styled('text')(({ theme }) => ({
     fontWeight: 'bold'
 }));
 
-function PieCenterLabel({ children }: { children: React.ReactNode }): React.ReactElement {
-    const { width, height, left, top } = useDrawingArea();
+function PieCenterLabel({children}: { children: React.ReactNode }): React.ReactElement {
+    const {width, height, left, top} = useDrawingArea();
     return (
         <StyledText x={left + width / 2} y={top + height / 2}>
             {children}
@@ -30,14 +30,19 @@ function PieCenterLabel({ children }: { children: React.ReactNode }): React.Reac
     );
 }
 
-export const TransactionPieChart = ({ transactions, type, title }: { transactions: Transaction[], type: 'INCOME' | 'EXPENSE', title: string }) => {
-    const { resolvedTheme } = useTheme();
+export const TransactionPieChart = ({transactions, type, title}: {
+    transactions: Transaction[],
+    type: 'INCOME' | 'EXPENSE',
+    title: string
+}) => {
+    const {resolvedTheme} = useTheme();
     const txs = transactions.filter(t => t.type === type);
     const totalAmount = txs.reduce((acc, t) => acc + t.amount, 0);
 
     if (totalAmount === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-[400px] w-full bg-app-input rounded-2xl border border-app-border">
+            <div
+                className="flex flex-col items-center justify-center h-[400px] w-full bg-app-input rounded-2xl border border-app-border">
                 <p className="text-app-muted">No {title.toLowerCase()} data available.</p>
             </div>
         );
@@ -50,10 +55,10 @@ export const TransactionPieChart = ({ transactions, type, title }: { transaction
         const mainName = tx.tag.parentName || tx.tag.name;
         const subName = tx.tag.name;
 
-        if (!mainMap.has(mainName)) mainMap.set(mainName, { value: 0, color: tx.tag.colorHex });
+        if (!mainMap.has(mainName)) mainMap.set(mainName, {value: 0, color: tx.tag.colorHex});
         mainMap.get(mainName)!.value += tx.amount;
 
-        if (!subMap.has(subName)) subMap.set(subName, { main: mainName, value: 0, color: tx.tag.colorHex });
+        if (!subMap.has(subName)) subMap.set(subName, {main: mainName, value: 0, color: tx.tag.colorHex});
         subMap.get(subName)!.value += tx.amount;
     });
 
@@ -81,7 +86,8 @@ export const TransactionPieChart = ({ transactions, type, title }: { transaction
     const middleRadius = 140;
 
     return (
-        <div className="flex flex-col items-center w-full bg-app-card/20 rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
+        <div
+            className="flex flex-col items-center w-full bg-app-card/20 rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
             <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider">{title}</h3>
 
             <div className="w-full flex justify-center h-[400px]">
@@ -92,9 +98,9 @@ export const TransactionPieChart = ({ transactions, type, title }: { transaction
                             outerRadius: middleRadius,
                             data: innerData,
                             arcLabel: (item) => (item as any).percentage > 5 ? `${item.id}` : '',
-                            valueFormatter: ({ value }) => `${value.toFixed(2)} (${((value / totalAmount) * 100).toFixed(1)}%)`,
-                            highlightScope: { fade: 'global', highlight: 'item' },
-                            highlighted: { additionalRadius: 2 },
+                            valueFormatter: ({value}) => `${value.toFixed(2)} (${((value / totalAmount) * 100).toFixed(1)}%)`,
+                            highlightScope: {fade: 'global', highlight: 'item'},
+                            highlighted: {additionalRadius: 2},
                             cornerRadius: 3,
                         },
                         {
@@ -102,15 +108,19 @@ export const TransactionPieChart = ({ transactions, type, title }: { transaction
                             outerRadius: middleRadius + 20,
                             data: outerData,
                             arcLabel: (item) => (item as any).percentage > 3 ? `${item.id}` : '',
-                            valueFormatter: ({ value }) => `${value.toFixed(2)} (${((value / totalAmount) * 100).toFixed(1)}%)`,
+                            valueFormatter: ({value}) => `${value.toFixed(2)} (${((value / totalAmount) * 100).toFixed(1)}%)`,
                             arcLabelRadius: middleRadius + 35,
-                            highlightScope: { fade: 'global', highlight: 'item' },
-                            highlighted: { additionalRadius: 2 },
+                            highlightScope: {fade: 'global', highlight: 'item'},
+                            highlighted: {additionalRadius: 2},
                             cornerRadius: 2,
                         },
                     ]}
                     sx={{
-                        [`& .${pieArcLabelClasses.root}`]: { fill: resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a', fontSize: '11px', fontWeight: 'bold' },
+                        [`& .${pieArcLabelClasses.root}`]: {
+                            fill: resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a',
+                            fontSize: '11px',
+                            fontWeight: 'bold'
+                        },
                     }}
                     hideLegend
                 >
