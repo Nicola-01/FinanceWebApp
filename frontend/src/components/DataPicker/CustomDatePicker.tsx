@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, addMonths, subYears, addYears } from 'date-fns';
-import { it } from 'date-fns/locale';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import CalendarContainer from './CalendarContainer';
 
@@ -16,18 +16,20 @@ export interface CustomDatePickerProps {
 }
 
 export default function CustomDatePicker({
-                                             isRange = true,
-                                             color = '#00ff7f',
-                                             isDark = true,
-                                             onChange
-                                         }: CustomDatePickerProps) {
+    isRange = true,
+    color = '#00ff7f',
+    isDark = true,
+    onChange
+}: CustomDatePickerProps) {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [preset, setPreset] = useState<PresetType>('month');
     const [currentDate, setCurrentDate] = useState<Date>(new Date());
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
+    const [isMobile, setIsMobile] = useState<boolean>(false);
 
     const popoverRef = useRef<HTMLDivElement>(null);
+    const modalRef = useRef<HTMLDivElement>(null);
     const onChangeRef = useRef(onChange);
 
     useEffect(() => {
@@ -36,12 +38,23 @@ export default function CustomDatePicker({
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            if (popoverRef.current && !popoverRef.current.contains(target)) {
+                if (modalRef.current && modalRef.current.contains(target)) {
+                    return;
+                }
                 setIsOpen(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 640);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
     useEffect(() => {
@@ -87,7 +100,7 @@ export default function CustomDatePicker({
         }
     }, [preset, currentDate]);
 
-    const formatDateLabel = (date: Date | null) => date ? format(date, 'MMM d, yyyy', { locale: it }) : '-';
+    const formatDateLabel = (date: Date | null) => date ? format(date, 'MMM d, yyyy') : '-';
 
     const mainPresets: { id: PresetType; label: string }[] = [
         { id: 'last30', label: 'Last 30 Days' },
@@ -115,7 +128,7 @@ export default function CustomDatePicker({
             return (
                 <div className="flex items-center justify-between w-full flex-1">
                     <button onClick={(e) => { e.stopPropagation(); setCurrentDate(prev => subMonths(prev, 1)); }} className={`p-1 rounded ${bgHover} ${textMuted}`}><ChevronLeft className="w-4 h-4" /></button>
-                    <span className={`${textMain} font-medium text-sm capitalize`}>{format(currentDate, 'MMMM yyyy', { locale: it })}</span>
+                    <span className={`${textMain} font-medium text-sm capitalize`}>{format(currentDate, 'MMMM yyyy')}</span>
                     <button onClick={(e) => { e.stopPropagation(); setCurrentDate(prev => addMonths(prev, 1)); }} className={`p-1 rounded ${bgHover} ${textMuted}`}><ChevronRight className="w-4 h-4" /></button>
                 </div>
             );
@@ -157,68 +170,86 @@ export default function CustomDatePicker({
             </div>
 
             {/* Popover del Calendario */}
-            {isOpen && (
-                <div className={`absolute top-full mt-2 rounded-xl shadow-xl border overflow-hidden flex flex-col md:flex-row z-50 w-[calc(100vw-2rem)] sm:w-auto left-0 sm:-left-4 md:left-0 md:min-w-[550px] ${bgMain} ${borderMain}`}>
+            {isOpen && (() => {
+                const popoverContent = (
+                    <>
+                        {/* SIDEBAR PRESET */}
+                        <div className={`flex flex-row sm:flex-col p-2 overflow-x-auto no-scrollbar sm:w-36 flex-shrink-0 border-b sm:border-b-0 sm:border-r ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
 
-                    {/* SIDEBAR PRESET */}
-                    <div className={`flex flex-row md:flex-col p-2 overflow-x-auto no-scrollbar md:w-36 flex-shrink-0 border-b md:border-b-0 md:border-r ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
+                            <div className="flex flex-row sm:flex-col gap-1 flex-1">
+                                {mainPresets.map((p) => {
+                                    const isSelected = preset === p.id;
+                                    const btnBg = isSelected
+                                        ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
+                                        : (isDark ? 'text-gray-400 hover:bg-gray-700/50' : 'text-gray-600 hover:bg-gray-200/50');
+                                    return (
+                                        <button
+                                            key={p.id}
+                                            onClick={() => setPreset(p.id)}
+                                            className={`text-left px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap sm:whitespace-normal ${btnBg}`}
+                                            style={isSelected ? { color } : {}}
+                                        >
+                                            {p.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
-                        <div className="flex flex-row md:flex-col gap-1 flex-1">
-                            {mainPresets.map((p) => {
-                                const isSelected = preset === p.id;
-                                const btnBg = isSelected
-                                    ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
-                                    : (isDark ? 'text-gray-400 hover:bg-gray-700/50' : 'text-gray-600 hover:bg-gray-200/50');
-                                return (
-                                    <button
-                                        key={p.id}
-                                        onClick={() => setPreset(p.id)}
-                                        className={`text-left px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap md:whitespace-normal ${btnBg}`}
-                                        style={isSelected ? { color } : {}}
-                                    >
-                                        {p.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                            <div className={`hidden sm:block h-px w-full my-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
+                            <div className={`sm:hidden w-px h-auto mx-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
 
-                        <div className={`hidden md:block h-px w-full my-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
-                        <div className={`md:hidden w-px h-auto mx-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
-
-                        <div className="flex flex-row md:flex-col gap-1">
-                            <button
-                                onClick={() => setPreset('today')}
-                                className={`text-left px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap md:whitespace-normal ${
-                                    preset === 'today'
+                            <div className="flex flex-row sm:flex-col gap-1">
+                                <button
+                                    onClick={() => setPreset('today')}
+                                    className={`text-left px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap sm:whitespace-normal ${preset === 'today'
                                         ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
                                         : (isDark ? 'text-gray-400 hover:bg-gray-700/50' : 'text-gray-600 hover:bg-gray-200/50')
-                                }`}
-                                style={preset === 'today' ? { color } : {}}
-                            >
-                                Today
-                            </button>
+                                        }`}
+                                    style={preset === 'today' ? { color } : {}}
+                                >
+                                    Today
+                                </button>
+                            </div>
+
                         </div>
 
-                    </div>
+                        {/* CALENDARIO */}
+                        <div className="flex-1 p-4 overflow-hidden">
+                            <CalendarContainer
+                                currentDate={currentDate}
+                                setCurrentDate={setCurrentDate}
+                                startDate={startDate}
+                                endDate={endDate}
+                                setStartDate={setStartDate}
+                                setEndDate={setEndDate}
+                                preset={preset}
+                                setPreset={setPreset}
+                                isRange={isRange}
+                                color={color}
+                                isDark={isDark}
+                            />
+                        </div>
+                    </>
+                );
 
-                    {/* CALENDARIO */}
-                    <div className="flex-1 p-4 overflow-hidden">
-                        <CalendarContainer
-                            currentDate={currentDate}
-                            setCurrentDate={setCurrentDate}
-                            startDate={startDate}
-                            endDate={endDate}
-                            setStartDate={setStartDate}
-                            setEndDate={setEndDate}
-                            preset={preset}
-                            setPreset={setPreset}
-                            isRange={isRange}
-                            color={color}
-                            isDark={isDark}
-                        />
+                if (isMobile && typeof document !== 'undefined') {
+                    return createPortal(
+                        <div className="fixed inset-0 z-[100] flex flex-col justify-end sm:hidden">
+                            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} />
+                            <div ref={modalRef} className={`relative w-full max-h-[85vh] overflow-y-auto rounded-t-2xl pb-6 shadow-2xl border-t flex flex-col ${bgMain} ${borderMain} animate-[slideUp_0.3s_ease-out]`}>
+                                {popoverContent}
+                            </div>
+                        </div>,
+                        document.body
+                    );
+                }
+
+                return (
+                    <div ref={modalRef} className={`absolute top-full mt-2 left-0 rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] w-[380px] sm:w-auto sm:min-w-[550px] overflow-hidden ${bgMain} ${borderMain}`}>
+                        {popoverContent}
                     </div>
-                </div>
-            )}
+                );
+            })()}
         </div>
     );
 }

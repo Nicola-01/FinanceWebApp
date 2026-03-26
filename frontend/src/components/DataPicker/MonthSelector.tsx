@@ -1,6 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, setMonth } from 'date-fns';
-import { it } from 'date-fns/locale';
 
 export interface MonthSelectorProps {
     currentDate: Date;
@@ -16,7 +15,7 @@ export interface MonthSelectorProps {
 }
 
 export default function MonthSelector({ currentDate, onSelectMonth, onYearClick, onPrevYear, onNextYear, direction, isYearPreset, isAllPreset, color = '#ef4444', isDark }: MonthSelectorProps) {
-    const months = Array.from({ length: 12 }, (_, i) => ({ date: setMonth(new Date(), i), label: format(setMonth(new Date(), i), 'MMM', { locale: it }) }));
+    const months = Array.from({ length: 12 }, (_, i) => ({ date: setMonth(new Date(), i), label: format(setMonth(new Date(), i), 'MMM') }));
     const currentMonthIndex = currentDate.getMonth();
     const yearKey = currentDate.getFullYear();
     const btnNav = `p-2 rounded-md transition-colors ${isDark ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'}`;

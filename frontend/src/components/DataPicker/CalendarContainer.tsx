@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { format, addMonths, subMonths, addYears, subYears } from 'date-fns';
-import { it } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import MonthGrid from './MonthGrid';
 import MonthSelector from './MonthSelector';
 import YearSelector from './YearSelector';
-import type {PresetType} from './CustomDatePicker';
+import type { PresetType } from './CustomDatePicker';
 
 export interface CalendarContainerProps {
     currentDate: Date;
@@ -82,7 +81,7 @@ export default function CalendarContainer({ currentDate, setCurrentDate, startDa
                                 onClick={() => setView('months')}
                                 className={`flex items-center gap-1 font-semibold px-3 py-1 rounded-md transition-colors ${textMain} ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'} ${direction === 'next' ? 'anim-next' : 'anim-prev'}`}
                             >
-                                <span className="capitalize">{format(currentDate, 'MMM', { locale: it })}</span>
+                                <span className="capitalize">{format(currentDate, 'MMMM')}</span>
                                 <span>{format(currentDate, 'yyyy')}</span>
                             </button>
                         </div>
