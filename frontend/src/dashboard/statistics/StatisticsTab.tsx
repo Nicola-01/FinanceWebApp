@@ -129,7 +129,7 @@ const TransactionPieChart = ({ transactions, type, title }: { transactions: Tran
 };
 
 export const StatisticsTab: React.FC = () => {
-    const { transactions } = useWalletContext();
+    const { filteredTransactions } = useWalletContext();
     return (
         <ThemeProvider theme={darkTheme}>
             {/* Contenitore con scroll per vedere bene tutti i grafici */}
@@ -141,12 +141,12 @@ export const StatisticsTab: React.FC = () => {
 
                 {/* 1. I Grafici a Torta in cima */}
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    <TransactionPieChart transactions={transactions} type="INCOME" title="Income Distribution" />
-                    <TransactionPieChart transactions={transactions} type="EXPENSE" title="Expense Distribution" />
+                    <TransactionPieChart transactions={filteredTransactions} type="INCOME" title="Income Distribution" />
+                    <TransactionPieChart transactions={filteredTransactions} type="EXPENSE" title="Expense Distribution" />
                 </div>
 
                 {/* 2. Il Grafico Sankey sotto */}
-                <CashFlowSankey transactions={transactions} />
+                <CashFlowSankey transactions={filteredTransactions} />
             </div>
         </ThemeProvider>
     );
