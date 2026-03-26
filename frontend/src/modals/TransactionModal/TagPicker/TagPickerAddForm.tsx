@@ -76,7 +76,7 @@ export const TagPickerAddForm: React.FC<TagPickerAddFormProps> = ({
                     <button onClick={handleSave} className="flex h-7 w-7 items-center justify-center text-[#00ff7f] hover:bg-[#00ff7f]/20 rounded-md transition-colors">
                         <FontAwesomeIcon icon={faCheck} />
                     </button>
-                    <button onClick={onClose} className="flex h-7 w-7 items-center justify-center text-white/40 hover:text-red-500 hover:bg-red-500/20 rounded-md transition-colors">
+                    <button onClick={onClose} className="flex h-7 w-7 items-center justify-center text-app-muted hover:text-red-500 hover:bg-red-500/20 rounded-md transition-colors">
                         <FontAwesomeIcon icon={faXmark} />
                     </button>
                 </div>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTheme } from '../../utils/ThemeContext';
 import { createPortal } from 'react-dom';
 import { format, subDays, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, addMonths, subYears, addYears } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -22,13 +23,15 @@ export interface CustomDatePickerProps {
 export default function CustomDatePicker({
     isRange = true,
     color = '#00ff7f',
-    isDark = true,
+    isDark: isDarkProp,
     onChange,
     initialPreset = 'month',
     initialStartDate = null,
     initialEndDate = null,
     onPresetChange
 }: CustomDatePickerProps) {
+    const { resolvedTheme } = useTheme();
+    const isDark = isDarkProp !== undefined ? isDarkProp : resolvedTheme === 'dark';
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [preset, setPreset] = useState<PresetType>(initialPreset);
     const [currentDate, setCurrentDate] = useState<Date>(initialStartDate || new Date());
@@ -124,13 +127,13 @@ export default function CustomDatePicker({
         { id: 'custom', label: 'Custom' }
     ];
 
-    const bgMain = isDark ? 'bg-gray-900' : 'bg-white';
-    const textMain = isDark ? 'text-gray-100' : 'text-gray-700';
-    const textMuted = isDark ? 'text-gray-400' : 'text-gray-400';
-    const borderMain = isDark ? 'border-gray-700' : 'border-gray-200';
-    const bgHover = isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100';
-    const bgInput = isDark ? 'bg-gray-800' : 'bg-gray-50';
-    const borderInput = isDark ? 'border-gray-600' : 'border-gray-100';
+    const bgMain = isDark ? 'bg-app-card' : 'bg-app-bg';
+    const textMain = 'text-app-text';
+    const textMuted = 'text-app-muted';
+    const borderMain = 'border-app-border';
+    const bgHover = 'hover:bg-app-hover';
+    const bgInput = 'bg-app-input';
+    const borderInput = 'border-app-border';
 
     // Auto-close on single-date selection
     useEffect(() => {
@@ -170,7 +173,7 @@ export default function CustomDatePicker({
         }
 
         return (
-            <div className={`flex items-center gap-2 flex-1 font-medium text-sm w-full ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            <div className={`flex items-center gap-2 flex-1 font-medium text-sm w-full text-app-text`}>
                 <span className={`flex-1 text-center rounded py-1 px-2 border ${bgInput} ${borderInput}`}>{formatDateLabel(startDate)}</span>
                 <span className={textMuted}>→</span>
                 <span className={`flex-1 text-center rounded py-1 px-2 border ${bgInput} ${borderInput}`}>{formatDateLabel(endDate)}</span>
@@ -207,8 +210,8 @@ export default function CustomDatePicker({
                                     {mainPresets.map((p) => {
                                         const isSelected = preset === p.id;
                                         const btnBg = isSelected
-                                            ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
-                                            : (isDark ? 'text-gray-400 hover:bg-gray-700/50' : 'text-gray-600 hover:bg-gray-200/50');
+                                            ? (isDark ? 'bg-app-hover text-app-text shadow-sm' : 'bg-app-hover text-app-text shadow-sm')
+                                            : ('text-app-muted hover:bg-app-hover/50');
                                         return (
                                             <button
                                                 key={p.id}
@@ -229,8 +232,8 @@ export default function CustomDatePicker({
                                     <button
                                         onClick={() => setPreset('today')}
                                         className={`text-left px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap sm:whitespace-normal ${preset === 'today'
-                                            ? (isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-800 shadow-sm')
-                                            : (isDark ? 'text-gray-400 hover:bg-gray-700/50' : 'text-gray-600 hover:bg-gray-200/50')
+                                            ? (isDark ? 'bg-app-hover text-app-text shadow-sm' : 'bg-app-hover text-app-text shadow-sm')
+                                            : ('text-app-muted hover:bg-app-hover/50')
                                             }`}
                                         style={preset === 'today' ? { color } : {}}
                                     >

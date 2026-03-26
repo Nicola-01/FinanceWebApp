@@ -78,7 +78,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
     };
 
     return (
-        <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex flex-col gap-3 transition-all">
+        <div className="rounded-xl border border-app-border bg-app-input p-4 flex flex-col gap-3 transition-all">
 
             {/* HEADER DEL PADRE */}
             <div className="flex items-center gap-3 group/header">
@@ -103,7 +103,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                         <div className="flex items-center gap-2">
                             <input
                                 autoFocus
-                                className="bg-black/40 border border-[#00ff7f]/50 rounded px-2 py-1 text-white outline-none w-full font-bold"
+                                className="bg-app-card/40 border border-[#00ff7f]/50 rounded px-2 py-1 text-app-text outline-none w-full font-bold"
                                 value={parentNameVal} onChange={e => setParentNameVal(e.target.value)}
                                 onKeyDown={e => {
                                     if (e.key === 'Enter') handleSaveParentName();
@@ -113,17 +113,17 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                                     }
                                 }}
                             />
-                            <button onClick={handleSaveParentName} className="text-[#00ff7f] hover:text-white transition-colors"><FontAwesomeIcon icon={faCheck} /></button>
-                            <button onClick={() => { setEditingParentName(false); setParentNameVal(parent.name); }} className="text-white/40 hover:text-red-500 transition-colors"><FontAwesomeIcon icon={faXmark} /></button>
+                            <button onClick={handleSaveParentName} className="text-[#00ff7f] hover:text-app-text transition-colors"><FontAwesomeIcon icon={faCheck} /></button>
+                            <button onClick={() => { setEditingParentName(false); setParentNameVal(parent.name); }} className="text-app-muted hover:text-red-500 transition-colors"><FontAwesomeIcon icon={faXmark} /></button>
                         </div>
                     ) : (
                         <div className="flex items-center justify-between">
-                            <div className="min-w-0"><h1 className="font-bold text-white text-2xl truncate pr-2">{parent.name}</h1></div>
+                            <div className="min-w-0"><h1 className="font-bold text-app-text text-2xl truncate pr-2">{parent.name}</h1></div>
                             <div className="flex items-center gap-2 opacity-0 group-hover/header:opacity-100 transition-opacity">
                                 {wallet.myRole !== 'VIEWER' && (
                                     <>
-                                        <button onClick={() => { setParentNameVal(parent.name); setEditingParentName(true); }} className="text-white/30 hover:text-amber-400 transition-colors"><FontAwesomeIcon icon={faPenToSquare} className="text-sm" /></button>
-                                        <button onClick={() => handleDeleteParent(parent.name)} className="text-white/30 hover:text-red-500 transition-colors"><FontAwesomeIcon icon={faTrash} className="text-sm" /></button>
+                                        <button onClick={() => { setParentNameVal(parent.name); setEditingParentName(true); }} className="text-app-muted/40 hover:text-amber-400 transition-colors"><FontAwesomeIcon icon={faPenToSquare} className="text-sm" /></button>
+                                        <button onClick={() => handleDeleteParent(parent.name)} className="text-app-muted/40 hover:text-red-500 transition-colors"><FontAwesomeIcon icon={faTrash} className="text-sm" /></button>
                                     </>
                                 )}
                             </div>
@@ -133,13 +133,13 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
             </div>
 
             {/* LISTA DEI FIGLI */}
-            <div className="mt-2 flex flex-col gap-2 pl-4 border-l-2 border-white/10">
+            <div className="mt-2 flex flex-col gap-2 pl-4 border-l-2 border-app-border">
                 {isAddingChild ? (
-                    <div className="flex items-center gap-2 rounded-lg p-2 bg-black/40 border border-[#00ff7f]/30">
+                    <div className="flex items-center gap-2 rounded-lg p-2 bg-app-card/40 border border-[#00ff7f]/30">
                         <FontAwesomeIcon icon={faArrowTurnUp} className="rotate-90 text-[#00ff7f] text-xs shrink-0" />
                         <input
                             autoFocus
-                            className="bg-transparent text-sm font-medium text-white outline-none w-full placeholder-white/30"
+                            className="bg-transparent text-sm font-medium text-app-text outline-none w-full placeholder-app-muted/30"
                             placeholder="Name..." value={newChildName} onChange={(e) => setNewChildName(e.target.value)}
                             onKeyDown={e => {
                                 if (e.key === 'Enter') handleAddChild();
@@ -148,16 +148,16 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                         />
                         {loading ? <FontAwesomeIcon icon={faSpinner} spin className="text-[#00ff7f] text-xs shrink-0" /> : (
                             <>
-                                <button onClick={handleAddChild} className="text-[#00ff7f] hover:text-white transition-colors shrink-0"><FontAwesomeIcon icon={faCheck} /></button>
-                                <button onClick={() => setIsAddingChild(false)} className="text-white/40 hover:text-red-500 transition-colors shrink-0"><FontAwesomeIcon icon={faXmark} /></button>
+                                <button onClick={handleAddChild} className="text-[#00ff7f] hover:text-app-text transition-colors shrink-0"><FontAwesomeIcon icon={faCheck} /></button>
+                                <button onClick={() => setIsAddingChild(false)} className="text-app-muted hover:text-red-500 transition-colors shrink-0"><FontAwesomeIcon icon={faXmark} /></button>
                             </>
                         )}
                     </div>
                 ) : (
                     wallet.myRole !== 'VIEWER' && (
-                        <button onClick={() => setIsAddingChild(true)} className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5 text-left group cursor-pointer">
-                            <FontAwesomeIcon icon={faPlus} className="text-white/20 group-hover:text-[#00ff7f] text-xs transition-colors" />
-                            <span className="text-sm font-medium text-white/40 group-hover:text-[#00ff7f] transition-colors">Add sub-category</span>
+                        <button onClick={() => setIsAddingChild(true)} className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-app-input text-left group cursor-pointer">
+                            <FontAwesomeIcon icon={faPlus} className="text-app-muted/20 group-hover:text-[#00ff7f] text-xs transition-colors" />
+                            <span className="text-sm font-medium text-app-muted group-hover:text-[#00ff7f] transition-colors">Add sub-category</span>
                         </button>
                     )
                 )}

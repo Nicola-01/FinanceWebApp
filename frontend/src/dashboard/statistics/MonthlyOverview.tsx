@@ -32,19 +32,19 @@ const ViewModeDropdown: React.FC<{ value: ViewMode; onChange: (v: ViewMode) => v
         <div ref={ref} className="relative">
             <button
                 onClick={() => setOpen(o => !o)}
-                className="flex items-center gap-2 text-xl font-bold text-white uppercase tracking-wider hover:text-white/80 transition-colors"
+                className="flex items-center gap-2 text-xl font-bold text-app-text uppercase tracking-wider hover:opacity-80 transition-opacity"
             >
                 {labels[value]}
                 <ChevronDown size={18} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && (
-                <div className="absolute top-full left-0 mt-2 bg-[#1e1e1e] border border-white/15 rounded-xl shadow-2xl z-50 overflow-hidden min-w-[200px]">
+                <div className="absolute top-full left-0 mt-2 bg-app-card border border-app-border rounded-xl shadow-2xl z-50 overflow-hidden min-w-[200px]">
                     {(Object.entries(labels) as [ViewMode, string][]).map(([key, label]) => (
                         <button
                             key={key}
                             onClick={() => { onChange(key); setOpen(false); }}
                             className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors ${
-                                key === value ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5 hover:text-white'
+                                key === value ? 'bg-app-surface text-app-text' : 'text-app-muted hover:bg-app-input hover:text-app-text'
                             }`}
                         >
                             {label}
@@ -130,7 +130,7 @@ export const MonthlyOverview: React.FC<MonthlyOverviewProps> = ({ transactions }
 
     const renderValueCell = (value: number, type: 'income' | 'expense' | 'balance', isBold = false) => {
         const hasData = value !== 0;
-        let color = 'text-white/20';
+        let color = 'text-app-muted/30';
         let prefix = '';
 
         if (hasData) {
@@ -147,9 +147,9 @@ export const MonthlyOverview: React.FC<MonthlyOverviewProps> = ({ transactions }
     };
 
     return (
-        <div className="bg-black/20 rounded-2xl border border-white/10 overflow-hidden my-4">
+        <div className="bg-app-card/20 rounded-2xl border border-app-border overflow-hidden my-4">
             {/* Header */}
-            <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/10">
+            <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-app-border">
                 <ViewModeDropdown value={viewMode} onChange={setViewMode} />
 
                 {isMonthly && (
@@ -157,15 +157,15 @@ export const MonthlyOverview: React.FC<MonthlyOverviewProps> = ({ transactions }
                         <button
                             onClick={() => canGoBack && setSelectedYear(y => y - 1)}
                             disabled={!canGoBack}
-                            className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="p-1.5 rounded-lg bg-app-input border border-app-border text-app-muted hover:bg-app-surface hover:text-app-text transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             <ChevronLeft size={18} />
                         </button>
-                        <span className="text-lg font-bold text-white min-w-[60px] text-center">{selectedYear}</span>
+                        <span className="text-lg font-bold text-app-text min-w-[60px] text-center">{selectedYear}</span>
                         <button
                             onClick={() => canGoForward && setSelectedYear(y => y + 1)}
                             disabled={!canGoForward}
-                            className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="p-1.5 rounded-lg bg-app-input border border-app-border text-app-muted hover:bg-app-surface hover:text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                             <ChevronRight size={18} />
                         </button>
@@ -188,22 +188,22 @@ export const MonthlyOverview: React.FC<MonthlyOverviewProps> = ({ transactions }
                             <col style={{ width: '100px' }} className="sticky-col-right" />
                         </colgroup>
                         <thead>
-                            <tr className="border-b border-white/10">
-                                <th className="sticky left-0 z-10 bg-[#1a1a1a] px-2 py-3"></th>
+                            <tr className="border-b border-app-border">
+                                <th className="sticky left-0 z-10 bg-app-card/50 px-2 py-3"></th>
                                 {columns.map(c => (
-                                    <th key={c.key} className="text-center text-xs text-white/50 uppercase tracking-wider px-1 py-3 font-semibold">
+                                    <th key={c.key} className="text-center text-xs text-app-muted uppercase tracking-wider px-1 py-3 font-semibold">
                                         {c.label}
                                     </th>
                                 ))}
-                                <th className="sticky right-0 z-10 bg-[#1a1a1a] text-center text-xs text-white/50 uppercase tracking-wider px-2 py-3 font-bold border-l border-white/10">
+                                <th className="sticky right-0 z-10 bg-app-card/50 text-center text-xs text-app-muted uppercase tracking-wider px-2 py-3 font-bold border-l border-app-border">
                                     Tot
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
                             {/* Income row */}
-                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                                <td className="sticky left-0 z-10 bg-[#1a1a1a] px-2 py-3 text-center">
+                            <tr className="border-b border-app-border hover:bg-app-surface/50 transition-colors">
+                                <td className="sticky left-0 z-10 bg-app-card/50 px-2 py-3 text-center">
                                     <TrendingUp size={16} className="text-emerald-400 inline-block" />
                                 </td>
                                 {dataItems.map((m, i) => (
@@ -211,14 +211,14 @@ export const MonthlyOverview: React.FC<MonthlyOverviewProps> = ({ transactions }
                                         {renderValueCell(m.income, 'income')}
                                     </td>
                                 ))}
-                                <td className="sticky right-0 z-10 bg-[#1a1a1a] text-center px-2 py-3 border-l border-white/10">
+                                <td className="sticky right-0 z-10 bg-app-card/50 text-center px-2 py-3 border-l border-app-border">
                                     {renderValueCell(totals.income, 'income', true)}
                                 </td>
                             </tr>
 
                             {/* Expense row */}
-                            <tr className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
-                                <td className="sticky left-0 z-10 bg-[#1a1a1a] px-2 py-3 text-center">
+                            <tr className="border-b border-app-border hover:bg-app-surface/50 transition-colors">
+                                <td className="sticky left-0 z-10 bg-app-card/50 px-2 py-3 text-center">
                                     <TrendingDown size={16} className="text-red-400 inline-block" />
                                 </td>
                                 {dataItems.map((m, i) => (
@@ -226,14 +226,14 @@ export const MonthlyOverview: React.FC<MonthlyOverviewProps> = ({ transactions }
                                         {renderValueCell(m.expense, 'expense')}
                                     </td>
                                 ))}
-                                <td className="sticky right-0 z-10 bg-[#1a1a1a] text-center px-2 py-3 border-l border-white/10">
+                                <td className="sticky right-0 z-10 bg-app-card/50 text-center px-2 py-3 border-l border-app-border">
                                     {renderValueCell(totals.expense, 'expense', true)}
                                 </td>
                             </tr>
 
                             {/* Balance row */}
-                            <tr className="hover:bg-white/[0.02] transition-colors">
-                                <td className="sticky left-0 z-10 bg-[#1a1a1a] px-2 py-3 text-center">
+                            <tr className="hover:bg-app-surface/50 transition-colors">
+                                <td className="sticky left-0 z-10 bg-app-card/50 px-2 py-3 text-center">
                                     <Scale size={16} className="text-blue-400 inline-block" />
                                 </td>
                                 {dataItems.map((m, i) => {
@@ -247,7 +247,7 @@ export const MonthlyOverview: React.FC<MonthlyOverviewProps> = ({ transactions }
                                 {(() => {
                                     const totalBalance = totals.income - totals.expense;
                                     return (
-                                        <td className="sticky right-0 z-10 bg-[#1a1a1a] text-center px-2 py-3 border-l border-white/10">
+                                        <td className="sticky right-0 z-10 bg-app-card/50 text-center px-2 py-3 border-l border-app-border">
                                             {renderValueCell(totalBalance, 'balance', true)}
                                         </td>
                                     );

@@ -11,7 +11,7 @@ interface PeriodStatsProps {
 
 // --- COMPONENTE SKELETON PER GLI IMPORTI ---
 const SkeletonAmount = () => (
-    <div className="h-7 w-24 bg-white/10 rounded-md animate-pulse mx-auto mt-0.5"></div>
+    <div className="h-7 w-24 bg-app-surface rounded-md animate-pulse mx-auto mt-0.5"></div>
 );
 
 export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading}) => {
@@ -55,7 +55,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                 {!isLoading && transactions.length > 0 && (
                     <button
                         onClick={() => setShowDistribution(!showDistribution)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-wider"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-app-input border border-app-border text-app-muted hover:text-white hover:bg-app-surface transition-all text-xs font-bold uppercase tracking-wider"
                     >
                         <FontAwesomeIcon icon={faChartPie}/>
                         {showDistribution ? 'Hide Details' : 'Show Details'}
@@ -66,9 +66,9 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
 
-                <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col transition-all">
+                <div className="bg-black/20 border border-app-border rounded-2xl p-4 flex flex-col transition-all">
                     <div className="text-center">
-                        <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Period Income</p>
+                        <p className="text-app-muted text-xs font-bold uppercase tracking-widest mb-1">Period Income</p>
                         {isLoading ? (
                             <SkeletonAmount />
                         ) : (
@@ -78,7 +78,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
 
                     {!isLoading && showDistribution && incomeTags.length > 0 && (
                         <div
-                            className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3 animate-[fadeIn_0.2s_ease-out]">
+                            className="mt-4 pt-4 border-t border-app-border flex flex-col gap-3 animate-[fadeIn_0.2s_ease-out]">
                             {incomeTags.map(([tagName, stats]) => {
                                 const percentage = totals.income > 0 ? (stats.income / totals.income) * 100 : 0;
                                 return (
@@ -95,7 +95,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                                                     className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
                                             </div>
                                         </div>
-                                        <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
+                                        <div className="w-full bg-app-input rounded-full h-1 overflow-hidden">
                                             <div className="h-full rounded-full transition-all duration-500"
                                                  style={{width: `${percentage}%`, backgroundColor: stats.color}}/>
                                         </div>
@@ -106,9 +106,9 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                     )}
                 </div>
 
-                <div className="bg-black/20 border border-white/5 rounded-2xl p-4 flex flex-col transition-all">
+                <div className="bg-black/20 border border-app-border rounded-2xl p-4 flex flex-col transition-all">
                     <div className="text-center">
-                        <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Period Expense</p>
+                        <p className="text-app-muted text-xs font-bold uppercase tracking-widest mb-1">Period Expense</p>
                         {isLoading ? (
                             <SkeletonAmount />
                         ) : (
@@ -118,7 +118,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
 
                     {!isLoading && showDistribution && expenseTags.length > 0 && (
                         <div
-                            className="mt-4 pt-4 border-t border-white/5 flex flex-col gap-3 animate-[fadeIn_0.2s_ease-out]">
+                            className="mt-4 pt-4 border-t border-app-border flex flex-col gap-3 animate-[fadeIn_0.2s_ease-out]">
                             {expenseTags.map(([tagName, stats]) => {
                                 const percentage = totals.expense > 0 ? (stats.expense / totals.expense) * 100 : 0;
                                 return (
@@ -135,7 +135,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                                                     className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
                                             </div>
                                         </div>
-                                        <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
+                                        <div className="w-full bg-app-input rounded-full h-1 overflow-hidden">
                                             <div className="h-full rounded-full transition-all duration-500"
                                                  style={{width: `${percentage}%`, backgroundColor: stats.color}}/>
                                         </div>
@@ -146,8 +146,8 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                     )}
                 </div>
 
-                <div className="bg-white/5 border sm:col-span-2 lg:col-auto border-white/10 rounded-2xl p-4 flex flex-col text-center justify-center min-h-19">
-                    <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">Net Balance</p>
+                <div className="bg-app-input border sm:col-span-2 lg:col-auto border-app-border rounded-2xl p-4 flex flex-col text-center justify-center min-h-19">
+                    <p className="text-app-muted text-xs font-bold uppercase tracking-widest mb-1">Net Balance</p>
                     {isLoading ? (
                         <SkeletonAmount />
                     ) : (

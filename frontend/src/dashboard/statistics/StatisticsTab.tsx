@@ -6,17 +6,21 @@ import { MonthlySnapshotChart } from './MonthlySnapshotChart.tsx';
 import { CumulativeChart } from './CumulativeChart.tsx';
 import type { ZoomData } from '@mui/x-charts/internals';
 
+import { useTheme } from '../../utils/ThemeContext.tsx';
+
+const lightTheme = createTheme({
+    palette: { mode: 'light', background: { paper: '#ffffff' } },
+});
+
 const darkTheme = createTheme({
-    palette: {
-        mode: 'dark',
-        background: { paper: '#1a1a1a' }
-    },
+    palette: { mode: 'dark', background: { paper: '#1a1a1a' } },
 });
 
 type ChartMode = 'snapshot' | 'cumulative';
 
 export const StatisticsTab: React.FC = () => {
     const { transactions } = useWalletContext();
+    const { resolvedTheme } = useTheme();
     const [chartMode, setChartMode] = useState<ChartMode>('snapshot');
     const [zoomData, setZoomData] = useState<ZoomData[]>([{ axisId: 'x-axis', start: 0, end: 100 }]);
 
@@ -25,23 +29,23 @@ export const StatisticsTab: React.FC = () => {
     }, []);
 
     const toggle = (
-        <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-0.5">
+        <div className="flex items-center gap-1 bg-app-input border border-app-border rounded-lg p-0.5">
             <button
                 onClick={() => setChartMode('snapshot')}
-                className={`px-4 py-2 text-xs font-semibold rounded-md transition-all ${
+                className={`px-4 py-2 text-xs font-bold rounded-md transition-all ${
                     chartMode === 'snapshot'
-                        ? 'bg-white/15 text-white shadow-sm'
-                        : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                        ? 'bg-app-card text-app-text shadow-sm'
+                        : 'text-app-muted hover:text-app-text hover:bg-app-card/30'
                 }`}
             >
                 Monthly
             </button>
             <button
                 onClick={() => setChartMode('cumulative')}
-                className={`px-4 py-2 text-xs font-semibold rounded-md transition-all ${
+                className={`px-4 py-2 text-xs font-bold rounded-md transition-all ${
                     chartMode === 'cumulative'
-                        ? 'bg-white/15 text-white shadow-sm'
-                        : 'text-white/40 hover:text-white/70 hover:bg-white/5'
+                        ? 'bg-app-card text-app-text shadow-sm'
+                        : 'text-app-muted hover:text-app-text hover:bg-app-card/30'
                 }`}
             >
                 Cumulative
@@ -50,7 +54,7 @@ export const StatisticsTab: React.FC = () => {
     );
 
     return (
-        <ThemeProvider theme={darkTheme}>
+        <ThemeProvider theme={resolvedTheme === 'dark' ? darkTheme : lightTheme}>
             <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] pb-10 relative">
                 {/* Monthly/Yearly Overview Table */}
                 <MonthlyOverview transactions={transactions} />

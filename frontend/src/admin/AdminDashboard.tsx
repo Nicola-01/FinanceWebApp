@@ -83,7 +83,7 @@ const AdminDashboard: React.FC = () => {
 
                 <AdminStats users={users} />
 
-                <div className="rounded-2xl border border-white/10 bg-[#141414]/60 p-[30px] shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md">
+                <div className="rounded-2xl border border-app-border bg-[#141414]/60 p-[30px] shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md">
 
                     {/* Nuovo form di invito */}
                     <CreateInviteForm onInviteCreated={loadData} />

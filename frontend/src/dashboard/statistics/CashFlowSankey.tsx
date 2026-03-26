@@ -6,6 +6,7 @@ import {
     type SankeyValueFormatterContext,
 } from '@mui/x-charts-pro/SankeyChart';
 import type { Transaction } from '../../utils/types';
+import { useTheme } from '../../utils/ThemeContext';
 
 interface CashFlowSankeyProps {
     transactions: Transaction[];
@@ -18,6 +19,7 @@ type NodeDef = { id: string; label: string; color: string; parentId?: string };
 type LinkDef = { source: string; target: string; value: number; color?: string };
 
 export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({ transactions }) => {
+    const { resolvedTheme } = useTheme();
 
     const incomeSubNodes  = new Map<string, NodeDef>();
     const incomeNodes     = new Map<string, NodeDef>();
@@ -101,7 +103,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({ transactions }) 
     const nodesArray: NodeDef[] = [
         ...Array.from(incomeSubNodes.values()).sort(sortSubNodes),
         ...Array.from(incomeNodes.values()).sort(sortByTotalDesc),
-        { id: 'Income', label: 'Income', color: '#ffffff' },
+        { id: 'Income', label: 'Income', color: resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a' },
         ...Array.from(expenseNodes.values()).sort(sortByTotalDesc),
         ...Array.from(expenseSubNodes.values()).sort(sortSubNodes),
         ...(savings > 0 ? [{ id: 'Savings', label: 'Savings', color: SAVINGS_COLOR }] : []),
@@ -145,21 +147,20 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({ transactions }) 
             width: '100%',
             mt: 6,
             p: 4,
-            bgcolor: 'rgba(0,0,0,0.2)',
+            bgcolor: 'var(--bg-surface)',
             borderRadius: 4,
-            border: '1px solid rgba(255,255,255,0.05)',
-            // Forza il bianco per le etichette in modo che si vedano sul fondo scuro
+            border: '1px solid var(--app-border)',
             '& .MuiChartsSankey-label, & text': {
-                fill: '#ffffff !important',
+                fill: resolvedTheme === 'dark' ? '#ffffff !important' : '#1a1a1a !important',
                 fontFamily: 'inherit',
                 fontSize: '12px !important',
                 fontWeight: '500 !important',
             }
         }}>
-            <Typography variant="h5" component="h2" gutterBottom align="center" sx={{ fontWeight: 'bold', color: 'white' }}>
+            <Typography variant="h5" component="h2" gutterBottom align="center" sx={{ fontWeight: 'bold', color: 'app-text' }}>
                 Cash Flow Overview
             </Typography>
-            <Typography variant="subtitle1" align="center" sx={{ mb: 4, color: 'rgba(255,255,255,0.5)' }}>
+            <Typography variant="subtitle1" align="center" sx={{ mb: 4, color: 'app-muted' }}>
                 Flow from Income to Expenses
             </Typography>
 

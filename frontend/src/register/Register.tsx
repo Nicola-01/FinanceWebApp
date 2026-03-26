@@ -107,7 +107,7 @@ const Register: React.FC = () => {
             <LoginBackground />
 
             {/* Container Principale in stile Login */}
-            <div className={`relative z-10 flex w-full max-w-[420px] mx-4 flex-col items-center rounded-3xl border border-white/10 bg-white/5 px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error === 'shake' ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
+            <div className={`relative z-10 flex w-full max-w-[420px] mx-4 flex-col items-center rounded-3xl border border-app-border bg-app-input px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error === 'shake' ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
 
                 {/* Logo / Header (Stile Avatar del Login) */}
                 <div className="mb-6">
@@ -118,7 +118,7 @@ const Register: React.FC = () => {
 
                 {/* STATO 1: CARICAMENTO */}
                 {isLoading ? (
-                        <div className="flex flex-col items-center justify-center py-10 text-white/50 gap-4">
+                        <div className="flex flex-col items-center justify-center py-10 text-app-muted gap-4">
                             <FontAwesomeIcon icon={faSpinner} spin className="text-4xl text-[#4d6dff]" />
                             <p>Verifying invitation link...</p>
                         </div>
@@ -129,10 +129,10 @@ const Register: React.FC = () => {
                             <div className="flex flex-col items-center text-center py-6 w-full">
                                 <FontAwesomeIcon icon={faCircleExclamation} className="text-5xl text-red-500 mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
                                 <h3 className="text-xl font-bold mb-2 text-white">Registration Failed</h3>
-                                <p className="text-white/50 text-sm mb-6">{error}</p>
+                                <p className="text-app-muted text-sm mb-6">{error}</p>
                                 <button
                                     onClick={() => navigate('/login')}
-                                    className="w-full rounded-full bg-white/10 py-3 font-semibold tracking-wider text-white transition-colors hover:bg-white/20"
+                                    className="w-full rounded-full bg-app-surface py-3 font-semibold tracking-wider text-white transition-colors hover:bg-white/20"
                                 >
                                     Back to Login
                                 </button>
@@ -146,21 +146,21 @@ const Register: React.FC = () => {
                                 {/* Email Sola Lettura */}
                                 <div className="relative mb-6 w-full">
                                     <div className="relative flex items-center border-b pb-1 border-white/30">
-                                <span className="absolute left-0 text-lg text-white/50">
+                                <span className="absolute left-0 text-lg text-app-muted">
                                     <FontAwesomeIcon icon={faEnvelope}/>
                                 </span>
                                         <input
                                             type="email"
                                             value={inviteData?.email || ''}
                                             disabled
-                                            className="w-full border-none bg-transparent py-2 pl-8 text-white/50 outline-none cursor-not-allowed"
+                                            className="w-full border-none bg-transparent py-2 pl-8 text-app-muted outline-none cursor-not-allowed"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Username Input */}
                                 <div className="relative mb-6 w-full">
-                                    <div className="relative flex items-center border-b pb-1 border-white/50 focus-within:border-white transition-colors duration-300">
+                                    <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:border-white transition-colors duration-300">
                                 <span className="absolute left-0 text-lg text-white/80">
                                     <FontAwesomeIcon icon={faUser}/>
                                 </span>
@@ -177,7 +177,7 @@ const Register: React.FC = () => {
 
                                 {/* Password Input */}
                                 <div className="relative mb-6 w-full">
-                                    <div className="relative flex items-center border-b pb-1 border-white/50 focus-within:border-white transition-colors duration-300">
+                                    <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:border-white transition-colors duration-300">
                                 <span className="absolute left-0 text-lg text-white/80">
                                     <FontAwesomeIcon icon={faLock}/>
                                 </span>
@@ -189,7 +189,7 @@ const Register: React.FC = () => {
                                             className="w-full border-none bg-transparent py-2 pl-8 pr-8 text-white placeholder-white/70 outline-none"
                                         />
                                         <span
-                                            className="absolute right-0 z-20 cursor-pointer text-white/50 transition-colors hover:text-white"
+                                            className="absolute right-0 z-20 cursor-pointer text-app-muted transition-colors hover:text-white"
                                             onClick={() => setShowPassword(!showPassword)}
                                         >
                                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye}/>
@@ -199,7 +199,7 @@ const Register: React.FC = () => {
 
                                 {/* Confirm Password Input */}
                                 <div className="relative mb-4 w-full">
-                                    <div className="relative flex items-center border-b pb-1 border-white/50 focus-within:border-white transition-colors duration-300">
+                                    <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:border-white transition-colors duration-300">
                                 <span className="absolute left-0 text-lg text-white/80">
                                     <FontAwesomeIcon icon={faLock}/>
                                 </span>

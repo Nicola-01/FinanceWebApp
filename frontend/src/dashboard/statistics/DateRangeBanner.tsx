@@ -42,14 +42,14 @@ export const DateRangeBanner: React.FC = () => {
     if (!info) return null;
 
     return (
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-white/60 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 mb-4">
-            <span className="font-semibold text-white/80">{info.startStr}</span>
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-app-muted bg-app-input border border-app-border rounded-xl px-4 py-2.5 mb-4">
+            <span className="font-semibold text-app-text">{info.startStr}</span>
             <span>→</span>
-            <span className="font-semibold text-white/80">{info.endStr}</span>
-            <span className="text-white/30 hidden sm:inline">|</span>
-            <span className="text-white/50 italic">{info.durationStr}</span>
-            <span className="text-white/30 hidden sm:inline">|</span>
-            <span className="text-white/50">{info.count} {info.count === 1 ? 'transazione' : 'transazioni'}</span>
+            <span className="font-semibold text-app-text">{info.endStr}</span>
+            <span className="text-app-border hidden sm:inline">|</span>
+            <span className="text-app-muted italic">{info.durationStr}</span>
+            <span className="text-app-border hidden sm:inline">|</span>
+            <span className="text-app-muted">{info.count} {info.count === 1 ? 'transazione' : 'transazioni'}</span>
         </div>
     );
 };

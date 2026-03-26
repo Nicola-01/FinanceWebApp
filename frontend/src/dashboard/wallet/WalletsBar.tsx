@@ -33,11 +33,11 @@ interface WalletsAreaProps {
 
 const WalletSkeleton = () => (
     <div
-        className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-white/5 animate-pulse shrink-0 w-65 xl:w-full">
-        <div className="h-12 w-12 rounded-full bg-white/10 shrink-0"></div>
+        className="flex items-center gap-4 p-4 rounded-2xl border border-app-border bg-app-input animate-pulse shrink-0 w-65 xl:w-full">
+        <div className="h-12 w-12 rounded-full bg-app-surface shrink-0"></div>
         <div className="flex flex-1 flex-col min-w-0 gap-2">
-            <div className="h-4 w-3/4 rounded bg-white/10"></div>
-            <div className="h-5 w-10 rounded-md bg-white/10 mt-0.5"></div>
+            <div className="h-4 w-3/4 rounded bg-app-surface"></div>
+            <div className="h-5 w-10 rounded-md bg-app-surface mt-0.5"></div>
         </div>
     </div>
 );
@@ -143,8 +143,8 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
         >
             <div className="
                 flex flex-row overflow-x-auto overflow-y-hidden w-full p-4 gap-4
-                xl:flex-col xl:w-[320px] xl:shrink-0 xl:h-full xl:overflow-y-auto xl:overflow-x-hidden xl:border-r xl:border-white/5 xl:p-6
-                bg-white/2 backdrop-blur-md
+                xl:flex-col xl:w-[320px] xl:shrink-0 xl:h-full xl:overflow-y-auto xl:overflow-x-hidden xl:border-r xl:border-app-border xl:p-6
+                bg-app-bg/5 backdrop-blur-md
                 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
             ">
                 {loading && wallets.length === 0 ? (
@@ -169,14 +169,14 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                 {!loading && (
                     <button
                         onClick={() => walletModal.current?.openModal()}
-                        className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-white/30 bg-white/5 transition-all hover:bg-white/10 hover:border-white/50 w-[260px] xl:w-[272px] shrink-0 text-left"
+                        className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input transition-all hover:bg-app-border hover:border-[#00ff7f]/50 w-[260px] xl:w-[272px] shrink-0 text-left"
                     >
                         <div
-                            className="flex justify-center items-center w-12 h-12 rounded-full bg-white/5 text-xl text-white/40 group-hover:text-[#00ff7f] transition-colors shrink-0">
+                            className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-[#00ff7f] transition-colors shrink-0">
                             <FontAwesomeIcon icon={faPlus}/>
                         </div>
                         <div className="flex flex-col min-w-0">
-                            <h4 className="m-0 text-sm font-medium text-white/40 group-hover:text-white transition-colors truncate">
+                            <h4 className="m-0 text-sm font-bold text-app-muted group-hover:text-app-text transition-colors truncate">
                                 Add New Wallet
                             </h4>
                         </div>

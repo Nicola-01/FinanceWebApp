@@ -53,10 +53,10 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                 <FontAwesomeIcon icon={faEnvelopeOpenText} /> Pending Invitations
             </h4>
 
-            <div className="overflow-hidden rounded-xl border border-white/10 bg-black/20">
+            <div className="overflow-hidden rounded-xl border border-app-border bg-black/20">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-white/70">
-                        <thead className="bg-white/5 text-xs uppercase text-white/40">
+                    <table className="w-full text-left text-sm text-app-muted">
+                        <thead className="bg-app-input text-xs uppercase text-app-muted">
                         <tr>
                             <th className="px-6 py-4">Email</th>
                             <th className="px-6 py-4">Note</th>
@@ -97,7 +97,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                             const isPending = displayStatus === 'PENDING';
 
                             return (
-                                <tr key={index} className="transition-colors hover:bg-white/5">
+                                <tr key={index} className="transition-colors hover:bg-app-input">
                                     <td className="px-6 py-4 font-medium text-white">{invite.email}</td>
                                     <td className="px-6 py-4">{invite.note || <span className="text-white/20 italic">No note</span>}</td>
                                     <td className="px-6 py-4">
@@ -121,7 +121,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                                         {!isRevoked && !isExpired && !isAccepted && (
                                             <button
                                                 onClick={() => handleCopyUrl(invite.url)}
-                                                className="rounded-lg bg-white/5 p-2 text-white/50 transition-colors hover:bg-white/10 hover:text-white"
+                                                className="rounded-lg bg-app-input p-2 text-app-muted transition-colors hover:bg-app-surface hover:text-white"
                                                 title="Copy Invite Link"
                                             >
                                                 <FontAwesomeIcon icon={faCopy} />

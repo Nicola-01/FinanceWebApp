@@ -51,11 +51,11 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
 
             {/* 2. DETTAGLI: Uso divide-y per le righe automatiche, rimosso il padding generale.
                Questa box ora contiene solo dettagli tecnici, SENZA la Categoria. */}
-            <div className="w-full bg-black/20 border border-white/5 rounded-2xl text-left flex flex-col divide-y divide-white/10">
+            <div className="w-full bg-black/20 border border-app-border rounded-2xl text-left flex flex-col divide-y divide-white/10">
 
                 {/* Nome */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
-                    <span className="text-white/40 text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
+                    <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
                         {/* W-5 text-center assicura che il testo sia perfettamente allineato indipendentemente dalla larghezza dell'icona. */}
                         <FontAwesomeIcon icon={faTag} className="w-5 text-center mr-2" />Name
                     </span>
@@ -64,7 +64,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
 
                 {/* Data */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
-                    <span className="text-white/40 text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
+                    <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
                         <FontAwesomeIcon icon={faCalendarAlt} className="w-5 text-center mr-2" />Date
                     </span>
                     <span className="text-white font-medium">{formatedDate}</span>
@@ -73,10 +73,10 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                 {/* Note (Mostrate solo se presenti) */}
                 {tx.notes && (
                     <div className="flex flex-col gap-3 p-5">
-                        <span className="text-white/40 text-xs font-bold uppercase tracking-wider flex items-center">
+                        <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center">
                             <FontAwesomeIcon icon={faStickyNote} className="w-5 text-center mr-2" />Notes
                         </span>
-                        <span className="text-white/80 text-sm bg-white/5 p-3 rounded-lg border border-white/5">
+                        <span className="text-white/80 text-sm bg-app-input p-3 rounded-lg border border-app-border">
                             {tx.notes}
                         </span>
                     </div>

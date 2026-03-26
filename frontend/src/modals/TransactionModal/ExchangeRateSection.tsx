@@ -214,24 +214,24 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
 
     // Altrimenti stampa la versione Edit/Create con Toggle e Selettore
     return (
-        <div className="rounded-xl border border-white/10 bg-black/20 p-4 transition-all">
+        <div className="rounded-xl border border-app-border bg-black/20 p-4 transition-all">
             <div className="flex items-center justify-between cursor-pointer" onClick={handleToggle}>
                 <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${isForeignCurrency ? 'bg-[#00bfff]/20 text-[#00bfff]' : 'bg-white/5 text-white/40'}`}>
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${isForeignCurrency ? 'bg-[#00bfff]/20 text-[#00bfff]' : 'bg-app-input text-app-muted'}`}>
                         <FontAwesomeIcon icon={faCoins}/>
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-white">Foreign Currency</h4>
-                        <p className="text-xs text-white/50">Transaction in a different currency?</p>
+                        <p className="text-xs text-app-muted">Transaction in a different currency?</p>
                     </div>
                 </div>
-                <div className={`relative w-12 h-6 rounded-full transition-colors ${isForeignCurrency ? 'bg-[#00bfff]' : 'bg-white/10'}`}>
+                <div className={`relative w-12 h-6 rounded-full transition-colors ${isForeignCurrency ? 'bg-[#00bfff]' : 'bg-app-surface'}`}>
                     <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isForeignCurrency ? 'translate-x-6' : ''}`}/>
                 </div>
             </div>
 
             {isForeignCurrency && (
-                <div className="mt-4 pt-4 border-t border-white/5 animate-[fadeIn_0.2s_ease-out] space-y-4">
+                <div className="mt-4 pt-4 border-t border-app-border animate-[fadeIn_0.2s_ease-out] space-y-4">
                     <div className="w-full">
                         <label className="mb-2 ml-1 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-[#00bfff]">
                             Select Currency

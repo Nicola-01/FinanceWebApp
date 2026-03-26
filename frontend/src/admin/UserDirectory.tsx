@@ -63,11 +63,11 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({ users, onDeleteCli
                     User Directory
                 </h4>
                 <div className="relative w-full sm:w-[300px]">
-                    <FontAwesomeIcon icon={faSearch} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+                    <FontAwesomeIcon icon={faSearch} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-app-muted" />
                     <input
                         type="text"
                         placeholder="Search by name..."
-                        className="w-full rounded-lg border border-white/10 bg-black/30 p-[12px] pl-10 text-white outline-none focus:border-white/30"
+                        className="w-full rounded-lg border border-app-border bg-black/30 p-[12px] pl-10 text-white outline-none focus:border-white/30"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -75,23 +75,23 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({ users, onDeleteCli
             </div>
 
             {/* Scrollable Table */}
-            <div className="max-h-[600px] overflow-y-auto rounded-xl border border-white/5">
+            <div className="max-h-[600px] overflow-y-auto rounded-xl border border-app-border">
                 <table className="w-full border-collapse text-left">
                     <thead>
                     <tr>
-                        <th className="sticky top-0 z-10 cursor-pointer border-b border-white/10 bg-[#151515] p-[18px] font-semibold text-white/60 transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('name')}>
+                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('name')}>
                             User <FontAwesomeIcon icon={getSortIcon('name')} className="ml-1 opacity-70" />
                         </th>
-                        <th className="sticky top-0 z-10 cursor-pointer border-b border-white/10 bg-[#151515] p-[18px] font-semibold text-white/60 transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('createdAt')}>
+                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('createdAt')}>
                             Joined <FontAwesomeIcon icon={getSortIcon('createdAt')} className="ml-1 opacity-70" />
                         </th>
-                        <th className="sticky top-0 z-10 cursor-pointer border-b border-white/10 bg-[#151515] p-[18px] font-semibold text-white/60 transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('wallets')}>
+                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('wallets')}>
                             Wallets <FontAwesomeIcon icon={getSortIcon('wallets')} className="ml-1 opacity-70" />
                         </th>
-                        <th className="sticky top-0 z-10 cursor-pointer border-b border-white/10 bg-[#151515] p-[18px] font-semibold text-white/60 transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('transactions')}>
+                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('transactions')}>
                             Transactions <FontAwesomeIcon icon={getSortIcon('transactions')} className="ml-1 opacity-70" />
                         </th>
-                        <th className="sticky top-0 z-10 border-b border-white/10 bg-[#151515] p-[18px] font-semibold text-white/60">
+                        <th className="sticky top-0 z-10 border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted">
                             Action
                         </th>
                     </tr>

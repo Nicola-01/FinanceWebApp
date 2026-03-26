@@ -11,6 +11,11 @@ import { TransactionPieChart } from './CategoryCharts.tsx';
 import { CashFlowSankey } from '../statistics/CashFlowSankey.tsx';
 import { TransactionsFilter } from '../transaction/TransactionsFilter.tsx';
 import { DateRangeBanner } from '../statistics/DateRangeBanner.tsx';
+import { useTheme } from '../../utils/ThemeContext.tsx';
+
+const lightTheme = createTheme({
+    palette: { mode: 'light', background: { paper: '#ffffff' } },
+});
 
 const darkTheme = createTheme({
     palette: { mode: 'dark', background: { paper: '#1a1a1a' } },
@@ -18,20 +23,21 @@ const darkTheme = createTheme({
 
 // --- COMPONENTE SKELETON INTERNO ---
 const TagSkeleton = () => (
-    <div className="break-inside-avoid mb-6 rounded-xl border border-white/5 bg-white/5 p-4 flex flex-col gap-4 animate-pulse">
+    <div className="break-inside-avoid mb-6 rounded-xl border border-app-border bg-app-input p-4 flex flex-col gap-4 animate-pulse">
         <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-white/10 shrink-0"></div>
-            <div className="h-6 w-32 bg-white/10 rounded-md"></div>
+            <div className="h-10 w-10 rounded-full bg-app-surface shrink-0"></div>
+            <div className="h-6 w-32 bg-app-surface rounded-md"></div>
         </div>
-        <div className="ml-4 flex flex-col gap-3 border-l-2 border-white/5 pl-4">
-            <div className="h-3 w-3/4 bg-white/5 rounded"></div>
-            <div className="h-3 w-1/2 bg-white/5 rounded"></div>
+        <div className="ml-4 flex flex-col gap-3 border-l-2 border-app-border pl-4">
+            <div className="h-3 w-3/4 bg-app-input rounded"></div>
+            <div className="h-3 w-1/2 bg-app-input rounded"></div>
         </div>
     </div>
 );
 
 export const TagsTab: React.FC = () => {
     const { wallet, tags, filteredTransactions, handleAddTag: onAddTag, handleUpdateTag: onUpdateTag, handleDeleteTag: onDeleteTag, isLoading } = useWalletContext();
+    const { resolvedTheme } = useTheme();
     const [isAddingTag, setIsAddingTag] = useState(false);
     const [showNewMainSelector, setShowNewMainSelector] = useState(false);
     const [savingMain, setSavingMain] = useState(false);
@@ -70,7 +76,7 @@ export const TagsTab: React.FC = () => {
     });
 
     return (
-        <ThemeProvider theme={darkTheme}>
+        <ThemeProvider theme={resolvedTheme === 'dark' ? darkTheme : lightTheme}>
             <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] pb-10 relative">
 
                 {/* Filter */}
@@ -81,8 +87,8 @@ export const TagsTab: React.FC = () => {
                 <DateRangeBanner />
 
                 <div className="mb-6 mt-2">
-                    <h2 className="text-2xl font-bold text-white">Visual Distribution</h2>
-                    <p className="text-white/50 text-sm">Analyze your income and expenses by category and sub-category.</p>
+                    <h2 className="text-2xl font-bold text-app-text">Visual Distribution</h2>
+                    <p className="text-app-muted text-sm">Analyze your income and expenses by category and sub-category.</p>
                 </div>
 
                 {/* Pie Charts */}
@@ -100,23 +106,23 @@ export const TagsTab: React.FC = () => {
                         onClick={() => setEditorOpen(o => !o)}
                         className="flex items-center gap-3 w-full text-left group mb-4"
                     >
-                        <h2 className="text-2xl font-bold text-white group-hover:text-white/80 transition-colors">
+                        <h2 className="text-2xl font-bold text-app-text group-hover:text-app-text/80 transition-colors">
                             Manage Categories
                         </h2>
                         <FontAwesomeIcon
                             icon={faChevronDown}
-                            className={`text-white/40 transition-transform duration-300 ${editorOpen ? 'rotate-180' : ''}`}
+                            className={`text-app-muted transition-transform duration-300 ${editorOpen ? 'rotate-180' : ''}`}
                         />
                     </button>
 
                     {editorOpen && (
-                        <div className="rounded-2xl border border-white/10 bg-black/20 p-6 backdrop-blur-md animate-[fadeIn_0.2s_ease-out]">
+                        <div className="rounded-2xl border border-app-border bg-app-card/20 p-6 backdrop-blur-md animate-[fadeIn_0.2s_ease-out]">
                             {/* Add Main Category */}
                             {!isLoading && wallet.myRole !== 'VIEWER' && (
                                 <div className="mb-8 w-full">
                                     {isAddingTag ? (
-                                        <div className="group flex w-full items-center gap-4 rounded-2xl border-2 border-[#00ff7f]/30 bg-[#00ff7f]/5 p-4 text-white transition-all shadow-[0_0_20px_rgba(0,255,127,0.05)]">
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5">
+                                        <div className="group flex w-full items-center gap-4 rounded-2xl border-2 border-[#00ff7f]/30 bg-[#00ff7f]/5 p-4 text-app-text transition-all shadow-sm">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-input">
                                                 <IconPickerButton
                                                     icon={newTag.icon as IconKey}
                                                     color={newTag.colorHex as string}
@@ -129,7 +135,7 @@ export const TagsTab: React.FC = () => {
 
                                             <input
                                                 autoFocus
-                                                className="flex-1 bg-transparent text-left font-bold tracking-wide text-white outline-none placeholder-white/20"
+                                                className="flex-1 bg-transparent text-left font-bold tracking-wide text-app-text outline-none placeholder-app-muted/30"
                                                 placeholder="Category Name..."
                                                 value={newTag.name}
                                                 onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
@@ -159,7 +165,7 @@ export const TagsTab: React.FC = () => {
                                                             setIsAddingTag(false);
                                                             setNewTag({ ...newTag, name: '' });
                                                         }}
-                                                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-white/40 hover:bg-red-500/20 hover:text-red-500 transition-all"
+                                                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-app-input text-app-muted hover:bg-red-500/20 hover:text-red-500 transition-all"
                                                         title="Cancel"
                                                     >
                                                         <FontAwesomeIcon icon={faXmark} />
@@ -170,9 +176,9 @@ export const TagsTab: React.FC = () => {
                                     ) : (
                                         <button
                                             onClick={() => setIsAddingTag(true)}
-                                            className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-white/10 bg-transparent p-4 text-white/50 transition-all hover:border-white/30 hover:bg-white/5 hover:text-white"
+                                            className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-app-border bg-transparent p-4 text-app-muted transition-all hover:border-app-text/30 hover:bg-app-input hover:text-app-text"
                                         >
-                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/5 transition-all group-hover:bg-white/10 group-hover:scale-105">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-input transition-all group-hover:bg-app-surface group-hover:scale-105">
                                                 <FontAwesomeIcon icon={faPlus} />
                                             </div>
 

@@ -57,15 +57,15 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({value, onChange}) =
             {/* Separatore Custom */}
 
             <div className="flex w-full items-center gap-3">
-                <div className="h-[1px] flex-grow bg-white/10"/>
+                <div className="h-[1px] flex-grow bg-app-surface"/>
                 <button
                     type="button"
-                    className="text-[0.7rem] font-medium uppercase tracking-wider text-white/40 transition-colors hover:text-white"
+                    className="text-[0.7rem] font-medium uppercase tracking-wider text-app-muted transition-colors hover:text-white"
                     onClick={() => setShowWheel(!showWheel)}
                 >
                     {showWheel ? "Preset" : "Custom"}
                 </button>
-                <div className="h-[1px] flex-grow bg-white/10"/>
+                <div className="h-[1px] flex-grow bg-app-surface"/>
             </div>
 
             {/* Ruota Colori Avanzata */}

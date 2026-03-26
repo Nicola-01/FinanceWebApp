@@ -9,6 +9,7 @@ import { DeleteModal, type DeleteModalHandle } from "./modals/DeleteModal.tsx";
 import { DeleteModalProvider } from "./modals/DeleteModalContext.tsx";
 import Register from "./register/Register.tsx";
 import { initSync } from './utils/syncService.ts';
+import { ThemeProvider } from "./utils/ThemeContext.tsx";
 
 const App: React.FC = () => {
 
@@ -19,7 +20,7 @@ const App: React.FC = () => {
     }, []);
 
     return (
-        <>
+        <ThemeProvider>
             <ToastNotification />
             <DeleteModalProvider deleteModalRef={deleteModalRef}>
                 <DeleteModal ref={deleteModalRef} />
@@ -49,7 +50,7 @@ const App: React.FC = () => {
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </DeleteModalProvider>
-        </>
+        </ThemeProvider>
     );
 };
 

@@ -118,18 +118,18 @@ const Register: React.FC = () => {
 
                 {/* Logo / Header */}
                 <div className="mb-8 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5 border border-white/10 text-3xl shadow-[0_0_30px_rgba(184,41,255,0.2)] text-[#b829ff]">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input border border-app-border text-3xl shadow-[0_0_30px_rgba(184,41,255,0.2)] text-[#b829ff]">
                         🚀
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight text-white">Join FinanceWebApp</h1>
-                    <p className="mt-2 text-sm text-white/40">Complete your registration to get started.</p>
+                    <p className="mt-2 text-sm text-app-muted">Complete your registration to get started.</p>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-[#141414]/60 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl animate-[fadeIn_0.4s_ease-out]">
+                <div className="rounded-2xl border border-app-border bg-[#141414]/60 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-xl animate-[fadeIn_0.4s_ease-out]">
 
                     {/* STATO 1: CARICAMENTO */}
                     {isLoading ? (
-                            <div className="flex flex-col items-center justify-center py-10 text-white/50 gap-4">
+                            <div className="flex flex-col items-center justify-center py-10 text-app-muted gap-4">
                                 <FontAwesomeIcon icon={faSpinner} spin className="text-4xl text-[#b829ff]" />
                                 <p>Verifying invitation link...</p>
                             </div>
@@ -140,10 +140,10 @@ const Register: React.FC = () => {
                                 <div className="flex flex-col items-center text-center py-6">
                                     <FontAwesomeIcon icon={faCircleExclamation} className="text-5xl text-red-500 mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
                                     <h3 className="text-xl font-bold mb-2">Registration Failed</h3>
-                                    <p className="text-white/50 text-sm mb-6">{error}</p>
+                                    <p className="text-app-muted text-sm mb-6">{error}</p>
                                     <button
                                         onClick={() => navigate('/login')}
-                                        className="w-full rounded-xl bg-white/5 py-3 font-bold transition-colors hover:bg-white/10"
+                                        className="w-full rounded-xl bg-app-input py-3 font-bold transition-colors hover:bg-app-surface"
                                     >
                                         Go to Login
                                     </button>
@@ -156,7 +156,7 @@ const Register: React.FC = () => {
 
                                     {/* Email Sola Lettura (dal DTO) */}
                                     <div>
-                                        <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-white/50">
+                                        <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
                                             Email Address
                                         </label>
                                         <div className="relative">
@@ -167,14 +167,14 @@ const Register: React.FC = () => {
                                                 type="email"
                                                 value={inviteData.email}
                                                 disabled
-                                                className="h-[50px] w-full rounded-xl border border-white/5 bg-white/5 pl-[40px] pr-[15px] py-3 text-[0.95rem] text-white/50 cursor-not-allowed outline-none"
+                                                className="h-[50px] w-full rounded-xl border border-app-border bg-app-input pl-[40px] pr-[15px] py-3 text-[0.95rem] text-app-muted cursor-not-allowed outline-none"
                                             />
                                         </div>
                                     </div>
 
                                     {/* Username Input */}
                                     <div>
-                                        <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-white/50">
+                                        <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
                                             Choose Username
                                         </label>
                                         <div className="relative">
@@ -186,7 +186,7 @@ const Register: React.FC = () => {
                                                 placeholder="e.g. mario.rossi"
                                                 value={username}
                                                 onChange={(e) => setUsername(e.target.value)}
-                                                className="h-[50px] w-full rounded-xl border border-white/10 bg-black/40 pl-[40px] pr-[15px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-[#b829ff]"
+                                                className="h-[50px] w-full rounded-xl border border-app-border bg-black/40 pl-[40px] pr-[15px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-[#b829ff]"
                                                 required
                                                 autoFocus
                                             />
@@ -195,7 +195,7 @@ const Register: React.FC = () => {
 
                                     {/* Password Input */}
                                     <div>
-                                        <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-white/50">
+                                        <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
                                             Set Password
                                         </label>
                                         <div className="relative">
@@ -207,13 +207,13 @@ const Register: React.FC = () => {
                                                 placeholder="Min. 6 characters"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
-                                                className="h-[50px] w-full rounded-xl border border-white/10 bg-black/40 pl-[40px] pr-[45px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-[#b829ff]"
+                                                className="h-[50px] w-full rounded-xl border border-app-border bg-black/40 pl-[40px] pr-[45px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-[#b829ff]"
                                                 required
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg text-white/40 hover:bg-white/10 hover:text-white transition-colors"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg text-app-muted hover:bg-app-surface hover:text-white transition-colors"
                                             >
                                                 <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                                             </button>
@@ -231,7 +231,7 @@ const Register: React.FC = () => {
                                                 placeholder="Confirm password"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                                className="h-[50px] w-full rounded-xl border border-white/10 bg-black/40 pl-[40px] pr-[15px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-[#b829ff]"
+                                                className="h-[50px] w-full rounded-xl border border-app-border bg-black/40 pl-[40px] pr-[15px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-[#b829ff]"
                                                 required
                                             />
                                         </div>

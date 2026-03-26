@@ -76,7 +76,7 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
     return (
         <div className="relative w-full" ref={dropdownRef}>
             {showLabel &&
-                <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">
+                <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
                     <FontAwesomeIcon icon={faHashtag} className="mr-2" /> Category *
                 </label>
             }
@@ -85,12 +85,12 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex h-12 w-full items-center justify-between rounded-xl border border-white/10 bg-[#1a1a1a] px-4 text-left outline-none transition-all focus:border-[#00ff7f]"
+                className="flex h-12 w-full items-center justify-between rounded-xl border border-app-border bg-[#1a1a1a] px-4 text-left outline-none transition-all focus:border-[#00ff7f]"
             >
                 {selectedTag ? (
                     <div className="flex items-center gap-3">
                         <div
-                            className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-xs"
+                            className="flex h-6 w-6 items-center justify-center rounded-full bg-app-input text-xs"
                             style={{ color: selectedTag.colorHex || '#ffffff' }}
                         >
                             <Icon icon={selectedTag.icon} color={selectedTag.colorHex || '#ffffff'} />
@@ -98,22 +98,22 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
                         <span className="text-white font-medium">{selectedTag.name}</span>
                     </div>
                 ) : (
-                    <span className="text-white/40">Select a category...</span>
+                    <span className="text-app-muted">Select a category...</span>
                 )}
-                <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} className="transition-transform duration-300 text-white/40" />
+                <FontAwesomeIcon icon={isOpen ? faChevronUp : faChevronDown} className="transition-transform duration-300 text-app-muted" />
             </button>
 
             {/* Menu Dropdown */}
             {isOpen && (
-                <div className="absolute z-50 mt-1 w-full rounded-xl border border-white/10 bg-[#1a1a1a] p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] flex flex-col max-h-[350px]">
+                <div className="absolute z-50 mt-1 w-full rounded-xl border border-app-border bg-[#1a1a1a] p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] flex flex-col max-h-[350px]">
 
                     {/* IL TASTO BACK RIMANE FISSO IN ALTO (Se siamo in una cartella) */}
                     {currentParentName && currentParentTag && (
-                        <div className="shrink-0 mb-1 border-b border-white/5 pb-1">
+                        <div className="shrink-0 mb-1 border-b border-app-border pb-1">
                             <button
                                 type="button"
                                 onClick={() => setCurrentParentName(currentParentTag.parentName || null)}
-                                className="flex w-full items-center gap-2 rounded-lg p-2 text-sm font-bold text-[#00ff7f] hover:bg-white/5 transition-colors outline-none"
+                                className="flex w-full items-center gap-2 rounded-lg p-2 text-sm font-bold text-[#00ff7f] hover:bg-app-input transition-colors outline-none"
                             >
                                 <FontAwesomeIcon icon={faChevronLeft} />
                                 Back to {currentParentTag.parentName ? currentParentTag.parentName : 'Categories'}
@@ -136,7 +136,7 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
                                         onClick={() => handleRowClick(currentParentTag, true)}
                                     />
                                 </div>
-                                <hr className="mt-2 border-white/10" />
+                                <hr className="mt-2 border-app-border" />
                             </div>
                         )}
 
@@ -152,13 +152,13 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
                                 />
                             ))
                         ) : (
-                            <div className="p-4 text-sm text-white/40 text-center italic border border-dashed border-white/10 rounded-lg">
+                            <div className="p-4 text-sm text-app-muted text-center italic border border-dashed border-app-border rounded-lg">
                                 {currentParentName ? "No subcategories found." : "No tags found."}
                             </div>
                         )}
 
                         {/* 3. BOTTONE/FORM AGGIUNGI (Scollabile, in fondo) */}
-                        <div className="pt-2 mt-2 border-t border-white/10">
+                        <div className="pt-2 mt-2 border-t border-app-border">
                             {isAddingTag ? (
                                 <TagPickerAddForm
                                     currentParentName={currentParentName}
@@ -168,12 +168,12 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
                             ) : (
                                 <button
                                     onClick={() => setIsAddingTag(true)}
-                                    className="flex w-full items-center gap-3 rounded-lg border border-dashed border-white/20 p-2.5 text-left hover:bg-white/5 transition-colors group"
+                                    className="flex w-full items-center gap-3 rounded-lg border border-dashed border-white/20 p-2.5 text-left hover:bg-app-input transition-colors group"
                                 >
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
-                                        <FontAwesomeIcon icon={faPlus} className="text-white/40 group-hover:text-white" />
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-input group-hover:bg-app-surface transition-colors">
+                                        <FontAwesomeIcon icon={faPlus} className="text-app-muted group-hover:text-white" />
                                     </div>
-                                    <span className="text-sm font-medium text-white/40 group-hover:text-white">
+                                    <span className="text-sm font-medium text-app-muted group-hover:text-white">
                                         {currentParentName ? 'Add Subcategory' : 'Add Main Category'}
                                     </span>
                                 </button>

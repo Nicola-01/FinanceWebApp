@@ -22,11 +22,11 @@ const WalletDashboardContent: React.FC = () => {
         <div className="flex flex-col min-h-screen w-full max-w-350 mx-auto p-4 lg:p-8 relative">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl flex items-center gap-3 font-bold text-white mb-1">
+                    <h1 className="text-3xl flex items-center gap-3 font-bold text-app-text mb-1">
                         <Icon icon={wallet.icon} color={wallet.color} />
                         {wallet.name}
                     </h1>
-                    <span className="text-xs font-bold px-2 py-1 bg-white/10 rounded-md text-white/50 uppercase">
+                    <span className="text-xs font-bold px-2 py-1 bg-app-input rounded-md text-app-muted uppercase">
                         Currency: {wallet.currency}
                     </span>
                 </div>

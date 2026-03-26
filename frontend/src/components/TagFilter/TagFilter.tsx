@@ -90,7 +90,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
     };
 
     let allIcon = faSquare;
-    let allColorClass = "text-white/40";
+    let allColorClass = "text-app-muted";
     if (allState === 'checked') {
         allIcon = faCheckSquare;
         allColorClass = "";
@@ -109,7 +109,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
                 className={`flex items-center justify-center w-[48px] h-[48px] rounded-xl border transition-all ${
                     isFilterActive || isOpen
                         ? 'shadow-lg' 
-                        : 'bg-black/40 border-white/10 text-white/50 hover:bg-white/5 hover:text-white'
+                        : 'bg-black/40 border-app-border text-app-muted hover:bg-app-input hover:text-white'
                 }`}
                 style={
                     isFilterActive || isOpen 
@@ -127,12 +127,12 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-64 rounded-xl border border-white/10 bg-[#1a1a1a] p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] flex flex-col max-h-[350px]">
+                <div className="absolute right-0 z-50 mt-2 w-64 rounded-xl border border-app-border bg-[#1a1a1a] p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] flex flex-col max-h-[350px]">
                     <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-1">
 
                         {/* All Option */}
                         <div
-                            className="flex items-center gap-3 px-3 py-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group mb-1 border-b border-white/5 pb-2"
+                            className="flex items-center gap-3 px-3 py-2 hover:bg-app-input rounded-lg cursor-pointer transition-colors group mb-1 border-b border-app-border pb-2"
                             onClick={toggleAll}
                         >
                             <FontAwesomeIcon
@@ -162,7 +162,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
                                     />
 
                                     {isExpanded && children.length > 0 && (
-                                        <div className="pl-6 space-y-0.5 border-l border-white/10 ml-5 my-1">
+                                        <div className="pl-6 space-y-0.5 border-l border-app-border ml-5 my-1">
                                             {children.map(childTag => {
                                                 const cState = selectedTags.includes(childTag.name) ? 'checked' : 'unchecked';
                                                 return (
@@ -183,7 +183,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
                             );
                         })}
                         {rootTags.length === 0 && (
-                            <div className="p-4 text-sm text-white/40 text-center italic">
+                            <div className="p-4 text-sm text-app-muted text-center italic">
                                 No tags available
                             </div>
                         )}

@@ -181,13 +181,12 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                             />
                         </div>
                         <div>
-                            <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-white/50">
+                            <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
                                 Date
                             </label>
                             <CustomDatePicker
                                 isRange={false}
                                 color={wallet.color}
-                                isDark={true}
                                 initialPreset="custom"
                                 initialStartDate={date}
                                 onChange={(val) => {
@@ -206,7 +205,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                         selectedTagName={selectedTagName}
                     />
 
-                    <hr className="my-2 border-white/10" />
+                    <hr className="my-2 border-app-border" />
 
                     {/* 4. EXCHANGE RATE */}
                     <ExchangeRateSection

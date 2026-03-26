@@ -12,12 +12,17 @@ import { ChartsClipPath } from '@mui/x-charts-pro/ChartsClipPath';
 import { ChartsAxisHighlight } from '@mui/x-charts/ChartsAxisHighlight';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import type { Transaction } from '../../utils/types.ts';
+import { useTheme } from '../../utils/ThemeContext.tsx';
 import { buildMonthlyBuckets } from './ChartRangeSelector.tsx';
 import type { ZoomData } from '@mui/x-charts/internals';
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const chartTheme = createTheme({
+const lightTheme = createTheme({
+    palette: { mode: 'light', background: { paper: 'transparent' } },
+});
+
+const darkTheme = createTheme({
     palette: { mode: 'dark', background: { paper: 'transparent' } },
 });
 
@@ -29,6 +34,7 @@ interface MonthlySnapshotChartProps {
 }
 
 export const MonthlySnapshotChart: React.FC<MonthlySnapshotChartProps> = ({ transactions, headerRight, zoomData, onZoomChange }) => {
+    const { resolvedTheme } = useTheme();
     const clipPathId = useId();
 
     const buckets = useMemo(() => buildMonthlyBuckets(transactions), [transactions]);
@@ -52,9 +58,9 @@ export const MonthlySnapshotChart: React.FC<MonthlySnapshotChartProps> = ({ tran
 
     if (dataset.length === 0) {
         return (
-            <div className="bg-black/20 rounded-2xl border border-white/10 p-6">
-                <h3 className="text-xl font-bold text-white uppercase tracking-wider mb-4">Monthly Snapshot</h3>
-                <div className="flex items-center justify-center h-[300px] text-white/40">
+            <div className="bg-app-card/20 rounded-2xl border border-app-border p-6">
+                <h3 className="text-xl font-bold text-app-text uppercase tracking-wider mb-4">Monthly Snapshot</h3>
+                <div className="flex items-center justify-center h-[300px] text-app-muted">
                     No data available.
                 </div>
             </div>
@@ -62,13 +68,13 @@ export const MonthlySnapshotChart: React.FC<MonthlySnapshotChartProps> = ({ tran
     }
 
     return (
-        <ThemeProvider theme={chartTheme}>
-            <div className="bg-black/20 rounded-2xl border border-white/10 p-4">
+        <ThemeProvider theme={resolvedTheme === 'dark' ? darkTheme : lightTheme}>
+            <div className="bg-app-card/20 rounded-2xl border border-app-border p-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-1">
-                    <h3 className="text-xl font-bold text-white uppercase tracking-wider">Monthly Snapshot</h3>
+                    <h3 className="text-xl font-bold text-app-text uppercase tracking-wider">Monthly Snapshot</h3>
                     {headerRight}
                 </div>
-                <p className="text-white/40 text-xs mb-4">Income & expenses per month with net balance line. Use the slider below to zoom.</p>
+                <p className="text-app-muted text-xs mb-4">Income & expenses per month with net balance line. Use the slider below to zoom.</p>
 
                 <ChartDataProviderPro
                     height={420}
@@ -106,7 +112,7 @@ export const MonthlySnapshotChart: React.FC<MonthlySnapshotChartProps> = ({ tran
                     }]}
                     yAxis={[{
                         id: 'y-axis',
-                        tickLabelStyle: { fill: '#ffffff60', fontSize: 11 },
+                        tickLabelStyle: { fill: resolvedTheme === 'dark' ? '#ffffff60' : '#1a1a1a60', fontSize: 11 },
                     }]}
                     initialZoom={zoomData ?? [{ axisId: 'x-axis', start: 0, end: 100 }]}
                     onZoomChange={onZoomChange}
@@ -130,15 +136,15 @@ export const MonthlySnapshotChart: React.FC<MonthlySnapshotChartProps> = ({ tran
                 <div className="flex items-center justify-center gap-6 mt-3">
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 rounded-sm bg-emerald-400" />
-                        <span className="text-xs text-white/60">Income</span>
+                        <span className="text-xs text-app-muted">Income</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 rounded-sm bg-red-400" />
-                        <span className="text-xs text-white/60">Expenses</span>
+                        <span className="text-xs text-app-muted">Expenses</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-1 rounded-full bg-blue-400" />
-                        <span className="text-xs text-white/60">Balance</span>
+                        <span className="text-xs text-app-muted">Balance</span>
                     </div>
                 </div>
             </div>

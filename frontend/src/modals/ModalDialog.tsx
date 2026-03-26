@@ -51,11 +51,11 @@ export const ModalDialog = ({
             onCancel={onCancel}
             className={`
                     m-auto w-screen md:w-[90vw] max-w-112.5 
-                    rounded-[20px] border border-white/10 bg-white/5 p-8.75 text-white 
-                    shadow-[0_20px_40px_rgba(0,0,0,0.4)] backdrop-blur-[15px] 
-                    backdrop:bg-black/75 backdrop:backdrop-blur-sm 
-                    open:animate-[modalFadeIn_0.3s_ease-out]
-                    focus:outline-none
+                    rounded-[32px] border border-app-border bg-app-surface p-8.75 text-app-text 
+                    shadow-2xl backdrop-blur-[20px] 
+                    backdrop:bg-black/20 dark:backdrop:bg-black/60 backdrop:backdrop-blur-md
+                    open:animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)]
+                    focus:outline-none 
                     ${className}
                 `}
         >
@@ -69,7 +69,7 @@ export const ModalDialog = ({
                             <button
                                 type="button"
                                 onClick={handleCloseClick}
-                                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white/40 transition-colors hover:bg-white/10 hover:text-white"
+                                className="flex h-10 w-10 items-center justify-center rounded-full bg-app-input text-app-muted transition-all hover:bg-app-border hover:text-app-text"
                             >
                                 <FontAwesomeIcon icon={faTimes} className="text-xl" />
                             </button>
@@ -79,7 +79,7 @@ export const ModalDialog = ({
                     {/* Centro: Titolo */}
                     {title && (
                         <div className="flex shrink-0 items-center justify-center px-4">
-                            <h3 className="m-0 flex items-center justify-center gap-3 text-2xl font-semibold text-white">
+                            <h3 className="m-0 flex items-center justify-center gap-3 text-2xl font-bold tracking-tight text-app-text">
                                 {title}
                             </h3>
                         </div>
@@ -98,7 +98,7 @@ export const ModalDialog = ({
             {/* SOTTOTITOLO (Subito sotto la riga del titolo) */}
             {subtitle && (
                 <div className="text-center mb-6">
-                    <p className="text-sm text-white/60">
+                    <p className="text-sm font-medium text-app-muted">
                         {subtitle}
                     </p>
                 </div>

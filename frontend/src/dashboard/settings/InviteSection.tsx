@@ -42,11 +42,11 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
 
                 {/* 1. Input Username/Email (Larghezza Piena) */}
                 <div className="w-full">
-                    <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-white/40">
+                    <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
                         Username or Email
                     </label>
                     <input
-                        className="h-[48px] w-full rounded-xl border border-white/10 bg-black/40 px-4 text-sm text-white outline-none transition-all focus:border-white/30 shadow-inner"
+                        className="h-[48px] w-full rounded-xl border border-app-border bg-black/40 px-4 text-sm text-white outline-none transition-all focus:border-white/30 shadow-inner"
                         type="search"
                         placeholder="Username or Email"
                         value={identifier}
@@ -55,16 +55,16 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
                 </div>
 
                 <div className="w-full self-end">
-                    <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-white/40">
+                    <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
                         Permission Role
                     </label>
-                    <div className="flex rounded-xl bg-black/40 p-1 border border-white/10 w-full shadow-inner h-[48px]">
+                    <div className="flex rounded-xl bg-black/40 p-1 border border-app-border w-full shadow-inner h-[48px]">
                         <button
                             type="button"
                             onClick={() => setRole('VIEWER')}
                             className={`flex-1 rounded-lg text-base font-bold transition-all flex items-center justify-center gap-2 ${role === 'VIEWER'
-                                ? 'bg-white/10 text-white shadow-sm'
-                                : 'text-white/40 hover:text-white/70'
+                                ? 'bg-app-surface text-white shadow-sm'
+                                : 'text-app-muted hover:text-app-muted'
                                 }`}
                         >
                             <FontAwesomeIcon icon={faEye} />
@@ -75,14 +75,14 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
                             onClick={() => setRole('EDITOR')}
                             className={`flex-1 rounded-lg text-base font-bold transition-all flex items-center justify-center gap-2 ${role === 'EDITOR'
                                 ? 'bg-amber-400/20 text-amber-400 shadow-sm'
-                                : 'text-white/40 hover:text-white/70'
+                                : 'text-app-muted hover:text-app-muted'
                                 }`}
                         >
                             <FontAwesomeIcon icon={faPen} />
                             Editor
                         </button>
                     </div>
-                    <p className="mt-2 text-xs text-white/40 text-center">
+                    <p className="mt-2 text-xs text-app-muted text-center">
                         {role === 'VIEWER'
                             ? "Viewers can only read transactions and statistics."
                             : "Editors can add, edit, and delete transactions."}

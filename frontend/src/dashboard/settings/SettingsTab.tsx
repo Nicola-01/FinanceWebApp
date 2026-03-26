@@ -46,8 +46,8 @@ export const SettingsTab: React.FC = () => {
                     <div className="flex flex-col sm:flex-row gap-8 items-start py-2">
                         {/* ICON & COLOR PICKER */}
                         <div className="flex flex-col items-start gap-3 w-full sm:w-auto shrink-0">
-                            <label className="text-xs font-bold uppercase tracking-wider text-white/40">Icon & Color</label>
-                            <div className="relative p-2 bg-black/20 rounded-2xl border border-white/5 shadow-inner self-start">
+                            <label className="text-xs font-bold uppercase tracking-wider text-app-muted">Icon & Color</label>
+                            <div className="relative p-2 bg-black/20 rounded-2xl border border-app-border shadow-inner self-start">
                                 <IconPickerButton
                                     icon={editedWallet.icon as IconKey}
                                     color={editedWallet.color as string}
@@ -61,14 +61,14 @@ export const SettingsTab: React.FC = () => {
 
                         {/* WALLET NAME INPUT */}
                         <div className="flex flex-col gap-3 w-full">
-                            <label className="text-xs font-bold uppercase tracking-wider text-white/40">
+                            <label className="text-xs font-bold uppercase tracking-wider text-app-muted">
                                 Wallet Name
                             </label>
                             <input
                                 type="text"
                                 value={editedWallet.name}
                                 onChange={(e) => setEditedWallet({ ...editedWallet, name: e.target.value })}
-                                className="w-full bg-black/20 border border-white/5 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#00ff7f] focus:ring-1 focus:ring-[#00ff7f] transition-all font-medium"
+                                className="w-full bg-black/20 border border-app-border rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#00ff7f] focus:ring-1 focus:ring-[#00ff7f] transition-all font-medium"
                                 placeholder="e.g. Main Account, Savings, Crypto..."
                             />
                         </div>
