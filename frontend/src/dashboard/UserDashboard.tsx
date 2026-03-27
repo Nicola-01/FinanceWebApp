@@ -27,9 +27,25 @@ const UserDashboard: React.FC = () => {
             const fetchedWallets: Wallet[] = wRes.data;
             setWallets(fetchedWallets);
 
-            // Se non c'è un ID nell'URL, seleziona automaticamente il primo wallet
             if (!walletId && fetchedWallets.length > 0) {
-                navigate(`/dashboard/${fetchedWallets[0].id}`, { replace: true });
+                let targetId = fetchedWallets[0].id;
+
+                const savedOrderStr = localStorage.getItem('wallet_order');
+                if (savedOrderStr) {
+                    try {
+                        const savedOrder = JSON.parse(savedOrderStr) as string[];
+
+                        const firstValidSavedId = savedOrder.find(savedId =>
+                            fetchedWallets.some(wallet => wallet.id === savedId)
+                        );
+
+                        if (firstValidSavedId)
+                            targetId = firstValidSavedId;
+                    } catch (e) {
+                        console.error("Error parsing wallet_order from localStorage", e);
+                    }
+                }
+                navigate(`/dashboard/${targetId}`, { replace: true });
             }
         } catch (err) {
             triggerToast("Error loading data", false);

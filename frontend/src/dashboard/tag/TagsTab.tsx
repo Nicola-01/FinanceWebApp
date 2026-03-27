@@ -80,9 +80,7 @@ export const TagsTab: React.FC = () => {
             <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] pb-10 relative">
 
                 {/* Filter */}
-                <div className="sticky top-2 xl:top-[80px] z-[80] pb-4 transition-all">
-                    <TransactionsFilter />
-                </div>
+                <TransactionsFilter />
 
                 <DateRangeBanner />
 

@@ -1,10 +1,10 @@
-import React, { useMemo } from 'react';
-import { format, differenceInDays, differenceInMonths, differenceInYears } from 'date-fns';
-import { it } from 'date-fns/locale';
-import { useWalletContext } from '../wallet/WalletContext.tsx';
+import React, {useMemo} from 'react';
+import {format, differenceInDays, differenceInMonths, differenceInYears} from 'date-fns';
+import {it} from 'date-fns/locale';
+import {useWalletContext} from '../wallet/WalletContext.tsx';
 
 export const DateRangeBanner: React.FC = () => {
-    const { filteredTransactions } = useWalletContext();
+    const {filteredTransactions} = useWalletContext();
 
     const info = useMemo(() => {
         if (filteredTransactions.length === 0) return null;
@@ -15,8 +15,8 @@ export const DateRangeBanner: React.FC = () => {
         start.setHours(0, 0, 0, 0);
         end.setHours(0, 0, 0, 0);
 
-        const startStr = format(start, 'dd MMM yyyy', { locale: it });
-        const endStr = format(end, 'dd MMM yyyy', { locale: it });
+        const startStr = format(start, 'dd MMM yyyy', {locale: it});
+        const endStr = format(end, 'dd MMM yyyy', {locale: it});
 
         let years = differenceInYears(end, start);
         let tempDate = new Date(start);
@@ -26,30 +26,39 @@ export const DateRangeBanner: React.FC = () => {
         let days = differenceInDays(end, tempDate);
 
         const parts: string[] = [];
-        if (years > 0) parts.push(`${years} ${years === 1 ? 'anno' : 'anni'}`);
-        if (months > 0) parts.push(`${months} ${months === 1 ? 'mese' : 'mesi'}`);
-        if (days > 0) parts.push(`${days} ${days === 1 ? 'giorno' : 'giorni'}`);
+        if (years > 0) parts.push(`${years} ${years === 1 ? 'year' : 'years'}`);
+        if (months > 0) parts.push(`${months} ${months === 1 ? 'month' : 'months'}`);
+        if (days > 0) parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
 
         const durationStr = parts.length > 0
             ? parts.length === 1
                 ? parts[0]
-                : parts.slice(0, -1).join(', ') + ' e ' + parts[parts.length - 1]
-            : 'stesso giorno';
+                : parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1]
+            : 'same day';
 
-        return { startStr, endStr, durationStr, count: filteredTransactions.length };
+        return {startStr, endStr, durationStr, count: filteredTransactions.length};
     }, [filteredTransactions]);
 
     if (!info) return null;
 
     return (
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-app-muted bg-app-input border border-app-border rounded-xl px-4 py-2.5 mb-4">
-            <span className="font-semibold text-app-text">{info.startStr}</span>
-            <span>→</span>
-            <span className="font-semibold text-app-text">{info.endStr}</span>
-            <span className="text-app-border hidden sm:inline">|</span>
-            <span className="text-app-muted italic">{info.durationStr}</span>
-            <span className="text-app-border hidden sm:inline">|</span>
-            <span className="text-app-muted">{info.count} {info.count === 1 ? 'transazione' : 'transazioni'}</span>
+        <div
+            className="flex flex-col sm:flex-row items-center justify-center sm:gap-x-3 gap-y-1.5 text-sm text-app-muted bg-app-input border border-app-border rounded-xl px-4 py-2.5 mb-4">
+            <div className="flex items-center gap-3">
+                <span className="font-semibold text-app-text">{info.startStr}</span>
+                <span>→</span>
+                <span className="font-semibold text-app-text">{info.endStr}</span>
+            </div>
+
+            <span className="text-app-border hidden sm:block">|</span>
+
+            <div className="flex items-center gap-3">
+                <span className="text-app-muted italic">{info.durationStr}</span>
+                <span className="text-app-border">|</span>
+                <span className="text-app-muted">
+                {info.count} transaction{info.count !== 1 ? 's' : ''}
+                </span>
+            </div>
         </div>
     );
 };

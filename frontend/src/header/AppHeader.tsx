@@ -81,13 +81,23 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
             <header
                 className="top-0 z-[120] flex h-16 w-full items-center justify-between border-b border-app-border bg-app-bg/80 px-6 backdrop-blur-md">
                 {/* Logo e Nome App */}
-                <h2 className="m-0 text-2xl font-bold tracking-wide text-app-text capitalize">
-                    {page.text}
-                    <span
-                        className="ml-1 animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                        {page.accent}
-                    </span>
-                </h2>
+                <div className="flex items-center gap-3">
+                    {/* Icona dell'app stilizzata come Logo */}
+                        <img
+                            src="/icon.svg"
+                            alt="Finance App Logo"
+                            className="h-10 w-10 object-contain"
+                        />
+
+                    {/* Titolo */}
+                    <h2 className="m-0 text-2xl font-bold tracking-wide text-app-text capitalize">
+                        {page.text}
+                        <span
+                            className="ml-1 animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                            {page.accent}
+                        </span>
+                    </h2>
+                </div>
 
                 {/* Menu Utente Dropdown */}
                 <div className="relative z-[120]" ref={menuRef}>

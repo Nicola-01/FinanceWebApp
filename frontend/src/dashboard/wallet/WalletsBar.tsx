@@ -61,14 +61,12 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
             if (savedOrderStr) {
                 try {
                     const savedOrder = JSON.parse(savedOrderStr) as string[];
-                    const currentIds = wallets.map(w => w.id).join(',');
 
                     // Riordiniamo i wallet basandoci sugli ID salvati nel localStorage
                     const sortedWallets = [...wallets].sort((a, b) => {
                         const indexA = savedOrder.indexOf(a.id);
                         const indexB = savedOrder.indexOf(b.id);
 
-                        // Se ci sono wallet "nuovi" non presenti nel localStorage, li mettiamo in fondo
                         if (indexA === -1 && indexB === -1) return 0;
                         if (indexA === -1) return 1;
                         if (indexB === -1) return -1;
@@ -76,13 +74,21 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                         return indexA - indexB;
                     });
 
+                    const currentIds = wallets.map(w => w.id).join(',');
                     const sortedIds = sortedWallets.map(w => w.id).join(',');
 
-                    // Se l'ordine effettivo è diverso da quello salvato, aggiorniamo lo state genitore
+                    // Creiamo la nuova stringa pulita per il localStorage
+                    const newOrderStr = JSON.stringify(sortedWallets.map(w => w.id));
+
+                    // 1. Aggiorniamo la UI SOLO se l'ordine degli elementi è diverso
                     if (currentIds !== sortedIds) {
                         setWallets(sortedWallets);
-                        // Aggiorniamo anche il localStorage (utile se è stato aggiunto un wallet nuovo)
-                        localStorage.setItem('wallet_order', JSON.stringify(sortedWallets.map(w => w.id)));
+                    }
+
+                    // 2. Puliamo il Local Storage se ci sono disallineamenti
+                    // (es. wallet eliminati o wallet nuovi aggiunti in coda)
+                    if (newOrderStr !== savedOrderStr) {
+                        localStorage.setItem('wallet_order', newOrderStr);
                     }
                 } catch (e) {
                     console.error("Error parsing wallet_order from localStorage", e);
