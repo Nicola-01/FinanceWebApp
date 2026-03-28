@@ -1,9 +1,9 @@
 import React from 'react';
-import { createPortal } from 'react-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import { ModalDialogRightAction } from './ModalDialogRightAction';
-import type { ModalDialogRightActionProp } from './ModalDialogRightAction';
+import {createPortal} from 'react-dom';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faTimes} from '@fortawesome/free-solid-svg-icons';
+import {ModalDialogRightAction} from './ModalDialogRightAction';
+import type {ModalDialogRightActionProp} from './ModalDialogRightAction';
 
 interface ModalDialogProps {
     ref?: React.Ref<HTMLDialogElement>;
@@ -19,17 +19,17 @@ interface ModalDialogProps {
 }
 
 export const ModalDialog = ({
-    ref,
-    children,
-    className = "",
-    onClose,
-    onCancel,
-    showClose = true,
-    onCloseClick,
-    rightActions,
-    title,
-    subtitle
-}: ModalDialogProps) => {
+                                ref,
+                                children,
+                                className = "",
+                                onClose,
+                                onCancel,
+                                showClose = true,
+                                onCloseClick,
+                                rightActions,
+                                title,
+                                subtitle
+                            }: ModalDialogProps) => {
     const modalRoot = document.getElementById('modal-root');
 
     if (!modalRoot) {
@@ -61,10 +61,11 @@ export const ModalDialog = ({
         >
             {/* INTESTAZIONE (Pulsante X - Titolo - Custom Actions) */}
             {(showClose || rightActions || title) && (
-                <div className="flex w-full items-center justify-between mb-2">
+                // 1. Aggiunto 'relative' e 'min-h-[40px]' per fare da ancoraggio al titolo
+                <div className="relative flex w-full items-center justify-between mb-2 min-h-[40px]">
 
-                    {/* Sinistra: Pulsante X (con flex-1) */}
-                    <div className="flex flex-1 justify-start">
+                    {/* Sinistra: Pulsante X */}
+                    <div className="relative z-10 flex shrink-0">
                         {showClose && (
                             <button
                                 type="button"
@@ -78,15 +79,17 @@ export const ModalDialog = ({
 
                     {/* Centro: Titolo */}
                     {title && (
-                        <div className="flex shrink-0 items-center justify-center px-4">
-                            <h3 className="m-0 flex items-center justify-center gap-3 text-2xl font-bold tracking-tight text-app-text">
+                        // 2. Posizionamento ASSOLUTO. px-12 (o px-16) crea una "zona sicura" vuota ai lati
+                        // per forzare il taglio (truncate) PRIMA che il testo tocchi i pulsanti!
+                        <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none px-14 sm:px-24">
+                            <h3 className="m-0 text-xl sm:text-2xl font-bold tracking-tight text-app-text truncate pointer-events-auto [&>svg]:mr-2 [&>svg]:align-middle">
                                 {title}
                             </h3>
                         </div>
                     )}
 
-                    {/* Destra: Pulsanti aggiuntivi (con flex-1) */}
-                    <div className="flex flex-1 justify-end">
+                    {/* Destra: Pulsanti aggiuntivi */}
+                    <div className="relative z-10 flex shrink-0">
                         {rightActions && rightActions.length > 0 && (
                             <ModalDialogRightAction actions={rightActions} />
                         )}

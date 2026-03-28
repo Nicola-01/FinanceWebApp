@@ -35,9 +35,7 @@ export const TransactionsTab: React.FC = () => {
                   Sticky container INSIDE the scrolling element natively guarantees 
                   that elements scrolling past will simply slide underneath its z-index!
                 */}
-                <div className="sticky top-2 xl:top-[80px] z-[80] pb-4 transition-all">
-                    <TransactionsFilter />
-                </div>
+                <TransactionsFilter />
                 
                 <TransactionsTable
                     wallet={wallet}

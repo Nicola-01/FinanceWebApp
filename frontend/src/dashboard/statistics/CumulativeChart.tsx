@@ -27,12 +27,11 @@ const darkTheme = createTheme({
 
 interface CumulativeChartProps {
     transactions: Transaction[];
-    headerRight?: React.ReactNode;
     zoomData?: readonly ZoomData[];
     onZoomChange?: (zoomData: ZoomData[]) => void;
 }
 
-export const CumulativeChart: React.FC<CumulativeChartProps> = ({ transactions, headerRight, zoomData, onZoomChange }) => {
+export const CumulativeChart: React.FC<CumulativeChartProps> = ({ transactions, zoomData, onZoomChange }) => {
     const { resolvedTheme } = useTheme();
     const clipPathId = useId();
 
@@ -65,23 +64,14 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({ transactions, 
 
     if (dataset.length === 0) {
         return (
-            <div className="bg-app-card/20 rounded-2xl border border-app-border p-6">
-                <h3 className="text-xl font-bold text-app-text uppercase tracking-wider mb-4">Cumulative</h3>
-                <div className="flex items-center justify-center h-[300px] text-app-muted">
-                    No data available.
-                </div>
+            <div className="flex items-center justify-center h-[300px] text-app-muted">
+                No data available.
             </div>
         );
     }
 
     return (
         <ThemeProvider theme={resolvedTheme === 'dark' ? darkTheme : lightTheme}>
-            <div className="bg-app-card/20 rounded-2xl border border-app-border p-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-1">
-                    <h3 className="text-xl font-bold text-app-text uppercase tracking-wider">Cumulative</h3>
-                    {headerRight}
-                </div>
-                <p className="text-app-muted text-xs mb-4">Running total of income & expenses over time. Use the slider below to zoom.</p>
 
                 <ChartDataProviderPro
                     height={420}
@@ -139,7 +129,17 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({ transactions, 
                         <ChartsAxisHighlight x="line" />
                         <ChartZoomSlider />
                     </ChartsSurface>
-                    <ChartsTooltip />
+                    <ChartsTooltip
+                        sx={{
+                            '& .MuiChartsTooltip-paper': {
+                                backgroundColor: resolvedTheme === 'dark' ? '#1e1e1e66' : '#ffffff80',
+                                backdropFilter: 'blur(8px)',
+                                WebkitBackdropFilter: 'blur(8px)',
+                                border: resolvedTheme === 'dark' ? '1px solid #ffffff20' : '1px solid #00000010',
+                                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                            }
+                        }}
+                    />
                 </ChartDataProviderPro>
 
                 {/* Legend */}
@@ -157,7 +157,6 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({ transactions, 
                         <span className="text-xs text-app-muted">Net Balance</span>
                     </div>
                 </div>
-            </div>
         </ThemeProvider>
     );
 };
