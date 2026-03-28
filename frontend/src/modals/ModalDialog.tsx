@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {createPortal} from 'react-dom';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faTimes} from '@fortawesome/free-solid-svg-icons';
@@ -32,8 +32,32 @@ export const ModalDialog = ({
                             }: ModalDialogProps) => {
     const modalRoot = document.getElementById('modal-root');
 
+    useEffect(() => {
+        const dialogNode = ref && 'current' in ref ? ref.current : null;
+        if (!dialogNode) return;
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'open') {
+                    if (dialogNode.hasAttribute('open')) {
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        document.body.style.overflow = '';
+                    }
+                }
+            });
+        });
+
+        observer.observe(dialogNode, { attributes: true });
+
+        return () => {
+            observer.disconnect();
+            document.body.style.overflow = '';
+        };
+    }, [ref]);
+
     if (!modalRoot) {
-        console.error("L'elemento con id 'modal-root' non è stato trovato nel DOM.");
+        console.error("The element with the ID 'modal-root' was not found in the DOM.");
         return null;
     }
 

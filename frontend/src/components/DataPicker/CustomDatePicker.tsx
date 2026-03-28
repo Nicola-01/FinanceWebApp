@@ -37,6 +37,7 @@ export default function CustomDatePicker({
     const [currentDate, setCurrentDate] = useState<Date>(initialStartDate || new Date());
     const [startDate, setStartDate] = useState<Date | null>(initialStartDate);
     const [endDate, setEndDate] = useState<Date | null>(initialEndDate);
+    const mobileDialogRef = useRef<HTMLDialogElement>(null);
     const [isMobile, setIsMobile] = useState<boolean>(false);
 
     const popoverRef = useRef<HTMLDivElement>(null);
@@ -60,6 +61,14 @@ export default function CustomDatePicker({
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (isMobile && isOpen && mobileDialogRef.current) {
+            if (!mobileDialogRef.current.open) {
+                mobileDialogRef.current.showModal(); // Lo invia nel Top Layer!
+            }
+        }
+    }, [isMobile, isOpen]);
 
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 640);
@@ -183,7 +192,7 @@ export default function CustomDatePicker({
 
     return (
         // Contenitore principale flessibile per posizionare l'icona all'esterno
-        <div className="relative w-full max-w-sm font-sans flex items-center gap-3" ref={popoverRef}>
+        <div className="relative w-full sm:max-w-sm font-sans flex items-center gap-3" ref={popoverRef}>
 
             {/* Icona del Calendario fissa a sinistra */}
             {/*<CalendarIcon className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />*/}
@@ -265,12 +274,20 @@ export default function CustomDatePicker({
 
                 if (isMobile && typeof document !== 'undefined') {
                     return createPortal(
-                        <div className="fixed inset-0 z-[100] flex flex-col justify-end sm:hidden">
-                            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} />
+                        <dialog
+                            ref={mobileDialogRef}
+                            onClose={() => setIsOpen(false)}
+                            onClick={(e) => {
+                                // Chiude il modale se si clicca sullo sfondo trasparente
+                                if (e.target === e.currentTarget) setIsOpen(false);
+                            }}
+                            // Rimuoviamo il vecchio div overlay e usiamo il backdrop nativo
+                            className="m-0 p-0 w-full h-full max-w-none max-h-none bg-transparent backdrop:bg-black/60 open:flex open:flex-col open:justify-end sm:hidden z-[100]"
+                        >
                             <div ref={modalRef} className={`relative w-full max-h-[85vh] overflow-y-auto rounded-t-2xl pb-6 shadow-2xl border-t flex flex-col ${bgMain} ${borderMain} animate-[slideUp_0.3s_ease-out]`}>
                                 {popoverContent}
                             </div>
-                        </div>,
+                        </dialog>,
                         document.body
                     );
                 }

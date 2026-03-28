@@ -60,3 +60,52 @@ export interface Invitation {
     invitedAt: string;
     wallet: Wallet
 }
+
+export interface Subscription {
+    id: string;
+    name: string;
+    tag: Tag;
+    amount: number;
+    originalAmount: number;
+    originalCurrency: string;
+    exchangeValue: number;
+    autoExchangeRate: boolean;
+    type: 'INCOME' | 'EXPENSE';
+    notes?: string;
+    status: 'ACTIVE' | 'PAUSED' | 'COMPLETED';
+
+    startDate: string; // ISO Date (YYYY-MM-DD)
+    nextExecutionDate: string;
+    lastExecutionDate?: string;
+
+    frequencyType: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+    frequencyInterval: number;
+    monthlySpecificDay?: number;
+    lastWorkingDayOfMonth: boolean;
+
+    duration: 'FOREVER' | 'TIMES' | 'UNTIL';
+    durationTimes?: number;
+    executedTimes: number;
+    durationUntil?: string;
+}
+
+export interface SubscriptionRequestDTO {
+    name: string;
+    tag: string;
+    amount: number;
+    originalAmount: number;
+    originalCurrency: string;
+    exchangeValue: number;
+    autoExchangeRate: boolean;
+    type: 'INCOME' | 'EXPENSE';
+    notes?: string;
+    status: 'ACTIVE' | 'PAUSED' | 'COMPLETED';
+    startDate: string;
+    frequencyType: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+    frequencyInterval: number;
+    monthlySpecificDay?: number;
+    lastWorkingDayOfMonth: boolean;
+    duration: 'FOREVER' | 'TIMES' | 'UNTIL';
+    durationTimes?: number;
+    durationUntil?: string;
+}
