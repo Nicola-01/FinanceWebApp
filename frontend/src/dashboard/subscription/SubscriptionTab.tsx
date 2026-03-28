@@ -1,0 +1,107 @@
+import  {useState, useEffect, useRef} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faList, faCalendarDays, faPlus} from '@fortawesome/free-solid-svg-icons';
+import api from '../../api/axiosConfig';
+import {triggerToast} from '../../components/ToastNotification';
+import type {Subscription} from '../../utils/types';
+import {useWalletContext} from "../wallet/WalletContext.tsx";
+import {SubscriptionModal, type SubscriptionModalHandle} from "./SubscriptionModal.tsx";
+import type {CurrencyCode} from "../../utils/currencies.ts";
+import {SubscriptionCalendar} from "./SubscriptionCalendar.tsx";
+import {SubscriptionList} from "./SubscriptionList.tsx";
+// Import fittizi che creeremo a breve:
+// import { SubscriptionList } from './SubscriptionList';
+// import { SubscriptionCalendar } from './SubscriptionCalendar';
+// import { SubscriptionModal, type SubscriptionModalHandle } from '../../modals/SubscriptionModal';
+
+type ViewMode = 'list' | 'calendar';
+
+export const SubscriptionTab = () => {
+    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+    const {wallet, tags} = useWalletContext();
+
+    const modalRef = useRef<SubscriptionModalHandle>(null);
+
+    const fetchSubscriptions = async () => {
+        if (!wallet.id) return;
+        try {
+            setIsLoading(true);
+            // Chiamata all'endpoint definito nel controller Java
+            const response = await api.get(`/subscription/${wallet.id}`);
+            setSubscriptions(response.data);
+        } catch (error) {
+            triggerToast("Failed to load subscriptions", false);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchSubscriptions();
+    }, [wallet.id]);
+
+    return (
+        <div className="flex flex-col flex-1 h-full animate-[fadeIn_0.3s_ease-out]">
+
+            {/* Header: Titolo, Toggle Viste, Bottone Aggiungi */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+
+                {/* Toggle View */}
+                <div
+                    className="flex items-center rounded-lg bg-app-input border border-app-border p-1 w-full sm:w-auto">
+                    <button
+                        onClick={() => setViewMode('list')}
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+                            viewMode === 'list' ? 'bg-app-surface text-app-text shadow-sm' : 'text-app-muted hover:text-app-text'
+                        }`}
+                    >
+                        <FontAwesomeIcon icon={faList}/>
+                        List
+                    </button>
+                    <button
+                        onClick={() => setViewMode('calendar')}
+                        className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+                            viewMode === 'calendar' ? 'bg-app-surface text-[#00bfff] shadow-sm' : 'text-app-muted hover:text-[#00bfff]'
+                        }`}
+                    >
+                        <FontAwesomeIcon icon={faCalendarDays}/>
+                        Calendar
+                    </button>
+                </div>
+
+                {/* Pulsante Nuova Subscription */}
+                <button
+                    onClick={() => modalRef.current?.openModal()}
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#00bfff] to-[#00ff7f] text-black font-bold text-sm hover:opacity-90 transition-opacity w-full sm:w-auto shadow-lg shadow-[#00bfff]/20"
+                >
+                    <FontAwesomeIcon icon={faPlus}/>
+                    New Subscription
+                </button>
+            </div>
+
+            {/* Container Dinamico delle Viste */}
+            <div className="flex-1 overflow-hidden relative">
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-full text-app-muted">
+                        Loading subscriptions...
+                    </div>
+                ) : (
+                    viewMode === 'list'
+                        ? <SubscriptionList subscriptions={subscriptions}/>
+                        : <SubscriptionCalendar subscriptions={subscriptions}/>
+                )}
+            </div>
+
+            <SubscriptionModal
+                ref={modalRef}
+                wallet={wallet}
+                tags={tags}
+                baseCurrency={wallet.currency as CurrencyCode}
+                onSuccess={fetchSubscriptions}
+            />
+        </div>
+    );
+};

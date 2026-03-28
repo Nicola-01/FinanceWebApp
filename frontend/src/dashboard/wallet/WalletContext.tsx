@@ -6,7 +6,8 @@ import type { DateRangeValue, PresetType } from '../../components/DataPicker/Cus
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ToastNotification";
 
-export type TabType = 'transactions' | 'category' | 'statistics' | 'budget' | 'settings';
+export const VALID_TABS = ['transactions', 'subscription', 'category', 'statistics', 'budget', 'settings'] as const;
+export type TabType = typeof VALID_TABS[number];
 
 interface WalletContextType {
     wallet: Wallet;
@@ -82,12 +83,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ _wallet, onWalle
     }, [transactions, tags, selectedTags, dateRange]);
 
     const [searchParams, setSearchParams] = useSearchParams();
-    const validTabs: TabType[] = ['transactions', 'category', 'statistics', 'budget', 'settings'];
     const urlTab = searchParams.get('tab') as TabType;
-    const activeTab: TabType = validTabs.includes(urlTab) ? urlTab : 'transactions';
+    const activeTab: TabType = VALID_TABS.includes(urlTab) ? urlTab : 'transactions';
 
     useEffect(() => {
-        if (!urlTab || !validTabs.includes(urlTab)) {
+        if (!urlTab || !VALID_TABS.includes(urlTab)) {
             setSearchParams({ tab: 'transactions' }, { replace: true });
         }
     }, [urlTab, setSearchParams]);

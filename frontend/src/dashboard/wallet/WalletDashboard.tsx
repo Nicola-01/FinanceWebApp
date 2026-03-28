@@ -1,6 +1,7 @@
 import React from 'react';
 import { TransactionsTab } from '../transaction/TransactionsTab';
 import { StatisticsTab } from '../statistics/StatisticsTab';
+import { SubscriptionTab } from '../subscription/SubscriptionTab';
 import type { Wallet } from '../../utils/types';
 import { Icon } from "../../components/Icon.tsx";
 import { WalletTabs } from "./WalletTabs.tsx";
@@ -38,6 +39,7 @@ const WalletDashboardContent: React.FC = () => {
             <div className="flex-1 relative flex flex-col w-full">
                 <div className="flex-1 w-full">
                     {activeTab === 'transactions' && <TransactionsTab />}
+                    {activeTab === 'subscription' && <SubscriptionTab />}
                     {activeTab === 'category' && <TagsTab />}
                     {activeTab === 'statistics' && <StatisticsTab />}
                     {activeTab === 'settings' && <SettingsTab />}

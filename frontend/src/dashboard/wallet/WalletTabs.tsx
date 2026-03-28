@@ -6,7 +6,7 @@ import {
     faReceipt,
     faChartPie,
     faChartLine,
-    faGear
+    faGear, faCalendarDays
 } from '@fortawesome/free-solid-svg-icons';
 
 export const WalletTabs: React.FC = () => {
@@ -16,6 +16,7 @@ export const WalletTabs: React.FC = () => {
     // Aggiunta la proprietà "icon" per ogni tab
     const tabs: { id: TabType; label: string; icon: any }[] = [
         { id: 'transactions', label: 'Transactions', icon: faReceipt },
+        { id: 'subscription', label: 'Subscription', icon: faCalendarDays },
         { id: 'category', label: 'Categories', icon: faChartPie },
         { id: 'statistics', label: 'Statistics', icon: faChartLine },
         { id: 'settings', label: 'Settings', icon: faGear }
