@@ -104,7 +104,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({transactions}) =>
     const nodesArray: NodeDef[] = [
         ...Array.from(incomeSubNodes.values()).sort(sortSubNodes),
         ...Array.from(incomeNodes.values()).sort(sortByTotalDesc),
-        {id: 'Income', label: 'Income', color: resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a'},
+        {id: 'Income', label: 'Income', color: resolvedTheme === 'dark' ? '#ffffff' : '#bbbbbb'},
         ...Array.from(expenseNodes.values()).sort(sortByTotalDesc),
         ...Array.from(expenseSubNodes.values()).sort(sortSubNodes),
         ...(savings > 0 ? [{id: 'Savings', label: 'Savings', color: SAVINGS_COLOR}] : [{
@@ -157,7 +157,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({transactions}) =>
     return (
         <Box sx={{
             width: '100%',
-            mt: 6,
+            my: 4,
             p: 4,
             bgcolor: 'var(--bg-surface)',
             borderRadius: 4,

@@ -4,6 +4,7 @@ import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {type IconKey, ICONS} from "../../utils/icons.ts";
 import {faTags, faCommentAlt} from "@fortawesome/free-solid-svg-icons";
 import {TagBadge} from "../../components/TagBadge.tsx";
+import {CURRENCY_META, type CurrencyCode} from "../../utils/currencies.ts";
 
 interface TransactionRowProps {
     transaction: Transaction;
@@ -57,8 +58,10 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({transaction, onCl
             </div>
 
             <div
-                className={`shrink-0 pl-3 text-right text-lg font-bold font-app-mono ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
-                {isIncome ? '+' : '-'}{transaction.amount.toFixed(2)}
+                className={`shrink-0 pl-3 text-right text-lg font-bold font-app-mono inline-flex items-baseline justify-end gap-1 ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}
+            >
+                <span>{isIncome ? '+' : '-'}{transaction.amount.toFixed(2)}</span>
+                <span>{(CURRENCY_META[transaction.originalCurrency as CurrencyCode]?.symbol)}</span>
             </div>
         </div>
     );

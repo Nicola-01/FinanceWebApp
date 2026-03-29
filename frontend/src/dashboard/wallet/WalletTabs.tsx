@@ -24,7 +24,7 @@ export const WalletTabs: React.FC = () => {
 
     const getTabClass = (tabId: TabType) => {
         const isActive = activeTab === tabId;
-        return `relative flex-1 flex items-center justify-center gap-2 whitespace-nowrap min-w-max px-4 py-3 text-sm font-bold uppercase tracking-wider transition-all duration-300 ${isActive ? 'text-app-text' : 'text-app-muted hover:text-app-text'
+        return `relative flex-1 flex items-center justify-center gap-2 whitespace-nowrap min-w-max px-2 md:px-4 py-3 text-sm font-bold uppercase tracking-wider transition-all duration-300 ${isActive ? 'text-app-text' : 'text-app-muted hover:text-app-text'
             }`;
     };
 
