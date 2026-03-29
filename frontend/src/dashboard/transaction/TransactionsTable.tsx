@@ -99,7 +99,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     // }
 
     return (
-        <div className="flex flex-col h-full relative">
+        <div className="flex flex-col flex-1 relative">
 
             <div className="flex-1 overflow-auto pr-2 pb-10 custom-scrollbar">
 
