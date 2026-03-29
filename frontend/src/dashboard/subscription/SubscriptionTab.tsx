@@ -1,47 +1,22 @@
-import  {useState, useEffect, useRef} from 'react';
+import {useState, useRef} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faList, faCalendarDays, faPlus} from '@fortawesome/free-solid-svg-icons';
-import api from '../../api/axiosConfig';
-import {triggerToast} from '../../components/ToastNotification';
-import type {Subscription} from '../../utils/types';
 import {useWalletContext} from "../wallet/WalletContext.tsx";
 import {SubscriptionModal, type SubscriptionModalHandle} from "./SubscriptionModal.tsx";
 import type {CurrencyCode} from "../../utils/currencies.ts";
 import {SubscriptionCalendar} from "./SubscriptionCalendar.tsx";
 import {SubscriptionList} from "./SubscriptionList.tsx";
-// Import fittizi che creeremo a breve:
-// import { SubscriptionList } from './SubscriptionList';
-// import { SubscriptionCalendar } from './SubscriptionCalendar';
-// import { SubscriptionModal, type SubscriptionModalHandle } from '../../modals/SubscriptionModal';
 
 type ViewMode = 'list' | 'calendar';
 
 export const SubscriptionTab = () => {
-    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const {subscriptions, fetchData, isLoading} = useWalletContext();
     const [viewMode, setViewMode] = useState<ViewMode>('list');
 
     const {wallet, tags} = useWalletContext();
 
     const modalRef = useRef<SubscriptionModalHandle>(null);
-
-    const fetchSubscriptions = async () => {
-        if (!wallet.id) return;
-        try {
-            setIsLoading(true);
-            // Chiamata all'endpoint definito nel controller Java
-            const response = await api.get(`/subscription/${wallet.id}`);
-            setSubscriptions(response.data);
-        } catch (error) {
-            triggerToast("Failed to load subscriptions", false);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchSubscriptions();
-    }, [wallet.id]);
 
     return (
         <div className="flex flex-col flex-1 h-full animate-[fadeIn_0.3s_ease-out]">
@@ -100,7 +75,7 @@ export const SubscriptionTab = () => {
                 wallet={wallet}
                 tags={tags}
                 baseCurrency={wallet.currency as CurrencyCode}
-                onSuccess={fetchSubscriptions}
+                onSuccess={fetchData}
             />
         </div>
     );

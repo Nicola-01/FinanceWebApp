@@ -29,7 +29,7 @@ export const TransactionsTab: React.FC = () => {
                 />
             </div>
 
-            <div className="w-full flex-1 relative">
+            <div className="w-full flex-1 relative flex flex-col">
                 
                 {/* 
                   Sticky container INSIDE the scrolling element natively guarantees 

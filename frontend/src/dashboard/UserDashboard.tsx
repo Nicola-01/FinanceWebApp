@@ -105,7 +105,7 @@ const UserDashboard: React.FC = () => {
                 />
 
                 {/* 3. Desktop: Permettiamo SOLO a quest'area destra di scorrere verticalmente */}
-                <div className="flex-1 bg-app-bg xl:overflow-y-auto custom-scrollbar">
+                <div className="flex-1 flex flex-col bg-app-bg xl:overflow-y-auto custom-scrollbar">
                     {selectedWallet ? (
                         <WalletDashboard
                             _wallet={selectedWallet}

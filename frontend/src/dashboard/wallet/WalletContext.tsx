@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { Tag, Transaction, Wallet } from '../../utils/types';
+import type {Subscription, Tag, Transaction, Wallet} from '../../utils/types';
 import type { DateRangeValue, PresetType } from '../../components/DataPicker/CustomDatePicker.tsx';
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ToastNotification";
@@ -12,6 +12,7 @@ export type TabType = typeof VALID_TABS[number];
 interface WalletContextType {
     wallet: Wallet;
     transactions: Transaction[];
+    subscriptions: Subscription[];
     filteredTransactions: Transaction[];
     tags: Tag[];
     isLoading: boolean;
@@ -51,6 +52,7 @@ interface WalletProviderProps {
 export const WalletProvider: React.FC<WalletProviderProps> = ({ _wallet, onWalletDelete, onWalletUpdate, children }) => {
     const [wallet, setWallet] = useState<Wallet>(_wallet);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [tags, setTags] = useState<Tag[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -101,6 +103,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ _wallet, onWalle
 
         setWallet(_wallet);
         setTransactions([]);
+        setSubscriptions([]);
         setTags([]);
 
         fetchData(controller.signal);
@@ -115,14 +118,16 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ _wallet, onWalle
         try {
             setIsLoading(true);
 
-            const [walletRes, transactionRes, tagRes] = await Promise.all([
+            const [walletRes, transactionRes, subscriptionRes, tagRes] = await Promise.all([
                 api.get(`/wallets/${_wallet.id}`, { signal }),
                 api.get(`/transactions/${_wallet.id}`, { signal }),
+                api.get(`/subscription/${_wallet.id}`, { signal }),
                 api.get(`/tags/${_wallet.id}`, { signal })
             ]);
 
             setWallet(walletRes.data);
             setTransactions(transactionRes.data);
+            setSubscriptions(subscriptionRes.data)
             setTags(tagRes.data);
         } catch (err: any) {
             if (err.name === 'CanceledError' || err.name === 'AbortError') {
@@ -196,7 +201,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ _wallet, onWalle
 
     return (
         <WalletContext.Provider value={{
-            wallet, transactions, filteredTransactions, tags, isLoading, activeTab, setActiveTab, fetchData,
+            wallet, transactions, filteredTransactions, subscriptions, tags, isLoading, activeTab, setActiveTab, fetchData,
             selectedTags, setSelectedTags, dateRange, setDateRange, datePreset, setDatePreset,
             handleAddTag, handleUpdateTag, handleDeleteTag, handleUpdateWallet, onWalletDelete
         }}>
