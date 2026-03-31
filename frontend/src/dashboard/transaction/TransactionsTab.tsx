@@ -30,13 +30,13 @@ export const TransactionsTab: React.FC = () => {
             </div>
 
             <div className="w-full flex-1 relative flex flex-col">
-                
+
                 {/* 
                   Sticky container INSIDE the scrolling element natively guarantees 
                   that elements scrolling past will simply slide underneath its z-index!
                 */}
                 <TransactionsFilter />
-                
+
                 <TransactionsTable
                     wallet={wallet}
                     tags={tags}

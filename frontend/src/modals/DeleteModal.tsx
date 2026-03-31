@@ -1,12 +1,12 @@
 import {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
-import type {Transaction, User, Wallet} from "../utils/types.ts";
+import type {Transaction, User, Wallet, Subscription} from "../utils/types.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faTriangleExclamation} from "@fortawesome/free-solid-svg-icons";
 import {ModalDialog} from './ModalDialog';
 
 export interface DeleteModalHandle {
-    deleteObject: (object: User | Wallet | Transaction,
+    deleteObject: (object: User | Wallet | Transaction | Subscription,
                    typeName: string,
                    handleConfirmClick: () => void | Promise<void>,
                    requireTyping?: boolean,
@@ -20,7 +20,7 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
         const dialogRef = useRef<HTMLDialogElement>(null);
 
         // Stati interni del modale
-        const [objToDelete, setObjToDelete] = useState<User | Wallet | Transaction | null>(null);
+        const [objToDelete, setObjToDelete] = useState<User | Wallet | Transaction | Subscription | null>(null);
         const [onConfirmCb, setOnConfirmCb] = useState<(() => void | Promise<void>) | null>(null);
 
         const [confirmationText, setConfirmationText] = useState("");

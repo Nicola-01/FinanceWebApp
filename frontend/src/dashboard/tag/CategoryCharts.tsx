@@ -1,9 +1,11 @@
 import React from 'react';
-import {useTheme} from '../../utils/ThemeContext.tsx';
-import {pieArcLabelClasses, PieChart} from '@mui/x-charts/PieChart';
-import {styled} from '@mui/material/styles';
-import {useDrawingArea} from '@mui/x-charts/hooks';
-import type {Transaction} from '../../utils/types.ts';
+import { useTheme } from '../../utils/ThemeContext.tsx';
+import { pieArcLabelClasses, PieChart } from '@mui/x-charts/PieChart';
+import { styled } from '@mui/material/styles';
+import { useDrawingArea } from '@mui/x-charts/hooks';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import type { Transaction } from '../../utils/types.ts';
 
 const hexToRgba = (hex: string, alpha: number): string => {
     if (!hex) return `rgba(0, 255, 127, ${alpha})`;
@@ -21,8 +23,8 @@ const StyledText = styled('text')(() => ({
     fontWeight: 'bold'
 }));
 
-function PieCenterLabel({children}: { children: React.ReactNode }): React.ReactElement {
-    const {width, height, left, top} = useDrawingArea();
+function PieCenterLabel({ children }: { children: React.ReactNode }): React.ReactElement {
+    const { width, height, left, top } = useDrawingArea();
     return (
         <StyledText x={left + width / 2} y={top + height / 2}>
             {children}
@@ -30,12 +32,14 @@ function PieCenterLabel({children}: { children: React.ReactNode }): React.ReactE
     );
 }
 
-export const TransactionPieChart = ({transactions, type, title}: {
+export const TransactionPieChart = ({ transactions, type, title }: {
     transactions: Transaction[],
     type: 'INCOME' | 'EXPENSE',
     title: string
 }) => {
-    const {resolvedTheme} = useTheme();
+    const { resolvedTheme } = useTheme();
+    const muiTheme = useMuiTheme();
+    const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
     const txs = transactions.filter(t => t.type === type);
     const totalAmount = txs.reduce((acc, t) => acc + t.amount, 0);
 
@@ -55,10 +59,10 @@ export const TransactionPieChart = ({transactions, type, title}: {
         const mainName = tx.tag.parentName || tx.tag.name;
         const subName = tx.tag.name;
 
-        if (!mainMap.has(mainName)) mainMap.set(mainName, {value: 0, color: tx.tag.colorHex});
+        if (!mainMap.has(mainName)) mainMap.set(mainName, { value: 0, color: tx.tag.colorHex });
         mainMap.get(mainName)!.value += tx.amount;
 
-        if (!subMap.has(subName)) subMap.set(subName, {main: mainName, value: 0, color: tx.tag.colorHex});
+        if (!subMap.has(subName)) subMap.set(subName, { main: mainName, value: 0, color: tx.tag.colorHex });
         subMap.get(subName)!.value += tx.amount;
     });
 
@@ -82,8 +86,9 @@ export const TransactionPieChart = ({transactions, type, title}: {
         });
     });
 
-    const innerRadius = 50;
-    const middleRadius = 140;
+    const innerRadius = isMobile ? 45 : 50;
+    const middleRadius = isMobile ? 120 : 140;
+    const outerRadiusDelta = isMobile ? 20 : 20;
 
     return (
         <div
@@ -92,39 +97,49 @@ export const TransactionPieChart = ({transactions, type, title}: {
 
             <div className="w-full flex justify-center h-[400px]">
                 <PieChart
+                    margin={{ top: 20, bottom: 20, left: 20, right: 20 }}
                     series={[
                         {
                             innerRadius,
                             outerRadius: middleRadius,
                             data: innerData,
                             arcLabel: (item) => (item as any).percentage > 5 ? `${item.id}` : '',
-                            valueFormatter: ({value}) => `${value.toFixed(2)} (${((value / totalAmount) * 100).toFixed(1)}%)`,
-                            highlightScope: {fade: 'global', highlight: 'item'},
-                            highlighted: {additionalRadius: 2},
+                            valueFormatter: ({ value }) => `${value.toFixed(2)} (${((value / totalAmount) * 100).toFixed(1)}%)`,
+                            highlightScope: { fade: 'global', highlight: 'item' },
+                            highlighted: { additionalRadius: 2 },
                             cornerRadius: 3,
                         },
                         {
                             innerRadius: middleRadius + 2,
-                            outerRadius: middleRadius + 20,
+                            outerRadius: middleRadius + outerRadiusDelta,
                             data: outerData,
-                            arcLabel: (item) => (item as any).percentage > 3 ? `${item.id}` : '',
-                            valueFormatter: ({value}) => `${value.toFixed(2)} (${((value / totalAmount) * 100).toFixed(1)}%)`,
-                            arcLabelRadius: middleRadius + 35,
-                            highlightScope: {fade: 'global', highlight: 'item'},
-                            highlighted: {additionalRadius: 2},
+                            arcLabel: (item) => {
+                                if ((item as any).percentage <= 3) return '';
+                                const label = String(item.id);
+                                if (isMobile) {
+                                    return label.length > 3 ? `${label.substring(0, 3)}...` : label;
+                                }
+                                return label;
+                            },
+                            valueFormatter: ({ value }) => `${value.toFixed(2)} (${((value / totalAmount) * 100).toFixed(1)}%)`,
+                            arcLabelRadius: middleRadius + (isMobile ? 15 : 35),
+                            highlightScope: { fade: 'global', highlight: 'item' },
+                            highlighted: { additionalRadius: 2 },
                             cornerRadius: 2,
                         },
                     ]}
                     sx={{
                         [`& .${pieArcLabelClasses.root}`]: {
                             fill: resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a',
-                            fontSize: '11px',
+                            fontSize: isMobile ? '9px' : '11px',
                             fontWeight: 'bold'
                         },
                     }}
                     hideLegend
                 >
-                    <PieCenterLabel>{totalAmount.toFixed(0)}</PieCenterLabel>
+                    <PieCenterLabel>
+                        {(totalAmount).toLocaleString('it-IT', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })}
+                    </PieCenterLabel>
                 </PieChart>
             </div>
         </div>
