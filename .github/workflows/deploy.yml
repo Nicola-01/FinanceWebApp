@@ -31,15 +31,26 @@ jobs:
       - name: Cleanup unused Docker resources
         run: docker builder prune -f && docker image prune -f
 
-      - name: Auto-merge to main
+      - name: Create PR to main
         if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
-          git checkout main
-          git merge origin/${{ github.ref_name }} --no-ff -m "Auto-merge release ${{ github.ref_name }} into main"
-          git push origin main
+          # Check if an open PR already exists for this branch targeting main
+          PR_EXISTS=$(gh pr list --head ${{ github.ref_name }} --base main --json number --jq 'length')
+          
+          if [ "$PR_EXISTS" -eq "0" ]; then
+            gh pr create \
+              --base main \
+              --head ${{ github.ref_name }} \
+              --title "Release ${{ github.ref_name }}" \
+              --body "🚀 Build & Deploy completed successfully for **${{ github.ref_name }}**!
+              
+              Click the **Merge pull request** button below to merge the code into \`main\` and keep it up to date."
+            echo "Pull Request created successfully!"
+          else
+            echo "An open Pull Request already exists for this branch."
+          fi
 
       - name: Cleanup old release branches
         if: success()
