@@ -6,7 +6,6 @@ import { useDeleteModal } from "./DeleteModalContext.tsx";
 import type { Subscription, Wallet } from "../utils/types.ts";
 
 import { SubscriptionView } from './SubscriptionView.tsx';
-import { DeleteModal } from './DeleteModal.tsx';
 import { triggerToast } from '../components/ToastNotification.tsx';
 import api from '../api/axiosConfig.ts';
 

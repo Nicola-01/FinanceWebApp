@@ -1,11 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faChevronDown, faEnvelope, faKey, faSignOutAlt, faUser, faUserCircle, faSun, faMoon, faDesktop} from '@fortawesome/free-solid-svg-icons';
+import {faChevronDown, faEnvelope, faKey, faSignOutAlt, faUser, faUserCircle, faSun, faMoon, faDesktop, faInfoCircle} from '@fortawesome/free-solid-svg-icons';
 
 // Importiamo i modali che creeremo nel passaggio successivo
 import {ProfileModal, type ProfileModalHandle} from '../modals/ProfileModal';
 import {InvitationsModal, type InvitationsModalHandle} from '../modals/InvitationsModal';
 import {ChangePasswordModal, type ChangePasswordModalHandle} from "../modals/ChangePasswordModal.tsx";
+import {AboutAppModal, type AboutAppModalHandle} from "../modals/AboutAppModal.tsx";
 import {getUserAuth} from "../utils/authHelper.ts";
 import api from "../api/axiosConfig.ts";
 import type {Invitation} from "../utils/types.ts";
@@ -26,6 +27,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
     const changePwModalRef = useRef<ChangePasswordModalHandle>(null);
     const profileModalRef = useRef<ProfileModalHandle>(null);
     const invitationsModalRef = useRef<InvitationsModalHandle>(null);
+    const aboutModalRef = useRef<AboutAppModalHandle>(null);
 
     const [invitations, setInvitations] = useState<Invitation[]>([])
 
@@ -199,6 +201,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
 
                             <div className="my-1 h-px w-full bg-app-border"/>
 
+                            <button
+                                onClick={() => {
+                                    setShowMenu(false);
+                                    aboutModalRef.current?.openModal();
+                                }}
+                                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+                            >
+                                <FontAwesomeIcon icon={faInfoCircle} className="w-4"/>
+                                About this app
+                            </button>
 
                             <div className="px-2 my-2">
                                 {/*<p className="mb-2 ml-1 block text-[10px] font-bold uppercase tracking-wider text-app-muted">App Theme</p>*/}
@@ -239,6 +251,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page}) => {
             <ChangePasswordModal ref={changePwModalRef}/>
             <ProfileModal ref={profileModalRef}/>
             <InvitationsModal ref={invitationsModalRef}/>
+            <AboutAppModal ref={aboutModalRef}/>
 
         </>
     );

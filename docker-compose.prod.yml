@@ -57,6 +57,8 @@ services:
         # OTTIMO: Queste vengono usate durante la "npm run build"
         VITE_API_URL: ${BACKEND_URL}
         VITE_ALLOWED_HOSTS: ${FRONTEND_URL}
+        VITE_APP_VERSION: ${VITE_APP_VERSION:-'dev'}
+        VITE_APP_BUILD_DATE: ${VITE_APP_BUILD_DATE:-''}
     container_name: finance_frontend_prod
     restart: always
     ports:

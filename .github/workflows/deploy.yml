@@ -2,19 +2,27 @@ name: CI/CD Deploy to Mini PC
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "release/*" ]
 
 jobs:
   deploy:
     runs-on: self-hosted
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
-      - name: Copy .env from Host to Runner workspace
+      - name: Copy .env from Host to Runner workspace and inject Version
         run: |
           cp /home/deployer/.env .
+          # Extract version from branch name, e.g., release/v1.1.2 -> v1.1.2
+          VERSION=${GITHUB_REF_NAME#release/}
+          echo "VITE_APP_VERSION=$VERSION" >> .env
+          echo "VITE_APP_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> .env
 
       - name: Deploy with Production Compose
         run: |
@@ -22,3 +30,41 @@ jobs:
 
       - name: Cleanup unused Docker resources
         run: docker builder prune -f && docker image prune -f
+
+      - name: Auto-merge to main
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git merge origin/${{ github.ref_name }} --no-ff -m "Auto-merge release ${{ github.ref_name }} into main"
+          git push origin main
+
+      - name: Cleanup old release branches
+        if: success()
+        run: |
+          # Fetch all branches strictly to ensure we have the latest remotes
+          git fetch --prune
+          # List all remote release branches, sorted by committer date (newest first)
+          branches=$(git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/remotes/origin/release/)
+          
+          # Convert to array
+          branch_array=()
+          while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              branch_array+=("$line")
+            fi
+          done <<< "$branches"
+          
+          # If more than 3, delete the older ones
+          if [ ${#branch_array[@]} -gt 3 ]; then
+            for i in "${!branch_array[@]}"; do
+              if [ $i -ge 3 ]; then
+                # Strip origin/ from branch name
+                branch_to_delete=${branch_array[$i]#origin/}
+                echo "Deleting old release branch: $branch_to_delete"
+                git push origin --delete "$branch_to_delete" || true
+              fi
+            done
+          fi
