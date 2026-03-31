@@ -1,19 +1,19 @@
-import {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import api from '../../api/axiosConfig';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faMoneyBillTransfer, faEdit, faCheck} from '@fortawesome/free-solid-svg-icons';
-import {ModalDialog} from '../ModalDialog';
-import {triggerToast} from '../../components/ToastNotification';
-import {CURRENCY_META, type CurrencyCode} from '../../utils/currencies';
-import type {Tag, Wallet, Transaction} from "../../utils/types.ts";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMoneyBillTransfer, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { ModalDialog } from '../ModalDialog';
+import { triggerToast } from '../../components/ToastNotification';
+import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
+import type { Tag, Wallet, Transaction } from "../../utils/types.ts";
 
 // Sub-components
-import {TagPicker} from './TagPicker/TagPicker.tsx';
-import {AmountInput} from "./AmountInput.tsx";
-import {ExchangeRateSection} from "./ExchangeRateSection.tsx";
-import {TransactionTypeToggle} from './TransactionTypeToggle.tsx';
-import {TransactionMetadataInputs} from './TransactionMetadataInputs.tsx';
-import {RecurringPaymentToggle} from './RecurringPaymentToggle.tsx';
+import { TagPicker } from './TagPicker/TagPicker.tsx';
+import { AmountInput } from "../../components/AmountInput.tsx";
+import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
+import { TransactionTypeToggle } from './TransactionTypeToggle.tsx';
+import { TransactionMetadataInputs } from './TransactionMetadataInputs.tsx';
+import { RecurringPaymentToggle } from './RecurringPaymentToggle.tsx';
 import CustomDatePicker from '../../components/DataPicker/CustomDatePicker.tsx';
 
 export interface TransactionModalHandle {
@@ -28,7 +28,7 @@ interface Props {
 }
 
 export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
-    ({wallet, tags, baseCurrency, onSuccess}, ref) => {
+    ({ wallet, tags, baseCurrency, onSuccess }, ref) => {
         const dialogRef = useRef<HTMLDialogElement>(null);
 
         // --- Form States ---
@@ -130,7 +130,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
 
         const rightActions = [
             {
-                icon: <FontAwesomeIcon icon={faCheck} className="text-xl"/>,
+                icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
                 onClick: async () => {
                     if (canSave && !loading)
                         await handleSave();
@@ -146,7 +146,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                 ref={dialogRef}
                 className="max-w-160 p-6"
                 title={<><FontAwesomeIcon icon={isEditing ? faEdit : faMoneyBillTransfer}
-                                          color={wallet.color}/> {isEditing ? "Edit" : "New"} Transaction</>}
+                    color={wallet.color} /> {isEditing ? "Edit" : "New"} Transaction</>}
                 rightActions={rightActions}
             >
                 <div id="transaction-form" key={resetKey} className="text-left flex flex-col gap-6">
@@ -166,7 +166,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                                     setConvertedAmount(val);
                             }}
                         />
-                        <TransactionTypeToggle type={type} setType={setType}/>
+                        <TransactionTypeToggle type={type} setType={setType} />
                     </div>
 
                     {/* 2. TAGS & DATE */}
@@ -204,7 +204,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                         selectedTagName={selectedTagName}
                     />
 
-                    <hr className="my-2 border-app-border"/>
+                    <hr className="my-2 border-app-border" />
 
                     {/* 4. EXCHANGE RATE */}
                     <ExchangeRateSection

@@ -1,18 +1,18 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import api from '../../api/axiosConfig';
+import api from '../api/axiosConfig.ts';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRepeat, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
-import { triggerToast } from '../../components/ToastNotification';
-import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
-import type { Tag, Wallet, Subscription } from "../../utils/types.ts";
+import { triggerToast } from '../components/ToastNotification.tsx';
+import { CURRENCY_META, type CurrencyCode } from '../utils/currencies.ts';
+import type { Tag, Wallet, Subscription } from "../utils/types.ts";
 
 // Sub-components riutilizzati dalle transazioni!
-import CustomDatePicker from '../../components/DataPicker/CustomDatePicker.tsx';
-import {ModalDialog} from "../../modals/ModalDialog.tsx";
-import {AmountInput} from "../../modals/TransactionModal/AmountInput.tsx";
-import {TransactionTypeToggle} from "../../modals/TransactionModal/TransactionTypeToggle.tsx";
-import {TagPicker} from "../../modals/TransactionModal/TagPicker/TagPicker.tsx";
-import {ExchangeRateSection} from "../../modals/TransactionModal/ExchangeRateSection.tsx";
+import CustomDatePicker from '../components/DataPicker/CustomDatePicker.tsx';
+import { ModalDialog } from "./ModalDialog.tsx";
+import { AmountInput } from "../components/AmountInput.tsx";
+import { TransactionTypeToggle } from "./TransactionModal/TransactionTypeToggle.tsx";
+import { TagPicker } from "./TransactionModal/TagPicker/TagPicker.tsx";
+import { ExchangeRateSection } from "./TransactionModal/ExchangeRateSection.tsx";
 
 export interface SubscriptionModalHandle {
     openModal: (sub?: Subscription) => void;

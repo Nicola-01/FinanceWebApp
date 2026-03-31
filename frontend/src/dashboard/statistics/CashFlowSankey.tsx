@@ -1,6 +1,8 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { useTheme as useMuiTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import {
     Unstable_SankeyChart as SankeyChart,
     type SankeyValueFormatterContext,
@@ -21,6 +23,8 @@ type LinkDef = { source: string; target: string; value: number; color?: string }
 
 export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({transactions}) => {
     const {resolvedTheme} = useTheme();
+    const muiTheme = useMuiTheme();
+    const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
 
     const incomeSubNodes = new Map<string, NodeDef>();
     const incomeNodes = new Map<string, NodeDef>();
@@ -150,70 +154,73 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({transactions}) =>
         return context.type === 'node' ? `${fmt} totale` : fmt;
     };
 
-    const maxLabelLen = Math.max(...nodesArray.map(n => n.label.length));
-    const sidePadding = Math.max(120, maxLabelLen * 8 + 24);
+    const sidePadding = isMobile ? 12 : 24;
 
 
     return (
         <Box sx={{
             width: '100%',
-            my: 4,
-            p: 4,
+            my: { xs: 2, md: 4 },
+            p: { xs: 1, sm: 3, md: 4 },
             bgcolor: 'var(--bg-surface)',
             borderRadius: 4,
             border: '1px solid var(--app-border)',
             '& .MuiChartsSankey-label, & text': {
                 fill: resolvedTheme === 'dark' ? '#ffffff !important' : '#1a1a1a !important',
                 fontFamily: 'inherit',
-                fontSize: '12px !important',
+                fontSize: { xs: '10px !important', sm: '12px !important' },
                 fontWeight: '500 !important',
             }
         }}>
             <Typography variant="h5" component="h2" gutterBottom align="center"
-                        sx={{fontWeight: 'bold', color: 'app-text'}}>
+                        sx={{fontWeight: 'bold', color: 'app-text', fontSize: { xs: '1.2rem', md: '1.5rem' }}}>
                 Cash Flow Overview
             </Typography>
-            <Typography variant="subtitle1" align="center" sx={{mb: 4, color: 'app-muted'}}>
+            <Typography variant="subtitle1" align="center" sx={{mb: { xs: 2, md: 4 }, color: 'app-muted', fontSize: { xs: '0.85rem', md: '1rem' }}}>
                 Flow from Income to Expenses
             </Typography>
 
-            <SankeyChart
-                height={CHART_HEIGHT}
-                margin={{top: 20, bottom: 20, left: sidePadding, right: sidePadding}}
-                // rimosse le [ ] che causavano l'errore TS2322
-                series={{
-                    data,
-                    valueFormatter,
-                    nodeOptions: {
-                        sort: 'fixed',
-                        padding: 16,
-                        width: 15,
-                        showLabels: true,
-                    },
-                    linkOptions: {
-                        opacity: 0.55,
-                        curveCorrection: 10,
-                        showValues: false,
-                        sort: 'fixed',
-                        highlight: 'nodes',
-                        fade: 'global',
-                    },
-                    iterations: 32,
-                }}
-            >
-                <defs>
-                    <pattern id="savingsPattern" patternUnits="userSpaceOnUse" width="8" height="8"
-                             patternTransform="rotate(45)">
-                        <rect width="8" height="8" fill="#1e3a8a"/>
-                        <line x1="0" y1="0" x2="0" y2="8" stroke="#3b82f6" strokeWidth="4"/>
-                    </pattern>
-                    <pattern id="deficitPattern" patternUnits="userSpaceOnUse" width="8" height="8"
-                             patternTransform="rotate(45)">
-                        <rect width="8" height="8" fill="#7f1d1d"/>
-                        <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" strokeWidth="4"/>
-                    </pattern>
-                </defs>
-            </SankeyChart>
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ width: '100%', height: CHART_HEIGHT }}>
+                    <SankeyChart
+                        height={CHART_HEIGHT}
+                        margin={{top: 20, bottom: 20, left: sidePadding, right: sidePadding}}
+                        // rimosse le [ ] che causavano l'errore TS2322
+                        series={{
+                            data,
+                            valueFormatter,
+                            nodeOptions: {
+                                sort: 'fixed',
+                                padding: 16,
+                                width: isMobile ? 8 : 15,
+                                showLabels: true,
+                            },
+                            linkOptions: {
+                                opacity: 0.55,
+                                curveCorrection: 10,
+                                showValues: false,
+                                sort: 'fixed',
+                                highlight: 'nodes',
+                                fade: 'global',
+                            },
+                            iterations: 32,
+                        }}
+                    >
+                        <defs>
+                            <pattern id="savingsPattern" patternUnits="userSpaceOnUse" width="8" height="8"
+                                     patternTransform="rotate(45)">
+                                <rect width="8" height="8" fill="#1e3a8a"/>
+                                <line x1="0" y1="0" x2="0" y2="8" stroke="#3b82f6" strokeWidth="4"/>
+                            </pattern>
+                            <pattern id="deficitPattern" patternUnits="userSpaceOnUse" width="8" height="8"
+                                     patternTransform="rotate(45)">
+                                <rect width="8" height="8" fill="#7f1d1d"/>
+                                <line x1="0" y1="0" x2="0" y2="8" stroke="#ef4444" strokeWidth="4"/>
+                            </pattern>
+                        </defs>
+                    </SankeyChart>
+                </Box>
+            </Box>
         </Box>
     );
 };
