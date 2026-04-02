@@ -10,7 +10,9 @@ import { DeleteModalProvider } from "./modals/DeleteModalContext.tsx";
 import Register from "./register/Register.tsx";
 import { initSync } from './utils/syncService.ts';
 import { ThemeProvider } from "./utils/ThemeContext.tsx";
-import {getUserAuth} from "./utils/authHelper.ts";
+import { getUserAuth } from "./utils/authHelper.ts";
+import { PWAProvider } from "./utils/PWAContext.tsx";
+import { PWAPrompt } from "./components/PWAPrompt.tsx";
 
 const App: React.FC = () => {
 
@@ -36,11 +38,13 @@ const App: React.FC = () => {
 
     return (
         <ThemeProvider>
-            <ToastNotification />
-            <DeleteModalProvider deleteModalRef={deleteModalRef}>
-                <DeleteModal ref={deleteModalRef} />
-                <Routes>
-                    <Route path="/login" element={<Login />} />
+            <PWAProvider>
+                <PWAPrompt />
+                <ToastNotification />
+                <DeleteModalProvider deleteModalRef={deleteModalRef}>
+                    <DeleteModal ref={deleteModalRef} />
+                    <Routes>
+                        <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
 
                     {/* Generic protected routes (user must be logged in) */}
@@ -70,6 +74,7 @@ const App: React.FC = () => {
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </DeleteModalProvider>
+            </PWAProvider>
         </ThemeProvider>
     );
 };

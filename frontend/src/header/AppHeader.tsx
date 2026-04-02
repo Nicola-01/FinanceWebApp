@@ -7,7 +7,8 @@ import {
     faSignOutAlt,
     faUser,
     faUserCircle,
-    faInfoCircle
+    faInfoCircle,
+    faDownload
 } from '@fortawesome/free-solid-svg-icons';
 
 // Importiamo i modali che creeremo nel passaggio successivo
@@ -19,6 +20,7 @@ import {getUserAuth} from "../utils/authHelper.ts";
 import api from "../api/axiosConfig.ts";
 import type {Invitation} from "../utils/types.ts";
 import {ThemeSelector} from "../components/ThemeSelector.tsx";
+import { usePWA } from "../utils/PWAContext.tsx";
 
 interface AppHeaderProps {
     page: {
@@ -40,6 +42,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin}) => {
     const [invitations, setInvitations] = useState<Invitation[]>([])
 
     const user = getUserAuth();
+    const { installPrompt, installApp } = usePWA();
 
     // const [invitations, setInvitations] = useState<Invitation>()
 
@@ -167,6 +170,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin}) => {
                                     email@placeholder.com
                                 </p>
                             </div>
+
+                            {installPrompt && (
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            setShowMenu(false);
+                                            installApp();
+                                        }}
+                                        className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-bold text-[#00ff7f] transition-colors hover:bg-app-input"
+                                    >
+                                        <FontAwesomeIcon icon={faDownload} className="w-4" />
+                                        Installa App (PWA)
+                                    </button>
+                                    <div className="my-1 h-px w-full bg-app-border" />
+                                </>
+                            )}
 
                             {!isAdmin &&
                                 <button
