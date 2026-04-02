@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     format, addMonths, subMonths, startOfMonth, endOfMonth,
-    startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays, parseISO
+    startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays
 } from 'date-fns';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import type { Subscription } from '../../utils/types';
+import { generateSubscriptionOccurrences } from '../../utils/subscriptionHelper';
+import {TagBadge} from "../../components/TagBadge.tsx";
 
 interface SubscriptionCalendarProps {
     subscriptions: Subscription[];
-    onEditSubscription?: (subscription: Subscription) => void;
+    onEditSubscription?: (subscription: Subscription, date: Date) => void;
 }
 
 export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subscriptions, onEditSubscription }) => {
@@ -17,6 +19,62 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
 
     const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
     const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+
+    const currentYear = currentDate.getFullYear();
+    const subsHash = subscriptions.map(s => 
+        `${s.id}-${s.status}-${s.frequencyType}-${s.frequencyInterval}-${s.nextExecutionDate}-${s.startDate}-${s.duration}-${s.durationTimes}-${s.durationUntil}`
+    ).join('|');
+
+    const [cacheInfo, setCacheInfo] = useState<{
+        subsHash: string;
+        yearsMap: Record<number, Record<string, Subscription[]>>;
+    }>({ subsHash: '', yearsMap: {} });
+
+    useEffect(() => {
+        const neededYears = [currentYear - 1, currentYear, currentYear + 1];
+
+        setCacheInfo(prev => {
+            const isHashChanged = prev.subsHash !== subsHash;
+            let currentMap = isHashChanged ? {} : { ...prev.yearsMap };
+            let hasChanges = isHashChanged;
+
+            for (const y of neededYears) {
+                if (!currentMap[y]) {
+                    hasChanges = true;
+                    const yearOccurrences: Record<string, Subscription[]> = {};
+                    
+                    subscriptions.forEach(sub => {
+                        if (sub.status === 'COMPLETED') return;
+                        
+                        const dates = generateSubscriptionOccurrences(sub, y, y);
+                        dates.forEach(d => {
+                            const dateStr = format(d, 'yyyy-MM-dd');
+                            if (!yearOccurrences[dateStr]) yearOccurrences[dateStr] = [];
+                            yearOccurrences[dateStr].push(sub);
+                        });
+                    });
+                    
+                    currentMap[y] = yearOccurrences;
+                }
+            }
+
+            if (hasChanges) {
+                const loadedYears = Object.keys(currentMap).map(Number);
+                if (loadedYears.length > 5) {
+                    loadedYears.sort((a, b) => Math.abs(a - currentYear) - Math.abs(b - currentYear));
+                    const toKeep = loadedYears.slice(0, 5);
+                    const finalMap: typeof currentMap = {};
+                    toKeep.forEach(y => {
+                        finalMap[y] = currentMap[y];
+                    });
+                    return { subsHash, yearsMap: finalMap };
+                }
+                return { subsHash, yearsMap: currentMap };
+            }
+
+            return prev;
+        });
+    }, [currentYear, subsHash, subscriptions]);
 
     // Generazione della griglia del calendario
     const monthStart = startOfMonth(currentDate);
@@ -61,12 +119,12 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
             </div>
 
             {/* Griglia dei Giorni */}
-            <div className="grid grid-cols-7 auto-rows-[minmax(80px,1fr)] gap-2 flex-1 overflow-y-auto custom-scrollbar pr-2">
+            <div className="grid grid-cols-7 auto-rows-[minmax(80px,1fr)] gap-1 md:gap-2 flex-1 overflow-y-auto custom-scrollbar pr-2">
                 {calendarDays.map((calendarDay, index) => {
-                    // Trova tutti gli abbonamenti la cui nextExecutionDate cade in questo giorno
-                    const daySubscriptions = subscriptions.filter(sub =>
-                        sub.nextExecutionDate && isSameDay(parseISO(sub.nextExecutionDate), calendarDay)
-                    );
+                    const dayStr = format(calendarDay, 'yyyy-MM-dd');
+                    const calendarDayYear = calendarDay.getFullYear();
+                    const yearData = cacheInfo.yearsMap[calendarDayYear];
+                    const daySubscriptions = yearData ? (yearData[dayStr] || []) : [];
 
                     const isCurrentMonth = isSameMonth(calendarDay, monthStart);
                     const isToday = isSameDay(calendarDay, new Date());
@@ -85,16 +143,17 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                             {/* Lista pillole abbonamenti nel giorno */}
                             <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar">
                                 {daySubscriptions.map(sub => (
-                                    <div
-                                        key={sub.id}
-                                        onClick={() => onEditSubscription && onEditSubscription(sub)}
-                                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded truncate cursor-pointer transition-opacity hover:opacity-80 ${
-                                            sub.type === 'INCOME' ? 'bg-[#00ff7f]/20 text-[#00ff7f]' : 'bg-white/10 text-white'
-                                        }`}
-                                        title={`${sub.name} - ${sub.amount}`}
-                                    >
-                                        {sub.name}
-                                    </div>
+                                    <TagBadge tag={sub.tag} key={sub.id} showParent={false} onClick={() => onEditSubscription && onEditSubscription(sub, calendarDay)}/>
+                                    // <div
+                                    //     key={sub.id}
+                                    //
+                                    //     className={`text-[10px] font-bold px-1.5 py-0.5 rounded truncate cursor-pointer transition-opacity hover:opacity-80 ${
+                                    //         sub.type === 'INCOME' ? 'bg-[#00ff7f]/20 text-[#00ff7f]' : 'bg-white/10 text-white'
+                                    //     }`}
+                                    //     title={`${sub.name} - ${sub.amount}`}
+                                    // >
+                                    //     {sub.name}
+                                    // </div>
                                 ))}
                             </div>
                         </div>

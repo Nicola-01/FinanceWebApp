@@ -7,12 +7,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface UserInvitationRepository extends JpaRepository<UserInvitation, UUID> {
     Optional<UserInvitation> findByToken(String token);
     Optional<UserInvitation> findByEmailIgnoreCase(String email);
+    List<UserInvitation> findAllByStatusNot(UserInvitation.InvitationStatus status);
     boolean existsByEmailIgnoreCase(String email);
     void deleteByEmailIgnoreCase(String email);
 

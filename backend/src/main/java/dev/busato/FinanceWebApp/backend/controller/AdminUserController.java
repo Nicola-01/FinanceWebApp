@@ -20,7 +20,7 @@ public class AdminUserController {
 
     @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> getUsers() {
-        return ResponseEntity.ok(manageUserService.getUsers());
+        return ResponseEntity.ok(manageUserService.getUsersWithStats());
     }
 
     @DeleteMapping("/{id}")

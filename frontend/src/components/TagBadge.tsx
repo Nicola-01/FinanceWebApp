@@ -4,12 +4,17 @@ import {type IconKey, ICONS} from "../utils/icons.ts";
 import {faChevronRight, faTags} from "@fortawesome/free-solid-svg-icons";
 import {useWalletContext} from "../dashboard/wallet/WalletContext.tsx";
 
-export const TagBadge = ({tag, showParent = true, forceShowParent = false}: { tag: Tag | any, showParent?: boolean, forceShowParent?: boolean }) => {
+export const TagBadge = ({tag, showParent = true, forceShowParent = false, onClick}: {
+    tag: Tag | any,
+    showParent?: boolean,
+    forceShowParent?: boolean,
+    onClick?: () => any
+}) => {
     if (!tag) return null;
     const {tags} = useWalletContext();
 
     return (
-        <span className="inline-flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-1.5" onClick={onClick}>
             <span
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider w-max shrink-0"
                 style={{

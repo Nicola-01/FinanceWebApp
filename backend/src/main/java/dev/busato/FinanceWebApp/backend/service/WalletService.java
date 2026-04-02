@@ -11,7 +11,9 @@ import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository; // <-
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import dev.busato.FinanceWebApp.backend.mappers.WalletMapper;
 import jakarta.transaction.Transactional;
+
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,6 +28,8 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final WalletAccessRepository walletAccessRepository;
     private final UserRepository userRepository;
+    private final WalletMapper walletMapper;
+
 
     @Transactional
     public WalletResponse createWallet(WalletRequest request, UUID userId) {
@@ -59,7 +63,8 @@ public class WalletService {
 
         walletAccessRepository.save(access);
 
-        return mapWalletToResponse(access);
+        return walletMapper.mapToResponse(access);
+
     }
 
     @Transactional
@@ -80,7 +85,8 @@ public class WalletService {
         if (request.getIcon() != null && !request.getIcon().isBlank())
             wallet.setIcon(request.getIcon());
 
-        return mapWalletToResponse(ownerAccess);
+        return walletMapper.mapToResponse(ownerAccess);
+
     }
 
     @Transactional
@@ -97,7 +103,8 @@ public class WalletService {
     public List<WalletResponse> getWallets(UUID userId) {
         return walletAccessRepository.findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED)
                 .stream()
-                .map(this::mapWalletToResponse)
+                .map(walletMapper::mapToResponse)
+
                 .sorted((w1, w2) -> w2.getCreatedAt().compareTo(w1.getCreatedAt()))
                 .collect(Collectors.toList());
     }
@@ -106,18 +113,9 @@ public class WalletService {
         WalletAccess walletAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletID)
                 .orElseThrow(() -> new WalletNotFoundException(walletID));
 
-        return mapWalletToResponse(walletAccess);
+        return walletMapper.mapToResponse(walletAccess);
+
     }
 
-    public WalletResponse mapWalletToResponse(WalletAccess access) {
-        return WalletResponse.builder()
-                .id(access.getWallet().getId())
-                .name(access.getWallet().getName())
-                .currency(access.getWallet().getCurrency())
-                .icon(access.getWallet().getIcon())
-                .color(access.getWallet().getColor())
-                .createdAt(access.getWallet().getCreatedAt())
-                .myRole(access.getRole())
-                .build();
-    }
+
 }

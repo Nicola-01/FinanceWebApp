@@ -41,8 +41,8 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({ users, onDeleteCli
         if (sortConfig !== null) {
             const { key, direction } = sortConfig;
             sortableUsers.sort((a, b) => {
-                const valA = a[key] ?? '';
-                const valB = b[key] ?? '';
+                const valA = a[key] ?? (key === 'wallets' || key === 'transactions' ? 0 : '');
+                const valB = b[key] ?? (key === 'wallets' || key === 'transactions' ? 0 : '');
                 if (valA < valB) return direction === 'ascending' ? -1 : 1;
                 if (valA > valB) return direction === 'ascending' ? 1 : -1;
                 return 0;
