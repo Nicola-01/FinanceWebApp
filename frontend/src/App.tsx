@@ -20,15 +20,15 @@ const App: React.FC = () => {
         initSync();
     }, []);
 
-    const user = getUserAuth();
-
     const RootRedirect = () => {
+        const user = getUserAuth();
         if (user?.role === 'ADMIN')
             return <Navigate to="/admin/dashboard" replace />;
         return <Navigate to="/dashboard" replace />;
     };
 
     const AdminRoute = () => {
+        const user = getUserAuth();
         if (user?.role !== 'ADMIN')
             return <Navigate to="/" replace />;
         return <Outlet />;

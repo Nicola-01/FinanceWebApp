@@ -49,6 +49,7 @@ public class AdminUserInviteService {
                 .stream().map(user -> {
                     UserResponse response = userMapper.mapToResponse(user);
                     List<WalletAccess> accesses = walletAccessRepository.findAllByUserIdAndStatus(user.getId(), WalletAccess.InvitationStatus.ACCEPTED);
+                    accesses = accesses.stream().filter(access -> !access.getWallet().getName().equals("Portafoglio Demo")).collect(Collectors.toList());
                     response.setWallets(accesses.size());
                     
                     int txCount = 0;

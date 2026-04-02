@@ -4,6 +4,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faEye, faEyeSlash, faLock, faTriangleExclamation, faUser} from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
 import {triggerToast} from '../components/ToastNotification.tsx';
+import { getUserAuth } from '../utils/authHelper.ts';
 
 interface Requirements {
     username?: string;
@@ -72,13 +73,7 @@ export const LoginForm: React.FC = () => {
             else
                 sessionStorage.setItem('jwtToken', token);
 
-
-            // Role-based routing
-            if (role === 'ADMIN')
-                navigate('/admin/dashboard');
-            else
-                navigate('/dashboard');
-
+            navigate('/');
 
         } catch (err: any) {
             // Error handling & shake animation
