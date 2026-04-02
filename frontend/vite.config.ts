@@ -28,7 +28,7 @@ export default defineConfig(({ mode }) => {
             react(),
             tailwindcss(),
             VitePWA({
-                registerType: 'autoUpdate',
+                registerType: 'prompt',
                 includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
                 manifest: {
                     name: 'Finance Web App',
@@ -47,6 +47,12 @@ export default defineConfig(({ mode }) => {
                             src: 'pwa-512x512.png',
                             sizes: '512x512',
                             type: 'image/png'
+                        },
+                        {
+                            src: 'pwa-512x512.png',
+                            sizes: '512x512',
+                            type: 'image/png',
+                            purpose: 'any maskable'
                         }
                     ]
                 },
