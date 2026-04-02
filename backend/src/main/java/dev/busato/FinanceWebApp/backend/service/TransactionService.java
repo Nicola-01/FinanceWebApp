@@ -1,14 +1,14 @@
 package dev.busato.FinanceWebApp.backend.service;
 
-import dev.busato.FinanceWebApp.backend.dto.TagRequest;
-import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.*;
 import dev.busato.FinanceWebApp.backend.repository.*;
+import dev.busato.FinanceWebApp.backend.mappers.TransactionMapper;
 import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,6 +28,8 @@ public class TransactionService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final WalletRepository walletRepository;
+    private final TransactionMapper transactionMapper;
+
 
     @Transactional
     @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
@@ -60,14 +61,16 @@ public class TransactionService {
                 .build();
 
         transaction = transactionRepository.save(transaction);
-        return mapToResponse(transaction);
+        return transactionMapper.mapToResponse(transaction);
+
     }
 
     @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
     public List<TransactionResponse> getTransactionsByWalletID(UUID walletId, UUID userId) {
         return transactionRepository.getAllByWalletId(walletId).stream()
-                .map(this::mapToResponse)
+                .map(transactionMapper::mapToResponse)
                 .collect(Collectors.toList());
+
     }
 
     @Transactional
@@ -103,8 +106,9 @@ public class TransactionService {
         if (request.getTransactionDate() != null)
             transaction.setTransactionDate(request.getTransactionDate());
 
-        return mapToResponse(transaction);
+        return transactionMapper.mapToResponse(transaction);
     }
+
 
     @Transactional
     @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
@@ -114,31 +118,4 @@ public class TransactionService {
 
         transactionRepository.delete(transaction);
     }
-
-    private TransactionResponse mapToResponse(Transaction transaction) {
-        return TransactionResponse.builder()
-                .id(transaction.getId())
-                .name(transaction.getName())
-                .amount(transaction.getAmount())
-                .originalAmount(transaction.getOriginalAmount())
-                .originalCurrency(transaction.getOriginalCurrency())
-                .exchangeValue(transaction.getExchangeValue())
-                .tag(
-                    TagResponse.builder()
-                        .name(transaction.getTag().getName())
-                        .icon(transaction.getTag().getIcon())
-                        .colorHex(transaction.getTag().getColorHex())
-                        .parentName(Optional.ofNullable(transaction.getTag().getParent())
-                            .map(Tag::getName) // parent could be null
-                            .orElse(null))
-                        .build()
-                )
-                .transactionDate(transaction.getTransactionDate())
-                .type(transaction.getType().toString())
-                .notes(transaction.getNotes())
-                .build();
-
-
-    }
-
 }

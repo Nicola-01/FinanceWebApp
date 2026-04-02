@@ -61,8 +61,10 @@ const AdminDashboard: React.FC = () => {
     };
 
     return (
-        <div className="relative min-h-screen overflow-x-hidden bg-[#0f0f10] text-white font-semibold">
+        
+        //<div className="relative min-h-screen overflow-x-hidden bg-[#0f0f10] text-white font-semibold">
 
+            <div className="flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-app-bg text-app-text transition-colors">
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                 <Sphere
                     style={{
@@ -77,7 +79,7 @@ const AdminDashboard: React.FC = () => {
                 />
             </div>
 
-            <AppHeader page={{ text: "Admin", accent: "Panel" }} />
+            <AppHeader page={{ text: "Admin", accent: "Panel" }} isAdmin={true} />
 
             <main className="relative z-10 mx-auto my-10 flex w-[95%] max-w-[1600px] flex-col gap-[30px]">
 

@@ -62,7 +62,7 @@ export const LoginForm: React.FC = () => {
                 rememberMe: rememberMe.current?.checked
             });
 
-            const {token, role, passwordMustChange} = response.data;
+            const {token, passwordMustChange} = response.data;
 
             localStorage.setItem('mustChangePWD', JSON.stringify(passwordMustChange));
 
@@ -72,13 +72,7 @@ export const LoginForm: React.FC = () => {
             else
                 sessionStorage.setItem('jwtToken', token);
 
-
-            // Role-based routing
-            if (role === 'ADMIN')
-                navigate('/admin/dashboard');
-            else
-                navigate('/dashboard');
-
+            navigate('/');
 
         } catch (err: any) {
             // Error handling & shake animation

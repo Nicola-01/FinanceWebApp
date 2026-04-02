@@ -14,4 +14,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> getAllByWalletId(UUID walletID);
     boolean existsByTag(Tag tag);
     Optional<Transaction> findByIdAndWalletId(UUID id, UUID walletId);
+    long countByWalletId(UUID walletId);
 }

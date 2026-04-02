@@ -41,7 +41,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
     const getFrequencyText = () => {
         const interval = sub.frequencyInterval || 1;
         const typeStr = sub.frequencyType.toLowerCase();
-        if (interval === 1) return `Every ${typeStr.replace('ly', '')}`;
+        if (interval === 1) return `Every ${typeStr.replace('ly', '').replace('i','y')}`;
         return `Every ${interval} ${typeStr}s`;
     };
 

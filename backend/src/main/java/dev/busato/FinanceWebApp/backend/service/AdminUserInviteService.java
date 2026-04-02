@@ -9,13 +9,17 @@ import dev.busato.FinanceWebApp.backend.model.UserInvitation;
 import dev.busato.FinanceWebApp.backend.repository.ManageUserRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserInvitationRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
+import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
+import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
+import dev.busato.FinanceWebApp.backend.model.WalletAccess;
+import dev.busato.FinanceWebApp.backend.mappers.AdminInviteMapper;
+import dev.busato.FinanceWebApp.backend.mappers.UserMapper;
 import jakarta.mail.MessagingException;
+
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -26,21 +30,35 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AdminUserInviteService {
-    @Value("${application.frontend.url}")
-    private String FRONTEND_URL;
+
 
     private final SendEmailService sendEmailService;
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ManageUserRepository manageUserRepository;
     private final UserInvitationRepository userInvitationRepository;
+    private final WalletAccessRepository walletAccessRepository;
+    private final TransactionRepository transactionRepository;
+    private final UserMapper userMapper;
+    private final AdminInviteMapper adminInviteMapper;
 
-    //    @PreAuthorize("adminUser.Role.equals(User.Role.ADMIN)")
+
     @PreAuthorize("hasRole('ADMIN')")
-    public List<UserResponse> getUsers() {
+    public List<UserResponse> getUsersWithStats() {
         return userRepository.findAllByRole(User.Role.USER)
-                .stream().map(this::mapToResponse)
+                .stream().map(user -> {
+                    UserResponse response = userMapper.mapToResponse(user);
+                    List<WalletAccess> accesses = walletAccessRepository.findAllByUserIdAndStatus(user.getId(), WalletAccess.InvitationStatus.ACCEPTED);
+                    accesses = accesses.stream().filter(access -> !access.getWallet().getName().equals("Portafoglio Demo")).collect(Collectors.toList());
+                    response.setWallets(accesses.size());
+                    
+                    int txCount = 0;
+                    for (WalletAccess access : accesses)
+                        txCount += (int) transactionRepository.countByWalletId(access.getWallet().getId());
+                    response.setTransactions(txCount);
+                    
+                    return response;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -69,15 +87,7 @@ public class AdminUserInviteService {
 
         userInvitationRepository.save(invitation);
 
-        String url = generateInviteUrl(token);
-
-        AdminInviteResponse inviteResponse = AdminInviteResponse.builder()
-                .email(request.getEmail())
-                .note(request.getNote())
-                .url(url)
-                .expiresAt(LocalDateTime.now().plusDays(3))
-                .status(UserInvitation.InvitationStatus.PENDING.toString())
-                .build();
+        AdminInviteResponse inviteResponse = adminInviteMapper.mapToAdminInviteResponse(invitation);
 
         try {
             sendEmailService.sendRegistrationInvitation(inviteResponse);
@@ -85,22 +95,17 @@ public class AdminUserInviteService {
             throw new RuntimeException("Unable to send the invitation email to " + request.getEmail(), e);
         }
 
-        return AdminInviteResponse.builder()
-                .email(invitation.getEmail())
-                .note(invitation.getNote())
-                .url(generateInviteUrl(token))
-                .createdAt(invitation.getCreatedAt())
-                .expiresAt(invitation.getExpiresAt())
-                .status(invitation.getStatus().toString())
-                .build();
+        return inviteResponse;
     }
+
 
 
     @PreAuthorize("hasRole('ADMIN')")
     public List<AdminInviteResponse> getInvites() {
-        return userInvitationRepository.findAll().stream()
-                .map(this::mapToAdminInviteResponse)
+        return userInvitationRepository.findAllByStatusNot(UserInvitation.InvitationStatus.ACCEPTED).stream()
+                .map(adminInviteMapper::mapToAdminInviteResponse)
                 .collect(Collectors.toList());
+
     }
 
     @Transactional
@@ -120,27 +125,5 @@ public class AdminUserInviteService {
         userInvitationRepository.deleteExpiredInvitations(cutoffDate);
     }
 
-    private UserResponse mapToResponse(User user) {
-        return UserResponse.builder()
-                .id(user.getId())
-                .name(user.getUsername())
-                .createdAt(user.getCreatedAt())
-                .build();
-    }
 
-    private AdminInviteResponse mapToAdminInviteResponse(UserInvitation invitation) {
-        return AdminInviteResponse.builder()
-                .email(invitation.getEmail())
-                .url(generateInviteUrl(invitation.getToken()))
-                .note(invitation.getNote())
-                .status(invitation.getStatus().name())
-                .expiresAt(invitation.getExpiresAt())
-                .createdAt(invitation.getCreatedAt())
-                .build();
-    }
-
-
-    private String generateInviteUrl(String token) {
-        return FRONTEND_URL + "/register?token=" + token;
-    }
 }

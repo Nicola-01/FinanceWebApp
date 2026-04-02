@@ -2,14 +2,14 @@ package dev.busato.FinanceWebApp.backend.service;
 
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
-import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.*;
 import dev.busato.FinanceWebApp.backend.repository.*;
+import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
 import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.exec.ExecutionException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -18,8 +18,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -36,6 +34,8 @@ public class SubscriptionService {
     private final WalletRepository walletRepository;
     private final TagRepository tagRepository;
     private final TransactionRepository transactionRepository;
+    private final SubscriptionMapper subscriptionMapper;
+
 
     /**
      * Retrieves all subscriptions associated with a specific wallet.
@@ -47,8 +47,9 @@ public class SubscriptionService {
     @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
     public List<SubscriptionResponse> getSubscriptionsByWalletID(UUID walletId, UUID userId) {
         return subscriptionRepository.findAllByWalletId(walletId).stream()
-                .map(this::mapToResponse)
+                .map(subscriptionMapper::mapToResponse)
                 .collect(Collectors.toList());
+
     }
 
     /**
@@ -105,7 +106,8 @@ public class SubscriptionService {
             executeSubscription(sub);
 
         sub = subscriptionRepository.save(sub);
-        return mapToResponse(sub);
+        return subscriptionMapper.mapToResponse(sub);
+
 
     }
 
@@ -125,61 +127,61 @@ public class SubscriptionService {
         Subscription sub = subscriptionRepository.findByIdAndWalletId(subscriptionId, walletId)
                 .orElseThrow(() -> new IllegalArgumentException("Subscription not found or does not belong to this wallet"));
 
-//        TODO DA sistemare
-        throw new IllegalArgumentException("TODO");
+        if (request.getName() != null) {
+            if (request.getName().length() < 2 || request.getName().length() > 40)
+                throw new IllegalArgumentException("The name must be between 3 and 40 characters long.");
+            sub.setName(request.getName());
+        }
 
-//        if (request.getName() != null) {
-//            if (request.getName().length() < 2 || request.getName().length() > 40)
-//                throw new IllegalArgumentException("The name must be between 3 and 40 characters long.");
-//            sub.setName(request.getName());
-//        }
-//
-//        if (request.getAmount().compareTo(BigDecimal.ZERO) < 0)
-//            throw new IllegalArgumentException("The amount cannot be negative.");
-//
-//        Tag tag = null;
-//        if (request.getTag() != null && !request.getTag().isBlank()) {
-//            tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
-//                    .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
-//        }
-//        sub.setTag(tag);
-//
-//        sub.setAmount(request.getAmount());
-//        sub.setOriginalAmount(request.getOriginalAmount());
-//        sub.setOriginalCurrency(request.getOriginalCurrency());
-//        sub.setExchangeValue(request.getExchangeValue());
-//        sub.setType(Subscription.Type.valueOf(request.getType()));
-//        sub.setNotes(request.getNotes());
-//
-//        if (request.getStatus() != null) sub.setStatus(Subscription.Status.valueOf(request.getStatus()));
-//
-//        // Flag to track if we need to recalculate the next execution date
-//        boolean recalculateDate = false;
-//
-//        if (request.getFrequencyType() != null) {
-//            sub.setFrequencyType(Subscription.Frequency.valueOf(request.getFrequencyType()));
-//            recalculateDate = true;
-//        }
-//        if (request.getFrequencyInterval() > 0) {
-//            sub.setFrequencyInterval(request.getFrequencyInterval());
-//            recalculateDate = true;
-//        }
-//        if (request.getMonthlySpecificDay() != null || request.isLastWorkingDayOfMonth() != sub.isLastWorkingDayOfMonth()) {
-//            sub.setMonthlySpecificDay(request.getMonthlySpecificDay());
-//            sub.setLastWorkingDayOfMonth(request.isLastWorkingDayOfMonth());
-//            recalculateDate = true;
-//        }
-//
-//        // If any scheduling rule was changed, recalculate the next due date
-//        if (recalculateDate) {
-//            sub.setNextExecutionDate(calculateNextExecutionDate(sub, sub.getStartDate(), true));
-//        }
-//
-//        if (request.getDuration() != null) sub.setDuration(Subscription.Duration.valueOf(request.getDuration()));
-//        sub.setDurationTimes(request.getDurationTimes());
-//        sub.setDurationUntil(request.getDurationUntil());
-//
-//        return mapToResponse(sub);
+        if (request.getAmount() != null && request.getAmount().compareTo(BigDecimal.ZERO) < 0)
+            throw new IllegalArgumentException("The amount cannot be negative.");
+
+        Tag tag = null;
+        if (request.getTag() != null && !request.getTag().isBlank()) {
+            tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
+                    .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
+        }
+        sub.setTag(tag);
+
+        if (request.getAmount() != null) sub.setAmount(request.getAmount());
+        if (request.getOriginalAmount() != null) sub.setOriginalAmount(request.getOriginalAmount());
+        sub.setOriginalCurrency(request.getOriginalCurrency());
+        if (request.getExchangeValue() != null) sub.setExchangeValue(request.getExchangeValue());
+        sub.setAutoExchangeRate(request.isAutoExchangeRate());
+        if (request.getType() != null) sub.setType(Subscription.Type.valueOf(request.getType()));
+        sub.setNotes(request.getNotes());
+
+        if (request.getStatus() != null) sub.setStatus(Subscription.Status.valueOf(request.getStatus()));
+
+        // Flag to track if we need to recalculate the next execution date
+        boolean recalculateDate = false;
+
+        if (request.getFrequencyType() != null && !request.getFrequencyType().equals(sub.getFrequencyType().name())) {
+            sub.setFrequencyType(Subscription.Frequency.valueOf(request.getFrequencyType()));
+            recalculateDate = true;
+        }
+        if (request.getFrequencyInterval() > 0 && request.getFrequencyInterval() != sub.getFrequencyInterval()) {
+            sub.setFrequencyInterval(request.getFrequencyInterval());
+            recalculateDate = true;
+        }
+        if (request.getMonthlySpecificDay() != sub.getMonthlySpecificDay() || request.isLastWorkingDayOfMonth() != sub.isLastWorkingDayOfMonth()) {
+            sub.setMonthlySpecificDay(request.getMonthlySpecificDay());
+            sub.setLastWorkingDayOfMonth(request.isLastWorkingDayOfMonth());
+            recalculateDate = true;
+        }
+
+        // If any scheduling rule was changed, recalculate the next due date
+        // Note: For stopping subscriptions, duration rules don't force recalculation from startDate
+        if (recalculateDate) {
+            sub.setNextExecutionDate(calculateNextExecutionDate(sub, sub.getStartDate(), true));
+        }
+
+        if (request.getDuration() != null) sub.setDuration(Subscription.Duration.valueOf(request.getDuration()));
+        sub.setDurationTimes(request.getDurationTimes());
+        sub.setDurationUntil(request.getDurationUntil());
+
+        sub = subscriptionRepository.save(sub);
+        return subscriptionMapper.mapToResponse(sub);
     }
 
     /**
@@ -201,42 +203,7 @@ public class SubscriptionService {
     // MAPPER METHODS
     // =========================================================================
 
-    private SubscriptionResponse mapToResponse(Subscription sub) {
-        TagResponse tagResp = null;
-        if (sub.getTag() != null) {
-            tagResp = TagResponse.builder()
-                    .name(sub.getTag().getName())
-                    .icon(sub.getTag().getIcon())
-                    .colorHex(sub.getTag().getColorHex())
-                    .parentName(Optional.ofNullable(sub.getTag().getParent()).map(Tag::getName).orElse(null))
-                    .build();
-        }
 
-        return SubscriptionResponse.builder()
-                .id(sub.getId())
-                .name(sub.getName())
-                .tag(tagResp)
-                .amount(sub.getAmount())
-                .originalAmount(sub.getOriginalAmount())
-                .originalCurrency(sub.getOriginalCurrency())
-                .exchangeValue(sub.getExchangeValue())
-                .autoExchangeRate(sub.isAutoExchangeRate())
-                .type(sub.getType().toString())
-                .notes(sub.getNotes())
-                .status(sub.getStatus().toString())
-                .startDate(sub.getStartDate())
-                .nextExecutionDate(sub.getNextExecutionDate())
-                .lastExecutionDate(sub.getLastExecutionDate())
-                .frequencyType(sub.getFrequencyType().toString())
-                .frequencyInterval(sub.getFrequencyInterval())
-                .monthlySpecificDay(sub.getMonthlySpecificDay())
-                .lastWorkingDayOfMonth(sub.isLastWorkingDayOfMonth())
-                .duration(sub.getDuration().toString())
-                .durationTimes(sub.getDurationTimes())
-                .executedTimes(sub.getExecutedTimes())
-                .durationUntil(sub.getDurationUntil())
-                .build();
-    }
 
     // =========================================================================
     // EXECUTION ENGINE (CRON JOB LOGIC)

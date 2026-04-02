@@ -2,22 +2,20 @@ package dev.busato.FinanceWebApp.backend.service;
 
 import dev.busato.FinanceWebApp.backend.dto.TagRequest;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
-import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.TagHasChildrenException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagInUseException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
-import dev.busato.FinanceWebApp.backend.exceptions.UnauthorizedAccessException;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
-import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.repository.*;
+import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,14 +28,17 @@ public class TagService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final WalletRepository walletRepository;
+    private final TagMapper tagMapper;
+
 
 //    public TagResponse getTagByID(UUID id) {}
 
     @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
     public List<TagResponse> getTags(UUID walletId, UUID userId) {
         return tagRepository.getTagsByWalletId(walletId).stream()
-                .map(this::mapToResponse)
+                .map(tagMapper::mapToResponse)
                 .sorted((t1, t2) -> t1.getName().compareTo(t2.getName()))
+
                 .collect(Collectors.toList());
     }
 
@@ -71,7 +72,8 @@ public class TagService {
 
         tagRepository.save(tag);
 
-        return mapToResponse(tag);
+        return tagMapper.mapToResponse(tag);
+
     }
 
     @Transactional
@@ -123,18 +125,10 @@ public class TagService {
             }
         }
 
-        return mapToResponse(tag);
+        return tagMapper.mapToResponse(tag);
     }
 
-    private TagResponse mapToResponse(Tag tag) {
-        return TagResponse.builder()
-                .name(tag.getName())
-                .icon(tag.getIcon())
-                .colorHex(tag.getColorHex())
-                .parentName(Optional.ofNullable(tag.getParent())
-                        .map(Tag::getName) // parent could be null
-                        .orElse(null))
-                .build();
-    }
+
+
 
 }

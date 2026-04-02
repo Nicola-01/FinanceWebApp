@@ -3,8 +3,6 @@ package dev.busato.FinanceWebApp.backend.service;
 import dev.busato.FinanceWebApp.backend.dto.MemberRequest;
 import dev.busato.FinanceWebApp.backend.dto.MemberResponse;
 import dev.busato.FinanceWebApp.backend.dto.WalletInviteResponse;
-import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
-import dev.busato.FinanceWebApp.backend.exceptions.UnauthorizedAccessException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
@@ -12,13 +10,13 @@ import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
-import jakarta.mail.MessagingException;
+import dev.busato.FinanceWebApp.backend.mappers.MemberMapper;
 import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -36,12 +34,15 @@ public class MemberService {
     private final SendEmailService sendEmailService;
 
     private final WalletService walletService;
+    private final MemberMapper memberMapper;
+
 
     @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
     public List<MemberResponse> getMembers(UUID walletId, UUID userId) {
         return walletAccessRepository.findAllByWalletId(walletId).stream()
-                .map(this::mapToResponse)
+                .map(memberMapper::mapToResponse)
                 .collect(Collectors.toList());
+
     }
 
     @Transactional
@@ -102,7 +103,8 @@ public class MemberService {
 
         walletAccessRepository.save(access);
 
-        return mapToResponse(access);
+        return memberMapper.mapToResponse(access);
+
     }
 
     @Transactional
@@ -115,7 +117,8 @@ public class MemberService {
             throw new IllegalArgumentException("Cannot change the role of the wallet owner");
 
         access.setRole(WalletAccess.WalletRole.valueOf(request.getRole().toUpperCase()));
-        return mapToResponse(access);
+        return memberMapper.mapToResponse(access);
+
     }
 
     @Transactional
@@ -139,34 +142,18 @@ public class MemberService {
         );
         return accesses.stream()
                 .filter(access -> access.getStatus() == WalletAccess.InvitationStatus.PENDING)
-                .map(this::mapToWalletInviteResponse)
+                .map(access -> {
+                    String ownerUsername = walletAccessRepository
+                            .findByWalletIdAndRole(access.getWallet().getId(), WalletAccess.WalletRole.OWNER)
+                            .map(wa -> wa.getUser().getUsername())
+                            .orElse("User no found");
+                    return memberMapper.mapToWalletInviteResponse(access, ownerUsername);
+                })
                 .collect(Collectors.toList());
+
     }
 
-    private MemberResponse mapToResponse(WalletAccess access) {
-        return MemberResponse.builder()
-                .userId(access.getUser().getId())
-                .username(access.getUser().getUsername())
-                .role(access.getRole().toString())
-                .status(access.getStatus().toString())
-                .invitedAt(access.getInvitedAt())
-                .build();
-    }
 
-    private WalletInviteResponse mapToWalletInviteResponse(WalletAccess access) {
-        String ownerUsername = walletAccessRepository
-                .findByWalletIdAndRole(access.getWallet().getId(), WalletAccess.WalletRole.OWNER)
-                .map(wa -> wa.getUser().getUsername())
-                .orElse("User no found");
-
-        return WalletInviteResponse.builder()
-                .walletOwner(ownerUsername)
-                .wallet(walletService.mapWalletToResponse(access))
-                .role(access.getRole().name())
-                .status(access.getStatus().name())
-                .invitedAt(access.getInvitedAt())
-                .build();
-    }
 
     public void setStatus(UUID id, UUID walletID, WalletAccess.InvitationStatus invitationStatus) {
         WalletAccess access = walletAccessRepository.findByWalletIdAndUserId(walletID, id)

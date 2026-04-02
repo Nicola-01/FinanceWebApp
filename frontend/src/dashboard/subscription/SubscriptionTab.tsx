@@ -66,7 +66,7 @@ export const SubscriptionTab = () => {
                 ) : (
                     viewMode === 'list'
                         ? <SubscriptionList subscriptions={subscriptions} onEditSubscription={(sub) => detailsModalRef.current?.openModal(sub)} />
-                        : <SubscriptionCalendar subscriptions={subscriptions} onEditSubscription={(sub) => detailsModalRef.current?.openModal(sub)} />
+                        : <SubscriptionCalendar subscriptions={subscriptions} onEditSubscription={(sub, date) => detailsModalRef.current?.openModal(sub, date)} />
                 )}
             </div>
 
