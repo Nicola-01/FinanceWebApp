@@ -41,6 +41,7 @@ jobs:
           git merge ${{ github.ref_name }}
           git push origin main
 
+
       - name: Cleanup old release branches
         if: success()
         run: |

@@ -4,7 +4,6 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faEye, faEyeSlash, faLock, faTriangleExclamation, faUser} from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
 import {triggerToast} from '../components/ToastNotification.tsx';
-import { getUserAuth } from '../utils/authHelper.ts';
 
 interface Requirements {
     username?: string;
@@ -63,7 +62,7 @@ export const LoginForm: React.FC = () => {
                 rememberMe: rememberMe.current?.checked
             });
 
-            const {token, role, passwordMustChange} = response.data;
+            const {token, passwordMustChange} = response.data;
 
             localStorage.setItem('mustChangePWD', JSON.stringify(passwordMustChange));
 
