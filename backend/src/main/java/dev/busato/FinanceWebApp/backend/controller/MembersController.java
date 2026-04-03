@@ -9,6 +9,7 @@ import dev.busato.FinanceWebApp.backend.service.MemberService;
 import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +33,7 @@ public class MembersController {
 
     // Invite a member to a wallet
     @PostMapping("/{walletID}")
+    @PreAuthorize("!principal.demo")
     public ResponseEntity<MemberResponse> inviteMember(
             @PathVariable UUID walletID,
             @RequestBody MemberRequest request,
@@ -41,6 +43,7 @@ public class MembersController {
 
     // Update member role
     @PutMapping("/{walletID}/{memberID}")
+    @PreAuthorize("!principal.demo")
     public ResponseEntity<MemberResponse> updateMemberRole(
             @PathVariable UUID walletID,
             @PathVariable UUID memberID,
@@ -50,6 +53,7 @@ public class MembersController {
     }
 
     @DeleteMapping("/{walletID}/{memberID}")
+    @PreAuthorize("!principal.demo")
     public ResponseEntity<Void> removeMember(
             @PathVariable UUID walletID,
             @PathVariable UUID memberID,
@@ -67,6 +71,7 @@ public class MembersController {
 
     // accept an invitation
     @PostMapping("/{walletID}/accept")
+    @PreAuthorize("!principal.demo")
     public ResponseEntity<Void> acceptInvite(
             @PathVariable UUID walletID,
             @AuthenticationPrincipal User user) {
@@ -76,6 +81,7 @@ public class MembersController {
 
     // refuse an invitation
     @PostMapping("/{walletID}/reject")
+    @PreAuthorize("!principal.demo")
     public ResponseEntity<Void> rejectInvite(
             @PathVariable UUID walletID,
             @AuthenticationPrincipal User user) {

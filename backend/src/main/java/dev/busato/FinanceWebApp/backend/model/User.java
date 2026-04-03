@@ -38,6 +38,10 @@ public class User implements UserDetails {
     @Builder.Default
     private boolean passwordMustChange = true; // default value
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean demo = false;
+
     @Column(updatable = false)
     private LocalDate createdAt; // Stores only YYYY-MM-DD
 

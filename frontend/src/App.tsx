@@ -13,6 +13,7 @@ import { ThemeProvider } from "./utils/ThemeContext.tsx";
 import { getUserAuth } from "./utils/authHelper.ts";
 import { PWAProvider } from "./utils/PWAContext.tsx";
 import { PWAPrompt } from "./components/PWAPrompt.tsx";
+import LandingPage from "./components/LandingPage.tsx";
 
 const App: React.FC = () => {
 
@@ -24,9 +25,11 @@ const App: React.FC = () => {
 
     const RootRedirect = () => {
         const user = getUserAuth();
-        if (user?.role === 'ADMIN')
-            return <Navigate to="/admin/dashboard" replace />;
-        return <Navigate to="/dashboard" replace />;
+        if (user) {
+            if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
+            return <Navigate to="/dashboard" replace />;
+        }
+        return <LandingPage />;
     };
 
     const AdminRoute = () => {
@@ -44,14 +47,14 @@ const App: React.FC = () => {
                 <DeleteModalProvider deleteModalRef={deleteModalRef}>
                     <DeleteModal ref={deleteModalRef} />
                     <Routes>
-                        <Route path="/login" element={<Login />} />
+                    <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    
+                    {/* Root Route serves the Landing Page or Redirects based on auth */}
+                    <Route path="/" element={<RootRedirect />} />
 
                     {/* Generic protected routes (user must be logged in) */}
                     <Route element={<ProtectedRoute />}>
-
-                        {/* Replaced the static Navigate with our dynamic redirect */}
-                        <Route path="/" element={<RootRedirect />} />
 
                         {/* User Dashboard */}
                         <Route
