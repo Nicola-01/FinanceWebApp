@@ -47,6 +47,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       JWT_LONG_EXPIRATION: ${JWT_LONG_EXPIRATION}
       JWT_SHORT_EXPIRATION: ${JWT_SHORT_EXPIRATION}
+      DEMO_ENABLED: ${DEMO_ENABLED}
 
   # 3. Frontend Service (PULITO)
   frontend:
@@ -54,11 +55,11 @@ services:
       context: ./frontend
       target: production
       args:
-        # OTTIMO: Queste vengono usate durante la "npm run build"
         VITE_API_URL: ${BACKEND_URL}
         VITE_ALLOWED_HOSTS: ${FRONTEND_URL}
         VITE_APP_VERSION: ${VITE_APP_VERSION:-'dev'}
         VITE_APP_BUILD_DATE: ${VITE_APP_BUILD_DATE:-''}
+        VITE_DEMO_ENABLED: ${DEMO_ENABLED}
     container_name: finance_frontend_prod
     restart: always
     ports:
