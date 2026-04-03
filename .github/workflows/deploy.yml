@@ -25,9 +25,19 @@ jobs:
           echo "VITE_APP_VERSION=$VERSION" >> .env
           echo "VITE_APP_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> .env
 
+      - name: Clean old build files (dist & assets)
+        run: |
+          echo "Preventive cleanup of dist and assets folders to avoid 404 errors on the Service Worker..."
+          rm -rf dist
+          rm -rf assets
+          # Note: If you use different paths for the Nginx bind mount (e.g., ./nginx/html), add the rm -rf command for those as well.
+
       - name: Deploy with Production Compose
         run: |
-          docker compose -f docker-compose.prod.yml up -d --build
+          # 1. Force a clean build from scratch without using Docker cache
+          docker compose -f docker-compose.prod.yml build --no-cache
+          # 2. Start the containers, forcing them to be recreated
+          docker compose -f docker-compose.prod.yml up -d --force-recreate
 
       - name: Cleanup unused Docker resources
         run: docker builder prune -f && docker image prune -f
