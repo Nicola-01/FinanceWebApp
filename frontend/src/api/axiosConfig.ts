@@ -11,7 +11,7 @@ const api = axios.create({
 
 api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        const publicEndpoints = ['/auth/login', '/auth/register'];
+        const publicEndpoints = ['/auth/login', '/auth/register', '/auth/demo'];
 
         const isPublic = publicEndpoints.some(endpoint => config.url?.endsWith(endpoint));
 

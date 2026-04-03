@@ -65,6 +65,9 @@ public class MemberService {
 
         User targetUser = targetUserOpt.get();
 
+        if (targetUser.isDemo())
+            throw new IllegalArgumentException("You cannot invite a demo account.");
+
         if (targetUser.getId().equals(userId))
             throw new IllegalArgumentException("You cannot invite yourself");
 

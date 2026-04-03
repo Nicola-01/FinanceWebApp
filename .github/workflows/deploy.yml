@@ -1,15 +1,15 @@
-name: CI/CD Deploy to Mini PC
+name: CI/CD Deploy to Prod & Demo
 
 on:
   push:
     branches: [ "release/*" ]
 
 jobs:
-  deploy:
-    runs-on: self-hosted
-    permissions:
-      contents: write
-      pull-requests: write
+  # -------------------------------------------------------------
+  # 1. DEPLOY TO PRODUCTION (Mini PC 1)
+  # -------------------------------------------------------------
+  deploy-prod:
+    runs-on: [self-hosted, prod]
 
     steps:
       - name: Checkout code
@@ -20,7 +20,38 @@ jobs:
       - name: Copy .env from Host to Runner workspace and inject Version
         run: |
           cp /home/deployer/.env .
-          # Extract version from branch name, e.g., release/v1.1.2 -> v1.1.2
+          VERSION=${GITHUB_REF_NAME#release/}
+          echo "VITE_APP_VERSION=$VERSION" >> .env
+          echo "VITE_APP_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> .env
+
+      - name: Clean old build files (dist & assets)
+        run: |
+          rm -rf dist
+          rm -rf assets
+
+      - name: Deploy with Production Compose
+        run: |
+          docker compose -f docker-compose.prod.yml build --no-cache
+          docker compose -f docker-compose.prod.yml up -d --force-recreate
+
+      - name: Cleanup unused Docker resources
+        run: docker builder prune -f && docker image prune -f
+
+  # -------------------------------------------------------------
+  # 2. DEPLOY TO DEMO (Mini PC 2 - Executed in parallel)
+  # -------------------------------------------------------------
+  deploy-demo:
+    runs-on: [self-hosted, demo]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Copy .env from Host to Runner workspace and inject Version
+        run: |
+          # Use the local .env of the Demo CT (which might have a different database)
+          cp /home/deployer/.env .
           VERSION=${GITHUB_REF_NAME#release/}
           echo "VITE_APP_VERSION=$VERSION" >> .env
           echo "VITE_APP_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> .env
@@ -41,6 +72,22 @@ jobs:
 
       - name: Cleanup unused Docker resources
         run: docker builder prune -f && docker image prune -f
+
+  # -------------------------------------------------------------
+  # 3. GIT OPERATIONS (Executed by GitHub Cloud, only once)
+  # -------------------------------------------------------------
+  git-post-deploy:
+    needs: [deploy-prod, deploy-demo] # Wait for Prod and Demo to finish
+    if: success() # Execute only if both deployments are successful
+    runs-on: ubuntu-latest # Use GitHub runners to avoid occupying your Mini PCs
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Push to main directly
         if: success()

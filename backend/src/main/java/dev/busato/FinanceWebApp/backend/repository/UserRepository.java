@@ -19,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findAllByRole(User.Role role);
 
     void deleteByEmailIgnoreCase(String email);
+
+    List<User> findAllByDemoTrue();
 }
