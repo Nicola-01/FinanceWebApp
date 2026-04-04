@@ -10,6 +10,10 @@ import {triggerToast} from '../components/ToastNotification.tsx';
 const demoEnabled = import.meta.env.VITE_DEMO_ENABLED === 'true';
 
 const Login: React.FC = () => {
+
+    console.log(demoEnabled);
+    console.log(import.meta.env.VITE_DEMO_ENABLED);
+    
     const navigate = useNavigate();
     const [demoLoading, setDemoLoading] = useState(false);
 
