@@ -92,7 +92,7 @@ export const TransactionPieChart = ({ transactions, type, title }: {
 
     return (
         <div
-            className="flex flex-col items-center w-full bg-app-card/20 rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
+            className="flex flex-col items-center w-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
             <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider">{title}</h3>
 
             <div className="w-full flex justify-center h-[400px]">

@@ -32,8 +32,8 @@ public class DemoService {
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
         Wallet demoWallet = Wallet.builder()
-                .name("Portafoglio Demo")
-                .color("#3b82f6") // Blu
+                .name("Demo Wallet")
+                .color("#3b82f6") // Blue
                 .icon("wallet")
                 .currency("EUR")
                 .createdAt(LocalDate.now())
@@ -61,42 +61,42 @@ public class DemoService {
     private List<Tag> createDemoTags(Wallet wallet) {
         List<Tag> allTags = new ArrayList<>();
 
-        // LAVORO
-        Tag lavoro = saveTag("Lavoro", null, "work", "#4caf50", wallet, allTags);
-        saveTag("Stipendio", lavoro, "moneyBill", "#4caf50", wallet, allTags);
-        saveTag("Bonus", lavoro, "gift", "#81c784", wallet, allTags);
-        saveTag("Buoni Pasto", lavoro, "receipt", "#a5d6a7", wallet, allTags);
+        // WORK
+        Tag work = saveTag("Work", null, "work", "#4caf50", wallet, allTags);
+        saveTag("Salary", work, "moneyBill", "#4caf50", wallet, allTags);
+        saveTag("Bonus", work, "gift", "#81c784", wallet, allTags);
+        saveTag("Meal Vouchers", work, "receipt", "#a5d6a7", wallet, allTags);
 
-        // CASA
-        Tag casa = saveTag("Casa", null, "house", "#2196f3", wallet, allTags);
-        saveTag("Affitto", casa, "bank", "#64b5f6", wallet, allTags);
-        saveTag("Gas", casa, "energy", "#ffb74d", wallet, allTags);
-        saveTag("Luce", casa, "energy", "#fff176", wallet, allTags);
-        saveTag("Internet", casa, "internet", "#4dd0e1", wallet, allTags);
+        // HOME
+        Tag home = saveTag("Home", null, "house", "#2196f3", wallet, allTags);
+        saveTag("Rent", home, "bank", "#64b5f6", wallet, allTags);
+        saveTag("Gas", home, "energy", "#ffb74d", wallet, allTags);
+        saveTag("Electricity", home, "energy", "#fff176", wallet, allTags);
+        saveTag("Internet", home, "internet", "#4dd0e1", wallet, allTags);
 
-        // AUTO
-        Tag auto = saveTag("Auto", null, "car", "#f44336", wallet, allTags);
-        saveTag("Bollo", auto, "receipt", "#e57373", wallet, allTags);
-        saveTag("Assicurazione", auto, "receipt", "#ef5350", wallet, allTags);
-        saveTag("Benzina", auto, "gas", "#ff8a65", wallet, allTags);
-        saveTag("Manutenzione", auto, "repair", "#90a4ae", wallet, allTags);
+        // CAR
+        Tag car = saveTag("Car", null, "car", "#f44336", wallet, allTags);
+        saveTag("Car Tax", car, "receipt", "#e57373", wallet, allTags);
+        saveTag("Insurance", car, "receipt", "#ef5350", wallet, allTags);
+        saveTag("Gasoline", car, "gas", "#ff8a65", wallet, allTags);
+        saveTag("Maintenance", car, "repair", "#90a4ae", wallet, allTags);
 
-        // ABBONAMENTI
-        Tag abbonamenti = saveTag("Abbonamenti", null, "calendar", "#9c27b0", wallet, allTags);
-        saveTag("Netflix", abbonamenti, "movies", "#e50914", wallet, allTags);
-        saveTag("Amazon Prime", abbonamenti, "cart", "#00a8e1", wallet, allTags);
-        saveTag("Spotify", abbonamenti, "music", "#1db954", wallet, allTags);
+        // SUBSCRIPTIONS
+        Tag subscriptions = saveTag("Subscriptions", null, "calendar", "#9c27b0", wallet, allTags);
+        saveTag("Netflix", subscriptions, "movies", "#e50914", wallet, allTags);
+        saveTag("Amazon Prime", subscriptions, "cart", "#00a8e1", wallet, allTags);
+        saveTag("Spotify", subscriptions, "music", "#1db954", wallet, allTags);
 
-        // SPESA
-        Tag spesa = saveTag("Spesa", null, "basket", "#ff9800", wallet, allTags);
-        saveTag("Alimentari", spesa, "groceries", "#ffb74d", wallet, allTags);
-        saveTag("Igiene", spesa, "health", "#81d4fa", wallet, allTags);
+        // GROCERIES
+        Tag shopping = saveTag("Groceries", null, "basket", "#ff9800", wallet, allTags);
+        saveTag("Food", shopping, "groceries", "#ffb74d", wallet, allTags);
+        saveTag("Hygiene", shopping, "health", "#81d4fa", wallet, allTags);
 
-        // CIBO & SVAGO
-        Tag cibo = saveTag("Cibo & Svago", null, "dining", "#e91e63", wallet, allTags);
-        saveTag("Pizza", cibo, "pizza", "#f06292", wallet, allTags);
-        saveTag("Sushi", cibo, "sushi", "#ba68c8", wallet, allTags);
-        saveTag("Gelato", cibo, "dessert", "#4fc3f7", wallet, allTags);
+        // FOOD & ENTERTAINMENT
+        Tag food = saveTag("Food & Entertainment", null, "dining", "#e91e63", wallet, allTags);
+        saveTag("Pizza", food, "pizza", "#f06292", wallet, allTags);
+        saveTag("Sushi", food, "sushi", "#ba68c8", wallet, allTags);
+        saveTag("Ice Cream", food, "dessert", "#4fc3f7", wallet, allTags);
 
         return allTags;
     }
@@ -126,83 +126,83 @@ public class DemoService {
             int month = currentDate.getMonthValue();
             int daysInMonth = currentDate.lengthOfMonth();
 
-            // --- ENTRATE FISSE ---
-            // Stipendio (il 27 del mese)
-            addTx(transactions, wallet, tags, "Stipendio", "Stipendio Mensile", getRandomAmount(1600, 1800),
+            // --- FIXED INCOMES ---
+            // Salary (on the 27th of the month)
+            addTx(transactions, wallet, tags, "Salary", "Monthly Salary", getRandomAmount(1600, 1800),
                     currentDate.withDayOfMonth(Math.min(27, daysInMonth)), Transaction.Type.INCOME);
 
-            // Tredicesima (a Dicembre)
+            // 13th Month Pay (in December)
             if (month == 12) {
-                addTx(transactions, wallet, tags, "Bonus", "Tredicesima", getRandomAmount(1500, 1700),
+                addTx(transactions, wallet, tags, "Bonus", "13th Month Salary", getRandomAmount(1500, 1700),
                         currentDate.withDayOfMonth(15), Transaction.Type.INCOME);
             }
 
-            // --- SPESE FISSE MENSILI ---
-            // Affitto (il 1° del mese)
-            addTx(transactions, wallet, tags, "Affitto", "Affitto appartamento", 650.0,
+            // --- MONTHLY FIXED EXPENSES ---
+            // Rent (on the 1st of the month)
+            addTx(transactions, wallet, tags, "Rent", "Apartment Rent", 650.0,
                     currentDate.withDayOfMonth(1), Transaction.Type.EXPENSE);
 
             // Internet
-            addTx(transactions, wallet, tags, "Internet", "Fibra Ottica", 29.90,
+            addTx(transactions, wallet, tags, "Internet", "Fiber Optic", 29.90,
                     currentDate.withDayOfMonth(10), Transaction.Type.EXPENSE);
 
-            // Abbonamenti
+            // Subscriptions
             addTx(transactions, wallet, tags, "Netflix", "Netflix Standard", 12.99,
                     currentDate.withDayOfMonth(15), Transaction.Type.EXPENSE);
             addTx(transactions, wallet, tags, "Spotify", "Spotify Premium", 10.99,
                     currentDate.withDayOfMonth(20), Transaction.Type.EXPENSE);
 
-            // Bollette (Bi-mestrali)
+            // Bills (Bi-monthly)
             if (month % 2 == 0) {
-                addTx(transactions, wallet, tags, "Luce", "Bolletta Enel", getRandomAmount(80, 150),
+                addTx(transactions, wallet, tags, "Electricity", "Electricity Bill", getRandomAmount(80, 150),
                         currentDate.withDayOfMonth(random.nextInt(15) + 1), Transaction.Type.EXPENSE);
-                addTx(transactions, wallet, tags, "Gas", "Bolletta Gas", getRandomAmount(70, 200),
+                addTx(transactions, wallet, tags, "Gas", "Gas Bill", getRandomAmount(70, 200),
                         currentDate.withDayOfMonth(random.nextInt(15) + 10), Transaction.Type.EXPENSE);
             }
 
-            // --- SPESE ANNUALI ---
+            // --- ANNUAL EXPENSES ---
             if (month == 5) {
-                addTx(transactions, wallet, tags, "Assicurazione", "Rinnovo RCA", 450.0,
+                addTx(transactions, wallet, tags, "Insurance", "Car Insurance Renewal", 450.0,
                         currentDate.withDayOfMonth(5), Transaction.Type.EXPENSE);
             }
             if (month == 9) {
-                addTx(transactions, wallet, tags, "Bollo", "Bollo Auto", 180.0,
+                addTx(transactions, wallet, tags, "Car Tax", "Car Tax", 180.0,
                         currentDate.withDayOfMonth(20), Transaction.Type.EXPENSE);
             }
             if (month == 1) {
-                addTx(transactions, wallet, tags, "Amazon Prime", "Rinnovo Prime", 49.90,
+                addTx(transactions, wallet, tags, "Amazon Prime", "Prime Renewal", 49.90,
                         currentDate.withDayOfMonth(11), Transaction.Type.EXPENSE);
             }
 
-            // --- SPESE RICORRENTI E CASUALI NEL MESE ---
-            // Spesa (circa 4 volte al mese)
+            // --- RECURRING AND RANDOM EXPENSES IN THE MONTH ---
+            // Groceries (about 4 times a month)
             for (int i = 0; i < 4; i++) {
-                addTx(transactions, wallet, tags, "Alimentari", "Spesa Supermercato", getRandomAmount(40, 90),
+                addTx(transactions, wallet, tags, "Food", "Supermarket Shopping", getRandomAmount(40, 90),
                         currentDate.withDayOfMonth(random.nextInt(daysInMonth) + 1), Transaction.Type.EXPENSE);
             }
 
-            // Benzina (2-3 volte al mese)
+            // Gasoline (2-3 times a month)
             int benzinaCount = random.nextInt(2) + 2;
             for (int i = 0; i < benzinaCount; i++) {
-                addTx(transactions, wallet, tags, "Benzina", "Rifornimento", getRandomAmount(40, 60),
+                addTx(transactions, wallet, tags, "Gasoline", "Refueling", getRandomAmount(40, 60),
                         currentDate.withDayOfMonth(random.nextInt(daysInMonth) + 1), Transaction.Type.EXPENSE);
             }
 
-            // Svago occasionale
+            // Occasional entertainment
             if (random.nextBoolean()) {
-                addTx(transactions, wallet, tags, "Pizza", "Pizzeria con amici", getRandomAmount(15, 25),
+                addTx(transactions, wallet, tags, "Pizza", "Pizzeria with friends", getRandomAmount(15, 25),
                         currentDate.withDayOfMonth(random.nextInt(daysInMonth) + 1), Transaction.Type.EXPENSE);
             }
-            if (random.nextInt(3) == 0) { // 33% di probabilità al mese
+            if (random.nextInt(3) == 0) { // 33% probability per month
                 addTx(transactions, wallet, tags, "Sushi", "All you can eat", getRandomAmount(30, 60),
                         currentDate.withDayOfMonth(random.nextInt(daysInMonth) + 1), Transaction.Type.EXPENSE);
             }
 
-            // Passa al mese successivo
+            // Move to the next month
             currentDate = currentDate.plusMonths(1);
         }
 
-        // Salvataggio massivo per ottimizzare le performance
+        // Batch save to optimize performance
         transactionRepository.saveAll(transactions);
     }
 
