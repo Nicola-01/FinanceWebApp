@@ -7,6 +7,7 @@ interface SphereProps {
         x?: (number | string)[];
         y?: (number | string)[];
         scale?: number[];
+        opacity?: number[] | number;
     };
     transition?: {}
 }

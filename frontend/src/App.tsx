@@ -13,7 +13,8 @@ import { ThemeProvider } from "./utils/ThemeContext.tsx";
 import { getUserAuth } from "./utils/authHelper.ts";
 import { PWAProvider } from "./utils/PWAContext.tsx";
 import { PWAPrompt } from "./components/PWAPrompt.tsx";
-import LandingPage from "./components/LandingPage.tsx";
+import LandingPage from "./components/LandingPage/LandingPage.tsx";
+import ToDoPage from "./components/ToDoPage/ToDoPage.tsx";
 
 const App: React.FC = () => {
 
@@ -29,7 +30,7 @@ const App: React.FC = () => {
             if (user.role === 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
             return <Navigate to="/dashboard" replace />;
         }
-        return <LandingPage />;
+        return <Navigate to="/about" replace />;
     };
 
     const AdminRoute = () => {
@@ -49,7 +50,9 @@ const App: React.FC = () => {
                     <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-                    
+                    <Route path="/about" element={<LandingPage />} />
+                    <Route path="/ToDo" element={<ToDoPage />} />
+
                     {/* Root Route serves the Landing Page or Redirects based on auth */}
                     <Route path="/" element={<RootRedirect />} />
 

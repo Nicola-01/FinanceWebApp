@@ -1,6 +1,4 @@
 import * as React from 'react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import {
@@ -157,35 +155,18 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({transactions}) =>
     const sidePadding = isMobile ? 12 : 24;
 
 
-    return (
-        <Box sx={{
-            width: '100%',
-            my: { xs: 2, md: 4 },
-            p: { xs: 1, sm: 3, md: 4 },
-            bgcolor: 'var(--bg-surface)',
-            borderRadius: 4,
-            border: '1px solid var(--app-border)',
-            '& .MuiChartsSankey-label, & text': {
-                fill: resolvedTheme === 'dark' ? '#ffffff !important' : '#1a1a1a !important',
-                fontFamily: 'inherit',
-                fontSize: { xs: '10px !important', sm: '12px !important' },
-                fontWeight: '500 !important',
-            }
-        }}>
-            <Typography variant="h5" component="h2" gutterBottom align="center"
-                        sx={{fontWeight: 'bold', color: 'app-text', fontSize: { xs: '1.2rem', md: '1.5rem' }}}>
-                Cash Flow Overview
-            </Typography>
-            <Typography variant="subtitle1" align="center" sx={{mb: { xs: 2, md: 4 }, color: 'app-muted', fontSize: { xs: '0.85rem', md: '1rem' }}}>
-                Flow from Income to Expenses
-            </Typography>
+    const labelColor = resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a';
 
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                <Box sx={{ width: '100%', height: CHART_HEIGHT }}>
+    return (
+        <div className="w-full my-2 md:my-4 p-1 sm:p-3 md:p-4 bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border">
+            <h2 className="text-center font-bold text-app-text text-lg md:text-2xl mb-1">Cash Flow Overview</h2>
+            <p className="text-center text-app-muted text-sm md:text-base mb-2 md:mb-4">Flow from Income to Expenses</p>
+
+            <div className="w-full flex justify-center">
+                <div className="w-full" style={{ height: CHART_HEIGHT }}>
                     <SankeyChart
                         height={CHART_HEIGHT}
                         margin={{top: 20, bottom: 20, left: sidePadding, right: sidePadding}}
-                        // rimosse le [ ] che causavano l'errore TS2322
                         series={{
                             data,
                             valueFormatter,
@@ -205,6 +186,14 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({transactions}) =>
                             },
                             iterations: 32,
                         }}
+                        sx={{
+                            '& .MuiChartsSankey-label, & text': {
+                                fill: `${labelColor} !important`,
+                                fontFamily: 'inherit',
+                                fontSize: { xs: '10px !important', sm: '12px !important' },
+                                fontWeight: '500 !important',
+                            }
+                        }}
                     >
                         <defs>
                             <pattern id="savingsPattern" patternUnits="userSpaceOnUse" width="8" height="8"
@@ -219,8 +208,8 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({transactions}) =>
                             </pattern>
                         </defs>
                     </SankeyChart>
-                </Box>
-            </Box>
-        </Box>
+                </div>
+            </div>
+        </div>
     );
 };
