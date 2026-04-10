@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -33,7 +34,7 @@ public class SendEmailService {
     @Value("${application.frontend.url}")
     private String FRONTEND_URL;
 
-    public void sendRegistrationInvitation(AdminInviteResponse inviteResponse) throws MessagingException {
+    public void sendRegistrationInvitation(AdminInviteResponse inviteResponse) throws MessagingException, UnsupportedEncodingException {
         String htmlTemplate = getHtmlTemplate("templates/email/registrationInviteEmail.html");
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy 'at' HH:mm");
@@ -46,9 +47,30 @@ public class SendEmailService {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        helper.setFrom("noreply@busato.dev");
+        helper.setFrom("noreply@busato.dev", "FinanceWebApp");
         helper.setTo(inviteResponse.getEmail());
         helper.setSubject("FinanceWebApp registration invitation");
+        helper.setText(finalHtml, true);
+
+        mailSender.send(message);
+    }
+
+    public void sendForgotPasswordEmail(String email, String url, LocalDateTime expiresAt) throws MessagingException, UnsupportedEncodingException {
+        String htmlTemplate = getHtmlTemplate("templates/email/forgotPasswordEmail.html");
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy 'at' HH:mm");
+        String formattedDate = expiresAt.format(formatter);
+
+        String finalHtml = htmlTemplate
+                .replace("{{url}}", url)
+                .replace("{{expiresAt}}", formattedDate);
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom("noreply@busato.dev", "FinanceWebApp");
+        helper.setTo(email);
+        helper.setSubject("Reset your FinanceWebApp password");
         helper.setText(finalHtml, true);
 
         mailSender.send(message);

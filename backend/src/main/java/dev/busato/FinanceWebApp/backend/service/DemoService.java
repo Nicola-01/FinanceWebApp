@@ -23,6 +23,7 @@ public class DemoService {
     private final WalletAccessRepository walletAccessRepository;
     private final TagRepository tagRepository;
     private final TransactionRepository transactionRepository;
+    private final SubscriptionRepository subscriptionRepository;
 
     private final Random random = new Random();
 
@@ -56,6 +57,8 @@ public class DemoService {
         List<Tag> tags = createDemoTags(demoWallet);
 
         generateTransactions(demoWallet, tags);
+
+        generateSubscriptions(demoWallet, tags);
     }
 
     private List<Tag> createDemoTags(Wallet wallet) {
@@ -204,6 +207,99 @@ public class DemoService {
 
         // Batch save to optimize performance
         transactionRepository.saveAll(transactions);
+    }
+    
+    private void generateSubscriptions(Wallet wallet, List<Tag> tags) {
+        // --- MONTHLY EXPENSES ---
+        addSub(wallet, tags, "Rent", "Apartment Rent", 650.0,
+                Subscription.Frequency.MONTHLY, 1, 1, false, Subscription.Type.EXPENSE);
+
+        addSub(wallet, tags, "Internet", "Fiber Optic", 29.90,
+                Subscription.Frequency.MONTHLY, 1, 10, false, Subscription.Type.EXPENSE);
+
+        addSub(wallet, tags, "Netflix", "Netflix Standard", 12.99,
+                Subscription.Frequency.MONTHLY, 1, 15, false, Subscription.Type.EXPENSE);
+
+        addSub(wallet, tags, "Spotify", "Spotify Premium", 10.99,
+                Subscription.Frequency.MONTHLY, 1, 20, false, Subscription.Type.EXPENSE);
+
+        // --- MONTHLY INCOME ---
+        addSub(wallet, tags, "Salary", "Monthly Salary", 1750.0,
+                Subscription.Frequency.MONTHLY, 1, 27, false, Subscription.Type.INCOME);
+
+        // --- YEARLY EXPENSES ---
+        // Amazon Prime (Jan 11)
+        addSub(wallet, tags, "Amazon Prime", "Prime Renewal", 49.90,
+                Subscription.Frequency.YEARLY, 1, 11, false, Subscription.Type.EXPENSE);
+
+        // Car Insurance (May 5)
+        addSub(wallet, tags, "Insurance", "Car Insurance Renewal", 450.0,
+                Subscription.Frequency.YEARLY, 1, 5, false, Subscription.Type.EXPENSE);
+
+        // Car Tax (Sep 20)
+        addSub(wallet, tags, "Car Tax", "Car Tax", 180.0,
+                Subscription.Frequency.YEARLY, 1, 20, false, Subscription.Type.EXPENSE);
+    }
+
+    private void addSub(Wallet wallet, List<Tag> tags, String tagName, String title, double amount,
+                        Subscription.Frequency frequency, int interval, int day, boolean lastWorkingDay,
+                        Subscription.Type type) {
+
+        Tag selectedTag = tags.stream()
+                .filter(t -> t.getName().equalsIgnoreCase(tagName))
+                .findFirst()
+                .orElse(null);
+
+        BigDecimal bdAmount = BigDecimal.valueOf(amount);
+
+        // Calculate next execution date
+        LocalDate today = LocalDate.now();
+        LocalDate nextDate;
+
+        if (frequency == Subscription.Frequency.MONTHLY) {
+            nextDate = today.withDayOfMonth(Math.min(day, today.lengthOfMonth()));
+            if (!nextDate.isAfter(today)) {
+                nextDate = nextDate.plusMonths(interval);
+                nextDate = nextDate.withDayOfMonth(Math.min(day, nextDate.lengthOfMonth()));
+            }
+        } else if (frequency == Subscription.Frequency.YEARLY) {
+            // For yearly, 'day' is used in a slightly different way in this helper, 
+            // but let's assume we pass the day and we need to handle the month.
+            // Simplified: for demo yearly, we'll just pick the month from the historic data.
+            int month = 1;
+            if (tagName.equalsIgnoreCase("Insurance")) month = 5;
+            else if (tagName.equalsIgnoreCase("Car Tax")) month = 9;
+            else if (tagName.equalsIgnoreCase("Amazon Prime")) month = 1;
+
+            nextDate = LocalDate.of(today.getYear(), month, day);
+            if (!nextDate.isAfter(today)) {
+                nextDate = nextDate.plusYears(interval);
+            }
+        } else {
+            nextDate = today.plusDays(1);
+        }
+
+        Subscription sub = Subscription.builder()
+                .wallet(wallet)
+                .tag(selectedTag)
+                .name(title)
+                .amount(bdAmount)
+                .originalAmount(bdAmount)
+                .originalCurrency("EUR")
+                .exchangeValue(BigDecimal.ONE)
+                .type(type)
+                .status(Subscription.Status.ACTIVE)
+                .startDate(LocalDate.now().minusMonths(1))
+                .nextExecutionDate(nextDate)
+                .frequencyType(frequency)
+                .frequencyInterval(interval)
+                .monthlySpecificDay(frequency == Subscription.Frequency.MONTHLY ? day : null)
+                .lastWorkingDayOfMonth(lastWorkingDay)
+                .duration(Subscription.Duration.FOREVER)
+                .executedTimes(12) // Just a number to show it has been running
+                .build();
+
+        subscriptionRepository.save(sub);
     }
 
     private void addTx(List<Transaction> txList, Wallet wallet, List<Tag> tags, String tagName,

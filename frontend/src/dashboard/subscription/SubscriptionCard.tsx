@@ -45,7 +45,8 @@ const getDaysLeft = (nextDateStr?: string | null) => {
 
 // HELPER: Calcola il colore in base alla vicinanza della data
 const getDaysLeftColor = (days: number, isIncome: boolean) => {
-    if (days > 7) return "text-app-muted opacity-70";
+    if (days > 7) return "text-app-muted opacity-90";
+    if (days < 0) return "text-app-muted opacity-60";
 
     if (!isIncome) {
         if (days >= 4) return "text-yellow-400";
@@ -55,6 +56,19 @@ const getDaysLeftColor = (days: number, isIncome: boolean) => {
         if (days >= 4) return "text-[#00ff7f]/40";
         if (days >= 2) return "text-[#00ff7f]/70";
         return "text-[#00ff7f]";
+    }
+};
+
+const getDaysLeftText = (days: number) => {
+    switch (days) {
+        case 0:
+            return 'Today';
+        case 1:
+            return 'Tomorrow';
+        case -1:
+            return 'Yesterday';
+        default:
+            return days > 1 ? `${days} days left` : `${Math.abs(days)} days ago`;
     }
 };
 
@@ -119,8 +133,10 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({subscription,
                 {/* Riga 2: Giorni Rimanenti (Mostrato SOLO se l'abbonamento è ATTIVO e ha una data) */}
                 {subscription.status === 'ACTIVE' && daysLeft !== null && (
                     <span
-                        className={`text-xs font-medium mt-0.5 transition-colors duration-500 ${getDaysLeftColor(daysLeft, isIncome)}`}>
-                        <FontAwesomeIcon icon={faCalendarAlt}/> {daysLeft === 0 ? 'Today' : `${daysLeft} days left`}
+                        className={`text-xs font-medium mt-0.5 transition-colors duration-500 ${getDaysLeftColor(daysLeft, isIncome)}`}
+                    >
+                        <FontAwesomeIcon icon={faCalendarAlt} className="mr-1"/>
+                            {getDaysLeftText(daysLeft)}
                     </span>
                 )}
             </div>

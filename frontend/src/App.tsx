@@ -8,6 +8,8 @@ import { ToastNotification } from "./components/ToastNotification.tsx";
 import { DeleteModal, type DeleteModalHandle } from "./modals/DeleteModal.tsx";
 import { DeleteModalProvider } from "./modals/DeleteModalContext.tsx";
 import Register from "./register/Register.tsx";
+import ForgotPassword from "./auth/ForgotPassword.tsx";
+import ResetPassword from "./auth/ResetPassword.tsx";
 import { initSync } from './utils/syncService.ts';
 import { ThemeProvider } from "./utils/ThemeContext.tsx";
 import { getUserAuth } from "./utils/authHelper.ts";
@@ -50,6 +52,8 @@ const App: React.FC = () => {
                     <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/about" element={<LandingPage />} />
                     <Route path="/ToDo" element={<ToDoPage />} />
 

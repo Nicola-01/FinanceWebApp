@@ -1,7 +1,7 @@
 package dev.busato.FinanceWebApp.backend.mappers;
 
 import dev.busato.FinanceWebApp.backend.dto.AdminInviteResponse;
-import dev.busato.FinanceWebApp.backend.model.UserInvitation;
+import dev.busato.FinanceWebApp.backend.model.Registrations;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +11,7 @@ public class AdminInviteMapper {
     @Value("${application.frontend.url}")
     private String FRONTEND_URL;
 
-    public AdminInviteResponse mapToAdminInviteResponse(UserInvitation invitation) {
+    public AdminInviteResponse mapToAdminInviteResponse(Registrations invitation) {
         return AdminInviteResponse.builder()
                 .email(invitation.getEmail())
                 .url(generateInviteUrl(invitation.getToken()))

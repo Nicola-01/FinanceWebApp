@@ -65,12 +65,12 @@ const rawToDoData: ToDoItemInput[] = [
         ]
     },
     {
-        title: 'Traefik',
-        description: 'Traefik implementation',
-        status: 'PLANNED',
+        title: 'Rate Limit',
+        description: 'Add a rate limit',
+        status: 'FINISHED',
         subtasks: [
-            'Add Traefik for Rate Limiting',
-            'Learn for Load Balancing'
+            'Configuration in Cloudflare',
+            'Configuration in Nginx'
         ]
     },
     {
@@ -133,11 +133,11 @@ const rawToDoData: ToDoItemInput[] = [
         ]
     },
     {
-        title: 'Plaid & Bank Sync',
+        title: 'Bank Sync',
         description: 'Connect directly to some institutions for automatic imports.',
         status: 'PLANNED',
         subtasks: [
-            'Plaid integration',
+            // 'Plaid integration',
             'European Open Banking standard',
             'Intelligent transaction reconciliation'
         ]

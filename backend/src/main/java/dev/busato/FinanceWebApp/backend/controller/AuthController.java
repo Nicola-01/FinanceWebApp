@@ -70,5 +70,23 @@ public class AuthController {
         userService.changePassword(user, request);
         return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
     }
-}
 
+    // ==================== FORGOT PASSWORD ====================
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        registerService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "Password reset email sent successfully."));
+    }
+
+    @GetMapping("/reset-password/{token}")
+    public ResponseEntity<RegisterInviteResponse> verifyResetToken(@PathVariable String token) {
+        return ResponseEntity.ok(registerService.getResetPasswordInvite(token));
+    }
+
+    @PostMapping("/reset-password/{token}")
+    public ResponseEntity<?> resetPassword(@PathVariable String token, @RequestBody ResetPasswordRequest request) {
+        registerService.resetPassword(token, request);
+        return ResponseEntity.ok(Map.of("message", "Password reset successfully. You can now log in."));
+    }
+}
