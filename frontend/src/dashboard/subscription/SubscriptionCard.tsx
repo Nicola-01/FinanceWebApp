@@ -1,10 +1,10 @@
 import React from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCalendarAlt, faTags} from '@fortawesome/free-solid-svg-icons';
-import type {Subscription} from '../../utils/types';
-import {type IconKey, ICONS} from "../../utils/icons.ts";
-import {TagBadge} from "../../components/TagBadge.tsx";
-import {CURRENCY_META, type CurrencyCode} from "../../utils/currencies.ts";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendarAlt, faTags } from '@fortawesome/free-solid-svg-icons';
+import type { Subscription } from '../../utils/types';
+import { type IconKey, ICONS } from "../../utils/icons.ts";
+import { TagBadge } from "../../components/TagBadge.tsx";
+import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
 
 interface SubscriptionCardProps {
     subscription: Subscription;
@@ -72,7 +72,7 @@ const getDaysLeftText = (days: number) => {
     }
 };
 
-export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({subscription, date, onClick}) => {
+export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, date, onClick }) => {
     const isIncome = subscription.type === 'INCOME';
 
     // Calcolo testi dinamici
@@ -87,9 +87,9 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({subscription,
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 shrink max-w-[65%] lg:max-w-[75%]">
                 <div
                     className="flex shrink-0 h-12 w-12 items-center justify-center rounded-xl bg-app-surface text-xl shadow-sm"
-                    style={{color: subscription.tag?.colorHex || '#ffffff'}}
+                    style={{ color: subscription.tag?.colorHex || '#ffffff' }}
                 >
-                    <FontAwesomeIcon icon={ICONS[(subscription.tag?.icon as IconKey)] || faTags}/>
+                    <FontAwesomeIcon icon={ICONS[(subscription.tag?.icon as IconKey)] || faTags} />
                 </div>
 
                 <div className="flex flex-col md:items-center items-start gap-1.5 min-w-0 py-0.5">
@@ -98,7 +98,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({subscription,
                     }
 
                     <div className="flex items-center gap-1.5 overflow-hidden shrink-0 flex-wrap">
-                        {subscription.tag && <TagBadge tag={subscription.tag} showParent={false}/>}
+                        {subscription.tag && <TagBadge tag={subscription.tag} showParent={false} />}
 
                         {/* Mostriamo un badge testuale per gli abbonamenti non attivi */}
                         {subscription.status === 'PAUSED' && (
@@ -114,7 +114,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({subscription,
             </div>
 
             {/* SPAZIO CENTRALE (Se volessi aggiungere le note in futuro, andrebbero qui) */}
-            <div className="flex-1 min-w-0"/>
+            <div className="flex-1 min-w-0" />
 
             {/* 2. LATO DESTRO: Importo, Ricorrenza e Giorni Rimanenti */}
             <div className="flex flex-col items-end justify-center shrink-0 pl-3 min-w-25">
@@ -135,8 +135,8 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({subscription,
                     <span
                         className={`text-xs font-medium mt-0.5 transition-colors duration-500 ${getDaysLeftColor(daysLeft, isIncome)}`}
                     >
-                        <FontAwesomeIcon icon={faCalendarAlt} className="mr-1"/>
-                            {getDaysLeftText(daysLeft)}
+                        <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" />
+                        {getDaysLeftText(daysLeft)}
                     </span>
                 )}
             </div>
