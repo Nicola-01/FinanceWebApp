@@ -30,9 +30,8 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
     }
 
     return (
-        <>
-            <div
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10 overflow-y-auto custom-scrollbar h-full pr-2 animate-[fadeIn_0.3s_ease-out]">
+        <div className="h-full overflow-y-auto custom-scrollbar pr-2 animate-[fadeIn_0.3s_ease-out]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
                 {subscriptions
                     .filter(sub => sub.lastExecutionDate)
                     .sort((a, b) => new Date(a.lastExecutionDate || 0).getTime() - new Date(b.lastExecutionDate || 0).getTime())
@@ -68,8 +67,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
                 </div>
             </div>
 
-            <div
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10 overflow-y-auto custom-scrollbar h-full pr-2 animate-[fadeIn_0.3s_ease-out]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10">
                 {subscriptions.sort((a, b) => new Date(a.nextExecutionDate).getTime() - new Date(b.nextExecutionDate).getTime()).map(sub => (
                     <SubscriptionCard
                         key={sub.id}
@@ -79,6 +77,6 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
                     />
                 ))}
             </div>
-        </>
+        </div>
     );
 };
