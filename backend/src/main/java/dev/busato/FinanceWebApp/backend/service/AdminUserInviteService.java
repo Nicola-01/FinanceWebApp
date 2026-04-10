@@ -5,9 +5,9 @@ import dev.busato.FinanceWebApp.backend.dto.AdminInviteResponse;
 import dev.busato.FinanceWebApp.backend.dto.UserResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.User;
-import dev.busato.FinanceWebApp.backend.model.UserInvitation;
+import dev.busato.FinanceWebApp.backend.model.Registrations;
 import dev.busato.FinanceWebApp.backend.repository.ManageUserRepository;
-import dev.busato.FinanceWebApp.backend.repository.UserInvitationRepository;
+import dev.busato.FinanceWebApp.backend.repository.RegistrationsRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
@@ -22,6 +22,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -36,7 +37,7 @@ public class AdminUserInviteService {
 
     private final UserRepository userRepository;
     private final ManageUserRepository manageUserRepository;
-    private final UserInvitationRepository userInvitationRepository;
+    private final RegistrationsRepository userInvitationRepository;
     private final WalletAccessRepository walletAccessRepository;
     private final TransactionRepository transactionRepository;
     private final UserMapper userMapper;
@@ -75,15 +76,15 @@ public class AdminUserInviteService {
         if (userRepository.findByEmailIgnoreCase(request.getEmail()).isPresent())
             throw new IllegalArgumentException("A user with this email address is already registered.");
 
-        UserInvitation invitation = userInvitationRepository.findByEmailIgnoreCase(request.getEmail())
-                .orElse(new UserInvitation());
+        Registrations invitation = userInvitationRepository.findByEmailIgnoreCase(request.getEmail())
+                .orElse(new Registrations());
 
         String token = UUID.randomUUID().toString();
         invitation.setEmail(request.getEmail());
         invitation.setToken(token);
         invitation.setNote(request.getNote());
         invitation.setExpiresAt(LocalDateTime.now().plusDays(3));
-        invitation.setStatus(UserInvitation.InvitationStatus.PENDING);
+        invitation.setStatus(Registrations.InvitationStatus.PENDING);
 
         userInvitationRepository.save(invitation);
 
@@ -91,7 +92,7 @@ public class AdminUserInviteService {
 
         try {
             sendEmailService.sendRegistrationInvitation(inviteResponse);
-        } catch (MessagingException e) {
+        } catch (MessagingException | RuntimeException | UnsupportedEncodingException e) {
             throw new RuntimeException("Unable to send the invitation email to " + request.getEmail(), e);
         }
 
@@ -102,7 +103,7 @@ public class AdminUserInviteService {
 
     @PreAuthorize("hasRole('ADMIN')")
     public List<AdminInviteResponse> getInvites() {
-        return userInvitationRepository.findAllByStatusNot(UserInvitation.InvitationStatus.ACCEPTED).stream()
+        return userInvitationRepository.findAllByStatusNot(Registrations.InvitationStatus.ACCEPTED).stream()
                 .map(adminInviteMapper::mapToAdminInviteResponse)
                 .collect(Collectors.toList());
 
@@ -111,10 +112,10 @@ public class AdminUserInviteService {
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public void revokeInvite(String email) {
-        UserInvitation invitation = userInvitationRepository.findByEmailIgnoreCase(email)
+        Registrations invitation = userInvitationRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UserNotFoundException(email));
 
-        invitation.setStatus(UserInvitation.InvitationStatus.REVOKED);
+        invitation.setStatus(Registrations.InvitationStatus.REVOKED);
     }
 
     @Scheduled(cron = "0 0 0 * * *") // Ogni giorno a mezzanotte

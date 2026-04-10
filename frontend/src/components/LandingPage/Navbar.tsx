@@ -16,7 +16,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
 
     const navLinks = [
         { label: 'About the app', path: '/about' },
-        { label: 'To Roadmap', path: '/ToDo' },
+        { label: 'Roadmap', path: '/ToDo' },
         { label: 'Demo', path: '/login' },
     ];
 
@@ -33,6 +33,8 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
     //     }
     //     setIsMenuOpen(false);
     // };
+
+    const isActive = (path: string) => location.pathname === path;
 
     return (
         <header className="fixed top-0 w-full z-50">
@@ -56,10 +58,14 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
                 {/* Desktop Center Links */}
                 <div className="hidden md:flex items-center gap-8 justify-self-center">
                     {navLinks.map((link) => (
-                        <button 
+                        <button
                             key={link.path}
                             onClick={() => handleNav(link.path)}
-                            className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                            className={`text-sm transition-colors ${
+                                isActive(link.path)
+                                    ? 'text-purple-400 font-bold' // Stile per il link attivo
+                                    : 'text-gray-400 font-medium hover:text-white' // Stile normale
+                            }`}
                         >
                             {link.label}
                         </button>

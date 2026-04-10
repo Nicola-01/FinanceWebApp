@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "user_invitations")
+@Table(name = "registrations")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInvitation {
+public class Registrations {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -42,6 +42,6 @@ public class UserInvitation {
     private LocalDateTime createdAt;
 
     public enum InvitationStatus {
-        PENDING, ACCEPTED, REVOKED
+        PENDING, ACCEPTED, REVOKED, FORGOTPASSWORD
     }
 }

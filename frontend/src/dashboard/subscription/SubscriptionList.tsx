@@ -35,7 +35,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-10 overflow-y-auto custom-scrollbar h-full pr-2 animate-[fadeIn_0.3s_ease-out]">
                 {subscriptions
                     .filter(sub => sub.lastExecutionDate)
-                    .sort((a, b) => new Date(b.lastExecutionDate || 0).getTime() - new Date(a.lastExecutionDate || 0).getTime())
+                    .sort((a, b) => new Date(a.lastExecutionDate || 0).getTime() - new Date(b.lastExecutionDate || 0).getTime())
                     .map(sub => (
                         <SubscriptionCard
                             key={sub.id}

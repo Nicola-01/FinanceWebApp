@@ -171,9 +171,9 @@ export const LoginForm: React.FC = () => {
                     </div>
                     <span className="ml-2 font-light transition-colors group-hover:text-white">Remember me</span>
                 </label>
-                <a href="#" className="font-light italic transition-colors hover:text-white hover:underline">
+                <button type="button" onClick={() => navigate('/forgot-password')} className="font-light italic transition-colors hover:text-white hover:underline bg-transparent border-none text-white/80 cursor-pointer text-sm p-0">
                     Forgot Password?
-                </a>
+                </button>
             </div>
 
             {/* Login Button */}
