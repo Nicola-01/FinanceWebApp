@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { useWalletContext } from '../wallet/WalletContext.tsx';
-import { IconPickerButton } from '../../components/IconPickerButton.tsx';
-import type { IconKey } from '../../utils/icons.ts';
-import { faSave, faTrash, faExclamationTriangle, faGear, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
-import type { Wallet } from '../../utils/types';
-import { ShareSettingsSection } from './ShareSettingsSection.tsx';
-import { SettingsCard } from '../../components/SettingsCard.tsx';
+import React, {useState} from 'react';
+import {useWalletContext} from '../wallet/WalletContext.tsx';
+import {IconPickerButton} from '../../components/IconPickerButton.tsx';
+import type {IconKey} from '../../utils/icons.ts';
+import {faSave, faTrash, faExclamationTriangle, faGear, faSignOutAlt} from '@fortawesome/free-solid-svg-icons';
+import type {Wallet} from '../../utils/types';
+import {ShareSettingsSection} from './ShareSettingsSection.tsx';
+import {SettingsCard} from '../../components/SettingsCard.tsx';
 
 export const SettingsTab: React.FC = () => {
-    const { wallet, handleUpdateWallet, onWalletDelete } = useWalletContext();
+    const {wallet, handleUpdateWallet, onWalletDelete} = useWalletContext();
     const [isSaving, setIsSaving] = useState(false);
 
     const [editedWallet, setEditedWallet] = useState<Partial<Wallet>>({
@@ -28,12 +28,14 @@ export const SettingsTab: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col gap-6 h-full overflow-y-auto pr-2 pb-6 custom-scrollbar animate-[fadeIn_0.3s_ease-out]">
+        <div
+            className="flex flex-col gap-6 h-full overflow-y-auto pb-6 custom-scrollbar animate-[fadeIn_0.3s_ease-out]">
 
             {/* GENERAL SETTINGS CARD */}
             {wallet.myRole !== 'VIEWER' && (
                 <SettingsCard
                     title="General Settings"
+                    subtitle="Change Icon, Color, and Name of your Wallet"
                     icon={faGear}
                     actionText="Save Changes"
                     actionIcon={faSave}
@@ -42,17 +44,19 @@ export const SettingsTab: React.FC = () => {
                     actionDisabled={!hasChanges || isSaving || !editedWallet.name?.trim()}
                     isActionLoading={isSaving}
                 >
-                    {/* CONTENITORE: Affiancati su SM+, impilati su mobile */}
-                    <div className="flex flex-col sm:flex-row gap-8 items-start py-2">
+                    {/* CONTENITORE: Affiancati sempre */}
+                    <div className="flex flex-row gap-4 sm:gap-8 items-start sm:py-2">
                         {/* ICON & COLOR PICKER */}
-                        <div className="flex flex-col items-start gap-3 w-full sm:w-auto shrink-0">
-                            <label className="text-xs font-bold uppercase tracking-wider text-app-muted">Icon & Color</label>
-                            <div className="relative p-2 bg-black/20 rounded-2xl border border-app-border shadow-inner self-start">
+                        <div className="flex flex-col items-start gap-3 shrink-0">
+                            {/*<label className="text-xs font-bold uppercase tracking-wider text-app-muted">Icon &*/}
+                            {/*    Color</label>*/}
+                            <div
+                                className="relative p-1 bg-black/20 rounded-2xl border border-app-border shadow-inner self-start">
                                 <IconPickerButton
                                     icon={editedWallet.icon as IconKey}
                                     color={editedWallet.color as string}
-                                    onIconChange={(icon: IconKey) => setEditedWallet({ ...editedWallet, icon })}
-                                    onColorChange={(color: string) => setEditedWallet({ ...editedWallet, color })}
+                                    onIconChange={(icon: IconKey) => setEditedWallet({...editedWallet, icon})}
+                                    onColorChange={(color: string) => setEditedWallet({...editedWallet, color})}
                                     isOpen={showIconPicker}
                                     onToggle={setShowIconPicker}
                                 />
@@ -60,14 +64,15 @@ export const SettingsTab: React.FC = () => {
                         </div>
 
                         {/* WALLET NAME INPUT */}
-                        <div className="flex flex-col gap-3 w-full">
-                            <label className="text-xs font-bold uppercase tracking-wider text-app-muted">
-                                Wallet Name
-                            </label>
+                        <div className="flex flex-col gap-3 flex-1">
+                            {/*<label*/}
+                            {/*    className="text-xs font-bold uppercase tracking-wider text-app-muted">*/}
+                            {/*    Wallet Name*/}
+                            {/*</label>*/}
                             <input
                                 type="text"
                                 value={editedWallet.name}
-                                onChange={(e) => setEditedWallet({ ...editedWallet, name: e.target.value })}
+                                onChange={(e) => setEditedWallet({...editedWallet, name: e.target.value})}
                                 className="w-full bg-black/20 border border-app-border rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#00ff7f] focus:ring-1 focus:ring-[#00ff7f] transition-all font-medium"
                                 placeholder="e.g. Main Account, Savings, Crypto..."
                             />
@@ -77,7 +82,7 @@ export const SettingsTab: React.FC = () => {
             )}
 
             {/* SHARE & MEMBERS SETTINGS */}
-            <ShareSettingsSection />
+            <ShareSettingsSection/>
 
             {/* DANGER ZONE CARD */}
             {wallet.myRole === 'OWNER' ? (
@@ -88,7 +93,8 @@ export const SettingsTab: React.FC = () => {
                     headerCentered={true}
                     description={
                         <p className="text-center max-w-lg mx-auto">
-                            Permanently delete this wallet. This action will destroy all associated transactions, tags, and history. <strong>This cannot be undone.</strong>
+                            Permanently delete this wallet. This action will destroy all associated transactions, tags,
+                            and history. <strong>This cannot be undone.</strong>
                         </p>
                     }
                     actionText="Delete Wallet"
@@ -103,7 +109,8 @@ export const SettingsTab: React.FC = () => {
                     headerCentered={true}
                     description={
                         <p className="text-center max-w-lg mx-auto">
-                            Remove your access to this wallet. You will no longer be able to view or edit anything. You will need to ask the owner to invite you again to regain access.
+                            Remove your access to this wallet. You will no longer be able to view or edit anything. You
+                            will need to ask the owner to invite you again to regain access.
                         </p>
                     }
                     actionText="Quit Wallet"

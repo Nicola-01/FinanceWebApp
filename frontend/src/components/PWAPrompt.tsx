@@ -20,8 +20,8 @@ export const PWAPrompt: React.FC = () => {
     return (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[999] bg-app-card border border-app-border rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] p-4 w-11/12 max-w-sm flex flex-col sm:flex-row items-center gap-4 animate-[slideUp_0.3s_ease-out]">
             <div className="flex-1 text-center sm:text-left">
-                <p className="text-sm font-bold text-app-text">Aggiornamento App</p>
-                <p className="text-xs text-app-muted mt-1">Una nuova versione è pronta. Ricarica per applicarla.</p>
+                <p className="text-sm font-bold text-app-text">App Update</p>
+                <p className="text-xs text-app-muted mt-1">A new version is ready. Refresh to apply.</p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
                 <button

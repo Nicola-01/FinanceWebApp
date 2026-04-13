@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useWalletContext } from '../wallet/WalletContext.tsx';
 import { OverviewTable } from './OverviewTable.tsx';
@@ -8,6 +8,7 @@ import { SwitchableCard } from './SwitchableCard.tsx';
 import type { ZoomData } from '@mui/x-charts/internals';
 
 import { useTheme } from '../../utils/ThemeContext.tsx';
+import { buildMonthlyBuckets } from './ChartRangeSelector.tsx';
 
 const lightTheme = createTheme({
     palette: { mode: 'light', background: { paper: '#ffffff' } },
@@ -20,32 +21,54 @@ const darkTheme = createTheme({
 type ChartMode = 'snapshot' | 'cumulative';
 
 const CHART_TABS = [
-    { key: 'snapshot', label: 'Monthly' },
-    { key: 'cumulative', label: 'Cumulative' },
+    {
+        key: 'snapshot',
+        label: 'Monthly',
+        title: 'Monthly Snapshot',
+        subtitle: 'Income & expenses per month with net balance line.',
+    },
+    {
+        key: 'cumulative',
+        label: 'Cumulative',
+        title: 'Cumulative',
+        subtitle: 'Running total of income & expenses over time.',
+    },
 ];
 
-const CHART_META: Record<ChartMode, { title: string; subtitle: string }> = {
-    snapshot: {
-        title: 'Monthly Snapshot',
-        subtitle: 'Income & expenses per month with net balance line. Use the slider below to zoom.',
-    },
-    cumulative: {
-        title: 'Cumulative',
-        subtitle: 'Running total of income & expenses over time. Use the slider below to zoom.',
-    },
-};
-
 export const StatisticsTab: React.FC = () => {
-    const { transactions } = useWalletContext();
+    const { transactions, wallet } = useWalletContext();
     const { resolvedTheme } = useTheme();
     const [chartMode, setChartMode] = useState<ChartMode>('snapshot');
     const [zoomData, setZoomData] = useState<ZoomData[]>([{ axisId: 'x-axis', start: 0, end: 100 }]);
+    const [zoomInitializedForWallet, setZoomInitializedForWallet] = useState<string | null>(null);
 
-    const handleZoomChange = useCallback((newZoom: ZoomData[]) => {
+    const initialZoomCalculated = React.useMemo(() => {
+        if (wallet.id !== zoomInitializedForWallet && transactions && transactions.length > 0) {
+            const buckets = buildMonthlyBuckets(transactions);
+            const totalMonths = buckets.length;
+            if (totalMonths > 12) {
+                const startPercent = ((totalMonths - 12) / totalMonths) * 100;
+                return [{ axisId: 'x-axis', start: startPercent, end: 100 }];
+            }
+            return [{ axisId: 'x-axis', start: 0, end: 100 }];
+        }
+        return null;
+    }, [transactions, wallet.id, zoomInitializedForWallet]);
+
+    const effectiveZoomData = initialZoomCalculated || zoomData;
+
+    React.useEffect(() => {
+        if (initialZoomCalculated) {
+            setZoomData(initialZoomCalculated);
+            setZoomInitializedForWallet(wallet.id);
+        }
+    }, [initialZoomCalculated, wallet.id]);
+
+    const handleZoomChange = React.useCallback((newZoom: ZoomData[]) => {
         setZoomData(newZoom);
     }, []);
 
-    const meta = CHART_META[chartMode];
+    const currentTab = CHART_TABS.find(t => t.key === chartMode)!;
 
     return (
         <ThemeProvider theme={resolvedTheme === 'dark' ? darkTheme : lightTheme}>
@@ -59,19 +82,19 @@ export const StatisticsTab: React.FC = () => {
                         tabs={CHART_TABS}
                         activeTab={chartMode}
                         onTabChange={(key) => setChartMode(key as ChartMode)}
-                        title={meta.title}
-                        subtitle={meta.subtitle}
+                        title={currentTab.title}
+                        subtitle={currentTab.subtitle}
                     >
                         {chartMode === 'snapshot' ? (
                             <MonthlySnapshotChart
                                 transactions={transactions}
-                                zoomData={zoomData}
+                                zoomData={effectiveZoomData}
                                 onZoomChange={handleZoomChange}
                             />
                         ) : (
                             <CumulativeChart
                                 transactions={transactions}
-                                zoomData={zoomData}
+                                zoomData={effectiveZoomData}
                                 onZoomChange={handleZoomChange}
                             />
                         )}

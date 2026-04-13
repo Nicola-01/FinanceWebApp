@@ -127,7 +127,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-64 rounded-xl border border-app-border bg-[#1a1a1a] p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] flex flex-col max-h-[350px]">
+                <div className="absolute right-0 z-50 mt-4 w-64 rounded-xl border border-app-border bg-[#1a1a1a] p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] flex flex-col max-h-[350px]">
                     <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-1">
 
                         {/* All Option */}
@@ -162,7 +162,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
                                     />
 
                                     {isExpanded && children.length > 0 && (
-                                        <div className="pl-6 space-y-0.5 border-l border-app-border ml-5 my-1">
+                                        <div className="pl-3 space-y-0.5 border-l border-app-border ml-5 my-1">
                                             {children.map(childTag => {
                                                 const cState = selectedTags.includes(childTag.name) ? 'checked' : 'unchecked';
                                                 return (

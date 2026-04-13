@@ -18,6 +18,8 @@ export interface CustomDatePickerProps {
     initialStartDate?: Date | null;
     initialEndDate?: Date | null;
     onPresetChange?: (preset: PresetType) => void;
+    hideSidebar?: boolean;
+    weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 export default function CustomDatePicker({
@@ -28,7 +30,9 @@ export default function CustomDatePicker({
     initialPreset = 'month',
     initialStartDate = null,
     initialEndDate = null,
-    onPresetChange
+    onPresetChange,
+    hideSidebar = false,
+    weekStartsOn = 1
 }: CustomDatePickerProps) {
     const { resolvedTheme } = useTheme();
     const isDark = isDarkProp !== undefined ? isDarkProp : resolvedTheme === 'dark';
@@ -211,8 +215,8 @@ export default function CustomDatePicker({
             {isOpen && (() => {
                 const popoverContent = (
                     <>
-                        {/* SIDEBAR PRESET — hidden in single-date mode */}
-                        {isRange && (
+                        {/* SIDEBAR PRESET — hidden in single-date mode or if hideSidebar is true */}
+                        {isRange && !hideSidebar && (
                             <div className={`flex flex-row sm:flex-col p-2 overflow-x-auto no-scrollbar sm:w-36 flex-shrink-0 border-b sm:border-b-0 sm:border-r ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
 
                                 <div className="flex flex-row sm:flex-col gap-1 flex-1">
@@ -267,6 +271,7 @@ export default function CustomDatePicker({
                                 isRange={isRange}
                                 color={color}
                                 isDark={isDark}
+                                weekStartsOn={weekStartsOn}
                             />
                         </div>
                     </>
@@ -293,7 +298,7 @@ export default function CustomDatePicker({
                 }
 
                 return (
-                    <div ref={modalRef} className={`absolute top-full mt-2 left-0 rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] ${isRange ? 'w-[380px] sm:w-auto sm:min-w-[550px]' : 'w-[320px]'} overflow-hidden ${bgMain} ${borderMain}`}>
+                    <div ref={modalRef} className={`absolute top-full mt-4 left-1/2 -translate-x-1/2 transform rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] ${isRange ? 'w-[380px] sm:w-auto sm:min-w-[550px]' : 'w-[320px]'} overflow-hidden ${bgMain} ${borderMain}`}>
                         {popoverContent}
                     </div>
                 );

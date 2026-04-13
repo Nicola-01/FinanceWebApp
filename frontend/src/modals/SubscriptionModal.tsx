@@ -15,7 +15,7 @@ import { TagPicker } from "./TransactionModal/TagPicker/TagPicker.tsx";
 import { ExchangeRateSection } from "./TransactionModal/ExchangeRateSection.tsx";
 
 export interface SubscriptionModalHandle {
-    openModal: (sub?: Subscription) => void;
+    openModal: (sub?: Subscription, initialDate?: Date) => void;
 }
 
 interface Props {
@@ -53,7 +53,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         const [resetKey, setResetKey] = useState(0);
 
         useImperativeHandle(ref, () => ({
-            openModal: (sub?: Subscription) => {
+            openModal: (sub?: Subscription, initialDate?: Date) => {
                 setResetKey(prev => prev + 1);
 
                 if (sub) {
@@ -93,7 +93,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                     setConvertedAmount('0');
                     setCurrency(baseCurrency);
                     setExchangeRate('1');
-                    setStartDate(new Date());
+                    setStartDate(initialDate || new Date());
                     setSelectedTagName('');
                     setNotes('');
 
@@ -130,7 +130,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                     tag: selectedTagName,
                     notes,
                     status,
-                    startDate: startDate.toISOString().split('T')[0],
+                    startDate: startDate.toLocaleDateString().split('/').reverse().join('-'),
                     frequencyType,
                     frequencyInterval,
                     duration,

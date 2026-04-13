@@ -90,7 +90,7 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onCha
                 onClick={toggleDropdown}
             >
                 {/* Nuova formattazione del testo identica agli elementi della tendina */}
-                <div className="flex items-center flex-1 truncate pr-2 text-sm text-white">
+                <div className="flex items-center flex-1 truncate text-sm text-white">
                     {meta ? (
                         <>
                             <span className="inline-block w-[30px] font-bold text-white">{meta.symbol}</span>

@@ -1,8 +1,9 @@
 import React from 'react';
-import CustomDatePicker, {type DateRangeValue} from '../../components/DataPicker/CustomDatePicker.tsx';
-import {useWalletContext} from "../wallet/WalletContext.tsx";
-import {TagFilter} from '../../components/TagFilter/TagFilter.tsx';
-import {useTheme} from '../../utils/ThemeContext.tsx';
+import CustomDatePicker, { type DateRangeValue } from '../../components/DataPicker/CustomDatePicker.tsx';
+import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { TagFilter } from '../../components/TagFilter/TagFilter.tsx';
+import { useTheme } from '../../utils/ThemeContext.tsx';
+// import TransactionsSearch from "./TransactionsSearch.tsx";
 
 export const TransactionsFilter: React.FC = () => {
     const {
@@ -15,15 +16,33 @@ export const TransactionsFilter: React.FC = () => {
         datePreset,
         setDatePreset
     } = useWalletContext();
-    const {resolvedTheme} = useTheme();
+    const { resolvedTheme } = useTheme();
 
     const activeTags = selectedTags ?? tags.map(t => t.name); // Using context state
 
     return (
-        <div className="sticky top-17 z-80 mb-4 flex items-center justify-between gap-4 p-2 rounded-2xl border border-app-border bg-app-card/60 backdrop-blur-xl shadow-lg transition-all">
+        <div className="sticky top-17 z-80 mb-4 w-full max-w-350 mx-auto px-4 lg:px-8 pointer-events-none">
+            <div className="w-full flex items-center justify-between gap-2 sm:gap-4 p-2 rounded-2xl border border-app-border bg-app-card/60 backdrop-blur-xl shadow-lg transition-all pointer-events-auto">
 
             {/* Spacer a sinistra (nascosto su mobile) per bilanciare il bottone dei filtri a destra e permettere al date picker di essere perfettamente centrato */}
             <div className="hidden sm:block w-12 h-12 shrink-0"></div>
+
+            {/*
+            <div className="shrink-0 flex items-center justify-center">
+                <TransactionsSearch
+                    tags={tags}
+                    selectedTags={activeTags}
+                    color={wallet.color}
+                    onChange={(newSelection) => {
+                        if (newSelection.length === tags.length) {
+                            setSelectedTags(null);
+                        } else {
+                            setSelectedTags(newSelection);
+                        }
+                    }}
+                />
+            </div>
+            */}
 
             <div className="flex-1 flex justify-center min-w-60">
                 <div className="w-full max-w-sm">
@@ -56,6 +75,7 @@ export const TransactionsFilter: React.FC = () => {
                 />
             </div>
 
+            </div>
         </div>
     );
 };
