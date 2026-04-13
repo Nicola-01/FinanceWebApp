@@ -30,7 +30,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
     }
 
     return (
-        <div className="h-full overflow-y-auto custom-scrollbar pr-2 animate-[fadeIn_0.3s_ease-out]">
+        <div className="h-full overflow-y-auto custom-scrollbar animate-[fadeIn_0.3s_ease-out]">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
                 {subscriptions
                     .filter(sub => sub.lastExecutionDate)

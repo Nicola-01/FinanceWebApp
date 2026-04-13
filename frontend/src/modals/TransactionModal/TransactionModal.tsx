@@ -102,7 +102,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                     amount: Math.abs(Number(convertedAmount)),
                     originalAmount: Math.abs(Number(amount)),
                     type,
-                    transactionDate: date.toISOString().split('T')[0],
+                    transactionDate: date.toLocaleDateString().split('/').reverse().join('-'),
                     originalCurrency: currency,
                     exchangeValue: Number(exchangeRate) || 1,
                     tag: selectedTagName,

@@ -6,14 +6,15 @@ import {
     TransactionModal,
     type TransactionModalHandle
 } from "../../modals/TransactionModal/TransactionModal.tsx";
-import React, { useRef } from 'react';
-import type { Tag, Transaction, Wallet } from '../../utils/types.ts';
+import React, {useRef} from 'react';
+import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
 import TransactionRow from "./TransactionRow.tsx";
 import api from "../../api/axiosConfig.ts";
-import { triggerToast } from "../../components/ToastNotification.tsx";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faReceipt } from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
-import type { CurrencyCode } from "../../utils/currencies.ts";
+import {triggerToast} from "../../components/ToastNotification.tsx";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faReceipt} from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
+import type {CurrencyCode} from "../../utils/currencies.ts";
+import {FloatingActionButton} from "../../components/FloatingActionButton.tsx";
 
 interface TransactionsTableProps {
     wallet: Wallet,
@@ -43,12 +44,12 @@ const SkeletonRow = () => (
 );
 
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({
-    wallet,
-    tags,
-    transactions,
-    isLoading,
-    onRefresh
-}) => {
+                                                                        wallet,
+                                                                        tags,
+                                                                        transactions,
+                                                                        isLoading,
+                                                                        onRefresh
+                                                                    }) => {
 
     const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
     const transactionModalRef = useRef<TransactionModalHandle>(null);
@@ -101,32 +102,33 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     return (
         <div className="flex flex-col flex-1 relative min-h-0">
 
-            <div className="flex-1 overflow-auto pr-2 pb-10 custom-scrollbar">
+            <div className="flex-1 overflow-auto pb-10 custom-scrollbar">
 
                 {/* 1. STATO DI CARICAMENTO */}
                 {isLoading ? (
-                    <>
-                        <div className="mb-6">
-                            <SkeletonDateHeader />
-                            <div>
-                                <SkeletonRow />
-                                <SkeletonRow />
-                                <SkeletonRow />
+                        <>
+                            <div className="mb-6">
+                                <SkeletonDateHeader/>
+                                <div>
+                                    <SkeletonRow/>
+                                    <SkeletonRow/>
+                                    <SkeletonRow/>
+                                </div>
                             </div>
-                        </div>
-                    </>
-                ) :
+                        </>
+                    ) :
 
                     /* 2. STATO VUOTO (Nessuna transazione) - Migliorato visivamente */
                     transactions.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-24 text-app-muted">
-                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input">
-                                <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50" />
+                            <div className="flex flex-col items-center justify-center py-24 text-app-muted">
+                                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input">
+                                    <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50"/>
+                                </div>
+                                <p className="text-sm font-bold">No transactions found for this period.</p>
+                                <p className="mt-1 text-xs font-medium opacity-60">Click "New Transaction" to add your first
+                                    one.</p>
                             </div>
-                            <p className="text-sm font-bold">No transactions found for this period.</p>
-                            <p className="mt-1 text-xs font-medium opacity-60">Click "New Transaction" to add your first one.</p>
-                        </div>
-                    ) :
+                        ) :
 
                         /* 3. STATO CON DATI */
                         (
@@ -179,22 +181,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
             {/* FLOATING ACTION BUTTON */}
             {!isLoading && wallet.myRole !== 'VIEWER' && (
-                <div className="sticky bottom-8 mt-auto mx-auto w-max z-[100] pointer-events-none">
-                    <button
-                        onClick={() => transactionModalRef.current?.openModal()}
-                        className="group flex items-center justify-center gap-3 rounded-2xl border backdrop-blur-md px-6 py-4 shadow-xl hover:brightness-110 active:scale-95 transition-all font-black pointer-events-auto"
-                        style={{ 
-                            backgroundColor: wallet.color + '26', // 15% opacity
-                            borderColor: wallet.color + '40', // 25% opacity
-                            boxShadow: `0 8px 32px 0 ${wallet.color}33`, // 20% opacity
-                            color: wallet.color // Force text color to follow wallet color for better visibility on light themes
-                        }}
-                    >
-                        <FontAwesomeIcon icon={faPlus} className="text-xl transition-transform group-hover:rotate-90" />
-                        <span className="hidden sm:inline tracking-wide font-black">Add New Transaction</span>
-                        <span className="inline sm:hidden tracking-wide font-black">Add</span>
-                    </button>
-                </div>
+                <FloatingActionButton wallet={wallet} onClick={() => transactionModalRef.current?.openModal()}/>
             )}
         </div>
     );

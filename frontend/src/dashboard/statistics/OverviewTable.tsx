@@ -9,8 +9,8 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 type ViewMode = 'monthly' | 'yearly';
 
 const TABS = [
-    {key: 'monthly', label: 'Monthly'},
-    {key: 'yearly', label: 'Yearly'},
+    {key: 'monthly', label: 'Monthly', title: 'Monthly Overview'},
+    {key: 'yearly', label: 'Yearly', title: 'Yearly Overview'},
 ];
 
 const formatAmount = (value: number): string => {
@@ -119,7 +119,7 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({transactions}) =>
 
     // Year selector as center element
     const yearSelector = isMonthly ? (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 md:ml-5">
             <button
                 onClick={() => canGoBack && setSelectedYear(y => y - 1)}
                 disabled={!canGoBack}
@@ -143,7 +143,7 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({transactions}) =>
             tabs={TABS}
             activeTab={viewMode}
             onTabChange={(key) => setViewMode(key as ViewMode)}
-            title={`${isMonthly ? 'Monthly' : 'Yearly'} Overview`}
+            title={TABS.find(t => t.key === viewMode)?.title}
             centerElement={yearSelector}
             noPadding
             className="my-4"

@@ -14,6 +14,7 @@ export interface MonthGridProps {
     isRange: boolean;
     color: string;
     isDark: boolean;
+    weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 export default function MonthGrid({
@@ -26,12 +27,13 @@ export default function MonthGrid({
                                       setPreset,
                                       isRange,
                                       color,
-                                      isDark
+                                      isDark,
+                                      weekStartsOn
                                   }: MonthGridProps) {
     const monthStart = startOfMonth(monthDate);
     const monthEnd = endOfMonth(monthStart);
-    const startDateGrid = startOfWeek(monthStart);
-    const endDateGrid = endOfWeek(monthEnd);
+    const startDateGrid = startOfWeek(monthStart, { weekStartsOn });
+    const endDateGrid = endOfWeek(monthEnd, { weekStartsOn });
     const days = eachDayOfInterval({start: startDateGrid, end: endDateGrid});
 
     const handleDateClick = (day: Date) => {

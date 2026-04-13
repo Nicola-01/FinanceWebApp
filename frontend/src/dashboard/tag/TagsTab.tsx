@@ -9,7 +9,6 @@ import type {IconKey} from '../../utils/icons.ts';
 import {useWalletContext} from "../wallet/WalletContext.tsx";
 import {TransactionPieChart} from './CategoryCharts.tsx';
 import {CashFlowSankey} from '../statistics/CashFlowSankey.tsx';
-import {TransactionsFilter} from '../transaction/TransactionsFilter.tsx';
 import {DateRangeBanner} from '../statistics/DateRangeBanner.tsx';
 import {useTheme} from '../../utils/ThemeContext.tsx';
 import {Collapse} from "../../components/Collapse.tsx";
@@ -88,28 +87,23 @@ export const TagsTab: React.FC = () => {
         <ThemeProvider theme={resolvedTheme === 'dark' ? darkTheme : lightTheme}>
             <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] pb-10 relative">
 
-                <Collapse title="Filter Transactions" defaultOpen>
+                <DateRangeBanner/>
 
-                    <TransactionsFilter/>
+                <div className="mb-4 mt-2">
+                    <h2 className="text-2xl font-bold text-app-text">Visual Distribution</h2>
+                    <p className="text-app-muted text-sm">Analyze your income and expenses by category and
+                        sub-category.</p>
+                </div>
 
-                    <DateRangeBanner/>
+                {/* Pie Charts */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                    <TransactionPieChart transactions={filteredTransactions} type="INCOME"
+                                         title="Income Distribution"/>
+                    <TransactionPieChart transactions={filteredTransactions} type="EXPENSE"
+                                         title="Expense Distribution"/>
+                </div>
 
-                    <div className="mb-6 mt-2">
-                        <h2 className="text-2xl font-bold text-app-text">Visual Distribution</h2>
-                        <p className="text-app-muted text-sm">Analyze your income and expenses by category and
-                            sub-category.</p>
-                    </div>
-
-                    {/* Pie Charts */}
-                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                        <TransactionPieChart transactions={filteredTransactions} type="INCOME"
-                                             title="Income Distribution"/>
-                        <TransactionPieChart transactions={filteredTransactions} type="EXPENSE"
-                                             title="Expense Distribution"/>
-                    </div>
-
-                    <CashFlowSankey transactions={filteredTransactions}/>
-                </Collapse>
+                <CashFlowSankey transactions={filteredTransactions}/>
 
                 <Collapse title="Manage Categories" className="mt-3">
                     <div

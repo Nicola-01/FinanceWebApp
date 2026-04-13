@@ -6,7 +6,6 @@ import {
 import type { CurrencyCode } from "../../utils/currencies.ts";
 import { TransactionsTable } from "./TransactionsTable.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
-import { TransactionsFilter } from "./TransactionsFilter.tsx";
 
 export const TransactionsTab: React.FC = () => {
     const { wallet, isLoading, tags, fetchData, filteredTransactions } = useWalletContext();
@@ -30,20 +29,15 @@ export const TransactionsTab: React.FC = () => {
             </div>
 
             <div className="w-full flex-1 relative flex flex-col">
-
-                {/* 
-                  Sticky container INSIDE the scrolling element natively guarantees 
-                  that elements scrolling past will simply slide underneath its z-index!
-                */}
-                <TransactionsFilter />
-
-                <TransactionsTable
-                    wallet={wallet}
-                    tags={tags}
-                    transactions={filteredTransactions}
-                    onRefresh={onRefresh}
-                    isLoading={isLoading}
-                />
+                <div className="flex-1 flex flex-col">
+                    <TransactionsTable
+                        wallet={wallet}
+                        tags={tags}
+                        transactions={filteredTransactions}
+                        onRefresh={onRefresh}
+                        isLoading={isLoading}
+                    />
+                </div>
             </div>
 
         </div>

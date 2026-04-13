@@ -79,7 +79,7 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, onUpdateTag, on
                     </div>
                 ) : (
                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-app-text truncate pr-2">{child.name}</span>
+                        <span className="text-sm font-medium text-app-text truncate">{child.name}</span>
                         <div className="flex items-center gap-2 opacity-0 group-hover/child:opacity-100 transition-opacity">
                             {wallet.myRole !== 'VIEWER' && (
                                 <>

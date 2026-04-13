@@ -118,7 +118,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                         </div>
                     ) : (
                         <div className="flex items-center justify-between">
-                            <div className="min-w-0"><h1 className="font-bold text-app-text text-2xl truncate pr-2">{parent.name}</h1></div>
+                            <div className="min-w-0"><h1 className="font-bold text-app-text text-2xl truncate">{parent.name}</h1></div>
                             <div className="flex items-center gap-2 opacity-0 group-hover/header:opacity-100 transition-opacity">
                                 {wallet.myRole !== 'VIEWER' && (
                                     <>

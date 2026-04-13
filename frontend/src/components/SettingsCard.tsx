@@ -25,13 +25,13 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
     actionText, actionIcon, actionColor, onAction, actionDisabled, isActionLoading
 }) => {
     return (
-        <div className={`flex flex-col gap-6 border rounded-2xl p-6 backdrop-blur-md relative overflow-hidden group shrink-0 ${danger ? 'bg-red-500/5 border-red-500/20' : 'bg-app-input border-app-border'}`}>
+        <div className={`flex flex-col gap-4 sm:gap-6 border rounded-2xl p-5 sm:p-6 backdrop-blur-md relative overflow-hidden group shrink-0 ${danger ? 'bg-red-500/5 border-red-500/20' : 'bg-app-input border-app-border'}`}>
 
             {danger && (
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-500/10 rounded-full blur-3xl transition-all group-hover:bg-red-500/20 pointer-events-none"></div>
             )}
 
-            <div className={`flex flex-col gap-1 relative z-10 border-b pb-4 ${danger ? 'border-red-500/20' : 'border-app-border'}`}>
+            <div className={`flex flex-col gap-1 relative z-10 border-b pb-3 sm:pb-4 ${danger ? 'border-red-500/20' : 'border-app-border'}`}>
                 <div className={`flex items-center gap-3 ${headerCentered ? 'justify-center sm:justify-start' : ''}`}>
                     <FontAwesomeIcon icon={icon} className={`text-xl ${danger ? 'text-red-500' : ''}`} style={!danger ? { color: iconColor } : {}} />
                     <h2 className={`text-xl font-bold ${danger ? 'text-red-500' : 'text-white'}`}>{title}</h2>
@@ -56,7 +56,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
             )}
 
             {actionText && onAction && (
-                <div className={`relative z-10 flex pt-5 mt-2 border-t ${danger ? 'border-red-500/20' : 'border-app-border'} justify-center w-full`}>
+                <div className={`relative z-10 flex pt-4 sm:pt-5 mt-1 sm:mt-2 border-t ${danger ? 'border-red-500/20' : 'border-app-border'} justify-center w-full`}>
                     <button
                         onClick={onAction}
                         disabled={actionDisabled || isActionLoading}

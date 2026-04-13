@@ -18,11 +18,12 @@ export interface CalendarContainerProps {
     isRange: boolean;
     color: string;
     isDark: boolean;
+    weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }
 
 type ViewState = 'calendar' | 'months' | 'years';
 
-export default function CalendarContainer({ currentDate, setCurrentDate, startDate, endDate, setStartDate, setEndDate, preset, setPreset, isRange, color, isDark }: CalendarContainerProps) {
+export default function CalendarContainer({ currentDate, setCurrentDate, startDate, endDate, setStartDate, setEndDate, preset, setPreset, isRange, color, isDark, weekStartsOn }: CalendarContainerProps) {
     const [view, setView] = useState<ViewState>('calendar');
     const [direction, setDirection] = useState<'next' | 'prev'>('next');
 
@@ -61,6 +62,9 @@ export default function CalendarContainer({ currentDate, setCurrentDate, startDa
     const textMain = isDark ? 'text-gray-100' : 'text-gray-700';
     const textMuted = isDark ? 'text-gray-500' : 'text-gray-400';
 
+    const baseDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekDays = [...baseDays.slice(weekStartsOn), ...baseDays.slice(0, weekStartsOn)];
+
     return (
         <div className="flex flex-col w-full h-72">
             <style>{`
@@ -89,7 +93,7 @@ export default function CalendarContainer({ currentDate, setCurrentDate, startDa
                     </div>
 
                     <div className="grid grid-cols-7 mb-2">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        {weekDays.map(day => (
                             <div key={day} className={`text-center text-xs font-medium ${textMuted}`}>{day}</div>
                         ))}
                     </div>
@@ -106,6 +110,7 @@ export default function CalendarContainer({ currentDate, setCurrentDate, startDa
                             isRange={isRange}
                             color={color}
                             isDark={isDark}
+                            weekStartsOn={weekStartsOn}
                         />
                     </div>
                 </>

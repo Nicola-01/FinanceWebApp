@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-    format, addMonths, subMonths, startOfMonth, endOfMonth,
+    format, startOfMonth, endOfMonth,
     startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays
 } from 'date-fns';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import type { Subscription } from '../../utils/types';
 import { generateSubscriptionOccurrences } from '../../utils/subscriptionHelper';
-import {TagBadge} from "../../components/TagBadge.tsx";
+import { TagBadge } from "../../components/TagBadge.tsx";
+import CustomDatePicker from '../../components/DataPicker/CustomDatePicker.tsx';
+import { DayDetailPanel, type DayDetailModalHandle } from '../../modals/DayDetailModal.tsx';
+import { useWalletContext } from '../wallet/WalletContext.tsx';
 
 interface SubscriptionCalendarProps {
     subscriptions: Subscription[];
     onEditSubscription?: (subscription: Subscription, date: Date) => void;
+    onAddSubscription?: (date: Date) => void;
 }
 
-export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subscriptions, onEditSubscription }) => {
+export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subscriptions, onEditSubscription, onAddSubscription }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
-
-    const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
-    const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+    const dayDetailRef = useRef<DayDetailModalHandle>(null);
 
     const currentYear = currentDate.getFullYear();
-    const subsHash = subscriptions.map(s => 
+    const subsHash = subscriptions.map(s =>
         `${s.id}-${s.status}-${s.frequencyType}-${s.frequencyInterval}-${s.nextExecutionDate}-${s.startDate}-${s.duration}-${s.durationTimes}-${s.durationUntil}`
     ).join('|');
 
@@ -29,6 +29,8 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
         subsHash: string;
         yearsMap: Record<number, Record<string, Subscription[]>>;
     }>({ subsHash: '', yearsMap: {} });
+
+    const { wallet } = useWalletContext();
 
     useEffect(() => {
         const neededYears = [currentYear - 1, currentYear, currentYear + 1];
@@ -42,10 +44,10 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                 if (!currentMap[y]) {
                     hasChanges = true;
                     const yearOccurrences: Record<string, Subscription[]> = {};
-                    
+
                     subscriptions.forEach(sub => {
                         if (sub.status === 'COMPLETED') return;
-                        
+
                         const dates = generateSubscriptionOccurrences(sub, y, y);
                         dates.forEach(d => {
                             const dateStr = format(d, 'yyyy-MM-dd');
@@ -53,7 +55,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                             yearOccurrences[dateStr].push(sub);
                         });
                     });
-                    
+
                     currentMap[y] = yearOccurrences;
                 }
             }
@@ -77,10 +79,11 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
     }, [currentYear, subsHash, subscriptions]);
 
     // Generazione della griglia del calendario
+    const weekStartsOn = 1; // Lunedì come default variabile
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 }); // Lunedì come primo giorno
-    const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+    const startDate = startOfWeek(monthStart, { weekStartsOn });
+    const endDate = endOfWeek(monthEnd, { weekStartsOn });
 
     const calendarDays = [];
     let day = startDate;
@@ -88,38 +91,60 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
         calendarDays.push(day);
         day = addDays(day, 1);
     }
+    // Always render exactly 6 rows (42 cells) for consistent calendar height
+    while (calendarDays.length < 42) {
+        calendarDays.push(addDays(calendarDays[calendarDays.length - 1], 1));
+    }
 
-    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const baseDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekDays = [...baseDays.slice(weekStartsOn), ...baseDays.slice(0, weekStartsOn)];
+
+    // Helper to resolve subscriptions for any date (used by DayDetailPanel for navigation)
+    const getSubscriptionsForDate = useCallback((date: Date): Subscription[] => {
+        const dayStr = format(date, 'yyyy-MM-dd');
+        const yearData = cacheInfo.yearsMap[date.getFullYear()];
+        return yearData ? (yearData[dayStr] || []) : [];
+    }, [cacheInfo]);
+
+    const handleDayClick = (clickedDay: Date) => {
+        const subs = getSubscriptionsForDate(clickedDay);
+        dayDetailRef.current?.openModal(clickedDay, subs);
+    };
 
     return (
-        <div className="flex flex-col h-full bg-app-card border border-app-border rounded-2xl p-4 sm:p-6 animate-[fadeIn_0.3s_ease-out]">
+        <div className="flex flex-col h-full bg-app-card border border-app-border rounded-2xl p-2 sm:p-4 md:p-6 animate-[fadeIn_0.3s_ease-out]">
 
             {/* Header Calendario */}
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-white capitalize">
-                    {format(currentDate, 'MMMM yyyy')}
-                </h2>
-                <div className="flex gap-2">
-                    <button onClick={prevMonth} className="flex items-center justify-center w-8 h-8 rounded-lg bg-app-input text-app-muted hover:text-white transition-colors">
-                        <FontAwesomeIcon icon={faChevronLeft} />
-                    </button>
-                    <button onClick={nextMonth} className="flex items-center justify-center w-8 h-8 rounded-lg bg-app-input text-app-muted hover:text-white transition-colors">
-                        <FontAwesomeIcon icon={faChevronRight} />
-                    </button>
+            <div className="flex items-center justify-center sm:justify-start mb-3 sm:mb-6 w-full">
+                <div className="w-full sm:max-w-xs m-auto">
+                    <CustomDatePicker
+                        isRange={true}
+                        hideSidebar={true}
+                        initialPreset="month"
+                        initialStartDate={monthStart}
+                        initialEndDate={monthEnd}
+                        onChange={(val) => {
+                            if (val && 'start' in val && val.start) {
+                                setCurrentDate(val.start);
+                            }
+                        }}
+                        weekStartsOn={weekStartsOn}
+                        color="#00bfff"
+                    />
                 </div>
             </div>
 
             {/* Intestazione Giorni (Lun, Mar, Mer...) */}
-            <div className="grid grid-cols-7 mb-2">
+            <div className="grid grid-cols-7 mb-1 sm:mb-2">
                 {weekDays.map(wd => (
-                    <div key={wd} className="text-center text-xs font-bold text-app-muted uppercase tracking-wider py-2">
+                    <div key={wd} className="text-center text-[10px] sm:text-xs font-bold text-app-muted uppercase tracking-wider py-1 sm:py-2">
                         {wd}
                     </div>
                 ))}
             </div>
 
             {/* Griglia dei Giorni */}
-            <div className="grid grid-cols-7 auto-rows-[minmax(80px,1fr)] gap-1 md:gap-2 flex-1 overflow-y-auto custom-scrollbar pr-2">
+            <div className="grid grid-cols-7 grid-rows-6 gap-px sm:gap-1 md:gap-2 flex-1">
                 {calendarDays.map((calendarDay, index) => {
                     const dayStr = format(calendarDay, 'yyyy-MM-dd');
                     const calendarDayYear = calendarDay.getFullYear();
@@ -129,37 +154,51 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                     const isCurrentMonth = isSameMonth(calendarDay, monthStart);
                     const isToday = isSameDay(calendarDay, new Date());
 
+                    const MAX_VISIBLE = 3;
+                    const visibleSubs = daySubscriptions.slice(0, MAX_VISIBLE);
+                    const overflowCount = daySubscriptions.length - MAX_VISIBLE;
+
                     return (
                         <div
                             key={index}
-                            className={`flex flex-col p-2 rounded-xl border ${
-                                isCurrentMonth ? 'bg-app-input/50 border-white/5' : 'bg-transparent border-transparent opacity-40'
-                            } ${isToday ? 'ring-1 ring-[#00bfff]' : ''} transition-all`}
+                            onClick={() => handleDayClick(calendarDay)}
+                            className={`flex flex-col p-1 sm:p-2 rounded-lg sm:rounded-xl border cursor-pointer transition-all min-w-0 overflow-hidden ${isCurrentMonth
+                                ? 'bg-app-input/50 border-white/5 hover:bg-app-input/80 hover:border-white/10'
+                                : 'bg-transparent border-transparent opacity-40'
+                                } ${isToday ? 'ring-1 ring-[#00bfff]' : ''}`}
                         >
-                            <span className={`text-xs font-bold mb-1 ${isToday ? 'text-[#00bfff]' : 'text-app-muted'}`}>
+                            <span className={`text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 shrink-0 ${isToday ? 'text-[#00bfff]' : 'text-app-muted'}`}>
                                 {format(calendarDay, 'd')}
                             </span>
 
-                            {/* Lista pillole abbonamenti nel giorno */}
-                            <div className="flex flex-col gap-1 overflow-y-auto custom-scrollbar">
-                                {daySubscriptions.map(sub => (
-                                    <TagBadge tag={sub.tag} key={sub.id} showParent={false} onClick={() => onEditSubscription && onEditSubscription(sub, calendarDay)}/>
-                                    // <div
-                                    //     key={sub.id}
-                                    //
-                                    //     className={`text-[10px] font-bold px-1.5 py-0.5 rounded truncate cursor-pointer transition-opacity hover:opacity-80 ${
-                                    //         sub.type === 'INCOME' ? 'bg-[#00ff7f]/20 text-[#00ff7f]' : 'bg-white/10 text-white'
-                                    //     }`}
-                                    //     title={`${sub.name} - ${sub.amount}`}
-                                    // >
-                                    //     {sub.name}
-                                    // </div>
+                            {/* Subscription badges — max 3, then +N */}
+                            <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0 overflow-hidden">
+                                {visibleSubs.map(sub => (
+                                    <TagBadge tag={sub.tag} key={sub.id} showParent={false} compact={true} onClick={(e: React.MouseEvent) => {
+                                        e.stopPropagation();
+                                        onEditSubscription && onEditSubscription(sub, calendarDay);
+                                    }} />
                                 ))}
+                                {overflowCount > 0 && (
+                                    <span className="text-[10px] sm:text-auto font-bold text-app-muted pl-0.5 shrink-0 ml-auto mr-1"
+                                    style={{color: wallet.color}}
+                                    >
+                                        +{overflowCount}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     );
                 })}
             </div>
+
+            {/* Day Detail Modal */}
+            <DayDetailPanel
+                ref={dayDetailRef}
+                getSubscriptionsForDate={getSubscriptionsForDate}
+                onEditSubscription={onEditSubscription}
+                onAddSubscription={onAddSubscription}
+            />
         </div>
     );
 };
