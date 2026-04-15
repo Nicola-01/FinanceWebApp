@@ -1,20 +1,25 @@
-name: CI/CD Deploy to Prod & Demo
+name: CI/CD Deploy & Maintenance
 
 on:
   push:
     branches: [ "release/*" ]
+  schedule:
+    # Runs at 03:00 UTC every Sunday
+    - cron: '0 3 * * 0'
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
   # -------------------------------------------------------------
-  # 1. DEPLOY TO TARGET ENVIRONMENTS (Prod & Demo instances)
+  # 1. DEPLOY TO TARGET ENVIRONMENTS
   # -------------------------------------------------------------
   deploy:
     name: Deploy to ${{ matrix.environment }}
+    # This job only runs on push to release branches
+    if: github.event_name == 'push'
     strategy:
       matrix:
         environment: [prod, demo]
     runs-on: [self-hosted, "${{ matrix.environment }}"]
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -23,37 +28,31 @@ jobs:
 
       - name: Setup environment variables
         run: |
-          # Copy the server-specific .env file from the host machine to the runner's workspace
           cp /home/deployer/.env .
-          
-          # Inject version and build date derived from the release branch and current timestamp
           VERSION=${GITHUB_REF_NAME#release/}
           echo "VITE_APP_VERSION=$VERSION" >> .env
           echo "VITE_APP_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> .env
 
       - name: Clean obsolete build artifacts
         run: |
-          # Prevent aggressive Service Worker caching issues by deleting old assets
-          rm -rf dist
-          rm -rf assets
+          rm -rf dist assets
 
       - name: Build and deploy containers
         run: |
-          # Force a clean build from scratch without using Docker cache
-          docker compose -f docker-compose.prod.yml build --no-cache
-          # Start the containers, forcing recreation
-          docker compose -f docker-compose.prod.yml up -d --force-recreate
+          docker compose -f docker-compose.prod.yml build
+          docker compose -f docker-compose.prod.yml up -d
 
-      - name: Prune unused Docker resources
-        run: docker builder prune -f && docker image prune -f
+      - name: Smart Docker Cleanup
+        run: |
+          docker image prune -f
 
   # -------------------------------------------------------------
-  # 2. GIT OPERATIONS (Executed by GitHub Cloud, only once)
+  # 2. GIT OPERATIONS
   # -------------------------------------------------------------
   git-post-deploy:
-    needs: [deploy] # Wait for both Prod and Demo deployments to finish
-    if: success() # Execute only if both deployments are successful
-    runs-on: ubuntu-latest # Use GitHub runners to avoid occupying the Mini PCs
+    needs: [deploy]
+    if: github.event_name == 'push' && success()
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
@@ -64,7 +63,6 @@ jobs:
           fetch-depth: 0
 
       - name: Push to main directly
-        if: success()
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
@@ -73,29 +71,31 @@ jobs:
           git push origin main
 
       - name: Cleanup old release branches
-        if: success()
         run: |
-          # Fetch all branches strictly to ensure we have the latest remotes
           git fetch --prune
-          # List all remote release branches, sorted by committer date (newest first)
           branches=$(git for-each-ref --sort=-committerdate --format='%(refname:short)' refs/remotes/origin/release/)
-          
-          # Convert to array
-          branch_array=()
-          while IFS= read -r line; do
-            if [ -n "$line" ]; then
-              branch_array+=("$line")
-            fi
-          done <<< "$branches"
-          
-          # If more than 3, delete the older ones
+          branch_array=($branches)
           if [ ${#branch_array[@]} -gt 3 ]; then
             for i in "${!branch_array[@]}"; do
               if [ $i -ge 3 ]; then
-                # Strip origin/ from branch name
                 branch_to_delete=${branch_array[$i]#origin/}
-                echo "Deleting old release branch: $branch_to_delete"
                 git push origin --delete "$branch_to_delete" || true
               fi
             done
           fi
+
+  # -------------------------------------------------------------
+  # 3. WEEKLY SYSTEM MAINTENANCE
+  # -------------------------------------------------------------
+  cron-cleanup:
+    name: Weekly Deep Clean
+    # This job runs on schedule or manual trigger
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      matrix:
+        environment: [prod, demo]
+    runs-on: [self-hosted, "${{ matrix.environment }}"]
+    steps:
+      - name: Deep Prune Docker Resources
+        run: |
+          docker system prune -a --volumes --filter "until=168h" -f
