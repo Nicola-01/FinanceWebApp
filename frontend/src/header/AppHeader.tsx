@@ -1,4 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {NavLink} from 'react-router-dom';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
     faChevronDown,
@@ -22,15 +23,21 @@ import type {Invitation} from "../utils/types.ts";
 import {ThemeSelector} from "../components/ThemeSelector.tsx";
 import { usePWA } from "../utils/PWAContext.tsx";
 
+export interface AppHeaderTab {
+    label: string;
+    to: string;
+}
+
 interface AppHeaderProps {
     page: {
         text: string;
         accent: string;
     },
-    isAdmin?: boolean
+    isAdmin?: boolean;
+    tabs?: AppHeaderTab[];
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin}) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -111,6 +118,27 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin}) => {
                         </span>
                     </h2>
                 </div>
+
+                {/* Tab Navigation (facoltativa) */}
+                {tabs && tabs.length > 0 && (
+                    <nav className="flex items-center gap-1 rounded-xl border border-app-border bg-app-input/40 p-1">
+                        {tabs.map(tab => (
+                            <NavLink
+                                key={tab.to}
+                                to={tab.to}
+                                className={({ isActive }) =>
+                                    `relative px-4 py-1.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
+                                        isActive
+                                            ? 'bg-app-card text-app-text shadow-sm'
+                                            : 'text-app-muted hover:text-app-text hover:bg-app-card/50'
+                                    }`
+                                }
+                            >
+                                {tab.label}
+                            </NavLink>
+                        ))}
+                    </nav>
+                )}
 
                 {/* Menu Utente Dropdown */}
                 <div className="relative z-[120]" ref={menuRef}>

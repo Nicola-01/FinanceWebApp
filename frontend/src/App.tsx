@@ -72,7 +72,7 @@ const App: React.FC = () => {
                         {/* Specific protected routes for ADMIN */}
                         <Route element={<AdminRoute />}>
                             <Route
-                                path="/admin/dashboard"
+                                path="/admin/dashboard/*"
                                 element={<AdminDashboard />}
                             />
                             {/* Any other admin routes will go here */}
