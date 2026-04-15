@@ -32,8 +32,14 @@ public class BackupService {
 
     // ── Config ────────────────────────────────────────────────────────────────
 
-    @Value("${backup.container-name:finance_db_prod}")
-    private String containerName;
+@Value("${backup.container-name:finance_db_prod}")
+    private String containerName; // kept for reference, no longer used for docker exec
+
+    @Value("${backup.db-host:db}")
+    private String dbHost;
+
+    @Value("${backup.db-port:5432}")
+    private String dbPort;
 
     @Value("${backup.db-user:admin}")
     private String dbUser;
@@ -196,18 +202,33 @@ public class BackupService {
         return local;
     }
 
-    /** docker exec pg_dump */
+    /**
+     * pg_dump directly via TCP (no docker exec required).
+     * PGPASSWORD is passed via environment variable, stdout → sqlFile.
+     * Stderr is captured separately so errors are visible in logs.
+     */
     private void runDockerPgDump(Path sqlFile) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(
-                "docker", "exec",
-                "-e", "PGPASSWORD=" + dbPass,
-                "-i", containerName,
-                "pg_dump", "--clean", "--if-exists",
-                "-U", dbUser, dbName
+                "pg_dump",
+                "-h", dbHost,
+                "-p", dbPort,
+                "-U", dbUser,
+                "--clean", "--if-exists",
+                dbName
         );
-        pb.redirectOutput(sqlFile.toFile());
-        pb.redirectErrorStream(false);
-        runProcess(pb, "pg_dump");
+        pb.environment().put("PGPASSWORD", dbPass);
+        pb.redirectOutput(sqlFile.toFile());   // stdout → sql file
+        pb.redirectErrorStream(false);          // keep stderr separate
+
+        Process p = pb.start();
+        // Read stderr BEFORE waitFor to avoid blocking
+        String stderr = new String(p.getErrorStream().readAllBytes());
+        int code = p.waitFor();
+        if (code != 0) {
+            log.error("[pg_dump] failed (exit {}): {}", code, stderr);
+            throw new IOException("pg_dump failed with exit code " + code + ": " + stderr);
+        }
+        if (!stderr.isBlank()) log.warn("[pg_dump] stderr: {}", stderr);
     }
 
     /** gzip -c file | openssl enc -aes-256-cbc */
@@ -258,17 +279,31 @@ public class BackupService {
         return result;
     }
 
-    /** docker exec psql */
+    /**
+     * psql restore directly via TCP (no docker exec required).
+     * stdin ← sqlFile, stderr captured for logging.
+     */
     private void runDockerPsqlRestore(Path sqlFile) throws IOException, InterruptedException {
         ProcessBuilder pb = new ProcessBuilder(
-                "docker", "exec",
-                "-e", "PGPASSWORD=" + dbPass,
-                "-i", containerName,
-                "psql", "--quiet",
-                "-U", dbUser, "-d", dbName
+                "psql",
+                "-h", dbHost,
+                "-p", dbPort,
+                "-U", dbUser,
+                "-d", dbName,
+                "--quiet"
         );
+        pb.environment().put("PGPASSWORD", dbPass);
         pb.redirectInput(sqlFile.toFile());
-        runProcess(pb, "psql restore");
+        pb.redirectErrorStream(false);
+
+        Process p = pb.start();
+        String stderr = new String(p.getErrorStream().readAllBytes());
+        int code = p.waitFor();
+        if (code != 0) {
+            log.error("[psql restore] failed (exit {}): {}", code, stderr);
+            throw new IOException("psql restore failed with exit code " + code + ": " + stderr);
+        }
+        if (!stderr.isBlank()) log.warn("[psql restore] stderr: {}", stderr);
     }
 
     private void runProcess(ProcessBuilder pb, String label) throws IOException, InterruptedException {

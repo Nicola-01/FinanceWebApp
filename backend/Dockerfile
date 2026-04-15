@@ -18,6 +18,8 @@ RUN gradle build -x test --no-daemon
 # Stage 4: Runtime (Target: production)
 FROM eclipse-temurin:21-jre-alpine AS production
 WORKDIR /app
+# Install pg_dump / psql (postgresql-client), openssl, gzip needed for backup
+RUN apk add --no-cache postgresql-client openssl gzip
 COPY --from=builder /app/build/libs/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

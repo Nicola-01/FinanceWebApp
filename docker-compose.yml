@@ -12,8 +12,9 @@ services:
       - "5432:5432" # Expose port for external tools (DBeaver, IntelliJ, etc.)
     volumes:
       - ./postgres_data:/var/lib/postgresql/data # Persist data if container stops
-    healthcheck: # Controllo salute per dire a Spring quando il DB è pronto
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+    healthcheck:
+      # Controllo salute per dire a Spring quando il DB è pronto
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -29,7 +30,8 @@ services:
     volumes:
       - ./backend/src:/app/src
     depends_on:
-      db: # Wait for DB to start
+      db:
+        # Wait for DB to start
         condition: service_healthy
     env_file:
       - .env
@@ -63,6 +65,8 @@ services:
       DEMO_ENABLED: ${DEMO_ENABLED}
 
       BACKUP_CONTAINER_NAME: ${BACKUP_CONTAINER_NAME}
+      BACKUP_DB_HOST: ${BACKUP_DB_HOST}
+      BACKUP_DB_PORT: ${BACKUP_DB_PORT}
       BACKUP_DB_NAME: ${BACKUP_DB_NAME}
       BACKUP_DIR: ${BACKUP_DIR}
       BACKUP_ENCRYPTION_PASS: ${BACKUP_ENCRYPTION_PASS}
@@ -84,8 +88,8 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - ./.env:/app/.env
-#    depends_on:
-#      - backend
+    #    depends_on:
+    #      - backend
     environment:
       VITE_API_URL: ${BACKEND_URL}
       VITE_ALLOWED_HOSTS: ${FRONTEND_URL}
