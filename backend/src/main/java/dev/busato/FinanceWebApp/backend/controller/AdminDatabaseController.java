@@ -16,16 +16,16 @@ import java.util.List;
 
 /**
  * REST controller for database backup / restore / download / list operations.
- *
+ * <p>
  * All paths are under /api/admin/* which is already secured by SecurityConfig
  * (hasRole('ADMIN')). The @PreAuthorize here is a double safety-net, matching
  * the pattern of AdminUserController.
- *
- *  GET    /api/admin/backup/list                  → list available backups (from R2 or local)
- *  POST   /api/admin/backup                       → trigger manual backup
- *  GET    /api/admin/backup/download/{key}        → download + decrypt a specific backup
- *  POST   /api/admin/restore/{key}               → restore DB from a specific backup key
- *  POST   /api/admin/backup/upload                → upload a .sql / .gz.enc file
+ * <p>
+ * GET    /api/admin/backup/list                  → list available backups (from R2 or local)
+ * POST   /api/admin/backup                       → trigger manual backup
+ * GET    /api/admin/backup/download/{key}        → download + decrypt a specific backup
+ * POST   /api/admin/restore/{key}               → restore DB from a specific backup key
+ * POST   /api/admin/backup/upload                → upload a .sql / .gz.enc file
  */
 @Slf4j
 @RestController
@@ -41,7 +41,7 @@ public class AdminDatabaseController {
     /**
      * Returns the list of available backups, sorted newest-first.
      * When R2 is enabled, lists bucket objects; otherwise lists local /tmp files.
-     *
+     * <p>
      * GET /api/admin/backup/list
      */
     @GetMapping("/backup/list")
@@ -55,7 +55,7 @@ public class AdminDatabaseController {
     /**
      * Triggers a full pg_dump → gzip → encrypt cycle.
      * If R2 is enabled, the encrypted file is uploaded and the local copy removed.
-     *
+     * <p>
      * POST /api/admin/backup
      */
     @PostMapping("/backup")
@@ -70,20 +70,20 @@ public class AdminDatabaseController {
     /**
      * Decrypts + decompresses the backup identified by {key} and streams it
      * back as application/octet-stream.
-     *
+     * <p>
      * {key} is the object key in R2 (or the filename in local mode),
      * e.g. "db_backup_2025-04-15_02-00.sql.gz.enc"
-     *
+     * <p>
      * GET /api/admin/backup/download/db_backup_2025-04-15_02-00.sql.gz.enc
      */
     @GetMapping("/backup/download/{key}")
     public ResponseEntity<Resource> downloadBackup(@PathVariable String key) throws Exception {
         log.info("[AdminDatabaseController] Download backup requested – key={}", key);
         Resource resource = backupService.downloadBackup(key);
+
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"" + resource.getFilename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
 
@@ -92,7 +92,7 @@ public class AdminDatabaseController {
     /**
      * Downloads (from R2 or local) and restores the backup identified by {key}.
      * DESTRUCTIVE – overwrites current database content.
-     *
+     * <p>
      * POST /api/admin/restore/db_backup_2025-04-15_02-00.sql.gz.enc
      */
     @PostMapping("/restore/{key}")
@@ -107,7 +107,7 @@ public class AdminDatabaseController {
     /**
      * Accepts a multipart upload of an .sql or .sql.gz.enc file.
      * Saves locally, then pushes to R2 if enabled.
-     *
+     * <p>
      * POST /api/admin/backup/upload
      */
     @PostMapping(value = "/backup/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

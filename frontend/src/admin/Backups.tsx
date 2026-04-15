@@ -193,7 +193,7 @@ const Backups: React.FC = () => {
             const url = window.URL.createObjectURL(new Blob([resp.data]));
             const a = document.createElement('a');
             a.href = url;
-            a.download = downloadKey.replace('.gz.enc', '').replace('.sql.gz.enc', '') + '.sql';
+            a.download = downloadKey.replace('.sql.gz.enc', '.sql');
             a.click();
             window.URL.revokeObjectURL(url);
             finalize(setDownloadStatus, true);
