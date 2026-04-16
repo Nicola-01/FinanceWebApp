@@ -6,7 +6,7 @@ import type { DateRangeValue, PresetType } from '../../components/DataPicker/Cus
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ToastNotification";
 
-export const VALID_TABS = ['transactions', 'subscription', 'category', 'statistics', 'budget', 'settings'] as const;
+export const VALID_TABS = ['transactions', 'subscription', 'category', 'statistics', 'budget', 'settings', 'data'] as const;
 export type TabType = typeof VALID_TABS[number];
 
 interface WalletContextType {

@@ -46,7 +46,7 @@ const WalletBody: React.FC = () => {
 
     return (
         <div
-            className="flex flex-col flex-1 min-h-full h-full w-full max-w-350 mx-auto relative px-2 sm:px-4 lg:px-8 pb-4 lg:pb-8">
+            className="flex flex-col flex-1 min-h-full w-full max-w-350 mx-auto relative px-2 sm:px-4 lg:px-8 pb-4 lg:pb-8">
             {activeTab === 'transactions' && <TransactionsTab/>}
             {activeTab === 'subscription' && <SubscriptionTab/>}
             {activeTab === 'category' && <TagsTab/>}

@@ -17,7 +17,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
     if (subscriptions.length === 0) {
         return (
             <div
-                className="flex flex-col items-center justify-center h-full py-20 text-center animate-[fadeIn_0.3s_ease-out]">
+                className="flex flex-col items-center justify-center py-20 text-center animate-[fadeIn_0.3s_ease-out]">
                 <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/5 mb-4 text-app-muted">
                     <FontAwesomeIcon icon={faRepeat} className="text-2xl"/>
                 </div>
@@ -30,7 +30,8 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
     }
 
     return (
-        <div className="h-full overflow-y-auto custom-scrollbar animate-[fadeIn_0.3s_ease-out]">
+        // Rimosso: h-full, overflow-y-auto, e custom-scrollbar
+        <div className="animate-[fadeIn_0.3s_ease-out]">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
                 {subscriptions
                     .filter(sub => sub.lastExecutionDate)

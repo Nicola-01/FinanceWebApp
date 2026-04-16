@@ -28,13 +28,13 @@ export const PWAPrompt: React.FC = () => {
                     onClick={() => updateServiceWorker(true)}
                     className="flex-1 sm:flex-none px-4 py-2 bg-[#00ff7f] text-black text-sm font-bold rounded-lg hover:bg-[#00cc66] transition-colors"
                 >
-                    Ricarica
+                    Reload
                 </button>
                 <button
                     onClick={() => setNeedRefresh(false)}
                     className="flex-1 sm:flex-none px-4 py-2 border border-app-border text-app-text text-sm rounded-lg hover:bg-app-input transition-colors"
                 >
-                    Dopo
+                    Later
                 </button>
             </div>
         </div>

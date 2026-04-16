@@ -193,10 +193,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                                 </div>
 
                                 {/* Email */}
-                                <p className="mt-0.5 text-xs text-app-muted truncate">
-                                    {/*{user?.email}*/}
+                                {/* <p className="mt-0.5 text-xs text-app-muted truncate">
                                     email@placeholder.com
-                                </p>
+                                </p> */}
                             </div>
 
                             {installPrompt && (

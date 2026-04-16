@@ -1,6 +1,6 @@
-import {useState, useRef} from 'react';
+import {useRef, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faList, faCalendarDays} from '@fortawesome/free-solid-svg-icons';
+import {faCalendarDays, faList} from '@fortawesome/free-solid-svg-icons';
 import {useWalletContext} from "../wallet/WalletContext.tsx";
 import {SubscriptionModal, type SubscriptionModalHandle} from "../../modals/SubscriptionModal.tsx";
 import {SubscriptionDetailsModal, type SubscriptionDetailsModalHandle} from "../../modals/SubscriptionDetailsModal.tsx";
@@ -22,7 +22,7 @@ export const SubscriptionTab = () => {
     const detailsModalRef = useRef<SubscriptionDetailsModalHandle>(null);
 
     return (
-        <div className="flex flex-col flex-1 h-full animate-[fadeIn_0.3s_ease-out]">
+        <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out]">
 
             {/* Header: Titolo, Toggle Viste, Bottone Aggiungi */}
             <div className="flex items-center justify-end gap-4 mb-6">
@@ -75,9 +75,9 @@ export const SubscriptionTab = () => {
             </div>
 
             {/* Container Dinamico delle Viste */}
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 relative">
                 {isLoading ? (
-                    <div className="h-full overflow-y-auto custom-scrollbar">
+                    <div className="w-full">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
                             {Array.from({length: 6}).map((_, i) => (
                                 <div key={i}

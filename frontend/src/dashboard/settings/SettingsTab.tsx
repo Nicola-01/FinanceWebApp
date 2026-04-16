@@ -2,10 +2,11 @@ import React, {useState} from 'react';
 import {useWalletContext} from '../wallet/WalletContext.tsx';
 import {IconPickerButton} from '../../components/IconPickerButton.tsx';
 import type {IconKey} from '../../utils/icons.ts';
-import {faSave, faTrash, faExclamationTriangle, faGear, faSignOutAlt} from '@fortawesome/free-solid-svg-icons';
+import {faExclamationTriangle, faGear, faSave, faSignOutAlt, faTrash} from '@fortawesome/free-solid-svg-icons';
 import type {Wallet} from '../../utils/types';
 import {ShareSettingsSection} from './ShareSettingsSection.tsx';
 import {SettingsCard} from '../../components/SettingsCard.tsx';
+import {DataTab} from './DataTab.tsx';
 
 export const SettingsTab: React.FC = () => {
     const {wallet, handleUpdateWallet, onWalletDelete} = useWalletContext();
@@ -80,6 +81,8 @@ export const SettingsTab: React.FC = () => {
                     </div>
                 </SettingsCard>
             )}
+
+            <DataTab/>
 
             {/* SHARE & MEMBERS SETTINGS */}
             <ShareSettingsSection/>
