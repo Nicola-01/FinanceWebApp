@@ -4,11 +4,16 @@ import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
-import dev.busato.FinanceWebApp.backend.model.*;
-import dev.busato.FinanceWebApp.backend.repository.*;
 import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
+import dev.busato.FinanceWebApp.backend.model.Subscription;
+import dev.busato.FinanceWebApp.backend.model.Tag;
+import dev.busato.FinanceWebApp.backend.model.Transaction;
+import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
+import dev.busato.FinanceWebApp.backend.repository.TagRepository;
+import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
+import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import jakarta.transaction.Transactional;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -156,6 +161,10 @@ public class SubscriptionService {
         // Flag to track if we need to recalculate the next execution date
         boolean recalculateDate = false;
 
+        if (request.getStartDate() != null && !request.getStartDate().equals(sub.getStartDate())) {
+            sub.setStartDate(request.getStartDate());
+            recalculateDate = true;
+        }
         if (request.getFrequencyType() != null && !request.getFrequencyType().equals(sub.getFrequencyType().name())) {
             sub.setFrequencyType(Subscription.Frequency.valueOf(request.getFrequencyType()));
             recalculateDate = true;
@@ -202,7 +211,6 @@ public class SubscriptionService {
     // =========================================================================
     // MAPPER METHODS
     // =========================================================================
-
 
 
     // =========================================================================

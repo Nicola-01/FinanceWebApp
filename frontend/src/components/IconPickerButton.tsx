@@ -25,9 +25,12 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
                                                                       onToggle
                                                                   }) => {
     const buttonRef = useRef<HTMLDivElement>(null);
-    const [coords, setCoords] = useState({top: 0, left: 0});
+    const [coords, setCoords] = useState<{top: number; left: number; openUpward: boolean}>({top: 0, left: 0, openUpward: false});
 
     const sizeClasses = size === "sm" ? "h-6 w-6 rounded-md text-xs" : "h-10 w-10 rounded-lg text-lg";
+    // Altezza stimata del popup (tab switcher + griglia icone/colori)
+    const POPUP_HEIGHT = 320;
+    const POPUP_WIDTH = 280;
 
     // Calcola le coordinate esatte ogni volta che si apre
     useEffect(() => {
@@ -36,16 +39,29 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
 
             // Sicurezza: Evita che il menu esca dallo schermo se cliccato troppo a destra
             let leftPos = rect.left;
-            if (leftPos + 280 > window.innerWidth) {
-                leftPos = window.innerWidth - 280;
+            if (leftPos + POPUP_WIDTH > window.innerWidth) {
+                leftPos = window.innerWidth - POPUP_WIDTH;
             }
 
+            // Se non c'è spazio sotto, apri sopra
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const openUpward = spaceBelow < POPUP_HEIGHT + 8 && rect.top > POPUP_HEIGHT + 8;
+
             setCoords({
-                top: rect.bottom + 8, // 8 pixel di margine sotto il bottone
+                top: openUpward ? rect.top - POPUP_HEIGHT + 40 : rect.bottom + 8,
                 left: leftPos,
+                openUpward,
             });
         }
     }, [isOpen]);
+
+    // Chiudi il popup allo scroll (capture:true per intercettare qualsiasi elemento scrollabile)
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleScroll = () => onToggle(false);
+        window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+        return () => window.removeEventListener('scroll', handleScroll, { capture: true });
+    }, [isOpen, onToggle]);
 
     return (
         <>

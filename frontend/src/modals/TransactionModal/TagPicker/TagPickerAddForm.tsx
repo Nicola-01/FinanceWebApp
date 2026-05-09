@@ -46,7 +46,7 @@ export const TagPickerAddForm: React.FC<TagPickerAddFormProps> = ({
     };
 
     return (
-        <div className="flex items-center gap-2 rounded-lg border border-[#00ff7f]/30 bg-[#00ff7f]/5 p-2 shadow-inner">
+        <div className="flex items-center gap-2 rounded-lg border border-[#00ff7f]/30 bg-[#00ff7f]/5 p-2 shadow-inner overflow-hidden w-full">
             <div className="shrink-0 flex items-center justify-center">
                 <IconPickerButton
                     icon={newTag.icon as IconKey}
@@ -59,7 +59,7 @@ export const TagPickerAddForm: React.FC<TagPickerAddFormProps> = ({
             </div>
             <input
                 autoFocus
-                className="flex-1 bg-transparent text-sm text-white outline-none placeholder-white/30 font-medium"
+                className="flex-1 min-w-0 bg-transparent text-sm text-white outline-none placeholder-white/30 font-medium"
                 placeholder={currentParentName ? "Subcategory name..." : "Category name..."}
                 value={newTag.name}
                 onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
