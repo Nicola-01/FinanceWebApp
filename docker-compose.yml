@@ -77,6 +77,22 @@ services:
       R2_BUCKET: ${R2_BUCKET}
       R2_ENABLED: ${R2_ENABLED}
 
+  # 3. MCP Server (Python - AI Bridge)
+  mcp:
+    build:
+      context: ./mcp-server
+      target: development
+    container_name: finance_mcp
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./mcp-server:/app
+    depends_on:
+      - backend
+    environment:
+      BACKEND_URL: http://backend:8080
+
+  # 4. Frontend Service (Vite + React)
   frontend:
     build:
       context: ./frontend
