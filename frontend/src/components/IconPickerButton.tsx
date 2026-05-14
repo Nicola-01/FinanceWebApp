@@ -25,25 +25,22 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
                                                                       onToggle
                                                                   }) => {
     const buttonRef = useRef<HTMLDivElement>(null);
+    const popupRef = useRef<HTMLDivElement>(null); // Nuovo ref per il popup
     const [coords, setCoords] = useState<{top: number; left: number; openUpward: boolean}>({top: 0, left: 0, openUpward: false});
 
     const sizeClasses = size === "sm" ? "h-6 w-6 rounded-md text-xs" : "h-10 w-10 rounded-lg text-lg";
-    // Altezza stimata del popup (tab switcher + griglia icone/colori)
     const POPUP_HEIGHT = 320;
     const POPUP_WIDTH = 280;
 
-    // Calcola le coordinate esatte ogni volta che si apre
     useEffect(() => {
         if (isOpen && buttonRef.current) {
             const rect = buttonRef.current.getBoundingClientRect();
 
-            // Sicurezza: Evita che il menu esca dallo schermo se cliccato troppo a destra
             let leftPos = rect.left;
             if (leftPos + POPUP_WIDTH > window.innerWidth) {
                 leftPos = window.innerWidth - POPUP_WIDTH;
             }
 
-            // Se non c'è spazio sotto, apri sopra
             const spaceBelow = window.innerHeight - rect.bottom;
             const openUpward = spaceBelow < POPUP_HEIGHT + 8 && rect.top > POPUP_HEIGHT + 8;
 
@@ -55,10 +52,21 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
         }
     }, [isOpen]);
 
-    // Chiudi il popup allo scroll (capture:true per intercettare qualsiasi elemento scrollabile)
     useEffect(() => {
         if (!isOpen) return;
-        const handleScroll = () => onToggle(false);
+
+        const handleScroll = (e: Event) => {
+            // Se l'evento di scroll proviene da dentro il popup, ignoralo
+            if (
+                popupRef.current &&
+                e.target instanceof Node &&
+                popupRef.current.contains(e.target)
+            ) {
+                return;
+            }
+            onToggle(false);
+        };
+
         window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
         return () => window.removeEventListener('scroll', handleScroll, { capture: true });
     }, [isOpen, onToggle]);
@@ -77,10 +85,11 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
             {isOpen && createPortal(
                 <>
                     <div className="fixed inset-0 z-[100]" onClick={() => onToggle(false)}/>
-                        <div
-                            className="fixed z-[110]"
-                            style={{top: coords.top, left: coords.left}}
-                        >
+                    <div
+                        ref={popupRef} // Assegna il ref al contenitore del popup
+                        className="fixed z-[110]"
+                        style={{top: coords.top, left: coords.left}}
+                    >
                         <IconColorSelector
                             iconValue={icon}
                             onChangeIcon={onIconChange}
