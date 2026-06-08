@@ -69,11 +69,13 @@ export const AmountInput = ({
     autoFocus = true
 }: AmountInputProps) => {
     const internalRef = useRef<HTMLInputElement>(null);
-    const { isKeyboardOpen, viewportStyle } = useMobileMath();
+    const toolbarRef = useRef<HTMLDivElement>(null);
+    const { isMobile, keyboardHeight } = useMobileMath();
 
     const [color, setColor] = useState<string>('');
     const [textSize, setTextSize] = useState<'text-6xl' | 'text-5xl' | 'text-4xl'>('text-6xl');
     const [liveResult, setLiveResult] = useState<number | null>(null);
+    const [isFocused, setIsFocused] = useState(false);
 
     // Sincronizza il valore iniziale (o i reset) con l'input fisico
     useEffect(() => {
@@ -142,7 +144,7 @@ export const AmountInput = ({
             setLiveResult(null);
         } else {
             setColor(currentSignType === 'EXPENSE' ? 'text-[#ff4d4d]' : 'text-[#00ff7f]');
-            
+
             // Calcolo Live Preview se contiene operatori matematici
             if (hasOperators(cleanedValue)) {
                 const res = evaluateMathExpression(cleanedValue);
@@ -186,13 +188,13 @@ export const AmountInput = ({
         if (['-', '+'].includes(e.key)) {
             const input = e.currentTarget;
             const start = input.selectionStart || 0;
-            
+
             if (start === 0) {
                 e.preventDefault();
                 const currentValue = input.value;
                 const hadSign = /^[+-]/.test(currentValue);
                 const newVal = e.key + currentValue.replace(/^[+-]/, '');
-                
+
                 updateAmountState(newVal, hadSign ? 1 : 1);
                 setType(e.key === '-' ? 'EXPENSE' : 'INCOME');
                 return;
@@ -216,8 +218,17 @@ export const AmountInput = ({
         updateAmountState(e.target.value, e.target.selectionStart || 0);
     };
 
-    const handleOnBlur = () => {
+    const handleOnBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        // Don't close if clicking on toolbar buttons
+        if (toolbarRef.current?.contains(e.relatedTarget as Node)) {
+            return;
+        }
+        setIsFocused(false);
         handleResolve();
+    };
+
+    const handleOnFocus = () => {
+        setIsFocused(true);
     };
 
     const handleToolbarPress = (char: string) => {
@@ -261,6 +272,7 @@ export const AmountInput = ({
                     placeholder={placeholder || "0.00"}
                     onKeyDown={handleOnKeyDown}
                     onChange={handleOnChange}
+                    onFocus={handleOnFocus}
                     onBlur={handleOnBlur}
                     onDrop={(e) => e.preventDefault()}
                     autoFocus={autoFocus}
@@ -271,16 +283,23 @@ export const AmountInput = ({
                 </span>
             </div>
 
-            {/* Toolbar Matematica Fluttuante per Dispositivi Mobile */}
+            {/* Toolbar Matematica Fluttuante — Solo Mobile */}
             <AnimatePresence>
-                {isKeyboardOpen && (
+                {isMobile && isFocused && (
                     <motion.div
-                        initial={{ opacity: 0, y: 50 }}
+                        ref={toolbarRef}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
+                        exit={{ opacity: 0, y: 20 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        style={viewportStyle}
-                        className="bg-[#0f121d]/95 backdrop-blur-md border-t border-white/10 px-4 py-3 flex items-center justify-between gap-1.5 md:gap-2 shadow-[0_-8px_30px_rgb(0,0,0,0.5)] w-full"
+                        style={{
+                            position: 'fixed',
+                            left: 0,
+                            right: 0,
+                            bottom: `${keyboardHeight}px`,
+                            zIndex: 9999,
+                        }}
+                        className="bg-[#0f121d] backdrop-blur-md border-t border-white/10 px-2 py-1.5 flex items-center justify-between gap-1"
                     >
                         {['(', ')', '/', '*', '-', '+', '%'].map((char) => (
                             <button
@@ -289,7 +308,7 @@ export const AmountInput = ({
                                 onMouseDown={(e) => e.preventDefault()}
                                 onTouchStart={(e) => e.preventDefault()}
                                 onClick={() => handleToolbarPress(char)}
-                                className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-app-mono font-medium text-lg rounded-xl h-12 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                                className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-app-mono font-medium text-base rounded-lg h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
                             >
                                 {char}
                             </button>
@@ -299,7 +318,7 @@ export const AmountInput = ({
                             onMouseDown={(e) => e.preventDefault()}
                             onTouchStart={(e) => e.preventDefault()}
                             onClick={handleResolve}
-                            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 border border-emerald-400/20 text-white font-bold font-app-mono text-xl rounded-xl h-12 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 border border-emerald-400/20 text-white font-bold font-app-mono text-base rounded-lg h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                         >
                             =
                         </button>
