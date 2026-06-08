@@ -169,16 +169,16 @@ const rawToDoData: ToDoItemInput[] = [
             'G-Pay notification integration (suggests to insert the new transaction after the payment)'
         ]
     },
-    {
-        title: 'Crypto & Investment Wallet Tracking',
-        description: 'Beyond fiat: manage stocks, ETFs, and crypto tokens.',
-        status: 'PLANNED',
-        subtasks: [
-            'Price feeds',
-            'Profit/Loss historical chart',
-            'Cold wallet manual entries'
-        ]
-    },
+    // {
+    //     title: 'Crypto & Investment Wallet Tracking',
+    //     description: 'Beyond fiat: manage stocks, ETFs, and crypto tokens.',
+    //     status: 'PLANNED',
+    //     subtasks: [
+    //         'Price feeds',
+    //         'Profit/Loss historical chart',
+    //         'Cold wallet manual entries'
+    //     ]
+    // },
     {
         title: 'Transaction Split Integration',
         description: 'Split transactions with friends and family.',
@@ -211,7 +211,7 @@ const rawToDoData: ToDoItemInput[] = [
     {
         title: 'CSV Import/Export',
         description: 'Import/Export CSV files.',
-        status: 'PLANNED',
+        status: 'FINISHED',
     },
     {
         title: 'Encrypted Wallets',
