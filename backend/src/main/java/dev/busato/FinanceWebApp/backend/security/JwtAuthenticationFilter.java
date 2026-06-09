@@ -41,11 +41,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // Se la richiesta è già stata autenticata (es. dal PatAuthenticationFilter), passiamo oltre
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 3. Estraiamo il token (togliamo "Bearer " che sono 7 caratteri)
         jwt = authHeader.substring(7);
 
+        // Se è un Personal Access Token, lo ignoriamo (è già stato o verrà gestito dal PatAuthenticationFilter)
+        if (jwt.startsWith("fin_pat_")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // 4. Estraiamo lo username dal token
-        username = jwtService.extractUsername(jwt);
+        try {
+            username = jwtService.extractUsername(jwt);
+        } catch (Exception e) {
+            // Se il token è malformato o scaduto, lasciamo passare senza autenticare
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // 5. Se abbiamo trovato l'utente e non è già autenticato nel contesto attuale...
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

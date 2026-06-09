@@ -3,6 +3,7 @@ import {NavLink} from 'react-router-dom';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
     faChevronDown,
+    faCode,
     faEnvelope,
     faKey,
     faSignOutAlt,
@@ -16,6 +17,7 @@ import {
 import {ProfileModal, type ProfileModalHandle} from '../modals/ProfileModal';
 import {InvitationsModal, type InvitationsModalHandle} from '../modals/InvitationsModal';
 import {ChangePasswordModal, type ChangePasswordModalHandle} from "../modals/ChangePasswordModal.tsx";
+import {PatModal, type PatModalHandle} from "../modals/PatModal.tsx";
 import {AboutAppModal, type AboutAppModalHandle} from "../modals/AboutAppModal.tsx";
 import {getUserAuth} from "../utils/authHelper.ts";
 import api from "../api/axiosConfig.ts";
@@ -45,6 +47,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
     const profileModalRef = useRef<ProfileModalHandle>(null);
     const invitationsModalRef = useRef<InvitationsModalHandle>(null);
     const aboutModalRef = useRef<AboutAppModalHandle>(null);
+    const patModalRef = useRef<PatModalHandle>(null);
 
     const [invitations, setInvitations] = useState<Invitation[]>([])
 
@@ -257,6 +260,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                                 </button>
                             }
 
+                            {!isAdmin &&
+                                <button
+                                    onClick={() => {
+                                        setShowMenu(false);
+                                        patModalRef.current?.openModal();
+                                    }}
+                                    className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+                                >
+                                    <FontAwesomeIcon icon={faCode} className="w-4"/>
+                                    API Tokens
+                                </button>
+                            }
+
                             <div className="my-1 h-px w-full bg-app-border"/>
 
                             <button
@@ -290,6 +306,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
             <ChangePasswordModal ref={changePwModalRef}/>
             <ProfileModal ref={profileModalRef}/>
             {!isAdmin && <InvitationsModal ref={invitationsModalRef}/>}
+            {!isAdmin && <PatModal ref={patModalRef}/>}
             <AboutAppModal ref={aboutModalRef}/>
 
         </>

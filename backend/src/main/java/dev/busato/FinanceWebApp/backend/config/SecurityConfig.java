@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.config;
 
 import dev.busato.FinanceWebApp.backend.security.JwtAuthenticationFilter;
+import dev.busato.FinanceWebApp.backend.security.PatAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,7 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthFilter; // <--- Inietta il filtro
+    private final PatAuthenticationFilter patAuthFilter; // <--- PAT authentication filter
 
     @Value("${application.frontend.url}")
     private String FRONTEND_URL;
@@ -58,6 +60,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/dashboard/**").hasRole("USER")
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(patAuthFilter, UsernamePasswordAuthenticationFilter.class)  // PAT runs first
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
