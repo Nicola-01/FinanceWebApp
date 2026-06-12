@@ -60,7 +60,7 @@ const OAuthConsent = () => {
 
     // UI state
     const [view, setView] = useState<ConsentView>('select');
-    const [loading, setLoading] = useState(false);
+    // const [loading, setLoading] = useState(false);
     const [authorizing, setAuthorizing] = useState(false);
 
     // Existing tokens
