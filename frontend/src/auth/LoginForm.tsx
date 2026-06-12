@@ -1,5 +1,5 @@
 import React, {useRef, useState} from 'react';
-import {useNavigate} from "react-router-dom";
+import {useNavigate, useLocation} from "react-router-dom";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faEye, faEyeSlash, faLock, faTriangleExclamation, faUser} from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
@@ -23,6 +23,10 @@ export const LoginForm: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // If redirected from a protected page (e.g., OAuth consent), go back after login
+    const returnTo: string = (location.state as any)?.from?.pathname || '/';
 
     // Form submission handler
     const handleSubmit = async (e: React.FormEvent) => {
@@ -72,7 +76,7 @@ export const LoginForm: React.FC = () => {
             else
                 sessionStorage.setItem('jwtToken', token);
 
-            navigate('/');
+            navigate(returnTo);
 
         } catch (err: any) {
             // Error handling & shake animation
