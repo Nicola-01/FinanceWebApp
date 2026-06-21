@@ -13,7 +13,6 @@ import { AmountInput } from "../../components/AmountInput.tsx";
 import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
 import { TransactionTypeToggle } from './TransactionTypeToggle.tsx';
 import { TransactionMetadataInputs } from './TransactionMetadataInputs.tsx';
-import { RecurringPaymentToggle } from './RecurringPaymentToggle.tsx';
 import CustomDatePicker from '../../components/DataPicker/CustomDatePicker.tsx';
 
 export interface TransactionModalHandle {
@@ -41,7 +40,6 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
         const [exchangeRate, setExchangeRate] = useState<string>('1');
         const [date, setDate] = useState<Date>(new Date());
         const [notes, setNotes] = useState('');
-        const [isRecurring, setIsRecurring] = useState(false);
         const [loading, setLoading] = useState(false);
         const [selectedTagName, setSelectedTagName] = useState<string>('');
         const [resetKey, setResetKey] = useState(0);
@@ -70,7 +68,6 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                     setDate(new Date(tx.transactionDate));
                     setSelectedTagName(tx.tag.name);
                     setNotes(tx.notes || '');
-                    setIsRecurring(false);
                 } else {
                     // --- CREATE MODE ---
                     setEditingTxId(null);
@@ -83,7 +80,6 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                     setDate(new Date());
                     setSelectedTagName('');
                     setNotes('');
-                    setIsRecurring(false);
                 }
                 dialogRef.current?.showModal();
             }
@@ -221,12 +217,12 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                     />
 
                     {/* 5. RECURRING TOGGLE */}
-                    {!isEditing && (
-                        <RecurringPaymentToggle
-                            isRecurring={isRecurring}
-                            setIsRecurring={setIsRecurring}
-                        />
-                    )}
+                    {/*{!isEditing && (*/}
+                    {/*    <RecurringPaymentToggle*/}
+                    {/*        isRecurring={isRecurring}*/}
+                    {/*        setIsRecurring={setIsRecurring}*/}
+                    {/*    />*/}
+                    {/*)}*/}
                 </div>
             </ModalDialog>
         );

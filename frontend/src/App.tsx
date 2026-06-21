@@ -17,6 +17,7 @@ import { PWAProvider } from "./utils/PWAContext.tsx";
 import { PWAPrompt } from "./components/PWAPrompt.tsx";
 import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import ToDoPage from "./components/ToDoPage/ToDoPage.tsx";
+import OAuthConsent from "./auth/OAuthConsent.tsx";
 
 const App: React.FC = () => {
 
@@ -56,6 +57,7 @@ const App: React.FC = () => {
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/about" element={<LandingPage />} />
                     <Route path="/ToDo" element={<ToDoPage />} />
+                    <Route path="/oauth/authorize" element={<OAuthConsent />} />
 
                     {/* Root Route serves the Landing Page or Redirects based on auth */}
                     <Route path="/" element={<RootRedirect />} />

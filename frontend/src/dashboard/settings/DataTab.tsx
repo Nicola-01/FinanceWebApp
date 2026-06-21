@@ -85,60 +85,58 @@ export const DataTab: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col gap-6 h-full overflow-y-auto pb-6 custom-scrollbar animate-[fadeIn_0.3s_ease-out]">
-            <SettingsCard
-                title="Data Management"
-                subtitle="Export your data to CSV or Import from file"
-                icon={faFileCsv}
-            >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* EXPORT */}
-                    <div className="flex flex-col gap-3 p-4 bg-black/20 rounded-xl border border-app-border">
-                        <div className="flex items-center gap-2 mb-1">
-                            <FontAwesomeIcon icon={faDownload} className="text-[#00ff7f] opacity-80" />
-                            <span className="text-sm font-bold text-white uppercase tracking-wider">Export Data</span>
-                        </div>
-                        <p className="text-xs text-app-muted mb-2">Download your data in CSV format for backups or external analysis.</p>
-                        
-                        <div className="flex flex-col gap-2 mt-auto">
-                            <button
-                                onClick={handleExportTransactions}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-surface/80 border border-app-border rounded-lg text-sm font-bold text-white transition-all active:scale-95"
-                            >
-                                <FontAwesomeIcon icon={faDownload} />
-                                Download Transactions.csv
-                            </button>
-                            <button
-                                onClick={handleExportTags}
-                                className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface/40 hover:bg-app-surface/60 border border-app-border border-dashed rounded-lg text-[10px] font-bold text-app-muted transition-all active:scale-95"
-                            >
-                                <FontAwesomeIcon icon={faDownload} />
-                                Download Tags.csv
-                            </button>
-                        </div>
+        <SettingsCard
+            title="Data Management"
+            subtitle="Export your data to CSV or Import from file"
+            icon={faFileCsv}
+        >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* EXPORT */}
+                <div className="flex flex-col gap-3 p-4 bg-black/20 rounded-xl border border-app-border">
+                    <div className="flex items-center gap-2 mb-1">
+                        <FontAwesomeIcon icon={faDownload} className="text-[#00ff7f] opacity-80" />
+                        <span className="text-sm font-bold text-white uppercase tracking-wider">Export Data</span>
                     </div>
-
-                    {/* IMPORT */}
-                    <div className="flex flex-col gap-3 p-4 bg-black/20 rounded-xl border border-app-border">
-                        <div className="flex items-center gap-2 mb-1">
-                            <FontAwesomeIcon icon={faUpload} className="text-[#00bfff] opacity-80" />
-                            <span className="text-sm font-bold text-white uppercase tracking-wider">Import Data</span>
-                        </div>
-                        <p className="text-xs text-app-muted mb-2">Upload a CSV file to import new tags or bulk update existing ones.</p>
-                        
-                        <label className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-surface/80 border border-app-border rounded-lg text-sm font-bold text-white transition-all cursor-pointer active:scale-95">
-                            <FontAwesomeIcon icon={faUpload} />
-                            Upload CSV
-                            <input 
-                                type="file" 
-                                accept=".csv" 
-                                onChange={handleImportCSV} 
-                                className="hidden" 
-                            />
-                        </label>
+                    <p className="text-xs text-app-muted mb-2">Download your data in CSV format for backups or external analysis.</p>
+                    
+                    <div className="flex flex-col gap-2 mt-auto">
+                        <button
+                            onClick={handleExportTransactions}
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-surface/80 border border-app-border rounded-lg text-sm font-bold text-white transition-all active:scale-95"
+                        >
+                            <FontAwesomeIcon icon={faDownload} />
+                            Download Transactions.csv
+                        </button>
+                        <button
+                            onClick={handleExportTags}
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface/40 hover:bg-app-surface/60 border border-app-border border-dashed rounded-lg text-[10px] font-bold text-app-muted transition-all active:scale-95"
+                        >
+                            <FontAwesomeIcon icon={faDownload} />
+                            Download Tags.csv
+                        </button>
                     </div>
                 </div>
-            </SettingsCard>
-        </div>
+
+                {/* IMPORT */}
+                <div className="flex flex-col gap-3 p-4 bg-black/20 rounded-xl border border-app-border">
+                    <div className="flex items-center gap-2 mb-1">
+                        <FontAwesomeIcon icon={faUpload} className="text-[#00bfff] opacity-80" />
+                        <span className="text-sm font-bold text-white uppercase tracking-wider">Import Data</span>
+                    </div>
+                    <p className="text-xs text-app-muted mb-2">Upload a CSV file to import new tags or bulk update existing ones.</p>
+                    
+                    <label className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-surface/80 border border-app-border rounded-lg text-sm font-bold text-white transition-all cursor-pointer active:scale-95">
+                        <FontAwesomeIcon icon={faUpload} />
+                        Upload CSV
+                        <input 
+                            type="file" 
+                            accept=".csv" 
+                            onChange={handleImportCSV} 
+                            className="hidden" 
+                        />
+                    </label>
+                </div>
+            </div>
+        </SettingsCard>
     );
 };
