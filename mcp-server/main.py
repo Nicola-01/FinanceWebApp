@@ -6,7 +6,8 @@ to the FinanceWebApp Spring Boot backend.
 
 Transport : Streamable HTTP (stateless, JSON responses)
 Endpoint  : http://localhost:8000/mcp
-Auth      : Personal Access Token (fin_pat_...) forwarded as-is to the Java backend.
+Auth      : Bearer token read from the HTTP Authorization header.
+            Supports both OAuth 2.0 (Claude.ai) and manual API tokens (fin_pat_...).
             ALL validation (signature, expiry, wallet permissions) is delegated
             exclusively to the Java backend — this server is a pure proxy.
 """
@@ -17,17 +18,30 @@ import json
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
+from typing import Annotated, Literal
 
 import httpx
+import uvicorn
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.server.session import ServerSession
+from pydantic import Field
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
 
 # ──────────────────────────────────────────────────────────────────────
 # Configuration
 # ──────────────────────────────────────────────────────────────────────
 # BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8080")
-BACKEND_URL = os.getenv("BACKEND_URL", "https://finance-api.busato.dev")
+
+
+# ──────────────────────────────────────────────────────────────────────
+# OAuth — Bearer token extracted from HTTP Authorization header
+# ──────────────────────────────────────────────────────────────────────
+_oauth_token: ContextVar[str | None] = ContextVar('oauth_token', default=None)
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -49,20 +63,63 @@ async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
 # ──────────────────────────────────────────────────────────────────────
 # FastMCP Server
 # ──────────────────────────────────────────────────────────────────────
+MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8000")
+AUTH_SERVER_URL = os.getenv("AUTH_SERVER_URL", BACKEND_URL)
+
 mcp = FastMCP(
     "FinanceWebApp",
     instructions=(
         "You are connected to a personal finance management application. "
         "Use the available tools to help the user manage their wallets and transactions. "
-        "Every call requires a valid Personal Access Token (starts with 'fin_pat_') — "
-        "ask the user for it if you don't have one. "
-        "The token controls which wallets you can access and whether you can write: "
-        "if the backend returns 403, the token doesn't have permission for that operation."
+        "Authentication is handled automatically via the Bearer token in the request header — "
+        "do NOT ask the user for a token or pass it as a parameter. "
+        "The token controls which wallets are accessible and whether write operations are allowed: "
+        "if the backend returns 403, the token lacks permission for that operation."
     ),
     lifespan=app_lifespan,
     host="0.0.0.0",
     port=8000,
 )
+
+
+# ──────────────────────────────────────────────────────────────────────
+# OAuth — well-known endpoint (MCP spec requirement)
+# Tells the MCP client where to find the authorization server.
+# ──────────────────────────────────────────────────────────────────────
+@mcp.custom_route("/.well-known/oauth-protected-resource", methods=["GET"])
+async def protected_resource_metadata(request: Request) -> JSONResponse:
+    return JSONResponse({
+        "resource": MCP_SERVER_URL,
+        "authorization_servers": [AUTH_SERVER_URL],
+    })
+
+
+# ──────────────────────────────────────────────────────────────────────
+# OAuth — middleware
+# Intercepts every HTTP request before it reaches the tools.
+# Reads the Bearer token from the Authorization header and stores it
+# in a ContextVar so _backend_request can forward it to the Java backend.
+# ──────────────────────────────────────────────────────────────────────
+class BearerTokenMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        # Well-known endpoints must be public — no token required
+        if request.url.path.startswith("/.well-known"):
+            return await call_next(request)
+
+        auth = request.headers.get("authorization", "")
+        if auth.startswith("Bearer "):
+            _oauth_token.set(auth[len("Bearer "):].strip())
+            return await call_next(request)
+
+        # No token → 401 with pointer to the OAuth resource metadata
+        return Response(
+            status_code=401,
+            headers={
+                "WWW-Authenticate": (
+                    f'Bearer resource_metadata="{MCP_SERVER_URL}/.well-known/oauth-protected-resource"'
+                )
+            }
+        )
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -73,17 +130,23 @@ async def _backend_request(
         *,
         method: str,
         path: str,
-        token: str,
         body: dict | None = None,
 ) -> dict | list:
     """
     Make an authenticated HTTP request to the Spring Boot backend.
-    The token is forwarded as-is in the Authorization header.
+    The Bearer token is read from the HTTP Authorization header (set by middleware).
     ALL auth and permission checks are performed by the Java backend.
 
     Raises a descriptive RuntimeError on failure so the LLM can
     understand what went wrong and inform the user.
     """
+    token = _oauth_token.get()
+    if not token:
+        raise RuntimeError(
+            "No authentication token provided. "
+            "Connect via OAuth or pass a Bearer token in the Authorization header."
+        )
+
     http = ctx.request_context.lifespan_context.http
     headers = {"Authorization": f"Bearer {token}"}
 
@@ -130,14 +193,10 @@ async def _backend_request(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.resource("finance://wallets")
 def get_wallets_description() -> str:
-    """
-    Static description of the wallets resource.
-    To actually fetch wallets, use the get_wallets tool with a token.
-    """
+    """Static description of the wallets resource."""
     return (
         "This resource represents the user's wallets. "
-        "Use the 'get_wallets' tool to retrieve the actual wallet data "
-        "(requires a Personal Access Token with READ permission)."
+        "Use the 'get_wallets' tool to retrieve the actual wallet data."
     )
 
 
@@ -146,23 +205,16 @@ def get_wallets_description() -> str:
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def get_wallets(
-        token: str,
         ctx: Context[ServerSession, AppContext],
 ) -> str:
     """
-    Retrieve the wallets accessible with this token.
+    Retrieve the wallets accessible with the current token.
     The backend automatically filters to only the wallets the token has READ access to.
-
-    Args:
-        token: The user's Personal Access Token (starts with 'fin_pat_').
     """
-
-    # 1. Call the backend (receives the full JSON with colors, icons, etc.)
     raw_wallets = await _backend_request(
         ctx,
         method="GET",
         path="/api/wallets",
-        token=token,
     )
 
     # Ensure the response is a list before filtering
@@ -188,29 +240,17 @@ async def get_wallets(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def get_transactions(
-        token: str,
-        wallet_id: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet (use get_wallets to find IDs).")],
         ctx: Context[ServerSession, AppContext],
-        date_from: str | None = None,
-        date_until: str | None = None,
-        tags: list[str] | None = None,
+        date_from: Annotated[str | None, Field(description="Optional start date filter in YYYY-MM-DD format.")] = None,
+        date_until: Annotated[str | None, Field(description="Optional end date filter in YYYY-MM-DD format.")] = None,
+        tags: Annotated[list[str] | None, Field(description="Optional list of tag names to filter by (case-insensitive).")] = None,
 ) -> str:
-    """
-    Retrieve and optionally filter transactions for a specific wallet.
-    Requires READ permission on the wallet.
-
-    Args:
-        token:      The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id:  UUID of the target wallet (use get_wallets to find IDs).
-        date_from:  Optional start date filter in YYYY-MM-DD format.
-        date_until: Optional end date filter in YYYY-MM-DD format.
-        tags:       Optional list of tag names to filter by (case-insensitive).
-    """
+    """Retrieve and optionally filter transactions for a specific wallet. Requires READ permission."""
     raw_transactions = await _backend_request(
         ctx,
         method="GET",
         path=f"/api/transactions/{wallet_id}",
-        token=token,
     )
 
     if isinstance(raw_transactions, list):
@@ -266,27 +306,19 @@ async def get_transactions(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def get_wallet_statistics(
-        token: str,
-        wallet_id: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet (use get_wallets to find IDs).")],
         ctx: Context[ServerSession, AppContext],
-        date_from: str | None = None,
-        date_until: str | None = None,
+        date_from: Annotated[str | None, Field(description="Optional start date filter in YYYY-MM-DD format.")] = None,
+        date_until: Annotated[str | None, Field(description="Optional end date filter in YYYY-MM-DD format.")] = None,
 ) -> str:
     """
-    Calculates total income, expenses, and difference for a period.
+    Calculate total income, expenses, and net for a period.
     Aggregates data by parent categories and sub-tags with their respective percentages.
-
-    Args:
-        token:      The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id:  UUID of the target wallet.
-        date_from:  Optional start date filter (YYYY-MM-DD).
-        date_until: Optional end date filter (YYYY-MM-DD).
     """
     raw_transactions = await _backend_request(
         ctx,
         method="GET",
         path=f"/api/transactions/{wallet_id}",
-        token=token,
     )
 
     if not isinstance(raw_transactions, list):
@@ -381,30 +413,16 @@ async def get_wallet_statistics(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def add_transaction(
-        token: str,
-        wallet_id: str,
-        name: str,
-        amount: float,
-        type: str,
-        tag: str,
-        notes: str = "",
-        transaction_date: str = "",
-        ctx: Context[ServerSession, AppContext] = None,  # type: ignore[assignment]
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet (use get_wallets to find IDs).")],
+        name: Annotated[str, Field(description="Transaction description, e.g. 'Grocery shopping' (3-40 characters).")],
+        amount: Annotated[float, Field(description="Transaction amount as a decimal number, e.g. 42.50.", gt=0)],
+        type: Annotated[Literal["INCOME", "EXPENSE"], Field(description="Transaction type.")],
+        tag: Annotated[str, Field(description="Category tag name (use get_tags to find available tags).")],
+        ctx: Context[ServerSession, AppContext],
+        notes: Annotated[str, Field(description="Optional notes for the transaction.")] = "",
+        transaction_date: Annotated[str, Field(description="Date in YYYY-MM-DD format. Defaults to today.")] = "",
 ) -> str:
-    """
-    Create a new transaction in the specified wallet.
-    Requires WRITE permission on the wallet — the backend enforces this.
-
-    Args:
-        token:            The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id:        UUID of the target wallet (use get_wallets to find IDs).
-        name:             Transaction description (e.g. "Grocery shopping").
-        amount:           Transaction amount as a decimal number (e.g. 42.50).
-        type:             Transaction type: "INCOME" or "EXPENSE".
-        tag:              Category tag (e.g. "Food", "Transport", "Salary").
-        notes:            Optional notes for the transaction.
-        transaction_date: Optional date in ISO format (YYYY-MM-DD). Defaults to today.
-    """
+    """Create a new transaction in the specified wallet. Requires WRITE permission."""
     body: dict = {
         "name": name,
         "amount": amount,
@@ -414,14 +432,13 @@ async def add_transaction(
         "exchangeValue": 1,
         "originalCurrency": "EUR",
         "notes": notes,
-        "transactionDate": transaction_date
+        "transactionDate": transaction_date,
     }
 
     result = await _backend_request(
         ctx,
         method="POST",
         path=f"/api/transactions/{wallet_id}",
-        token=token,
         body=body,
     )
     return json.dumps(result, indent=2, default=str)
@@ -432,38 +449,20 @@ async def add_transaction(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def update_transaction(
-        token: str,
-        wallet_id: str,
-        transaction_id: str,
-        name: str,
-        amount: float,
-        type: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        transaction_id: Annotated[str, Field(description="UUID of the transaction to update (use get_transactions to find IDs).")],
+        name: Annotated[str, Field(description="Updated description (3-40 characters).")],
+        amount: Annotated[float, Field(description="Updated amount as a decimal number.", gt=0)],
+        type: Annotated[Literal["INCOME", "EXPENSE"], Field(description="Transaction type.")],
         ctx: Context[ServerSession, AppContext],
-        tag: str | None = None,
-        notes: str = "",
-        transaction_date: str | None = None,
-        original_amount: float | None = None,
-        original_currency: str = "EUR",
-        exchange_value: float = 1.0,
+        tag: Annotated[str | None, Field(description="Tag name. Empty string to remove, null to keep unchanged.")] = None,
+        notes: Annotated[str, Field(description="Optional notes for the transaction.")] = "",
+        transaction_date: Annotated[str | None, Field(description="Date in YYYY-MM-DD format. Null keeps the existing date.")] = None,
+        original_amount: Annotated[float | None, Field(description="Original amount for foreign currency conversions.")] = None,
+        original_currency: Annotated[str, Field(description="Currency code of the original amount.")] = "EUR",
+        exchange_value: Annotated[float, Field(description="Exchange rate applied.", gt=0)] = 1.0,
 ) -> str:
-    """
-    Update an existing transaction in the specified wallet.
-    Requires WRITE permission on the wallet — the backend enforces this.
-
-    Args:
-        token:             The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id:         UUID of the target wallet.
-        transaction_id:    UUID of the transaction to update (use get_transactions to find IDs).
-        name:              Updated description (3-40 characters).
-        amount:            Updated amount as a decimal number.
-        type:              Transaction type: "INCOME" or "EXPENSE".
-        tag:               Optional category tag name (empty string to remove, null to keep unchanged).
-        notes:             Optional notes for the transaction.
-        transaction_date:  Optional date in ISO format (YYYY-MM-DD). Null keeps the existing date.
-        original_amount:   Optional original amount (for foreign currency conversions).
-        original_currency: Currency code of the original amount (default: "EUR").
-        exchange_value:    Exchange rate applied (default: 1.0).
-    """
+    """Update an existing transaction in the specified wallet. Requires WRITE permission."""
     body: dict = {
         "name": name,
         "amount": amount,
@@ -480,7 +479,6 @@ async def update_transaction(
         ctx,
         method="PUT",
         path=f"/api/transactions/{wallet_id}/{transaction_id}",
-        token=token,
         body=body,
     )
     return json.dumps(result, indent=2, default=str)
@@ -491,24 +489,17 @@ async def update_transaction(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def get_tags(
-        token: str,
-        wallet_id: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet (use get_wallets to find IDs).")],
         ctx: Context[ServerSession, AppContext],
 ) -> str:
     """
     Retrieve all tags (categories) for a specific wallet.
-    Tags are used to categorize transactions and subscriptions.
-    Use this to discover available tags before creating transactions or subscriptions.
-
-    Args:
-        token:     The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id: UUID of the target wallet (use get_wallets to find IDs).
+    Call this before creating transactions or subscriptions to discover available tags.
     """
     raw_tags = await _backend_request(
         ctx,
         method="GET",
         path=f"/api/tags/{wallet_id}",
-        token=token,
     )
 
     if isinstance(raw_tags, list):
@@ -528,28 +519,16 @@ async def get_tags(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def create_tag(
-        token: str,
-        wallet_id: str,
-        name: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        name: Annotated[str, Field(description="Tag name (2-25 characters, e.g. 'Groceries', 'Entertainment').")],
         ctx: Context[ServerSession, AppContext],
-        icon: str = "",
-        color_hex: str = "",
-        parent_name: str | None = None,
+        icon: Annotated[str, Field(description="Optional icon identifier for the tag.")] = "",
+        color_hex: Annotated[str, Field(description="Optional hex color for the tag, e.g. '#FF5733'.")] = "",
+        parent_name: Annotated[str | None, Field(description="Optional parent tag name for hierarchical categorization.")] = None,
 ) -> str:
     """
-    Create a new tag (category) in the specified wallet.
-    Tags are used to categorize transactions. Requires WRITE permission.
-
+    Create a new tag (category) in the specified wallet. Requires WRITE permission.
     Tags can be hierarchical: set parent_name to nest under an existing tag.
-    Name must be between 2 and 25 characters.
-
-    Args:
-        token:       The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id:   UUID of the target wallet.
-        name:        Tag name (2-25 characters, e.g. "Groceries", "Entertainment").
-        icon:        Optional icon identifier for the tag.
-        color_hex:   Optional hex color for the tag (e.g. "#FF5733").
-        parent_name: Optional parent tag name for hierarchical categorization.
     """
     body: dict = {
         "name": name,
@@ -563,7 +542,6 @@ async def create_tag(
         ctx,
         method="POST",
         path=f"/api/tags/{wallet_id}",
-        token=token,
         body=body,
     )
     return json.dumps(result, indent=2, default=str)
@@ -574,23 +552,17 @@ async def create_tag(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def get_subscriptions(
-        token: str,
-        wallet_id: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet (use get_wallets to find IDs).")],
         ctx: Context[ServerSession, AppContext],
 ) -> str:
     """
     Retrieve all subscriptions (recurring transactions) for a specific wallet.
     Subscriptions represent automated recurring charges like rent, Netflix, salary, etc.
-
-    Args:
-        token:     The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id: UUID of the target wallet (use get_wallets to find IDs).
     """
     raw_subs = await _backend_request(
         ctx,
         method="GET",
         path=f"/api/subscription/{wallet_id}",
-        token=token,
     )
 
     if isinstance(raw_subs, list):
@@ -623,54 +595,28 @@ async def get_subscriptions(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def create_subscription(
-        token: str,
-        wallet_id: str,
-        name: str,
-        amount: float,
-        type: str,
-        frequency_type: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        name: Annotated[str, Field(description="Subscription description (3-40 characters, e.g. 'Netflix', 'Rent').")],
+        amount: Annotated[float, Field(description="Amount in the wallet's currency.", gt=0)],
+        type: Annotated[Literal["INCOME", "EXPENSE"], Field(description="Transaction type.")],
+        frequency_type: Annotated[Literal["DAILY", "WEEKLY", "MONTHLY", "YEARLY"], Field(description="Recurrence frequency.")],
         ctx: Context[ServerSession, AppContext],
-        tag: str = "",
-        notes: str = "",
-        original_amount: float | None = None,
-        original_currency: str = "EUR",
-        exchange_value: float = 1.0,
-        auto_exchange_rate: bool = False,
-        status: str = "ACTIVE",
-        start_date: str = "",
-        frequency_interval: int = 1,
-        monthly_specific_day: int | None = None,
-        last_working_day_of_month: bool = False,
-        duration: str = "FOREVER",
-        duration_times: int | None = None,
-        duration_until: str | None = None,
+        tag: Annotated[str, Field(description="Optional category tag name (use get_tags to find available tags).")] = "",
+        notes: Annotated[str, Field(description="Optional notes.")] = "",
+        original_amount: Annotated[float | None, Field(description="Original amount for foreign currency conversions.")] = None,
+        original_currency: Annotated[str, Field(description="Currency code of the original amount.")] = "EUR",
+        exchange_value: Annotated[float, Field(description="Exchange rate applied.", gt=0)] = 1.0,
+        auto_exchange_rate: Annotated[bool, Field(description="Whether to auto-fetch exchange rates.")] = False,
+        status: Annotated[Literal["ACTIVE", "PAUSED"], Field(description="Initial status.")] = "ACTIVE",
+        start_date: Annotated[str, Field(description="Start date in YYYY-MM-DD format. Defaults to today.")] = "",
+        frequency_interval: Annotated[int, Field(description="How many frequency units between each execution.", ge=1)] = 1,
+        monthly_specific_day: Annotated[int | None, Field(description="Day of month (1-31) for monthly subscriptions.", ge=1, le=31)] = None,
+        last_working_day_of_month: Annotated[bool, Field(description="If true, execute on the last working day of each month.")] = False,
+        duration: Annotated[Literal["FOREVER", "TIMES", "UNTIL"], Field(description="Duration rule.")] = "FOREVER",
+        duration_times: Annotated[int | None, Field(description="Number of times to execute. Required when duration is 'TIMES'.")] = None,
+        duration_until: Annotated[str | None, Field(description="End date in YYYY-MM-DD. Required when duration is 'UNTIL'.")] = None,
 ) -> str:
-    """
-    Create a new subscription (recurring transaction) in the specified wallet.
-    Requires WRITE permission on the wallet.
-
-    Args:
-        token:                     The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id:                 UUID of the target wallet.
-        name:                      Subscription description (3-40 chars, e.g. "Netflix", "Rent").
-        amount:                    Amount in the wallet's currency.
-        type:                      Transaction type: "INCOME" or "EXPENSE".
-        frequency_type:            Recurrence type: "DAILY", "WEEKLY", "MONTHLY", or "YEARLY".
-        tag:                       Optional category tag name (must exist in the wallet).
-        notes:                     Optional notes.
-        original_amount:           Optional original amount (for foreign currency).
-        original_currency:         Currency code of the original amount (default: "EUR").
-        exchange_value:            Exchange rate applied (default: 1.0).
-        auto_exchange_rate:        Whether to auto-fetch exchange rates (default: false).
-        status:                    Initial status: "ACTIVE", "PAUSED" (default: "ACTIVE").
-        start_date:                Start date in YYYY-MM-DD format (default: today).
-        frequency_interval:        How many frequency units between each execution (default: 1).
-        monthly_specific_day:      Optional day of month (1-31) for monthly subscriptions.
-        last_working_day_of_month: If true, execute on last working day of each month.
-        duration:                  Duration rule: "FOREVER", "TIMES", or "UNTIL" (default: "FOREVER").
-        duration_times:            Number of times to execute (required when duration is "TIMES").
-        duration_until:            End date in YYYY-MM-DD (required when duration is "UNTIL").
-    """
+    """Create a new recurring subscription in the specified wallet. Requires WRITE permission."""
     body: dict = {
         "name": name,
         "amount": amount,
@@ -696,7 +642,6 @@ async def create_subscription(
         ctx,
         method="POST",
         path=f"/api/subscription/{wallet_id}",
-        token=token,
         body=body,
     )
     return json.dumps(result, indent=2, default=str)
@@ -707,56 +652,29 @@ async def create_subscription(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def update_subscription(
-        token: str,
-        wallet_id: str,
-        subscription_id: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        subscription_id: Annotated[str, Field(description="UUID of the subscription to update (use get_subscriptions to find IDs).")],
         ctx: Context[ServerSession, AppContext],
-        name: str | None = None,
-        amount: float | None = None,
-        type: str | None = None,
-        tag: str | None = None,
-        notes: str | None = None,
-        original_amount: float | None = None,
-        original_currency: str | None = None,
-        exchange_value: float | None = None,
-        auto_exchange_rate: bool = False,
-        status: str | None = None,
-        start_date: str | None = None,
-        frequency_type: str | None = None,
-        frequency_interval: int = 0,
-        monthly_specific_day: int | None = None,
-        last_working_day_of_month: bool = False,
-        duration: str | None = None,
-        duration_times: int | None = None,
-        duration_until: str | None = None,
+        name: Annotated[str | None, Field(description="New name (3-40 characters).")] = None,
+        amount: Annotated[float | None, Field(description="New amount.", gt=0)] = None,
+        type: Annotated[Literal["INCOME", "EXPENSE"] | None, Field(description="New transaction type.")] = None,
+        tag: Annotated[str | None, Field(description="New tag name. Empty string to remove tag, null to keep unchanged.")] = None,
+        notes: Annotated[str | None, Field(description="New notes.")] = None,
+        original_amount: Annotated[float | None, Field(description="New original amount (foreign currency).")] = None,
+        original_currency: Annotated[str | None, Field(description="New currency code.")] = None,
+        exchange_value: Annotated[float | None, Field(description="New exchange rate.", gt=0)] = None,
+        auto_exchange_rate: Annotated[bool, Field(description="Whether to auto-fetch exchange rates.")] = False,
+        status: Annotated[Literal["ACTIVE", "PAUSED", "COMPLETED"] | None, Field(description="New status.")] = None,
+        start_date: Annotated[str | None, Field(description="New start date in YYYY-MM-DD format.")] = None,
+        frequency_type: Annotated[Literal["DAILY", "WEEKLY", "MONTHLY", "YEARLY"] | None, Field(description="New recurrence frequency.")] = None,
+        frequency_interval: Annotated[int, Field(description="New interval between executions. 0 means unchanged.", ge=0)] = 0,
+        monthly_specific_day: Annotated[int | None, Field(description="Day of month for monthly subscriptions.", ge=1, le=31)] = None,
+        last_working_day_of_month: Annotated[bool, Field(description="Whether to use last working day of month.")] = False,
+        duration: Annotated[Literal["FOREVER", "TIMES", "UNTIL"] | None, Field(description="New duration rule.")] = None,
+        duration_times: Annotated[int | None, Field(description="Number of times to execute. Required when duration is 'TIMES'.")] = None,
+        duration_until: Annotated[str | None, Field(description="End date in YYYY-MM-DD. Required when duration is 'UNTIL'.")] = None,
 ) -> str:
-    """
-    Update an existing subscription. Only provided fields are changed.
-    Requires WRITE permission on the wallet.
-
-    Args:
-        token:                     The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id:                 UUID of the target wallet.
-        subscription_id:           UUID of the subscription to update (use get_subscriptions to find IDs).
-        name:                      Optional new name (3-40 characters).
-        amount:                    Optional new amount.
-        type:                      Optional new type: "INCOME" or "EXPENSE".
-        tag:                       Optional new tag name (empty string to remove tag).
-        notes:                     Optional new notes.
-        original_amount:           Optional original amount (foreign currency).
-        original_currency:         Optional currency code.
-        exchange_value:            Optional exchange rate.
-        auto_exchange_rate:        Whether to auto-fetch exchange rates.
-        status:                    Optional new status: "ACTIVE", "PAUSED", "COMPLETED".
-        start_date:                Optional new start date (YYYY-MM-DD).
-        frequency_type:            Optional new frequency: "DAILY", "WEEKLY", "MONTHLY", "YEARLY".
-        frequency_interval:        Optional new interval (0 means unchanged).
-        monthly_specific_day:      Optional day of month for monthly subscriptions.
-        last_working_day_of_month: Whether to use last working day of month.
-        duration:                  Optional duration rule: "FOREVER", "TIMES", "UNTIL".
-        duration_times:            Optional number of times (for "TIMES" duration).
-        duration_until:            Optional end date (for "UNTIL" duration).
-    """
+    """Update an existing subscription. Only provided fields are changed. Requires WRITE permission."""
     body: dict = {
         "name": name,
         "amount": amount,
@@ -782,7 +700,6 @@ async def update_subscription(
         ctx,
         method="PUT",
         path=f"/api/subscription/{wallet_id}/{subscription_id}",
-        token=token,
         body=body,
     )
     return json.dumps(result, indent=2, default=str)
@@ -793,26 +710,18 @@ async def update_subscription(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def delete_subscription(
-        token: str,
-        wallet_id: str,
-        subscription_id: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        subscription_id: Annotated[str, Field(description="UUID of the subscription to delete (use get_subscriptions to find IDs).")],
         ctx: Context[ServerSession, AppContext],
 ) -> str:
     """
-    Delete a subscription from the specified wallet.
-    Requires WRITE permission. This does NOT delete past transactions
-    already generated by this subscription.
-
-    Args:
-        token:           The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id:       UUID of the target wallet.
-        subscription_id: UUID of the subscription to delete (use get_subscriptions to find IDs).
+    Delete a subscription from the specified wallet. Requires WRITE permission.
+    This does NOT delete past transactions already generated by this subscription.
     """
     result = await _backend_request(
         ctx,
         method="DELETE",
         path=f"/api/subscription/{wallet_id}/{subscription_id}",
-        token=token,
     )
     return json.dumps(result, indent=2, default=str)
 
@@ -822,29 +731,17 @@ async def delete_subscription(
 # ──────────────────────────────────────────────────────────────────────
 @mcp.tool()
 async def get_financial_timeseries(
-        token: str,
-        wallet_id: str,
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
         ctx: Context[ServerSession, AppContext],
-        date_from: str | None = None,
-        date_until: str | None = None,
-        granularity: str = "MONTHLY",
-        include_subscriptions: bool = True,
+        date_from: Annotated[str | None, Field(description="Start date in YYYY-MM-DD format. Defaults to 12 months ago.")] = None,
+        date_until: Annotated[str | None, Field(description="End date in YYYY-MM-DD format. Defaults to today.")] = None,
+        granularity: Annotated[Literal["DAILY", "WEEKLY", "MONTHLY", "YEARLY"], Field(description="Aggregation granularity.")] = "MONTHLY",
+        include_subscriptions: Annotated[bool, Field(description="If true, includes active subscriptions for future recurring projections.")] = True,
 ) -> str:
     """
     Generate a time-series dataset of income, expenses, and balance over time.
-    Designed for forecasting future trends and analysing past financial patterns.
-
-    The data is grouped by the specified granularity (DAILY, WEEKLY, MONTHLY, YEARLY)
-    and includes running totals, cumulative balance, and optionally projected
-    future subscription costs.
-
-    Args:
-        token:                  The user's Personal Access Token (starts with 'fin_pat_').
-        wallet_id:              UUID of the target wallet.
-        date_from:              Optional start date (YYYY-MM-DD). Defaults to 12 months ago.
-        date_until:             Optional end date (YYYY-MM-DD). Defaults to today.
-        granularity:            Aggregation granularity: "DAILY", "WEEKLY", "MONTHLY", or "YEARLY" (default: "MONTHLY").
-        include_subscriptions:  If true, includes active subscriptions data for future projections.
+    Designed for trend analysis and forecasting future financial patterns.
+    Includes running totals, cumulative balance, and optionally projected recurring costs.
     """
     from collections import defaultdict
     from datetime import date, timedelta
@@ -854,7 +751,6 @@ async def get_financial_timeseries(
         ctx,
         method="GET",
         path=f"/api/transactions/{wallet_id}",
-        token=token,
     )
 
     if not isinstance(raw_transactions, list):
@@ -947,7 +843,6 @@ async def get_financial_timeseries(
             ctx,
             method="GET",
             path=f"/api/subscription/{wallet_id}",
-            token=token,
         )
 
         if isinstance(raw_subs, list):
@@ -1029,8 +924,12 @@ async def get_financial_timeseries(
 # Entrypoint
 # ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    # mcp.run("sse")
-    mcp.run(transport="streamable-http")
-
-# npx @modelcontextprotocol/inspector sse http://localhost:8000/sse
-
+    app = mcp.streamable_http_app()
+    app.add_middleware(BearerTokenMiddleware)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    uvicorn.run(app, host="0.0.0.0", port=8000)

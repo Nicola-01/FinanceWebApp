@@ -90,5 +90,20 @@ services:
     # Niente volumes (il codice è dentro l'immagine)
     # Niente environment (le variabili sono già "cotte" nel JS)
 
+  # 4. MCP Server
+  mcp:
+    build:
+      context: ./mcp-server
+    container_name: finance_mcp_prod
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - backend
+    environment:
+      BACKEND_URL: ${BACKEND_URL}
+      MCP_SERVER_URL: ${MCP_SERVER_URL}
+      AUTH_SERVER_URL: ${BACKEND_URL}
+
 volumes:
   finance_db_data: # Definisce il volume persistente per il DB
