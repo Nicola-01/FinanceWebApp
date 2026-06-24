@@ -48,3 +48,5 @@ node_modules/
 OpenBanking/
 
 mcp-server/test/
+
+graphify-out/cache/
