@@ -46,6 +46,9 @@ public class SecurityConfig {
     @Value("${application.backend.url}")
     private String BACKEND_URL;
 
+    @Value("${application.mcpserver.url}")
+    private String MCP_SERVER_URL;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -76,7 +79,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(List.of(
-                FRONTEND_URL, BACKEND_URL,
+                FRONTEND_URL, BACKEND_URL, MCP_SERVER_URL,
                 "http://localhost:5173", "http://localhost:3000"
         ));
 
