@@ -35,7 +35,7 @@ from starlette.responses import JSONResponse, Response
 # ──────────────────────────────────────────────────────────────────────
 # Configuration
 # ──────────────────────────────────────────────────────────────────────
-# BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8080")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8080")
 
 
 # ──────────────────────────────────────────────────────────────────────
