@@ -42,3 +42,11 @@ out/
 postgres_data/
 
 node_modules/
+
+*.pem
+
+OpenBanking/
+
+mcp-server/test/
+
+graphify-out/cache/

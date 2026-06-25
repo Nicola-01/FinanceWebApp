@@ -1,24 +1,24 @@
 services:
   # 1. Database Service
-  db:
-    image: postgres:16-alpine
-    container_name: finance_db_prod
-    restart: always
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
-    volumes:
-      # CONSIGLIO: Usa un volume nominale invece di una cartella locale
-      # per evitare che il runner cancelli i dati per sbaglio durante le pulizie
-      - finance_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+#  db:
+#    image: postgres:16-alpine
+#    container_name: finance_db_prod
+#    restart: always
+#    environment:
+#      POSTGRES_DB: ${POSTGRES_DB}
+#      POSTGRES_USER: ${POSTGRES_USER}
+#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      # CONSIGLIO: Usa un volume nominale invece di una cartella locale
+#      # per evitare che il runner cancelli i dati per sbaglio durante le pulizie
+#      - finance_db_data:/var/lib/postgresql/data
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 5
 
   # 2. Backend Service
   backend:
@@ -44,6 +44,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       FRONTEND_URL: ${FRONTEND_URL}
       BACKEND_URL: ${BACKEND_URL}
+      MCP_SERVER_URL: ${MCP_SERVER_URL}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       JWT_LONG_EXPIRATION: ${JWT_LONG_EXPIRATION}
       JWT_SHORT_EXPIRATION: ${JWT_SHORT_EXPIRATION}
@@ -89,6 +90,21 @@ services:
       - "3000:80"
     # Niente volumes (il codice è dentro l'immagine)
     # Niente environment (le variabili sono già "cotte" nel JS)
+
+  # 4. MCP Server
+  mcp:
+    build:
+      context: ./mcp-server
+    container_name: finance_mcp_prod
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - backend
+    environment:
+      BACKEND_URL: ${BACKEND_URL}
+      MCP_SERVER_URL: ${MCP_SERVER_URL}
+      AUTH_SERVER_URL: ${BACKEND_URL}
 
 volumes:
   finance_db_data: # Definisce il volume persistente per il DB
