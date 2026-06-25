@@ -29,9 +29,9 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
+#    depends_on:
+#      db:
+#        condition: service_healthy
     env_file:
       - .env
     environment:
