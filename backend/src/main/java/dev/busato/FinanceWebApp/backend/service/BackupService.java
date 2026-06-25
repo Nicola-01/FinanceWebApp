@@ -32,9 +32,6 @@ public class BackupService {
 
     // ── Config ────────────────────────────────────────────────────────────────
 
-@Value("${backup.container-name:finance_db_prod}")
-    private String containerName; // kept for reference, no longer used for docker exec
-
     @Value("${backup.db-host:db}")
     private String dbHost;
 
@@ -167,7 +164,7 @@ public class BackupService {
 
         Files.write(sqlFile, sqlBytes);
 
-        log.info("[Restore] Importing into container={} db={}", containerName, dbName);
+        log.info("[Restore] Importing into db={}", dbName);
         runDockerPsqlRestore(sqlFile);
         Files.deleteIfExists(sqlFile);
 
