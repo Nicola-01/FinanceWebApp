@@ -199,6 +199,20 @@ def get_wallets_description() -> str:
         "Use the 'get_wallets' tool to retrieve the actual wallet data."
     )
 
+docs = {
+    "gatto": "miao",
+    "cane": "bau",
+    "uccello": "cip cip",
+    "pesce": "blub blub",
+    "mucca": "muuu",
+}
+
+@mcp.resource(
+    "docs://documents",
+    mime_type="application/json"
+)
+def list_docs() -> list[str]:
+    return list(docs.keys())
 
 # ──────────────────────────────────────────────────────────────────────
 # Tool — get_wallets
@@ -933,3 +947,5 @@ if __name__ == "__main__":
         allow_headers=["*"],
     )
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# npx @modelcontextprotocol/inspector sse http://localhost:8000/sse
