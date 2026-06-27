@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useState, useEffect, useRef} from 'react';
 import {TrendingUp, TrendingDown, Scale, ChevronLeft, ChevronRight} from 'lucide-react';
 import type {Transaction} from '../../utils/types.ts';
 import {SwitchableCard} from "./SwitchableCard.tsx";
@@ -89,6 +89,37 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({transactions}) =>
         : yearlyData;
 
     const totals = isMonthly ? monthlyTotals : yearlyTotals;
+
+    const rightmostDataIndex = useMemo(() => {
+        let lastIndex = 0;
+        const data = isMonthly ? monthlyData : yearlyData;
+        for (let i = data.length - 1; i >= 0; i--) {
+            if (data[i].income !== 0 || data[i].expense !== 0) {
+                lastIndex = i;
+                break;
+            }
+        }
+        return lastIndex;
+    }, [isMonthly, monthlyData, yearlyData]);
+
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const container = scrollContainerRef.current;
+        if (!container) return;
+
+        const timeoutId = setTimeout(() => {
+            const columnWidth = container.scrollWidth / columns.length;
+            const targetScrollLeft = (rightmostDataIndex + 1) * columnWidth - container.clientWidth;
+            
+            container.scrollTo({
+                left: Math.max(0, targetScrollLeft),
+                behavior: 'smooth'
+            });
+        }, 100);
+
+        return () => clearTimeout(timeoutId);
+    }, [rightmostDataIndex, viewMode, selectedYear, columns.length]);
 
     const renderValueCell = (value: number, type: 'income' | 'expense' | 'balance', isBold = false) => {
         const hasData = value !== 0;
@@ -186,6 +217,7 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({transactions}) =>
 
                 {/* Scrollable table — offset by overlay widths */}
                 <div className="overflow-x-auto overview-scroll-area"
+                     ref={scrollContainerRef}
                      style={{marginLeft: '44px', marginRight: '100px'}}>
                     <table className="w-full border-collapse"
                            style={{tableLayout: 'fixed', minWidth: `${columns.length * 90}px`}}>

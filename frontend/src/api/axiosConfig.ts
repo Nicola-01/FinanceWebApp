@@ -46,7 +46,7 @@ const processQueue = (error: unknown, newToken: string | null = null) => {
             reject(error);
         } else if (newToken) {
             config.headers.set('Authorization', `Bearer ${newToken}`);
-            resolve(api(config));
+            api(config).then(resolve).catch(reject);
         }
     });
     failedQueue = [];

@@ -18,7 +18,7 @@ jobs:
     if: github.event_name == 'push'
     strategy:
       matrix:
-        environment: [prod, demo]
+        environment: [prod] # [prod, demo]
     runs-on: [self-hosted, "${{ matrix.environment }}"]
     steps:
       - name: Checkout code
