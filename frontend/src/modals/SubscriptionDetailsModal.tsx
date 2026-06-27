@@ -21,7 +21,7 @@ interface Props {
 }
 
 export const SubscriptionDetailsModal = forwardRef<SubscriptionDetailsModalHandle, Props>(
-    ({wallet, onEditRequest, onDeleteSuccess}, ref) => {
+    ({ wallet, onEditRequest, onDeleteSuccess }, ref) => {
         const dialogRef = useRef<HTMLDialogElement>(null);
         const deleteModalRef = useDeleteModal();
 
@@ -60,7 +60,7 @@ export const SubscriptionDetailsModal = forwardRef<SubscriptionDetailsModalHandl
             if (!sub || !selectedDate) return;
             try {
                 const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-                
+
                 const updateRequest = {
                     name: sub.name,
                     tag: sub.tag?.name,
@@ -92,10 +92,10 @@ export const SubscriptionDetailsModal = forwardRef<SubscriptionDetailsModalHandl
 
         const rightActions = () => {
             let actions: any[] = [];
-            if (sub && wallet.myRole !== 'VIEWER') {
+            if (sub && wallet.userRole !== 'VIEWER') {
                 actions = [
                     {
-                        icon: <FontAwesomeIcon icon={faEdit} className="w-4"/>,
+                        icon: <FontAwesomeIcon icon={faEdit} className="w-4" />,
                         label: 'Edit',
                         onClick: () => handleEditAndClose(sub),
                         color: 'text-white/80',
@@ -103,7 +103,7 @@ export const SubscriptionDetailsModal = forwardRef<SubscriptionDetailsModalHandl
                         hoverBg: 'hover:bg-app-surface'
                     },
                     {
-                        icon: <FontAwesomeIcon icon={faTrash} className="w-4"/>,
+                        icon: <FontAwesomeIcon icon={faTrash} className="w-4" />,
                         label: 'Delete',
                         onClick: () => {
                             deleteModalRef.current?.deleteObject(
@@ -116,10 +116,10 @@ export const SubscriptionDetailsModal = forwardRef<SubscriptionDetailsModalHandl
                         hoverBg: 'hover:bg-red-500/10'
                     }
                 ];
-                
+
                 if (selectedDate) {
                     actions.push({
-                        icon: <FontAwesomeIcon icon={faStopCircle} className="w-4"/>,
+                        icon: <FontAwesomeIcon icon={faStopCircle} className="w-4" />,
                         label: 'Stop Here',
                         onClick: handleStopSubscriptionAtDate,
                         color: 'text-white/80',

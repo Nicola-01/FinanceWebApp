@@ -12,8 +12,9 @@ import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import dev.busato.FinanceWebApp.backend.mappers.WalletMapper;
+import dev.busato.FinanceWebApp.backend.security.WalletSecurity;
 import jakarta.transaction.Transactional;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,9 +30,11 @@ public class WalletService {
     private final WalletAccessRepository walletAccessRepository;
     private final UserRepository userRepository;
     private final WalletMapper walletMapper;
+    private final WalletSecurity walletSecurity;
 
 
     @Transactional
+    @PreAuthorize("@walletSecurity.preventPatAccess()")
     public WalletResponse createWallet(WalletRequest request, UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
@@ -68,6 +71,7 @@ public class WalletService {
     }
 
     @Transactional
+    @PreAuthorize("@walletSecurity.isWalletOwner(#userId, #walletId)")
     public WalletResponse updateWallet(UUID walletId, WalletRequest request, UUID userId) {
 
         if (request.getName().length() < 3 || request.getName().length() > 25)
@@ -90,6 +94,7 @@ public class WalletService {
     }
 
     @Transactional
+    @PreAuthorize("@walletSecurity.preventPatAccess()")
     public void removeWallet(UUID walletId, UUID userId) {
         WalletAccess userAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletId)
                 .orElseThrow(() -> new UnauthorizedAccessException("No access to this wallet"));
@@ -103,12 +108,13 @@ public class WalletService {
     public List<WalletResponse> getWallets(UUID userId) {
         return walletAccessRepository.findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED)
                 .stream()
+                .filter(access -> walletSecurity.hasReadAccessQuietly(userId, access.getWallet().getId()))
                 .map(walletMapper::mapToResponse)
-
                 .sorted((w1, w2) -> w2.getCreatedAt().compareTo(w1.getCreatedAt()))
                 .collect(Collectors.toList());
     }
 
+    @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletID)")
     public WalletResponse getWallet(UUID userId, UUID walletID) {
         WalletAccess walletAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletID)
                 .orElseThrow(() -> new WalletNotFoundException(walletID));

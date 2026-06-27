@@ -1,15 +1,15 @@
-import React, {useState} from 'react';
-import {useWalletContext} from '../wallet/WalletContext.tsx';
-import {IconPickerButton} from '../../components/IconPickerButton.tsx';
-import type {IconKey} from '../../utils/icons.ts';
-import {faExclamationTriangle, faGear, faSave, faSignOutAlt, faTrash} from '@fortawesome/free-solid-svg-icons';
-import type {Wallet} from '../../utils/types';
-import {ShareSettingsSection} from './ShareSettingsSection.tsx';
-import {SettingsCard} from '../../components/SettingsCard.tsx';
-import {DataTab} from './DataTab.tsx';
+import React, { useState } from 'react';
+import { useWalletContext } from '../wallet/WalletContext.tsx';
+import { IconPickerButton } from '../../components/IconPickerButton.tsx';
+import type { IconKey } from '../../utils/icons.ts';
+import { faExclamationTriangle, faGear, faSave, faSignOutAlt, faTrash } from '@fortawesome/free-solid-svg-icons';
+import type { Wallet } from '../../utils/types';
+import { ShareSettingsSection } from './ShareSettingsSection.tsx';
+import { SettingsCard } from '../../components/SettingsCard.tsx';
+import { DataTab } from './DataTab.tsx';
 
 export const SettingsTab: React.FC = () => {
-    const {wallet, handleUpdateWallet, onWalletDelete} = useWalletContext();
+    const { wallet, handleUpdateWallet, onWalletDelete } = useWalletContext();
     const [isSaving, setIsSaving] = useState(false);
 
     const [editedWallet, setEditedWallet] = useState<Partial<Wallet>>({
@@ -33,7 +33,7 @@ export const SettingsTab: React.FC = () => {
             className="flex flex-col gap-6 pb-6 animate-[fadeIn_0.3s_ease-out]">
 
             {/* GENERAL SETTINGS CARD */}
-            {wallet.myRole !== 'VIEWER' && (
+            {wallet.userRole !== 'VIEWER' && (
                 <SettingsCard
                     title="General Settings"
                     subtitle="Change Icon, Color, and Name of your Wallet"
@@ -56,8 +56,8 @@ export const SettingsTab: React.FC = () => {
                                 <IconPickerButton
                                     icon={editedWallet.icon as IconKey}
                                     color={editedWallet.color as string}
-                                    onIconChange={(icon: IconKey) => setEditedWallet({...editedWallet, icon})}
-                                    onColorChange={(color: string) => setEditedWallet({...editedWallet, color})}
+                                    onIconChange={(icon: IconKey) => setEditedWallet({ ...editedWallet, icon })}
+                                    onColorChange={(color: string) => setEditedWallet({ ...editedWallet, color })}
                                     isOpen={showIconPicker}
                                     onToggle={setShowIconPicker}
                                 />
@@ -73,7 +73,7 @@ export const SettingsTab: React.FC = () => {
                             <input
                                 type="text"
                                 value={editedWallet.name}
-                                onChange={(e) => setEditedWallet({...editedWallet, name: e.target.value})}
+                                onChange={(e) => setEditedWallet({ ...editedWallet, name: e.target.value })}
                                 className="w-full bg-black/20 border border-app-border rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#00ff7f] focus:ring-1 focus:ring-[#00ff7f] transition-all font-medium"
                                 placeholder="e.g. Main Account, Savings, Crypto..."
                             />
@@ -82,13 +82,13 @@ export const SettingsTab: React.FC = () => {
                 </SettingsCard>
             )}
 
-            <DataTab/>
+            <DataTab />
 
             {/* SHARE & MEMBERS SETTINGS */}
-            <ShareSettingsSection/>
+            <ShareSettingsSection />
 
             {/* DANGER ZONE CARD */}
-            {wallet.myRole === 'OWNER' ? (
+            {wallet.userRole === 'OWNER' ? (
                 <SettingsCard
                     title="Danger Zone"
                     icon={faExclamationTriangle}

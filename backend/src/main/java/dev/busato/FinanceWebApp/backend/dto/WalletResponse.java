@@ -16,5 +16,6 @@ public class WalletResponse {
     private String color;
     private String currency;
     private LocalDate createdAt;
-    private WalletAccess.WalletRole myRole;
+    private WalletAccess.WalletRole userRole;
+    private WalletAccess.WalletRole tokenAccess;
 }

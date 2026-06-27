@@ -57,7 +57,7 @@ export const TransactionDetailsModal = forwardRef<TransactionDetailsModalHandle,
             }
         };
 
-        const rightActions = tx && wallet.myRole !== 'VIEWER' ? [
+        const rightActions = tx && wallet.userRole !== 'VIEWER' ? [
             {
                 icon: <FontAwesomeIcon icon={faEdit} className="w-4" />,
                 label: 'Edit',

@@ -1,24 +1,24 @@
-import React, {useState} from 'react';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCheck, faPlus, faSpinner, faXmark} from '@fortawesome/free-solid-svg-icons';
-import {createTheme, ThemeProvider} from '@mui/material/styles';
-import type {Tag} from '../../utils/types.ts';
+import React, { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheck, faPlus, faSpinner, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import type { Tag } from '../../utils/types.ts';
 import TagCard from "./TagCard.tsx";
-import {IconPickerButton} from '../../components/IconPickerButton.tsx';
-import type {IconKey} from '../../utils/icons.ts';
-import {useWalletContext} from "../wallet/WalletContext.tsx";
-import {TransactionPieChart} from './CategoryCharts.tsx';
-import {CashFlowSankey} from '../statistics/CashFlowSankey.tsx';
-import {DateRangeBanner} from '../statistics/DateRangeBanner.tsx';
-import {useTheme} from '../../utils/ThemeContext.tsx';
-import {Collapse} from "../../components/Collapse.tsx";
+import { IconPickerButton } from '../../components/IconPickerButton.tsx';
+import type { IconKey } from '../../utils/icons.ts';
+import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { TransactionPieChart } from './CategoryCharts.tsx';
+import { CashFlowSankey } from '../statistics/CashFlowSankey.tsx';
+import { DateRangeBanner } from '../statistics/DateRangeBanner.tsx';
+import { useTheme } from '../../utils/ThemeContext.tsx';
+import { Collapse } from "../../components/Collapse.tsx";
 
 const lightTheme = createTheme({
-    palette: {mode: 'light', background: {paper: '#ffffff'}},
+    palette: { mode: 'light', background: { paper: '#ffffff' } },
 });
 
 const darkTheme = createTheme({
-    palette: {mode: 'dark', background: {paper: '#1a1a1a'}},
+    palette: { mode: 'dark', background: { paper: '#1a1a1a' } },
 });
 
 // --- COMPONENTE SKELETON INTERNO ---
@@ -46,7 +46,7 @@ export const TagsTab: React.FC = () => {
         handleDeleteTag: onDeleteTag,
         isLoading
     } = useWalletContext();
-    const {resolvedTheme} = useTheme();
+    const { resolvedTheme } = useTheme();
     const [isAddingTag, setIsAddingTag] = useState(false);
     const [showNewMainSelector, setShowNewMainSelector] = useState(false);
     const [savingMain, setSavingMain] = useState(false);
@@ -64,7 +64,7 @@ export const TagsTab: React.FC = () => {
         const success = await onAddTag(newTag);
 
         if (success) {
-            setNewTag({name: '', icon: 'tag', colorHex: '#00ff7f', parentName: null});
+            setNewTag({ name: '', icon: 'tag', colorHex: '#00ff7f', parentName: null });
             setIsAddingTag(false);
         }
         setSavingMain(false);
@@ -73,7 +73,7 @@ export const TagsTab: React.FC = () => {
     const organizedTags: Record<string, { parent: Tag, children: Tag[] }> = {};
 
     tags.forEach(tag => {
-        if (!tag.parentName) organizedTags[tag.name] = {parent: tag, children: []};
+        if (!tag.parentName) organizedTags[tag.name] = { parent: tag, children: [] };
     });
     tags.forEach(tag => {
         if (tag.parentName && organizedTags[tag.parentName]) organizedTags[tag.parentName].children.push(tag);
@@ -87,7 +87,7 @@ export const TagsTab: React.FC = () => {
         <ThemeProvider theme={resolvedTheme === 'dark' ? darkTheme : lightTheme}>
             <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] pb-10 relative">
 
-                <DateRangeBanner/>
+                <DateRangeBanner />
 
                 <div className="mb-4 mt-2">
                     <h2 className="text-2xl font-bold text-app-text">Visual Distribution</h2>
@@ -98,18 +98,18 @@ export const TagsTab: React.FC = () => {
                 {/* Pie Charts */}
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                     <TransactionPieChart transactions={filteredTransactions} type="INCOME"
-                                         title="Income Distribution"/>
+                        title="Income Distribution" />
                     <TransactionPieChart transactions={filteredTransactions} type="EXPENSE"
-                                         title="Expense Distribution"/>
+                        title="Expense Distribution" />
                 </div>
 
-                <CashFlowSankey transactions={filteredTransactions}/>
+                <CashFlowSankey transactions={filteredTransactions} />
 
                 <Collapse title="Manage Categories" className="mt-3">
                     <div
                         className="rounded-2xl border border-app-border bg-app-card/20 p-6 backdrop-blur-md animate-[fadeIn_0.2s_ease-out]">
                         {/* Add Main Category */}
-                        {!isLoading && wallet.myRole !== 'VIEWER' && (
+                        {!isLoading && wallet.userRole !== 'VIEWER' && (
                             <div className="mb-8 w-full">
                                 {isAddingTag ? (
                                     <div
@@ -119,7 +119,7 @@ export const TagsTab: React.FC = () => {
                                             <IconPickerButton
                                                 icon={newTag.icon as IconKey}
                                                 color={newTag.colorHex as string}
-                                                onIconChange={(icon: IconKey) => setNewTag({...newTag, icon: icon})}
+                                                onIconChange={(icon: IconKey) => setNewTag({ ...newTag, icon: icon })}
                                                 onColorChange={(color: string) => setNewTag({
                                                     ...newTag,
                                                     colorHex: color
@@ -134,19 +134,19 @@ export const TagsTab: React.FC = () => {
                                             className="flex-1 bg-transparent text-left font-bold tracking-wide text-app-text outline-none placeholder-app-muted/30"
                                             placeholder="Category Name..."
                                             value={newTag.name}
-                                            onChange={(e) => setNewTag({...newTag, name: e.target.value})}
+                                            onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
                                             disabled={savingMain}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') handleAddMainTag();
                                                 if (e.key === 'Escape') {
                                                     setIsAddingTag(false);
-                                                    setNewTag({...newTag, name: ''});
+                                                    setNewTag({ ...newTag, name: '' });
                                                 }
                                             }}
                                         />
 
                                         {savingMain ? (
-                                            <FontAwesomeIcon icon={faSpinner} spin className="text-[#00ff7f] mx-2"/>
+                                            <FontAwesomeIcon icon={faSpinner} spin className="text-[#00ff7f] mx-2" />
                                         ) : (
                                             <div className="flex items-center gap-2">
                                                 <button
@@ -154,17 +154,17 @@ export const TagsTab: React.FC = () => {
                                                     className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#00ff7f]/20 text-[#00ff7f] hover:bg-[#00ff7f] hover:text-black transition-all"
                                                     title="Confirm"
                                                 >
-                                                    <FontAwesomeIcon icon={faCheck}/>
+                                                    <FontAwesomeIcon icon={faCheck} />
                                                 </button>
                                                 <button
                                                     onClick={() => {
                                                         setIsAddingTag(false);
-                                                        setNewTag({...newTag, name: ''});
+                                                        setNewTag({ ...newTag, name: '' });
                                                     }}
                                                     className="flex h-9 w-9 items-center justify-center rounded-xl bg-app-input text-app-muted hover:bg-red-500/20 hover:text-red-500 transition-all"
                                                     title="Cancel"
                                                 >
-                                                    <FontAwesomeIcon icon={faXmark}/>
+                                                    <FontAwesomeIcon icon={faXmark} />
                                                 </button>
                                             </div>
                                         )}
@@ -176,7 +176,7 @@ export const TagsTab: React.FC = () => {
                                     >
                                         <div
                                             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-input transition-all group-hover:bg-app-surface group-hover:scale-105">
-                                            <FontAwesomeIcon icon={faPlus}/>
+                                            <FontAwesomeIcon icon={faPlus} />
                                         </div>
 
                                         <div className="flex-1 text-left font-bold tracking-wide">
@@ -191,14 +191,14 @@ export const TagsTab: React.FC = () => {
                         <div className="columns-1 md:columns-2 xl:columns-3 gap-6">
                             {isLoading ? (
                                 <>
-                                    <TagSkeleton/>
-                                    <TagSkeleton/>
-                                    <TagSkeleton/>
-                                    <TagSkeleton/>
+                                    <TagSkeleton />
+                                    <TagSkeleton />
+                                    <TagSkeleton />
+                                    <TagSkeleton />
                                 </>
                             ) : (
                                 <>
-                                    {Object.values(organizedTags).map(({parent, children}) => (
+                                    {Object.values(organizedTags).map(({ parent, children }) => (
                                         <div key={parent.name} className="break-inside-avoid mb-6">
                                             <TagCard
                                                 parent={parent}

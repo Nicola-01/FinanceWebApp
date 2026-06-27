@@ -6,15 +6,15 @@ import {
     TransactionModal,
     type TransactionModalHandle
 } from "../../modals/TransactionModal/TransactionModal.tsx";
-import React, {useRef} from 'react';
-import type {Tag, Transaction, Wallet} from '../../utils/types.ts';
+import React, { useRef } from 'react';
+import type { Tag, Transaction, Wallet } from '../../utils/types.ts';
 import TransactionRow from "./TransactionRow.tsx";
 import api from "../../api/axiosConfig.ts";
-import {triggerToast} from "../../components/ToastNotification.tsx";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faReceipt} from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
-import type {CurrencyCode} from "../../utils/currencies.ts";
-import {FloatingActionButton} from "../../components/FloatingActionButton.tsx";
+import { triggerToast } from "../../components/ToastNotification.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faReceipt } from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
+import type { CurrencyCode } from "../../utils/currencies.ts";
+import { FloatingActionButton } from "../../components/FloatingActionButton.tsx";
 
 interface TransactionsTableProps {
     wallet: Wallet,
@@ -44,12 +44,12 @@ const SkeletonRow = () => (
 );
 
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({
-                                                                        wallet,
-                                                                        tags,
-                                                                        transactions,
-                                                                        isLoading,
-                                                                        onRefresh
-                                                                    }) => {
+    wallet,
+    tags,
+    transactions,
+    isLoading,
+    onRefresh
+}) => {
 
     const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
     const transactionModalRef = useRef<TransactionModalHandle>(null);
@@ -106,29 +106,29 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
                 {/* 1. STATO DI CARICAMENTO */}
                 {isLoading ? (
-                        <>
-                            <div className="mb-6">
-                                <SkeletonDateHeader/>
-                                <div>
-                                    <SkeletonRow/>
-                                    <SkeletonRow/>
-                                    <SkeletonRow/>
-                                </div>
+                    <>
+                        <div className="mb-6">
+                            <SkeletonDateHeader />
+                            <div>
+                                <SkeletonRow />
+                                <SkeletonRow />
+                                <SkeletonRow />
                             </div>
-                        </>
-                    ) :
+                        </div>
+                    </>
+                ) :
 
                     /* 2. STATO VUOTO (Nessuna transazione) - Migliorato visivamente */
                     transactions.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-24 text-app-muted">
-                                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input">
-                                    <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50"/>
-                                </div>
-                                <p className="text-sm font-bold">No transactions found for this period.</p>
-                                <p className="mt-1 text-xs font-medium opacity-60">Click "New Transaction" to add your first
-                                    one.</p>
+                        <div className="flex flex-col items-center justify-center py-24 text-app-muted">
+                            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input">
+                                <FontAwesomeIcon icon={faReceipt} className="text-2xl opacity-50" />
                             </div>
-                        ) :
+                            <p className="text-sm font-bold">No transactions found for this period.</p>
+                            <p className="mt-1 text-xs font-medium opacity-60">Click "New Transaction" to add your first
+                                one.</p>
+                        </div>
+                    ) :
 
                         /* 3. STATO CON DATI */
                         (
@@ -180,8 +180,8 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
             </div>
 
             {/* FLOATING ACTION BUTTON */}
-            {!isLoading && wallet.myRole !== 'VIEWER' && (
-                <FloatingActionButton wallet={wallet} onClick={() => transactionModalRef.current?.openModal()}/>
+            {!isLoading && wallet.userRole !== 'VIEWER' && (
+                <FloatingActionButton wallet={wallet} onClick={() => transactionModalRef.current?.openModal()} />
             )}
         </div>
     );

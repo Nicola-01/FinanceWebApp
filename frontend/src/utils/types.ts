@@ -17,7 +17,7 @@ export interface Wallet {
     color: string,
     currency: string,
     createdAt: string,
-    myRole: 'OWNER' | 'EDITOR' | 'VIEWER',
+    userRole: 'OWNER' | 'EDITOR' | 'VIEWER',
     wallet?: Wallet
 }
 

@@ -74,7 +74,10 @@ mcp = FastMCP(
         "Authentication is handled automatically via the Bearer token in the request header — "
         "do NOT ask the user for a token or pass it as a parameter. "
         "The token controls which wallets are accessible and whether write operations are allowed: "
-        "if the backend returns 403, the token lacks permission for that operation."
+        "if the backend returns 403, the token lacks permission for that operation. "
+        "You will often see 'userRole' and 'tokenAccess' fields for wallets. "
+        "userRole is the role of the user, tokenAccess is the role of the token. "
+        "If the user asks to write/edit but the token's role is not sufficient, ask the user to update the token permissions in the app."
     ),
     lifespan=app_lifespan,
     host="0.0.0.0",
@@ -234,7 +237,7 @@ async def get_wallets(
     # Ensure the response is a list before filtering
     if isinstance(raw_wallets, list):
         # 2. Define EXACTLY which fields you want to pass to the LLM
-        allowed_keys = {"id", "name", "currency"}
+        allowed_keys = {"id", "name", "currency", "userRole", "tokenAccess"}
 
         # 3. Filter the list keeping only the allowed keys
         optimized_wallets = [
@@ -248,6 +251,67 @@ async def get_wallets(
     # 4. Return the "slimmed down" version to the LLM
     return json.dumps(optimized_wallets, indent=2, default=str)
 
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — create_wallet
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def create_wallet(
+        name: Annotated[str, Field(description="Name of the new wallet (3-40 characters).")],
+        currency: Annotated[str, Field(description="Currency code (e.g. 'EUR', 'USD').")],
+        ctx: Context[ServerSession, AppContext],
+) -> str:
+    """Create a new wallet. Requires appropriate permissions."""
+    body = {"name": name, "currency": currency}
+    result = await _backend_request(
+        ctx,
+        method="POST",
+        path="/api/wallets",
+        body=body,
+    )
+    return json.dumps(result, indent=2, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — update_wallet
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def update_wallet(
+        wallet_id: Annotated[str, Field(description="UUID of the wallet to update.")],
+        name: Annotated[str, Field(description="New name of the wallet.")],
+        currency: Annotated[str, Field(description="New currency code.")],
+        ctx: Context[ServerSession, AppContext],
+) -> str:
+    """Update an existing wallet. Requires WRITE permission on the wallet."""
+    body = {"name": name, "currency": currency}
+    result = await _backend_request(
+        ctx,
+        method="PUT",
+        path=f"/api/wallets/{wallet_id}",
+        body=body,
+    )
+    return json.dumps(result, indent=2, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — delete_wallet
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def delete_wallet(
+        wallet_id: Annotated[str, Field(description="UUID of the wallet to delete.")],
+        ctx: Context[ServerSession, AppContext],
+        confirm: Annotated[bool, Field(description="MUST be False initially. The LLM MUST ask the user for explicit confirmation. Only when the user says yes, the LLM should call this again with confirm=True.")] = False,
+) -> str:
+    """Delete a wallet. Requires OWNER permission. ALL DATA WILL BE LOST."""
+    if not confirm:
+        return "Operation cancelled or pending. Please ask the user for explicit confirmation before deleting."
+    result = await _backend_request(
+        ctx,
+        method="DELETE",
+        path=f"/api/wallets/{wallet_id}",
+    )
+    return json.dumps(result, indent=2, default=str)
 
 # ──────────────────────────────────────────────────────────────────────
 # Tool — get_transactions
@@ -498,6 +562,27 @@ async def update_transaction(
     return json.dumps(result, indent=2, default=str)
 
 
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — delete_transaction
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def delete_transaction(
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        transaction_id: Annotated[str, Field(description="UUID of the transaction to delete.")],
+        ctx: Context[ServerSession, AppContext],
+        confirm: Annotated[bool, Field(description="MUST be False initially. The LLM MUST ask the user for explicit confirmation. Only when the user says yes, the LLM should call this again with confirm=True.")] = False,
+) -> str:
+    """Delete an existing transaction. Requires WRITE permission."""
+    if not confirm:
+        return "Operation cancelled or pending. Please ask the user for explicit confirmation before deleting."
+    result = await _backend_request(
+        ctx,
+        method="DELETE",
+        path=f"/api/transactions/{wallet_id}/{transaction_id}",
+    )
+    return json.dumps(result, indent=2, default=str)
+
 # ──────────────────────────────────────────────────────────────────────
 # Tool — get_tags
 # ──────────────────────────────────────────────────────────────────────
@@ -560,6 +645,58 @@ async def create_tag(
     )
     return json.dumps(result, indent=2, default=str)
 
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — update_tag
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def update_tag(
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        tag_name: Annotated[str, Field(description="Current name of the tag to update.")],
+        new_name: Annotated[str, Field(description="New name for the tag.")],
+        ctx: Context[ServerSession, AppContext],
+        icon: Annotated[str, Field(description="Optional new icon.")] = "",
+        color_hex: Annotated[str, Field(description="Optional new hex color.")] = "",
+        parent_name: Annotated[str | None, Field(description="Optional new parent tag name.")] = None,
+) -> str:
+    """Update an existing tag. Requires WRITE permission."""
+    body: dict = {
+        "name": new_name,
+        "icon": icon,
+        "colorHex": color_hex,
+    }
+    if parent_name:
+        body["parentName"] = parent_name
+
+    result = await _backend_request(
+        ctx,
+        method="PUT",
+        path=f"/api/tags/{wallet_id}/{tag_name}",
+        body=body,
+    )
+    return json.dumps(result, indent=2, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — delete_tag
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def delete_tag(
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        tag_name: Annotated[str, Field(description="Name of the tag to delete.")],
+        ctx: Context[ServerSession, AppContext],
+        confirm: Annotated[bool, Field(description="MUST be False initially. The LLM MUST ask the user for explicit confirmation. Only when the user says yes, the LLM should call this again with confirm=True.")] = False,
+) -> str:
+    """Delete an existing tag. Requires WRITE permission."""
+    if not confirm:
+        return "Operation cancelled or pending. Please ask the user for explicit confirmation before deleting."
+    result = await _backend_request(
+        ctx,
+        method="DELETE",
+        path=f"/api/tags/{wallet_id}/{tag_name}",
+    )
+    return json.dumps(result, indent=2, default=str)
 
 # ──────────────────────────────────────────────────────────────────────
 # Tool — get_subscriptions
@@ -727,11 +864,14 @@ async def delete_subscription(
         wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
         subscription_id: Annotated[str, Field(description="UUID of the subscription to delete (use get_subscriptions to find IDs).")],
         ctx: Context[ServerSession, AppContext],
+        confirm: Annotated[bool, Field(description="MUST be False initially. The LLM MUST ask the user for explicit confirmation. Only when the user says yes, the LLM should call this again with confirm=True.")] = False,
 ) -> str:
     """
     Delete a subscription from the specified wallet. Requires WRITE permission.
     This does NOT delete past transactions already generated by this subscription.
     """
+    if not confirm:
+        return "Operation cancelled or pending. Please ask the user for explicit confirmation before deleting."
     result = await _backend_request(
         ctx,
         method="DELETE",
@@ -739,6 +879,136 @@ async def delete_subscription(
     )
     return json.dumps(result, indent=2, default=str)
 
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — get_wallet_members
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def get_wallet_members(
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        ctx: Context[ServerSession, AppContext],
+) -> str:
+    """Retrieve all members and pending invitations for a specific wallet. Requires OWNER permission."""
+    result = await _backend_request(
+        ctx,
+        method="GET",
+        path=f"/api/invitations/{wallet_id}",
+    )
+    return json.dumps(result, indent=2, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — invite_member
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def invite_member(
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        email: Annotated[str, Field(description="Email of the user to invite.")],
+        role: Annotated[Literal["READ", "WRITE", "OWNER"], Field(description="Role for the invited user.")],
+        ctx: Context[ServerSession, AppContext],
+) -> str:
+    """Invite a new member to a wallet. Requires OWNER permission."""
+    body = {"email": email, "role": role}
+    result = await _backend_request(
+        ctx,
+        method="POST",
+        path=f"/api/invitations/{wallet_id}",
+        body=body,
+    )
+    return json.dumps(result, indent=2, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — update_member_role
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def update_member_role(
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        member_id: Annotated[str, Field(description="UUID of the member to update.")],
+        role: Annotated[Literal["READ", "WRITE", "OWNER"], Field(description="New role for the member.")],
+        ctx: Context[ServerSession, AppContext],
+) -> str:
+    """Update the role of an existing member in a wallet. Requires OWNER permission."""
+    body = {"role": role}
+    result = await _backend_request(
+        ctx,
+        method="PUT",
+        path=f"/api/invitations/{wallet_id}/{member_id}",
+        body=body,
+    )
+    return json.dumps(result, indent=2, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — remove_member
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def remove_member(
+        wallet_id: Annotated[str, Field(description="UUID of the target wallet.")],
+        member_id: Annotated[str, Field(description="UUID of the member to remove.")],
+        ctx: Context[ServerSession, AppContext],
+        confirm: Annotated[bool, Field(description="MUST be False initially. The LLM MUST ask the user for explicit confirmation. Only when the user says yes, the LLM should call this again with confirm=True.")] = False,
+) -> str:
+    """Remove a member from a wallet. Requires OWNER permission."""
+    if not confirm:
+        return "Operation cancelled or pending. Please ask the user for explicit confirmation before removing."
+    result = await _backend_request(
+        ctx,
+        method="DELETE",
+        path=f"/api/invitations/{wallet_id}/{member_id}",
+    )
+    return json.dumps(result, indent=2, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — get_my_invitations
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def get_my_invitations(
+        ctx: Context[ServerSession, AppContext],
+) -> str:
+    """Retrieve all pending wallet invitations for the current user."""
+    result = await _backend_request(
+        ctx,
+        method="GET",
+        path="/api/invitations",
+    )
+    return json.dumps(result, indent=2, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — accept_invitation
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def accept_invitation(
+        wallet_id: Annotated[str, Field(description="UUID of the wallet to accept the invitation for.")],
+        ctx: Context[ServerSession, AppContext],
+) -> str:
+    """Accept a pending invitation to a wallet."""
+    result = await _backend_request(
+        ctx,
+        method="POST",
+        path=f"/api/invitations/{wallet_id}/accept",
+    )
+    return json.dumps(result, indent=2, default=str)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Tool — reject_invitation
+# ──────────────────────────────────────────────────────────────────────
+@mcp.tool()
+async def reject_invitation(
+        wallet_id: Annotated[str, Field(description="UUID of the wallet to reject the invitation for.")],
+        ctx: Context[ServerSession, AppContext],
+) -> str:
+    """Reject a pending invitation to a wallet."""
+    result = await _backend_request(
+        ctx,
+        method="POST",
+        path=f"/api/invitations/{wallet_id}/reject",
+    )
+    return json.dumps(result, indent=2, default=str)
 
 # ──────────────────────────────────────────────────────────────────────
 # Tool — get_financial_timeseries

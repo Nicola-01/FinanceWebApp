@@ -72,7 +72,7 @@ public class PatAuthenticationFilter extends OncePerRequestFilter {
             // Set the token's owner as the authenticated user
             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                     userDetails,
-                    null,
+                    pat, // Set the PersonalAccessToken object as credentials
                     userDetails.getAuthorities()
             );
 

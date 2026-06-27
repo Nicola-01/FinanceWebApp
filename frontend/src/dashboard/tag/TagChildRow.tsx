@@ -48,7 +48,7 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, onUpdateTag, on
                 onColorChange={setColorVal}
                 isOpen={showSelector}
                 onToggle={(open) => {
-                    if (wallet.myRole === 'VIEWER') return;
+                    if (wallet.userRole === 'VIEWER') return;
                     if (open) {
                         setIconVal(child.icon as IconKey);
                         setColorVal(child.colorHex);
@@ -81,7 +81,7 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, onUpdateTag, on
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-app-text truncate">{child.name}</span>
                         <div className="flex items-center gap-2 opacity-0 group-hover/child:opacity-100 transition-opacity">
-                            {wallet.myRole !== 'VIEWER' && (
+                            {wallet.userRole !== 'VIEWER' && (
                                 <>
                                     <button
                                         onClick={() => { setNameVal(child.name); setIsEditing(true); }}

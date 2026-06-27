@@ -33,7 +33,7 @@ export const ShareSettingsSection: React.FC = () => {
         }
     };
 
-    const isOwner = wallet.myRole === 'OWNER';
+    const isOwner = wallet.userRole === 'OWNER';
 
     // Handler per InviteSection (ritorna un booleano così il form sa se resettarsi)
     const handleInvite = async (identifier: string, role: 'EDITOR' | 'VIEWER'): Promise<boolean> => {

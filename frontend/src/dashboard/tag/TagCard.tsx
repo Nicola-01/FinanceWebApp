@@ -89,7 +89,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                     onColorChange={setParentColor}
                     isOpen={showParentSelector}
                     onToggle={(open) => {
-                        if (wallet.myRole === 'VIEWER') return;
+                        if (wallet.userRole === 'VIEWER') return;
                         if (open) {
                             setParentIcon(parent.icon as IconKey);
                             setParentColor(parent.colorHex);
@@ -120,7 +120,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                         <div className="flex items-center justify-between">
                             <div className="min-w-0"><h1 className="font-bold text-app-text text-2xl truncate">{parent.name}</h1></div>
                             <div className="flex items-center gap-2 opacity-0 group-hover/header:opacity-100 transition-opacity">
-                                {wallet.myRole !== 'VIEWER' && (
+                                {wallet.userRole !== 'VIEWER' && (
                                     <>
                                         <button onClick={() => { setParentNameVal(parent.name); setEditingParentName(true); }} className="text-app-muted/40 hover:text-amber-400 transition-colors"><FontAwesomeIcon icon={faPenToSquare} className="text-sm" /></button>
                                         <button onClick={() => handleDeleteParent(parent.name)} className="text-app-muted/40 hover:text-red-500 transition-colors"><FontAwesomeIcon icon={faTrash} className="text-sm" /></button>
@@ -154,7 +154,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                         )}
                     </div>
                 ) : (
-                    wallet.myRole !== 'VIEWER' && (
+                    wallet.userRole !== 'VIEWER' && (
                         <button onClick={() => setIsAddingChild(true)} className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-app-input text-left group cursor-pointer">
                             <FontAwesomeIcon icon={faPlus} className="text-app-muted/20 group-hover:text-[#00ff7f] text-xs transition-colors" />
                             <span className="text-sm font-medium text-app-muted group-hover:text-[#00ff7f] transition-colors">Add sub-category</span>
