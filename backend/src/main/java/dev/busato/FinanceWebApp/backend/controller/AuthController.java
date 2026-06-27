@@ -2,18 +2,23 @@ package dev.busato.FinanceWebApp.backend.controller;
 
 import dev.busato.FinanceWebApp.backend.dto.*;
 import dev.busato.FinanceWebApp.backend.model.User;
-import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.security.JwtService;
 import dev.busato.FinanceWebApp.backend.service.RegisterService;
 import dev.busato.FinanceWebApp.backend.service.UserService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,9 +31,14 @@ public class AuthController {
     private final JwtService jwtService;
     private final UserService userService;
     private final RegisterService registerService;
+    private final UserDetailsService userDetailsService;
+
+    private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+
+    // ==================== LOGIN ====================
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
@@ -41,37 +51,111 @@ public class AuthController {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", user.getRole());
         extraClaims.put("userId", user.getId());
+        // tokenVersion viene aggiunto automaticamente da JwtService
 
-        String token = jwtService.generateToken(extraClaims, user, request.isRememberMe());
+        String accessToken = jwtService.generateToken(extraClaims, user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
+        addRefreshTokenCookie(response, refreshToken, request.isRememberMe());
 
         return ResponseEntity.ok(AuthResponse.builder()
-                .token(token)
+                .token(accessToken)
                 .role(String.valueOf(user.getRole()))
                 .passwordMustChange(user.isPasswordMustChange())
                 .build());
     }
 
-    @GetMapping("/register/{token}")
-    public ResponseEntity<RegisterInviteResponse> registerViaInvite(@PathVariable String token) {
-        return ResponseEntity.ok(registerService.getRegisterInvite(token));
+    // ==================== REFRESH ====================
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
+        // 1. Legge il refresh token dal cookie
+        String refreshToken = extractRefreshTokenFromCookie(request);
+        if (refreshToken == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "Refresh token not found"));
+        }
+
+        // 2. Verifica che sia effettivamente un refresh token
+        if (!jwtService.isRefreshToken(refreshToken)) {
+            return ResponseEntity.status(401).body(Map.of("message", "Invalid token type"));
+        }
+
+        // 3. Estrae lo username e carica l'utente
+        String username;
+        try {
+            username = jwtService.extractUsername(refreshToken);
+        } catch (Exception e) {
+            clearRefreshTokenCookie(response);
+            return ResponseEntity.status(401).body(Map.of("message", "Invalid refresh token"));
+        }
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        // 4. Valida il refresh token (include controllo tokenVersion)
+        if (!jwtService.isTokenValid(refreshToken, userDetails)) {
+            clearRefreshTokenCookie(response);
+            return ResponseEntity.status(401).body(Map.of("message", "Refresh token expired or revoked"));
+        }
+
+        // 5. Genera nuovo access token + nuovo refresh token (rotation)
+        User user = (User) userDetails;
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", user.getRole());
+        extraClaims.put("userId", user.getId());
+
+        String newAccessToken = jwtService.generateToken(extraClaims, user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        addRefreshTokenCookie(response, newRefreshToken, true);
+
+        return ResponseEntity.ok(AuthResponse.builder()
+                .token(newAccessToken)
+                .role(String.valueOf(user.getRole()))
+                .passwordMustChange(user.isPasswordMustChange())
+                .build());
     }
 
-    @PostMapping("/register/{token}")
-    public ResponseEntity<?> registerViaInvite(@PathVariable String token, @RequestBody RegisterInviteRequest request) {
-        registerService.registerViaInvite(token, request);
-        return ResponseEntity.ok(Map.of("message", "Registration successful"));
+    // ==================== LOGOUT ====================
+
+    /**
+     * Logout singolo dispositivo: cancella il cookie refresh_token.
+     * L'access token scadrà naturalmente (15 min).
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        clearRefreshTokenCookie(response);
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
     }
+
+    /**
+     * Logout da TUTTI i dispositivi: incrementa tokenVersion.
+     * Tutti i JWT esistenti (access + refresh) diventano invalidi immediatamente.
+     */
+    @PostMapping("/logout-all")
+    public ResponseEntity<?> logoutAll(
+            @AuthenticationPrincipal User user,
+            HttpServletResponse response
+    ) {
+        userService.incrementTokenVersion(user);
+        clearRefreshTokenCookie(response);
+        return ResponseEntity.ok(Map.of("message", "Logged out from all devices"));
+    }
+
+    // ==================== PASSWORD ====================
 
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(
             @AuthenticationPrincipal User user,
-            @RequestBody ChangePasswordRequest request
+            @RequestBody ChangePasswordRequest request,
+            HttpServletResponse response
     ) {
+        // changePassword incrementa automaticamente tokenVersion
         userService.changePassword(user, request);
+        clearRefreshTokenCookie(response);
         return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
     }
 
-    // ==================== FORGOT PASSWORD ====================
+    // ==================== FORGOT / RESET PASSWORD ====================
 
     @PostMapping("/forgot-password")
     public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
@@ -88,5 +172,55 @@ public class AuthController {
     public ResponseEntity<?> resetPassword(@PathVariable String token, @RequestBody ResetPasswordRequest request) {
         registerService.resetPassword(token, request);
         return ResponseEntity.ok(Map.of("message", "Password reset successfully. You can now log in."));
+    }
+
+    // ==================== REGISTRATION ====================
+
+    @GetMapping("/register/{token}")
+    public ResponseEntity<RegisterInviteResponse> registerViaInvite(@PathVariable String token) {
+        return ResponseEntity.ok(registerService.getRegisterInvite(token));
+    }
+
+    @PostMapping("/register/{token}")
+    public ResponseEntity<?> registerViaInvite(@PathVariable String token, @RequestBody RegisterInviteRequest request) {
+        registerService.registerViaInvite(token, request);
+        return ResponseEntity.ok(Map.of("message", "Registration successful"));
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    private void addRefreshTokenCookie(HttpServletResponse response, String refreshToken, boolean rememberMe) {
+        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE, refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/api/auth");
+        cookie.setAttribute("SameSite", "Strict");
+
+        if (rememberMe) {
+            cookie.setMaxAge((int) (jwtService.getRefreshExpiration() / 1000));
+        } else {
+            cookie.setMaxAge(-1); // session cookie
+        }
+
+        response.addCookie(cookie);
+    }
+
+    private void clearRefreshTokenCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE, "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/api/auth");
+        cookie.setAttribute("SameSite", "Strict");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
+
+    private String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+        return Arrays.stream(request.getCookies())
+                .filter(c -> REFRESH_TOKEN_COOKIE.equals(c.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -21,4 +21,10 @@ public interface PersonalAccessTokenRepository extends JpaRepository<PersonalAcc
 
     /** Revoke a specific token owned by a specific user */
     void deleteByIdAndUserId(UUID id, UUID userId);
+
+    /** Fetch a specific token by ID and User ID for secure updating */
+    Optional<PersonalAccessToken> findByIdAndUserId(UUID id, UUID userId);
+
+    /** Revoke all tokens owned by a specific user */
+    void deleteAllByUserId(UUID userId);
 }

@@ -42,6 +42,10 @@ public class User implements UserDetails {
     @Builder.Default
     private boolean demo = false;
 
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    @Builder.Default
+    private int tokenVersion = 0;
+
     @Column(updatable = false)
     private LocalDate createdAt; // Stores only YYYY-MM-DD
 

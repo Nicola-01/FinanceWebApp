@@ -67,7 +67,7 @@ public class DemoController {
         extraClaims.put("role", demoUser.getRole());
         extraClaims.put("userId", demoUser.getId());
 
-        String token = jwtService.generateToken(extraClaims, demoUser, false);
+        String token = jwtService.generateToken(extraClaims, demoUser);
 
         return ResponseEntity.ok(AuthResponse.builder()
                 .token(token)

@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.service;
 import dev.busato.FinanceWebApp.backend.dto.PatCreateRequest;
 import dev.busato.FinanceWebApp.backend.dto.PatCreateResponse;
 import dev.busato.FinanceWebApp.backend.dto.PatResponse;
+import dev.busato.FinanceWebApp.backend.dto.PatUpdateRequest;
 import dev.busato.FinanceWebApp.backend.exceptions.InvalidTokenException;
 import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.PatMapper;
@@ -133,6 +134,22 @@ public class PatService {
     @CacheEvict(value = "patTokens", allEntries = true)
     public void revokeToken(UUID tokenId, UUID userId) {
         tokenRepository.deleteByIdAndUserId(tokenId, userId);
+    }
+
+    /**
+     * Updates the wallet permissions for a token.
+     * Evicts all patTokens cache entries to ensure the new permissions are enforced immediately.
+     */
+    @Transactional
+    @CacheEvict(value = "patTokens", allEntries = true)
+    public PatResponse updateToken(UUID tokenId, UUID userId, PatUpdateRequest request) {
+        PersonalAccessToken token = tokenRepository.findByIdAndUserId(tokenId, userId)
+                .orElseThrow(() -> new InvalidTokenException("Token not found or does not belong to user"));
+
+        token.setWalletPermissions(patMapper.serializeWalletPermissions(request.getWalletPermissions()));
+        token = tokenRepository.save(token);
+
+        return patMapper.toResponse(token);
     }
 
     // ──────────────────────────────────── Private helpers ────────────────────────────────────

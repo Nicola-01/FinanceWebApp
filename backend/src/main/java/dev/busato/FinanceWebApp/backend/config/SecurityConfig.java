@@ -36,7 +36,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthFilter; // <--- Inietta il filtro
     private final PatAuthenticationFilter patAuthFilter; // <--- PAT authentication filter
 
@@ -58,6 +57,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/test-email").permitAll()
+                        // Questi endpoint sotto /api/auth richiedono autenticazione
+                        .requestMatchers("/api/auth/logout-all").authenticated()
+                        .requestMatchers("/api/auth/change-password").authenticated()
+                        // Il resto di /api/auth è pubblico (login, register, refresh, logout, forgot-password, ecc.)
                         .requestMatchers("/api/auth/**").permitAll()
                         // OAuth 2.0 public endpoints (MCP spec)
                         .requestMatchers("/.well-known/**").permitAll()
@@ -93,20 +96,4 @@ public class SecurityConfig {
         return source;
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }
 }

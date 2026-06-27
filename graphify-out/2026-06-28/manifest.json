@@ -20,9 +20,9 @@
     "semantic_hash": "93750a7f7bdae7ca336b27dc49a9a5f3"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/CronJob/BackupCronJob.java": {
-    "mtime": 1782597633.5756292,
-    "ast_hash": "4ec19fb13ba6239f571b72d05bab29d4",
-    "semantic_hash": ""
+    "mtime": 1776286974.845493,
+    "ast_hash": "1cacacaf2c4ee47b98a338171258e41f",
+    "semantic_hash": "1cacacaf2c4ee47b98a338171258e41f"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/CronJob/DemoCleanupCronJob.java": {
     "mtime": 1775254546.0968766,
@@ -45,9 +45,9 @@
     "semantic_hash": "f6f0b529eede354be2f2ee793703c676"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/config/SecurityConfig.java": {
-    "mtime": 1782422154.6600668,
-    "ast_hash": "b7347de9c82c6b36f7a60a9979ba847c",
-    "semantic_hash": ""
+    "mtime": 1782245438.8119092,
+    "ast_hash": "2e286bc5fc7c66937f0b72cbe68fdc22",
+    "semantic_hash": "2e286bc5fc7c66937f0b72cbe68fdc22"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/controller/AdminDatabaseController.java": {
     "mtime": 1776294774.2829258,
@@ -60,14 +60,14 @@
     "semantic_hash": "f7cc8ecbde57e7844590c07854a6007a"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/controller/AuthController.java": {
-    "mtime": 1782596660.5183928,
-    "ast_hash": "0ffdde4ff09c37f84ab6d8f021664fea",
-    "semantic_hash": ""
+    "mtime": 1775844328.0977783,
+    "ast_hash": "378d72ef9d21be5ebfb8dac742d41d61",
+    "semantic_hash": "378d72ef9d21be5ebfb8dac742d41d61"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/controller/DemoController.java": {
-    "mtime": 1782596683.0738282,
-    "ast_hash": "b187505c4eed4ee0a405f899e136e1bf",
-    "semantic_hash": ""
+    "mtime": 1775256124.6523683,
+    "ast_hash": "bb8a79970216a87a485d3b4d086419d9",
+    "semantic_hash": "bb8a79970216a87a485d3b4d086419d9"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/controller/GlobalExceptionHandler.java": {
     "mtime": 1781046014.503722,
@@ -80,7 +80,7 @@
     "semantic_hash": "4dac4a047e5203edf04c380ff397a248"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/controller/OAuthController.java": {
-    "mtime": 1782422154.6600668,
+    "mtime": 1782077155.541832,
     "ast_hash": "527689d6caa663f9d9b8aaefb6ff87b4",
     "semantic_hash": "527689d6caa663f9d9b8aaefb6ff87b4"
   },
@@ -420,14 +420,14 @@
     "semantic_hash": "f280e532113e23ce7ce3425e6298d979"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/security/JwtAuthenticationFilter.java": {
-    "mtime": 1782596673.356641,
-    "ast_hash": "45b963c2508fef23f95bf95c1b89f5a7",
-    "semantic_hash": ""
+    "mtime": 1781046014.5047219,
+    "ast_hash": "55e8ff653f26f488eebdab44e9392fd2",
+    "semantic_hash": "55e8ff653f26f488eebdab44e9392fd2"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/security/JwtService.java": {
-    "mtime": 1782596629.004779,
-    "ast_hash": "83d23921a40eb2cae805048e9d117900",
-    "semantic_hash": ""
+    "mtime": 1771099685.802832,
+    "ast_hash": "3500eb46f51727fad60244eeb1e5a992",
+    "semantic_hash": "3500eb46f51727fad60244eeb1e5a992"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/security/PatAuthenticationFilter.java": {
     "mtime": 1782245459.8404634,
@@ -445,9 +445,9 @@
     "semantic_hash": "627354ddca9f35cf7c53ca25d3ff7387"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/service/BackupService.java": {
-    "mtime": 1782426628.2741458,
-    "ast_hash": "de192452b7ec4cbc836a919342449a49",
-    "semantic_hash": ""
+    "mtime": 1776291031.002563,
+    "ast_hash": "a5f377f7cdfec12f2b4f49445bd59619",
+    "semantic_hash": "a5f377f7cdfec12f2b4f49445bd59619"
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/service/DemoService.java": {
     "mtime": 1776121314.6906908,
@@ -580,9 +580,9 @@
     "semantic_hash": "a3075bf285d91e4a0dfdaaf507fcf8f4"
   },
   "frontend/src/api/axiosConfig.ts": {
-    "mtime": 1782596718.6465096,
-    "ast_hash": "7390272b881ffe95ebdd285df78d8483",
-    "semantic_hash": ""
+    "mtime": 1781303412.8073769,
+    "ast_hash": "a9cefe22e3b0620c44907f45ab92bee6",
+    "semantic_hash": "a9cefe22e3b0620c44907f45ab92bee6"
   },
   "frontend/src/assets/Sphere.tsx": {
     "mtime": 1775505727.6995647,
@@ -980,9 +980,9 @@
     "semantic_hash": "4c9899ba4e8f95dcee30d9df4e9fd78a"
   },
   "frontend/src/header/AppHeader.tsx": {
-    "mtime": 1782596729.7587209,
-    "ast_hash": "dde680053697c4184a9b68e49753e546",
-    "semantic_hash": ""
+    "mtime": 1781303412.8120525,
+    "ast_hash": "d718149dae6fdd8395cacd662594b83f",
+    "semantic_hash": "d718149dae6fdd8395cacd662594b83f"
   },
   "frontend/src/hooks/useMobileMath.ts": {
     "mtime": 1782071867.8387644,
@@ -1220,9 +1220,9 @@
     "semantic_hash": "113e296af965800af79eec0935e49e1a"
   },
   "mcp-server/main.py": {
-    "mtime": 1782507703.7663782,
-    "ast_hash": "448ccf6f044d1879a9b17a0b8fd1ef50",
-    "semantic_hash": ""
+    "mtime": 1782246264.042995,
+    "ast_hash": "86de974b4314f59815cf67086ec21d80",
+    "semantic_hash": "86de974b4314f59815cf67086ec21d80"
   },
   "package.json": {
     "mtime": 1773783473.4270334,
@@ -1230,12 +1230,12 @@
     "semantic_hash": "07bbf1070e2eb7323f03f9038f08c8b3"
   },
   ".agents/rules/graphify.md": {
-    "mtime": 1782422154.6599774,
+    "mtime": 1782247367.4108992,
     "ast_hash": "f1e53ecc9194573d3c28fc116c743a2e",
     "semantic_hash": "f1e53ecc9194573d3c28fc116c743a2e"
   },
   ".agents/workflows/graphify.md": {
-    "mtime": 1782422154.6600668,
+    "mtime": 1782247367.4109883,
     "ast_hash": "0bc020d491fca99550c1ea3de0a5f862",
     "semantic_hash": "0bc020d491fca99550c1ea3de0a5f862"
   },
@@ -1265,9 +1265,9 @@
     "semantic_hash": "721f2fcef8bea903554549b17723d943"
   },
   "docker-compose.prod.yml": {
-    "mtime": 1782428520.7856288,
-    "ast_hash": "81e92dba965165c1d188e55df3ca5634",
-    "semantic_hash": ""
+    "mtime": 1782246096.4366317,
+    "ast_hash": "6ccc6369d2f15528655209e59ebe8897",
+    "semantic_hash": "6ccc6369d2f15528655209e59ebe8897"
   },
   "docker-compose.yml": {
     "mtime": 1781046014.5047219,
@@ -1285,7 +1285,7 @@
     "semantic_hash": "60c05fa76404fbf61161ea244f6c878a"
   },
   "mcp-server/requirements.txt": {
-    "mtime": 1782422154.6649852,
+    "mtime": 1782246015.775104,
     "ast_hash": "9fa787ddc7b4bcc40ffe0d6675492211",
     "semantic_hash": "9fa787ddc7b4bcc40ffe0d6675492211"
   },

@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.controller;
 import dev.busato.FinanceWebApp.backend.dto.PatCreateRequest;
 import dev.busato.FinanceWebApp.backend.dto.PatCreateResponse;
 import dev.busato.FinanceWebApp.backend.dto.PatResponse;
+import dev.busato.FinanceWebApp.backend.dto.PatUpdateRequest;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.PatService;
 import lombok.RequiredArgsConstructor;
@@ -59,5 +60,18 @@ public class PatController {
     ) {
         patService.revokeToken(tokenId, user.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Updates an existing token's wallet permissions.
+     */
+    @PutMapping("/{tokenId}")
+    public ResponseEntity<PatResponse> updateToken(
+            @PathVariable UUID tokenId,
+            @RequestBody PatUpdateRequest request,
+            @AuthenticationPrincipal User user
+    ) {
+        PatResponse response = patService.updateToken(tokenId, user.getId(), request);
+        return ResponseEntity.ok(response);
     }
 }

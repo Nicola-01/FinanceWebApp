@@ -19,6 +19,7 @@ import {InvitationsModal, type InvitationsModalHandle} from '../modals/Invitatio
 import {ChangePasswordModal, type ChangePasswordModalHandle} from "../modals/ChangePasswordModal.tsx";
 import {PatModal, type PatModalHandle} from "../modals/PatModal.tsx";
 import {AboutAppModal, type AboutAppModalHandle} from "../modals/AboutAppModal.tsx";
+import {LogoutModal, type LogoutModalHandle} from "../modals/LogoutModal.tsx";
 import {getUserAuth} from "../utils/authHelper.ts";
 import api from "../api/axiosConfig.ts";
 import type {Invitation} from "../utils/types.ts";
@@ -48,6 +49,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
     const invitationsModalRef = useRef<InvitationsModalHandle>(null);
     const aboutModalRef = useRef<AboutAppModalHandle>(null);
     const patModalRef = useRef<PatModalHandle>(null);
+    const logoutModalRef = useRef<LogoutModalHandle>(null);
 
     const [invitations, setInvitations] = useState<Invitation[]>([])
 
@@ -68,10 +70,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
     }, [showMenu]);
 
     const handleLogout = () => {
-        localStorage.removeItem('jwtToken');
-        sessionStorage.removeItem('jwtToken');
-        localStorage.removeItem('mustChangePWD');
-        window.location.href = '/login';
+        logoutModalRef.current?.openModal();
     };
 
     useEffect(() => {
@@ -308,6 +307,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
             {!isAdmin && <InvitationsModal ref={invitationsModalRef}/>}
             {!isAdmin && <PatModal ref={patModalRef}/>}
             <AboutAppModal ref={aboutModalRef}/>
+            <LogoutModal ref={logoutModalRef}/>
 
         </>
     );

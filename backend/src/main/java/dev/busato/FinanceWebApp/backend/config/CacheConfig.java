@@ -22,10 +22,10 @@ public class CacheConfig {
 
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager("patTokens");
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("patTokens", "tokenVersions");
         cacheManager.setCaffeine(Caffeine.newBuilder()
-                .maximumSize(50)
-                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .maximumSize(200)
+                .expireAfterWrite(2, TimeUnit.MINUTES)
                 .recordStats() // Useful for monitoring cache hit ratios
         );
         return cacheManager;

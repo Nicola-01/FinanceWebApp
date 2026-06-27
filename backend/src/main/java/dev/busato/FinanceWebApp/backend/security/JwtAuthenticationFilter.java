@@ -1,5 +1,7 @@
 package dev.busato.FinanceWebApp.backend.security;
 
+import dev.busato.FinanceWebApp.backend.model.User;
+import dev.busato.FinanceWebApp.backend.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final UserService userService;
 
     @Override
     protected void doFilterInternal(
@@ -35,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
-        // 2. Se non c'è header o non inizia con "Bearer ", lasciamo passare (ci penserà SecurityConfig a bloccare)
+        // 2. Se non c'è header o non inizia con "Bearer ", lasciamo passare
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -47,10 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 3. Estraiamo il token (togliamo "Bearer " che sono 7 caratteri)
+        // 3. Estraiamo il token
         jwt = authHeader.substring(7);
 
-        // Se è un Personal Access Token, lo ignoriamo (è già stato o verrà gestito dal PatAuthenticationFilter)
+        // Se è un Personal Access Token, lo ignoriamo
         if (jwt.startsWith("fin_pat_")) {
             filterChain.doFilter(request, response);
             return;
@@ -58,23 +61,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 4. Estraiamo lo username dal token
         try {
+            // Blocca i refresh token usati come Bearer token per API normali
+            if (jwtService.isRefreshToken(jwt)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             username = jwtService.extractUsername(jwt);
         } catch (Exception e) {
-            // Se il token è malformato o scaduto, lasciamo passare senza autenticare
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 5. Se abbiamo trovato l'utente e non è già autenticato nel contesto attuale...
+        // 5. Se abbiamo trovato l'utente e non è già autenticato...
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Carichiamo i dettagli dal DB
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            // 6. Se il token è valido...
+            // 6. Valida il token (firma + scadenza + tokenVersion dal DB)
             if (jwtService.isTokenValid(jwt, userDetails)) {
 
-                // Creiamo l'oggetto di autenticazione di Spring
+                // 7. Doppio controllo tokenVersion tramite cache per catturare
+                // invalidazioni avvenute dopo il caricamento dell'utente
+                if (userDetails instanceof User user) {
+                    int cachedVersion = userService.getTokenVersion(user.getId());
+                    int tokenVersion = jwtService.extractTokenVersion(jwt);
+                    if (tokenVersion != cachedVersion) {
+                        // Token invalidato (logout-all o cambio password)
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+                }
+
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -85,13 +102,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         new WebAuthenticationDetailsSource().buildDetails(request)
                 );
 
-                // 7. INSERIAMO L'UTENTE NEL CONTESTO DI SICUREZZA
-                // Da ora in poi, per questa richiesta, Spring sa chi sei!
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 
-        // Passiamo la palla al prossimo filtro
         filterChain.doFilter(request, response);
     }
 }

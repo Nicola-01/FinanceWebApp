@@ -7,8 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Replicates the cron behaviour of backup_sh.sh --auto
- * Runs every day at 02:00 AM (matches the shell cron suggestion).
+ * Runs every day at 03:00 AM.
  */
 @Slf4j
 @Component
@@ -17,8 +16,8 @@ public class BackupCronJob {
 
     private final BackupService backupService;
 
-    // Every day at 02:00 AM  →  cron: "0 0 2 * * *"
-    @Scheduled(cron = "0 0 2 * * *")
+    // Every day at 03:00 AM  →  cron: "0 0 2 * * *"
+    @Scheduled(cron = "0 0 3 * * *")
     public void scheduledBackup() {
         log.info("[BackupCronJob] Automatic backup started");
         try {

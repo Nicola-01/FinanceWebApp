@@ -5,10 +5,12 @@ import dev.busato.FinanceWebApp.backend.dto.RegisterInviteResponse;
 import dev.busato.FinanceWebApp.backend.dto.ResetPasswordRequest;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Registrations;
+import dev.busato.FinanceWebApp.backend.repository.PersonalAccessTokenRepository;
 import dev.busato.FinanceWebApp.backend.repository.RegistrationsRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,8 @@ public class RegisterService {
     private final PasswordEncoder passwordEncoder;
     private final DemoService demoService;
     private final SendEmailService sendEmailService;
+    private final CacheManager cacheManager;
+    private final PersonalAccessTokenRepository patRepository;
 
     @Value("${application.frontend.url}")
     private String frontendUrl;
@@ -155,7 +159,16 @@ public class RegisterService {
 
         user.setPassword(passwordEncoder.encode(pw));
         user.setPasswordMustChange(false);
+        user.setTokenVersion(user.getTokenVersion() + 1); // Increments token version to invalidate old sessions
         userRepository.save(user);
+        
+        // Evict cache to apply revocation immediately
+        if (cacheManager.getCache("tokenVersions") != null) {
+            cacheManager.getCache("tokenVersions").evict(user.getId());
+        }
+        
+        // Delete all Personal Access Tokens
+        patRepository.deleteAllByUserId(user.getId());
 
         // Mark the request as used
         record.setStatus(Registrations.InvitationStatus.ACCEPTED);
