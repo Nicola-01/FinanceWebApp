@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import api from '../../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRepeat, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faRepeat, faEdit, faCheck, faPause, faPlay, faCheckDouble } from '@fortawesome/free-solid-svg-icons';
 import { triggerToast } from '../../components/ui/ToastNotification.tsx';
 import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
 import type { Tag, Wallet, Subscription } from "../../utils/types";
@@ -13,6 +13,8 @@ import { AmountInput } from "../../components/ui/AmountInput.tsx";
 import { TransactionTypeToggle } from "../TransactionModal/TransactionTypeToggle";
 import { TagPicker } from "../TransactionModal/TagPicker/TagPicker";
 import { ExchangeRateSection } from "../TransactionModal/ExchangeRateSection";
+import { Selector } from '../../components/ui/Selector.tsx';
+import { CustomSelect } from '../../components/ui/CustomSelect.tsx';
 
 export interface SubscriptionModalHandle {
     openModal: (sub?: Subscription, initialDate?: Date) => void;
@@ -229,94 +231,97 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                     <div className="bg-app-input/50 border border-app-border rounded-xl p-4 flex flex-col gap-4">
                         <h4 className="text-sm font-bold theme-text-default">Scheduling Rules</h4>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Repeat Every */}
                             <div>
                                 <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
                                     Repeat Every
                                 </label>
-                                <div className="flex bg-app-surface border border-app-border rounded-lg overflow-hidden focus-within:theme-border-focus transition-colors">
+                                <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:theme-border-focus transition-colors h-12">
                                     <input
                                         type="number"
                                         min="1"
                                         value={frequencyInterval}
                                         onChange={e => setFrequencyInterval(Number(e.target.value) || 1)}
-                                        className="w-16 theme-bg-transparent px-3 py-2 theme-text-default focus:outline-none text-center border-r border-app-border"
+                                        className="w-1/2 bg-transparent px-3 py-2 text-app-text font-bold focus:outline-none text-center border-r border-app-border [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     />
-                                    <select
+                                    <CustomSelect
                                         value={frequencyType}
-                                        onChange={e => setFrequencyType(e.target.value as any)}
-                                        className="flex-1 theme-bg-transparent px-3 py-2 text-sm font-semibold theme-text-default focus:outline-none"
-                                    >
-                                        <option value="DAILY">Days</option>
-                                        <option value="WEEKLY">Weeks</option>
-                                        <option value="MONTHLY">Months</option>
-                                        <option value="YEARLY">Years</option>
-                                    </select>
+                                        onChange={val => setFrequencyType(val as any)}
+                                        className="w-1/2 bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer"
+                                        activeColor={wallet.color}
+                                        options={[
+                                            { value: 'DAILY', label: 'Days' },
+                                            { value: 'WEEKLY', label: 'Weeks' },
+                                            { value: 'MONTHLY', label: 'Months' },
+                                            { value: 'YEARLY', label: 'Years' }
+                                        ]}
+                                    />
                                 </div>
                             </div>
 
+                            {/* Ends */}
                             <div>
                                 <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
                                     Ends
                                 </label>
-                                <select
-                                    value={duration}
-                                    onChange={e => setDuration(e.target.value as any)}
-                                    className="w-full bg-app-surface border border-app-border rounded-lg px-3 py-2 text-sm font-semibold theme-text-default focus:outline-none"
-                                >
-                                    <option value="FOREVER">Never (Forever)</option>
-                                    <option value="TIMES">After specific times</option>
-                                    <option value="UNTIL">On a specific date</option>
-                                </select>
+                                <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:theme-border-focus transition-colors h-12">
+                                    <CustomSelect
+                                        value={duration}
+                                        onChange={val => setDuration(val as any)}
+                                        className={`${duration === 'FOREVER' ? 'w-full' : 'w-1/2 border-r border-app-border'} bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer`}
+                                        activeColor={wallet.color}
+                                        options={[
+                                            { value: 'FOREVER', label: 'Never' },
+                                            { value: 'TIMES', label: 'After times' },
+                                            { value: 'UNTIL', label: 'On date' }
+                                        ]}
+                                    />
+
+                                    {duration === 'TIMES' && (
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={durationTimes}
+                                            onChange={e => setDurationTimes(Number(e.target.value) || 1)}
+                                            className="w-1/2 bg-transparent px-3 py-2 text-app-text font-bold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        />
+                                    )}
+
+                                    {duration === 'UNTIL' && (
+                                        <div className="w-1/2 relative flex">
+                                            <CustomDatePicker
+                                                isRange={false}
+                                                color={wallet.color}
+                                                initialPreset="custom"
+                                                initialStartDate={durationUntil || new Date()}
+                                                onChange={(val) => {
+                                                    if (val instanceof Date) setDurationUntil(val);
+                                                }}
+                                                triggerClassName="w-full h-full border-0 bg-transparent shadow-none px-3 py-2 text-app-text font-bold focus:outline-none"
+                                                dropdownAlign="right"
+                                                dropdownPosition="top"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-
-                        {/* Campi condizionali in base alla Durata */}
-                        {duration === 'TIMES' && (
-                            <div>
-                                <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                                    Number of times
-                                </label>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    value={durationTimes}
-                                    onChange={e => setDurationTimes(Number(e.target.value) || 1)}
-                                    className="w-full bg-app-surface border border-app-border rounded-lg px-4 py-2 theme-text-default focus:outline-none"
-                                />
-                            </div>
-                        )}
-
-                        {duration === 'UNTIL' && (
-                            <div>
-                                <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                                    End Date
-                                </label>
-                                <CustomDatePicker
-                                    isRange={false}
-                                    color={wallet.color}
-                                    initialPreset="custom"
-                                    initialStartDate={durationUntil || new Date()}
-                                    onChange={(val) => {
-                                        if (val instanceof Date) setDurationUntil(val);
-                                    }}
-                                />
-                            </div>
-                        )}
 
                         <div>
                             <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
                                 Status
                             </label>
-                            <select
+                            <Selector
                                 value={status}
-                                onChange={e => setStatus(e.target.value as any)}
-                                className="w-full bg-app-surface border border-app-border rounded-lg px-3 py-2 text-sm font-semibold theme-text-default focus:outline-none"
-                            >
-                                <option value="ACTIVE">Active</option>
-                                <option value="PAUSED">Paused</option>
-                                <option value="COMPLETED">Completed</option>
-                            </select>
+                                onChange={(val) => setStatus(val as any)}
+                                size="md"
+                                options={[
+                                    { value: 'PAUSED', label: 'Paused', icon: <FontAwesomeIcon icon={faPause} />, activeColorClass: 'theme-text-warning' },
+                                    { value: 'ACTIVE', label: 'Active', icon: <FontAwesomeIcon icon={faPlay} />, activeColorClass: 'text-app-sky' },
+                                    { value: 'COMPLETED', label: 'Completed', icon: <FontAwesomeIcon icon={faCheckDouble} />, activeColorClass: 'theme-text-success' }
+                                ]}
+                            />
                         </div>
                     </div>
 

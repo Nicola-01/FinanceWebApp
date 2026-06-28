@@ -108,11 +108,34 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
     const frequencyText = formatCompactFrequency(subscription.frequencyInterval, subscription.frequencyType);
     const daysLeft = getDaysLeft(date);
 
+    let cardBorder = "border theme-border-transparent hover:border-app-border";
+    let statusBadge = null;
+    let cardMargin = "";
+
+    if (subscription.status === 'PAUSED') {
+        cardBorder = "border theme-border-warning";
+        cardMargin = "";
+        statusBadge = (
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-0.5 rounded-b-lg theme-bg-warning-transparent theme-text-warning text-[10px] font-bold uppercase tracking-wider border-b border-x theme-border-warning backdrop-blur-sm">
+                Paused
+            </div>
+        );
+    } else if (subscription.status === 'COMPLETED') {
+        cardBorder = "border theme-border-success";
+        cardMargin = "";
+        statusBadge = (
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-0.5 rounded-b-lg theme-bg-success-transparent theme-text-success text-[10px] font-bold uppercase tracking-wider border-b border-x theme-border-success backdrop-blur-sm">
+                Completed
+            </div>
+        );
+    }
+
     return (
         <div
             onClick={onClick}
-            className="flex items-center justify-between p-4 bg-app-input cursor-pointer transition-all hover:bg-app-surface rounded-2xl border theme-border-transparent hover:border-app-border"
+            className={`relative flex items-center justify-between p-4 bg-app-input cursor-pointer transition-all hover:bg-app-surface rounded-2xl ${cardBorder} ${cardMargin}`}
         >
+            {statusBadge}
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 shrink max-w-[65%] lg:max-w-[75%]">
                 <div
                     className="flex shrink-0 h-12 w-12 items-center justify-center rounded-xl bg-app-surface text-xl shadow-sm"
@@ -128,16 +151,6 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
 
                     <div className="flex items-center gap-1.5 overflow-hidden shrink-0 flex-wrap">
                         {subscription.tag && <TagBadge tag={subscription.tag} showParent={false} />}
-
-                        {/* Mostriamo un badge testuale per gli abbonamenti non attivi */}
-                        {subscription.status === 'PAUSED' && (
-                            <span
-                                className="px-2 py-0.5 rounded-md theme-bg-warning-transparent theme-text-warning text-[10px] font-bold uppercase tracking-wider border theme-border-warning">Paused</span>
-                        )}
-                        {subscription.status === 'COMPLETED' && (
-                            <span
-                                className="px-2 py-0.5 rounded-md bg-app-hover text-app-muted text-[10px] font-bold uppercase tracking-wider border border-app-border">Completed</span>
-                        )}
                     </div>
                 </div>
             </div>

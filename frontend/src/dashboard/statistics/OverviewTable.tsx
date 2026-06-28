@@ -178,6 +178,7 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({transactions}) =>
             centerElement={yearSelector}
             noPadding
             className="my-4"
+            selectorWidth="w-[220px]"
         >
             {/* Table with floating left & right overlay columns */}
             <div className="relative">

@@ -84,6 +84,7 @@ export const StatisticsTab: React.FC = () => {
                         onTabChange={(key) => setChartMode(key as ChartMode)}
                         title={currentTab.title}
                         subtitle={currentTab.subtitle}
+                        selectorWidth="w-[220px]"
                     >
                         {chartMode === 'snapshot' ? (
                             <MonthlySnapshotChart

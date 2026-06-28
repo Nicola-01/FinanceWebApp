@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEye, faPen, faCheck } from '@fortawesome/free-solid-svg-icons';
 import type { WalletMember } from '../../utils/types';
 import { getUserAuth } from "../../utils/authHelper.ts";
+import { Selector } from '../../components/ui/Selector.tsx';
 
 interface MemberRowProps {
     member: WalletMember;
@@ -51,30 +52,29 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                     <>
                         {member.status === 'ACCEPTED' && (
                             <div className="flex items-center gap-2">
-                                <div className="flex rounded-lg bg-app-input p-1 border border-app-border w-36">
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedRole('VIEWER')}
-                                        className={`flex-1 rounded py-1 text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${selectedRole === 'VIEWER'
-                                            ? 'theme-bg-primary-light text-app-text shadow-sm'
-                                            : 'text-app-muted hover:text-app-text'
-                                            }`}
-                                    >
-                                        <FontAwesomeIcon icon={faEye} />
-                                        Viewer
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedRole('EDITOR')}
-                                        className={`flex-1 rounded py-1 text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${selectedRole === 'EDITOR'
-                                            ? 'theme-bg-warning-light theme-text-warning shadow-sm'
-                                            : 'text-app-muted hover:text-app-text'
-                                            }`}
-                                    >
-                                        <FontAwesomeIcon icon={faPen} />
-                                        Editor
-                                    </button>
-                                </div>
+                                <Selector
+                                    value={selectedRole}
+                                    onChange={setSelectedRole}
+                                    size="sm"
+                                    fullWidth={false}
+                                    className="w-36"
+                                    options={[
+                                        {
+                                            value: 'VIEWER',
+                                            label: 'Viewer',
+                                            icon: <FontAwesomeIcon icon={faEye} />,
+                                            activeBgClass: 'theme-bg-primary-light',
+                                            activeColorClass: 'text-app-text'
+                                        },
+                                        {
+                                            value: 'EDITOR',
+                                            label: 'Editor',
+                                            icon: <FontAwesomeIcon icon={faPen} />,
+                                            activeBgClass: 'theme-bg-warning-light',
+                                            activeColorClass: 'theme-text-warning'
+                                        }
+                                    ]}
+                                />
                                 <button
                                     onClick={() => onChangeRole(member.userId, selectedRole)}
                                     className={`flex h-8 w-8 items-center justify-center rounded-lg bg-app-green/10 text-app-green hover:bg-app-green hover:theme-text-inverse transition-colors ${

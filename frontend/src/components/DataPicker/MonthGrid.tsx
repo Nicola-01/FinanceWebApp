@@ -15,6 +15,7 @@ export interface MonthGridProps {
     color: string;
     isDark: boolean;
     weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    disableDaySelection?: boolean;
 }
 
 export default function MonthGrid({
@@ -28,7 +29,8 @@ export default function MonthGrid({
                                       isRange,
                                       color,
                                       isDark,
-                                      weekStartsOn
+                                      weekStartsOn,
+                                      disableDaySelection
                                   }: MonthGridProps) {
     const monthStart = startOfMonth(monthDate);
     const monthEnd = endOfMonth(monthStart);
@@ -37,6 +39,7 @@ export default function MonthGrid({
     const days = eachDayOfInterval({start: startDateGrid, end: endDateGrid});
 
     const handleDateClick = (day: Date) => {
+        if (disableDaySelection) return;
         if (preset !== 'custom') {
             setPreset('custom');
             setStartDate(day);
@@ -69,11 +72,12 @@ export default function MonthGrid({
                     monthStart={monthStart}
                     startDate={startDate}
                     endDate={endDate}
-                    onClick={() => handleDateClick(day)}
+                    onClick={disableDaySelection ? undefined : () => handleDateClick(day)}
                     isRange={isRange}
                     preset={preset}
                     color={color}
                     isDark={isDark}
+                    disableDaySelection={disableDaySelection}
                 />
             ))}
         </div>

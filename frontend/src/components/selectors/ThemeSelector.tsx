@@ -1,6 +1,7 @@
 import {type Theme, useTheme} from "../../utils/ThemeContext";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faDesktop, faMoon, faSun} from "@fortawesome/free-solid-svg-icons";
+import { faDesktop, faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
+import { Selector } from '../ui/Selector.tsx';
 
 export const ThemeSelector = () => {
     const {theme, setTheme} = useTheme();
@@ -8,24 +9,18 @@ export const ThemeSelector = () => {
     return (
         <div className="px-2 my-2">
             <p className="mb-2 ml-1 block text-[10px] font-bold uppercase tracking-wider text-app-muted">App Theme</p>
-            <div className="flex gap-1 p-1 rounded-xl bg-app-input border border-app-border">
-                {(['light', 'dark', 'system'] as Theme[]).map((t) => (
-                    <button
-                        key={t}
-                        onClick={() => setTheme(t)}
-                        className={`
-                                                flex flex-1 items-center justify-center py-2 rounded-lg text-xs font-bold transition-all
-                                                ${theme === t
-                            ? 'bg-app-surface text-app-sky shadow-sm ring-1 ring-app-sky/10'
-                            : 'text-app-muted hover:text-app-text hover:bg-app-surface/50'}
-                                            `}
-                        title={t.charAt(0).toUpperCase() + t.slice(1)}
-                    >
-                        <FontAwesomeIcon
-                            icon={t === 'light' ? faSun : t === 'dark' ? faMoon : faDesktop}/>
-                    </button>
-                ))}
-            </div>
+            <Selector
+                value={theme}
+                onChange={setTheme}
+                size="md"
+                options={(['light', 'dark', 'system'] as Theme[]).map((t) => ({
+                    value: t,
+                    icon: <FontAwesomeIcon icon={t === 'light' ? faSun : t === 'dark' ? faMoon : faDesktop} />,
+                    activeColorClass: 'text-app-sky',
+                    activeBgClass: 'bg-app-surface ring-1 ring-app-sky/10',
+                    disabledTitle: t.charAt(0).toUpperCase() + t.slice(1)
+                }))}
+            />
         </div>
     )
 }

@@ -19,11 +19,12 @@ export interface CalendarContainerProps {
     color: string;
     isDark: boolean;
     weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    disableDaySelection?: boolean;
 }
 
 type ViewState = 'calendar' | 'months' | 'years';
 
-export default function CalendarContainer({ currentDate, setCurrentDate, startDate, endDate, setStartDate, setEndDate, preset, setPreset, isRange, color, isDark, weekStartsOn }: CalendarContainerProps) {
+export default function CalendarContainer({ currentDate, setCurrentDate, startDate, endDate, setStartDate, setEndDate, preset, setPreset, isRange, color, isDark, weekStartsOn, disableDaySelection }: CalendarContainerProps) {
     const [view, setView] = useState<ViewState>('calendar');
     const [direction, setDirection] = useState<'next' | 'prev'>('next');
 
@@ -111,6 +112,7 @@ export default function CalendarContainer({ currentDate, setCurrentDate, startDa
                             color={color}
                             isDark={isDark}
                             weekStartsOn={weekStartsOn}
+                            disableDaySelection={disableDaySelection}
                         />
                     </div>
                 </>

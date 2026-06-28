@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faPen, faBan } from '@fortawesome/free-solid-svg-icons';
 import { Icon } from '../icon/Icon.tsx';
 import type { WalletPermState } from '../../utils/types';
+import { Selector } from '../ui/Selector.tsx';
 
 interface WalletPermissionSelectorProps {
     walletPerms: WalletPermState[];
@@ -40,50 +41,33 @@ export const WalletPermissionSelector: React.FC<WalletPermissionSelectorProps> =
                         </div>
 
                         {/* Segmented Control */}
-                        <div className="flex rounded-lg p-1 border bg-app-bg border-app-border">
-                            <button
-                                type="button"
-                                onClick={() => setPermission(wp.walletId, 'none')}
-                                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
-                                    !wp.enabled
-                                        ? 'bg-app-input text-app-red shadow-sm'
-                                        : 'text-app-muted hover:text-app-text'
-                                }`}
-                            >
-                                <FontAwesomeIcon icon={faBan} className="text-[10px]" />
-                                Unauthorized
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setPermission(wp.walletId, 'read')}
-                                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
-                                    wp.enabled && !wp.write
-                                        ? 'bg-app-input theme-text-primary shadow-sm'
-                                        : 'text-app-muted hover:text-app-text'
-                                }`}
-                            >
-                                <FontAwesomeIcon icon={faEye} className="text-[10px]" />
-                                Read
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setPermission(wp.walletId, 'write')}
-                                disabled={wp.userRole === 'VIEWER'}
-                                title={wp.userRole === 'VIEWER' ? "Non hai il permesso editor dal owner del wallet" : undefined}
-                                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
-                                    wp.userRole === 'VIEWER'
-                                        ? 'opacity-40 cursor-not-allowed text-app-muted'
-                                        : wp.enabled && wp.write
-                                            ? 'bg-app-input theme-text-warning shadow-sm'
-                                            : 'text-app-muted hover:text-app-text'
-                                }`}
-                            >
-                                <FontAwesomeIcon icon={faPen} className="text-[10px]" />
-                                Write
-                            </button>
-                        </div>
+                        <Selector
+                            value={wp.enabled ? (wp.write ? 'write' : 'read') : 'none'}
+                            onChange={(val) => setPermission(wp.walletId, val)}
+                            size="md"
+                            options={[
+                                {
+                                    value: 'none',
+                                    label: 'Unauthorized',
+                                    icon: <FontAwesomeIcon icon={faBan} className="text-[10px]" />,
+                                    activeColorClass: 'text-app-red'
+                                },
+                                {
+                                    value: 'read',
+                                    label: 'Read',
+                                    icon: <FontAwesomeIcon icon={faEye} className="text-[10px]" />,
+                                    activeColorClass: 'theme-text-primary'
+                                },
+                                {
+                                    value: 'write',
+                                    label: 'Write',
+                                    icon: <FontAwesomeIcon icon={faPen} className="text-[10px]" />,
+                                    activeColorClass: 'theme-text-warning',
+                                    disabled: wp.userRole === 'VIEWER',
+                                    disabledTitle: wp.userRole === 'VIEWER' ? "Non hai il permesso editor dal owner del wallet" : undefined
+                                }
+                            ]}
+                        />
                     </div>
                 </div>
             ))}

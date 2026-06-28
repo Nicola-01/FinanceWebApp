@@ -1,5 +1,16 @@
 package dev.busato.FinanceWebApp.backend.service;
 
+import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Service;
+
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
@@ -15,16 +26,6 @@ import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Service responsible for managing subscriptions (recurring transactions).
@@ -226,9 +227,12 @@ public class SubscriptionService {
     public void processDueSubscriptions() {
         LocalDate today = LocalDate.now();
 
-        // Retrieve all active subscriptions that are due for execution
+        // Retrieve all active and paused subscriptions that are due for execution
         List<Subscription> dueSubscriptions = subscriptionRepository
-                .findAllByStatusAndNextExecutionDateLessThanEqual(Subscription.Status.ACTIVE, today);
+                .findAllByStatusInAndNextExecutionDateLessThanEqual(
+                        List.of(Subscription.Status.ACTIVE, Subscription.Status.PAUSED), 
+                        today
+                );
 
         for (Subscription sub : dueSubscriptions)
             executeSubscription(sub);
@@ -241,34 +245,40 @@ public class SubscriptionService {
      * @param sub The Subscription entity to execute
      */
     private void executeSubscription(Subscription sub) {
-        String generatedNotes = "Recurrent " + sub.getName() + ", Transaction " + (sub.getExecutedTimes() + 1);
-        if (sub.getDuration() == Subscription.Duration.TIMES && sub.getDurationTimes() != null) {
-            generatedNotes += " / " + sub.getDurationTimes();
+        int currentExecution = sub.getExecutedTimes() + 1;
+        String generatedNotes;
+        if (sub.getDuration() == Subscription.Duration.TIMES && sub.getDurationTimes() != null) 
+            generatedNotes = String.format("Recurring: %s (%d / %d)", sub.getName(), currentExecution, sub.getDurationTimes());
+        else
+            generatedNotes = String.format("Recurring: %s (#%d)",  sub.getName(), currentExecution);
+        
+        if (sub.getNotes() != null && !sub.getNotes().isBlank())
+            generatedNotes += "\n" + sub.getNotes();
+
+        // 1. Create the actual Transaction entity linked to the wallet ONLY if ACTIVE
+        if (sub.getStatus() == Subscription.Status.ACTIVE) {
+            Transaction transaction = Transaction.builder()
+                    .wallet(sub.getWallet())
+                    .subscription(sub)
+                    .tag(sub.getTag())
+                    .name(sub.getName())
+                    .amount(sub.getAmount())
+                    .originalAmount(sub.getOriginalAmount())
+                    .originalCurrency(sub.getOriginalCurrency())
+                    .exchangeValue(sub.getExchangeValue())
+                    .type(Transaction.Type.valueOf(sub.getType().name()))
+                    .notes(generatedNotes)
+                    .transactionDate(sub.getNextExecutionDate()) // Transaction date is when it was scheduled
+                    .build();
+
+            transactionRepository.save(transaction);
+            
+            // Increment executed times only when a transaction actually occurred
+            sub.setExecutedTimes(sub.getExecutedTimes() + 1);
         }
-        if (sub.getNotes() != null && !sub.getNotes().isBlank()) {
-            generatedNotes += " - " + sub.getNotes();
-        }
 
-        // 1. Create the actual Transaction entity linked to the wallet
-        Transaction transaction = Transaction.builder()
-                .wallet(sub.getWallet())
-                .subscription(sub)
-                .tag(sub.getTag())
-                .name(sub.getName())
-                .amount(sub.getAmount())
-                .originalAmount(sub.getOriginalAmount())
-                .originalCurrency(sub.getOriginalCurrency())
-                .exchangeValue(sub.getExchangeValue())
-                .type(Transaction.Type.valueOf(sub.getType().name()))
-                .notes(generatedNotes)
-                .transactionDate(sub.getNextExecutionDate()) // Transaction date is when it was scheduled
-                .build();
-
-        transactionRepository.save(transaction);
-
-        // 2. Update subscription tracking history
+        // 2. Update tracking history
         sub.setLastExecutionDate(sub.getNextExecutionDate());
-        sub.setExecutedTimes(sub.getExecutedTimes() + 1);
 
         // 3. Calculate and set the next execution date
         LocalDate nextDate = calculateNextExecutionDate(sub, sub.getNextExecutionDate(), true);

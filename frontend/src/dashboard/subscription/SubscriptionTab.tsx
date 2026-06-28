@@ -11,6 +11,7 @@ import { FloatingActionButton } from "../../components/ui/FloatingActionButton.t
 import { TransactionDetailsModal, type TransactionDetailsModalHandle } from "../../modals/TransactionModal/TransactionDetailsModal.tsx";
 import { TransactionModal, type TransactionModalHandle } from "../../modals/TransactionModal/TransactionModal.tsx";
 import api from "../../api/axiosConfig.ts";
+import { Selector } from '../../components/ui/Selector.tsx';
 
 type ViewMode = 'list' | 'calendar';
 
@@ -33,39 +34,28 @@ export const SubscriptionTab = () => {
             <div className="flex items-center justify-end gap-4 mb-6">
 
                 {/* Toggle View */}
-                <div
-                    className="grid grid-cols-2 rounded-lg bg-app-input border border-app-border p-1 w-full sm:w-auto">
-                    <button
-                        onClick={() => setViewMode('list')}
-                        className={`flex-1 flex items-center justify-center gap-2 px-8 py-2 rounded-md text-sm font-semibold transition-all ${viewMode === 'list' ? 'bg-app-surface shadow-sm' : 'text-app-muted'
-                            }`}
-                        style={viewMode === 'list' ? { color: wallet.color } : undefined}
-                        onMouseEnter={(e) => {
-                            if (viewMode !== 'list') e.currentTarget.style.color = wallet.color;
-                        }}
-                        onMouseLeave={(e) => {
-                            if (viewMode !== 'list') e.currentTarget.style.color = '';
-                        }}
-                    >
-                        <FontAwesomeIcon icon={faList} />
-                        List
-                    </button>
-                    <button
-                        onClick={() => setViewMode('calendar')}
-                        className={`flex-1 flex items-center justify-center gap-2 px-8 py-2 rounded-md text-sm font-semibold transition-all ${viewMode === 'calendar' ? 'bg-app-surface shadow-sm' : 'text-app-muted'
-                            }`}
-                        style={viewMode === 'calendar' ? { color: wallet.color } : undefined}
-                        onMouseEnter={(e) => {
-                            if (viewMode !== 'calendar') e.currentTarget.style.color = wallet.color;
-                        }}
-                        onMouseLeave={(e) => {
-                            if (viewMode !== 'calendar') e.currentTarget.style.color = '';
-                        }}
-                    >
-                        <FontAwesomeIcon icon={faCalendarDays} />
-                        Calendar
-                    </button>
-                </div>
+                {/* Toggle View */}
+                <Selector
+                    value={viewMode}
+                    onChange={(val) => setViewMode(val as ViewMode)}
+                    size="lg"
+                    fullWidth={false}
+                    className="w-full sm:w-auto"
+                    options={[
+                        {
+                            value: 'list',
+                            label: 'List',
+                            icon: <FontAwesomeIcon icon={faList} />,
+                            style: viewMode === 'list' ? { color: wallet.color } : undefined
+                        },
+                        {
+                            value: 'calendar',
+                            label: 'Calendar',
+                            icon: <FontAwesomeIcon icon={faCalendarDays} />,
+                            style: viewMode === 'calendar' ? { color: wallet.color } : undefined
+                        }
+                    ]}
+                />
 
                 {/* Pulsante Nuova Subscription */}
                 {/*<button*/}

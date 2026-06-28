@@ -143,6 +143,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                     <CustomDatePicker
                         isRange={true}
                         hideSidebar={true}
+                        disableDaySelection={true}
                         initialPreset="month"
                         initialStartDate={monthStart}
                         initialEndDate={monthEnd}
@@ -152,7 +153,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                             }
                         }}
                         weekStartsOn={weekStartsOn}
-                        color="var(--color-app-sky)"
+                        color={wallet.color || "var(--color-app-sky)"}
                     />
                 </div>
             </div>

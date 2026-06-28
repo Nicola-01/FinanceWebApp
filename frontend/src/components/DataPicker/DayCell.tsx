@@ -7,11 +7,12 @@ export interface DayCellProps {
     monthStart: Date;
     startDate: Date | null;
     endDate: Date | null;
-    onClick: () => void;
+    onClick?: () => void;
     isRange: boolean;
     preset: PresetType;
     color: string;
     isDark: boolean;
+    disableDaySelection?: boolean;
 }
 
 export default function DayCell({
@@ -23,16 +24,17 @@ export default function DayCell({
                                     isRange,
                                     preset,
                                     color,
-                                    isDark
+                                    isDark,
+                                    disableDaySelection
                                 }: DayCellProps) {
     const isCurrentMonth = isSameMonth(day, monthStart);
     const isToday = isSameDay(day, new Date());
 
-    const isStart = startDate && isSameDay(day, startDate) && preset !== 'all';
-    const isEnd = endDate && isSameDay(day, endDate) && preset !== 'all';
+    const isStart = !disableDaySelection && startDate && isSameDay(day, startDate) && preset !== 'all';
+    const isEnd = !disableDaySelection && endDate && isSameDay(day, endDate) && preset !== 'all';
     const isSelected = isStart || isEnd;
 
-    const isBetween = (startDate && endDate && isAfter(day, startDate) && isBefore(day, endDate)) || preset === 'all';
+    const isBetween = !disableDaySelection && ((startDate && endDate && isAfter(day, startDate) && isBefore(day, endDate)) || preset === 'all');
 
     let cellStyles = "relative flex items-center justify-center h-10 w-full text-sm transition-all ";
     let textStyles = "z-10 ";
@@ -41,14 +43,15 @@ export default function DayCell({
     if (!isCurrentMonth) {
         cellStyles += isDark ? "theme-text-subtle pointer-events-none " : "theme-text-muted pointer-events-none ";
     } else {
-        cellStyles += "cursor-pointer ";
+        if (onClick) cellStyles += "cursor-pointer ";
         textStyles += isDark ? "theme-text-muted hover:theme-text-default " : "theme-text-subtle hover:theme-text-inverse ";
 
         if (isSelected) {
             textStyles += "font-bold theme-text-default ";
             inlineStyles.backgroundColor = color;
 
-            if (isRange && isStart && endDate) cellStyles += "rounded-l-full ";
+            if (isRange && isStart && isEnd) cellStyles += "rounded-full ";
+            else if (isRange && isStart && endDate) cellStyles += "rounded-l-full ";
             else if (isRange && isEnd && startDate) cellStyles += "rounded-r-full ";
             else cellStyles += "rounded-full ";
 
@@ -56,7 +59,7 @@ export default function DayCell({
             inlineStyles.backgroundColor = `${color}33`;
             textStyles += isDark ? "theme-text-default " : "theme-text-inverse ";
         } else {
-            cellStyles += isDark ? "hover:theme-bg-neutral-dark rounded-full " : "hover:theme-bg-inverse-muted rounded-full ";
+            if (onClick) cellStyles += isDark ? "hover:theme-bg-neutral-dark rounded-full " : "hover:theme-bg-inverse-muted rounded-full ";
         }
 
         if (isToday && !isSelected) {

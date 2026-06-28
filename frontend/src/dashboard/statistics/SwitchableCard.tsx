@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWalletContext } from '../wallet/WalletContext.tsx';
+import { Selector } from '../../components/ui/Selector.tsx';
 
 
 export interface Tab {
@@ -23,6 +24,8 @@ interface SwitchableCardProps {
     className?: string;
     /** If true, the card body uses no padding (e.g. for tables that need edge-to-edge layout) */
     noPadding?: boolean;
+    /** Optional class or width for the tab selector (e.g., 'w-48') */
+    selectorWidth?: string;
 }
 
 export const SwitchableCard: React.FC<SwitchableCardProps> = ({
@@ -35,6 +38,7 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
     children,
     className = '',
     noPadding = false,
+    selectorWidth = '',
 }) => {
     const [internalTab, setInternalTab] = useState(tabs[0]?.key ?? '');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -144,22 +148,18 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
 
                 {/* Toggle buttons — only on desktop, fixed width */}
                 {tabs.length > 1 && !isMobile && (
-                    <div className="flex items-center gap-1 bg-app-input border border-app-border rounded-lg p-0.5 flex-shrink-0">
-                        {tabs.map(tab => (
-                            <button
-                                key={tab.key}
-                                onClick={() => handleTabChange(tab.key)}
-                                className={`w-[90px] py-2 text-xs font-bold rounded-md transition-all text-center ${
-                                    activeTab === tab.key
-                                        ? 'bg-app-card shadow-sm'
-                                        : 'text-app-muted hover:text-app-text hover:bg-app-card/30'
-                                }`}
-                                style={{ color: activeTab === tab.key ? walletColor : '' }}
-                            >
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
+                    <Selector
+                        value={activeTab}
+                        onChange={handleTabChange}
+                        size="md"
+                        fullWidth={false}
+                        className={`flex-shrink-0 ${selectorWidth}`}
+                        options={tabs.map(tab => ({
+                            value: tab.key,
+                            label: tab.label,
+                            style: { color: activeTab === tab.key ? walletColor : '' }
+                        }))}
+                    />
                 )}
             </div>
 

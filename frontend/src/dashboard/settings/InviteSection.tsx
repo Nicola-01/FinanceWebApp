@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faPen, faUserPlus, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { SettingsCard } from '../../components/settings/SettingsCard.tsx';
+import { Selector } from '../../components/ui/Selector.tsx';
 
 interface InviteSectionProps {
     walletColor: string;
@@ -58,30 +59,27 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
                     <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
                         Permission Role
                     </label>
-                    <div className="flex rounded-xl bg-app-input p-1 border border-app-border w-full shadow-inner h-[48px]">
-                        <button
-                            type="button"
-                            onClick={() => setRole('VIEWER')}
-                            className={`flex-1 rounded-lg text-base font-bold transition-all flex items-center justify-center gap-2 ${role === 'VIEWER'
-                                ? 'theme-bg-primary-light  text-app-text shadow-sm'
-                                : 'text-app-muted hover:text-app-text'
-                                }`}
-                        >
-                            <FontAwesomeIcon icon={faEye} />
-                            Viewer
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setRole('EDITOR')}
-                            className={`flex-1 rounded-lg text-base font-bold transition-all flex items-center justify-center gap-2 ${role === 'EDITOR'
-                                ? 'theme-bg-warning-light theme-text-warning shadow-sm'
-                                : 'text-app-muted hover:text-app-text'
-                                }`}
-                        >
-                            <FontAwesomeIcon icon={faPen} />
-                            Editor
-                        </button>
-                    </div>
+                    <Selector
+                        value={role}
+                        onChange={setRole}
+                        size="lg"
+                        options={[
+                            {
+                                value: 'VIEWER',
+                                label: 'Viewer',
+                                icon: <FontAwesomeIcon icon={faEye} />,
+                                activeBgClass: 'theme-bg-primary-light',
+                                activeColorClass: 'text-app-text'
+                            },
+                            {
+                                value: 'EDITOR',
+                                label: 'Editor',
+                                icon: <FontAwesomeIcon icon={faPen} />,
+                                activeBgClass: 'theme-bg-warning-light',
+                                activeColorClass: 'theme-text-warning'
+                            }
+                        ]}
+                    />
                     <p className="mt-2 text-xs text-app-muted text-center">
                         {role === 'VIEWER'
                             ? "Viewers can only read transactions and statistics."

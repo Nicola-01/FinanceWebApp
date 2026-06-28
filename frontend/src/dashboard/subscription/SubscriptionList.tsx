@@ -43,8 +43,10 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
     };
 
     // --- UPCOMING SUBSCRIPTIONS ---
-    const within7Days = subscriptions.filter(s => getDaysLeft(s.nextExecutionDate) <= 7);
-    const within31Days = subscriptions.filter(s => getDaysLeft(s.nextExecutionDate) > 7);
+    const activeSubs = subscriptions.filter(s => s.status !== 'COMPLETED');
+    const within7Days = activeSubs.filter(s => getDaysLeft(s.nextExecutionDate) <= 7);
+    const within31Days = activeSubs.filter(s => getDaysLeft(s.nextExecutionDate) > 7);
+    const completedSubs = subscriptions.filter(s => s.status === 'COMPLETED');
 
     within7Days.sort((a, b) => new Date(a.nextExecutionDate).getTime() - new Date(b.nextExecutionDate).getTime());
     within31Days.sort((a, b) => new Date(a.nextExecutionDate).getTime() - new Date(b.nextExecutionDate).getTime());
@@ -226,6 +228,24 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
                             </button>
                         </div>
                     )}
+                </div>
+            )}
+            {/* SEZIONE 3 - COMPLETED */}
+            {completedSubs.length > 0 && (
+                <div className="bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem] p-5 sm:p-7 flex flex-col gap-6">
+                    <h3 className="text-xl font-bold text-app-text ml-1" style={{ color: wallet.color }}>Completed</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {completedSubs.map(sub => (
+                            <div key={`completed-${sub.id}`} className="opacity-70 hover:opacity-100 transition-opacity">
+                                <SubscriptionCard
+                                    subscription={sub}
+                                    date={sub.nextExecutionDate}
+                                    onClick={() => onEditSubscription && onEditSubscription(sub)}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
             

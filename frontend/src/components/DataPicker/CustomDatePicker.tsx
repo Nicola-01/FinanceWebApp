@@ -20,6 +20,10 @@ export interface CustomDatePickerProps {
     onPresetChange?: (preset: PresetType) => void;
     hideSidebar?: boolean;
     weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    disableDaySelection?: boolean;
+    triggerClassName?: string;
+    dropdownAlign?: 'left' | 'center' | 'right';
+    dropdownPosition?: 'top' | 'bottom';
 }
 
 export default function CustomDatePicker({
@@ -32,7 +36,11 @@ export default function CustomDatePicker({
     initialEndDate = null,
     onPresetChange,
     hideSidebar = false,
-    weekStartsOn = 1
+    weekStartsOn = 1,
+    disableDaySelection = false,
+    triggerClassName,
+    dropdownAlign = 'center',
+    dropdownPosition = 'bottom'
 }: CustomDatePickerProps) {
     const { resolvedTheme } = useTheme();
     const isDark = isDarkProp !== undefined ? isDarkProp : resolvedTheme === 'dark';
@@ -204,7 +212,7 @@ export default function CustomDatePicker({
             {/* Box Cliccabile */}
             <div
                 onClick={() => setIsOpen(!isOpen)}
-                className={`flex-1 flex items-center justify-between p-3 border rounded-lg shadow-sm cursor-pointer transition-colors h-12 ${bgMain} ${borderMain} hover:border-opacity-70`}
+                className={triggerClassName ? `flex-1 flex items-center justify-between cursor-pointer ${triggerClassName}` : `flex-1 flex items-center justify-between p-3 border rounded-lg shadow-sm cursor-pointer transition-colors h-12 ${bgMain} ${borderMain} hover:border-opacity-70`}
             >
                 <div className="flex items-center w-full">
                     {renderTriggerContent()}
@@ -272,6 +280,7 @@ export default function CustomDatePicker({
                                 color={color}
                                 isDark={isDark}
                                 weekStartsOn={weekStartsOn}
+                                disableDaySelection={disableDaySelection}
                             />
                         </div>
                     </>
@@ -297,8 +306,14 @@ export default function CustomDatePicker({
                     );
                 }
 
+                let alignClasses = 'left-1/2 -translate-x-1/2';
+                if (dropdownAlign === 'left') alignClasses = 'left-0';
+                if (dropdownAlign === 'right') alignClasses = 'right-0';
+
+                const positionClasses = dropdownPosition === 'top' ? 'bottom-full mb-4' : 'top-full mt-4';
+
                 return (
-                    <div ref={modalRef} className={`absolute top-full mt-4 left-1/2 -translate-x-1/2 transform rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] ${isRange ? 'w-[380px] sm:w-auto sm:min-w-[550px]' : 'w-[320px]'} overflow-hidden ${bgMain} ${borderMain}`}>
+                    <div ref={modalRef} className={`absolute ${positionClasses} ${alignClasses} transform rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] ${isRange ? 'w-[380px] sm:w-auto sm:min-w-[550px]' : 'w-[320px]'} overflow-hidden ${bgMain} ${borderMain}`}>
                         {popoverContent}
                     </div>
                 );
