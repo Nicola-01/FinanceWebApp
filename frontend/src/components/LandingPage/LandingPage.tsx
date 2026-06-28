@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserAuth } from '../../utils/authHelper';
 import api from '../../api/axiosConfig';
-import { triggerToast } from '../ToastNotification';
+import { triggerToast } from '../ui/ToastNotification.tsx';
 
 // Sub-components
 import BackgroundBlobs from './BackgroundBlobs';

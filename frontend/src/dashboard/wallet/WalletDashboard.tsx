@@ -3,7 +3,7 @@ import {TransactionsTab} from '../transaction/TransactionsTab';
 import {StatisticsTab} from '../statistics/StatisticsTab';
 import {SubscriptionTab} from '../subscription/SubscriptionTab';
 import type {Wallet} from '../../utils/types';
-import {Icon} from "../../components/Icon.tsx";
+import {Icon} from "../../components/icon/Icon.tsx";
 import {WalletTabs} from "./WalletTabs.tsx";
 // import { WalletMenu } from "./WalletMenu.tsx";
 import {TagsTab} from "../tag/TagsTab.tsx";

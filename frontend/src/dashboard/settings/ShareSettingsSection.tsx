@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosConfig';
-import { triggerToast } from '../../components/ToastNotification';
+import { triggerToast } from '../../components/ui/ToastNotification.tsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCrown, faEye, faPen, faSpinner, faUsers } from '@fortawesome/free-solid-svg-icons';
 import type { WalletMember } from '../../utils/types';
-import { SettingsCard } from '../../components/SettingsCard.tsx';
+import { SettingsCard } from '../../components/settings/SettingsCard.tsx';
 
 // Importiamo i nuovi sotto-componenti
 import { InviteSection } from './InviteSection';

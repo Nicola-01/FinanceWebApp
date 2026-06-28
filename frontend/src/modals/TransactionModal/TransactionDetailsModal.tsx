@@ -1,8 +1,8 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { ModalDialog } from '../ModalDialog';
+import { ModalDialog } from '../common/ModalDialog';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { useDeleteModal } from "../DeleteModalContext.tsx";
+import { useDeleteModal } from "../common/DeleteModalContext";
 import type { Transaction, Wallet } from "../../utils/types.ts";
 
 import { TransactionView } from './TransactionView';

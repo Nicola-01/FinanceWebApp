@@ -1,6 +1,6 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {NavLink} from 'react-router-dom';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import React, { useEffect, useRef, useState } from 'react';
+import { NavLink } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faChevronDown,
     faCode,
@@ -14,16 +14,16 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 // Importiamo i modali che creeremo nel passaggio successivo
-import {ProfileModal, type ProfileModalHandle} from '../modals/ProfileModal';
-import {InvitationsModal, type InvitationsModalHandle} from '../modals/InvitationsModal';
-import {ChangePasswordModal, type ChangePasswordModalHandle} from "../modals/ChangePasswordModal.tsx";
-import {PatModal, type PatModalHandle} from "../modals/PatModal.tsx";
-import {AboutAppModal, type AboutAppModalHandle} from "../modals/AboutAppModal.tsx";
-import {LogoutModal, type LogoutModalHandle} from "../modals/LogoutModal.tsx";
-import {getUserAuth} from "../utils/authHelper.ts";
+import { ProfileModal, type ProfileModalHandle } from '../modals/auth/ProfileModal';
+import { InvitationsModal, type InvitationsModalHandle } from '../modals/invitations/InvitationsModal.tsx';
+import { ChangePasswordModal, type ChangePasswordModalHandle } from "../modals/auth/ChangePasswordModal";
+import { PatModal, type PatModalHandle } from "../modals/pat/PatModal.tsx";
+import { AboutAppModal, type AboutAppModalHandle } from "../modals/app/AboutAppModal";
+import { LogoutModal, type LogoutModalHandle } from "../modals/auth/LogoutModal";
+import { getUserAuth } from "../utils/authHelper.ts";
 import api from "../api/axiosConfig.ts";
-import type {Invitation} from "../utils/types.ts";
-import {ThemeSelector} from "../components/ThemeSelector.tsx";
+import type { Invitation } from "../utils/types.ts";
+import { ThemeSelector } from "../components/selectors/ThemeSelector";
 import { usePWA } from "../utils/PWAContext.tsx";
 
 export interface AppHeaderTab {
@@ -40,7 +40,7 @@ interface AppHeaderProps {
     tabs?: AppHeaderTab[];
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => {
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -129,10 +129,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                                 key={tab.to}
                                 to={tab.to}
                                 className={({ isActive }) =>
-                                    `relative px-4 py-1.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                                        isActive
-                                            ? 'bg-app-card text-app-text shadow-sm'
-                                            : 'text-app-muted hover:text-app-text hover:bg-app-card/50'
+                                    `relative px-4 py-1.5 text-sm font-semibold rounded-lg transition-all duration-200 ${isActive
+                                        ? 'bg-app-card text-app-text shadow-sm'
+                                        : 'text-app-muted hover:text-app-text hover:bg-app-card/50'
                                     }`
                                 }
                             >
@@ -146,11 +145,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                 <div className="relative z-[120]" ref={menuRef}>
                     <button
                         onClick={() => setShowMenu(!showMenu)}
-                        className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${
-                            showMenu
-                                ? 'bg-app-input border-app-border shadow-sm'
-                                : 'border-transparent hover:bg-app-input'
-                        }`}
+                        className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${showMenu
+                            ? 'bg-app-input border-app-border shadow-sm'
+                            : 'border-transparent hover:bg-app-input'
+                            }`}
                     >
                         {/* Icona Profilo */}
                         <FontAwesomeIcon
@@ -159,18 +157,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                         />
 
                         {/* Nome Utente */}
-                        <span className={`text-sm font-semibold tracking-wide transition-colors ${
-                            showMenu ? 'text-app-text' : 'text-app-muted'
-                        }`}>
+                        <span className={`text-sm font-semibold tracking-wide transition-colors ${showMenu ? 'text-app-text' : 'text-app-muted'
+                            }`}>
                             {user?.username || 'Profile'}
                         </span>
 
                         {/* Freccetta indicatore Dropdown */}
                         <FontAwesomeIcon
                             icon={faChevronDown}
-                            className={`ml-1 text-[10px] transition-transform duration-300 ${
-                                showMenu ? 'rotate-180 text-app-text' : 'text-app-muted'
-                            }`}
+                            className={`ml-1 text-[10px] transition-transform duration-300 ${showMenu ? 'rotate-180 text-app-text' : 'text-app-muted'
+                                }`}
                         />
                     </button>
 
@@ -189,8 +185,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                                     {user?.role === 'ADMIN' && (
                                         <span
                                             className="shrink-0 rounded bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
-                                        Admin
-                                    </span>
+                                            Admin
+                                        </span>
                                     )}
                                 </div>
 
@@ -224,7 +220,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                                     }}
                                     className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
                                 >
-                                    <FontAwesomeIcon icon={faUser} className="w-4"/>
+                                    <FontAwesomeIcon icon={faUser} className="w-4" />
                                     Profile Settings
                                 </button>
                             }
@@ -235,7 +231,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                                 className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
                                 title="Change Password"
                             >
-                                <FontAwesomeIcon icon={faKey} className="w-/"/>
+                                <FontAwesomeIcon icon={faKey} className="w-/" />
                                 Change Password
                             </button>
 
@@ -247,14 +243,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                                     }}
                                     className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
                                 >
-                                    <FontAwesomeIcon icon={faEnvelope} className="w-4"/>
+                                    <FontAwesomeIcon icon={faEnvelope} className="w-4" />
                                     Invitations
                                     {
                                         invitations.filter(i => i.status === 'PENDING').length > 0 &&
                                         <span
                                             className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[#00bfff] text-[10px] font-bold text-black">
-                                        {invitations.length}
-                                    </span>
+                                            {invitations.length}
+                                        </span>
                                     }
                                 </button>
                             }
@@ -267,12 +263,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                                     }}
                                     className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
                                 >
-                                    <FontAwesomeIcon icon={faCode} className="w-4"/>
+                                    <FontAwesomeIcon icon={faCode} className="w-4" />
                                     API Tokens
                                 </button>
                             }
 
-                            <div className="my-1 h-px w-full bg-app-border"/>
+                            <div className="my-1 h-px w-full bg-app-border" />
 
                             <button
                                 onClick={() => {
@@ -281,19 +277,19 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
                                 }}
                                 className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
                             >
-                                <FontAwesomeIcon icon={faInfoCircle} className="w-4"/>
+                                <FontAwesomeIcon icon={faInfoCircle} className="w-4" />
                                 About this app
                             </button>
 
-                            <ThemeSelector/>
+                            <ThemeSelector />
 
-                            <div className="my-1 h-px w-full bg-app-border"/>
+                            <div className="my-1 h-px w-full bg-app-border" />
 
                             <button
                                 onClick={handleLogout}
                                 className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-[#ff4d4d]/70 transition-colors hover:bg-[#ff4d4d]/20 hover:text-[#ff4d4d]"
                             >
-                                <FontAwesomeIcon icon={faSignOutAlt} className="w-4"/>
+                                <FontAwesomeIcon icon={faSignOutAlt} className="w-4" />
                                 Logout
                             </button>
                         </div>
@@ -302,12 +298,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({page, isAdmin, tabs}) => {
             </header>
 
             {/* 2. I Modali sono stati spostati QUI, fuori dal tag <header> */}
-            <ChangePasswordModal ref={changePwModalRef}/>
-            <ProfileModal ref={profileModalRef}/>
-            {!isAdmin && <InvitationsModal ref={invitationsModalRef}/>}
-            {!isAdmin && <PatModal ref={patModalRef}/>}
-            <AboutAppModal ref={aboutModalRef}/>
-            <LogoutModal ref={logoutModalRef}/>
+            <ChangePasswordModal ref={changePwModalRef} />
+            <ProfileModal ref={profileModalRef} />
+            {!isAdmin && <InvitationsModal ref={invitationsModalRef} />}
+            {!isAdmin && <PatModal ref={patModalRef} />}
+            <AboutAppModal ref={aboutModalRef} />
+            <LogoutModal ref={logoutModalRef} />
 
         </>
     );

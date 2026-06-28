@@ -2,8 +2,8 @@ import React from 'react';
 import { useWalletContext } from '../wallet/WalletContext.tsx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload, faUpload, faFileCsv } from '@fortawesome/free-solid-svg-icons';
-import { triggerToast } from '../../components/ToastNotification';
-import { SettingsCard } from '../../components/SettingsCard.tsx';
+import { triggerToast } from '../../components/ui/ToastNotification.tsx';
+import { SettingsCard } from '../../components/settings/SettingsCard.tsx';
 
 export const DataTab: React.FC = () => {
     const { wallet, tags, transactions } = useWalletContext();

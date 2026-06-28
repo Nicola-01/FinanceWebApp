@@ -6,7 +6,7 @@ import {
     faSpinner, faCircleExclamation, faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
-import { triggerToast } from '../components/ToastNotification';
+import { triggerToast } from '../components/ui/ToastNotification.tsx';
 import Sphere from '../assets/Sphere';
 
 // Tipi basati sui tuoi DTO Java

@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalendarAlt, faTags } from '@fortawesome/free-solid-svg-icons';
 import type { Subscription } from '../../utils/types';
 import { type IconKey, ICONS } from "../../utils/icons.ts";
-import { TagBadge } from "../../components/TagBadge.tsx";
+import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
 
 interface SubscriptionCardProps {

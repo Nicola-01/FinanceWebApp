@@ -6,8 +6,8 @@ import {
     faCircleCheck, faPaperPlane, faRotateRight
 } from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
-import { triggerToast } from '../components/ToastNotification';
-import { LoginBackground } from './LoginBackground';
+import { triggerToast } from '../components/ui/ToastNotification.tsx';
+import { AnimateBackground } from './AnimateBackground.tsx';
 
 const COOLDOWN_SECONDS = 60;
 
@@ -83,7 +83,7 @@ const ForgotPassword: React.FC = () => {
 
     return (
         <div className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto bg-slate-900 px-4 sm:px-0 pb-8 sm:pb-0">
-            <LoginBackground />
+            <AnimateBackground />
 
             <div className={`relative z-10 flex w-full max-w-[420px] flex-col items-center rounded-3xl border border-white/10 bg-white/5 px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${shake ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
 

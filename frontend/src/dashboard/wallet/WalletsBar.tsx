@@ -1,9 +1,9 @@
-import React, {useRef, useState, useEffect} from 'react';
-import {faPlus} from '@fortawesome/free-solid-svg-icons';
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {CreateWalletModal, type CreateWalletModalHandle} from "../../modals/CreateWalletModal.tsx";
-import WalletCard, {WalletCardUI} from "./WalletCard.tsx";
-import type {Wallet} from '../../utils/types.ts';
+import React, { useRef, useState, useEffect } from 'react';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { CreateWalletModal, type CreateWalletModalHandle } from "../../modals/wallet/CreateWalletModal.tsx";
+import WalletCard, { WalletCardUI } from "./WalletCard.tsx";
+import type { Wallet } from '../../utils/types.ts';
 
 import {
     DndContext,
@@ -43,13 +43,13 @@ const WalletSkeleton = () => (
 );
 
 export const WalletsBar: React.FC<WalletsAreaProps> = ({
-                                                           wallets,
-                                                           setWallets,
-                                                           loading,
-                                                           selectedWalletId,
-                                                           onSelectWallet,
-                                                           onRefreshAll
-                                                       }) => {
+    wallets,
+    setWallets,
+    loading,
+    selectedWalletId,
+    onSelectWallet,
+    onRefreshAll
+}) => {
     const walletModal = useRef<CreateWalletModalHandle>(null);
     const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -119,7 +119,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
     // --- 2. SALVATAGGIO ORDINE AL TERMINE DEL DRAG ---
     const handleDragEnd = (event: DragEndEvent) => {
         setActiveId(null);
-        const {active, over} = event;
+        const { active, over } = event;
 
         if (over && active.id !== over.id) {
             setWallets((items) => {
@@ -155,9 +155,9 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
             ">
                 {loading && wallets.length === 0 ? (
                     <>
-                        <WalletSkeleton/>
-                        <WalletSkeleton/>
-                        <WalletSkeleton/>
+                        <WalletSkeleton />
+                        <WalletSkeleton />
+                        <WalletSkeleton />
                     </>
                 ) : (
                     <SortableContext items={wallets.map(w => w.id)} strategy={rectSortingStrategy}>
@@ -179,7 +179,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                     >
                         <div
                             className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-[#00ff7f] transition-colors shrink-0">
-                            <FontAwesomeIcon icon={faPlus}/>
+                            <FontAwesomeIcon icon={faPlus} />
                         </div>
                         <div className="flex flex-col min-w-0">
                             <h4 className="m-0 text-sm font-bold text-app-muted group-hover:text-app-text transition-colors truncate">
@@ -189,10 +189,10 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                     </button>
                 )}
 
-                <CreateWalletModal ref={walletModal} onSuccess={handleCreate}/>
+                <CreateWalletModal ref={walletModal} onSuccess={handleCreate} />
             </div>
 
-            <DragOverlay dropAnimation={{duration: 250, easing: 'ease-out'}}>
+            <DragOverlay dropAnimation={{ duration: 250, easing: 'ease-out' }}>
                 {activeWallet ? (
                     <WalletCardUI
                         wallet={activeWallet}

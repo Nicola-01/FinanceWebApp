@@ -8,7 +8,7 @@ import {
 import type { Transaction, Wallet } from "../../utils/types.ts";
 import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
 import { ExchangeRateSection } from './ExchangeRateSection.tsx';
-import { TagBadge } from "../../components/TagBadge.tsx";
+import { TagBadge } from "../../components/ui/TagBadge.tsx";
 
 interface TransactionViewProps {
     tx: Transaction;

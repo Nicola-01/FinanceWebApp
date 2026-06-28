@@ -5,9 +5,9 @@ import {
 } from 'date-fns';
 import type { Subscription } from '../../utils/types';
 import { generateSubscriptionOccurrences } from '../../utils/subscriptionHelper';
-import { TagBadge } from "../../components/TagBadge.tsx";
+import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import CustomDatePicker from '../../components/DataPicker/CustomDatePicker.tsx';
-import { DayDetailPanel, type DayDetailModalHandle } from '../../modals/DayDetailModal.tsx';
+import { DayDetailPanel, type DayDetailModalHandle } from '../../modals/day/DayDetailModal.tsx';
 import { useWalletContext } from '../wallet/WalletContext.tsx';
 
 interface SubscriptionCalendarProps {
@@ -181,7 +181,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                                 ))}
                                 {overflowCount > 0 && (
                                     <span className="text-[10px] sm:text-auto font-bold text-app-muted pl-0.5 shrink-0 ml-auto mr-1"
-                                    style={{color: wallet.color}}
+                                        style={{ color: wallet.color }}
                                     >
                                         +{overflowCount}
                                     </span>

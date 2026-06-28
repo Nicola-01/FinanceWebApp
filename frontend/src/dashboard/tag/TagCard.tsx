@@ -11,7 +11,7 @@ import {
     faTrash,
     faXmark
 } from "@fortawesome/free-solid-svg-icons";
-import { IconPickerButton } from "../../components/IconPickerButton.tsx";
+import { IconPickerButton } from "../../components/icon/IconPickerButton.tsx";
 import { TagChildRow } from "./TagChildRow.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 

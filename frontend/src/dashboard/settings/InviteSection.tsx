@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faPen, faUserPlus, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
-import { SettingsCard } from '../../components/SettingsCard.tsx';
+import { SettingsCard } from '../../components/settings/SettingsCard.tsx';
 
 interface InviteSectionProps {
     walletColor: string;

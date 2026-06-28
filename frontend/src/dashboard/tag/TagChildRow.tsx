@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowTurnUp, faCheck, faPenToSquare, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import type { Tag } from "../../utils/types.ts";
 import type { IconKey } from "../../utils/icons.ts";
-import { IconPickerButton } from "../../components/IconPickerButton.tsx";
+import { IconPickerButton } from "../../components/icon/IconPickerButton.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 
 interface TagChildRowProps {

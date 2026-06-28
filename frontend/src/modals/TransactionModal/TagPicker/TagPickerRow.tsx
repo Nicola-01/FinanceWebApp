@@ -2,7 +2,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import type { Tag } from '../../../utils/types';
-import { Icon } from '../../../components/Icon.tsx';
+import { Icon } from '../../../components/icon/Icon.tsx';
 
 interface TagPickerRowProps {
     tag: Tag;

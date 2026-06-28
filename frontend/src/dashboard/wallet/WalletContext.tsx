@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import type { Subscription, Tag, Transaction, Wallet } from '../../utils/types';
 import type { DateRangeValue, PresetType } from '../../components/DataPicker/CustomDatePicker.tsx';
 import api from "../../api/axiosConfig";
-import { triggerToast } from "../../components/ToastNotification";
+import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 
 export const VALID_TABS = ['transactions', 'subscription', 'category', 'statistics', 'budget', 'settings', 'data'] as const;
 export type TabType = typeof VALID_TABS[number];

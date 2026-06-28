@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faArrowRight, faCoins, faEdit, faExchangeAlt} from '@fortawesome/free-solid-svg-icons';
-import {CurrencySelector} from '../../components/CurrencySelector';
+import {CurrencySelector} from '../../components/selectors/CurrencySelector';
 import {CURRENCY_META, type CurrencyCode} from '../../utils/currencies';
-import {triggerToast} from '../../components/ToastNotification';
+import {triggerToast} from '../../components/ui/ToastNotification.tsx';
 
 export interface UnifiedExchangeRateProps {
     mode: 'view' | 'edit' | 'create';
@@ -237,7 +237,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
                             Select Currency
                             {loadingRate && <span className="text-[10px] animate-pulse">Fetching rate...</span>}
                         </label>
-                        <CurrencySelector value={selectedCurrency} onChange={(val) => onCurrencyChange?.(val)} excludeCurrency={baseCurrency}/>
+                        <CurrencySelector value={selectedCurrency} onChange={(val: CurrencyCode) => onCurrencyChange?.(val)} excludeCurrency={baseCurrency}/>
                     </div>
                     {/* Inseriamo la costante aggiornata */}
                     {exchangeBoxContent}

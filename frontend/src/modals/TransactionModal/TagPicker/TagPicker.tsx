@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronLeft, faChevronUp, faHashtag, faPlus } from '@fortawesome/free-solid-svg-icons';
 import type { Tag } from '../../../utils/types';
-import { Icon } from '../../../components/Icon.tsx';
+import { Icon } from '../../../components/icon/Icon.tsx';
 import { TagPickerRow } from './TagPickerRow.tsx';
 import { TagPickerAddForm } from './TagPickerAddForm.tsx';
 

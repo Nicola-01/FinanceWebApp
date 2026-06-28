@@ -12,11 +12,11 @@ import {
     faPlus,
 } from '@fortawesome/free-solid-svg-icons';
 import { isTokenValid } from '../utils/authHelper';
-import { triggerToast } from '../components/ToastNotification';
-import { LoginBackground } from './LoginBackground';
+import { triggerToast } from '../components/ui/ToastNotification.tsx';
 import type { Wallet, PatToken, WalletPermState } from '../utils/types';
-import { TokenListItem } from '../components/pat/TokenListItem';
-import { WalletPermissionSelector } from '../components/pat/WalletPermissionSelector';
+import { PatListView } from '../modals/pat/PatListView';
+import { PatFormView } from '../modals/pat/PatFormView';
+import { AnimateBackground } from './AnimateBackground';
 import api from '../api/axiosConfig';
 import axios from 'axios';
 
@@ -262,12 +262,12 @@ const OAuthConsent = () => {
     // Validate required params
     if (!clientId || !redirectUri || !codeChallenge || !state) {
         return (
-            <div className="relative flex min-h-[100dvh] items-center justify-center bg-slate-900 px-4">
-                <LoginBackground />
-                <div className="relative z-10 w-full max-w-[480px] rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl text-center">
+            <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
+                <AnimateBackground />
+                <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface p-8 shadow-2xl backdrop-blur-[20px] text-center">
                     <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl text-amber-400 mb-4" />
-                    <h2 className="text-xl font-bold text-white mb-2">Invalid Request</h2>
-                    <p className="text-sm text-white/60">
+                    <h2 className="text-xl font-bold text-app-text mb-2">Invalid Request</h2>
+                    <p className="text-sm text-app-muted">
                         Missing required OAuth parameters. Please try connecting again from your MCP client.
                     </p>
                 </div>
@@ -277,17 +277,17 @@ const OAuthConsent = () => {
 
     if (hasReplayError) {
         return (
-            <div className="relative flex min-h-[100dvh] items-center justify-center bg-slate-900 px-4">
-                <LoginBackground />
-                <div className="relative z-10 w-full max-w-[480px] rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl text-center">
+            <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
+                <AnimateBackground />
+                <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface p-8 shadow-2xl backdrop-blur-[20px] text-center">
                     <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl text-rose-500 mb-4" />
-                    <h2 className="text-xl font-bold text-white mb-2">Richiesta Scaduta</h2>
-                    <p className="text-sm text-white/60 mb-6">
+                    <h2 className="text-xl font-bold text-app-text mb-2">Richiesta Scaduta</h2>
+                    <p className="text-sm text-app-muted mb-6">
                         Questa richiesta di autorizzazione è scaduta o è già stata utilizzata. Per favore, avvia una nuova richiesta dal client.
                     </p>
                     <button
                         onClick={handleDeny}
-                        className="rounded-xl border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-white/10"
+                        className="rounded-xl border border-app-border bg-app-input px-6 py-2.5 text-sm font-semibold text-app-text transition-all hover:border-[#a78bfa]/50"
                     >
                         Torna all'applicazione
                     </button>
@@ -297,35 +297,34 @@ const OAuthConsent = () => {
     }
 
     return (
-        <div className="relative flex min-h-[100dvh] items-start pt-[6dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto bg-slate-900 px-4 sm:px-0 pb-8 sm:pb-0">
-            <LoginBackground />
-
+        <div className="relative flex min-h-[100dvh] items-start pt-[6dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto px-4 sm:px-0 pb-8 sm:pb-0">
+            <AnimateBackground />
             <div className="relative z-10 w-full max-w-[520px] flex flex-col items-center gap-6">
                 {/* ═══════════ Main Card ═══════════ */}
-                <div className="w-full rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-8 shadow-2xl backdrop-blur-xl animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
+                <div className="w-full rounded-[32px] border border-app-border bg-app-surface p-6 sm:p-8 text-app-text shadow-2xl backdrop-blur-[20px] animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
 
                     {/* Header */}
                     <div className="flex flex-col items-center mb-6">
                         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-[#4b1a69] to-[#4d6dff] shadow-[0_0_20px_rgba(77,109,255,0.4)]">
                             <FontAwesomeIcon icon={faShieldAlt} className="text-2xl text-white" />
                         </div>
-                        <h2 className="text-xl sm:text-2xl font-bold text-white text-center tracking-tight">
+                        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-center">
                             Authorize Access
                         </h2>
-                        <p className="mt-2 text-sm text-white/50 text-center">
+                        <p className="mt-2 text-sm text-app-muted text-center">
                             An application is requesting access to your finance data
                         </p>
                     </div>
 
                     {/* Client Info */}
-                    <div className="mb-6 rounded-xl border border-white/5 bg-black/20 p-4">
+                    <div className="mb-6 rounded-xl border border-app-border bg-app-input p-4">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#a78bfa]/15">
                                 <FontAwesomeIcon icon={faRobot} className="text-[#a78bfa]" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-sm font-bold text-white truncate">{clientId}</p>
-                                <p className="text-[11px] text-white/40 truncate">{redirectUri}</p>
+                                <p className="text-sm font-bold truncate">{clientId}</p>
+                                <p className="text-[11px] text-app-muted truncate">{redirectUri}</p>
                             </div>
                         </div>
                         {scope && (
@@ -343,7 +342,7 @@ const OAuthConsent = () => {
                     {view === 'select' && (
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <label className="text-xs font-bold uppercase tracking-wider text-white/40">
+                                <label className="text-xs font-bold uppercase tracking-wider text-app-muted">
                                     Select a Token
                                 </label>
                                 <button
@@ -355,43 +354,15 @@ const OAuthConsent = () => {
                                 </button>
                             </div>
 
-                            {loadingTokens && (
-                                <div className="flex items-center justify-center py-10">
-                                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/10 border-t-[#a78bfa]" />
-                                </div>
-                            )}
-
-                            {!loadingTokens && tokens.length === 0 && (
-                                <div className="flex flex-col items-center py-8 text-center">
-                                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-white/5">
-                                        <FontAwesomeIcon icon={faKey} className="text-lg text-white/30" />
-                                    </div>
-                                    <p className="text-sm font-semibold text-white/40">No tokens yet</p>
-                                    <p className="mt-1 text-xs text-white/25">Create a new token to authorize this client</p>
-                                    <button
-                                        onClick={goToCreate}
-                                        className="mt-4 rounded-xl bg-[#a78bfa]/20 px-4 py-2 text-sm font-bold text-[#a78bfa] transition-all hover:bg-[#a78bfa]/30"
-                                    >
-                                        <FontAwesomeIcon icon={faPlus} className="mr-2" />
-                                        Create Token
-                                    </button>
-                                </div>
-                            )}
-
-                            {!loadingTokens && tokens.length > 0 && (
-                                <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
-                                    {tokens.map(token => (
-                                        <TokenListItem
-                                            key={token.id}
-                                            token={token}
-                                            walletsMap={walletsMap}
-                                            onClick={() => handleSelectExistingToken(token)}
-                                            disabled={authorizing}
-                                            theme="oauth"
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                            <PatListView 
+                                loadingTokens={loadingTokens}
+                                tokens={tokens}
+                                walletsMap={walletsMap}
+                                isSelectMode={true}
+                                onSelect={handleSelectExistingToken}
+                                onCreate={goToCreate}
+                                disabled={authorizing}
+                            />
                         </div>
                     )}
 
@@ -402,60 +373,24 @@ const OAuthConsent = () => {
                             {tokens.length > 0 && (
                                 <button
                                     onClick={() => setView('select')}
-                                    className="text-xs font-semibold text-white/40 hover:text-white/60 transition-colors"
+                                    className="text-xs font-semibold text-app-muted hover:text-app-text transition-colors"
                                 >
                                     ← Back to existing tokens
                                 </button>
                             )}
 
-                            {/* Token name */}
-                            <div>
-                                <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-white/40">
-                                    Token Name
-                                </label>
-                                <input
-                                    id="oauth-token-name"
-                                    type="text"
-                                    value={tokenName}
-                                    onChange={(e) => setTokenName(e.target.value)}
-                                    placeholder="e.g., Claude AI Access"
-                                    maxLength={50}
-                                    className="h-[48px] w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white placeholder-white/25 outline-none transition-all focus:border-[#a78bfa] focus:ring-2 focus:ring-[#a78bfa]/20"
-                                />
-                            </div>
-
-                            {/* Wallet permissions */}
-                            <div>
-                                <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-white/40">
-                                    Wallet Permissions
-                                </label>
-
-                                {walletPerms.length === 0 ? (
-                                    <div className="flex items-center justify-center py-6">
-                                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/10 border-t-[#a78bfa]" />
-                                    </div>
-                                ) : (
-                                    <WalletPermissionSelector
-                                        walletPerms={walletPerms}
-                                        setPermission={setPermission}
-                                        theme="oauth"
-                                    />
-                                )}
-                            </div>
-
-                            {/* Create & Authorize button */}
-                            <button
-                                id="oauth-authorize-btn"
-                                onClick={handleCreateAndAuthorize}
-                                disabled={creating || !tokenName.trim() || walletPerms.filter(w => w.enabled).length === 0}
-                                className="w-full rounded-xl bg-gradient-to-r from-[#4b1a69] to-[#4d6dff] py-3.5 text-sm font-bold text-white shadow-[0_5px_15px_rgba(77,109,255,0.3)] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_25px_rgba(77,109,255,0.5)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                            >
-                                {creating ? (
-                                    <><FontAwesomeIcon icon={faSpinner} className="mr-2 animate-spin" />Authorizing...</>
-                                ) : (
-                                    <><FontAwesomeIcon icon={faCheck} className="mr-2" />Create & Authorize</>
-                                )}
-                            </button>
+                            <PatFormView 
+                                isEdit={false}
+                                tokenName={tokenName}
+                                setTokenName={setTokenName}
+                                walletPerms={walletPerms}
+                                setPermission={setPermission}
+                                onSubmit={handleCreateAndAuthorize}
+                                isSubmitting={creating}
+                                submitText="Create & Authorize"
+                                submittingText="Authorizing..."
+                                showDesktopButton={true}
+                            />
                         </div>
                     )}
 
@@ -474,7 +409,7 @@ const OAuthConsent = () => {
                         id="oauth-deny-btn"
                         onClick={handleDeny}
                         disabled={authorizing || creating}
-                        className="mt-4 w-full rounded-xl border border-white/5 bg-white/[0.03] py-3 text-sm font-semibold text-white/40 transition-all hover:bg-white/[0.06] hover:text-white/60 disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="mt-4 w-full rounded-xl border border-app-border bg-app-input py-3 text-sm font-semibold text-app-muted transition-all hover:bg-app-bg hover:text-app-text disabled:opacity-30 disabled:cursor-not-allowed"
                     >
                         <FontAwesomeIcon icon={faTimes} className="mr-2" />
                         Deny Access
@@ -482,7 +417,7 @@ const OAuthConsent = () => {
                 </div>
 
                 {/* Security notice */}
-                <p className="text-center text-[11px] text-white/25 max-w-[400px]">
+                <p className="text-center text-[11px] text-app-muted/70 max-w-[400px]">
                     <FontAwesomeIcon icon={faShieldAlt} className="mr-1" />
                     This will create a personal access token with the permissions you select.
                     You can revoke it at any time from your API Tokens settings.

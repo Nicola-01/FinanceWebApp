@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {LoginBackground} from './LoginBackground.tsx';
+import {AnimateBackground} from './AnimateBackground.tsx';
 import {LoginForm} from './LoginForm.tsx';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faFlask, faSpinner} from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
-import {triggerToast} from '../components/ToastNotification.tsx';
+import {triggerToast} from '../components/ui/ToastNotification.tsx';
 
 const demoEnabled = import.meta.env.VITE_DEMO_ENABLED === 'true';
 
@@ -43,7 +43,7 @@ const Login: React.FC = () => {
         <div
             className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto bg-slate-900 px-4 sm:px-0 pb-8 sm:pb-0">
             {/* Renders the visual background and animations */}
-            <LoginBackground/>
+            <AnimateBackground/>
 
             <div className={`relative z-10 flex flex-col items-center gap-6 w-full ${demoEnabled ? 'max-w-[420px]' : 'max-w-[380px]'}`}>
                 {/* Conditionally Render Form vs Demo Card */}

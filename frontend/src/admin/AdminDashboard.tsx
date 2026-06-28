@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import api from '../api/axiosConfig';
 import Sphere from '../assets/Sphere';
-import { triggerToast } from '../components/ToastNotification.tsx';
+import { triggerToast } from '../components/ui/ToastNotification.tsx';
 import type { User } from '../utils/types.ts';
 
 import { AdminStats } from './AdminStats';
 import { CreateInviteForm } from './CreateInviteForm';
 import { type AdminInvite, InvitesTable } from './InvitesTable';
 import { UserDirectory } from './UserDirectory';
-import { useDeleteModal } from '../modals/DeleteModalContext.tsx';
+import { useDeleteModal } from '../modals/common/DeleteModalContext';
 import { AppHeader } from '../header/AppHeader.tsx';
 import Backups from './Backups.tsx';
 

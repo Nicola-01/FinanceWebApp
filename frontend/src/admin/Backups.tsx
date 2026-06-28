@@ -12,7 +12,7 @@ import {
     faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
-import { triggerToast } from '../components/ToastNotification.tsx';
+import { triggerToast } from '../components/ui/ToastNotification.tsx';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

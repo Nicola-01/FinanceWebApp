@@ -3,7 +3,7 @@ import {useNavigate, useLocation} from "react-router-dom";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faEye, faEyeSlash, faLock, faTriangleExclamation, faUser} from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
-import {triggerToast} from '../components/ToastNotification.tsx';
+import {triggerToast} from '../components/ui/ToastNotification.tsx';
 
 interface Requirements {
     username?: string;

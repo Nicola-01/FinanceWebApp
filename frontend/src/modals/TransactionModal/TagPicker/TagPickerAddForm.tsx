@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faSpinner, faXmark } from '@fortawesome/free-solid-svg-icons';
 import type { Tag } from '../../../utils/types';
 import { useWalletContext } from '../../../dashboard/wallet/WalletContext.tsx';
-import { IconPickerButton } from '../../../components/IconPickerButton.tsx';
+import { IconPickerButton } from '../../../components/icon/IconPickerButton.tsx';
 import type { IconKey } from '../../../utils/icons.ts';
 
 interface TagPickerAddFormProps {

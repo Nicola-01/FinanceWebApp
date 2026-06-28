@@ -8,10 +8,13 @@ interface PatListViewProps {
     loadingTokens: boolean;
     tokens: PatToken[];
     walletsMap: Record<string, Wallet>;
-    revokingId: string | null;
-    onRevoke: (tokenId: string) => void;
-    onCreate: () => void;
-    onEdit: (token: PatToken) => void;
+    revokingId?: string | null;
+    onRevoke?: (tokenId: string) => void;
+    onCreate?: () => void;
+    onEdit?: (token: PatToken) => void;
+    onSelect?: (token: PatToken) => void;
+    isSelectMode?: boolean;
+    disabled?: boolean;
 }
 
 export const PatListView: React.FC<PatListViewProps> = ({
@@ -21,7 +24,10 @@ export const PatListView: React.FC<PatListViewProps> = ({
     revokingId,
     onRevoke,
     onCreate,
-    onEdit
+    onEdit,
+    onSelect,
+    isSelectMode,
+    disabled
 }) => {
 
 
@@ -65,10 +71,12 @@ export const PatListView: React.FC<PatListViewProps> = ({
                     key={token.id}
                     token={token}
                     walletsMap={walletsMap}
-                    onRevoke={() => onRevoke(token.id)}
-                    onEdit={() => onEdit(token)}
+                    onClick={isSelectMode && onSelect ? () => onSelect(token) : undefined}
+                    onDelete={!isSelectMode && onRevoke ? () => onRevoke(token.id) : undefined}
+                    onEdit={!isSelectMode && onEdit ? () => onEdit(token) : undefined}
                     revokingId={revokingId}
-                    theme="default"
+                    showActions={!isSelectMode}
+                    disabled={disabled}
                 />
             ))}
         </div>

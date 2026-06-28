@@ -2,7 +2,7 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight, faChevronDown, faCheckSquare, faSquare, faMinusSquare } from '@fortawesome/free-solid-svg-icons';
 import type { Tag } from '../../utils/types.ts';
-import { Icon } from '../Icon.tsx';
+import { Icon } from '../icon/Icon.tsx';
 
 export interface TagFilterRowProps {
     tag: Tag;

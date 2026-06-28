@@ -2,14 +2,14 @@ import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import api from '../../api/axiosConfig';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMoneyBillTransfer, faEdit, faCheck } from '@fortawesome/free-solid-svg-icons';
-import { ModalDialog } from '../ModalDialog';
-import { triggerToast } from '../../components/ToastNotification';
+import { ModalDialog } from '../common/ModalDialog';
+import { triggerToast } from '../../components/ui/ToastNotification.tsx';
 import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
 import type { Tag, Wallet, Transaction } from "../../utils/types.ts";
 
 // Sub-components
 import { TagPicker } from './TagPicker/TagPicker.tsx';
-import { AmountInput } from "../../components/AmountInput.tsx";
+import { AmountInput } from "../../components/ui/AmountInput.tsx";
 import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
 import { TransactionTypeToggle } from './TransactionTypeToggle.tsx';
 import { TransactionMetadataInputs } from './TransactionMetadataInputs.tsx';

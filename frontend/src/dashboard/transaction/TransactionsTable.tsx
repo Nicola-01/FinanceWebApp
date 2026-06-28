@@ -10,11 +10,11 @@ import React, { useRef } from 'react';
 import type { Tag, Transaction, Wallet } from '../../utils/types.ts';
 import TransactionRow from "./TransactionRow.tsx";
 import api from "../../api/axiosConfig.ts";
-import { triggerToast } from "../../components/ToastNotification.tsx";
+import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
 import type { CurrencyCode } from "../../utils/currencies.ts";
-import { FloatingActionButton } from "../../components/FloatingActionButton.tsx";
+import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
 
 interface TransactionsTableProps {
     wallet: Wallet,

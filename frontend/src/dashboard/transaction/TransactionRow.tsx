@@ -3,7 +3,7 @@ import type {Transaction} from "../../utils/types.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {type IconKey, ICONS} from "../../utils/icons.ts";
 import {faTags, faCommentAlt} from "@fortawesome/free-solid-svg-icons";
-import {TagBadge} from "../../components/TagBadge.tsx";
+import {TagBadge} from "../../components/ui/TagBadge.tsx";
 import {CURRENCY_META, type CurrencyCode} from "../../utils/currencies.ts";
 
 interface TransactionRowProps {

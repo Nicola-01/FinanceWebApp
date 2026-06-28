@@ -4,14 +4,14 @@ import { faCheck, faPlus, faSpinner, faXmark } from '@fortawesome/free-solid-svg
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import type { Tag } from '../../utils/types.ts';
 import TagCard from "./TagCard.tsx";
-import { IconPickerButton } from '../../components/IconPickerButton.tsx';
+import { IconPickerButton } from '../../components/icon/IconPickerButton.tsx';
 import type { IconKey } from '../../utils/icons.ts';
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { TransactionPieChart } from './CategoryCharts.tsx';
 import { CashFlowSankey } from '../statistics/CashFlowSankey.tsx';
 import { DateRangeBanner } from '../statistics/DateRangeBanner.tsx';
 import { useTheme } from '../../utils/ThemeContext.tsx';
-import { Collapse } from "../../components/Collapse.tsx";
+import { Collapse } from "../../components/ui/Collapse.tsx";
 
 const lightTheme = createTheme({
     palette: { mode: 'light', background: { paper: '#ffffff' } },

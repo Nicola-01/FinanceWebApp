@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faClock, faCopy, faEnvelopeOpenText, faTrash} from '@fortawesome/free-solid-svg-icons';
-import {triggerToast} from '../components/ToastNotification';
+import {triggerToast} from '../components/ui/ToastNotification.tsx';
 
 export interface AdminInvite {
     email: string;
