@@ -73,11 +73,13 @@ mcp = FastMCP(
         "Use the available tools to help the user manage their wallets and transactions. "
         "Authentication is handled automatically via the Bearer token in the request header — "
         "do NOT ask the user for a token or pass it as a parameter. "
-        "The token controls which wallets are accessible and whether write operations are allowed: "
-        "if the backend returns 403, the token lacks permission for that operation. "
+        "CRITICAL PERMISSIONS INFO: Permissions are strictly PER-WALLET, NOT generic for the entire application. "
+        "The token controls which specific wallets are accessible and whether write operations are allowed for each individual wallet. "
+        "If the backend returns 403, the token lacks permission for that specific operation on that specific wallet. "
+        "If the user asks what permissions you have, you MUST use the get_wallets tool, look at the 'tokenAccess' field for each wallet, and list the accessible wallets along with their specific permission levels. "
         "You will often see 'userRole' and 'tokenAccess' fields for wallets. "
         "userRole is the role of the user, tokenAccess is the role of the token. "
-        "If the user asks to write/edit but the token's role is not sufficient, ask the user to update the token permissions in the app."
+        "If the user asks to write/edit but the token's role on that specific wallet is not sufficient, ask the user to update the token permissions in the app."
     ),
     lifespan=app_lifespan,
     host="0.0.0.0",

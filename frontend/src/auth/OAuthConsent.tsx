@@ -5,43 +5,21 @@ import {
     faShieldAlt,
     faCheck,
     faTimes,
-    faEye,
-    faPen,
     faSpinner,
     faExclamationTriangle,
     faRobot,
     faKey,
-    faArrowRight,
     faPlus,
 } from '@fortawesome/free-solid-svg-icons';
 import { isTokenValid } from '../utils/authHelper';
 import { triggerToast } from '../components/ToastNotification';
 import { LoginBackground } from './LoginBackground';
+import type { Wallet, PatToken, WalletPermState } from '../utils/types';
+import { TokenListItem } from '../components/pat/TokenListItem';
+import { WalletPermissionSelector } from '../components/pat/WalletPermissionSelector';
 import api from '../api/axiosConfig';
 import axios from 'axios';
-import type { Wallet } from '../utils/types';
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface PatToken {
-    id: string;
-    name: string;
-    tokenPrefix: string;
-    walletPermissions: { walletId: string; permissions: string[] }[];
-    createdAt: string;
-    expiresAt: string | null;
-    lastUsedAt: string | null;
-}
-
-interface WalletPermState {
-    walletId: string;
-    walletName: string;
-    walletIcon: string;
-    walletColor: string;
-    enabled: boolean;
-    read: boolean;
-    write: boolean;
-}
 
 type ConsentView = 'select' | 'create';
 
@@ -73,6 +51,9 @@ const OAuthConsent = () => {
     const [walletPerms, setWalletPerms] = useState<WalletPermState[]>([]);
     const [creating, setCreating] = useState(false);
 
+    // Replay protection state
+    const [hasReplayError, setHasReplayError] = useState(false);
+
     // ─── Auth check ──────────────────────────────────────────────────────────
 
     useEffect(() => {
@@ -86,6 +67,12 @@ const OAuthConsent = () => {
         // Validate required OAuth params
         if (!clientId || !redirectUri || !codeChallenge || !state) {
             triggerToast('Invalid OAuth request — missing required parameters', false);
+            return;
+        }
+
+        // Check if this authorization flow has already been processed
+        if (sessionStorage.getItem(`oauth_used_state_${state}`)) {
+            setHasReplayError(true);
             return;
         }
 
@@ -127,6 +114,7 @@ const OAuthConsent = () => {
                     walletName: w.name,
                     walletIcon: w.icon,
                     walletColor: w.color,
+                    userRole: w.userRole,
                     enabled: false,
                     read: true,
                     write: false,
@@ -156,7 +144,11 @@ const OAuthConsent = () => {
 
             await completeAuthorization(plainToken);
         } catch (err: any) {
-            triggerToast(err.response?.data?.detail || 'Authorization failed', false);
+            if (err.response?.status === 400 && err.response?.data?.error === 'replay_detected') {
+                setHasReplayError(true);
+            } else {
+                triggerToast(err.response?.data?.detail || 'Authorization failed', false);
+            }
         } finally {
             setAuthorizing(false);
         }
@@ -195,7 +187,11 @@ const OAuthConsent = () => {
 
             await completeAuthorization(plainToken);
         } catch (err: any) {
-            triggerToast(err.response?.data?.detail || 'Failed to create token', false);
+            if (err.response?.status === 400 && err.response?.data?.error === 'replay_detected') {
+                setHasReplayError(true);
+            } else {
+                triggerToast(err.response?.data?.detail || 'Failed to create token', false);
+            }
         } finally {
             setCreating(false);
         }
@@ -209,19 +205,30 @@ const OAuthConsent = () => {
         // Use raw axios — OAuth endpoints are NOT under /api/
         const backendUrl = import.meta.env.VITE_API_URL;
         const token = localStorage.getItem('jwtToken') || sessionStorage.getItem('jwtToken');
-        const res = await axios.post(`${backendUrl}/oauth/authorize`, {
-            plainToken,
-            clientId,
-            redirectUri,
-            codeChallenge,
-            state,
-            scope,
-        }, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
+        try {
+            const res = await axios.post(`${backendUrl}/oauth/authorize`, {
+                plainToken,
+                clientId,
+                redirectUri,
+                codeChallenge,
+                state,
+                scope,
+            }, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
 
-        // Redirect the browser to the MCP client
-        window.location.href = res.data.redirectUrl;
+            // Mark this flow as consumed in the frontend session
+            sessionStorage.setItem(`oauth_used_state_${state}`, 'true');
+
+            // Redirect the browser to the MCP client
+            window.location.href = res.data.redirectUrl;
+        } catch (err: any) {
+            if (err.response?.status === 400 && err.response?.data?.error === 'replay_detected') {
+                setHasReplayError(true);
+            } else {
+                throw err;
+            }
+        }
     };
 
     /**
@@ -241,24 +248,13 @@ const OAuthConsent = () => {
         setView('create');
     };
 
-    const toggleWallet = (walletId: string) => {
-        setWalletPerms(prev =>
-            prev.map(w =>
-                w.walletId === walletId
-                    ? { ...w, enabled: !w.enabled, read: true, write: w.enabled ? false : w.write }
-                    : w
-            )
-        );
-    };
-
-    const toggleWrite = (walletId: string) => {
-        setWalletPerms(prev =>
-            prev.map(w =>
-                w.walletId === walletId && w.enabled
-                    ? { ...w, write: !w.write }
-                    : w
-            )
-        );
+    const setPermission = (walletId: string, level: 'none' | 'read' | 'write') => {
+        setWalletPerms(prev => prev.map(wp => {
+            if (wp.walletId !== walletId) return wp;
+            if (level === 'none') return { ...wp, enabled: false, read: false, write: false };
+            if (level === 'read') return { ...wp, enabled: true, read: true, write: false };
+            return { ...wp, enabled: true, read: true, write: true };
+        }));
     };
 
     // ─── Render ──────────────────────────────────────────────────────────────
@@ -274,6 +270,27 @@ const OAuthConsent = () => {
                     <p className="text-sm text-white/60">
                         Missing required OAuth parameters. Please try connecting again from your MCP client.
                     </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (hasReplayError) {
+        return (
+            <div className="relative flex min-h-[100dvh] items-center justify-center bg-slate-900 px-4">
+                <LoginBackground />
+                <div className="relative z-10 w-full max-w-[480px] rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur-xl text-center">
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl text-rose-500 mb-4" />
+                    <h2 className="text-xl font-bold text-white mb-2">Richiesta Scaduta</h2>
+                    <p className="text-sm text-white/60 mb-6">
+                        Questa richiesta di autorizzazione è scaduta o è già stata utilizzata. Per favore, avvia una nuova richiesta dal client.
+                    </p>
+                    <button
+                        onClick={handleDeny}
+                        className="rounded-xl border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-white/10"
+                    >
+                        Torna all'applicazione
+                    </button>
                 </div>
             </div>
         );
@@ -364,52 +381,14 @@ const OAuthConsent = () => {
                             {!loadingTokens && tokens.length > 0 && (
                                 <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
                                     {tokens.map(token => (
-                                        <button
+                                        <TokenListItem
                                             key={token.id}
+                                            token={token}
+                                            walletsMap={walletsMap}
                                             onClick={() => handleSelectExistingToken(token)}
                                             disabled={authorizing}
-                                            className="w-full group rounded-xl border border-white/5 bg-white/[0.03] p-3.5 text-left transition-all hover:border-[#a78bfa]/30 hover:bg-[#a78bfa]/5 disabled:opacity-40 disabled:cursor-not-allowed"
-                                        >
-                                            <div className="flex items-center justify-between gap-3">
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#a78bfa]/10">
-                                                        <FontAwesomeIcon icon={faKey} className="text-xs text-[#a78bfa]" />
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-semibold text-white truncate">{token.name}</p>
-                                                        <p className="text-[10px] font-mono text-white/30 truncate">{token.tokenPrefix}...</p>
-                                                    </div>
-                                                </div>
-                                                <FontAwesomeIcon
-                                                    icon={faArrowRight}
-                                                    className="text-xs text-white/20 group-hover:text-[#a78bfa] transition-colors"
-                                                />
-                                            </div>
-
-                                            {/* Wallet badges */}
-                                            {token.walletPermissions && token.walletPermissions.length > 0 && (
-                                                <div className="mt-2.5 flex flex-wrap gap-1.5 pl-11">
-                                                    {token.walletPermissions.map(wp => {
-                                                        const wallet = walletsMap[wp.walletId];
-                                                        return (
-                                                            <span
-                                                                key={wp.walletId}
-                                                                className="inline-flex items-center gap-1 rounded-md bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold text-white/40"
-                                                            >
-                                                                {wallet?.icon && <span className="text-[10px]">{wallet.icon}</span>}
-                                                                {wp.permissions.includes('WRITE') && (
-                                                                    <FontAwesomeIcon icon={faPen} className="text-amber-400 text-[7px]" />
-                                                                )}
-                                                                {wp.permissions.includes('READ') && !wp.permissions.includes('WRITE') && (
-                                                                    <FontAwesomeIcon icon={faEye} className="text-cyan-400 text-[7px]" />
-                                                                )}
-                                                                {wallet?.name || wp.walletId.substring(0, 8) + '...'}
-                                                            </span>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-                                        </button>
+                                            theme="oauth"
+                                        />
                                     ))}
                                 </div>
                             )}
@@ -456,63 +435,11 @@ const OAuthConsent = () => {
                                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/10 border-t-[#a78bfa]" />
                                     </div>
                                 ) : (
-                                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
-                                        {walletPerms.map(wp => (
-                                            <div
-                                                key={wp.walletId}
-                                                className={`rounded-xl border p-3.5 transition-all cursor-pointer ${
-                                                    wp.enabled
-                                                        ? 'border-[#a78bfa]/40 bg-[#a78bfa]/5'
-                                                        : 'border-white/5 bg-white/[0.02] opacity-60 hover:opacity-80'
-                                                }`}
-                                                onClick={() => toggleWallet(wp.walletId)}
-                                            >
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <div
-                                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg"
-                                                            style={{ backgroundColor: (wp.walletColor || '#6b7280') + '20' }}
-                                                        >
-                                                            {wp.walletIcon || '💰'}
-                                                        </div>
-                                                        <span className="text-sm font-semibold text-white">{wp.walletName}</span>
-                                                    </div>
-
-                                                    <div className={`h-5 w-9 rounded-full transition-all ${
-                                                        wp.enabled ? 'bg-[#a78bfa]' : 'bg-white/10'
-                                                    }`}>
-                                                        <div className={`h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                                                            wp.enabled ? 'translate-x-4' : 'translate-x-0'
-                                                        }`} />
-                                                    </div>
-                                                </div>
-
-                                                {wp.enabled && (
-                                                    <div
-                                                        className="mt-3 flex items-center gap-4 pl-12"
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        <span className="inline-flex items-center gap-1.5 rounded-md bg-cyan-400/15 px-2.5 py-1 text-[11px] font-bold text-cyan-400">
-                                                            <FontAwesomeIcon icon={faEye} className="text-[10px]" />
-                                                            Read
-                                                        </span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => toggleWrite(wp.walletId)}
-                                                            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-bold transition-all ${
-                                                                wp.write
-                                                                    ? 'bg-amber-400/15 text-amber-400'
-                                                                    : 'bg-white/5 text-white/30 hover:text-white/50'
-                                                            }`}
-                                                        >
-                                                            <FontAwesomeIcon icon={faPen} className="text-[10px]" />
-                                                            Write
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <WalletPermissionSelector
+                                        walletPerms={walletPerms}
+                                        setPermission={setPermission}
+                                        theme="oauth"
+                                    />
                                 )}
                             </div>
 

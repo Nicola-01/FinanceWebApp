@@ -109,3 +109,33 @@ export interface SubscriptionRequestDTO {
     durationTimes?: number;
     durationUntil?: string;
 }
+
+export interface WalletPermissionDto {
+    walletId: string;
+    permissions: string[];
+}
+
+export interface PatToken {
+    id: string;
+    name: string;
+    tokenPrefix: string;
+    walletPermissions: WalletPermissionDto[];
+    createdAt: string;
+    expiresAt: string | null;
+    lastUsedAt: string | null;
+}
+
+export type ModalView = 'list' | 'create' | 'edit' | 'showToken';
+
+export interface WalletPermState {
+    walletId: string;
+    walletName: string;
+    walletIcon: string;
+    walletColor: string;
+    userRole?: string;
+    enabled: boolean;
+    read: boolean;
+    write: boolean;
+}
+
+export type ThemeVariant = 'default' | 'oauth';

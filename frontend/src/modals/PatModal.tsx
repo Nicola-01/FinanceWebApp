@@ -4,8 +4,7 @@ import { faCode, faPlus, faCheck, faShieldAlt, faPen } from '@fortawesome/free-s
 import { ModalDialog } from './ModalDialog';
 import { triggerToast } from '../components/ToastNotification';
 import api from '../api/axiosConfig';
-import type { Wallet } from '../utils/types';
-import type { PatToken, WalletPermState, ModalView } from './pat/patTypes';
+import type { Wallet, PatToken, WalletPermState, ModalView } from '../utils/types';
 import { PatListView } from './pat/PatListView';
 import { PatFormView } from './pat/PatFormView';
 import { PatShowTokenView } from './pat/PatShowTokenView';
@@ -90,6 +89,7 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
                         walletName: w.name,
                         walletIcon: w.icon,
                         walletColor: w.color,
+                        userRole: w.userRole,
                         enabled: !!existingPerm,
                         read: true,
                         write: existingPerm ? existingPerm.permissions.includes('WRITE') : false

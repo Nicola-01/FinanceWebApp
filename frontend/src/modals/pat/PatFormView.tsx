@@ -1,8 +1,6 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faPen, faBan } from '@fortawesome/free-solid-svg-icons';
-import { Icon } from '../../components/Icon';
-import type { WalletPermState } from './patTypes';
+import type { WalletPermState } from '../../utils/types';
+import { WalletPermissionSelector } from '../../components/pat/WalletPermissionSelector';
 
 interface PatFormViewProps {
     isEdit: boolean;
@@ -53,73 +51,11 @@ export const PatFormView: React.FC<PatFormViewProps> = ({
                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-app-border border-t-[#a78bfa]" />
                     </div>
                 ) : (
-                    <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
-                        {walletPerms.map(wp => (
-                            <div
-                                key={wp.walletId}
-                                className={`rounded-xl border p-3.5 transition-all ${
-                                    wp.enabled
-                                        ? 'border-[#a78bfa]/40 bg-[#a78bfa]/5'
-                                        : 'border-app-border bg-app-input/30'
-                                }`}
-                            >
-                                <div className="flex flex-col gap-3">
-                                    {/* Wallet info */}
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg"
-                                            style={{ backgroundColor: (wp.walletColor || '#6b7280') + '20' }}
-                                        >
-                                            <Icon icon={wp.walletIcon} color={wp.walletColor} />
-                                        </div>
-                                        <span className="text-sm font-semibold text-app-text">{wp.walletName}</span>
-                                    </div>
-
-                                    {/* Segmented Control */}
-                                    <div className="flex rounded-lg bg-app-bg p-1 border border-app-border">
-                                        <button
-                                            type="button"
-                                            onClick={() => setPermission(wp.walletId, 'none')}
-                                            className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
-                                                !wp.enabled
-                                                    ? 'bg-app-input text-[#ff4d4d] shadow-sm'
-                                                    : 'text-app-muted hover:text-app-text'
-                                            }`}
-                                        >
-                                            <FontAwesomeIcon icon={faBan} className="text-[10px]" />
-                                            Unauthorized
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setPermission(wp.walletId, 'read')}
-                                            className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
-                                                wp.enabled && !wp.write
-                                                    ? 'bg-app-input text-cyan-400 shadow-sm'
-                                                    : 'text-app-muted hover:text-app-text'
-                                            }`}
-                                        >
-                                            <FontAwesomeIcon icon={faEye} className="text-[10px]" />
-                                            Read
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setPermission(wp.walletId, 'write')}
-                                            className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
-                                                wp.enabled && wp.write
-                                                    ? 'bg-app-input text-amber-400 shadow-sm'
-                                                    : 'text-app-muted hover:text-app-text'
-                                            }`}
-                                        >
-                                            <FontAwesomeIcon icon={faPen} className="text-[10px]" />
-                                            Write
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                    <WalletPermissionSelector
+                        walletPerms={walletPerms}
+                        setPermission={setPermission}
+                        theme="default"
+                    />
                 )}
             </div>
 

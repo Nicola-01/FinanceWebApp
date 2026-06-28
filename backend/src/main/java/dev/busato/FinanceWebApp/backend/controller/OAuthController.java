@@ -199,13 +199,19 @@ public class OAuthController {
         }
 
         // Generate auth code and store it with the PKCE challenge + token
-        String authCode = authCodeStore.generateAndStore(
-                request.getCodeChallenge(),
-                request.getPlainToken(),
-                request.getClientId(),
-                request.getRedirectUri(),
-                request.getScope()
-        );
+        String authCode;
+        try {
+            authCode = authCodeStore.generateAndStore(
+                    request.getCodeChallenge(),
+                    request.getPlainToken(),
+                    request.getClientId(),
+                    request.getRedirectUri(),
+                    request.getScope()
+            );
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "replay_detected", "message", e.getMessage()));
+        }
 
         // Build the redirect URL with the code and state.
         // Il browser verrà mandato qui → il client MCP legge il code dall'URL.

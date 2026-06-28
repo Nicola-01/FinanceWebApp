@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type {Subscription, Tag, Transaction, Wallet} from '../../utils/types';
+import type { Subscription, Tag, Transaction, Wallet } from '../../utils/types';
 import type { DateRangeValue, PresetType } from '../../components/DataPicker/CustomDatePicker.tsx';
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ToastNotification";

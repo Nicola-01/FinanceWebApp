@@ -29,6 +29,7 @@ public class OAuthAuthCodeStore {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final ConcurrentHashMap<String, AuthCodeEntry> store = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Instant> usedChallenges = new ConcurrentHashMap<>();
 
     /**
      * Represents a stored authorization code entry.
@@ -55,6 +56,10 @@ public class OAuthAuthCodeStore {
             String redirectUri,
             String scope
     ) {
+        if (usedChallenges.containsKey(codeChallenge)) {
+            throw new IllegalStateException("code_challenge has already been used");
+        }
+
         String code = generateCode();
 
         AuthCodeEntry entry = AuthCodeEntry.builder()
@@ -67,6 +72,7 @@ public class OAuthAuthCodeStore {
                 .build();
 
         store.put(code, entry);
+        usedChallenges.put(codeChallenge, entry.getCreatedAt());
         return code;
     }
 
@@ -97,6 +103,7 @@ public class OAuthAuthCodeStore {
     public void cleanup() {
         Instant cutoff = Instant.now().minusSeconds(CODE_TTL_SECONDS);
         store.entrySet().removeIf(e -> e.getValue().getCreatedAt().isBefore(cutoff));
+        usedChallenges.entrySet().removeIf(e -> e.getValue().isBefore(cutoff));
     }
 
     /**

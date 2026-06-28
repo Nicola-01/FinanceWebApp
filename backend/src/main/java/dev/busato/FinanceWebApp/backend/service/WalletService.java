@@ -13,8 +13,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import dev.busato.FinanceWebApp.backend.mappers.WalletMapper;
 import dev.busato.FinanceWebApp.backend.security.WalletSecurity;
+import dev.busato.FinanceWebApp.backend.service.PatService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -31,10 +34,9 @@ public class WalletService {
     private final UserRepository userRepository;
     private final WalletMapper walletMapper;
     private final WalletSecurity walletSecurity;
-
+    private final PatService patService;
 
     @Transactional
-    @PreAuthorize("@walletSecurity.preventPatAccess()")
     public WalletResponse createWallet(WalletRequest request, UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
@@ -65,6 +67,12 @@ public class WalletService {
         access.setInvitedAt(LocalDate.now());
 
         walletAccessRepository.save(access);
+
+        // If a PAT created this wallet, auto-grant it READ and WRITE access
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getCredentials() instanceof PersonalAccessToken pat) {
+            patService.addWalletToToken(pat.getId(), wallet.getId());
+        }
 
         return walletMapper.mapToResponse(access);
 

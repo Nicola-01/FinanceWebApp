@@ -11,6 +11,7 @@ import dev.busato.FinanceWebApp.backend.model.PersonalAccessToken;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.repository.PersonalAccessTokenRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
+import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
@@ -49,6 +50,7 @@ public class PatService {
 
     private final PersonalAccessTokenRepository tokenRepository;
     private final UserRepository userRepository;
+    private final WalletAccessRepository walletAccessRepository;
     private final PatMapper patMapper;
 
     /**
@@ -65,6 +67,8 @@ public class PatService {
 
         if (request.getName().length() > 50)
             throw new IllegalArgumentException("Token name must be 50 characters or less");
+
+        validateTokenPermissions(userId, request.getWalletPermissions());
 
         // 1. Generate a cryptographically secure random token
         String plainToken = generateSecureToken();
@@ -146,6 +150,8 @@ public class PatService {
         PersonalAccessToken token = tokenRepository.findByIdAndUserId(tokenId, userId)
                 .orElseThrow(() -> new InvalidTokenException("Token not found or does not belong to user"));
 
+        validateTokenPermissions(userId, request.getWalletPermissions());
+
         token.setWalletPermissions(patMapper.serializeWalletPermissions(request.getWalletPermissions()));
         token = tokenRepository.save(token);
 
@@ -187,5 +193,42 @@ public class PatService {
             token.setLastUsedAt(LocalDateTime.now());
             tokenRepository.save(token);
         });
+    }
+
+    /**
+     * Validates that the user has sufficient permissions on the requested wallets.
+     */
+    private void validateTokenPermissions(UUID userId, List<dev.busato.FinanceWebApp.backend.dto.WalletPermission> permissions) {
+        if (permissions == null) return;
+        for (dev.busato.FinanceWebApp.backend.dto.WalletPermission wp : permissions) {
+            if (wp.permissions() != null && wp.permissions().contains("WRITE")) {
+                dev.busato.FinanceWebApp.backend.model.WalletAccess access = walletAccessRepository.findByUserIdAndWalletId(userId, wp.walletId())
+                        .orElseThrow(() -> new IllegalArgumentException("User does not have access to wallet " + wp.walletId()));
+                if (access.getRole() == dev.busato.FinanceWebApp.backend.model.WalletAccess.WalletRole.VIEWER) {
+                    throw new IllegalArgumentException("Cannot grant WRITE permission for a wallet where you are only a VIEWER.");
+                }
+            }
+        }
+    }
+
+    /**
+     * Automatically grants READ and WRITE permissions to a specific token for a newly created wallet.
+     */
+    @Transactional
+    @CacheEvict(value = "patTokens", allEntries = true)
+    public void addWalletToToken(UUID tokenId, UUID walletId) {
+        PersonalAccessToken token = tokenRepository.findById(tokenId).orElse(null);
+        if (token == null) return;
+
+        java.util.List<dev.busato.FinanceWebApp.backend.dto.WalletPermission> perms = new java.util.ArrayList<>(patMapper.parseWalletPermissions(token.getWalletPermissions()));
+        
+        // Remove existing permission for this wallet if any
+        perms.removeIf(p -> p.walletId().equals(walletId));
+        
+        // Add new permission with READ and WRITE
+        perms.add(new dev.busato.FinanceWebApp.backend.dto.WalletPermission(walletId, java.util.List.of("READ", "WRITE")));
+        
+        token.setWalletPermissions(patMapper.serializeWalletPermissions(perms));
+        tokenRepository.save(token);
     }
 }
