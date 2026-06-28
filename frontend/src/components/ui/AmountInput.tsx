@@ -266,7 +266,7 @@ export const AmountInput = ({
             <div className="flex h-18.75 items-center justify-center gap-2">
                 <input
                     ref={internalRef}
-                    className={`font-amount font-app-mono w-[280px] bg-transparent text-center outline-none transition-all duration-200 placeholder:text-app-muted/30 ${textSize} ${color || 'text-app-muted opacity-40'}`}
+                    className={`font-amount font-app-mono w-[280px] theme-bg-transparent text-center outline-none transition-all duration-200 placeholder:text-app-muted/30 ${textSize} ${color || 'text-app-muted opacity-40'}`}
                     type="text"
                     inputMode="decimal"
                     placeholder={placeholder || "0.00"}
@@ -318,7 +318,7 @@ export const AmountInput = ({
                             onMouseDown={(e) => e.preventDefault()}
                             onTouchStart={(e) => e.preventDefault()}
                             onClick={handleResolve}
-                            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 border border-emerald-400/20 text-white font-bold font-app-mono text-base rounded-lg h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                            className="bg-gradient-to-r theme-gradient-success-from theme-gradient-success-to hover:theme-gradient-success-from hover:theme-gradient-success-to border theme-border-success theme-text-default font-bold font-app-mono text-base rounded-lg h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                         >
                             =
                         </button>

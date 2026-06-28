@@ -60,7 +60,7 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({value, onChange}) =
                 <div className="h-[1px] flex-grow bg-app-surface"/>
                 <button
                     type="button"
-                    className="text-[0.7rem] font-medium uppercase tracking-wider text-app-muted transition-colors hover:text-white"
+                    className="text-[0.7rem] font-medium uppercase tracking-wider text-app-muted transition-colors hover:theme-text-default"
                     onClick={() => setShowWheel(!showWheel)}
                 >
                     {showWheel ? "Preset" : "Custom"}

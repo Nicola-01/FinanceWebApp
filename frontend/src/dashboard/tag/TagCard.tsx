@@ -114,7 +114,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                                 }}
                             />
                             <button onClick={handleSaveParentName} className="text-app-green hover:text-app-text transition-colors"><FontAwesomeIcon icon={faCheck} /></button>
-                            <button onClick={() => { setEditingParentName(false); setParentNameVal(parent.name); }} className="text-app-muted hover:text-red-500 transition-colors"><FontAwesomeIcon icon={faXmark} /></button>
+                            <button onClick={() => { setEditingParentName(false); setParentNameVal(parent.name); }} className="text-app-muted hover:theme-text-danger transition-colors"><FontAwesomeIcon icon={faXmark} /></button>
                         </div>
                     ) : (
                         <div className="flex items-center justify-between">
@@ -122,8 +122,8 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                             <div className="flex items-center gap-2 opacity-0 group-hover/header:opacity-100 transition-opacity">
                                 {wallet.userRole !== 'VIEWER' && (
                                     <>
-                                        <button onClick={() => { setParentNameVal(parent.name); setEditingParentName(true); }} className="text-app-muted/40 hover:text-amber-400 transition-colors"><FontAwesomeIcon icon={faPenToSquare} className="text-sm" /></button>
-                                        <button onClick={() => handleDeleteParent(parent.name)} className="text-app-muted/40 hover:text-red-500 transition-colors"><FontAwesomeIcon icon={faTrash} className="text-sm" /></button>
+                                        <button onClick={() => { setParentNameVal(parent.name); setEditingParentName(true); }} className="text-app-muted/40 hover:theme-text-warning transition-colors"><FontAwesomeIcon icon={faPenToSquare} className="text-sm" /></button>
+                                        <button onClick={() => handleDeleteParent(parent.name)} className="text-app-muted/40 hover:theme-text-danger transition-colors"><FontAwesomeIcon icon={faTrash} className="text-sm" /></button>
                                     </>
                                 )}
                             </div>
@@ -139,7 +139,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                         <FontAwesomeIcon icon={faArrowTurnUp} className="rotate-90 text-app-green text-xs shrink-0" />
                         <input
                             autoFocus
-                            className="bg-transparent text-sm font-medium text-app-text outline-none w-full placeholder-app-muted/30"
+                            className="theme-bg-transparent text-sm font-medium text-app-text outline-none w-full placeholder-app-muted/30"
                             placeholder="Name..." value={newChildName} onChange={(e) => setNewChildName(e.target.value)}
                             onKeyDown={e => {
                                 if (e.key === 'Enter') handleAddChild();
@@ -149,7 +149,7 @@ const TagCard: React.FC<TagCardProps> = ({ parent, children, onAddTag, onUpdateT
                         {loading ? <FontAwesomeIcon icon={faSpinner} spin className="text-app-green text-xs shrink-0" /> : (
                             <>
                                 <button onClick={handleAddChild} className="text-app-green hover:text-app-text transition-colors shrink-0"><FontAwesomeIcon icon={faCheck} /></button>
-                                <button onClick={() => setIsAddingChild(false)} className="text-app-muted hover:text-red-500 transition-colors shrink-0"><FontAwesomeIcon icon={faXmark} /></button>
+                                <button onClick={() => setIsAddingChild(false)} className="text-app-muted hover:theme-text-danger transition-colors shrink-0"><FontAwesomeIcon icon={faXmark} /></button>
                             </>
                         )}
                     </div>

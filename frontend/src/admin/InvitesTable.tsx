@@ -49,11 +49,11 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
 
     return (
         <div className="mb-10">
-            <h4 className="mb-[15px] flex items-center gap-2.5 text-[1.1rem] font-semibold text-white/80">
+            <h4 className="mb-[15px] flex items-center gap-2.5 text-[1.1rem] font-semibold theme-text-muted">
                 <FontAwesomeIcon icon={faEnvelopeOpenText} /> Pending Invitations
             </h4>
 
-            <div className="overflow-hidden rounded-xl border border-app-border bg-black/20">
+            <div className="overflow-hidden rounded-xl border border-app-border theme-bg-overlay-light">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-app-muted">
                         <thead className="bg-app-input text-xs uppercase text-app-muted">
@@ -65,7 +65,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                             <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
+                        <tbody className="divide-y theme-divide-subtle">
                         {invites.map((invite, index) => {
                             // Calcolo dello stato effettivo
                             const isExpiredTime = new Date(invite.expiresAt).getTime() - Date.now() <= 0;
@@ -83,11 +83,11 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                                     break;
                                 case 'EXPIRED':
                                 case 'REVOKED':
-                                    statusColorClasses = 'bg-red-500/10 text-red-500 border border-red-500/20';
+                                    statusColorClasses = 'theme-bg-danger-transparent theme-text-danger border theme-border-danger-light';
                                     break;
                                 case 'PENDING':
                                 default:
-                                    statusColorClasses = 'bg-amber-500/10 text-amber-500 border border-amber-500/20';
+                                    statusColorClasses = 'theme-bg-warning-transparent theme-text-warning border theme-border-warning';
                                     break;
                             }
 
@@ -98,8 +98,8 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
 
                             return (
                                 <tr key={index} className="transition-colors hover:bg-app-input">
-                                    <td className="px-6 py-4 font-medium text-white">{invite.email}</td>
-                                    <td className="px-6 py-4">{invite.note || <span className="text-white/20 italic">No note</span>}</td>
+                                    <td className="px-6 py-4 font-medium theme-text-default">{invite.email}</td>
+                                    <td className="px-6 py-4">{invite.note || <span className="theme-text-subtle italic">No note</span>}</td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${statusColorClasses}`}>
                                             {displayStatus}
@@ -113,7 +113,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                                                 {getTimeRemaining(invite.expiresAt)}
                                             </>
                                         ) : (
-                                            <span className="text-white/30 italic font-sans text-xs">N/A</span>
+                                            <span className="theme-text-subtle italic font-sans text-xs">N/A</span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
@@ -121,7 +121,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                                         {!isRevoked && !isExpired && !isAccepted && (
                                             <button
                                                 onClick={() => handleCopyUrl(invite.url)}
-                                                className="rounded-lg bg-app-input p-2 text-app-muted transition-colors hover:bg-app-surface hover:text-white"
+                                                className="rounded-lg bg-app-input p-2 text-app-muted transition-colors hover:bg-app-surface hover:theme-text-default"
                                                 title="Copy Invite Link"
                                             >
                                                 <FontAwesomeIcon icon={faCopy} />
@@ -131,7 +131,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                                         {isPending && (
                                             <button
                                                 onClick={() => onRevoke(invite.email)}
-                                                className="ml-2 rounded-lg bg-red-500/10 p-2 text-red-500 transition-colors hover:bg-red-500 hover:text-white"
+                                                className="ml-2 rounded-lg theme-bg-danger-transparent p-2 theme-text-danger transition-colors hover:theme-bg-danger hover:theme-text-default"
                                                 title="Revoke Invitation"
                                             >
                                                 <FontAwesomeIcon icon={faTrash} />

@@ -46,7 +46,7 @@ export const AboutAppModal = forwardRef<AboutAppModalHandle>((_props, ref) => {
                 </div>
                 
                 <h3 className="mb-1 text-xl font-bold tracking-wide text-app-text">
-                    Finance<span className="animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">App</span>
+                    Finance<span className="animate-gradient-x bg-gradient-to-r theme-gradient-primary-from theme-gradient-brand-via theme-gradient-brand-to bg-clip-text theme-text-transparent">App</span>
                 </h3>
                 
                 <p className="mb-6 text-sm text-app-muted">Advanced financial dashboard tracking.</p>

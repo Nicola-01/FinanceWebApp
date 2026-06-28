@@ -68,7 +68,7 @@ export const LogoutModal = forwardRef<LogoutModalHandle>(
                                         onChange={(e) => setLogoutAll(e.target.checked)}
                                     />
                                     <svg
-                                        className="pointer-events-none absolute left-[3px] top-[3px] h-[14px] w-[14px] text-white opacity-0 transition-opacity peer-checked:opacity-100"
+                                        className="pointer-events-none absolute left-[3px] top-[3px] h-[14px] w-[14px] theme-text-default opacity-0 transition-opacity peer-checked:opacity-100"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
@@ -88,7 +88,7 @@ export const LogoutModal = forwardRef<LogoutModalHandle>(
                                 Cancel
                             </button>
                             <button
-                                className="rounded-lg bg-[#e74c3c] px-6 py-3 font-bold text-white transition-all duration-300 hover:bg-[#c0392b] disabled:cursor-not-allowed disabled:bg-[#e74c3c]/50"
+                                className="rounded-lg bg-[#e74c3c] px-6 py-3 font-bold theme-text-default transition-all duration-300 hover:bg-[#c0392b] disabled:cursor-not-allowed disabled:bg-[#e74c3c]/50"
                                 onClick={handleConfirm}
                                 disabled={isLoggingOut}
                             >

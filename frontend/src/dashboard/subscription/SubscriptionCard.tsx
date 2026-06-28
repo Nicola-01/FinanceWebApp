@@ -49,8 +49,8 @@ const getDaysLeftColor = (days: number, isIncome: boolean) => {
     if (days < 0) return "text-app-muted opacity-60";
 
     if (!isIncome) {
-        if (days >= 4) return "text-yellow-400";
-        if (days >= 2) return "text-orange-400";
+        if (days >= 4) return "theme-text-warning";
+        if (days >= 2) return "theme-text-warning";
         return "text-app-red";
     } else {
         if (days >= 4) return "text-app-green/40";
@@ -82,7 +82,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
     return (
         <div
             onClick={onClick}
-            className="flex items-center justify-between p-4 bg-app-input cursor-pointer transition-all hover:bg-app-surface rounded-2xl border border-transparent hover:border-app-border"
+            className="flex items-center justify-between p-4 bg-app-input cursor-pointer transition-all hover:bg-app-surface rounded-2xl border theme-border-transparent hover:border-app-border"
         >
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 shrink max-w-[65%] lg:max-w-[75%]">
                 <div
@@ -103,7 +103,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
                         {/* Mostriamo un badge testuale per gli abbonamenti non attivi */}
                         {subscription.status === 'PAUSED' && (
                             <span
-                                className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-wider border border-amber-500/20">Paused</span>
+                                className="px-2 py-0.5 rounded-md theme-bg-warning-transparent theme-text-warning text-[10px] font-bold uppercase tracking-wider border theme-border-warning">Paused</span>
                         )}
                         {subscription.status === 'COMPLETED' && (
                             <span

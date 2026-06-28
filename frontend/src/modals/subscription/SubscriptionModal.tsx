@@ -168,7 +168,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                     if (canSave && !loading) await handleSave();
                 },
                 color: canSave ? wallet.color : undefined,
-                hoverColor: 'hover:text-white',
+                hoverColor: 'hover:theme-text-default',
                 disabled: !canSave || loading
             }
         ];
@@ -227,25 +227,25 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
 
                     {/* 3. SCHEDULING RULES (Frequenza e Durata) */}
                     <div className="bg-app-input/50 border border-app-border rounded-xl p-4 flex flex-col gap-4">
-                        <h4 className="text-sm font-bold text-white">Scheduling Rules</h4>
+                        <h4 className="text-sm font-bold theme-text-default">Scheduling Rules</h4>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
                                     Repeat Every
                                 </label>
-                                <div className="flex bg-app-surface border border-app-border rounded-lg overflow-hidden focus-within:border-white/30 transition-colors">
+                                <div className="flex bg-app-surface border border-app-border rounded-lg overflow-hidden focus-within:theme-border-focus transition-colors">
                                     <input
                                         type="number"
                                         min="1"
                                         value={frequencyInterval}
                                         onChange={e => setFrequencyInterval(Number(e.target.value) || 1)}
-                                        className="w-16 bg-transparent px-3 py-2 text-white focus:outline-none text-center border-r border-app-border"
+                                        className="w-16 theme-bg-transparent px-3 py-2 theme-text-default focus:outline-none text-center border-r border-app-border"
                                     />
                                     <select
                                         value={frequencyType}
                                         onChange={e => setFrequencyType(e.target.value as any)}
-                                        className="flex-1 bg-transparent px-3 py-2 text-sm font-semibold text-white focus:outline-none"
+                                        className="flex-1 theme-bg-transparent px-3 py-2 text-sm font-semibold theme-text-default focus:outline-none"
                                     >
                                         <option value="DAILY">Days</option>
                                         <option value="WEEKLY">Weeks</option>
@@ -262,7 +262,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                                 <select
                                     value={duration}
                                     onChange={e => setDuration(e.target.value as any)}
-                                    className="w-full bg-app-surface border border-app-border rounded-lg px-3 py-2 text-sm font-semibold text-white focus:outline-none"
+                                    className="w-full bg-app-surface border border-app-border rounded-lg px-3 py-2 text-sm font-semibold theme-text-default focus:outline-none"
                                 >
                                     <option value="FOREVER">Never (Forever)</option>
                                     <option value="TIMES">After specific times</option>
@@ -282,7 +282,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                                     min="1"
                                     value={durationTimes}
                                     onChange={e => setDurationTimes(Number(e.target.value) || 1)}
-                                    className="w-full bg-app-surface border border-app-border rounded-lg px-4 py-2 text-white focus:outline-none"
+                                    className="w-full bg-app-surface border border-app-border rounded-lg px-4 py-2 theme-text-default focus:outline-none"
                                 />
                             </div>
                         )}
@@ -311,7 +311,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                             <select
                                 value={status}
                                 onChange={e => setStatus(e.target.value as any)}
-                                className="w-full bg-app-surface border border-app-border rounded-lg px-3 py-2 text-sm font-semibold text-white focus:outline-none"
+                                className="w-full bg-app-surface border border-app-border rounded-lg px-3 py-2 text-sm font-semibold theme-text-default focus:outline-none"
                             >
                                 <option value="ACTIVE">Active</option>
                                 <option value="PAUSED">Paused</option>

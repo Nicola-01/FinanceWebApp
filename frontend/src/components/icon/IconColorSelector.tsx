@@ -25,14 +25,14 @@ export const IconColorSelector = ({
             <div className="flex w-full rounded-lg bg-app-input p-1">
                 <button
                     type="button"
-                    className={`flex-1 rounded-md py-1.5 text-xs font-bold tracking-wider uppercase transition-all ${activeTab === 'icons' ? 'bg-app-surface text-white shadow-sm' : 'text-app-muted hover:text-white'}`}
+                    className={`flex-1 rounded-md py-1.5 text-xs font-bold tracking-wider uppercase transition-all ${activeTab === 'icons' ? 'bg-app-surface theme-text-default shadow-sm' : 'text-app-muted hover:theme-text-default'}`}
                     onClick={() => setActiveTab('icons')}
                 >
                     Icons
                 </button>
                 <button
                     type="button"
-                    className={`flex-1 rounded-md py-1.5 text-xs font-bold tracking-wider uppercase transition-all ${activeTab === 'colors' ? 'bg-app-surface text-white shadow-sm' : 'text-app-muted hover:text-white'}`}
+                    className={`flex-1 rounded-md py-1.5 text-xs font-bold tracking-wider uppercase transition-all ${activeTab === 'colors' ? 'bg-app-surface theme-text-default shadow-sm' : 'text-app-muted hover:theme-text-default'}`}
                     onClick={() => setActiveTab('colors')}
                 >
                     Colors

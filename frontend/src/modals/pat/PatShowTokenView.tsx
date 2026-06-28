@@ -13,14 +13,14 @@ export const PatShowTokenView: React.FC<PatShowTokenViewProps> = ({ generatedTok
     return (
         <div className="space-y-5">
             {/* Warning banner */}
-            <div className="flex items-start gap-3 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4">
+            <div className="flex items-start gap-3 rounded-xl border theme-border-warning theme-bg-warning-transparent p-4">
                 <FontAwesomeIcon
                     icon={faExclamationTriangle}
-                    className="mt-0.5 shrink-0 text-amber-400"
+                    className="mt-0.5 shrink-0 theme-text-warning"
                 />
                 <div>
-                    <p className="text-sm font-bold text-amber-300">Copy your token now!</p>
-                    <p className="mt-0.5 text-xs text-amber-300/70">
+                    <p className="text-sm font-bold theme-text-warning-light">Copy your token now!</p>
+                    <p className="mt-0.5 text-xs theme-text-warning-muted">
                         This token will only be shown once. You won't be able to see it again after closing this dialog.
                     </p>
                 </div>

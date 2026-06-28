@@ -108,7 +108,7 @@ export const LoginForm: React.FC = () => {
             {/* Username Input */}
             <div className="relative mb-5 sm:mb-8 w-full">
                 <div
-                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'border-red-500' : 'border-app-border focus-within:border-app-text'}`}>
+                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'theme-border-danger' : 'border-app-border focus-within:border-app-text'}`}>
                     <span className="absolute left-0 text-lg text-app-text">
                         <FontAwesomeIcon icon={faUser} />
                     </span>
@@ -116,13 +116,13 @@ export const LoginForm: React.FC = () => {
                         ref={username}
                         type="text"
                         placeholder="Username"
-                        className="w-full border-none bg-transparent py-2 pl-8 text-app-text placeholder-app-muted outline-none"
+                        className="w-full border-none theme-bg-transparent py-2 pl-8 text-app-text placeholder-app-muted outline-none"
                     />
                 </div>
                 {/* Username Error Tooltip */}
                 {require.username && (
                     <span
-                        className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm text-red-500">
+                        className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm theme-text-danger">
                         <FontAwesomeIcon icon={faTriangleExclamation} /> {require.username}
                     </span>
                 )}
@@ -131,7 +131,7 @@ export const LoginForm: React.FC = () => {
             {/* Password Input */}
             <div className="relative mb-5 sm:mb-8 w-full">
                 <div
-                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'border-red-500' : 'border-app-border focus-within:border-app-text'}`}>
+                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'theme-border-danger' : 'border-app-border focus-within:border-app-text'}`}>
                     <span className="absolute left-0 text-lg text-app-text">
                         <FontAwesomeIcon icon={faLock} />
                     </span>
@@ -139,7 +139,7 @@ export const LoginForm: React.FC = () => {
                         ref={password}
                         type={showPassword ? "text" : "password"}
                         placeholder="Password"
-                        className="w-full border-none bg-transparent py-2 pl-8 pr-8 text-app-text placeholder-app-muted outline-none"
+                        className="w-full border-none theme-bg-transparent py-2 pl-8 pr-8 text-app-text placeholder-app-muted outline-none"
                     />
                     {/* Toggle Visibility Button */}
                     <span
@@ -152,7 +152,7 @@ export const LoginForm: React.FC = () => {
                 {/* Password Error Tooltip */}
                 {require.password && (
                     <span
-                        className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm text-red-500">
+                        className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm theme-text-danger">
                         <FontAwesomeIcon icon={faTriangleExclamation} /> {require.password}
                     </span>
                 )}
@@ -175,7 +175,7 @@ export const LoginForm: React.FC = () => {
                     </div>
                     <span className="ml-2 font-light transition-colors group-hover:text-app-text">Remember me</span>
                 </label>
-                <button type="button" onClick={() => navigate('/forgot-password')} className="font-light italic transition-colors hover:text-app-text hover:underline bg-transparent border-none text-app-text cursor-pointer text-sm p-0">
+                <button type="button" onClick={() => navigate('/forgot-password')} className="font-light italic transition-colors hover:text-app-text hover:underline theme-bg-transparent border-none text-app-text cursor-pointer text-sm p-0">
                     Forgot Password?
                 </button>
             </div>
@@ -184,7 +184,7 @@ export const LoginForm: React.FC = () => {
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
+                className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider theme-text-default shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
             >
                 {loading ? 'LOADING...' : 'LOGIN'}
             </button>

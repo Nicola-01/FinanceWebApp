@@ -24,6 +24,99 @@
   --app-blue: 59 130 246;      /* blue-500 */
   --app-teal: 20 184 166;      /* teal-500 */
   --app-sky: 14 165 233;       /* sky-500 */
+
+  /* =====================
+     Backgrounds
+     ===================== */
+  --color-bg-backdrop-dark: rgba(0, 0, 0, 0.6);
+  --color-bg-overlay-light: rgba(0, 0, 0, 0.2);
+  --color-bg-brand-light: rgba(168, 85, 247, 0.2);
+  --color-bg-brand-transparent: rgba(192, 132, 252, 0.05);
+  --color-bg-brand: #ec4899;
+  --color-bg-card-hover: rgba(255, 255, 255, 0.2);
+  --color-bg-card: rgba(255, 255, 255, 0.2);
+  --color-bg-danger-hover: #ef4444;
+  --color-bg-danger-light: rgba(239, 68, 68, 0.15);
+  --color-bg-danger-transparent: rgba(239, 68, 68, 0.1);
+  --color-bg-danger: #f87171;
+  --color-bg-inverse: #ffffff;
+  --color-bg-inverse-muted: #f9fafb;
+  --color-bg-inverse-subtle: #e5e7eb;
+  --color-bg-neutral-dark: #181818;
+  --color-bg-neutral: #374151;
+  --color-bg-overlay-dark: rgba(0, 0, 0, 0.4);
+  --color-bg-overlay: rgba(0, 0, 0, 0.3);
+  --color-bg-page-transparent: rgba(255, 0, 255, 0.6);
+  --color-bg-page: #0f172a;
+  --color-bg-primary-light: rgba(59, 130, 246, 0.2);
+  --color-bg-primary-transparent: rgba(22, 78, 99, 0.1);
+  --color-bg-primary: #06b6d4;
+  --color-bg-success-light: rgba(34, 197, 94, 0.2);
+  --color-bg-success-transparent: rgba(34, 197, 94, 0.15);
+  --color-bg-success: #34d399;
+  --color-bg-transparent: transparent;
+  --color-bg-warning-light: rgba(245, 158, 11, 0.2);
+  --color-bg-warning-transparent: rgba(245, 158, 11, 0.1);
+
+  /* =====================
+     Text
+     ===================== */
+  --color-text-brand: #f472b6;
+  --color-text-danger-muted: rgba(248, 113, 113, 0.6);
+  --color-text-danger: #f43f5e;
+  --color-text-default: rgba(255, 255, 255, 0.9);
+  --color-text-inverse: #1f2937;
+  --color-text-muted: #9ca3af;
+  --color-text-primary-light: #67e8f9;
+  --color-text-primary: #60a5fa;
+  --color-text-subtle: #374151;
+  --color-text-success: #4ade80;
+  --color-text-transparent: transparent;
+  --color-text-warning-light: #fdba74;
+  --color-text-warning-muted: rgba(245, 158, 11, 0.5);
+  --color-text-warning: #f59e0b;
+
+  /* =====================
+     Borders
+     ===================== */
+  --color-border-active: rgba(255, 255, 255, 0.3);
+  --color-border-brand: rgba(192, 132, 252, 0.4);
+  --color-border-danger-light: rgba(239, 68, 68, 0.4);
+  --color-border-danger: #ef4444;
+  --color-border-default: rgba(255, 255, 255, 0.2);
+  --color-border-focus: rgba(255, 255, 255, 0.3);
+  --color-border-inverse: #f3f4f6;
+  --color-border-neutral: #374151;
+  --color-border-primary: rgba(6, 182, 212, 0.3);
+  --color-border-success-strong: rgba(34, 197, 94, 0.4);
+  --color-border-success: rgba(52, 211, 153, 0.2);
+  --color-border-transparent: transparent;
+  --color-border-warning: rgba(251, 191, 36, 0.3);
+
+  /* =====================
+     Gradients & Divides
+     ===================== */
+  --color-gradient-brand-from-light: rgba(168, 85, 247, 0.2);
+  --color-gradient-brand-from-transparent: rgba(236, 72, 153, 0.1);
+  --color-gradient-brand-to-light: rgba(236, 72, 153, 0.3);
+  --color-gradient-brand-to-transparent: rgba(168, 85, 247, 0.1);
+  --color-gradient-brand-to: #ec4899;
+  --color-gradient-brand-via-light: rgba(168, 85, 247, 0.3);
+  --color-gradient-brand-via: #a855f7;
+  --color-gradient-overlay-from: rgba(255, 255, 255, 0.05);
+  --color-gradient-overlay-to: rgba(255, 255, 255, 0.0);
+  --color-gradient-overlay-via: #ffffff;
+  --color-gradient-primary-from-light: rgba(6, 182, 212, 0.3);
+  --color-gradient-primary-from-transparent: rgba(22, 78, 99, 0.3);
+  --color-gradient-primary-from: #22d3ee;
+  --color-gradient-primary-to-transparent: rgba(59, 130, 246, 0.1);
+  --color-gradient-success-from: #10b981;
+  --color-gradient-success-to: #0d9488;
+  --color-gradient-transparent-to: transparent;
+  --color-gradient-transparent-via: transparent;
+  
+  --color-divide-default: rgba(255, 255, 255, 0.1);
+  --color-divide-subtle: rgba(255, 255, 255, 0.05);
 }
 
 .dark {
@@ -53,3 +146,106 @@
   --app-teal: 20 184 166;      /* teal-500 */
   --app-sky: 14 165 233;       /* sky-500 */
 }
+/* =====================
+   Custom Utilities
+   ===================== */
+.backdrop\:theme-bg-backdrop-dark::backdrop { background-color: var(--color-bg-backdrop-dark); }
+.backdrop\:theme-bg-overlay-light::backdrop { background-color: var(--color-bg-overlay-light); }
+.dark .dark\:backdrop\:theme-bg-backdrop-dark::backdrop { background-color: var(--color-bg-backdrop-dark); }
+.disabled\:hover\:theme-bg-danger-transparent:hover:disabled { background-color: var(--color-bg-danger-transparent); }
+.disabled\:hover\:theme-text-danger:hover:disabled { color: var(--color-text-danger); }
+.disabled\:theme-text-subtle:disabled { color: var(--color-text-subtle); }
+.focus-within\:theme-border-active:focus-within { border-color: var(--color-border-active); }
+.focus-within\:theme-border-focus:focus-within { border-color: var(--color-border-focus); }
+.focus\:theme-border-focus:focus { border-color: var(--color-border-focus); }
+.group:focus-within .group-focus-within\:theme-text-default { color: var(--color-text-default); }
+.group:hover .group-hover\:theme-bg-danger-light { background-color: var(--color-bg-danger-light); }
+.group:hover .group-hover\:theme-text-default { color: var(--color-text-default); }
+.hover\:theme-bg-brand-transparent:hover { background-color: var(--color-bg-brand-transparent); }
+.hover\:theme-bg-danger-light:hover { background-color: var(--color-bg-danger-light); }
+.hover\:theme-bg-danger-transparent:hover { background-color: var(--color-bg-danger-transparent); }
+.hover\:theme-bg-danger:hover { background-color: var(--color-bg-danger); }
+.hover\:theme-bg-inverse-muted:hover { background-color: var(--color-bg-inverse-muted); }
+.hover\:theme-bg-neutral-dark:hover { background-color: var(--color-bg-neutral-dark); }
+.hover\:theme-bg-neutral:hover { background-color: var(--color-bg-neutral); }
+.hover\:theme-bg-warning-light:hover { background-color: var(--color-bg-warning-light); }
+.hover\:theme-border-brand:hover { border-color: var(--color-border-brand); }
+.hover\:theme-border-default:hover { border-color: var(--color-border-default); }
+.hover\:theme-border-focus:hover { border-color: var(--color-border-focus); }
+.hover\:theme-gradient-success-from:hover { --tw-gradient-from: var(--color-gradient-success-from); --tw-gradient-stops: var(--color-gradient-success-from), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.hover\:theme-gradient-success-to:hover { --tw-gradient-to: var(--color-gradient-success-to); }
+.hover\:theme-text-danger:hover { color: var(--color-text-danger); }
+.hover\:theme-text-default:hover { color: var(--color-text-default); }
+.hover\:theme-text-inverse:hover { color: var(--color-text-inverse); }
+.hover\:theme-text-primary-light:hover { color: var(--color-text-primary-light); }
+.hover\:theme-text-primary:hover { color: var(--color-text-primary); }
+.hover\:theme-text-warning:hover { color: var(--color-text-warning); }
+.theme-bg-brand { background-color: var(--color-bg-brand); }
+.theme-bg-brand-light { background-color: var(--color-bg-brand-light); }
+.theme-bg-danger { background-color: var(--color-bg-danger); }
+.theme-bg-danger-light { background-color: var(--color-bg-danger-light); }
+.theme-bg-danger-transparent { background-color: var(--color-bg-danger-transparent); }
+.theme-bg-inverse { background-color: var(--color-bg-inverse); }
+.theme-bg-inverse-muted { background-color: var(--color-bg-inverse-muted); }
+.theme-bg-inverse-subtle { background-color: var(--color-bg-inverse-subtle); }
+.theme-bg-neutral { background-color: var(--color-bg-neutral); }
+.theme-bg-neutral-dark { background-color: var(--color-bg-neutral-dark); }
+.theme-bg-overlay { background-color: var(--color-bg-overlay); }
+.theme-bg-overlay-dark { background-color: var(--color-bg-overlay-dark); }
+.theme-bg-overlay-light { background-color: var(--color-bg-overlay-light); }
+.theme-bg-page { background-color: var(--color-bg-page); }
+.theme-bg-page-transparent { background-color: var(--color-bg-page-transparent); }
+.theme-bg-primary { background-color: var(--color-bg-primary); }
+.theme-bg-primary-light { background-color: var(--color-bg-primary-light); }
+.theme-bg-primary-transparent { background-color: var(--color-bg-primary-transparent); }
+.theme-bg-success { background-color: var(--color-bg-success); }
+.theme-bg-success-light { background-color: var(--color-bg-success-light); }
+.theme-bg-success-transparent { background-color: var(--color-bg-success-transparent); }
+.theme-bg-transparent { background-color: var(--color-bg-transparent); }
+.theme-bg-warning-light { background-color: var(--color-bg-warning-light); }
+.theme-bg-warning-transparent { background-color: var(--color-bg-warning-transparent); }
+.theme-border-danger { border-color: var(--color-border-danger); }
+.theme-border-danger-light { border-color: var(--color-border-danger-light); }
+.theme-border-default { border-color: var(--color-border-default); }
+.theme-border-focus { border-color: var(--color-border-focus); }
+.theme-border-inverse { border-color: var(--color-border-inverse); }
+.theme-border-neutral { border-color: var(--color-border-neutral); }
+.theme-border-primary { border-color: var(--color-border-primary); }
+.theme-border-success { border-color: var(--color-border-success); }
+.theme-border-success-strong { border-color: var(--color-border-success-strong); }
+.theme-border-transparent { border-color: var(--color-border-transparent); }
+.theme-border-warning { border-color: var(--color-border-warning); }
+.theme-divide-default > :not([hidden]) ~ :not([hidden]) { border-color: var(--color-divide-default); }
+.theme-divide-subtle > :not([hidden]) ~ :not([hidden]) { border-color: var(--color-divide-subtle); }
+.theme-gradient-brand-from-light { --tw-gradient-from: var(--color-gradient-brand-from-light); --tw-gradient-stops: var(--color-gradient-brand-from-light), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-brand-from-transparent { --tw-gradient-from: var(--color-gradient-brand-from-transparent); --tw-gradient-stops: var(--color-gradient-brand-from-transparent), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-brand-to { --tw-gradient-to: var(--color-gradient-brand-to); }
+.theme-gradient-brand-to-light { --tw-gradient-to: var(--color-gradient-brand-to-light); }
+.theme-gradient-brand-to-transparent { --tw-gradient-to: var(--color-gradient-brand-to-transparent); }
+.theme-gradient-brand-via { --tw-gradient-stops: var(--tw-gradient-from), var(--color-gradient-brand-via), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-brand-via-light { --tw-gradient-stops: var(--tw-gradient-from), var(--color-gradient-brand-via-light), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-overlay-from { --tw-gradient-from: var(--color-gradient-overlay-from); --tw-gradient-stops: var(--color-gradient-overlay-from), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-overlay-to { --tw-gradient-to: var(--color-gradient-overlay-to); }
+.theme-gradient-overlay-via { --tw-gradient-stops: var(--tw-gradient-from), var(--color-gradient-overlay-via), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-primary-from { --tw-gradient-from: var(--color-gradient-primary-from); --tw-gradient-stops: var(--color-gradient-primary-from), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-primary-from-light { --tw-gradient-from: var(--color-gradient-primary-from-light); --tw-gradient-stops: var(--color-gradient-primary-from-light), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-primary-from-transparent { --tw-gradient-from: var(--color-gradient-primary-from-transparent); --tw-gradient-stops: var(--color-gradient-primary-from-transparent), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-primary-to-transparent { --tw-gradient-to: var(--color-gradient-primary-to-transparent); }
+.theme-gradient-success-from { --tw-gradient-from: var(--color-gradient-success-from); --tw-gradient-stops: var(--color-gradient-success-from), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-gradient-success-to { --tw-gradient-to: var(--color-gradient-success-to); }
+.theme-gradient-transparent-to { --tw-gradient-to: var(--color-gradient-transparent-to); }
+.theme-gradient-transparent-via { --tw-gradient-stops: var(--tw-gradient-from), var(--color-gradient-transparent-via), var(--tw-gradient-to, rgba(255, 255, 255, 0)); }
+.theme-text-brand { color: var(--color-text-brand); }
+.theme-text-danger { color: var(--color-text-danger); }
+.theme-text-danger-muted { color: var(--color-text-danger-muted); }
+.theme-text-default { color: var(--color-text-default); }
+.theme-text-inverse { color: var(--color-text-inverse); }
+.theme-text-muted { color: var(--color-text-muted); }
+.theme-text-primary { color: var(--color-text-primary); }
+.theme-text-primary-light { color: var(--color-text-primary-light); }
+.theme-text-subtle { color: var(--color-text-subtle); }
+.theme-text-success { color: var(--color-text-success); }
+.theme-text-transparent { color: var(--color-text-transparent); }
+.theme-text-warning { color: var(--color-text-warning); }
+.theme-text-warning-light { color: var(--color-text-warning-light); }
+.theme-text-warning-muted { color: var(--color-text-warning-muted); }

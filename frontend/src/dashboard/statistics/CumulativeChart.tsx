@@ -145,15 +145,15 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({ transactions, 
                 {/* Legend */}
                 <div className="flex items-center justify-center gap-6 mt-3">
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-1 rounded-full bg-emerald-400" />
+                        <div className="w-3 h-1 rounded-full theme-bg-success" />
                         <span className="text-xs text-app-muted">Cum. Income</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-1 rounded-full bg-red-400" />
+                        <div className="w-3 h-1 rounded-full theme-bg-danger" />
                         <span className="text-xs text-app-muted">Cum. Expenses</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-1 rounded-full bg-blue-400" />
+                        <div className="w-3 h-1 rounded-full theme-bg-primary" />
                         <span className="text-xs text-app-muted">Net Balance</span>
                     </div>
                 </div>

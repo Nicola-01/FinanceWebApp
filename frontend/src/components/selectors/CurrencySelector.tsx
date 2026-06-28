@@ -86,15 +86,15 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onCha
 
             <div
                 ref={triggerRef}
-                className={`flex h-[48px] w-full cursor-pointer items-center justify-between rounded-xl border bg-app-input px-4 outline-none transition-all ${isOpen ? 'border-app-green' : 'border-app-border hover:border-white/30'}`}
+                className={`flex h-[48px] w-full cursor-pointer items-center justify-between rounded-xl border bg-app-input px-4 outline-none transition-all ${isOpen ? 'border-app-green' : 'border-app-border hover:theme-border-focus'}`}
                 onClick={toggleDropdown}
             >
                 {/* Nuova formattazione del testo identica agli elementi della tendina */}
-                <div className="flex items-center flex-1 truncate text-sm text-white">
+                <div className="flex items-center flex-1 truncate text-sm theme-text-default">
                     {meta ? (
                         <>
-                            <span className="inline-block w-[30px] font-bold text-white">{meta.symbol}</span>
-                            <span className="truncate text-white/90">{meta.name}</span>
+                            <span className="inline-block w-[30px] font-bold theme-text-default">{meta.symbol}</span>
+                            <span className="truncate theme-text-default">{meta.name}</span>
                             <span className="ml-1 text-app-muted">({safeCode})</span>
                         </>
                     ) : (
@@ -112,7 +112,7 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onCha
                 <div
                     ref={popoverRef}
                     popover="manual"
-                    className="fixed inset-0 m-0 h-screen w-screen border-none bg-transparent p-0 z-[99999]"
+                    className="fixed inset-0 m-0 h-screen w-screen border-none theme-bg-transparent p-0 z-[99999]"
                 >
                     {/* Sfondo invisibile per chiudere cliccando fuori */}
                     <div className="absolute inset-0" onClick={(e) => {
@@ -125,11 +125,11 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onCha
                         className="absolute z-10 rounded-xl border border-app-border bg-app-card py-2 shadow-2xl animate-[fadeIn_0.2s_ease-out]"
                     >
                         {/* Aggiunta la classe vitale 'currency-scroll-container' */}
-                        <div className="currency-scroll-container max-h-[200px] overflow-y-auto pointer-events-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
+                        <div className="currency-scroll-container max-h-[200px] overflow-y-auto pointer-events-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:theme-bg-transparent [&::-webkit-scrollbar]:w-1.5">
                             {availableCurrencies.map(([code, data]: [string, any]) => (
                                 <div
                                     key={code}
-                                    className={`cursor-pointer px-4 py-2.5 text-sm transition-colors hover:bg-app-surface ${safeCode === code ? 'border-l-2 border-app-green bg-app-green/10 text-app-green' : 'border-l-2 border-transparent text-white/80'}`}
+                                    className={`cursor-pointer px-4 py-2.5 text-sm transition-colors hover:bg-app-surface ${safeCode === code ? 'border-l-2 border-app-green bg-app-green/10 text-app-green' : 'border-l-2 theme-border-transparent theme-text-muted'}`}
                                     // IL FIX: onMouseDown è istantaneo, a differenza di onClick che aspetta il rilascio del mouse
                                     onMouseDown={(e) => {
                                         e.preventDefault();

@@ -131,7 +131,7 @@ export const TagsTab: React.FC = () => {
 
                                         <input
                                             autoFocus
-                                            className="flex-1 bg-transparent text-left font-bold tracking-wide text-app-text outline-none placeholder-app-muted/30"
+                                            className="flex-1 theme-bg-transparent text-left font-bold tracking-wide text-app-text outline-none placeholder-app-muted/30"
                                             placeholder="Category Name..."
                                             value={newTag.name}
                                             onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
@@ -151,7 +151,7 @@ export const TagsTab: React.FC = () => {
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={handleAddMainTag}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-app-green/20 text-app-green hover:bg-app-green hover:text-black transition-all"
+                                                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-app-green/20 text-app-green hover:bg-app-green hover:theme-text-inverse transition-all"
                                                     title="Confirm"
                                                 >
                                                     <FontAwesomeIcon icon={faCheck} />
@@ -161,7 +161,7 @@ export const TagsTab: React.FC = () => {
                                                         setIsAddingTag(false);
                                                         setNewTag({ ...newTag, name: '' });
                                                     }}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-app-input text-app-muted hover:bg-red-500/20 hover:text-red-500 transition-all"
+                                                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-app-input text-app-muted hover:theme-bg-danger-light hover:theme-text-danger transition-all"
                                                     title="Cancel"
                                                 >
                                                     <FontAwesomeIcon icon={faXmark} />
@@ -172,7 +172,7 @@ export const TagsTab: React.FC = () => {
                                 ) : (
                                     <button
                                         onClick={() => setIsAddingTag(true)}
-                                        className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-app-border bg-transparent p-4 text-app-muted transition-all hover:border-app-text/30 hover:bg-app-input hover:text-app-text"
+                                        className="group flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-app-border theme-bg-transparent p-4 text-app-muted transition-all hover:border-app-text/30 hover:bg-app-input hover:text-app-text"
                                     >
                                         <div
                                             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-input transition-all group-hover:bg-app-surface group-hover:scale-105">

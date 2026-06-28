@@ -91,7 +91,7 @@ const ResetPassword: React.FC = () => {
     };
 
     return (
-        <div className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto bg-slate-900 px-4 sm:px-0 pb-8 sm:pb-0">
+        <div className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto theme-bg-page px-4 sm:px-0 pb-8 sm:pb-0">
             <AnimateBackground />
 
             <div className={`relative z-10 flex w-full max-w-[420px] mx-4 flex-col items-center rounded-3xl border border-app-border bg-app-input px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error === 'shake' ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
@@ -99,7 +99,7 @@ const ResetPassword: React.FC = () => {
                 {/* Icon Header */}
                 <div className="mb-6">
                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-app-input shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
-                        <FontAwesomeIcon icon={faShieldHalved} className="text-3xl text-white/80" />
+                        <FontAwesomeIcon icon={faShieldHalved} className="text-3xl theme-text-muted" />
                     </div>
                 </div>
 
@@ -114,12 +114,12 @@ const ResetPassword: React.FC = () => {
                     /* STATE 2: ERROR */
                     error && error !== 'shake' ? (
                         <div className="flex flex-col items-center text-center py-6 w-full">
-                            <FontAwesomeIcon icon={faCircleExclamation} className="text-5xl text-red-500 mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
-                            <h3 className="text-xl font-bold mb-2 text-white">Reset Failed</h3>
+                            <FontAwesomeIcon icon={faCircleExclamation} className="text-5xl theme-text-danger mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
+                            <h3 className="text-xl font-bold mb-2 theme-text-default">Reset Failed</h3>
                             <p className="text-app-muted text-sm mb-6">{error}</p>
                             <button
                                 onClick={() => navigate('/login')}
-                                className="w-full rounded-full bg-app-hover py-3 font-semibold tracking-wider text-white transition-colors hover:bg-white/20"
+                                className="w-full rounded-full bg-app-hover py-3 font-semibold tracking-wider theme-text-default transition-colors hover:bg-white/20"
                             >
                                 Back to Login
                             </button>
@@ -130,17 +130,17 @@ const ResetPassword: React.FC = () => {
                         (
                             <form onSubmit={handleReset} className="flex flex-col w-full" noValidate>
 
-                                <h2 className="mb-2 text-xl font-bold tracking-wide text-white text-center">
+                                <h2 className="mb-2 text-xl font-bold tracking-wide theme-text-default text-center">
                                     Reset Password
                                 </h2>
                                 <p className="mb-6 text-sm text-app-muted text-center leading-relaxed">
-                                    Enter your new password for <strong className="text-white/80">{inviteData?.email}</strong>
+                                    Enter your new password for <strong className="theme-text-muted">{inviteData?.email}</strong>
                                 </p>
 
                                 {/* Password Input */}
                                 <div className="relative mb-6 w-full">
-                                    <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:border-white transition-colors duration-300">
-                                        <span className="absolute left-0 text-lg text-white/80">
+                                    <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:theme-border-active transition-colors duration-300">
+                                        <span className="absolute left-0 text-lg theme-text-muted">
                                             <FontAwesomeIcon icon={faLock} />
                                         </span>
                                         <input
@@ -148,11 +148,11 @@ const ResetPassword: React.FC = () => {
                                             placeholder="New Password"
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full border-none bg-transparent py-2 pl-8 pr-8 text-white placeholder-white/70 outline-none"
+                                            className="w-full border-none theme-bg-transparent py-2 pl-8 pr-8 theme-text-default placeholder-white/70 outline-none"
                                             autoFocus
                                         />
                                         <span
-                                            className="absolute right-0 z-20 cursor-pointer text-app-muted transition-colors hover:text-white"
+                                            className="absolute right-0 z-20 cursor-pointer text-app-muted transition-colors hover:theme-text-default"
                                             onClick={() => setShowPassword(!showPassword)}
                                         >
                                             <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
@@ -162,8 +162,8 @@ const ResetPassword: React.FC = () => {
 
                                 {/* Confirm Password Input */}
                                 <div className="relative mb-4 w-full">
-                                    <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:border-white transition-colors duration-300">
-                                        <span className="absolute left-0 text-lg text-white/80">
+                                    <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:theme-border-active transition-colors duration-300">
+                                        <span className="absolute left-0 text-lg theme-text-muted">
                                             <FontAwesomeIcon icon={faLock} />
                                         </span>
                                         <input
@@ -171,7 +171,7 @@ const ResetPassword: React.FC = () => {
                                             placeholder="Confirm Password"
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className="w-full border-none bg-transparent py-2 pl-8 pr-8 text-white placeholder-white/70 outline-none"
+                                            className="w-full border-none theme-bg-transparent py-2 pl-8 pr-8 theme-text-default placeholder-white/70 outline-none"
                                         />
                                     </div>
                                 </div>
@@ -183,7 +183,7 @@ const ResetPassword: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting || !isFormValid}
-                                    className="w-full mt-2 rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                                    className="w-full mt-2 rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider theme-text-default shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                                 >
                                     {isSubmitting ? <FontAwesomeIcon icon={faSpinner} spin /> : 'RESET PASSWORD'}
                                 </button>

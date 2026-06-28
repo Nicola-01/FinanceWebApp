@@ -47,7 +47,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
 
     const getStatusIcon = () => {
         if (sub.status === 'ACTIVE') return <FontAwesomeIcon icon={faPlay} className="text-app-green" />;
-        if (sub.status === 'PAUSED') return <FontAwesomeIcon icon={faPause} className="text-orange-400" />;
+        if (sub.status === 'PAUSED') return <FontAwesomeIcon icon={faPause} className="theme-text-warning" />;
         return <FontAwesomeIcon icon={faCheckDouble} className="text-app-muted" />;
     };
 
@@ -61,7 +61,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
                 </p>
                 <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-app-input border border-app-border text-xs font-bold tracking-wider uppercase">
                     {getStatusIcon()}
-                    <span className="text-white/80">{sub.status}</span>
+                    <span className="theme-text-muted">{sub.status}</span>
                 </div>
             </div>
 
@@ -71,14 +71,14 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
             </div>
 
             {/* DETAILS */}
-            <div className="w-full bg-black/20 border border-app-border rounded-2xl text-left flex flex-col divide-y divide-white/10">
+            <div className="w-full theme-bg-overlay-light border border-app-border rounded-2xl text-left flex flex-col divide-y theme-divide-default">
 
                 {/* Name */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
                     <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
                         <FontAwesomeIcon icon={faTag} className="w-5 text-center mr-2" />Name
                     </span>
-                    <span className="text-white font-medium sm:text-right truncate">{sub.name}</span>
+                    <span className="theme-text-default font-medium sm:text-right truncate">{sub.name}</span>
                 </div>
 
                 {/* Frequency */}
@@ -87,7 +87,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
                         <FontAwesomeIcon icon={faRepeat} className="w-5 text-center mr-2" />Frequency
                     </span>
                     <div className="flex flex-col sm:items-end">
-                        <span className="text-white font-medium">{getFrequencyText()}</span>
+                        <span className="theme-text-default font-medium">{getFrequencyText()}</span>
                         {sub.duration === 'TIMES' && (
                             <span className="text-app-muted text-xs">Runs {sub.durationTimes} times (Done: {sub.executedTimes || 0})</span>
                         )}
@@ -105,7 +105,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
                     <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
                         <FontAwesomeIcon icon={faClock} className="w-5 text-center mr-2" />Next Run
                     </span>
-                    <span className="text-white font-medium">{formatDate(sub.nextExecutionDate)}</span>
+                    <span className="theme-text-default font-medium">{formatDate(sub.nextExecutionDate)}</span>
                 </div>
 
                 {/* Start Date */}
@@ -113,7 +113,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
                     <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
                         <FontAwesomeIcon icon={faCalendarAlt} className="w-5 text-center mr-2" />Started On
                     </span>
-                    <span className="text-white font-medium">{formatDate(sub.startDate)}</span>
+                    <span className="theme-text-default font-medium">{formatDate(sub.startDate)}</span>
                 </div>
 
                 {/* Notes (Only if present) */}
@@ -122,7 +122,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
                         <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center">
                             <FontAwesomeIcon icon={faStickyNote} className="w-5 text-center mr-2" />Notes
                         </span>
-                        <span className="text-white/80 text-sm bg-app-input p-3 rounded-lg border border-app-border">
+                        <span className="theme-text-muted text-sm bg-app-input p-3 rounded-lg border border-app-border">
                             {sub.notes}
                         </span>
                     </div>

@@ -25,11 +25,11 @@ export const TokenWalletBadges: React.FC<TokenWalletBadgesProps> = ({
                     >
                         {wallet?.icon && <span className="text-[10px]">{wallet.icon}</span>}
                         {wp.permissions?.includes('WRITE') ? (
-                            <FontAwesomeIcon icon={faPen} className="text-amber-400 text-[8px]" />
+                            <FontAwesomeIcon icon={faPen} className="theme-text-warning text-[8px]" />
                         ) : wp.permissions?.includes('READ') ? (
-                            <FontAwesomeIcon icon={faEye} className="text-cyan-400 text-[8px]" />
+                            <FontAwesomeIcon icon={faEye} className="theme-text-primary text-[8px]" />
                         ) : (
-                            <FontAwesomeIcon icon={faBan} className="text-red-400 text-[8px]" />
+                            <FontAwesomeIcon icon={faBan} className="theme-text-danger text-[8px]" />
                         )}
                         {wallet?.name || wp.walletId.substring(0, 8) + '...'}
                     </span>

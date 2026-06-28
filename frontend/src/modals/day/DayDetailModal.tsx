@@ -120,7 +120,7 @@ export const DayDetailPanel = forwardRef<DayDetailModalHandle, DayDetailPanelPro
                     <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-app-border bg-app-input/20">
                         <button
                             onClick={goToPrevDay}
-                            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-app-muted hover:text-white hover:bg-app-surface transition-all active:scale-90"
+                            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-app-muted hover:theme-text-default hover:bg-app-surface transition-all active:scale-90"
                             aria-label="Previous day"
                         >
                             <FontAwesomeIcon icon={faChevronLeft} className="text-sm" />
@@ -137,7 +137,7 @@ export const DayDetailPanel = forwardRef<DayDetailModalHandle, DayDetailPanelPro
 
                         <button
                             onClick={goToNextDay}
-                            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-app-muted hover:text-white hover:bg-app-surface transition-all active:scale-90"
+                            className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-app-muted hover:theme-text-default hover:bg-app-surface transition-all active:scale-90"
                             aria-label="Next day"
                         >
                             <FontAwesomeIcon icon={faChevronRight} className="text-sm" />

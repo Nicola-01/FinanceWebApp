@@ -69,7 +69,7 @@ export const PatFormView: React.FC<PatFormViewProps> = ({
                 id="pat-create-btn"
                 onClick={onSubmit}
                 disabled={isSubmitting || !tokenName.trim() || walletPerms.filter(w => w.enabled).length === 0}
-                className={`w-full rounded-xl bg-[#a78bfa] py-3 text-sm font-bold text-white transition-all hover:bg-[#8b5cf6] disabled:opacity-40 disabled:cursor-not-allowed ${showDesktopButton ? '' : 'sm:hidden'}`}
+                className={`w-full rounded-xl bg-[#a78bfa] py-3 text-sm font-bold theme-text-default transition-all hover:bg-[#8b5cf6] disabled:opacity-40 disabled:cursor-not-allowed ${showDesktopButton ? '' : 'sm:hidden'}`}
             >
                 {isSubmitting 
                     ? (submittingText || (isEdit ? 'Saving...' : 'Generating...')) 

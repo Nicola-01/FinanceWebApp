@@ -103,7 +103,7 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
 
                         <div className="mt-7.5 flex justify-center">
                             <button
-                                className="rounded-lg w-50 bg-[#e74c3c] px-6.25 py-3 font-bold text-white transition-all duration-300 hover:bg-[#c0392b] disabled:cursor-not-allowed disabled:bg-[#e74c3c]/30 disabled:opacity-60"
+                                className="rounded-lg w-50 bg-[#e74c3c] px-6.25 py-3 font-bold theme-text-default transition-all duration-300 hover:bg-[#c0392b] disabled:cursor-not-allowed disabled:bg-[#e74c3c]/30 disabled:opacity-60"
                                 onClick={handleConfirm}
                                 disabled={isButtonDisabled}
                             >

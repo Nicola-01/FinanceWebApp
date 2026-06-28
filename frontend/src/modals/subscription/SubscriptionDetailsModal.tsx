@@ -98,8 +98,8 @@ export const SubscriptionDetailsModal = forwardRef<SubscriptionDetailsModalHandl
                         icon: <FontAwesomeIcon icon={faEdit} className="w-4" />,
                         label: 'Edit',
                         onClick: () => handleEditAndClose(sub),
-                        color: 'text-white/80',
-                        hoverColor: 'hover:text-white',
+                        color: 'theme-text-muted',
+                        hoverColor: 'hover:theme-text-default',
                         hoverBg: 'hover:bg-app-surface'
                     },
                     {
@@ -111,9 +111,9 @@ export const SubscriptionDetailsModal = forwardRef<SubscriptionDetailsModalHandl
                                 async () => await handleConfirmDelete(sub.id)
                             );
                         },
-                        color: 'text-red-500',
-                        hoverColor: 'hover:text-red-400',
-                        hoverBg: 'hover:bg-red-500/10'
+                        color: 'theme-text-danger',
+                        hoverColor: 'hover:theme-text-danger',
+                        hoverBg: 'hover:theme-bg-danger-transparent'
                     }
                 ];
 
@@ -122,7 +122,7 @@ export const SubscriptionDetailsModal = forwardRef<SubscriptionDetailsModalHandl
                         icon: <FontAwesomeIcon icon={faStopCircle} className="w-4" />,
                         label: 'Stop Here',
                         onClick: handleStopSubscriptionAtDate,
-                        color: 'text-white/80',
+                        color: 'theme-text-muted',
                         hoverColor: 'hover:text-[#ff0055]',
                         hoverBg: 'hover:bg-[#ff0055]/10'
                     });

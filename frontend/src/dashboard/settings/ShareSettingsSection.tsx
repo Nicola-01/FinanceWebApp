@@ -92,7 +92,7 @@ export const ShareSettingsSection: React.FC = () => {
                 subtitle="Manage roles and access for members."
             >
                 {isLoading ? (
-                    <div className="flex justify-center py-10 text-white/30">
+                    <div className="flex justify-center py-10 theme-text-subtle">
                         <FontAwesomeIcon icon={faSpinner} spin className="text-2xl" />
                     </div>
                 ) : (
@@ -113,7 +113,7 @@ export const ShareSettingsSection: React.FC = () => {
                         {/* I pending sono visibili solo all'owner per permettergli di revocarli */}
                         {isOwner && (
                             <MemberCategory
-                                title="Pending Invites" titleColor="text-amber-500/50" members={pending} icon={faClock}
+                                title="Pending Invites" titleColor="theme-text-warning-muted" members={pending} icon={faClock}
                                 iconColor="#f59e0b"
                                 canManage={isOwner} onRemove={handleRemoveMember} onChangeRole={handleChangeRole}
                             />

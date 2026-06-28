@@ -97,7 +97,7 @@ const Register: React.FC = () => {
     };
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0f0f10] text-white font-semibold">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0f0f10] theme-text-default font-semibold">
 
             {/* Background Sphere per estetica */}
             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none flex items-center justify-center">
@@ -121,7 +121,7 @@ const Register: React.FC = () => {
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input border border-app-border text-3xl shadow-[0_0_30px_rgba(184,41,255,0.2)] text-[#b829ff]">
                         🚀
                     </div>
-                    <h1 className="text-3xl font-bold tracking-tight text-white">Join FinanceWebApp</h1>
+                    <h1 className="text-3xl font-bold tracking-tight theme-text-default">Join FinanceWebApp</h1>
                     <p className="mt-2 text-sm text-app-muted">Complete your registration to get started.</p>
                 </div>
 
@@ -138,7 +138,7 @@ const Register: React.FC = () => {
                         /* STATO 2: ERRORE TOKEN */
                         error || !inviteData || inviteData.status !== 'PENDING' ? (
                                 <div className="flex flex-col items-center text-center py-6">
-                                    <FontAwesomeIcon icon={faCircleExclamation} className="text-5xl text-red-500 mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
+                                    <FontAwesomeIcon icon={faCircleExclamation} className="text-5xl theme-text-danger mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
                                     <h3 className="text-xl font-bold mb-2">Registration Failed</h3>
                                     <p className="text-app-muted text-sm mb-6">{error}</p>
                                     <button
@@ -160,7 +160,7 @@ const Register: React.FC = () => {
                                             Email Address
                                         </label>
                                         <div className="relative">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">
+                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-subtle">
                                                 <FontAwesomeIcon icon={faEnvelope} />
                                             </div>
                                             <input
@@ -186,7 +186,7 @@ const Register: React.FC = () => {
                                                 placeholder="e.g. mario.rossi"
                                                 value={username}
                                                 onChange={(e) => setUsername(e.target.value)}
-                                                className="h-[50px] w-full rounded-xl border border-app-border bg-black/40 pl-[40px] pr-[15px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-[#b829ff]"
+                                                className="h-[50px] w-full rounded-xl border border-app-border theme-bg-overlay-dark pl-[40px] pr-[15px] py-3 text-[0.95rem] theme-text-default outline-none transition-colors focus:border-[#b829ff]"
                                                 required
                                                 autoFocus
                                             />
@@ -207,13 +207,13 @@ const Register: React.FC = () => {
                                                 placeholder="Min. 6 characters"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
-                                                className="h-[50px] w-full rounded-xl border border-app-border bg-black/40 pl-[40px] pr-[45px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-[#b829ff]"
+                                                className="h-[50px] w-full rounded-xl border border-app-border theme-bg-overlay-dark pl-[40px] pr-[45px] py-3 text-[0.95rem] theme-text-default outline-none transition-colors focus:border-[#b829ff]"
                                                 required
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg text-app-muted hover:bg-app-surface hover:text-white transition-colors"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-lg text-app-muted hover:bg-app-surface hover:theme-text-default transition-colors"
                                             >
                                                 <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                                             </button>
@@ -231,7 +231,7 @@ const Register: React.FC = () => {
                                                 placeholder="Confirm password"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                                className="h-[50px] w-full rounded-xl border border-app-border bg-black/40 pl-[40px] pr-[15px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-[#b829ff]"
+                                                className="h-[50px] w-full rounded-xl border border-app-border theme-bg-overlay-dark pl-[40px] pr-[15px] py-3 text-[0.95rem] theme-text-default outline-none transition-colors focus:border-[#b829ff]"
                                                 required
                                             />
                                         </div>
@@ -241,7 +241,7 @@ const Register: React.FC = () => {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting || !username || !password || !confirmPassword}
-                                        className="mt-4 h-[50px] w-full rounded-xl font-bold text-white transition-all duration-300 hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-50"
+                                        className="mt-4 h-[50px] w-full rounded-xl font-bold theme-text-default transition-all duration-300 hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-50"
                                         style={{
                                             background: 'linear-gradient(90deg, #b829ff 0%, #ff2299 100%)',
                                             boxShadow: '0 8px 25px -5px rgba(184,41,255,0.5)'

@@ -61,7 +61,7 @@ const LandingPage: React.FC = () => {
     };
 
     return (
-        <div className="bg-app-bg min-h-screen text-white font-sans overflow-x-hidden selection:bg-app-green/30">
+        <div className="bg-app-bg min-h-screen theme-text-default font-sans overflow-x-hidden selection:bg-app-green/30">
             <BackgroundBlobs />
             
             <Navbar 

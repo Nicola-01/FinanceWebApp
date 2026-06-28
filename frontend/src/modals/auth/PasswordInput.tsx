@@ -42,7 +42,7 @@ export const PasswordInput: React.FC<PasswordInputProps> =
                     {/* Visibility Toggle Button */}
                     <button
                         type="button"
-                        className="absolute right-[12px] z-10 flex cursor-pointer border-none bg-transparent p-1.5 text-base text-app-muted transition-colors hover:text-app-text"
+                        className="absolute right-[12px] z-10 flex cursor-pointer border-none theme-bg-transparent p-1.5 text-base text-app-muted transition-colors hover:text-app-text"
                         onClick={() => setIsVisible(!isVisible)}
                         tabIndex={-1}
                     >

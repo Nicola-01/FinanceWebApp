@@ -51,16 +51,16 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>((_props, ref)
         >
             <div className="text-center pb-2">
                 {/* Tabs */}
-                <div className="flex rounded-xl bg-black/40 p-1 border border-app-border mb-4">
+                <div className="flex rounded-xl theme-bg-overlay-dark p-1 border border-app-border mb-4">
                     <button
                         onClick={() => setActiveTab('PENDING')}
-                        className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all ${activeTab === 'PENDING' ? 'bg-app-surface text-white shadow-sm' : 'text-app-muted hover:text-white'}`}
+                        className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all ${activeTab === 'PENDING' ? 'bg-app-surface theme-text-default shadow-sm' : 'text-app-muted hover:theme-text-default'}`}
                     >
                         Pending ({pendingInvites.length})
                     </button>
                     <button
                         onClick={() => setActiveTab('HISTORY')}
-                        className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'HISTORY' ? 'bg-app-surface text-white shadow-sm' : 'text-app-muted hover:text-white'}`}
+                        className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'HISTORY' ? 'bg-app-surface theme-text-default shadow-sm' : 'text-app-muted hover:theme-text-default'}`}
                     >
                         <FontAwesomeIcon icon={faHistory} />
                         History
@@ -93,21 +93,21 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>((_props, ref)
                                     </div>
 
                                     <div>
-                                        <p className="text-white font-bold text-lg leading-tight">{inv.wallet.name}</p>
+                                        <p className="theme-text-default font-bold text-lg leading-tight">{inv.wallet.name}</p>
                                         <p className="text-app-muted text-xs mt-1">
-                                            Invited by <span className="text-white font-medium">{inv.walletOwner}</span> as <span className="font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded bg-app-surface ml-1">{inv.role}</span>
+                                            Invited by <span className="theme-text-default font-medium">{inv.walletOwner}</span> as <span className="font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded bg-app-surface ml-1">{inv.role}</span>
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="flex gap-2">
-                                    <button onClick={() => handleAction(inv.wallet.id, 'REJECT')} disabled={loading} className="flex-1 rounded-lg bg-app-input text-app-muted py-2.5 text-xs font-bold hover:bg-app-red/20 hover:text-app-red transition-all border border-transparent hover:border-app-red/30">
+                                    <button onClick={() => handleAction(inv.wallet.id, 'REJECT')} disabled={loading} className="flex-1 rounded-lg bg-app-input text-app-muted py-2.5 text-xs font-bold hover:bg-app-red/20 hover:text-app-red transition-all border theme-border-transparent hover:border-app-red/30">
                                         <FontAwesomeIcon icon={faXmark} className="mr-2" /> Reject
                                     </button>
                                     <button
                                         onClick={() => handleAction(inv.wallet.id, 'ACCEPT')}
                                         disabled={loading}
-                                        className="flex-1 rounded-lg py-2.5 text-xs font-bold text-black transition-all hover:scale-[1.02] active:scale-95"
+                                        className="flex-1 rounded-lg py-2.5 text-xs font-bold theme-text-inverse transition-all hover:scale-[1.02] active:scale-95"
                                         style={{ backgroundColor: inv.wallet.color }}
                                     >
                                         <FontAwesomeIcon icon={faCheck} className="mr-2" /> Accept
@@ -134,7 +134,7 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>((_props, ref)
                                         <FontAwesomeIcon icon={ICONS[inv.wallet.icon as IconKey] || faEnvelope} />
                                     </div>
                                     <div>
-                                        <p className="text-white font-bold text-sm leading-tight">{inv.wallet.name}</p>
+                                        <p className="theme-text-default font-bold text-sm leading-tight">{inv.wallet.name}</p>
                                         <p className="text-app-muted text-[11px]">From: {inv.walletOwner}</p>
                                     </div>
                                 </div>

@@ -263,7 +263,7 @@ const OAuthConsent = () => {
             <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
                 <AnimateBackground />
                 <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface/40 p-8 shadow-2xl backdrop-blur-[20px] text-center">
-                    <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl text-amber-400 mb-4" />
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl theme-text-warning mb-4" />
                     <h2 className="text-xl font-bold text-app-text mb-2">Invalid Request</h2>
                     <p className="text-sm text-app-muted">
                         Missing required OAuth parameters. Please try connecting again from your MCP client.
@@ -278,7 +278,7 @@ const OAuthConsent = () => {
             <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
                 <AnimateBackground />
                 <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface/40 p-8 shadow-2xl backdrop-blur-[20px] text-center">
-                    <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl text-rose-500 mb-4" />
+                    <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl theme-text-danger mb-4" />
                     <h2 className="text-xl font-bold text-app-text mb-2">Richiesta Scaduta</h2>
                     <p className="text-sm text-app-muted mb-6">
                         Questa richiesta di autorizzazione è scaduta o è già stata utilizzata. Per favore, avvia una nuova richiesta dal client.
@@ -304,7 +304,7 @@ const OAuthConsent = () => {
                     {/* Header */}
                     <div className="flex flex-col items-center mb-6">
                         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-app-purple to-app-blue shadow-[0_0_20px_rgba(77,109,255,0.4)]">
-                            <FontAwesomeIcon icon={faShieldAlt} className="text-2xl text-white" />
+                            <FontAwesomeIcon icon={faShieldAlt} className="text-2xl theme-text-default" />
                         </div>
                         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-center">
                             Authorize Access

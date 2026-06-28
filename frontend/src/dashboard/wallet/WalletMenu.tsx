@@ -36,7 +36,7 @@ export const WalletMenu: React.FC = () => {
 
                 <button
                     onClick={() => setShowMenu(!showMenu)}
-                    className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all ${showMenu ? 'bg-app-surface border-white/20 text-white' : 'bg-app-input border-app-border text-app-muted hover:bg-app-surface hover:text-white'}`}
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-all ${showMenu ? 'bg-app-surface theme-border-default theme-text-default' : 'bg-app-input border-app-border text-app-muted hover:bg-app-surface hover:theme-text-default'}`}
                     title="Wallet Options"
                 >
                     <FontAwesomeIcon icon={faEllipsisVertical} className="text-lg" />
@@ -47,7 +47,7 @@ export const WalletMenu: React.FC = () => {
                         className="absolute right-0 top-14 z-50 w-48 rounded-xl border border-app-border bg-app-card p-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)] animate-[fadeIn_0.1s_ease-out]">
 
                         <button
-                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-surface hover:text-white disabled:opacity-50"
+                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-surface hover:theme-text-default disabled:opacity-50"
                             onClick={() => {
                                 setShowMenu(false);
                                 onRefresh();
@@ -60,7 +60,7 @@ export const WalletMenu: React.FC = () => {
                         </button>
 
                         <button
-                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-amber-400/20 hover:text-amber-400"
+                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:theme-bg-warning-light hover:theme-text-warning"
                             onClick={() => {
                                 setShowMenu(false);
                                 setActiveTab('settings');

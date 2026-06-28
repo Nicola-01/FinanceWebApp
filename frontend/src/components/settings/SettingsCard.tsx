@@ -25,26 +25,26 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
     actionText, actionIcon, actionColor, onAction, actionDisabled, isActionLoading
 }) => {
     return (
-        <div className={`flex flex-col gap-4 sm:gap-6 border rounded-2xl p-5 sm:p-6 backdrop-blur-md relative overflow-hidden group shrink-0 ${danger ? 'bg-red-500/5 border-red-500/20' : 'bg-app-input border-app-border'}`}>
+        <div className={`flex flex-col gap-4 sm:gap-6 border rounded-2xl p-5 sm:p-6 backdrop-blur-md relative overflow-hidden group shrink-0 ${danger ? 'theme-bg-danger-transparent theme-border-danger-light' : 'bg-app-input border-app-border'}`}>
 
             {danger && (
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-red-500/10 rounded-full blur-3xl transition-all group-hover:bg-red-500/20 pointer-events-none"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 theme-bg-danger-transparent rounded-full blur-3xl transition-all group-hover:theme-bg-danger-light pointer-events-none"></div>
             )}
 
-            <div className={`flex flex-col gap-1 relative z-10 border-b pb-3 sm:pb-4 ${danger ? 'border-red-500/20' : 'border-app-border'}`}>
+            <div className={`flex flex-col gap-1 relative z-10 border-b pb-3 sm:pb-4 ${danger ? 'theme-border-danger-light' : 'border-app-border'}`}>
                 <div className={`flex items-center gap-3 ${headerCentered ? 'justify-center sm:justify-start' : ''}`}>
-                    <FontAwesomeIcon icon={icon} className={`text-xl ${danger ? 'text-red-500' : ''}`} style={!danger ? { color: iconColor } : {}} />
-                    <h2 className={`text-xl font-bold ${danger ? 'text-red-500' : 'text-app-text'}`}>{title}</h2>
+                    <FontAwesomeIcon icon={icon} className={`text-xl ${danger ? 'theme-text-danger' : ''}`} style={!danger ? { color: iconColor } : {}} />
+                    <h2 className={`text-xl font-bold ${danger ? 'theme-text-danger' : 'text-app-text'}`}>{title}</h2>
                 </div>
                 {subtitle && (
-                    <p className={`text-sm mt-1 ${headerCentered ? 'text-center sm:text-left' : ''} ${danger ? 'text-red-400/60' : 'text-app-muted'}`}>
+                    <p className={`text-sm mt-1 ${headerCentered ? 'text-center sm:text-left' : ''} ${danger ? 'theme-text-danger-muted' : 'text-app-muted'}`}>
                         {subtitle}
                     </p>
                 )}
             </div>
 
             {description && (
-                <div className={`relative z-10 text-sm ${danger ? 'text-red-500' : 'text-app-muted'} ${headerCentered ? 'text-center' : ''}`}>
+                <div className={`relative z-10 text-sm ${danger ? 'theme-text-danger' : 'text-app-muted'} ${headerCentered ? 'text-center' : ''}`}>
                     {description}
                 </div>
             )}
@@ -56,13 +56,13 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
             )}
 
             {actionText && onAction && (
-                <div className={`relative z-10 flex pt-4 sm:pt-5 mt-1 sm:mt-2 border-t ${danger ? 'border-red-500/20' : 'border-app-border'} justify-center w-full`}>
+                <div className={`relative z-10 flex pt-4 sm:pt-5 mt-1 sm:mt-2 border-t ${danger ? 'theme-border-danger-light' : 'border-app-border'} justify-center w-full`}>
                     <button
                         onClick={onAction}
                         disabled={actionDisabled || isActionLoading}
                         className={`flex justify-center items-center gap-2 h-[48px] px-10 rounded-xl font-bold transition-all disabled:opacity-50 text-sm w-full sm:w-60 ${danger
-                            ? 'bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500 hover:text-white disabled:hover:bg-red-500/10 disabled:hover:text-red-500'
-                            : 'text-black hover:-translate-y-0.5 disabled:hover:translate-y-0 shadow-[0_4px_15px_-5px_rgba(255,255,255,0.4)]'
+                            ? 'theme-bg-danger-transparent theme-text-danger border theme-border-danger-light hover:theme-bg-danger hover:theme-text-default disabled:hover:theme-bg-danger-transparent disabled:hover:theme-text-danger'
+                            : 'theme-text-inverse hover:-translate-y-0.5 disabled:hover:translate-y-0 shadow-[0_4px_15px_-5px_rgba(255,255,255,0.4)]'
                             }`}
                         style={!danger && actionColor ? { backgroundColor: actionColor, boxShadow: `0 4px 15px -5px ${actionColor}66` } : {}}
                     >

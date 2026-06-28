@@ -34,7 +34,7 @@ export const TagBadge = ({tag, showParent = true, forceShowParent = false, compa
 
             {showParent && tag.parentName && (
                 <span className={`${forceShowParent ? "flex" : "hidden sm:flex"} items-center gap-1.5`}>
-                    <FontAwesomeIcon icon={faChevronRight} className="text-[8px] text-white/20 shrink-0"/>
+                    <FontAwesomeIcon icon={faChevronRight} className="text-[8px] theme-text-subtle shrink-0"/>
                     <TagBadge tag={tags.find(t => t.name === tag.parentName)} forceShowParent={forceShowParent}/>
                 </span>
             )}

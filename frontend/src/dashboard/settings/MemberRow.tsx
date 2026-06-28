@@ -39,7 +39,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                             <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-app-text/10 text-app-text">YOU</span>
                         )}
                         {member.status === 'PENDING' && (
-                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-500">PENDING</span>
+                            <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider theme-bg-warning-light theme-text-warning">PENDING</span>
                         )}
                     </div>
                     <span className="text-xs text-app-muted truncate">{member.email}</span>
@@ -56,7 +56,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                                         type="button"
                                         onClick={() => setSelectedRole('VIEWER')}
                                         className={`flex-1 rounded py-1 text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${selectedRole === 'VIEWER'
-                                            ? 'bg-cyan-600/20 text-app-text shadow-sm'
+                                            ? 'theme-bg-primary-light text-app-text shadow-sm'
                                             : 'text-app-muted hover:text-app-text'
                                             }`}
                                     >
@@ -67,7 +67,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                                         type="button"
                                         onClick={() => setSelectedRole('EDITOR')}
                                         className={`flex-1 rounded py-1 text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${selectedRole === 'EDITOR'
-                                            ? 'bg-amber-400/20 text-amber-400 shadow-sm'
+                                            ? 'theme-bg-warning-light theme-text-warning shadow-sm'
                                             : 'text-app-muted hover:text-app-text'
                                             }`}
                                     >
@@ -77,7 +77,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                                 </div>
                                 <button
                                     onClick={() => onChangeRole(member.userId, selectedRole)}
-                                    className={`flex h-8 w-8 items-center justify-center rounded-lg bg-app-green/10 text-app-green hover:bg-app-green hover:text-black transition-colors ${
+                                    className={`flex h-8 w-8 items-center justify-center rounded-lg bg-app-green/10 text-app-green hover:bg-app-green hover:theme-text-inverse transition-colors ${
                                         hasRoleChanged ? '' : 'opacity-20 cursor-not-allowed'
                                     }`}
                                     disabled={hasRoleChanged}
@@ -90,7 +90,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
 
                         <button
                             onClick={() => onRemove(member.userId, member.username)}
-                            className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg theme-bg-danger-transparent theme-text-danger hover:theme-bg-danger hover:theme-text-default transition-colors opacity-0 group-hover:opacity-100"
                             title={member.status === 'PENDING' ? "Cancel Invite" : "Remove User"}
                         >
                             <FontAwesomeIcon icon={faTrash} className="text-sm" />

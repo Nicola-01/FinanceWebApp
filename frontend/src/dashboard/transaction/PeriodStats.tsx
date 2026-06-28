@@ -51,11 +51,11 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
         <div className="mb-6 flex flex-col gap-3 animate-[fadeIn_0.3s_ease-out]">
 
             <div className="flex items-center justify-between">
-                <h3 className="text-white/80 font-bold text-sm">Period Overview</h3>
+                <h3 className="theme-text-muted font-bold text-sm">Period Overview</h3>
                 {!isLoading && transactions.length > 0 && (
                     <button
                         onClick={() => setShowDistribution(!showDistribution)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-app-input border border-app-border text-app-muted hover:text-white hover:bg-app-surface transition-all text-xs font-bold uppercase tracking-wider"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-app-input border border-app-border text-app-muted hover:theme-text-default hover:bg-app-surface transition-all text-xs font-bold uppercase tracking-wider"
                     >
                         <FontAwesomeIcon icon={faChartPie}/>
                         {showDistribution ? 'Hide Details' : 'Show Details'}
@@ -66,7 +66,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
 
-                <div className="bg-black/20 border border-app-border rounded-2xl p-4 flex flex-col transition-all">
+                <div className="theme-bg-overlay-light border border-app-border rounded-2xl p-4 flex flex-col transition-all">
                     <div className="text-center">
                         <p className="text-app-muted text-xs font-bold uppercase tracking-widest mb-1">Period Income</p>
                         {isLoading ? (
@@ -89,10 +89,10 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                                                 <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'}/>
                                                 <span className="truncate max-w-[100px]">{tagName}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 font-app-mono text-white/80">
+                                            <div className="flex items-center gap-2 font-app-mono theme-text-muted">
                                                 {stats.income.toFixed(2)}
                                                 <span
-                                                    className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
+                                                    className="theme-text-subtle text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
                                             </div>
                                         </div>
                                         <div className="w-full bg-app-input rounded-full h-1 overflow-hidden">
@@ -106,7 +106,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                     )}
                 </div>
 
-                <div className="bg-black/20 border border-app-border rounded-2xl p-4 flex flex-col transition-all">
+                <div className="theme-bg-overlay-light border border-app-border rounded-2xl p-4 flex flex-col transition-all">
                     <div className="text-center">
                         <p className="text-app-muted text-xs font-bold uppercase tracking-widest mb-1">Period Expense</p>
                         {isLoading ? (
@@ -129,10 +129,10 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                                                 <FontAwesomeIcon icon={ICONS[stats.icon as IconKey] || 'tag'}/>
                                                 <span className="truncate max-w-[100px]">{tagName}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 font-app-mono text-white/80">
+                                            <div className="flex items-center gap-2 font-app-mono theme-text-muted">
                                                 {stats.expense.toFixed(2)}
                                                 <span
-                                                    className="text-white/30 text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
+                                                    className="theme-text-subtle text-[10px] w-8 text-right">{percentage.toFixed(0)}%</span>
                                             </div>
                                         </div>
                                         <div className="w-full bg-app-input rounded-full h-1 overflow-hidden">

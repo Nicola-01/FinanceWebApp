@@ -39,13 +39,13 @@ export default function DayCell({
     let inlineStyles: React.CSSProperties = {};
 
     if (!isCurrentMonth) {
-        cellStyles += isDark ? "text-gray-600 pointer-events-none " : "text-gray-300 pointer-events-none ";
+        cellStyles += isDark ? "theme-text-subtle pointer-events-none " : "theme-text-muted pointer-events-none ";
     } else {
         cellStyles += "cursor-pointer ";
-        textStyles += isDark ? "text-gray-300 hover:text-white " : "text-gray-700 hover:text-black ";
+        textStyles += isDark ? "theme-text-muted hover:theme-text-default " : "theme-text-subtle hover:theme-text-inverse ";
 
         if (isSelected) {
-            textStyles += "font-bold text-white ";
+            textStyles += "font-bold theme-text-default ";
             inlineStyles.backgroundColor = color;
 
             if (isRange && isStart && endDate) cellStyles += "rounded-l-full ";
@@ -54,9 +54,9 @@ export default function DayCell({
 
         } else if (isBetween) {
             inlineStyles.backgroundColor = `${color}33`;
-            textStyles += isDark ? "text-white " : "text-gray-800 ";
+            textStyles += isDark ? "theme-text-default " : "theme-text-inverse ";
         } else {
-            cellStyles += isDark ? "hover:bg-gray-800 rounded-full " : "hover:bg-gray-100 rounded-full ";
+            cellStyles += isDark ? "hover:theme-bg-neutral-dark rounded-full " : "hover:theme-bg-inverse-muted rounded-full ";
         }
 
         if (isToday && !isSelected) {

@@ -80,8 +80,8 @@ export const ToastNotification: React.FC = () => {
 
                 ${
                 data.success
-                    ? 'bg-green-500/15 border-green-500/40 text-green-400 shadow-[0_0_15px_rgb(var(--app-green)/0.2)]'
-                    : 'bg-red-500/15 border-red-500/40 text-red-500 shadow-[0_0_15px_rgb(var(--app-red)/0.2)]'
+                    ? 'theme-bg-success-transparent theme-border-success-strong theme-text-success shadow-[0_0_15px_rgb(var(--app-green)/0.2)]'
+                    : 'theme-bg-danger-light theme-border-danger-light theme-text-danger shadow-[0_0_15px_rgb(var(--app-red)/0.2)]'
             }
             `}
         >

@@ -82,7 +82,7 @@ const ForgotPassword: React.FC = () => {
     };
 
     return (
-        <div className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto bg-slate-900 px-4 sm:px-0 pb-8 sm:pb-0">
+        <div className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto theme-bg-page px-4 sm:px-0 pb-8 sm:pb-0">
             <AnimateBackground />
 
             <div className={`relative z-10 flex w-full max-w-[420px] flex-col items-center rounded-3xl border border-app-border bg-app-input px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${shake ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
@@ -92,7 +92,7 @@ const ForgotPassword: React.FC = () => {
                     <div className={`flex h-20 w-20 items-center justify-center rounded-full shadow-[inset_0_0_10px_rgba(255,255,255,0.1)] transition-all duration-500 ${emailSent ? 'bg-gradient-to-tr from-[#00c853]/20 to-[#00e676]/20 border border-[#00e676]/30' : 'bg-app-input'}`}>
                         <FontAwesomeIcon
                             icon={emailSent ? faCircleCheck : faEnvelope}
-                            className={`text-3xl transition-all duration-500 ${emailSent ? 'text-[#00e676]' : 'text-white/80'}`}
+                            className={`text-3xl transition-all duration-500 ${emailSent ? 'text-[#00e676]' : 'theme-text-muted'}`}
                         />
                     </div>
                 </div>
@@ -100,7 +100,7 @@ const ForgotPassword: React.FC = () => {
                 {!emailSent ? (
                     /* ========== EMAIL INPUT STATE ========== */
                     <>
-                        <h2 className="mb-2 text-xl font-bold tracking-wide text-white text-center">
+                        <h2 className="mb-2 text-xl font-bold tracking-wide theme-text-default text-center">
                             Forgot Password?
                         </h2>
                         <p className="mb-8 text-sm text-app-muted text-center leading-relaxed">
@@ -110,8 +110,8 @@ const ForgotPassword: React.FC = () => {
                         <form onSubmit={handleSubmit} className="flex flex-col w-full" noValidate>
                             {/* Email Input */}
                             <div className="relative mb-8 w-full">
-                                <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:border-white transition-colors duration-300">
-                                    <span className="absolute left-0 text-lg text-white/80">
+                                <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:theme-border-active transition-colors duration-300">
+                                    <span className="absolute left-0 text-lg theme-text-muted">
                                         <FontAwesomeIcon icon={faEnvelope} />
                                     </span>
                                     <input
@@ -119,7 +119,7 @@ const ForgotPassword: React.FC = () => {
                                         placeholder="Email address"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full border-none bg-transparent py-2 pl-8 text-white placeholder-white/70 outline-none"
+                                        className="w-full border-none theme-bg-transparent py-2 pl-8 theme-text-default placeholder-white/70 outline-none"
                                         autoFocus
                                     />
                                 </div>
@@ -129,7 +129,7 @@ const ForgotPassword: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
+                                className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider theme-text-default shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 {loading ? (
                                     <><FontAwesomeIcon icon={faSpinner} className="mr-2 animate-spin" />SENDING...</>
@@ -142,20 +142,20 @@ const ForgotPassword: React.FC = () => {
                 ) : (
                     /* ========== EMAIL SENT / CONFIRMATION STATE ========== */
                     <>
-                        <h2 className="mb-2 text-xl font-bold tracking-wide text-white text-center">
+                        <h2 className="mb-2 text-xl font-bold tracking-wide theme-text-default text-center">
                             Check your email
                         </h2>
                         <p className="mb-2 text-sm text-app-muted text-center leading-relaxed">
                             We've sent a password reset link to
                         </p>
-                        <p className="mb-6 text-sm font-semibold text-white/90 text-center break-all">
+                        <p className="mb-6 text-sm font-semibold theme-text-default text-center break-all">
                             {email}
                         </p>
 
-                        <div className="w-full rounded-xl border border-app-border bg-black/20 p-5 mb-6 shadow-inner">
+                        <div className="w-full rounded-xl border border-app-border theme-bg-overlay-light p-5 mb-6 shadow-inner">
                             <p className="text-xs text-app-muted text-center leading-relaxed">
                                 Didn't receive the email? Check your spam folder, or click the button below to resend.
-                                The link is valid for <strong className="text-white/70">1 hour</strong>.
+                                The link is valid for <strong className="theme-text-muted">1 hour</strong>.
                             </p>
                         </div>
 
@@ -164,7 +164,7 @@ const ForgotPassword: React.FC = () => {
                             type="button"
                             disabled={loading || cooldown > 0}
                             onClick={handleResend}
-                            className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                            className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider theme-text-default shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                         >
                             {loading ? (
                                 <><FontAwesomeIcon icon={faSpinner} className="mr-2 animate-spin" />SENDING...</>
@@ -181,7 +181,7 @@ const ForgotPassword: React.FC = () => {
                 <button
                     type="button"
                     onClick={() => navigate('/login')}
-                    className="mt-6 flex items-center gap-2 text-sm text-app-muted transition-colors hover:text-white bg-transparent border-none cursor-pointer"
+                    className="mt-6 flex items-center gap-2 text-sm text-app-muted transition-colors hover:theme-text-default theme-bg-transparent border-none cursor-pointer"
                 >
                     <FontAwesomeIcon icon={faArrowLeft} />
                     Back to Login

@@ -133,7 +133,7 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
                                 if (!isOpen) setIsOpen(true);
                             }}
                             placeholder={isOpen ? "Tap to search..." : "Select a category..."}
-                            className="w-full h-full bg-transparent outline-none text-app-text font-medium placeholder:text-app-muted"
+                            className="w-full h-full theme-bg-transparent outline-none text-app-text font-medium placeholder:text-app-muted"
                         />
                     )}
                 </div>

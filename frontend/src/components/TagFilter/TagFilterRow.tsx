@@ -45,11 +45,11 @@ export const TagFilterRow: React.FC<TagFilterRowProps> = ({
                 />
                 <div
                     className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-app-input text-xs"
-                    style={{ color: tag.colorHex || '#ffffff' }}
+                    style={{ color: tag.colorHex || 'var(--color-app-text)' }}
                 >
-                    <Icon icon={tag.icon} color={tag.colorHex || '#ffffff'} />
+                    <Icon icon={tag.icon} color={tag.colorHex || 'var(--color-app-text)'} />
                 </div>
-                <span className="text-white text-sm font-medium truncate">{tag.name}</span>
+                <span className="text-app-text text-sm font-medium truncate">{tag.name}</span>
             </div>
 
             {hasChildren && (

@@ -164,7 +164,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                             onClick={() => handleDayClick(calendarDay)}
                             className={`flex flex-col p-1 sm:p-2 rounded-lg sm:rounded-xl border cursor-pointer transition-all min-w-0 overflow-hidden ${isCurrentMonth
                                 ? 'bg-app-input/50 border-app-border hover:bg-app-input/80 hover:border-app-border'
-                                : 'bg-transparent border-transparent opacity-40'
+                                : 'theme-bg-transparent theme-border-transparent opacity-40'
                                 } ${isToday ? 'ring-1 ring-app-sky' : ''}`}
                         >
                             <span className={`text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 shrink-0 ${isToday ? 'text-app-sky' : 'text-app-muted'}`}>

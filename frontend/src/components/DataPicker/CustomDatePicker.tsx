@@ -199,7 +199,7 @@ export default function CustomDatePicker({
         <div className="relative w-full sm:max-w-sm font-sans flex items-center gap-3" ref={popoverRef}>
 
             {/* Icona del Calendario fissa a sinistra */}
-            {/*<CalendarIcon className={`w-5 h-5 flex-shrink-0 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />*/}
+            {/*<CalendarIcon className={`w-5 h-5 flex-shrink-0 ${isDark ? 'theme-text-muted' : 'theme-text-subtle'}`} />*/}
 
             {/* Box Cliccabile */}
             <div
@@ -217,7 +217,7 @@ export default function CustomDatePicker({
                     <>
                         {/* SIDEBAR PRESET — hidden in single-date mode or if hideSidebar is true */}
                         {isRange && !hideSidebar && (
-                            <div className={`flex flex-row sm:flex-col p-2 overflow-x-auto no-scrollbar sm:w-36 flex-shrink-0 border-b sm:border-b-0 sm:border-r ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
+                            <div className={`flex flex-row sm:flex-col p-2 overflow-x-auto no-scrollbar sm:w-36 flex-shrink-0 border-b sm:border-b-0 sm:border-r ${isDark ? 'theme-bg-neutral-dark theme-border-neutral' : 'theme-bg-inverse-muted theme-border-inverse'}`}>
 
                                 <div className="flex flex-row sm:flex-col gap-1 flex-1">
                                     {mainPresets.map((p) => {
@@ -238,8 +238,8 @@ export default function CustomDatePicker({
                                     })}
                                 </div>
 
-                                <div className={`hidden sm:block h-px w-full my-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
-                                <div className={`sm:hidden w-px h-auto mx-2 ${isDark ? 'bg-gray-700' : 'bg-gray-200'}`} />
+                                <div className={`hidden sm:block h-px w-full my-2 ${isDark ? 'theme-bg-neutral' : 'theme-bg-inverse-subtle'}`} />
+                                <div className={`sm:hidden w-px h-auto mx-2 ${isDark ? 'theme-bg-neutral' : 'theme-bg-inverse-subtle'}`} />
 
                                 <div className="flex flex-row sm:flex-col gap-1">
                                     <button
@@ -287,7 +287,7 @@ export default function CustomDatePicker({
                                 if (e.target === e.currentTarget) setIsOpen(false);
                             }}
                             // Rimuoviamo il vecchio div overlay e usiamo il backdrop nativo
-                            className="m-0 p-0 w-full h-full max-w-none max-h-none bg-transparent backdrop:bg-black/60 open:flex open:flex-col open:justify-end sm:hidden z-[100]"
+                            className="m-0 p-0 w-full h-full max-w-none max-h-none theme-bg-transparent backdrop:theme-bg-backdrop-dark open:flex open:flex-col open:justify-end sm:hidden z-[100]"
                         >
                             <div ref={modalRef} className={`relative w-full max-h-[85vh] overflow-y-auto rounded-t-2xl pb-6 shadow-2xl border-t flex flex-col ${bgMain} ${borderMain} animate-[slideUp_0.3s_ease-out]`}>
                                 {popoverContent}

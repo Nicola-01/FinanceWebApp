@@ -50,12 +50,12 @@ export const CreateInviteForm: React.FC<CreateInviteFormProps> = ({ onInviteCrea
 
                 {/* Email Input (type="search" per evitare Bitwarden) */}
                 <div className="w-full relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-subtle">
                         <FontAwesomeIcon icon={faEnvelope} />
                     </div>
                     <input
                         type="search"
-                        className="h-[50px] w-full rounded-[10px] border border-app-border bg-black/30 pl-[40px] pr-[15px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-app-green [&::-webkit-search-cancel-button]:hidden"
+                        className="h-[50px] w-full rounded-[10px] border border-app-border theme-bg-overlay pl-[40px] pr-[15px] py-3 text-[0.95rem] theme-text-default outline-none transition-colors focus:border-app-green [&::-webkit-search-cancel-button]:hidden"
                         placeholder="User email address..."
                         value={email}
                         onChange={e => setEmail(e.target.value)}
@@ -66,12 +66,12 @@ export const CreateInviteForm: React.FC<CreateInviteFormProps> = ({ onInviteCrea
 
                 {/* Note Input */}
                 <div className="w-full relative">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-subtle">
                         <FontAwesomeIcon icon={faStickyNote} />
                     </div>
                     <input
                         type="text"
-                        className="h-[50px] w-full rounded-[10px] border border-app-border bg-black/30 pl-[40px] pr-[15px] py-3 text-[0.95rem] text-white outline-none transition-colors focus:border-app-green"
+                        className="h-[50px] w-full rounded-[10px] border border-app-border theme-bg-overlay pl-[40px] pr-[15px] py-3 text-[0.95rem] theme-text-default outline-none transition-colors focus:border-app-green"
                         placeholder="Optional note..."
                         value={note}
                         onChange={e => setNote(e.target.value)}
@@ -83,7 +83,7 @@ export const CreateInviteForm: React.FC<CreateInviteFormProps> = ({ onInviteCrea
                 <div className="w-full lg:w-auto">
                     <button
                         type="submit"
-                        className="flex h-[50px] w-full items-center justify-center rounded-[10px] bg-app-green text-[1.2rem] text-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#00e673] hover:shadow-[0_4px_15px_rgb(var(--app-green)/0.3)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-app-surface disabled:text-white/20 disabled:shadow-none lg:w-[60px]"
+                        className="flex h-[50px] w-full items-center justify-center rounded-[10px] bg-app-green text-[1.2rem] theme-text-inverse transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#00e673] hover:shadow-[0_4px_15px_rgb(var(--app-green)/0.3)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-app-surface disabled:theme-text-subtle disabled:shadow-none lg:w-[60px]"
                         disabled={!email || isLoading}
                     >
                         <FontAwesomeIcon icon={faPaperPlane} className={isLoading ? "animate-pulse" : ""} />

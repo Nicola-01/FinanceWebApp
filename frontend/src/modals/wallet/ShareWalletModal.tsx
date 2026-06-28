@@ -105,7 +105,7 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
                                 type="button"
                                 onClick={() => setRole('VIEWER')}
                                 className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 ${role === 'VIEWER'
-                                    ? 'bg-cyan-600/20  text-app-text shadow-sm'
+                                    ? 'theme-bg-primary-light  text-app-text shadow-sm'
                                     : 'text-app-muted hover:text-app-text'
                                     }`}
                             >
@@ -116,7 +116,7 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
                                 type="button"
                                 onClick={() => setRole('EDITOR')}
                                 className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 ${role === 'EDITOR'
-                                    ? 'bg-amber-400/20 text-amber-400 shadow-sm'
+                                    ? 'theme-bg-warning-light theme-text-warning shadow-sm'
                                     : 'text-app-muted hover:text-app-text'
                                     }`}
                             >

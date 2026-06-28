@@ -73,7 +73,7 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, onUpdateTag, on
                         <button onClick={handleSaveName} className="text-app-green hover:text-app-text transition-colors">
                             <FontAwesomeIcon icon={faCheck} />
                         </button>
-                        <button onClick={() => setIsEditing(false)} className="text-app-muted hover:text-red-500 transition-colors">
+                        <button onClick={() => setIsEditing(false)} className="text-app-muted hover:theme-text-danger transition-colors">
                             <FontAwesomeIcon icon={faXmark} />
                         </button>
                     </div>
@@ -85,13 +85,13 @@ export const TagChildRow: React.FC<TagChildRowProps> = ({ child, onUpdateTag, on
                                 <>
                                     <button
                                         onClick={() => { setNameVal(child.name); setIsEditing(true); }}
-                                        className="text-white/30 hover:text-amber-400 transition-colors"
+                                        className="theme-text-subtle hover:theme-text-warning transition-colors"
                                     >
                                         <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
                                     </button>
                                     <button
                                         onClick={() => onDeleteTag(child.name)}
-                                        className="text-white/30 hover:text-red-500 transition-colors"
+                                        className="theme-text-subtle hover:theme-text-danger transition-colors"
                                     >
                                         <FontAwesomeIcon icon={faTrash} className="text-xs" />
                                     </button>

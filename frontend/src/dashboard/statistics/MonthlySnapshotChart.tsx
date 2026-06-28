@@ -135,15 +135,15 @@ export const MonthlySnapshotChart: React.FC<MonthlySnapshotChartProps> = ({ tran
                 {/* Legend */}
                 <div className="flex items-center justify-center gap-6 mt-3">
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-sm bg-emerald-400" />
+                        <div className="w-3 h-3 rounded-sm theme-bg-success" />
                         <span className="text-xs text-app-muted">Income</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-sm bg-red-400" />
+                        <div className="w-3 h-3 rounded-sm theme-bg-danger" />
                         <span className="text-xs text-app-muted">Expenses</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-1 rounded-full bg-blue-400" />
+                        <div className="w-3 h-1 rounded-full theme-bg-primary" />
                         <span className="text-xs text-app-muted">Balance</span>
                     </div>
                 </div>

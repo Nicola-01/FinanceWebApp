@@ -84,7 +84,7 @@ const BackupSelector: React.FC<BackupSelectorProps> = ({ entries, value, onChang
             </div>
         ) : entries.length === 0 ? (
             <div className="flex items-center gap-2 rounded-lg border border-app-border bg-app-input px-3 py-2 text-sm text-app-muted">
-                <FontAwesomeIcon icon={faExclamationTriangle} className="text-amber-400 text-xs" />
+                <FontAwesomeIcon icon={faExclamationTriangle} className="theme-text-warning text-xs" />
                 No backups available
             </div>
         ) : (
@@ -259,7 +259,7 @@ const Backups: React.FC = () => {
             {/* Version count badge */}
             {!listLoading && (
                 <div className="flex items-center gap-2 rounded-xl border border-app-border/50 bg-app-card/40 px-4 py-2.5 text-sm">
-                    <FontAwesomeIcon icon={faCloud} className="text-cyan-400" />
+                    <FontAwesomeIcon icon={faCloud} className="theme-text-primary" />
                     <span className="text-app-muted">
                         {entries.length === 0
                             ? 'No versions available in the bucket'
@@ -303,7 +303,7 @@ const Backups: React.FC = () => {
 
                 {/* 3 – Restore */}
                 <ActionCard icon={faRotateLeft} title="Restore Backup" description="Restore the database from a previous version" accentColor="#f59e0b">
-                    <div className="rounded-lg border border-amber-400/20 bg-amber-400/5 p-2.5 text-xs text-amber-400">
+                    <div className="rounded-lg border theme-border-warning theme-bg-warning-transparent p-2.5 text-xs theme-text-warning">
                         ⚠ Restoring will overwrite current data. Make sure you have a recent backup.
                     </div>
                     <BackupSelector
@@ -325,7 +325,7 @@ const Backups: React.FC = () => {
 
                 {/* 4 – Upload */}
                 <ActionCard icon={faUpload} title="Upload Backup" description="Import an external backup file to the server / R2" accentColor="var(--color-app-purple)">
-                    <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-app-border/60 bg-app-input/30 p-4 text-sm text-app-muted cursor-pointer transition-all hover:border-purple-400/40 hover:bg-purple-400/5 hover:text-app-text">
+                    <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-app-border/60 bg-app-input/30 p-4 text-sm text-app-muted cursor-pointer transition-all hover:theme-border-brand hover:theme-bg-brand-transparent hover:text-app-text">
                         <FontAwesomeIcon icon={faUpload} className="text-xl" />
                         {uploadFile ? (
                             <span className="font-semibold text-app-text truncate max-w-full px-2">{uploadFile.name}</span>

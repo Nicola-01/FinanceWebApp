@@ -18,8 +18,8 @@ export default function YearSelector({ currentDate, onSelectYear, onPrevDecade, 
     const years = Array.from({ length: 12 }, (_, i) => startYear + i);
 
     // Stili dinamici per il tema
-    const btnNav = `p-2 rounded-md transition-colors ${isDark ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'}`;
-    const textMain = isDark ? 'text-gray-100' : 'text-gray-700';
+    const btnNav = `p-2 rounded-md transition-colors ${isDark ? 'theme-bg-neutral-dark hover:theme-bg-neutral theme-text-muted' : 'theme-bg-inverse-muted hover:theme-bg-inverse-muted theme-text-subtle'}`;
+    const textMain = isDark ? 'theme-text-muted' : 'theme-text-subtle';
 
     return (
         <div className="flex flex-col h-full w-full">
@@ -43,14 +43,14 @@ export default function YearSelector({ currentDate, onSelectYear, onPrevDecade, 
             <div key={startYear + '-grid'} className={`grid grid-cols-4 gap-2 flex-1 ${direction === 'next' ? 'anim-next' : 'anim-prev'}`}>
                 {years.map((year) => {
                     const isSelected = isAllPreset || currentYear === year;
-                    const defaultStyle = isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100';
+                    const defaultStyle = isDark ? 'theme-text-muted hover:theme-bg-neutral-dark' : 'theme-text-subtle hover:theme-bg-inverse-muted';
 
                     return (
                         <button
                             key={year}
                             onClick={() => onSelectYear(setYear(currentDate, year))}
                             className={`flex items-center justify-center rounded-lg text-sm transition-colors ${
-                                isSelected ? 'text-white font-medium shadow-sm' : defaultStyle
+                                isSelected ? 'theme-text-default font-medium shadow-sm' : defaultStyle
                             }`}
                             style={isSelected ? { backgroundColor: color } : {}}
                         >

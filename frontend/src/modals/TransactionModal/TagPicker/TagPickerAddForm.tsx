@@ -59,7 +59,7 @@ export const TagPickerAddForm: React.FC<TagPickerAddFormProps> = ({
             </div>
             <input
                 autoFocus
-                className="flex-1 min-w-0 bg-transparent text-sm text-white outline-none placeholder-white/30 font-medium"
+                className="flex-1 min-w-0 theme-bg-transparent text-sm theme-text-default outline-none placeholder-white/30 font-medium"
                 placeholder={currentParentName ? "Subcategory name..." : "Category name..."}
                 value={newTag.name}
                 onChange={(e) => setNewTag({ ...newTag, name: e.target.value })}
@@ -76,7 +76,7 @@ export const TagPickerAddForm: React.FC<TagPickerAddFormProps> = ({
                     <button onClick={handleSave} className="flex h-7 w-7 items-center justify-center text-app-green hover:bg-app-green/20 rounded-md transition-colors">
                         <FontAwesomeIcon icon={faCheck} />
                     </button>
-                    <button onClick={onClose} className="flex h-7 w-7 items-center justify-center text-app-muted hover:text-red-500 hover:bg-red-500/20 rounded-md transition-colors">
+                    <button onClick={onClose} className="flex h-7 w-7 items-center justify-center text-app-muted hover:theme-text-danger hover:theme-bg-danger-light rounded-md transition-colors">
                         <FontAwesomeIcon icon={faXmark} />
                     </button>
                 </div>

@@ -58,9 +58,9 @@ export default function CalendarContainer({ currentDate, setCurrentDate, startDa
     const handlePrevDecade = () => { setDirection('prev'); setCurrentDate((prev) => subYears(prev, 10)); };
     const handleNextDecade = () => { setDirection('next'); setCurrentDate((prev) => addYears(prev, 10)); };
 
-    const btnNav = `p-2 rounded-md transition-colors ${isDark ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-gray-50 hover:bg-gray-100 text-gray-600'}`;
-    const textMain = isDark ? 'text-gray-100' : 'text-gray-700';
-    const textMuted = isDark ? 'text-gray-500' : 'text-gray-400';
+    const btnNav = `p-2 rounded-md transition-colors ${isDark ? 'theme-bg-neutral-dark hover:theme-bg-neutral theme-text-muted' : 'theme-bg-inverse-muted hover:theme-bg-inverse-muted theme-text-subtle'}`;
+    const textMain = isDark ? 'theme-text-muted' : 'theme-text-subtle';
+    const textMuted = isDark ? 'theme-text-subtle' : 'theme-text-muted';
 
     const baseDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const weekDays = [...baseDays.slice(weekStartsOn), ...baseDays.slice(0, weekStartsOn)];
@@ -83,7 +83,7 @@ export default function CalendarContainer({ currentDate, setCurrentDate, startDa
                             <button
                                 key={currentDate.toISOString() + '-title'}
                                 onClick={() => setView('months')}
-                                className={`flex items-center gap-1 font-semibold px-3 py-1 rounded-md transition-colors ${textMain} ${isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'} ${direction === 'next' ? 'anim-next' : 'anim-prev'}`}
+                                className={`flex items-center gap-1 font-semibold px-3 py-1 rounded-md transition-colors ${textMain} ${isDark ? 'hover:theme-bg-neutral-dark' : 'hover:theme-bg-inverse-muted'} ${direction === 'next' ? 'anim-next' : 'anim-prev'}`}
                             >
                                 <span className="capitalize">{format(currentDate, 'MMMM')}</span>
                                 <span>{format(currentDate, 'yyyy')}</span>

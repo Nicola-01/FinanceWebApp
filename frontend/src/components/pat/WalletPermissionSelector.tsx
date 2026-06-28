@@ -59,7 +59,7 @@ export const WalletPermissionSelector: React.FC<WalletPermissionSelectorProps> =
                                 onClick={() => setPermission(wp.walletId, 'read')}
                                 className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
                                     wp.enabled && !wp.write
-                                        ? 'bg-app-input text-cyan-400 shadow-sm'
+                                        ? 'bg-app-input theme-text-primary shadow-sm'
                                         : 'text-app-muted hover:text-app-text'
                                 }`}
                             >
@@ -76,7 +76,7 @@ export const WalletPermissionSelector: React.FC<WalletPermissionSelectorProps> =
                                     wp.userRole === 'VIEWER'
                                         ? 'opacity-40 cursor-not-allowed text-app-muted'
                                         : wp.enabled && wp.write
-                                            ? 'bg-app-input text-amber-400 shadow-sm'
+                                            ? 'bg-app-input theme-text-warning shadow-sm'
                                             : 'text-app-muted hover:text-app-text'
                                 }`}
                             >

@@ -109,7 +109,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
                 className={`flex items-center justify-center w-[48px] h-[48px] rounded-xl border transition-all ${
                     isFilterActive || isOpen
                         ? 'shadow-lg' 
-                        : 'bg-black/40 border-app-border text-app-muted hover:bg-app-input hover:text-white'
+                        : 'bg-app-input border-app-border text-app-muted hover:bg-app-surface hover:text-app-text'
                 }`}
                 style={
                     isFilterActive || isOpen 
@@ -140,7 +140,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({ tags, selectedTags, color 
                                 className={`text-lg transition-colors ${allColorClass}`}
                                 style={allState !== 'unchecked' ? { color } : {}}
                             />
-                            <span className="text-white text-sm font-medium">All Tags</span>
+                            <span className="text-app-text text-sm font-medium">All Tags</span>
                         </div>
 
                         {/* Tag Tree */}

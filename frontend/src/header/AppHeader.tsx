@@ -115,7 +115,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => 
                     <h2 className="m-0 text-2xl font-bold tracking-wide text-app-text capitalize">
                         {page.text}
                         <span
-                            className="ml-1 animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                            className="ml-1 animate-gradient-x bg-gradient-to-r theme-gradient-primary-from theme-gradient-brand-via theme-gradient-brand-to bg-clip-text theme-text-transparent">
                             {page.accent}
                         </span>
                     </h2>
@@ -147,7 +147,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => 
                         onClick={() => setShowMenu(!showMenu)}
                         className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${showMenu
                             ? 'bg-app-input border-app-border shadow-sm'
-                            : 'border-transparent hover:bg-app-input'
+                            : 'theme-border-transparent hover:bg-app-input'
                             }`}
                     >
                         {/* Icona Profilo */}
@@ -184,7 +184,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => 
                                     {/* Badge ADMIN (visibile solo se il ruolo è ADMIN) */}
                                     {user?.role === 'ADMIN' && (
                                         <span
-                                            className="shrink-0 rounded bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                                            className="shrink-0 rounded theme-bg-warning-light px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider theme-text-warning">
                                             Admin
                                         </span>
                                     )}
@@ -248,7 +248,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => 
                                     {
                                         invitations.filter(i => i.status === 'PENDING').length > 0 &&
                                         <span
-                                            className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-app-sky)] text-[10px] font-bold text-black">
+                                            className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-app-sky)] text-[10px] font-bold theme-text-inverse">
                                             {invitations.length}
                                         </span>
                                     }

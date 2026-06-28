@@ -133,7 +133,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
 
                 {/* SINISTRA: Importo Originale */}
                 <div className="flex justify-center flex-1 min-w-0 group">
-                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1' : 'border-transparent'}`}>
+                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'theme-border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1' : 'theme-border-transparent'}`}>
                         {isViewOnly ? (
                             <span className="text-lg sm:text-xl font-bold font-app-mono text-app-text truncate">
                                 {Number(originalAmount).toFixed(2)}
@@ -141,7 +141,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
                         ) : (
                             <input
                                 type="number" step="0.01" min="0"
-                                className={`w-full min-w-[40px] bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-app-text outline-none placeholder-app-muted opacity-50 focus:opacity-100 ${hideArrowsClass}`}
+                                className={`w-full min-w-[40px] theme-bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-app-text outline-none placeholder-app-muted opacity-50 focus:opacity-100 ${hideArrowsClass}`}
                                 placeholder="0.00"
                                 value={originalAmount}
                                 onChange={(e) => handleOriginalChange(e.target.value)}
@@ -156,7 +156,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
 
                 {/* CENTRO: Tasso di Cambio */}
                 <div className="flex flex-col items-center justify-center flex-[1.4] min-w-0 group px-1">
-                    <div className={`flex items-center justify-center gap-1 text-[10px] sm:text-xs font-bold text-app-sky/70 whitespace-nowrap border-b w-full ${!isViewOnly ? 'border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1' : 'border-transparent'}`}>
+                    <div className={`flex items-center justify-center gap-1 text-[10px] sm:text-xs font-bold text-app-sky/70 whitespace-nowrap border-b w-full ${!isViewOnly ? 'theme-border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1' : 'theme-border-transparent'}`}>
                         <span className="shrink-0">1 {selectedCurrency} = </span>
                         {isViewOnly ? (
                             <span className="text-app-text mx-1 tracking-tight">
@@ -165,7 +165,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
                             ) : (
                             <input
                             type="number" step="0.000001" min="0"
-                         className={`w-full min-w-[60px] max-w-[80px] bg-transparent text-center outline-none text-app-text placeholder-app-muted opacity-50 focus:opacity-100 tracking-tight ${hideArrowsClass}`}
+                         className={`w-full min-w-[60px] max-w-[80px] theme-bg-transparent text-center outline-none text-app-text placeholder-app-muted opacity-50 focus:opacity-100 tracking-tight ${hideArrowsClass}`}
                          placeholder="1.00"
                          value={exchangeRate}
                          onChange={(e) => handleRateChange(e.target.value)}
@@ -183,7 +183,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
 
                 {/* DESTRA: Importo Convertito */}
                 <div className="flex justify-center flex-1 min-w-0 group">
-                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1' : 'border-transparent'}`}>
+                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'theme-border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1' : 'theme-border-transparent'}`}>
                         {isViewOnly ? (
                             <span className="text-lg sm:text-xl font-bold font-app-mono text-app-sky truncate">
                                 {Number(convertedAmount).toFixed(2)}
@@ -191,7 +191,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
                         ) : (
                             <input
                                 type="number" step="0.01" min="0"
-                                className={`w-full min-w-[40px] bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-app-sky outline-none placeholder-[var(--color-app-sky)]/50 ${hideArrowsClass}`}
+                                className={`w-full min-w-[40px] theme-bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-app-sky outline-none placeholder-[var(--color-app-sky)]/50 ${hideArrowsClass}`}
                                 placeholder="0.00"
                                 value={convertedAmount}
                                 onChange={(e) => handleConvertedChange(e.target.value)}
@@ -226,7 +226,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
                     </div>
                 </div>
                 <div className={`relative w-12 h-6 rounded-full transition-colors ${isForeignCurrency ? 'bg-[var(--color-app-sky)]' : 'bg-app-surface'}`}>
-                    <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isForeignCurrency ? 'translate-x-6' : ''}`}/>
+                    <div className={`absolute top-1 left-1 theme-bg-inverse w-4 h-4 rounded-full transition-transform ${isForeignCurrency ? 'translate-x-6' : ''}`}/>
                 </div>
             </div>
 

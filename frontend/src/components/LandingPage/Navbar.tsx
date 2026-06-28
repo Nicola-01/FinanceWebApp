@@ -63,8 +63,8 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
                             onClick={() => handleNav(link.path)}
                             className={`text-sm transition-colors ${
                                 isActive(link.path)
-                                    ? 'text-purple-400 font-bold' // Stile per il link attivo
-                                    : 'text-gray-400 font-medium hover:text-white' // Stile normale
+                                    ? 'theme-text-brand font-bold' // Stile per il link attivo
+                                    : 'theme-text-muted font-medium hover:theme-text-default' // Stile normale
                             }`}
                         >
                             {link.label}
@@ -76,11 +76,11 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
                 <div className="flex items-center gap-4 justify-self-end">
                     <div className="hidden md:flex">
                         {isLoggedIn ? (
-                            <button onClick={onDashboardClick} className="text-sm font-medium hover:text-cyan-400 transition-colors">
+                            <button onClick={onDashboardClick} className="text-sm font-medium hover:theme-text-primary transition-colors">
                                 Dashboard
                             </button>
                         ) : (
-                            <button onClick={onLoginClick} className="bg-app-hover hover:bg-white/20 px-4 py-2 rounded-full text-sm font-medium transition-all border border-app-border hover:border-white/20">
+                            <button onClick={onLoginClick} className="bg-app-hover hover:bg-white/20 px-4 py-2 rounded-full text-sm font-medium transition-all border border-app-border hover:theme-border-default">
                                 Login
                             </button>
                         )}
@@ -89,7 +89,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
                     {/* Mobile Hamburger Icon */}
                     <button 
                         onClick={toggleMenu}
-                        className="md:hidden text-white hover:text-cyan-400 transition-colors p-1"
+                        className="md:hidden theme-text-default hover:theme-text-primary transition-colors p-1"
                     >
                         {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
@@ -104,7 +104,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
                             <button 
                                 key={link.path}
                                 onClick={() => handleNav(link.path)}
-                                className="text-lg font-medium text-gray-400 hover:text-white text-left"
+                                className="text-lg font-medium theme-text-muted hover:theme-text-default text-left"
                             >
                                 {link.label}
                             </button>
@@ -113,14 +113,14 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
                             {isLoggedIn ? (
                                 <button 
                                     onClick={() => { onDashboardClick(); setIsMenuOpen(false); }}
-                                    className="text-lg font-medium text-cyan-400"
+                                    className="text-lg font-medium theme-text-primary"
                                 >
                                     Dashboard
                                 </button>
                             ) : (
                                 <button 
                                     onClick={() => { onLoginClick(); setIsMenuOpen(false); }}
-                                    className="w-full bg-app-green text-black font-bold py-3 rounded-xl transition-all"
+                                    className="w-full bg-app-green theme-text-inverse font-bold py-3 rounded-xl transition-all"
                                 >
                                     Login
                                 </button>

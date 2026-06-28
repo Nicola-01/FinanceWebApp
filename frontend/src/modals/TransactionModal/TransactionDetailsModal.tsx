@@ -70,9 +70,9 @@ export const TransactionDetailsModal = forwardRef<TransactionDetailsModalHandle,
                 icon: <FontAwesomeIcon icon={faTrash} className="w-4" />,
                 label: 'Delete',
                 onClick: handleDelete,
-                color: 'text-red-500',
-                hoverColor: 'hover:text-red-400',
-                hoverBg: 'hover:bg-red-500/10'
+                color: 'theme-text-danger',
+                hoverColor: 'hover:theme-text-danger',
+                hoverBg: 'hover:theme-bg-danger-transparent'
             }
         ] : undefined;
 

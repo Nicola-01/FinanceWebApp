@@ -132,7 +132,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                         await handleSave();
                 },
                 color: canSave ? wallet.color : undefined,
-                hoverColor: 'hover:text-white',
+                hoverColor: 'hover:theme-text-default',
                 disabled: !canSave || loading
             }
         ];

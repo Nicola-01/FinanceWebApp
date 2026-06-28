@@ -7,10 +7,10 @@ const StatusIcon = ({ status }: { status: ToDoStatus }) => {
         case 'FINISHED':
             return <CheckCircle2 className="w-6 h-6 text-app-green" />;
         case 'STARTED':
-            return <ArrowRightCircle className="w-6 h-6 text-cyan-400" />;
+            return <ArrowRightCircle className="w-6 h-6 theme-text-primary" />;
         case 'PLANNED':
         default:
-            return <Circle className="w-6 h-6 text-gray-600" />;
+            return <Circle className="w-6 h-6 theme-text-subtle" />;
     }
 };
 
@@ -19,10 +19,10 @@ const StatusBadge = ({ status }: { status: ToDoStatus }) => {
         case 'FINISHED':
             return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-green/10 text-app-green border border-app-green/20 text-xs font-semibold">Completed</span>;
         case 'STARTED':
-            return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20 text-xs font-semibold">Started</span>;
+            return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-primary-transparent theme-text-primary-light border theme-border-primary text-xs font-semibold">Started</span>;
         case 'PLANNED':
         default:
-            return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-input text-gray-400 border border-app-border text-xs font-semibold">Planned</span>;
+            return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-input theme-text-muted border border-app-border text-xs font-semibold">Planned</span>;
     }
 };
 
@@ -37,13 +37,13 @@ const ToDoCard: React.FC<{ item: ToDoItem }> = ({ item }) => {
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <StatusIcon status={item.status} />
-                    <h3 className="text-xl font-bold text-white">{item.title}</h3>
+                    <h3 className="text-xl font-bold theme-text-default">{item.title}</h3>
                 </div>
                 <StatusBadge status={item.status} />
             </div>
             
             {item.description && (
-                <p className="text-gray-400 text-sm leading-relaxed pl-9">
+                <p className="theme-text-muted text-sm leading-relaxed pl-9">
                     {item.description}
                 </p>
             )}
@@ -52,7 +52,7 @@ const ToDoCard: React.FC<{ item: ToDoItem }> = ({ item }) => {
                 <div className="pl-9 mt-2">
                     <ul className="space-y-2">
                         {displayedSubtasks?.map((task, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm text-gray-300">
+                            <li key={idx} className="flex items-start gap-2 text-sm theme-text-muted">
                                 <div className="mt-1 w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
                                 {task}
                             </li>
@@ -65,7 +65,7 @@ const ToDoCard: React.FC<{ item: ToDoItem }> = ({ item }) => {
                                 e.stopPropagation();
                                 setIsExpanded(!isExpanded);
                             }}
-                            className="mt-3 text-xs font-medium text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
+                            className="mt-3 text-xs font-medium theme-text-primary hover:theme-text-primary-light flex items-center gap-1 transition-colors"
                         >
                             {isExpanded ? 'Show less' : `+${item.subtasks.length - showLimit} more subtasks (show more)`}
                         </button>
@@ -86,7 +86,7 @@ const ToDoList: React.FC = () => {
             {started.length > 0 && (
                 <section>
                     <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>
+                        <span className="w-3 h-3 rounded-full theme-bg-primary animate-pulse"></span>
                         Currently In Progress
                     </h2>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -97,8 +97,8 @@ const ToDoList: React.FC = () => {
 
             {planned.length > 0 && (
                 <section>
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-300">
-                        <span className="w-3 h-3 rounded-full bg-gray-500"></span>
+                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 theme-text-muted">
+                        <span className="w-3 h-3 rounded-full theme-bg-neutral"></span>
                         Future Roadmap
                     </h2>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -109,7 +109,7 @@ const ToDoList: React.FC = () => {
 
             {finished.length > 0 && (
                 <section>
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-gray-300">
+                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 theme-text-muted">
                         <span className="w-3 h-3 rounded-full bg-app-green"></span>
                         Recently Shipped
                     </h2>

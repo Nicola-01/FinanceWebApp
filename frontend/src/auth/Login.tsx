@@ -70,15 +70,15 @@ const Login: React.FC = () => {
                             <div className="w-full rounded-xl border border-app-border bg-app-input p-5 mt-2 text-left shadow-inner">
                                 <ul className="space-y-3.5">
                                     <li className="flex items-start">
-                                        <span className="mr-3 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-green-500/20 text-[10px] text-green-400 font-bold">✓</span>
+                                        <span className="mr-3 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full theme-bg-success-light text-[10px] theme-text-success font-bold">✓</span>
                                         <span className="text-app-text leading-tight">Pre-populated with realistic sample data</span>
                                     </li>
                                     <li className="flex items-start">
-                                        <span className="mr-3 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/20 text-[10px] text-blue-400 font-bold">✓</span>
+                                        <span className="mr-3 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full theme-bg-primary-light text-[10px] theme-text-primary font-bold">✓</span>
                                         <span className="text-app-text leading-tight">Full access to all the features</span>
                                     </li>
                                     <li className="flex items-start">
-                                        <span className="mr-3 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-purple-500/20 text-[10px] text-purple-400 font-bold">✓</span>
+                                        <span className="mr-3 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full theme-bg-brand-light text-[10px] theme-text-brand font-bold">✓</span>
                                         <span className="text-app-text leading-tight">Completely private, safe workspace</span>
                                     </li>
                                 </ul>
@@ -94,7 +94,7 @@ const Login: React.FC = () => {
                             type="button"
                             disabled={demoLoading}
                             onClick={handleTryDemo}
-                            className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3.5 text-sm font-bold tracking-wider text-white shadow-[0_5px_15px_rgba(77,109,255,0.3)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(77,109,255,0.5)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
+                            className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3.5 text-sm font-bold tracking-wider theme-text-default shadow-[0_5px_15px_rgba(77,109,255,0.3)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(77,109,255,0.5)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
                         >
                             {demoLoading ? (
                                 <><FontAwesomeIcon icon={faSpinner} className="mr-2 animate-spin"/>GENERATING WORKSPACE...</>

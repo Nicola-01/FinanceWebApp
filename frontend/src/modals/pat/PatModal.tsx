@@ -207,8 +207,8 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
     const renderTitle = () => {
         if (view === 'list') return <><FontAwesomeIcon icon={faCode} className="text-[#a78bfa]" /> API Tokens</>;
         if (view === 'create') return <><FontAwesomeIcon icon={faPlus} className="text-app-green" /> New Token</>;
-        if (view === 'edit') return <><FontAwesomeIcon icon={faPen} className="text-amber-400" /> Edit Permissions</>;
-        return <><FontAwesomeIcon icon={faShieldAlt} className="text-amber-400" /> Token Created</>;
+        if (view === 'edit') return <><FontAwesomeIcon icon={faPen} className="theme-text-warning" /> Edit Permissions</>;
+        return <><FontAwesomeIcon icon={faShieldAlt} className="theme-text-warning" /> Token Created</>;
     };
 
     const renderRightActions = () => {

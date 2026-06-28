@@ -114,7 +114,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
                     <div>
                         <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">Category Name *</label>
                         <input
-                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-white outline-none transition-all focus:border-app-green"
+                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 theme-text-default outline-none transition-all focus:border-app-green"
                             type="text"
                             placeholder="e.g. Shopping"
                             value={name}
