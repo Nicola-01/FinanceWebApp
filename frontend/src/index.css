@@ -19,6 +19,7 @@ html, body, #root {
   --color-app-bg: rgb(var(--bg-main));
   --color-app-surface: rgb(var(--bg-surface));
   --color-app-card: rgb(var(--bg-card));
+  --color-app-transparent: var(--bg-transparent);
   --color-app-text: rgb(var(--text-primary));
   --color-app-muted: rgb(var(--text-muted));
   --color-app-border: rgb(var(--border-primary));

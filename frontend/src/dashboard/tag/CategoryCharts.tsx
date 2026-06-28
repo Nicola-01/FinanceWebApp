@@ -46,8 +46,12 @@ export const TransactionPieChart = ({ transactions, type, title }: {
     if (totalAmount === 0) {
         return (
             <div
-                className="flex flex-col items-center justify-center h-[400px] w-full bg-app-input rounded-2xl border border-app-border">
-                <p className="text-app-muted">No {title.toLowerCase()} data available.</p>
+                className="flex flex-col items-center w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
+                <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider opacity-50">{title}</h3>
+                
+                <div className="w-full flex flex-col items-center justify-center flex-1 min-h-[400px] bg-app-input/30 rounded-xl border border-app-border border-dashed">
+                    <p className="text-app-muted">No {title.toLowerCase()} data available.</p>
+                </div>
             </div>
         );
     }
@@ -92,7 +96,7 @@ export const TransactionPieChart = ({ transactions, type, title }: {
 
     return (
         <div
-            className="flex flex-col items-center w-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
+            className="flex flex-col items-center w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
             <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider">{title}</h3>
 
             <div className="w-full flex justify-center h-[400px]">

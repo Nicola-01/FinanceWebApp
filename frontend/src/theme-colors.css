@@ -3,6 +3,7 @@
   --bg-main: 249 250 251;      /* gray-50 */
   --bg-surface: 243 244 246;   /* gray-100 */
   --bg-card: 255 255 255;      /* white */
+  --bg-transparent: rgba(255, 255, 255, 0.6); /* transparent white */
   
   --text-primary: 17 24 39;    /* gray-900 */
   --text-muted: 107 114 128;   /* gray-500 */
@@ -28,8 +29,9 @@
 .dark {
   /* TEMA SCURO - Zinc (Dark mode) */
   --bg-main: 9 9 11;           /* zinc-950 */
-  --bg-surface: 24 24 27;      /* zinc-900 */
+  --bg-surface: 34 34 37;      /* zinc-900 */
   --bg-card: 24 24 27;         /* zinc-900 */
+  --bg-transparent: rgba(9, 9, 11, 0.65); /* transparent zinc-900 */
   
   --text-primary: 250 250 250; /* zinc-50 */
   --text-muted: 161 161 170;   /* zinc-400 */

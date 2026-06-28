@@ -56,7 +56,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                                         type="button"
                                         onClick={() => setSelectedRole('VIEWER')}
                                         className={`flex-1 rounded py-1 text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${selectedRole === 'VIEWER'
-                                            ? 'bg-app-surface text-app-text shadow-sm'
+                                            ? 'bg-cyan-600/20 text-app-text shadow-sm'
                                             : 'text-app-muted hover:text-app-text'
                                             }`}
                                     >
@@ -75,15 +75,16 @@ export const MemberRow: React.FC<MemberRowProps> = ({ member, icon, iconColor, c
                                         Editor
                                     </button>
                                 </div>
-                                {hasRoleChanged && (
-                                    <button
-                                        onClick={() => onChangeRole(member.userId, selectedRole)}
-                                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-app-green/10 text-app-green hover:bg-app-green hover:text-black transition-colors"
-                                        title="Save Role"
-                                    >
-                                        <FontAwesomeIcon icon={faCheck} className="text-sm" />
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => onChangeRole(member.userId, selectedRole)}
+                                    className={`flex h-8 w-8 items-center justify-center rounded-lg bg-app-green/10 text-app-green hover:bg-app-green hover:text-black transition-colors ${
+                                        hasRoleChanged ? '' : 'opacity-20 cursor-not-allowed'
+                                    }`}
+                                    disabled={hasRoleChanged}
+                                    title="Save Role"
+                                >
+                                    <FontAwesomeIcon icon={faCheck} className="text-sm" />
+                                </button>
                             </div>
                         )}
 

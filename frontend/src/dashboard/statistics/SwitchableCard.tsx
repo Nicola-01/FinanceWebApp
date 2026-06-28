@@ -3,6 +3,7 @@ import { useMedia, useClickAway } from 'react-use';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useWalletContext } from '../wallet/WalletContext.tsx';
 
 
 export interface Tab {
@@ -41,6 +42,9 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
 
     const isMobile = useMedia('(max-width: 639px)', false);
     const activeTab = controlledActiveTab ?? internalTab;
+
+    const {wallet} = useWalletContext();
+    const walletColor = wallet?.color || 'var(--color-app-green)';
 
     useClickAway(menuRef, () => setIsMenuOpen(false));
 
@@ -116,9 +120,10 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
                                                 onClick={() => handleTabChange(tab.key)}
                                                 className={`w-full text-left px-4 py-3 text-sm transition-all ${
                                                     activeTab === tab.key
-                                                        ? 'bg-app-hover text-white font-bold'
+                                                        ? 'bg-app-hover font-bold'
                                                         : 'text-app-muted hover:text-white hover:bg-app-input'
                                                 }`}
+                                                style={{ color: activeTab === tab.key ? walletColor : '' }}
                                             >
                                                 {tab.title}
                                             </button>
@@ -146,9 +151,10 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
                                 onClick={() => handleTabChange(tab.key)}
                                 className={`w-[90px] py-2 text-xs font-bold rounded-md transition-all text-center ${
                                     activeTab === tab.key
-                                        ? 'bg-app-card text-app-text shadow-sm'
+                                        ? 'bg-app-card shadow-sm'
                                         : 'text-app-muted hover:text-app-text hover:bg-app-card/30'
                                 }`}
+                                style={{ color: activeTab === tab.key ? walletColor : '' }}
                             >
                                 {tab.label}
                             </button>

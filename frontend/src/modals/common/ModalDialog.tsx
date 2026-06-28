@@ -75,7 +75,7 @@ export const ModalDialog = ({
             onCancel={onCancel}
             className={`
                     m-auto w-screen md:w-[90vw] max-w-112.5 
-                    rounded-[32px] border border-app-border bg-app-surface p-8.75 text-app-text 
+                    rounded-[32px] border border-app-border bg-app-transparent p-8.75 text-app-text 
                     shadow-2xl backdrop-blur-[20px] 
                     backdrop:bg-black/20 dark:backdrop:bg-black/60 backdrop:backdrop-blur-md
                     open:animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)]

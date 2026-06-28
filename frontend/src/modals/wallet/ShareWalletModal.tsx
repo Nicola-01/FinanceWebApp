@@ -105,7 +105,7 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
                                 type="button"
                                 onClick={() => setRole('VIEWER')}
                                 className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 ${role === 'VIEWER'
-                                    ? 'bg-app-surface text-app-text shadow-sm'
+                                    ? 'bg-cyan-600/20  text-app-text shadow-sm'
                                     : 'text-app-muted hover:text-app-text'
                                     }`}
                             >

@@ -1,9 +1,9 @@
-import React, {useRef, useState} from 'react';
-import {useNavigate, useLocation} from "react-router-dom";
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faEye, faEyeSlash, faLock, faTriangleExclamation, faUser} from '@fortawesome/free-solid-svg-icons';
+import React, { useRef, useState } from 'react';
+import { useNavigate, useLocation } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash, faLock, faTriangleExclamation, faUser } from '@fortawesome/free-solid-svg-icons';
 import api from '../api/axiosConfig';
-import {triggerToast} from '../components/ui/ToastNotification.tsx';
+import { triggerToast } from '../components/ui/ToastNotification.tsx';
 
 interface Requirements {
     username?: string;
@@ -66,7 +66,7 @@ export const LoginForm: React.FC = () => {
                 rememberMe: rememberMe.current?.checked
             });
 
-            const {token, passwordMustChange} = response.data;
+            const { token, passwordMustChange } = response.data;
 
             localStorage.setItem('mustChangePWD', JSON.stringify(passwordMustChange));
 
@@ -93,7 +93,7 @@ export const LoginForm: React.FC = () => {
 
     return (
         <form
-            className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-app-border bg-app-input p-6 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
+            className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-app-border bg-app-transparent p-6 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
             onSubmit={handleSubmit}
             noValidate
         >
@@ -101,7 +101,7 @@ export const LoginForm: React.FC = () => {
             <div className="mb-5 sm:mb-8">
                 <div
                     className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-app-input border border-app-border">
-                    <FontAwesomeIcon icon={faUser} className="text-2xl sm:text-3xl text-app-text"/>
+                    <FontAwesomeIcon icon={faUser} className="text-2xl sm:text-3xl text-app-text" />
                 </div>
             </div>
 
@@ -110,7 +110,7 @@ export const LoginForm: React.FC = () => {
                 <div
                     className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'border-red-500' : 'border-app-border focus-within:border-app-text'}`}>
                     <span className="absolute left-0 text-lg text-app-text">
-                        <FontAwesomeIcon icon={faUser}/>
+                        <FontAwesomeIcon icon={faUser} />
                     </span>
                     <input
                         ref={username}
@@ -123,7 +123,7 @@ export const LoginForm: React.FC = () => {
                 {require.username && (
                     <span
                         className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm text-red-500">
-                        <FontAwesomeIcon icon={faTriangleExclamation}/> {require.username}
+                        <FontAwesomeIcon icon={faTriangleExclamation} /> {require.username}
                     </span>
                 )}
             </div>
@@ -133,7 +133,7 @@ export const LoginForm: React.FC = () => {
                 <div
                     className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'border-red-500' : 'border-app-border focus-within:border-app-text'}`}>
                     <span className="absolute left-0 text-lg text-app-text">
-                        <FontAwesomeIcon icon={faLock}/>
+                        <FontAwesomeIcon icon={faLock} />
                     </span>
                     <input
                         ref={password}
@@ -146,14 +146,14 @@ export const LoginForm: React.FC = () => {
                         className="absolute right-0 z-20 cursor-pointer text-app-muted transition-colors hover:text-app-text"
                         onClick={() => setShowPassword(!showPassword)}
                     >
-                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye}/>
+                        <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                     </span>
                 </div>
                 {/* Password Error Tooltip */}
                 {require.password && (
                     <span
                         className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm text-red-500">
-                        <FontAwesomeIcon icon={faTriangleExclamation}/> {require.password}
+                        <FontAwesomeIcon icon={faTriangleExclamation} /> {require.password}
                     </span>
                 )}
             </div>

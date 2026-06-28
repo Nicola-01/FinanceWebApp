@@ -63,7 +63,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
                             type="button"
                             onClick={() => setRole('VIEWER')}
                             className={`flex-1 rounded-lg text-base font-bold transition-all flex items-center justify-center gap-2 ${role === 'VIEWER'
-                                ? 'bg-app-surface text-app-text shadow-sm'
+                                ? 'bg-cyan-600/20  text-app-text shadow-sm'
                                 : 'text-app-muted hover:text-app-text'
                                 }`}
                         >
