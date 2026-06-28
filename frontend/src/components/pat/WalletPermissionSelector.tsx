@@ -46,7 +46,7 @@ export const WalletPermissionSelector: React.FC<WalletPermissionSelectorProps> =
                                 onClick={() => setPermission(wp.walletId, 'none')}
                                 className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition-all ${
                                     !wp.enabled
-                                        ? 'bg-app-input text-[#ff4d4d] shadow-sm'
+                                        ? 'bg-app-input text-app-red shadow-sm'
                                         : 'text-app-muted hover:text-app-text'
                                 }`}
                             >

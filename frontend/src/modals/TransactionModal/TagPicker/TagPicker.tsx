@@ -85,7 +85,7 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex h-12 w-full items-center justify-between rounded-xl border border-app-border bg-[#1a1a1a] px-4 text-left outline-none transition-all focus:border-[#00ff7f]"
+                className="flex h-12 w-full items-center justify-between rounded-xl border border-app-border bg-app-card px-4 text-left outline-none transition-all focus:border-app-green"
             >
                 {selectedTag ? (
                     <div className="flex items-center gap-3">
@@ -95,7 +95,7 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
                         >
                             <Icon icon={selectedTag.icon} color={selectedTag.colorHex || '#ffffff'} />
                         </div>
-                        <span className="text-white font-medium">{selectedTag.name}</span>
+                        <span className="text-app-text font-medium">{selectedTag.name}</span>
                     </div>
                 ) : (
                     <span className="text-app-muted">Select a category...</span>
@@ -105,7 +105,7 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
 
             {/* Menu Dropdown */}
             {isOpen && (
-                <div className="absolute z-50 mt-1 w-full rounded-xl border border-app-border bg-[#1a1a1a] p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] flex flex-col max-h-[350px]">
+                <div className="absolute z-50 mt-1 w-full rounded-xl border border-app-border bg-app-card p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] flex flex-col max-h-[350px]">
 
                     {/* IL TASTO BACK RIMANE FISSO IN ALTO (Se siamo in una cartella) */}
                     {currentParentName && currentParentTag && (
@@ -113,7 +113,7 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
                             <button
                                 type="button"
                                 onClick={() => setCurrentParentName(currentParentTag.parentName || null)}
-                                className="flex w-full items-center gap-2 rounded-lg p-2 text-sm font-bold text-[#00ff7f] hover:bg-app-input transition-colors outline-none"
+                                className="flex w-full items-center gap-2 rounded-lg p-2 text-sm font-bold text-app-green hover:bg-app-input transition-colors outline-none"
                             >
                                 <FontAwesomeIcon icon={faChevronLeft} />
                                 Back to {currentParentTag.parentName ? currentParentTag.parentName : 'Categories'}
@@ -127,7 +127,7 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
                         {/* 1. TAG GENERALE (Scollabile, in cima) */}
                         {currentParentName && currentParentTag && (
                             <div className="mb-2">
-                                <div className="bg-black/20 rounded-lg">
+                                <div className="bg-app-hover rounded-lg">
                                     <TagPickerRow
                                         tag={currentParentTag}
                                         isParentHeader={true}
@@ -162,18 +162,18 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
                             {isAddingTag ? (
                                 <TagPickerAddForm
                                     currentParentName={currentParentName}
-                                    currentParentColor={currentParentTag ? currentParentTag.colorHex : '#00ff7f'}
+                                    currentParentColor={currentParentTag ? currentParentTag.colorHex : 'var(--color-app-green)'}
                                     onClose={() => setIsAddingTag(false)}
                                 />
                             ) : (
                                 <button
                                     onClick={() => setIsAddingTag(true)}
-                                    className="flex w-full items-center gap-3 rounded-lg border border-dashed border-white/20 p-2.5 text-left hover:bg-app-input transition-colors group"
+                                    className="flex w-full items-center gap-3 rounded-lg border border-dashed border-app-border p-2.5 text-left hover:bg-app-input transition-colors group"
                                 >
                                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-input group-hover:bg-app-surface transition-colors">
-                                        <FontAwesomeIcon icon={faPlus} className="text-app-muted group-hover:text-white" />
+                                        <FontAwesomeIcon icon={faPlus} className="text-app-muted group-hover:text-app-text" />
                                     </div>
-                                    <span className="text-sm font-medium text-app-muted group-hover:text-white">
+                                    <span className="text-sm font-medium text-app-muted group-hover:text-app-text">
                                         {currentParentName ? 'Add Subcategory' : 'Add Main Category'}
                                     </span>
                                 </button>

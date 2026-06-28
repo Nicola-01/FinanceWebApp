@@ -86,7 +86,7 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onCha
 
             <div
                 ref={triggerRef}
-                className={`flex h-[48px] w-full cursor-pointer items-center justify-between rounded-xl border bg-app-input px-4 outline-none transition-all ${isOpen ? 'border-[#00ff7f]' : 'border-app-border hover:border-white/30'}`}
+                className={`flex h-[48px] w-full cursor-pointer items-center justify-between rounded-xl border bg-app-input px-4 outline-none transition-all ${isOpen ? 'border-app-green' : 'border-app-border hover:border-white/30'}`}
                 onClick={toggleDropdown}
             >
                 {/* Nuova formattazione del testo identica agli elementi della tendina */}
@@ -104,7 +104,7 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onCha
 
                 <FontAwesomeIcon
                     icon={faChevronDown}
-                    className={`shrink-0 text-app-muted transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#00ff7f]' : ''}`}
+                    className={`shrink-0 text-app-muted transition-transform duration-300 ${isOpen ? 'rotate-180 text-app-green' : ''}`}
                 />
             </div>
 
@@ -122,14 +122,14 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({ value, onCha
 
                     <div
                         style={dropdownStyle}
-                        className="absolute z-10 rounded-xl border border-app-border bg-[#1a1a1a] py-2 shadow-2xl animate-[fadeIn_0.2s_ease-out]"
+                        className="absolute z-10 rounded-xl border border-app-border bg-app-card py-2 shadow-2xl animate-[fadeIn_0.2s_ease-out]"
                     >
                         {/* Aggiunta la classe vitale 'currency-scroll-container' */}
                         <div className="currency-scroll-container max-h-[200px] overflow-y-auto pointer-events-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
                             {availableCurrencies.map(([code, data]: [string, any]) => (
                                 <div
                                     key={code}
-                                    className={`cursor-pointer px-4 py-2.5 text-sm transition-colors hover:bg-app-surface ${safeCode === code ? 'border-l-2 border-[#00ff7f] bg-[#00ff7f]/10 text-[#00ff7f]' : 'border-l-2 border-transparent text-white/80'}`}
+                                    className={`cursor-pointer px-4 py-2.5 text-sm transition-colors hover:bg-app-surface ${safeCode === code ? 'border-l-2 border-app-green bg-app-green/10 text-app-green' : 'border-l-2 border-transparent text-white/80'}`}
                                     // IL FIX: onMouseDown è istantaneo, a differenza di onClick che aspetta il rilascio del mouse
                                     onMouseDown={(e) => {
                                         e.preventDefault();

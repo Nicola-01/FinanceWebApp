@@ -48,7 +48,7 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
         <ModalDialog
             ref={dialogRef}
             className="max-w-[450px]"
-            title={<><FontAwesomeIcon icon={faUser} className="text-[#00bfff]" /> Profile Settings</>}
+            title={<><FontAwesomeIcon icon={faUser} className="text-app-sky" /> Profile Settings</>}
             rightActions={[
                 {
                     icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
@@ -56,7 +56,7 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
                         if (!loading)
                             await handleSubmit()
                     },
-                    hoverColor: 'hover:text-[#00bfff]'
+                    hoverColor: 'hover:text-app-sky'
                 }
             ]}
         >
@@ -68,7 +68,7 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-[var(--color-app-sky)] focus:ring-2 focus:ring-app-sky/20"
                         />
                     </div>
 
@@ -78,7 +78,7 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-[#00bfff] focus:ring-2 focus:ring-[#00bfff]/20"
+                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-[var(--color-app-sky)] focus:ring-2 focus:ring-app-sky/20"
                         />
                     </div>
 

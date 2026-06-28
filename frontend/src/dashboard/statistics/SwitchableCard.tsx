@@ -116,8 +116,8 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
                                                 onClick={() => handleTabChange(tab.key)}
                                                 className={`w-full text-left px-4 py-3 text-sm transition-all ${
                                                     activeTab === tab.key
-                                                        ? 'bg-white/10 text-white font-bold'
-                                                        : 'text-app-muted hover:text-white hover:bg-white/5'
+                                                        ? 'bg-app-hover text-white font-bold'
+                                                        : 'text-app-muted hover:text-white hover:bg-app-input'
                                                 }`}
                                             >
                                                 {tab.title}

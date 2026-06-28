@@ -27,7 +27,7 @@ export const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({passw
     const requirements = getPasswordRequirements(password, confirmPassword);
 
     return (
-        <div className="mb-5 rounded-lg border border-app-border bg-black/20 p-[15px] text-left w-full shadow-inner">
+        <div className="mb-5 rounded-lg border border-app-border bg-app-input p-[15px] text-left w-full shadow-inner">
             <h4 className="ml-1 mb-2 block text-[0.85rem] font-medium text-app-muted text-left">
                 Password Requirements:
             </h4>
@@ -39,8 +39,8 @@ export const PasswordRequirements: React.FC<PasswordRequirementsProps> = ({passw
                         key={req.label}
                         className={`mb-2 flex items-center gap-2.5 text-[0.85rem] transition-all duration-300 last:mb-0 ${
                             isMet
-                                ? 'text-[#00ff7f] opacity-40 line-through'
-                                : 'text-white'
+                                ? 'text-app-green opacity-40 line-through'
+                                : 'text-app-text'
                         }`}
                     >
                         <FontAwesomeIcon icon={isMet ? faCheck : faTimes} className={!isMet ? 'text-app-muted' : ''}/>

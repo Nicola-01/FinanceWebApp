@@ -24,7 +24,7 @@ export interface CustomDatePickerProps {
 
 export default function CustomDatePicker({
     isRange = true,
-    color = '#00ff7f',
+    color = 'var(--color-app-green)',
     isDark: isDarkProp,
     onChange,
     initialPreset = 'month',

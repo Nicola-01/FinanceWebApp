@@ -153,7 +153,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => 
                         {/* Icona Profilo */}
                         <FontAwesomeIcon
                             icon={faUserCircle}
-                            className={`text-2xl transition-colors ${showMenu ? 'text-[#00ff7f]' : 'text-app-muted group-hover:text-app-text'}`}
+                            className={`text-2xl transition-colors ${showMenu ? 'text-app-green' : 'text-app-muted group-hover:text-app-text'}`}
                         />
 
                         {/* Nome Utente */}
@@ -203,7 +203,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => 
                                             setShowMenu(false);
                                             installApp();
                                         }}
-                                        className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-bold text-[#00ff7f] transition-colors hover:bg-app-input"
+                                        className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-bold text-app-green transition-colors hover:bg-app-input"
                                     >
                                         <FontAwesomeIcon icon={faDownload} className="w-4" />
                                         Installa App (PWA)
@@ -248,7 +248,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => 
                                     {
                                         invitations.filter(i => i.status === 'PENDING').length > 0 &&
                                         <span
-                                            className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[#00bfff] text-[10px] font-bold text-black">
+                                            className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-app-sky)] text-[10px] font-bold text-black">
                                             {invitations.length}
                                         </span>
                                     }
@@ -287,7 +287,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => 
 
                             <button
                                 onClick={handleLogout}
-                                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-[#ff4d4d]/70 transition-colors hover:bg-[#ff4d4d]/20 hover:text-[#ff4d4d]"
+                                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-red/70 transition-colors hover:bg-app-red/20 hover:text-app-red"
                             >
                                 <FontAwesomeIcon icon={faSignOutAlt} className="w-4" />
                                 Logout

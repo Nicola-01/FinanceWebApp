@@ -40,7 +40,7 @@ export const SettingsTab: React.FC = () => {
                     icon={faGear}
                     actionText="Save Changes"
                     actionIcon={faSave}
-                    actionColor="#00ff7f"
+                    actionColor="var(--color-app-green)"
                     onAction={handleSave}
                     actionDisabled={!hasChanges || isSaving || !editedWallet.name?.trim()}
                     isActionLoading={isSaving}
@@ -52,7 +52,7 @@ export const SettingsTab: React.FC = () => {
                             {/*<label className="text-xs font-bold uppercase tracking-wider text-app-muted">Icon &*/}
                             {/*    Color</label>*/}
                             <div
-                                className="relative p-1 bg-black/20 rounded-2xl border border-app-border shadow-inner self-start">
+                                className="relative p-1 bg-app-input rounded-2xl border border-app-border shadow-inner self-start">
                                 <IconPickerButton
                                     icon={editedWallet.icon as IconKey}
                                     color={editedWallet.color as string}
@@ -74,7 +74,7 @@ export const SettingsTab: React.FC = () => {
                                 type="text"
                                 value={editedWallet.name}
                                 onChange={(e) => setEditedWallet({ ...editedWallet, name: e.target.value })}
-                                className="w-full bg-black/20 border border-app-border rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-[#00ff7f] focus:ring-1 focus:ring-[#00ff7f] transition-all font-medium"
+                                className="w-full bg-app-input border border-app-border rounded-xl px-4 py-3 text-app-text placeholder-app-muted focus:outline-none focus:border-app-green focus:ring-1 focus:ring-app-green transition-all font-medium"
                                 placeholder="e.g. Main Account, Savings, Crypto..."
                             />
                         </div>

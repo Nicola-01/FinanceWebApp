@@ -85,11 +85,11 @@ const ForgotPassword: React.FC = () => {
         <div className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto bg-slate-900 px-4 sm:px-0 pb-8 sm:pb-0">
             <AnimateBackground />
 
-            <div className={`relative z-10 flex w-full max-w-[420px] flex-col items-center rounded-3xl border border-white/10 bg-white/5 px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${shake ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
+            <div className={`relative z-10 flex w-full max-w-[420px] flex-col items-center rounded-3xl border border-app-border bg-app-input px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${shake ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
 
                 {/* Icon Header */}
                 <div className="mb-6">
-                    <div className={`flex h-20 w-20 items-center justify-center rounded-full shadow-[inset_0_0_10px_rgba(255,255,255,0.1)] transition-all duration-500 ${emailSent ? 'bg-gradient-to-tr from-[#00c853]/20 to-[#00e676]/20 border border-[#00e676]/30' : 'bg-white/15'}`}>
+                    <div className={`flex h-20 w-20 items-center justify-center rounded-full shadow-[inset_0_0_10px_rgba(255,255,255,0.1)] transition-all duration-500 ${emailSent ? 'bg-gradient-to-tr from-[#00c853]/20 to-[#00e676]/20 border border-[#00e676]/30' : 'bg-app-input'}`}>
                         <FontAwesomeIcon
                             icon={emailSent ? faCircleCheck : faEnvelope}
                             className={`text-3xl transition-all duration-500 ${emailSent ? 'text-[#00e676]' : 'text-white/80'}`}
@@ -103,14 +103,14 @@ const ForgotPassword: React.FC = () => {
                         <h2 className="mb-2 text-xl font-bold tracking-wide text-white text-center">
                             Forgot Password?
                         </h2>
-                        <p className="mb-8 text-sm text-white/60 text-center leading-relaxed">
+                        <p className="mb-8 text-sm text-app-muted text-center leading-relaxed">
                             Enter the email address associated with your account and we'll send you a link to reset your password.
                         </p>
 
                         <form onSubmit={handleSubmit} className="flex flex-col w-full" noValidate>
                             {/* Email Input */}
                             <div className="relative mb-8 w-full">
-                                <div className="relative flex items-center border-b pb-1 border-white/50 focus-within:border-white transition-colors duration-300">
+                                <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:border-white transition-colors duration-300">
                                     <span className="absolute left-0 text-lg text-white/80">
                                         <FontAwesomeIcon icon={faEnvelope} />
                                     </span>
@@ -129,7 +129,7 @@ const ForgotPassword: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full rounded-full bg-gradient-to-r from-[#4b1a69] to-[#4d6dff] py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
+                                className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
                             >
                                 {loading ? (
                                     <><FontAwesomeIcon icon={faSpinner} className="mr-2 animate-spin" />SENDING...</>
@@ -145,15 +145,15 @@ const ForgotPassword: React.FC = () => {
                         <h2 className="mb-2 text-xl font-bold tracking-wide text-white text-center">
                             Check your email
                         </h2>
-                        <p className="mb-2 text-sm text-white/60 text-center leading-relaxed">
+                        <p className="mb-2 text-sm text-app-muted text-center leading-relaxed">
                             We've sent a password reset link to
                         </p>
                         <p className="mb-6 text-sm font-semibold text-white/90 text-center break-all">
                             {email}
                         </p>
 
-                        <div className="w-full rounded-xl border border-white/5 bg-black/20 p-5 mb-6 shadow-inner">
-                            <p className="text-xs text-white/50 text-center leading-relaxed">
+                        <div className="w-full rounded-xl border border-app-border bg-black/20 p-5 mb-6 shadow-inner">
+                            <p className="text-xs text-app-muted text-center leading-relaxed">
                                 Didn't receive the email? Check your spam folder, or click the button below to resend.
                                 The link is valid for <strong className="text-white/70">1 hour</strong>.
                             </p>
@@ -164,7 +164,7 @@ const ForgotPassword: React.FC = () => {
                             type="button"
                             disabled={loading || cooldown > 0}
                             onClick={handleResend}
-                            className="w-full rounded-full bg-gradient-to-r from-[#4b1a69] to-[#4d6dff] py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                            className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                         >
                             {loading ? (
                                 <><FontAwesomeIcon icon={faSpinner} className="mr-2 animate-spin" />SENDING...</>
@@ -181,7 +181,7 @@ const ForgotPassword: React.FC = () => {
                 <button
                     type="button"
                     onClick={() => navigate('/login')}
-                    className="mt-6 flex items-center gap-2 text-sm text-white/50 transition-colors hover:text-white bg-transparent border-none cursor-pointer"
+                    className="mt-6 flex items-center gap-2 text-sm text-app-muted transition-colors hover:text-white bg-transparent border-none cursor-pointer"
                 >
                     <FontAwesomeIcon icon={faArrowLeft} />
                     Back to Login

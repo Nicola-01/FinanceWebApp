@@ -15,7 +15,7 @@ const lightTheme = createTheme({
 });
 
 const darkTheme = createTheme({
-    palette: { mode: 'dark', background: { paper: '#1a1a1a' } },
+    palette: { mode: 'dark', background: { paper: 'var(--color-app-card)' } },
 });
 
 type ChartMode = 'snapshot' | 'cumulative';

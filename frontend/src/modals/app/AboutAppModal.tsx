@@ -38,7 +38,7 @@ export const AboutAppModal = forwardRef<AboutAppModalHandle>((_props, ref) => {
         <ModalDialog
             ref={dialogRef}
             className="max-w-[380px]"
-            title={<><FontAwesomeIcon icon={faInfoCircle} className="text-[#00bfff]" /> About</>}
+            title={<><FontAwesomeIcon icon={faInfoCircle} className="text-app-sky" /> About</>}
         >
             <div className="flex flex-col items-center pb-4 pt-2 text-center">
                 <div className="relative mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-app-surface border border-app-border shadow-sm">
@@ -54,7 +54,7 @@ export const AboutAppModal = forwardRef<AboutAppModalHandle>((_props, ref) => {
                 <div className="w-full space-y-3 rounded-xl border border-app-border bg-app-input p-4 text-left shadow-sm">
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-bold uppercase tracking-wider text-app-muted">Version</span>
-                        <span className="rounded bg-[#00bfff]/10 px-2 py-0.5 text-xs font-bold font-mono text-[#00bfff]">
+                        <span className="rounded bg-[var(--color-app-sky)]/10 px-2 py-0.5 text-xs font-bold font-mono text-app-sky">
                             {appVersion}
                         </span>
                     </div>

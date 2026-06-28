@@ -82,7 +82,7 @@ export const AmountInput = ({
         if (internalRef.current && value !== undefined) {
             if (value === '') {
                 internalRef.current.value = '';
-                setColor('text-white/10');
+                setColor('text-app-muted opacity-40');
                 setTextSize('text-6xl');
                 setLiveResult(null);
             } else if (internalRef.current.value === '') {
@@ -95,10 +95,10 @@ export const AmountInput = ({
     // Gestione colori e cambio segno programmatico
     useEffect(() => {
         if (type === '') {
-            setColor('text-white/10');
+            setColor('text-app-muted opacity-40');
             return;
         }
-        setColor(type === 'EXPENSE' ? 'text-[#ff4d4d]' : 'text-[#00ff7f]');
+        setColor(type === 'EXPENSE' ? 'text-app-red' : 'text-app-green');
 
         if (internalRef.current) {
             let currentValue = internalRef.current.value;
@@ -140,10 +140,10 @@ export const AmountInput = ({
         adjustTextSize(cleanedValue);
 
         if (cleanedValue.length === 0 || cleanedValue === '+' || cleanedValue === '-') {
-            setColor('text-white/10');
+            setColor('text-app-muted opacity-40');
             setLiveResult(null);
         } else {
-            setColor(currentSignType === 'EXPENSE' ? 'text-[#ff4d4d]' : 'text-[#00ff7f]');
+            setColor(currentSignType === 'EXPENSE' ? 'text-app-red' : 'text-app-green');
 
             // Calcolo Live Preview se contiene operatori matematici
             if (hasOperators(cleanedValue)) {
@@ -253,10 +253,10 @@ export const AmountInput = ({
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1a1f2c]/95 backdrop-blur-md border border-white/10 rounded-full px-4 py-1 text-sm font-app-mono shadow-2xl flex items-center gap-1.5 z-50 whitespace-nowrap"
+                        className="absolute -top-10 left-1/2 -translate-x-1/2 bg-app-surface/95 backdrop-blur-md border border-app-border rounded-full px-4 py-1 text-sm font-app-mono shadow-2xl flex items-center gap-1.5 z-50 whitespace-nowrap"
                     >
-                        <span className="text-white/40 text-xs">Preview:</span>
-                        <span className={`${liveResult < 0 ? 'text-[#ff4d4d]' : 'text-[#00ff7f]'} font-semibold`}>
+                        <span className="text-app-muted text-xs">Preview:</span>
+                        <span className={`${liveResult < 0 ? 'text-app-red' : 'text-app-green'} font-semibold`}>
                             {liveResult < 0 ? '-' : '+'}{Math.abs(liveResult).toFixed(2)} {currencySymbol}
                         </span>
                     </motion.div>
@@ -266,7 +266,7 @@ export const AmountInput = ({
             <div className="flex h-18.75 items-center justify-center gap-2">
                 <input
                     ref={internalRef}
-                    className={`font-amount font-app-mono w-[280px] bg-transparent text-center outline-none transition-all duration-200 placeholder:text-white/20 ${textSize} ${color || 'text-white/10'}`}
+                    className={`font-amount font-app-mono w-[280px] bg-transparent text-center outline-none transition-all duration-200 placeholder:text-app-muted/30 ${textSize} ${color || 'text-app-muted opacity-40'}`}
                     type="text"
                     inputMode="decimal"
                     placeholder={placeholder || "0.00"}
@@ -278,7 +278,7 @@ export const AmountInput = ({
                     autoFocus={autoFocus}
                     required
                 />
-                <span className="font-app-mono pb-2 text-4xl text-white/30">
+                <span className="font-app-mono pb-2 text-4xl text-app-muted opacity-40">
                     {currencySymbol}
                 </span>
             </div>
@@ -299,7 +299,7 @@ export const AmountInput = ({
                             bottom: `${keyboardHeight}px`,
                             zIndex: 9999,
                         }}
-                        className="bg-[#0f121d] backdrop-blur-md border-t border-white/10 px-2 py-1.5 flex items-center justify-between gap-1"
+                        className="bg-app-surface/90 backdrop-blur-md border-t border-app-border px-2 py-1.5 flex items-center justify-between gap-1"
                     >
                         {['(', ')', '/', '*', '-', '+', '%'].map((char) => (
                             <button
@@ -308,7 +308,7 @@ export const AmountInput = ({
                                 onMouseDown={(e) => e.preventDefault()}
                                 onTouchStart={(e) => e.preventDefault()}
                                 onClick={() => handleToolbarPress(char)}
-                                className="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-app-mono font-medium text-base rounded-lg h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                                className="bg-app-input hover:bg-app-hover border border-app-border text-app-text font-app-mono font-medium text-base rounded-lg h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
                             >
                                 {char}
                             </button>

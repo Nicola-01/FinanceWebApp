@@ -62,8 +62,8 @@ export const TransactionDetailsModal = forwardRef<TransactionDetailsModalHandle,
                 icon: <FontAwesomeIcon icon={faEdit} className="w-4" />,
                 label: 'Edit',
                 onClick: () => handleEditAndClose(tx),
-                color: 'text-white/80',
-                hoverColor: 'hover:text-white',
+                color: 'text-app-muted hover:text-app-text',
+                hoverColor: '',
                 hoverBg: 'hover:bg-app-surface'
             },
             {

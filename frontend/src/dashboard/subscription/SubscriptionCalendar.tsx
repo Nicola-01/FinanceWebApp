@@ -129,7 +129,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                             }
                         }}
                         weekStartsOn={weekStartsOn}
-                        color="#00bfff"
+                        color="var(--color-app-sky)"
                     />
                 </div>
             </div>
@@ -163,11 +163,11 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                             key={index}
                             onClick={() => handleDayClick(calendarDay)}
                             className={`flex flex-col p-1 sm:p-2 rounded-lg sm:rounded-xl border cursor-pointer transition-all min-w-0 overflow-hidden ${isCurrentMonth
-                                ? 'bg-app-input/50 border-white/5 hover:bg-app-input/80 hover:border-white/10'
+                                ? 'bg-app-input/50 border-app-border hover:bg-app-input/80 hover:border-app-border'
                                 : 'bg-transparent border-transparent opacity-40'
-                                } ${isToday ? 'ring-1 ring-[#00bfff]' : ''}`}
+                                } ${isToday ? 'ring-1 ring-app-sky' : ''}`}
                         >
-                            <span className={`text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 shrink-0 ${isToday ? 'text-[#00bfff]' : 'text-app-muted'}`}>
+                            <span className={`text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 shrink-0 ${isToday ? 'text-app-sky' : 'text-app-muted'}`}>
                                 {format(calendarDay, 'd')}
                             </span>
 

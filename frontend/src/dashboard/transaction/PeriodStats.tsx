@@ -72,7 +72,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                         {isLoading ? (
                             <SkeletonAmount />
                         ) : (
-                            <p className="text-[#00ff7f] font-bold font-app-mono text-xl">+{totals.income.toFixed(2)}</p>
+                            <p className="text-app-green font-bold font-app-mono text-xl">+{totals.income.toFixed(2)}</p>
                         )}
                     </div>
 
@@ -112,7 +112,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                         {isLoading ? (
                             <SkeletonAmount />
                         ) : (
-                            <p className="text-[#ff4d4d] font-bold font-app-mono text-xl">-{totals.expense.toFixed(2)}</p>
+                            <p className="text-app-red font-bold font-app-mono text-xl">-{totals.expense.toFixed(2)}</p>
                         )}
                     </div>
 
@@ -151,7 +151,7 @@ export const PeriodStats: React.FC<PeriodStatsProps> = ({transactions, isLoading
                     {isLoading ? (
                         <SkeletonAmount />
                     ) : (
-                        <p className={`font-bold font-app-mono text-xl ${netTotal >= 0 ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
+                        <p className={`font-bold font-app-mono text-xl ${netTotal >= 0 ? 'text-app-green' : 'text-app-red'}`}>
                             {netTotal >= 0 ? '+' : ''}{netTotal.toFixed(2)}
                         </p>
                     )}

@@ -33,7 +33,7 @@ export const PasswordInput: React.FC<PasswordInputProps> =
                         className="pointer-events-none absolute left-[14px] z-10 text-base text-app-muted"
                     />
                     <input
-                        className="w-full rounded-lg border border-app-border bg-app-input py-3 pl-[45px] pr-[45px] text-base text-white outline-none transition-all duration-300 placeholder:text-white/30 focus:border-white/30 focus:bg-app-surface"
+                        className="w-full rounded-lg border border-app-border bg-app-input py-3 pl-[45px] pr-[45px] text-base text-app-text outline-none transition-all duration-300 placeholder:text-app-muted focus:border-app-border focus:bg-app-surface"
                         type={isVisible ? "text" : "password"}
                         placeholder={placeholder}
                         value={value}
@@ -42,7 +42,7 @@ export const PasswordInput: React.FC<PasswordInputProps> =
                     {/* Visibility Toggle Button */}
                     <button
                         type="button"
-                        className="absolute right-[12px] z-10 flex cursor-pointer border-none bg-transparent p-1.5 text-base text-app-muted transition-colors hover:text-white"
+                        className="absolute right-[12px] z-10 flex cursor-pointer border-none bg-transparent p-1.5 text-base text-app-muted transition-colors hover:text-app-text"
                         onClick={() => setIsVisible(!isVisible)}
                         tabIndex={-1}
                     >

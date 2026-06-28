@@ -123,84 +123,84 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
     const exchangeBoxContent = (
         <div className="flex flex-col gap-3 mt-2 animate-[fadeIn_0.2s_ease-out] w-full">
             {isViewOnly && (
-                <span className="text-[#00bfff]/70 text-xs font-bold uppercase tracking-wider">
+                <span className="text-app-sky/70 text-xs font-bold uppercase tracking-wider">
                     <FontAwesomeIcon icon={faExchangeAlt} className="mr-2"/>
                     Currency Exchange
                 </span>
             )}
             {/* Rimosso p-5 fisso, inserito p-3 responsive e gap per gestire meglio lo spazio */}
-            <div className="flex items-center justify-between rounded-xl bg-[#00bfff]/5 p-3 sm:p-4 border border-[#00bfff]/20 overflow-hidden w-full gap-1 sm:gap-2">
+            <div className="flex items-center justify-between rounded-xl bg-[var(--color-app-sky)]/5 p-3 sm:p-4 border border-[var(--color-app-sky)]/20 overflow-hidden w-full gap-1 sm:gap-2">
 
                 {/* SINISTRA: Importo Originale */}
                 <div className="flex justify-center flex-1 min-w-0 group">
-                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'border-transparent focus-within:border-[#00bfff]/50 transition-colors pb-1' : 'border-transparent'}`}>
+                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1' : 'border-transparent'}`}>
                         {isViewOnly ? (
-                            <span className="text-lg sm:text-xl font-bold font-app-mono text-white truncate">
+                            <span className="text-lg sm:text-xl font-bold font-app-mono text-app-text truncate">
                                 {Number(originalAmount).toFixed(2)}
                             </span>
                         ) : (
                             <input
                                 type="number" step="0.01" min="0"
-                                className={`w-full min-w-[40px] bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-white outline-none placeholder-white/20 ${hideArrowsClass}`}
+                                className={`w-full min-w-[40px] bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-app-text outline-none placeholder-app-muted opacity-50 focus:opacity-100 ${hideArrowsClass}`}
                                 placeholder="0.00"
                                 value={originalAmount}
                                 onChange={(e) => handleOriginalChange(e.target.value)}
                             />
                         )}
-                        <span className="text-sm sm:text-lg text-[#00bfff]/70 font-bold uppercase tracking-wider shrink-0">
+                        <span className="text-sm sm:text-lg text-app-sky/70 font-bold uppercase tracking-wider shrink-0">
                             {CURRENCY_META[selectedCurrency as CurrencyCode]?.symbol || selectedCurrency}
                         </span>
-                        {!isViewOnly && <FontAwesomeIcon icon={faEdit} className="text-[#00bfff]/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100" />}
+                        {!isViewOnly && <FontAwesomeIcon icon={faEdit} className="text-app-sky/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100" />}
                     </div>
                 </div>
 
                 {/* CENTRO: Tasso di Cambio */}
                 <div className="flex flex-col items-center justify-center flex-[1.4] min-w-0 group px-1">
-                    <div className={`flex items-center justify-center gap-1 text-[10px] sm:text-xs font-bold text-[#00bfff]/70 whitespace-nowrap border-b w-full ${!isViewOnly ? 'border-transparent focus-within:border-[#00bfff]/50 transition-colors pb-1' : 'border-transparent'}`}>
+                    <div className={`flex items-center justify-center gap-1 text-[10px] sm:text-xs font-bold text-app-sky/70 whitespace-nowrap border-b w-full ${!isViewOnly ? 'border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1' : 'border-transparent'}`}>
                         <span className="shrink-0">1 {selectedCurrency} = </span>
                         {isViewOnly ? (
-                            <span className="text-white mx-1 tracking-tight">
+                            <span className="text-app-text mx-1 tracking-tight">
                                 {Number(exchangeRate).toFixed(6).replace(/\.?0+$/, '')}
                             </span>
                             ) : (
                             <input
                             type="number" step="0.000001" min="0"
-                         className={`w-full min-w-[60px] max-w-[80px] bg-transparent text-center outline-none text-white placeholder-white/20 tracking-tight ${hideArrowsClass}`}
+                         className={`w-full min-w-[60px] max-w-[80px] bg-transparent text-center outline-none text-app-text placeholder-app-muted opacity-50 focus:opacity-100 tracking-tight ${hideArrowsClass}`}
                          placeholder="1.00"
                          value={exchangeRate}
                          onChange={(e) => handleRateChange(e.target.value)}
                     />
                     )}
                     <span className="shrink-0">{baseCurrency}</span>
-                    {!isViewOnly && <FontAwesomeIcon icon={faEdit} className="text-[#00bfff]/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100" />}
+                    {!isViewOnly && <FontAwesomeIcon icon={faEdit} className="text-app-sky/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100" />}
                 </div>
                 <div className="flex w-full items-center">
-                    <div className="h-[2px] flex-1 bg-[#00bfff]/30 rounded-full"></div>
-                    <FontAwesomeIcon icon={faArrowRight} className="text-[#00bfff]/50 px-2 text-[10px] sm:text-sm shrink-0" />
-                    <div className="h-[2px] flex-1 bg-[#00bfff]/30 rounded-full"></div>
+                    <div className="h-[2px] flex-1 bg-[var(--color-app-sky)]/30 rounded-full"></div>
+                    <FontAwesomeIcon icon={faArrowRight} className="text-app-sky/50 px-2 text-[10px] sm:text-sm shrink-0" />
+                    <div className="h-[2px] flex-1 bg-[var(--color-app-sky)]/30 rounded-full"></div>
                 </div>
             </div>
 
                 {/* DESTRA: Importo Convertito */}
                 <div className="flex justify-center flex-1 min-w-0 group">
-                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'border-transparent focus-within:border-[#00bfff]/50 transition-colors pb-1' : 'border-transparent'}`}>
+                    <div className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? 'border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1' : 'border-transparent'}`}>
                         {isViewOnly ? (
-                            <span className="text-lg sm:text-xl font-bold font-app-mono text-[#00bfff] truncate">
+                            <span className="text-lg sm:text-xl font-bold font-app-mono text-app-sky truncate">
                                 {Number(convertedAmount).toFixed(2)}
                             </span>
                         ) : (
                             <input
                                 type="number" step="0.01" min="0"
-                                className={`w-full min-w-[40px] bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-[#00bfff] outline-none placeholder-[#00bfff]/50 ${hideArrowsClass}`}
+                                className={`w-full min-w-[40px] bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-app-sky outline-none placeholder-[var(--color-app-sky)]/50 ${hideArrowsClass}`}
                                 placeholder="0.00"
                                 value={convertedAmount}
                                 onChange={(e) => handleConvertedChange(e.target.value)}
                             />
                         )}
-                        <span className="text-sm sm:text-lg text-[#00bfff]/70 font-bold uppercase tracking-wider shrink-0">
+                        <span className="text-sm sm:text-lg text-app-sky/70 font-bold uppercase tracking-wider shrink-0">
                             {CURRENCY_META[baseCurrency as CurrencyCode]?.symbol || baseCurrency}
                         </span>
-                        {!isViewOnly && <FontAwesomeIcon icon={faEdit} className="text-[#00bfff]/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100" />}
+                        {!isViewOnly && <FontAwesomeIcon icon={faEdit} className="text-app-sky/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100" />}
                     </div>
                 </div>
             </div>
@@ -214,18 +214,18 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
 
     // Altrimenti stampa la versione Edit/Create con Toggle e Selettore
     return (
-        <div className="rounded-xl border border-app-border bg-black/20 p-4 transition-all">
+        <div className="rounded-xl border border-app-border bg-app-input p-4 transition-all">
             <div className="flex items-center justify-between cursor-pointer" onClick={handleToggle}>
                 <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${isForeignCurrency ? 'bg-[#00bfff]/20 text-[#00bfff]' : 'bg-app-input text-app-muted'}`}>
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${isForeignCurrency ? 'bg-[var(--color-app-sky)]/20 text-app-sky' : 'bg-app-input text-app-muted'}`}>
                         <FontAwesomeIcon icon={faCoins}/>
                     </div>
                     <div>
-                        <h4 className="text-sm font-bold text-white">Foreign Currency</h4>
+                        <h4 className="text-sm font-bold text-app-text">Foreign Currency</h4>
                         <p className="text-xs text-app-muted">Transaction in a different currency?</p>
                     </div>
                 </div>
-                <div className={`relative w-12 h-6 rounded-full transition-colors ${isForeignCurrency ? 'bg-[#00bfff]' : 'bg-app-surface'}`}>
+                <div className={`relative w-12 h-6 rounded-full transition-colors ${isForeignCurrency ? 'bg-[var(--color-app-sky)]' : 'bg-app-surface'}`}>
                     <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isForeignCurrency ? 'translate-x-6' : ''}`}/>
                 </div>
             </div>
@@ -233,7 +233,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
             {isForeignCurrency && (
                 <div className="mt-4 pt-4 border-t border-app-border animate-[fadeIn_0.2s_ease-out] space-y-4">
                     <div className="w-full">
-                        <label className="mb-2 ml-1 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-[#00bfff]">
+                        <label className="mb-2 ml-1 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-app-sky">
                             Select Currency
                             {loadingRate && <span className="text-[10px] animate-pulse">Fetching rate...</span>}
                         </label>

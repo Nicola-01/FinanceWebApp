@@ -23,7 +23,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
 
         const [name, setName] = useState('');
         const [iconKey, setIconKey] = useState<IconKey>('tag');
-        const [colorHex, setColorHex] = useState('#00ff7f');
+        const [colorHex, setColorHex] = useState('var(--color-app-green)');
         const [showSelectors, setShowSelectors] = useState(false);
         const [loading, setLoading] = useState(false);
 
@@ -31,7 +31,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
             openModal: () => {
                 setName('');
                 setIconKey('tag');
-                setColorHex('#00ff7f');
+                setColorHex('var(--color-app-green)');
                 dialogRef.current?.showModal();
             }
         }));
@@ -72,7 +72,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
         return (
             <ModalDialog
                 ref={dialogRef}
-                title={<><FontAwesomeIcon icon={faTags} className="text-[#00ff7f]" /> New Main Category</>}
+                title={<><FontAwesomeIcon icon={faTags} className="text-app-green" /> New Main Category</>}
                 subtitle="Organize your transactions better."
                 rightActions={[
                     {
@@ -81,7 +81,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
                             if (!loading)
                                 await handleSubmit();
                         },
-                        hoverColor: 'hover:text-[#00ff7f]',
+                        hoverColor: 'hover:text-app-green',
                         disabled: loading
                     }
                 ]}
@@ -114,7 +114,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
                     <div>
                         <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">Category Name *</label>
                         <input
-                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-white outline-none transition-all focus:border-[#00ff7f]"
+                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-white outline-none transition-all focus:border-app-green"
                             type="text"
                             placeholder="e.g. Shopping"
                             value={name}

@@ -44,7 +44,7 @@ export const WalletMenu: React.FC = () => {
 
                 {showMenu && (
                     <div
-                        className="absolute right-0 top-14 z-50 w-48 rounded-xl border border-app-border bg-[#1a1a1a] p-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)] animate-[fadeIn_0.1s_ease-out]">
+                        className="absolute right-0 top-14 z-50 w-48 rounded-xl border border-app-border bg-app-card p-2 shadow-[0_10px_40px_rgba(0,0,0,0.5)] animate-[fadeIn_0.1s_ease-out]">
 
                         <button
                             className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-surface hover:text-white disabled:opacity-50"
@@ -55,7 +55,7 @@ export const WalletMenu: React.FC = () => {
                             disabled={isLoading}
                         >
                             <FontAwesomeIcon icon={faRotateRight}
-                                className={`w-4 ${isLoading ? "animate-spin text-[#00ff7f]" : ""}`} />
+                                className={`w-4 ${isLoading ? "animate-spin text-app-green" : ""}`} />
                             Refresh Data
                         </button>
 
@@ -73,7 +73,7 @@ export const WalletMenu: React.FC = () => {
                         <div className="my-1 h-px w-full bg-app-input" />
 
                         <button
-                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-[#ff4d4d]/70 transition-colors hover:bg-[#ff4d4d]/20 hover:text-[#ff4d4d]"
+                            className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-red/70 transition-colors hover:bg-app-red/20 hover:text-app-red"
                             onClick={() => {
                                 setShowMenu(false);
                                 onWalletDelete();

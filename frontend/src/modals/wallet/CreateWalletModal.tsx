@@ -28,7 +28,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
         // Stati
         const [name, setName] = useState('');
         const [iconKey, setIconKey] = useState<IconKey>('wallet');
-        const [color, setColor] = useState('#00ff7f');
+        const [color, setColor] = useState('var(--color-app-green)');
         const [currency, setCurrency] = useState<CurrencyCode>('EUR');
         const [loading, setLoading] = useState(false);
         const [showSelectors, setShowSelectors] = useState(false);
@@ -40,7 +40,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
             openModal: () => {
                 setName('');
                 setIconKey('wallet');
-                setColor('#00ff7f');
+                setColor('var(--color-app-green)');
                 setCurrency('EUR');
                 dialogRef.current?.showModal();
             }
@@ -86,7 +86,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
         return (
             <ModalDialog
                 ref={dialogRef}
-                title={<><FontAwesomeIcon icon={faWallet} className="text-[#00ff7f]" /> New Wallet</>}
+                title={<><FontAwesomeIcon icon={faWallet} className="text-app-green" /> New Wallet</>}
                 subtitle="Organize your finances with a custom wallet."
                 rightActions={[
                     {
@@ -95,7 +95,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                             if (!loading)
                                 await handleSubmit();
                         },
-                        hoverColor: 'hover:text-[#00ff7f]',
+                        hoverColor: 'hover:text-app-green',
                         disabled: loading
                     }
                 ]}
@@ -115,7 +115,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                             <FontAwesomeIcon icon={ICONS[iconKey]} />
                         </button>
 
-                        <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/30">
+                        <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-app-muted">
                             Click icon to edit
                         </span>
 
@@ -143,7 +143,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
                             className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">Wallet
                             Name</label>
                         <input
-                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-white outline-none transition-all focus:border-[#00ff7f]"
+                            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-app-green"
                             type="text"
                             placeholder="e.g. Personal Savings"
                             value={name}

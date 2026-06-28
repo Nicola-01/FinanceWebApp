@@ -18,7 +18,7 @@ const lightTheme = createTheme({
 });
 
 const darkTheme = createTheme({
-    palette: { mode: 'dark', background: { paper: '#1a1a1a' } },
+    palette: { mode: 'dark', background: { paper: 'var(--color-app-card)' } },
 });
 
 // --- COMPONENTE SKELETON INTERNO ---
@@ -52,7 +52,7 @@ export const TagsTab: React.FC = () => {
     const [savingMain, setSavingMain] = useState(false);
 
     const [newTag, setNewTag] = useState<Tag>({
-        name: '', icon: 'tag', colorHex: '#00ff7f', parentName: null
+        name: '', icon: 'tag', colorHex: 'var(--color-app-green)', parentName: null
     });
 
     const handleAddMainTag = async () => {
@@ -64,7 +64,7 @@ export const TagsTab: React.FC = () => {
         const success = await onAddTag(newTag);
 
         if (success) {
-            setNewTag({ name: '', icon: 'tag', colorHex: '#00ff7f', parentName: null });
+            setNewTag({ name: '', icon: 'tag', colorHex: 'var(--color-app-green)', parentName: null });
             setIsAddingTag(false);
         }
         setSavingMain(false);
@@ -113,7 +113,7 @@ export const TagsTab: React.FC = () => {
                             <div className="mb-8 w-full">
                                 {isAddingTag ? (
                                     <div
-                                        className="group flex w-full items-center gap-4 rounded-2xl border-2 border-[#00ff7f]/30 bg-[#00ff7f]/5 p-4 text-app-text transition-all shadow-sm">
+                                        className="group flex w-full items-center gap-4 rounded-2xl border-2 border-app-green/30 bg-app-green/5 p-4 text-app-text transition-all shadow-sm">
                                         <div
                                             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-input">
                                             <IconPickerButton
@@ -146,12 +146,12 @@ export const TagsTab: React.FC = () => {
                                         />
 
                                         {savingMain ? (
-                                            <FontAwesomeIcon icon={faSpinner} spin className="text-[#00ff7f] mx-2" />
+                                            <FontAwesomeIcon icon={faSpinner} spin className="text-app-green mx-2" />
                                         ) : (
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={handleAddMainTag}
-                                                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#00ff7f]/20 text-[#00ff7f] hover:bg-[#00ff7f] hover:text-black transition-all"
+                                                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-app-green/20 text-app-green hover:bg-app-green hover:text-black transition-all"
                                                     title="Confirm"
                                                 >
                                                     <FontAwesomeIcon icon={faCheck} />

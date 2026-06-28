@@ -63,7 +63,7 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>((_, ref
                         if (isValid && !loading)
                             await handleSubmit()
                     },
-                    hoverColor: 'hover:text-[#00ff7f]',
+                    hoverColor: 'hover:text-app-green',
                     disabled: !isValid || loading
                 }
             ]}

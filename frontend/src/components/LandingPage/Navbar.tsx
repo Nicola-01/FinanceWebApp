@@ -39,7 +39,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
     return (
         <header className="fixed top-0 w-full z-50">
             {/* Top Bar Background (solves stacking context issue) */}
-            <div className="absolute inset-0 backdrop-blur-xl bg-[#0d0d12]/60 border-b border-white/5 pointer-events-none -z-10"></div>
+            <div className="absolute inset-0 backdrop-blur-xl bg-app-bg/60 border-b border-app-border pointer-events-none -z-10"></div>
             
             <nav className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 items-center py-4 px-6 relative z-10">
                 {/* Logo */}
@@ -80,7 +80,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
                                 Dashboard
                             </button>
                         ) : (
-                            <button onClick={onLoginClick} className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full text-sm font-medium transition-all border border-white/10 hover:border-white/20">
+                            <button onClick={onLoginClick} className="bg-app-hover hover:bg-white/20 px-4 py-2 rounded-full text-sm font-medium transition-all border border-app-border hover:border-white/20">
                                 Login
                             </button>
                         )}
@@ -98,7 +98,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
 
             {/* Mobile Menu Dropdown */}
             {isMenuOpen && (
-                <div className="md:hidden absolute top-full left-0 w-full bg-[#0d0d12]/60 backdrop-blur-[24px] border-b border-white/5 animate-in slide-in-from-top duration-300 -z-20 shadow-2xl">
+                <div className="md:hidden absolute top-full left-0 w-full bg-app-bg/60 backdrop-blur-[24px] border-b border-app-border animate-in slide-in-from-top duration-300 -z-20 shadow-2xl">
                     <div className="flex flex-col p-6 gap-6 relative z-10">
                         {navLinks.map((link) => (
                             <button 
@@ -109,7 +109,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
                                 {link.label}
                             </button>
                         ))}
-                        <div className="pt-4 border-t border-white/10">
+                        <div className="pt-4 border-t border-app-border">
                             {isLoggedIn ? (
                                 <button 
                                     onClick={() => { onDashboardClick(); setIsMenuOpen(false); }}
@@ -120,7 +120,7 @@ const Navbar: React.FC<NavbarProps> = ({ isLoggedIn, onDashboardClick, onLoginCl
                             ) : (
                                 <button 
                                     onClick={() => { onLoginClick(); setIsMenuOpen(false); }}
-                                    className="w-full bg-[#00ff7f] text-[#0d0d12] font-bold py-3 rounded-xl transition-all"
+                                    className="w-full bg-app-green text-black font-bold py-3 rounded-xl transition-all"
                                 >
                                     Login
                                 </button>

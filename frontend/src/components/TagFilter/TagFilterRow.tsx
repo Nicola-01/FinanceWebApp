@@ -21,7 +21,7 @@ export const TagFilterRow: React.FC<TagFilterRowProps> = ({
     onToggleExpand,
     selectionState,
     onToggleSelection,
-    color = '#00ff7f'
+    color = 'var(--color-app-green)'
 }) => {
     const hasChildren = childrenTags.length > 0;
 

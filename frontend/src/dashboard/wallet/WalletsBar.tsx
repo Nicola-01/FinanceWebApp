@@ -175,10 +175,10 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                 {!loading && (
                     <button
                         onClick={() => walletModal.current?.openModal()}
-                        className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input transition-all hover:bg-app-border hover:border-[#00ff7f]/50 w-[260px] xl:w-[272px] shrink-0 text-left"
+                        className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input transition-all hover:bg-app-border hover:border-app-green/50 w-[260px] xl:w-[272px] shrink-0 text-left"
                     >
                         <div
-                            className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-[#00ff7f] transition-colors shrink-0">
+                            className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-app-green transition-colors shrink-0">
                             <FontAwesomeIcon icon={faPlus} />
                         </div>
                         <div className="flex flex-col min-w-0">

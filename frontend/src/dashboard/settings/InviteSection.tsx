@@ -46,7 +46,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
                         Username or Email
                     </label>
                     <input
-                        className="h-[48px] w-full rounded-xl border border-app-border bg-black/40 px-4 text-sm text-white outline-none transition-all focus:border-white/30 shadow-inner"
+                        className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-sm text-app-text outline-none transition-all focus:border-app-border shadow-inner"
                         type="search"
                         placeholder="Username or Email"
                         value={identifier}
@@ -58,13 +58,13 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
                     <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
                         Permission Role
                     </label>
-                    <div className="flex rounded-xl bg-black/40 p-1 border border-app-border w-full shadow-inner h-[48px]">
+                    <div className="flex rounded-xl bg-app-input p-1 border border-app-border w-full shadow-inner h-[48px]">
                         <button
                             type="button"
                             onClick={() => setRole('VIEWER')}
                             className={`flex-1 rounded-lg text-base font-bold transition-all flex items-center justify-center gap-2 ${role === 'VIEWER'
-                                ? 'bg-app-surface text-white shadow-sm'
-                                : 'text-app-muted hover:text-app-muted'
+                                ? 'bg-app-surface text-app-text shadow-sm'
+                                : 'text-app-muted hover:text-app-text'
                                 }`}
                         >
                             <FontAwesomeIcon icon={faEye} />
@@ -75,7 +75,7 @@ export const InviteSection: React.FC<InviteSectionProps> = ({ walletColor, onInv
                             onClick={() => setRole('EDITOR')}
                             className={`flex-1 rounded-lg text-base font-bold transition-all flex items-center justify-center gap-2 ${role === 'EDITOR'
                                 ? 'bg-amber-400/20 text-amber-400 shadow-sm'
-                                : 'text-app-muted hover:text-app-muted'
+                                : 'text-app-muted hover:text-app-text'
                                 }`}
                         >
                             <FontAwesomeIcon icon={faPen} />

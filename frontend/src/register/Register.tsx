@@ -111,7 +111,7 @@ const Register: React.FC = () => {
 
                 {/* Logo / Header (Stile Avatar del Login) */}
                 <div className="mb-6">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-app-input shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
                         <FontAwesomeIcon icon={faUser} className="text-3xl text-white/80" />
                     </div>
                 </div>
@@ -119,7 +119,7 @@ const Register: React.FC = () => {
                 {/* STATO 1: CARICAMENTO */}
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center py-10 text-app-muted gap-4">
-                        <FontAwesomeIcon icon={faSpinner} spin className="text-4xl text-[#4d6dff]" />
+                        <FontAwesomeIcon icon={faSpinner} spin className="text-4xl text-app-blue" />
                         <p>Verifying invitation link...</p>
                     </div>
                 ) :
@@ -220,7 +220,7 @@ const Register: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting || !isFormValid}
-                                    className="w-full mt-2 rounded-full bg-gradient-to-r from-[#4b1a69] to-[#4d6dff] py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                                    className="w-full mt-2 rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                                 >
                                     {isSubmitting ? <FontAwesomeIcon icon={faSpinner} spin /> : 'CREATE ACCOUNT'}
                                 </button>

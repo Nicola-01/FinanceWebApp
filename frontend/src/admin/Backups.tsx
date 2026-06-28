@@ -272,30 +272,30 @@ const Backups: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 {/* 1 – Backup manuale */}
-                <ActionCard icon={faDatabase} title="Manual Backup" description="Create a new database snapshot now" accentColor="#00ff7f">
+                <ActionCard icon={faDatabase} title="Manual Backup" description="Create a new database snapshot now" accentColor="var(--color-app-green)">
                     <ActionButton
                         status={backupStatus}
                         label="▶ Run Backup"
                         loadingLabel="Backup in progress…"
-                        color="#00ff7f"
+                        color="var(--color-app-green)"
                         onClick={handleManualBackup}
                     />
                 </ActionCard>
 
                 {/* 2 – Download */}
-                <ActionCard icon={faDownload} title="Download Backup" description="Download and decrypt a specific version" accentColor="#00bfff">
+                <ActionCard icon={faDownload} title="Download Backup" description="Download and decrypt a specific version" accentColor="var(--color-app-sky)">
                     <BackupSelector
                         entries={entries}
                         value={downloadKey}
                         onChange={setDownloadKey}
                         loading={listLoading}
-                        accentColor="#00bfff"
+                        accentColor="var(--color-app-sky)"
                     />
                     <ActionButton
                         status={downloadStatus}
                         label="⬇ Download"
                         loadingLabel="Download in progress…"
-                        color="#00bfff"
+                        color="var(--color-app-sky)"
                         onClick={handleDownload}
                         disabled={!downloadKey}
                     />
@@ -324,7 +324,7 @@ const Backups: React.FC = () => {
                 </ActionCard>
 
                 {/* 4 – Upload */}
-                <ActionCard icon={faUpload} title="Upload Backup" description="Import an external backup file to the server / R2" accentColor="#a855f7">
+                <ActionCard icon={faUpload} title="Upload Backup" description="Import an external backup file to the server / R2" accentColor="var(--color-app-purple)">
                     <label className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-app-border/60 bg-app-input/30 p-4 text-sm text-app-muted cursor-pointer transition-all hover:border-purple-400/40 hover:bg-purple-400/5 hover:text-app-text">
                         <FontAwesomeIcon icon={faUpload} className="text-xl" />
                         {uploadFile ? (
@@ -343,7 +343,7 @@ const Backups: React.FC = () => {
                         status={uploadStatus}
                         label="⬆ Upload File"
                         loadingLabel="Upload in progress…"
-                        color="#a855f7"
+                        color="var(--color-app-purple)"
                         onClick={handleUpload}
                         disabled={!uploadFile}
                     />

@@ -130,7 +130,7 @@ export const TransactionPieChart = ({ transactions, type, title }: {
                     ]}
                     sx={{
                         [`& .${pieArcLabelClasses.root}`]: {
-                            fill: resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a',
+                            fill: resolvedTheme === 'dark' ? '#ffffff' : 'var(--color-app-card)',
                             fontSize: isMobile ? '9px' : '11px',
                             fontWeight: 'bold'
                         },

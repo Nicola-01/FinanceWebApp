@@ -99,8 +99,8 @@ export const DayDetailPanel = forwardRef<DayDetailModalHandle, DayDetailPanelPro
                     onAddSubscription?.(selectedDate);
                 },
                 color: undefined,
-                hoverColor: 'hover:text-[#00ff7f]',
-                hoverBg: 'hover:bg-[#00ff7f]/10'
+                hoverColor: 'hover:text-app-green',
+                hoverBg: 'hover:bg-app-green/10'
             }
         ];
 
@@ -108,7 +108,7 @@ export const DayDetailPanel = forwardRef<DayDetailModalHandle, DayDetailPanelPro
             <ModalDialog
                 ref={dialogRef}
                 className="max-w-[550px] overflow-hidden"
-                title={<><FontAwesomeIcon icon={faCalendarDay} color="#00bfff" /> Day Details</>}
+                title={<><FontAwesomeIcon icon={faCalendarDay} color="var(--color-app-sky)" /> Day Details</>}
                 rightActions={rightActions}
             >
                 <div
@@ -127,7 +127,7 @@ export const DayDetailPanel = forwardRef<DayDetailModalHandle, DayDetailPanelPro
                         </button>
 
                         <div className="flex flex-col items-center gap-0.5 select-none min-w-0">
-                            <span className={`text-sm sm:text-base font-bold ${isToday ? 'text-[#00bfff]' : 'text-app-text'}`}>
+                            <span className={`text-sm sm:text-base font-bold ${isToday ? 'text-app-sky' : 'text-app-text'}`}>
                                 {dayLabel}
                             </span>
                             <span className="text-[10px] sm:text-xs text-app-muted font-medium">
@@ -148,7 +148,7 @@ export const DayDetailPanel = forwardRef<DayDetailModalHandle, DayDetailPanelPro
                     <div className="flex flex-col gap-2 p-4 sm:p-6 overflow-y-auto custom-scrollbar max-h-[50vh]">
                         {subscriptions.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-10 text-center">
-                                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-white/5 mb-4 text-app-muted">
+                                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-app-input mb-4 text-app-muted">
                                     <FontAwesomeIcon icon={faRepeat} className="text-xl" />
                                 </div>
                                 <p className="text-sm text-app-muted">No subscriptions on this day</p>

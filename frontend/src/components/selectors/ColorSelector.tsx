@@ -3,13 +3,13 @@ import {Wheel} from '@uiw/react-color'; // We removed 'Circle'
 
 // 12 color presets in chromatic order (Rainbow)
 const FLUO_PRESETS = [
-    '#ff4d4d', // Red
+    'var(--color-app-red)', // Red
     '#ff8c00', // Orange
     '#ffff00', // Yellow
     '#adff2f', // Yellow-Green
-    '#00ff7f', // Fluo Green
+    'var(--color-app-green)', // Fluo Green
     '#00ffff', // Cyan
-    '#00bfff', // Light Blue
+    'var(--color-app-sky)', // Light Blue
     '#1e90ff', // Blue (New)
     '#8a2be2', // Purple
     '#ff00ff', // Magenta
@@ -41,7 +41,7 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({value, onChange}) =
                                 className="h-7 w-7 rounded-full transition-all duration-200 hover:scale-110"
                                 style={{
                                     // If selected becomes black, otherwise takes the color
-                                    backgroundColor: isSelected ? '#1a1a1a' : color,
+                                    backgroundColor: isSelected ? 'var(--color-app-card)' : color,
                                     // Colored border when selected
                                     border: isSelected ? `4px solid ${color}` : 'none',
                                     // Optional fluo \"Glow\" effect around the selected button

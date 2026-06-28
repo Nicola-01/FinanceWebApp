@@ -47,7 +47,7 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>((_props, ref)
         <ModalDialog
             ref={dialogRef}
             className="max-w-[500px]"
-            title={<><FontAwesomeIcon icon={faEnvelope} className="text-[#00ff7f]" /> Invitations</>}
+            title={<><FontAwesomeIcon icon={faEnvelope} className="text-app-green" /> Invitations</>}
         >
             <div className="text-center pb-2">
                 {/* Tabs */}
@@ -101,7 +101,7 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>((_props, ref)
                                 </div>
 
                                 <div className="flex gap-2">
-                                    <button onClick={() => handleAction(inv.wallet.id, 'REJECT')} disabled={loading} className="flex-1 rounded-lg bg-app-input text-app-muted py-2.5 text-xs font-bold hover:bg-[#ff4d4d]/20 hover:text-[#ff4d4d] transition-all border border-transparent hover:border-[#ff4d4d]/30">
+                                    <button onClick={() => handleAction(inv.wallet.id, 'REJECT')} disabled={loading} className="flex-1 rounded-lg bg-app-input text-app-muted py-2.5 text-xs font-bold hover:bg-app-red/20 hover:text-app-red transition-all border border-transparent hover:border-app-red/30">
                                         <FontAwesomeIcon icon={faXmark} className="mr-2" /> Reject
                                     </button>
                                     <button
@@ -138,7 +138,7 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>((_props, ref)
                                         <p className="text-app-muted text-[11px]">From: {inv.walletOwner}</p>
                                     </div>
                                 </div>
-                                <span className={`text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded ${inv.status === 'ACCEPTED' ? 'bg-[#00ff7f]/20 text-[#00ff7f]' : 'bg-[#ff4d4d]/20 text-[#ff4d4d]'}`}>
+                                <span className={`text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded ${inv.status === 'ACCEPTED' ? 'bg-app-green/20 text-app-green' : 'bg-app-red/20 text-app-red'}`}>
                                     {inv.status}
                                 </span>
                             </div>

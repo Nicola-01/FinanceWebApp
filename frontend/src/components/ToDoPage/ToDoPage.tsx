@@ -19,7 +19,7 @@ const ToDoPage: React.FC = () => {
     }, []);
 
     return (
-        <div className="bg-[#0d0d12] min-h-screen text-white font-sans overflow-x-hidden selection:bg-[#00ff7f]/30">
+        <div className="bg-app-bg min-h-screen text-white font-sans overflow-x-hidden selection:bg-app-green/30">
             <BackgroundBlobs />
             
             <Navbar 

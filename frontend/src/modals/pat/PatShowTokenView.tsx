@@ -31,7 +31,7 @@ export const PatShowTokenView: React.FC<PatShowTokenViewProps> = ({ generatedTok
                 <div className="rounded-xl border border-app-border bg-app-bg p-4 pr-14">
                     <code
                         id="pat-generated-token"
-                        className="block w-full break-all text-sm font-mono text-[#00ff7f] leading-relaxed select-all"
+                        className="block w-full break-all text-sm font-mono text-app-green leading-relaxed select-all"
                     >
                         {generatedToken}
                     </code>
@@ -43,7 +43,7 @@ export const PatShowTokenView: React.FC<PatShowTokenViewProps> = ({ generatedTok
                     onClick={onCopy}
                     className={`absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg transition-all ${
                         copied
-                            ? 'bg-[#00ff7f]/15 text-[#00ff7f]'
+                            ? 'bg-app-green/15 text-app-green'
                             : 'bg-app-input text-app-muted hover:bg-app-border hover:text-app-text'
                     }`}
                     title="Copy to clipboard"

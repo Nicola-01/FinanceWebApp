@@ -206,7 +206,7 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
 
     const renderTitle = () => {
         if (view === 'list') return <><FontAwesomeIcon icon={faCode} className="text-[#a78bfa]" /> API Tokens</>;
-        if (view === 'create') return <><FontAwesomeIcon icon={faPlus} className="text-[#00ff7f]" /> New Token</>;
+        if (view === 'create') return <><FontAwesomeIcon icon={faPlus} className="text-app-green" /> New Token</>;
         if (view === 'edit') return <><FontAwesomeIcon icon={faPen} className="text-amber-400" /> Edit Permissions</>;
         return <><FontAwesomeIcon icon={faShieldAlt} className="text-amber-400" /> Token Created</>;
     };
@@ -216,14 +216,14 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
             return [{
                 icon: <FontAwesomeIcon icon={faPlus} className="text-xl" />,
                 onClick: goToCreate,
-                hoverColor: 'hover:text-[#00ff7f]'
+                hoverColor: 'hover:text-app-green'
             }];
         }
         if (view === 'create' || view === 'edit') {
             return [{
                 icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
                 onClick: handleSubmit,
-                hoverColor: 'hover:text-[#00ff7f]',
+                hoverColor: 'hover:text-app-green',
                 disabled: isSubmitting
             }];
         }

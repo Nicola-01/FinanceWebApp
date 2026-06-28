@@ -46,7 +46,7 @@ export const TagPickerAddForm: React.FC<TagPickerAddFormProps> = ({
     };
 
     return (
-        <div className="flex items-center gap-2 rounded-lg border border-[#00ff7f]/30 bg-[#00ff7f]/5 p-2 shadow-inner overflow-hidden w-full">
+        <div className="flex items-center gap-2 rounded-lg border border-app-green/30 bg-app-green/5 p-2 shadow-inner overflow-hidden w-full">
             <div className="shrink-0 flex items-center justify-center">
                 <IconPickerButton
                     icon={newTag.icon as IconKey}
@@ -70,10 +70,10 @@ export const TagPickerAddForm: React.FC<TagPickerAddFormProps> = ({
                 }}
             />
             {isSaving ? (
-                <FontAwesomeIcon icon={faSpinner} spin className="text-[#00ff7f] px-2" />
+                <FontAwesomeIcon icon={faSpinner} spin className="text-app-green px-2" />
             ) : (
                 <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={handleSave} className="flex h-7 w-7 items-center justify-center text-[#00ff7f] hover:bg-[#00ff7f]/20 rounded-md transition-colors">
+                    <button onClick={handleSave} className="flex h-7 w-7 items-center justify-center text-app-green hover:bg-app-green/20 rounded-md transition-colors">
                         <FontAwesomeIcon icon={faCheck} />
                     </button>
                     <button onClick={onClose} className="flex h-7 w-7 items-center justify-center text-app-muted hover:text-red-500 hover:bg-red-500/20 rounded-md transition-colors">

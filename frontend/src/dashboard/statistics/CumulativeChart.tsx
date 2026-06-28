@@ -113,7 +113,7 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({ transactions, 
                     }]}
                     yAxis={[{
                         id: 'y-axis',
-                        tickLabelStyle: { fill: resolvedTheme === 'dark' ? '#ffffff60' : '#1a1a1a60', fontSize: 11 },
+                        tickLabelStyle: { fill: resolvedTheme === 'dark' ? 'var(--color-app-muted)' : 'var(--color-app-muted)', fontSize: 11 },
                     }]}
                     initialZoom={zoomData ?? [{ axisId: 'x-axis', start: 0, end: 100 }]}
                     onZoomChange={onZoomChange}
@@ -132,7 +132,7 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({ transactions, 
                     <ChartsTooltip
                         sx={{
                             '& .MuiChartsTooltip-paper': {
-                                backgroundColor: resolvedTheme === 'dark' ? '#1e1e1e66' : '#ffffff80',
+                                backgroundColor: resolvedTheme === 'dark' ? 'var(--color-app-hover)' : 'var(--color-app-hover)',
                                 backdropFilter: 'blur(8px)',
                                 WebkitBackdropFilter: 'blur(8px)',
                                 border: resolvedTheme === 'dark' ? '1px solid #ffffff20' : '1px solid #00000010',

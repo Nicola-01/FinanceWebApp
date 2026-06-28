@@ -58,7 +58,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({transaction, onCl
             </div>
 
             <div
-                className={`shrink-0 pl-3 text-right text-lg font-bold font-app-mono inline-flex items-baseline justify-end gap-1 ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}
+                className={`shrink-0 pl-3 text-right text-lg font-bold font-app-mono inline-flex items-baseline justify-end gap-1 ${isIncome ? 'text-app-green' : 'text-app-red'}`}
             >
                 <span>{isIncome ? '+' : '-'}{transaction.amount.toFixed(2)}</span>
                 <span>{(CURRENCY_META[transaction.originalCurrency as CurrencyCode]?.symbol)}</span>

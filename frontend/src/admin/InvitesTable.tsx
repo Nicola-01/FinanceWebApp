@@ -79,7 +79,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                             let statusColorClasses = '';
                             switch (displayStatus) {
                                 case 'ACCEPTED':
-                                    statusColorClasses = 'bg-[#00ff7f]/10 text-[#00ff7f] border border-[#00ff7f]/20';
+                                    statusColorClasses = 'bg-app-green/10 text-app-green border border-app-green/20';
                                     break;
                                 case 'EXPIRED':
                                 case 'REVOKED':
@@ -105,7 +105,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({ invites, onRevoke })
                                             {displayStatus}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 font-app-mono text-[#00bfff]">
+                                    <td className="px-6 py-4 font-app-mono text-app-sky">
                                         {/* Nascondiamo il timer se l'invito non è più PENDING */}
                                         {!isRevoked && !isExpired && !isAccepted ? (
                                             <>

@@ -18,7 +18,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
         return (
             <div
                 className="flex flex-col items-center justify-center py-20 text-center animate-[fadeIn_0.3s_ease-out]">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/5 mb-4 text-app-muted">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-app-input mb-4 text-app-muted">
                     <FontAwesomeIcon icon={faRepeat} className="text-2xl"/>
                 </div>
                 <h3 className="text-lg font-bold text-app-text mb-1">No subscriptions found</h3>

@@ -26,7 +26,7 @@ export const TagPickerRow: React.FC<TagPickerRowProps> = ({
     if (isSelected) {
         visualClass = 'bg-app-surface border border-transparent';
     } else if (isAncestor && !isParentHeader) {
-        visualClass = 'bg-[#00ff7f]/10 border border-[#00ff7f]/20';
+        visualClass = 'bg-app-green/10 border border-app-green/20';
     }
 
     return (
@@ -37,13 +37,13 @@ export const TagPickerRow: React.FC<TagPickerRowProps> = ({
             <div className="flex items-center gap-3">
                 <div
                     className={`flex h-8 w-8 items-center justify-center rounded-full text-sm transition-transform group-hover:scale-110
-                        ${isSelected || isAncestor ? 'bg-black/40' : 'bg-black/20'}
+                        ${isSelected || isAncestor ? 'bg-app-hover' : 'bg-app-input'}
                     `}
                     style={{ color: tag.colorHex || '#ffffff' }}
                 >
                     <Icon icon={tag.icon} color={tag.colorHex || '#ffffff'} />
                 </div>
-                <span className={`text-sm font-medium ${isSelected || isAncestor ? 'text-white' : 'text-white/80'}`}>
+                <span className={`text-sm font-medium ${isSelected || isAncestor ? 'text-app-text' : 'text-app-muted'}`}>
                     {tag.name} {isParentHeader && <span className="opacity-50 text-xs italic ml-1">(General)</span>}
                 </span>
             </div>
@@ -52,10 +52,10 @@ export const TagPickerRow: React.FC<TagPickerRowProps> = ({
                 {isMainCategory && !isParentHeader ? (
                     <FontAwesomeIcon
                         icon={faChevronRight}
-                        className={isAncestor ? "text-[#00ff7f] text-sm" : "text-xs text-white/30 group-hover:text-app-muted"}
+                        className={isAncestor ? "text-app-green text-sm" : "text-xs text-app-muted opacity-50 group-hover:opacity-100"}
                     />
                 ) : isSelected ? (
-                    <FontAwesomeIcon icon={faCheck} className="text-[#00ff7f] text-sm" />
+                    <FontAwesomeIcon icon={faCheck} className="text-app-green text-sm" />
                 ) : null}
             </div>
         </div>

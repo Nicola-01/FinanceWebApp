@@ -34,7 +34,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
             <div className={`flex flex-col gap-1 relative z-10 border-b pb-3 sm:pb-4 ${danger ? 'border-red-500/20' : 'border-app-border'}`}>
                 <div className={`flex items-center gap-3 ${headerCentered ? 'justify-center sm:justify-start' : ''}`}>
                     <FontAwesomeIcon icon={icon} className={`text-xl ${danger ? 'text-red-500' : ''}`} style={!danger ? { color: iconColor } : {}} />
-                    <h2 className={`text-xl font-bold ${danger ? 'text-red-500' : 'text-white'}`}>{title}</h2>
+                    <h2 className={`text-xl font-bold ${danger ? 'text-red-500' : 'text-app-text'}`}>{title}</h2>
                 </div>
                 {subtitle && (
                     <p className={`text-sm mt-1 ${headerCentered ? 'text-center sm:text-left' : ''} ${danger ? 'text-red-400/60' : 'text-app-muted'}`}>
@@ -44,7 +44,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
             </div>
 
             {description && (
-                <div className={`relative z-10 text-sm ${danger ? 'text-red-100/60' : 'text-app-muted'} ${headerCentered ? 'text-center' : ''}`}>
+                <div className={`relative z-10 text-sm ${danger ? 'text-red-500' : 'text-app-muted'} ${headerCentered ? 'text-center' : ''}`}>
                     {description}
                 </div>
             )}

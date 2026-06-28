@@ -7,11 +7,11 @@ const ToDoSection: React.FC = () => {
 
     return (
         <section className="py-24 px-4 max-w-5xl mx-auto z-10 relative">
-            <div className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-3xl p-8 md:p-12 backdrop-blur-sm shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 md:gap-12">
+            <div className="bg-gradient-to-br from-white/5 to-white/0 border border-app-border rounded-3xl p-8 md:p-12 backdrop-blur-sm shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 md:gap-12">
                 {/* Background flare */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                 
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400/20 to-purple-500/20 border border-white/10 flex items-center justify-center shrink-0">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-400/20 to-purple-500/20 border border-app-border flex items-center justify-center shrink-0">
                     <ListChecks className="w-8 h-8 text-cyan-400" />
                 </div>
                 
@@ -25,7 +25,7 @@ const ToDoSection: React.FC = () => {
                 <div className="shrink-0">
                     <button 
                         onClick={() => navigate('/ToDo')}
-                        className="bg-white/10 hover:bg-white/20 border border-white/10 font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 group"
+                        className="bg-app-hover hover:bg-white/20 border border-app-border font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center gap-2 group"
                     >
                         View Roadmap
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />

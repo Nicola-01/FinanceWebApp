@@ -3,12 +3,10 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faShieldAlt,
-    faCheck,
     faTimes,
     faSpinner,
     faExclamationTriangle,
     faRobot,
-    faKey,
     faPlus,
 } from '@fortawesome/free-solid-svg-icons';
 import { isTokenValid } from '../utils/authHelper';
@@ -264,7 +262,7 @@ const OAuthConsent = () => {
         return (
             <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
                 <AnimateBackground />
-                <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface p-8 shadow-2xl backdrop-blur-[20px] text-center">
+                <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface/40 p-8 shadow-2xl backdrop-blur-[20px] text-center">
                     <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl text-amber-400 mb-4" />
                     <h2 className="text-xl font-bold text-app-text mb-2">Invalid Request</h2>
                     <p className="text-sm text-app-muted">
@@ -279,7 +277,7 @@ const OAuthConsent = () => {
         return (
             <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
                 <AnimateBackground />
-                <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface p-8 shadow-2xl backdrop-blur-[20px] text-center">
+                <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface/40 p-8 shadow-2xl backdrop-blur-[20px] text-center">
                     <FontAwesomeIcon icon={faExclamationTriangle} className="text-4xl text-rose-500 mb-4" />
                     <h2 className="text-xl font-bold text-app-text mb-2">Richiesta Scaduta</h2>
                     <p className="text-sm text-app-muted mb-6">
@@ -301,11 +299,11 @@ const OAuthConsent = () => {
             <AnimateBackground />
             <div className="relative z-10 w-full max-w-[520px] flex flex-col items-center gap-6">
                 {/* ═══════════ Main Card ═══════════ */}
-                <div className="w-full rounded-[32px] border border-app-border bg-app-surface p-6 sm:p-8 text-app-text shadow-2xl backdrop-blur-[20px] animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
+                <div className="w-full rounded-[32px] border border-app-border bg-app-surface/40 p-6 sm:p-8 text-app-text shadow-2xl backdrop-blur-[20px] animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
 
                     {/* Header */}
                     <div className="flex flex-col items-center mb-6">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-[#4b1a69] to-[#4d6dff] shadow-[0_0_20px_rgba(77,109,255,0.4)]">
+                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-app-purple to-app-blue shadow-[0_0_20px_rgba(77,109,255,0.4)]">
                             <FontAwesomeIcon icon={faShieldAlt} className="text-2xl text-white" />
                         </div>
                         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-center">

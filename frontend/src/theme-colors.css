@@ -1,0 +1,53 @@
+:root {
+  /* TEMA CHIARO - Gray (Light mode) */
+  --bg-main: 249 250 251;      /* gray-50 */
+  --bg-surface: 243 244 246;   /* gray-100 */
+  --bg-card: 255 255 255;      /* white */
+  
+  --text-primary: 17 24 39;    /* gray-900 */
+  --text-muted: 107 114 128;   /* gray-500 */
+  
+  --border-primary: 229 231 235; /* gray-200 */
+  
+  --bg-input: 255 255 255;     /* white */
+  --bg-hover: 243 244 246;     /* gray-100 */
+
+  /* Colori di Accento Globale */
+  --app-green: 34 197 94;      /* green-500 */
+  --app-red: 239 68 68;        /* red-500 */
+  --app-cyan: 6 182 212;       /* cyan-500 */
+  --app-purple: 168 85 247;    /* purple-500 */
+  --app-pink: 236 72 153;      /* pink-500 */
+  --app-orange: 249 115 22;    /* orange-500 */
+  --app-yellow: 234 179 8;     /* yellow-500 */
+  --app-blue: 59 130 246;      /* blue-500 */
+  --app-teal: 20 184 166;      /* teal-500 */
+  --app-sky: 14 165 233;       /* sky-500 */
+}
+
+.dark {
+  /* TEMA SCURO - Zinc (Dark mode) */
+  --bg-main: 9 9 11;           /* zinc-950 */
+  --bg-surface: 24 24 27;      /* zinc-900 */
+  --bg-card: 24 24 27;         /* zinc-900 */
+  
+  --text-primary: 250 250 250; /* zinc-50 */
+  --text-muted: 161 161 170;   /* zinc-400 */
+  
+  --border-primary: 39 39 42;  /* zinc-800 */
+  
+  --bg-input: 24 24 27;        /* zinc-900 */
+  --bg-hover: 39 39 42;        /* zinc-800 */
+
+  /* Colori di Accento Globale */
+  --app-green: 34 197 94;      /* green-500 */
+  --app-red: 239 68 68;        /* red-500 */
+  --app-cyan: 6 182 212;       /* cyan-500 */
+  --app-purple: 168 85 247;    /* purple-500 */
+  --app-pink: 236 72 153;      /* pink-500 */
+  --app-orange: 249 115 22;    /* orange-500 */
+  --app-yellow: 234 179 8;     /* yellow-500 */
+  --app-blue: 59 130 246;      /* blue-500 */
+  --app-teal: 20 184 166;      /* teal-500 */
+  --app-sky: 14 165 233;       /* sky-500 */
+}

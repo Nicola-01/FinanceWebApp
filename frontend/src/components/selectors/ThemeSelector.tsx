@@ -16,7 +16,7 @@ export const ThemeSelector = () => {
                         className={`
                                                 flex flex-1 items-center justify-center py-2 rounded-lg text-xs font-bold transition-all
                                                 ${theme === t
-                            ? 'bg-app-surface text-[#00bfff] shadow-sm ring-1 ring-[#00bfff]/10'
+                            ? 'bg-app-surface text-app-sky shadow-sm ring-1 ring-app-sky/10'
                             : 'text-app-muted hover:text-app-text hover:bg-app-surface/50'}
                                             `}
                         title={t.charAt(0).toUpperCase() + t.slice(1)}

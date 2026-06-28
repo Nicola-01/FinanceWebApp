@@ -94,19 +94,19 @@ const ResetPassword: React.FC = () => {
         <div className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto bg-slate-900 px-4 sm:px-0 pb-8 sm:pb-0">
             <AnimateBackground />
 
-            <div className={`relative z-10 flex w-full max-w-[420px] mx-4 flex-col items-center rounded-3xl border border-white/10 bg-white/5 px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error === 'shake' ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
+            <div className={`relative z-10 flex w-full max-w-[420px] mx-4 flex-col items-center rounded-3xl border border-app-border bg-app-input px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error === 'shake' ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}>
 
                 {/* Icon Header */}
                 <div className="mb-6">
-                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-app-input shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
                         <FontAwesomeIcon icon={faShieldHalved} className="text-3xl text-white/80" />
                     </div>
                 </div>
 
                 {/* STATE 1: LOADING */}
                 {isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-10 text-white/60 gap-4">
-                        <FontAwesomeIcon icon={faSpinner} spin className="text-4xl text-[#4d6dff]" />
+                    <div className="flex flex-col items-center justify-center py-10 text-app-muted gap-4">
+                        <FontAwesomeIcon icon={faSpinner} spin className="text-4xl text-app-blue" />
                         <p>Verifying reset link...</p>
                     </div>
                 ) :
@@ -116,10 +116,10 @@ const ResetPassword: React.FC = () => {
                         <div className="flex flex-col items-center text-center py-6 w-full">
                             <FontAwesomeIcon icon={faCircleExclamation} className="text-5xl text-red-500 mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
                             <h3 className="text-xl font-bold mb-2 text-white">Reset Failed</h3>
-                            <p className="text-white/60 text-sm mb-6">{error}</p>
+                            <p className="text-app-muted text-sm mb-6">{error}</p>
                             <button
                                 onClick={() => navigate('/login')}
-                                className="w-full rounded-full bg-white/10 py-3 font-semibold tracking-wider text-white transition-colors hover:bg-white/20"
+                                className="w-full rounded-full bg-app-hover py-3 font-semibold tracking-wider text-white transition-colors hover:bg-white/20"
                             >
                                 Back to Login
                             </button>
@@ -133,13 +133,13 @@ const ResetPassword: React.FC = () => {
                                 <h2 className="mb-2 text-xl font-bold tracking-wide text-white text-center">
                                     Reset Password
                                 </h2>
-                                <p className="mb-6 text-sm text-white/60 text-center leading-relaxed">
+                                <p className="mb-6 text-sm text-app-muted text-center leading-relaxed">
                                     Enter your new password for <strong className="text-white/80">{inviteData?.email}</strong>
                                 </p>
 
                                 {/* Password Input */}
                                 <div className="relative mb-6 w-full">
-                                    <div className="relative flex items-center border-b pb-1 border-white/50 focus-within:border-white transition-colors duration-300">
+                                    <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:border-white transition-colors duration-300">
                                         <span className="absolute left-0 text-lg text-white/80">
                                             <FontAwesomeIcon icon={faLock} />
                                         </span>
@@ -152,7 +152,7 @@ const ResetPassword: React.FC = () => {
                                             autoFocus
                                         />
                                         <span
-                                            className="absolute right-0 z-20 cursor-pointer text-white/50 transition-colors hover:text-white"
+                                            className="absolute right-0 z-20 cursor-pointer text-app-muted transition-colors hover:text-white"
                                             onClick={() => setShowPassword(!showPassword)}
                                         >
                                             <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
@@ -162,7 +162,7 @@ const ResetPassword: React.FC = () => {
 
                                 {/* Confirm Password Input */}
                                 <div className="relative mb-4 w-full">
-                                    <div className="relative flex items-center border-b pb-1 border-white/50 focus-within:border-white transition-colors duration-300">
+                                    <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:border-white transition-colors duration-300">
                                         <span className="absolute left-0 text-lg text-white/80">
                                             <FontAwesomeIcon icon={faLock} />
                                         </span>
@@ -183,7 +183,7 @@ const ResetPassword: React.FC = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting || !isFormValid}
-                                    className="w-full mt-2 rounded-full bg-gradient-to-r from-[#4b1a69] to-[#4d6dff] py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                                    className="w-full mt-2 rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
                                 >
                                     {isSubmitting ? <FontAwesomeIcon icon={faSpinner} spin /> : 'RESET PASSWORD'}
                                 </button>

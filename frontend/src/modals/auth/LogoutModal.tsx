@@ -48,7 +48,7 @@ export const LogoutModal = forwardRef<LogoutModalHandle>(
         return createPortal(
             <>
                 <ModalDialog ref={dialogRef} title="Confirm Logout" showClose={true}>
-                    <div className="p-[20px] text-center text-white">
+                    <div className="p-[20px] text-center text-app-text">
                         <div className="mb-5">
                             <FontAwesomeIcon
                                 icon={faSignOutAlt}
@@ -63,7 +63,7 @@ export const LogoutModal = forwardRef<LogoutModalHandle>(
                                 <div className="relative">
                                     <input
                                         type="checkbox"
-                                        className="peer h-5 w-5 appearance-none rounded border border-white/40 bg-white/10 transition-all checked:border-[#e74c3c] checked:bg-[#e74c3c] cursor-pointer"
+                                        className="peer h-5 w-5 appearance-none rounded border border-app-border bg-app-hover transition-all checked:border-[#e74c3c] checked:bg-[#e74c3c] cursor-pointer"
                                         checked={logoutAll}
                                         onChange={(e) => setLogoutAll(e.target.checked)}
                                     />
@@ -73,7 +73,7 @@ export const LogoutModal = forwardRef<LogoutModalHandle>(
                                         <polyline points="20 6 9 17 4 12"></polyline>
                                     </svg>
                                 </div>
-                                <span className="ml-3 font-light transition-colors group-hover:text-white">
+                                <span className="ml-3 font-light transition-colors group-hover:text-app-text">
                                     Log out from <strong className="font-semibold">all devices</strong>
                                 </span>
                             </label>

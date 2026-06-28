@@ -81,7 +81,7 @@ export const WalletCardUI = forwardRef<HTMLDivElement, WalletProps & React.HTMLA
                 ))}
             </div>
 
-            <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-app-input text-xl shadow-inner" style={{ color: wallet.color || '#00ff7f' }}>
+            <div className="relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-app-input text-xl shadow-inner" style={{ color: wallet.color || 'var(--color-app-green)' }}>
                 <FontAwesomeIcon icon={ICONS[wallet.icon as IconKey] || ICONS['wallet']} />
             </div>
 

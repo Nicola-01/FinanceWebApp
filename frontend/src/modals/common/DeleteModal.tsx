@@ -68,7 +68,7 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
         return createPortal(
             <>
                 <ModalDialog ref={dialogRef}>
-                    <div className="p-[35px] text-center text-white">
+                    <div className="p-[35px] text-center text-app-text">
 
                         <div className="mb-5">
                             <FontAwesomeIcon
@@ -79,7 +79,7 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
 
                         <p>You are about to permanently delete this {itemType}:</p>
 
-                        <h3 className="my-[15px] rounded-lg border border-dashed border-white/30 bg-app-surface p-3 text-lg break-words font-['JetBrains_Mono',_monospace]">
+                        <h3 className="my-[15px] rounded-lg border border-dashed border-app-border bg-app-surface p-3 text-lg break-words font-['JetBrains_Mono',_monospace]">
                             {objToDelete?.name}
                         </h3>
 
@@ -89,8 +89,8 @@ export const DeleteModal = forwardRef<DeleteModalHandle>(
                                 <p className="mb-5 text-[0.9rem] text-app-muted"> To confirm, type the name below: </p>
 
                                 <input
-                                    className="w-full p-3 bg-black/20 border border-white/20 rounded-lg text-white text-base text-center transition-all duration-300
-                            focus:border-[#e74c3c] focus:bg-black/40 focus:outline-none focus:shadow-[0_0_10px_rgba(231,76,60,0.3)]"
+                                    className="w-full p-3 bg-app-input border border-app-border rounded-lg text-app-text text-base text-center transition-all duration-300
+                            focus:border-[#e74c3c] focus:bg-app-hover focus:outline-none focus:shadow-[0_0_10px_rgba(231,76,60,0.3)]"
                                     type="text"
                                     value={confirmationText}
                                     onChange={(e) => setConfirmationText(e.target.value)}

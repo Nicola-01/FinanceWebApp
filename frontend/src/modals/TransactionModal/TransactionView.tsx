@@ -37,7 +37,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
         <div className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">
             {/* 1. IMPORTO (Invariato) */}
             <div className="text-center mt-2">
-                <p className={`text-6xl font-app-mono ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
+                <p className={`text-6xl font-app-mono ${isIncome ? 'text-app-green' : 'text-app-red'}`}>
                     {isIncome ? '+' : '-'}{tx.amount.toFixed(2)} <span
                     className="text-3xl">{CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}</span>
                 </p>
@@ -51,7 +51,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
 
             {/* 2. DETTAGLI: Uso divide-y per le righe automatiche, rimosso il padding generale.
                Questa box ora contiene solo dettagli tecnici, SENZA la Categoria. */}
-            <div className="w-full bg-black/20 border border-app-border rounded-2xl text-left flex flex-col divide-y divide-white/10">
+            <div className="w-full bg-app-input border border-app-border rounded-2xl text-left flex flex-col divide-y divide-app-border">
 
                 {/* Nome */}
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
@@ -59,7 +59,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                         {/* W-5 text-center assicura che il testo sia perfettamente allineato indipendentemente dalla larghezza dell'icona. */}
                         <FontAwesomeIcon icon={faTag} className="w-5 text-center mr-2" />Name
                     </span>
-                    <span className="text-white font-medium sm:text-right truncate">{tx.name}</span>
+                    <span className="text-app-text font-medium sm:text-right truncate">{tx.name}</span>
                 </div>
 
                 {/* Data */}
@@ -67,7 +67,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                     <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
                         <FontAwesomeIcon icon={faCalendarAlt} className="w-5 text-center mr-2" />Date
                     </span>
-                    <span className="text-white font-medium">{formatedDate}</span>
+                    <span className="text-app-text font-medium">{formatedDate}</span>
                 </div>
 
                 {/* Note (Mostrate solo se presenti) */}
@@ -76,7 +76,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                         <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center">
                             <FontAwesomeIcon icon={faStickyNote} className="w-5 text-center mr-2" />Notes
                         </span>
-                        <span className="text-white/80 text-sm bg-app-input p-3 rounded-lg border border-app-border">
+                        <span className="text-app-text text-sm bg-app-input p-3 rounded-lg border border-app-border">
                             {tx.notes}
                         </span>
                     </div>

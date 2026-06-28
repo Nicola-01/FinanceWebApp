@@ -92,24 +92,24 @@ export const DataTab: React.FC = () => {
         >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* EXPORT */}
-                <div className="flex flex-col gap-3 p-4 bg-black/20 rounded-xl border border-app-border">
+                <div className="flex flex-col gap-3 p-4 bg-app-input rounded-xl border border-app-border">
                     <div className="flex items-center gap-2 mb-1">
-                        <FontAwesomeIcon icon={faDownload} className="text-[#00ff7f] opacity-80" />
-                        <span className="text-sm font-bold text-white uppercase tracking-wider">Export Data</span>
+                        <FontAwesomeIcon icon={faDownload} className="text-app-green opacity-80" />
+                        <span className="text-sm font-bold text-app-text uppercase tracking-wider">Export Data</span>
                     </div>
                     <p className="text-xs text-app-muted mb-2">Download your data in CSV format for backups or external analysis.</p>
                     
                     <div className="flex flex-col gap-2 mt-auto">
                         <button
                             onClick={handleExportTransactions}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-surface/80 border border-app-border rounded-lg text-sm font-bold text-white transition-all active:scale-95"
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-hover border border-app-border rounded-lg text-sm font-bold text-app-text transition-all active:scale-95"
                         >
                             <FontAwesomeIcon icon={faDownload} />
                             Download Transactions.csv
                         </button>
                         <button
                             onClick={handleExportTags}
-                            className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface/40 hover:bg-app-surface/60 border border-app-border border-dashed rounded-lg text-[10px] font-bold text-app-muted transition-all active:scale-95"
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface/40 hover:bg-app-hover border border-app-border border-dashed rounded-lg text-[10px] font-bold text-app-muted transition-all active:scale-95"
                         >
                             <FontAwesomeIcon icon={faDownload} />
                             Download Tags.csv
@@ -118,14 +118,14 @@ export const DataTab: React.FC = () => {
                 </div>
 
                 {/* IMPORT */}
-                <div className="flex flex-col gap-3 p-4 bg-black/20 rounded-xl border border-app-border">
+                <div className="flex flex-col gap-3 p-4 bg-app-input rounded-xl border border-app-border">
                     <div className="flex items-center gap-2 mb-1">
-                        <FontAwesomeIcon icon={faUpload} className="text-[#00bfff] opacity-80" />
-                        <span className="text-sm font-bold text-white uppercase tracking-wider">Import Data</span>
+                        <FontAwesomeIcon icon={faUpload} className="text-app-sky opacity-80" />
+                        <span className="text-sm font-bold text-app-text uppercase tracking-wider">Import Data</span>
                     </div>
                     <p className="text-xs text-app-muted mb-2">Upload a CSV file to import new tags or bulk update existing ones.</p>
                     
-                    <label className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-surface/80 border border-app-border rounded-lg text-sm font-bold text-white transition-all cursor-pointer active:scale-95">
+                    <label className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-hover border border-app-border rounded-lg text-sm font-bold text-app-text transition-all cursor-pointer active:scale-95">
                         <FontAwesomeIcon icon={faUpload} />
                         Upload CSV
                         <input 

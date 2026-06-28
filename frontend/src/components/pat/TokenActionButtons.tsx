@@ -33,7 +33,7 @@ export const TokenActionButtons: React.FC<TokenActionButtonsProps> = ({
                     type="button"
                     onClick={(e) => { e.stopPropagation(); onDelete(token); }}
                     disabled={revokingId === token.id}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-app-muted/50 transition-all hover:bg-[#ff4d4d]/15 hover:text-[#ff4d4d] disabled:opacity-40"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-app-muted/50 transition-all hover:bg-app-red/15 hover:text-app-red disabled:opacity-40"
                     title="Revoke Token"
                 >
                     <FontAwesomeIcon 

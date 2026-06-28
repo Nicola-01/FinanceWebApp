@@ -51,11 +51,11 @@ const getDaysLeftColor = (days: number, isIncome: boolean) => {
     if (!isIncome) {
         if (days >= 4) return "text-yellow-400";
         if (days >= 2) return "text-orange-400";
-        return "text-[#ff4d4d]";
+        return "text-app-red";
     } else {
-        if (days >= 4) return "text-[#00ff7f]/40";
-        if (days >= 2) return "text-[#00ff7f]/70";
-        return "text-[#00ff7f]";
+        if (days >= 4) return "text-app-green/40";
+        if (days >= 2) return "text-app-green/70";
+        return "text-app-green";
     }
 };
 
@@ -82,7 +82,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
     return (
         <div
             onClick={onClick}
-            className="flex items-center justify-between p-4 bg-app-input cursor-pointer transition-all hover:bg-app-surface rounded-2xl border border-transparent hover:border-white/5"
+            className="flex items-center justify-between p-4 bg-app-input cursor-pointer transition-all hover:bg-app-surface rounded-2xl border border-transparent hover:border-app-border"
         >
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 shrink max-w-[65%] lg:max-w-[75%]">
                 <div
@@ -107,7 +107,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
                         )}
                         {subscription.status === 'COMPLETED' && (
                             <span
-                                className="px-2 py-0.5 rounded-md bg-white/10 text-white/50 text-[10px] font-bold uppercase tracking-wider border border-white/10">Completed</span>
+                                className="px-2 py-0.5 rounded-md bg-app-hover text-app-muted text-[10px] font-bold uppercase tracking-wider border border-app-border">Completed</span>
                         )}
                     </div>
                 </div>
@@ -121,7 +121,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
 
                 {/* Riga 1: Importo + Valuta + Frequenza (es: -12.99 € / mo) */}
                 <div
-                    className={`text-right text-lg font-bold font-app-mono inline-flex items-baseline justify-end gap-1 ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
+                    className={`text-right text-lg font-bold font-app-mono inline-flex items-baseline justify-end gap-1 ${isIncome ? 'text-app-green' : 'text-app-red'}`}>
                     <span>{isIncome ? '+' : '-'}{subscription.amount.toFixed(2)}</span>
                     <span>{CURRENCY_META[subscription.originalCurrency as CurrencyCode]?.symbol}</span>
 

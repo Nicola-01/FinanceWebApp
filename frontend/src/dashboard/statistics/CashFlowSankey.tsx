@@ -155,7 +155,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({transactions}) =>
     const sidePadding = isMobile ? 12 : 24;
 
 
-    const labelColor = resolvedTheme === 'dark' ? '#ffffff' : '#1a1a1a';
+    const labelColor = resolvedTheme === 'dark' ? '#ffffff' : 'var(--color-app-card)';
 
     return (
         <div className="w-full my-2 md:my-4 p-1 sm:p-3 md:p-4 bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border">
@@ -199,7 +199,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({transactions}) =>
                             <pattern id="savingsPattern" patternUnits="userSpaceOnUse" width="8" height="8"
                                      patternTransform="rotate(45)">
                                 <rect width="8" height="8" fill="#1e3a8a"/>
-                                <line x1="0" y1="0" x2="0" y2="8" stroke="#3b82f6" strokeWidth="4"/>
+                                <line x1="0" y1="0" x2="0" y2="8" stroke="var(--color-app-blue)" strokeWidth="4"/>
                             </pattern>
                             <pattern id="deficitPattern" patternUnits="userSpaceOnUse" width="8" height="8"
                                      patternTransform="rotate(45)">

@@ -26,7 +26,7 @@ export const TransactionMetadataInputs: React.FC<Props> = ({
                     Name
                 </label>
                 <input
-                    className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-white outline-none transition-all focus:border-[#00ff7f]"
+                    className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-app-green"
                     type="text"
                     placeholder={selectedTagName || "e.g. Groceries"}
                     value={name}
@@ -41,7 +41,7 @@ export const TransactionMetadataInputs: React.FC<Props> = ({
                     Notes
                 </label>
                 <textarea
-                    className="w-full min-h-[100px] resize-none rounded-xl border border-app-border bg-app-input p-4 text-white outline-none transition-all focus:border-[#00ff7f]"
+                    className="w-full min-h-[100px] resize-none rounded-xl border border-app-border bg-app-input p-4 text-app-text outline-none transition-all focus:border-app-green"
                     placeholder="Any details..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}

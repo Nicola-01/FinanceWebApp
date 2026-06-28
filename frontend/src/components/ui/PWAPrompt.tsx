@@ -26,7 +26,7 @@ export const PWAPrompt: React.FC = () => {
             <div className="flex gap-2 w-full sm:w-auto">
                 <button
                     onClick={() => updateServiceWorker(true)}
-                    className="flex-1 sm:flex-none px-4 py-2 bg-[#00ff7f] text-black text-sm font-bold rounded-lg hover:bg-[#00cc66] transition-colors"
+                    className="flex-1 sm:flex-none px-4 py-2 bg-app-green text-black text-sm font-bold rounded-lg hover:bg-[#00cc66] transition-colors"
                 >
                     Reload
                 </button>

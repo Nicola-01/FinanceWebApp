@@ -59,7 +59,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({ users, onDeleteCli
         <div>
             {/* Header & Search Bar */}
             <div className="mb-5 flex flex-wrap items-center justify-between gap-[15px]">
-                <h4 className="m-0 flex items-center gap-2.5 text-[1.1rem] font-semibold text-[#00ff7f]">
+                <h4 className="m-0 flex items-center gap-2.5 text-[1.1rem] font-semibold text-app-green">
                     User Directory
                 </h4>
                 <div className="relative w-full sm:w-[300px]">
@@ -79,16 +79,16 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({ users, onDeleteCli
                 <table className="w-full border-collapse text-left">
                     <thead>
                     <tr>
-                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('name')}>
+                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-app-card hover:text-white" onClick={() => requestSort('name')}>
                             User <FontAwesomeIcon icon={getSortIcon('name')} className="ml-1 opacity-70" />
                         </th>
-                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('createdAt')}>
+                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-app-card hover:text-white" onClick={() => requestSort('createdAt')}>
                             Joined <FontAwesomeIcon icon={getSortIcon('createdAt')} className="ml-1 opacity-70" />
                         </th>
-                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('wallets')}>
+                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-app-card hover:text-white" onClick={() => requestSort('wallets')}>
                             Wallets <FontAwesomeIcon icon={getSortIcon('wallets')} className="ml-1 opacity-70" />
                         </th>
-                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-[#1a1a1a] hover:text-white" onClick={() => requestSort('transactions')}>
+                        <th className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-app-card hover:text-white" onClick={() => requestSort('transactions')}>
                             Transactions <FontAwesomeIcon icon={getSortIcon('transactions')} className="ml-1 opacity-70" />
                         </th>
                         <th className="sticky top-0 z-10 border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted">

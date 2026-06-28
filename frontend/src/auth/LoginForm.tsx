@@ -93,30 +93,30 @@ export const LoginForm: React.FC = () => {
 
     return (
         <form
-            className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-white/10 bg-white/5 p-6 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
+            className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-app-border bg-app-input p-6 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? 'animate-[shake_0.5s_ease-in-out]' : ''}`}
             onSubmit={handleSubmit}
             noValidate
         >
             {/* Avatar Header */}
             <div className="mb-5 sm:mb-8">
                 <div
-                    className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-white/15 shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
-                    <FontAwesomeIcon icon={faUser} className="text-2xl sm:text-3xl text-white/80"/>
+                    className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-app-input border border-app-border">
+                    <FontAwesomeIcon icon={faUser} className="text-2xl sm:text-3xl text-app-text"/>
                 </div>
             </div>
 
             {/* Username Input */}
             <div className="relative mb-5 sm:mb-8 w-full">
                 <div
-                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
-                    <span className="absolute left-0 text-lg text-white/80">
+                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? 'border-red-500' : 'border-app-border focus-within:border-app-text'}`}>
+                    <span className="absolute left-0 text-lg text-app-text">
                         <FontAwesomeIcon icon={faUser}/>
                     </span>
                     <input
                         ref={username}
                         type="text"
                         placeholder="Username"
-                        className="w-full border-none bg-transparent py-2 pl-8 text-white placeholder-white/70 outline-none"
+                        className="w-full border-none bg-transparent py-2 pl-8 text-app-text placeholder-app-muted outline-none"
                     />
                 </div>
                 {/* Username Error Tooltip */}
@@ -131,19 +131,19 @@ export const LoginForm: React.FC = () => {
             {/* Password Input */}
             <div className="relative mb-5 sm:mb-8 w-full">
                 <div
-                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'border-red-500' : 'border-white/50 focus-within:border-white'}`}>
-                    <span className="absolute left-0 text-lg text-white/80">
+                    className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? 'border-red-500' : 'border-app-border focus-within:border-app-text'}`}>
+                    <span className="absolute left-0 text-lg text-app-text">
                         <FontAwesomeIcon icon={faLock}/>
                     </span>
                     <input
                         ref={password}
                         type={showPassword ? "text" : "password"}
                         placeholder="Password"
-                        className="w-full border-none bg-transparent py-2 pl-8 pr-8 text-white placeholder-white/70 outline-none"
+                        className="w-full border-none bg-transparent py-2 pl-8 pr-8 text-app-text placeholder-app-muted outline-none"
                     />
                     {/* Toggle Visibility Button */}
                     <span
-                        className="absolute right-0 z-20 cursor-pointer text-white/50 transition-colors hover:text-white"
+                        className="absolute right-0 z-20 cursor-pointer text-app-muted transition-colors hover:text-app-text"
                         onClick={() => setShowPassword(!showPassword)}
                     >
                         <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye}/>
@@ -159,23 +159,23 @@ export const LoginForm: React.FC = () => {
             </div>
 
             {/* Options (Remember Me / Forgot Password) */}
-            <div className="mb-6 sm:mb-8 flex w-full items-center justify-between text-sm text-white/80">
+            <div className="mb-6 sm:mb-8 flex w-full items-center justify-between text-sm text-app-text">
                 <label className="group flex cursor-pointer select-none items-center">
                     <div className="relative">
                         <input
                             type="checkbox"
                             ref={rememberMe}
-                            className="peer h-4 w-4 appearance-none rounded border border-white/40 bg-white/10 transition-all checked:border-white checked:bg-white cursor-pointer"
+                            className="peer h-4 w-4 appearance-none rounded border border-app-border bg-app-hover transition-all checked:border-app-text checked:bg-app-text cursor-pointer"
                         />
                         <svg
-                            className="pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 text-[#230b38] opacity-0 transition-opacity peer-checked:opacity-100"
+                            className="pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 text-app-card opacity-0 transition-opacity peer-checked:opacity-100"
                             viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                     </div>
-                    <span className="ml-2 font-light transition-colors group-hover:text-white">Remember me</span>
+                    <span className="ml-2 font-light transition-colors group-hover:text-app-text">Remember me</span>
                 </label>
-                <button type="button" onClick={() => navigate('/forgot-password')} className="font-light italic transition-colors hover:text-white hover:underline bg-transparent border-none text-white/80 cursor-pointer text-sm p-0">
+                <button type="button" onClick={() => navigate('/forgot-password')} className="font-light italic transition-colors hover:text-app-text hover:underline bg-transparent border-none text-app-text cursor-pointer text-sm p-0">
                     Forgot Password?
                 </button>
             </div>
@@ -184,7 +184,7 @@ export const LoginForm: React.FC = () => {
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-full bg-gradient-to-r from-[#4b1a69] to-[#4d6dff] py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
+                className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
             >
                 {loading ? 'LOADING...' : 'LOGIN'}
             </button>

@@ -46,7 +46,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
     };
 
     const getStatusIcon = () => {
-        if (sub.status === 'ACTIVE') return <FontAwesomeIcon icon={faPlay} className="text-[#00ff7f]" />;
+        if (sub.status === 'ACTIVE') return <FontAwesomeIcon icon={faPlay} className="text-app-green" />;
         if (sub.status === 'PAUSED') return <FontAwesomeIcon icon={faPause} className="text-orange-400" />;
         return <FontAwesomeIcon icon={faCheckDouble} className="text-app-muted" />;
     };
@@ -55,11 +55,11 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
         <div className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">
             {/* 1. AMOUNT */}
             <div className="text-center mt-2 flex flex-col items-center">
-                <p className={`text-6xl font-app-mono ${isIncome ? 'text-[#00ff7f]' : 'text-[#ff4d4d]'}`}>
+                <p className={`text-6xl font-app-mono ${isIncome ? 'text-app-green' : 'text-app-red'}`}>
                     {isIncome ? '+' : '-'}{sub.amount.toFixed(2)} <span
                         className="text-3xl">{CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}</span>
                 </p>
-                <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold tracking-wider uppercase">
+                <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-app-input border border-app-border text-xs font-bold tracking-wider uppercase">
                     {getStatusIcon()}
                     <span className="text-white/80">{sub.status}</span>
                 </div>
@@ -82,8 +82,8 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({ sub, wallet 
                 </div>
 
                 {/* Frequency */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5 bg-white/5">
-                    <span className="text-[#00bfff] text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5 bg-app-input">
+                    <span className="text-app-sky text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
                         <FontAwesomeIcon icon={faRepeat} className="w-5 text-center mr-2" />Frequency
                     </span>
                     <div className="flex flex-col sm:items-end">
