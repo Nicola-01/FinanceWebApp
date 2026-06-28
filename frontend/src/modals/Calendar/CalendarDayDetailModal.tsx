@@ -10,15 +10,16 @@ export interface DayDetailModalHandle {
     openModal: (date: Date, subscriptions: Subscription[]) => void;
 }
 
-interface DayDetailPanelProps {
+interface CalendarDayDetailPanelProps {
     /** Called to resolve subscriptions for a given date (when navigating days inside the modal) */
     getSubscriptionsForDate: (date: Date) => Subscription[];
     onEditSubscription?: (subscription: Subscription, date: Date) => void;
     onAddSubscription?: (date: Date) => void;
+    onTransactionClick?: (tx: any) => void;
 }
 
-export const DayDetailPanel = forwardRef<DayDetailModalHandle, DayDetailPanelProps>(
-    ({ getSubscriptionsForDate, onEditSubscription, onAddSubscription }, ref) => {
+export const CalendarDayDetailPanel = forwardRef<DayDetailModalHandle, CalendarDayDetailPanelProps>(
+    ({ getSubscriptionsForDate, onEditSubscription, onAddSubscription, onTransactionClick }, ref) => {
         const dialogRef = useRef<HTMLDialogElement>(null);
         const touchStartX = useRef<number | null>(null);
         const touchStartY = useRef<number | null>(null);
@@ -154,17 +155,24 @@ export const DayDetailPanel = forwardRef<DayDetailModalHandle, DayDetailPanelPro
                                 <p className="text-sm text-app-muted">No subscriptions on this day</p>
                             </div>
                         ) : (
-                            subscriptions.map(sub => (
-                                <SubscriptionCard
-                                    key={sub.id}
-                                    subscription={sub}
-                                    date={format(selectedDate, 'yyyy-MM-dd')}
-                                    onClick={() => {
-                                        handleClose();
-                                        onEditSubscription?.(sub, selectedDate);
-                                    }}
-                                />
-                            ))
+                            subscriptions.map(sub => {
+                                const pastTx = sub.history?.find(tx => tx.transactionDate === format(selectedDate, 'yyyy-MM-dd'));
+                                return (
+                                    <SubscriptionCard
+                                        key={sub.id}
+                                        subscription={pastTx ? { ...sub, amount: pastTx.amount, originalAmount: pastTx.originalAmount ?? sub.originalAmount, originalCurrency: pastTx.originalCurrency ?? sub.originalCurrency, exchangeValue: pastTx.exchangeValue ?? sub.exchangeValue } : sub}
+                                        date={format(selectedDate, 'yyyy-MM-dd')}
+                                        onClick={() => {
+                                            handleClose();
+                                            if (pastTx && onTransactionClick) {
+                                                onTransactionClick(pastTx);
+                                            } else {
+                                                onEditSubscription?.(sub, selectedDate);
+                                            }
+                                        }}
+                                    />
+                                );
+                            })
                         )}
                     </div>
                 </div>

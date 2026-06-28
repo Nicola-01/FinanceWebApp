@@ -32,6 +32,7 @@ export interface Tag {
 
 export interface Transaction {
     id: string;
+    subscriptionId?: string;
     name: string;
     tag: Tag;
     amount: number;
@@ -87,6 +88,7 @@ export interface Subscription {
     durationTimes?: number;
     executedTimes: number;
     durationUntil?: string;
+    history?: Transaction[];
 }
 
 export interface SubscriptionRequestDTO {

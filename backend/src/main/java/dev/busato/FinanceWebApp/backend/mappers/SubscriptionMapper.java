@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 public class SubscriptionMapper {
 
     private final TagMapper tagMapper;
+    private final TransactionMapper transactionMapper;
 
     public SubscriptionResponse mapToResponse(Subscription sub) {
         return SubscriptionResponse.builder()
@@ -35,6 +36,7 @@ public class SubscriptionMapper {
                 .durationTimes(sub.getDurationTimes())
                 .executedTimes(sub.getExecutedTimes())
                 .durationUntil(sub.getDurationUntil())
+                .history(sub.getHistory() != null ? sub.getHistory().stream().map(transactionMapper::mapToResponse).toList() : null)
                 .build();
     }
 }

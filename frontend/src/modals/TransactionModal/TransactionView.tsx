@@ -3,8 +3,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faCalendarAlt,
     faStickyNote,
-    faTag
+    faTag,
+    faRepeat
 } from '@fortawesome/free-solid-svg-icons';
+import { useRef } from 'react';
+import { useWalletContext } from '../../dashboard/wallet/WalletContext.tsx';
+import { SubscriptionModal, type SubscriptionModalHandle } from '../subscription/SubscriptionModal.tsx';
 import type { Transaction, Wallet } from "../../utils/types.ts";
 import { CURRENCY_META, type CurrencyCode } from '../../utils/currencies';
 import { ExchangeRateSection } from './ExchangeRateSection.tsx';
@@ -19,7 +23,18 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                                                                     tx,
                                                                     wallet
                                                                 }) => {
+    const { subscriptions, tags, fetchData } = useWalletContext();
+    const subscriptionModalRef = useRef<SubscriptionModalHandle>(null);
+
     const isIncome = tx.type === 'INCOME';
+
+    const handleOpenSubscription = () => {
+        if (!tx.subscriptionId) return;
+        const sub = subscriptions.find(s => s.id === tx.subscriptionId);
+        if (sub) {
+            subscriptionModalRef.current?.openModal(sub);
+        }
+    };
 
     const displayExchangeRate = (tx as any).exchangeValue
         ? Number((tx as any).exchangeValue).toFixed(6).replace(/\.?0+$/, '')
@@ -34,6 +49,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
     });
 
     return (
+        <>
         <div className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">
             {/* 1. IMPORTO (Invariato) */}
             <div className="text-center mt-2">
@@ -47,6 +63,15 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
             {/* Posizionata FUORI dall'elenco "divide-y" per darle maggiore rilievo visivo, centrandola. */}
             <div className="flex items-center gap-2 -mt-2">
                 <TagBadge tag={tx.tag} forceShowParent={true} />
+                {tx.subscriptionId && (
+                    <span 
+                        onClick={handleOpenSubscription}
+                        className="cursor-pointer text-[10px] sm:text-xs bg-[rgb(var(--bg-card-dark))] px-2 sm:px-3 py-1 rounded-full text-app-muted hover:text-app-text hover:bg-app-hover border border-app-border inline-flex items-center gap-1.5 transition-colors font-bold uppercase tracking-wider"
+                    >
+                        <FontAwesomeIcon icon={faRepeat} />
+                        Recurring
+                    </span>
+                )}
             </div>
 
             {/* 2. DETTAGLI: Uso divide-y per le righe automatiche, rimosso il padding generale.
@@ -97,5 +122,13 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
                 )}
             </div>
         </div>
+        <SubscriptionModal
+            ref={subscriptionModalRef}
+            wallet={wallet}
+            tags={tags}
+            baseCurrency={wallet.currency as CurrencyCode}
+            onSuccess={() => fetchData()}
+        />
+        </>
     );
 };

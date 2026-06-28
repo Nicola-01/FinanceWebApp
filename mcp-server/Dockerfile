@@ -8,10 +8,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM base AS development
 COPY . .
 EXPOSE 8000
-CMD ["python", "main.py"]
+CMD ["python", "mcp_server"]
 
 # ── Stage 3: Production ───────────────────────────────────────────────
 FROM base AS production
 COPY . .
 EXPOSE 8000
-CMD ["python", "main.py"]
+CMD ["python", "mcp_server"]

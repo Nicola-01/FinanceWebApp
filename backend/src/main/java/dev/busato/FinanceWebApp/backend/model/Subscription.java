@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 
 @Data
 @Builder
@@ -99,4 +101,8 @@ public class Subscription {
     private int executedTimes = 0; // Contatore: quante volte è GIA' stato eseguito
 
     private LocalDate durationUntil; // Es: ripeti fino al 31-12-2026
+
+    @OneToMany(mappedBy = "subscription", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OrderBy("transactionDate DESC")
+    private List<Transaction> history = new ArrayList<>();
 }

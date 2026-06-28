@@ -57,7 +57,7 @@ const rawToDoData: ToDoItemInput[] = [
     {
         title: 'Server Backup Admin Page',
         description: 'Server backup from admin page',
-        status: 'PLANNED',
+        status: 'FINISHED',
         subtasks: [
             'Perform backup and restore from admin page',
             'Manage backup files (delete, download, restore)',
@@ -76,7 +76,7 @@ const rawToDoData: ToDoItemInput[] = [
     {
         title: 'Core Subscription Engine',
         description: 'Advanced cron-based recurring transactions.',
-        status: 'STARTED',
+        status: 'FINISHED',
         subtasks: [
             'Basic monthly/weekly repeats',
             'Calendar view',
@@ -123,29 +123,27 @@ const rawToDoData: ToDoItemInput[] = [
     {
         title: 'AI Financial Insights',
         description: 'A proactive AI agent that scans for savings opportunities.',
-        status: 'PLANNED',
+        status: 'STARTED',
         subtasks: [
+            'MCP Server integration (with OAuth2)',
             'Spending anomaly detection',
             'Monthly summarized reports via Email/Push',
             'AI-powered insights',
-            'AI savings suggestions',
-            'MCP Server integration'
         ]
     },
     {
         title: 'Bank Sync',
         description: 'Connect directly to some institutions for automatic imports.',
-        status: 'PLANNED',
+        status: 'STARTED',
         subtasks: [
             // 'Plaid integration',
-            'European Open Banking standard',
-            'Intelligent transaction reconciliation'
+            'European Open Banking standard (e.g., enablebanking)'
         ]
     },
     {
         title: 'PWA (Progressive Web App)',
         description: 'Progressive Web App.',
-        status: 'STARTED',
+        status: 'FINISHED',
         subtasks: [
             'Temporary implementation for Android App',
             'Installable on Android',

@@ -32,6 +32,10 @@ public class Transaction {
     @JoinColumn(name = "tag_id")
     private Tag tag;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscription_id")
+    private Subscription subscription;
+
     @Column(nullable = false)
     private String name;
 

@@ -7,16 +7,17 @@ import type { Subscription } from '../../utils/types';
 import { generateSubscriptionOccurrences } from '../../utils/subscriptionHelper';
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import CustomDatePicker from '../../components/DataPicker/CustomDatePicker.tsx';
-import { DayDetailPanel, type DayDetailModalHandle } from '../../modals/day/DayDetailModal.tsx';
+import { CalendarDayDetailPanel, type DayDetailModalHandle } from '../../modals/Calendar/CalendarDayDetailModal.tsx';
 import { useWalletContext } from '../wallet/WalletContext.tsx';
 
 interface SubscriptionCalendarProps {
     subscriptions: Subscription[];
     onEditSubscription?: (subscription: Subscription, date: Date) => void;
     onAddSubscription?: (date: Date) => void;
+    onTransactionClick?: (tx: any) => void;
 }
 
-export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subscriptions, onEditSubscription, onAddSubscription }) => {
+export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subscriptions, onEditSubscription, onAddSubscription, onTransactionClick }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const dayDetailRef = useRef<DayDetailModalHandle>(null);
 
@@ -46,13 +47,35 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                     const yearOccurrences: Record<string, Subscription[]> = {};
 
                     subscriptions.forEach(sub => {
+                        // 1. Add historical transactions
+                        if (sub.history) {
+                            sub.history.forEach(tx => {
+                                const txDate = new Date(tx.transactionDate);
+                                if (txDate.getFullYear() === y) {
+                                    const dateStr = format(txDate, 'yyyy-MM-dd');
+                                    if (!yearOccurrences[dateStr]) yearOccurrences[dateStr] = [];
+                                    if (!yearOccurrences[dateStr].find(s => s.id === sub.id)) {
+                                        yearOccurrences[dateStr].push(sub);
+                                    }
+                                }
+                            });
+                        }
+
                         if (sub.status === 'COMPLETED') return;
 
+                        // 2. Add future occurrences
                         const dates = generateSubscriptionOccurrences(sub, y, y);
                         dates.forEach(d => {
                             const dateStr = format(d, 'yyyy-MM-dd');
-                            if (!yearOccurrences[dateStr]) yearOccurrences[dateStr] = [];
-                            yearOccurrences[dateStr].push(sub);
+                            const nextExecStr = sub.nextExecutionDate ? format(new Date(sub.nextExecutionDate), 'yyyy-MM-dd') : null;
+
+                            // Only add predicted dates if they are >= nextExecutionDate
+                            if (nextExecStr && dateStr >= nextExecStr) {
+                                if (!yearOccurrences[dateStr]) yearOccurrences[dateStr] = [];
+                                if (!yearOccurrences[dateStr].find(s => s.id === sub.id)) {
+                                    yearOccurrences[dateStr].push(sub);
+                                }
+                            }
                         });
                     });
 
@@ -99,7 +122,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
     const baseDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const weekDays = [...baseDays.slice(weekStartsOn), ...baseDays.slice(0, weekStartsOn)];
 
-    // Helper to resolve subscriptions for any date (used by DayDetailPanel for navigation)
+    // Helper to resolve subscriptions for any date (used by CalendarDayDetailPanel for navigation)
     const getSubscriptionsForDate = useCallback((date: Date): Subscription[] => {
         const dayStr = format(date, 'yyyy-MM-dd');
         const yearData = cacheInfo.yearsMap[date.getFullYear()];
@@ -176,12 +199,26 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
 
                             {/* Subscription badges — max 3, then +N */}
                             <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0 overflow-hidden">
-                                {visibleSubs.map(sub => (
-                                    <TagBadge tag={sub.tag} key={sub.id} showParent={false} compact={true} onClick={(e: React.MouseEvent) => {
-                                        e.stopPropagation();
-                                        onEditSubscription && onEditSubscription(sub, calendarDay);
-                                    }} />
-                                ))}
+                                {visibleSubs.map(sub => {
+                                    const pastTx = sub.history?.find(tx => tx.transactionDate === format(calendarDay, 'yyyy-MM-dd'));
+                                    const displaySub = pastTx ? { 
+                                        ...sub, 
+                                        amount: pastTx.amount, 
+                                        originalAmount: pastTx.originalAmount ?? sub.originalAmount, 
+                                        originalCurrency: pastTx.originalCurrency ?? sub.originalCurrency, 
+                                        exchangeValue: pastTx.exchangeValue ?? sub.exchangeValue 
+                                    } : sub;
+                                    return (
+                                        <TagBadge tag={displaySub.tag} key={sub.id} showParent={false} compact={true} onClick={(e: React.MouseEvent) => {
+                                            e.stopPropagation();
+                                            if (pastTx && onTransactionClick) {
+                                                onTransactionClick(pastTx);
+                                            } else {
+                                                onEditSubscription && onEditSubscription(sub, calendarDay);
+                                            }
+                                        }} />
+                                    );
+                                })}
                                 {overflowCount > 0 && (
                                     <span className="text-[10px] sm:text-auto font-bold text-app-muted pl-0.5 shrink-0 ml-auto mr-1"
                                         style={{ color: wallet.color }}
@@ -196,11 +233,12 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
             </div>
 
             {/* Day Detail Modal */}
-            <DayDetailPanel
+            <CalendarDayDetailPanel
                 ref={dayDetailRef}
                 getSubscriptionsForDate={getSubscriptionsForDate}
                 onEditSubscription={onEditSubscription}
                 onAddSubscription={onAddSubscription}
+                onTransactionClick={onTransactionClick}
             />
         </div>
     );

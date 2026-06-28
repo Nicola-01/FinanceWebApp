@@ -2,7 +2,7 @@ import React from "react";
 import type {Transaction} from "../../utils/types.ts";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {type IconKey, ICONS} from "../../utils/icons.ts";
-import {faTags, faCommentAlt} from "@fortawesome/free-solid-svg-icons";
+import {faTags, faCommentAlt, faRepeat} from "@fortawesome/free-solid-svg-icons";
 import {TagBadge} from "../../components/ui/TagBadge.tsx";
 import {CURRENCY_META, type CurrencyCode} from "../../utils/currencies.ts";
 
@@ -43,6 +43,9 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({transaction, onCl
                         <span className="text-base font-bold text-app-text truncate">{transaction.name}</span>
                     }
                     <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
+                        {transaction.subscriptionId && (
+                            <FontAwesomeIcon icon={faRepeat} className="text-[10px] sm:text-[11px] text-app-muted opacity-80 shrink-0" title="Recurring Payment"/>
+                        )}
                         <TagBadge tag={transaction.tag}/>
                     </div>
                 </div>

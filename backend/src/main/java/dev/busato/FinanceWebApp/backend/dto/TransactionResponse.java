@@ -16,6 +16,8 @@ public class TransactionResponse {
 
     private TagResponse tag;
 
+    private UUID subscriptionId;
+
     private BigDecimal amount;
     private BigDecimal originalAmount;
     private String originalCurrency;

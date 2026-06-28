@@ -20,6 +20,7 @@ public class TransactionMapper {
                 .originalCurrency(transaction.getOriginalCurrency())
                 .exchangeValue(transaction.getExchangeValue())
                 .tag(transaction.getTag() != null ? tagMapper.mapToResponse(transaction.getTag()) : null)
+                .subscriptionId(transaction.getSubscription() != null ? transaction.getSubscription().getId() : null)
                 .transactionDate(transaction.getTransactionDate())
                 .type(transaction.getType().toString())
                 .notes(transaction.getNotes())

@@ -28,6 +28,7 @@ public class TransactionService {
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
     private final WalletRepository walletRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final TransactionMapper transactionMapper;
 
 
@@ -47,8 +48,15 @@ public class TransactionService {
         if (request.getAmount().compareTo(BigDecimal.ZERO) < 0)
             throw new IllegalArgumentException("The amount cannot be negative.");
 
+        Subscription subscription = null;
+        if (request.getSubscriptionId() != null) {
+            subscription = subscriptionRepository.findByIdAndWalletId(request.getSubscriptionId(), walletId)
+                    .orElseThrow(() -> new IllegalArgumentException("Subscription not found or does not belong to this wallet"));
+        }
+
         Transaction transaction = Transaction.builder()
                 .wallet(wallet)
+                .subscription(subscription)
                 .tag(tag)
                 .name(request.getName())
                 .amount(request.getAmount())
@@ -89,19 +97,24 @@ public class TransactionService {
         if (request.getAmount().compareTo(BigDecimal.ZERO) < 0)
             throw new IllegalArgumentException("The amount cannot be negative.");
 
-        Tag tag = null;
         if (request.getTag() != null && !request.getTag().isBlank()) {
-            tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
+            Tag tag = tagRepository.findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
                     .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
+            transaction.setTag(tag);
         }
-        transaction.setTag(tag);
 
-        transaction.setAmount(request.getAmount());
-        transaction.setOriginalAmount(request.getOriginalAmount());
-        transaction.setOriginalCurrency(request.getOriginalCurrency());
-        transaction.setExchangeValue(request.getExchangeValue());
-        transaction.setType(Transaction.Type.valueOf(request.getType()));
-        transaction.setNotes(request.getNotes());
+        if (request.getAmount() != null)
+            transaction.setAmount(request.getAmount());
+        if (request.getOriginalAmount() != null)
+            transaction.setOriginalAmount(request.getOriginalAmount());
+        if (request.getOriginalCurrency() != null)
+            transaction.setOriginalCurrency(request.getOriginalCurrency());
+        if (request.getExchangeValue() != null)
+            transaction.setExchangeValue(request.getExchangeValue());
+        if (request.getType() != null)
+            transaction.setType(Transaction.Type.valueOf(request.getType()));
+        if (request.getNotes() != null)
+            transaction.setNotes(request.getNotes());
 
         if (request.getTransactionDate() != null)
             transaction.setTransactionDate(request.getTransactionDate());

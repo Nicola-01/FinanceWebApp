@@ -115,7 +115,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin, tabs }) => 
                     <h2 className="m-0 text-2xl font-bold tracking-wide text-app-text capitalize">
                         {page.text}
                         <span
-                            className="ml-1 animate-gradient-x bg-gradient-to-r theme-gradient-primary-from theme-gradient-brand-via theme-gradient-brand-to bg-clip-text theme-text-transparent">
+                            className="ml-1 animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                             {page.accent}
                         </span>
                     </h2>

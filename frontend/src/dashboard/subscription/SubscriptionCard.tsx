@@ -5,6 +5,7 @@ import type { Subscription } from '../../utils/types';
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
+import { differenceInMonths, differenceInYears } from 'date-fns';
 
 interface SubscriptionCardProps {
     subscription: Subscription;
@@ -59,17 +60,45 @@ const getDaysLeftColor = (days: number, isIncome: boolean) => {
     }
 };
 
-const getDaysLeftText = (days: number) => {
-    switch (days) {
-        case 0:
-            return 'Today';
-        case 1:
-            return 'Tomorrow';
-        case -1:
-            return 'Yesterday';
-        default:
-            return days > 1 ? `${days} days left` : `${Math.abs(days)} days ago`;
+const getDaysLeftText = (days: number, dateStr?: string | null) => {
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Tomorrow';
+    if (days === -1) return 'Yesterday';
+
+    if (!dateStr) {
+        return days > 1 ? `${days} days left` : `${Math.abs(days)} days ago`;
     }
+
+    const targetDate = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    targetDate.setHours(0, 0, 0, 0);
+
+    const isPast = days < 0;
+    const laterDate = isPast ? today : targetDate;
+    const earlierDate = isPast ? targetDate : today;
+
+    const months = differenceInMonths(laterDate, earlierDate);
+    const years = differenceInYears(laterDate, earlierDate);
+
+    const suffix = isPast ? 'ago' : 'left';
+
+    if (months < 1) {
+        return `${Math.abs(days)} days ${suffix}`;
+    }
+
+    if (years < 1) {
+        return months === 1 ? `1 month ${suffix}` : `${months} months ${suffix}`;
+    }
+
+    const remainingMonths = months % 12;
+    if (remainingMonths === 0) {
+        return years === 1 ? `1 year ${suffix}` : `${years} years ${suffix}`;
+    }
+
+    const yearText = years === 1 ? '1 year' : `${years} years`;
+    const monthText = remainingMonths === 1 ? '1 month' : `${remainingMonths} months`;
+    return `${yearText} and ${monthText} ${suffix}`;
 };
 
 export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription, date, onClick }) => {
@@ -136,7 +165,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({ subscription
                         className={`text-xs font-medium mt-0.5 transition-colors duration-500 ${getDaysLeftColor(daysLeft, isIncome)}`}
                     >
                         <FontAwesomeIcon icon={faCalendarAlt} className="mr-1" />
-                        {getDaysLeftText(daysLeft)}
+                        {getDaysLeftText(daysLeft, date)}
                     </span>
                 )}
             </div>

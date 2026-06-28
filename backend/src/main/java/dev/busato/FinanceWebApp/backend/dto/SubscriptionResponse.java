@@ -6,6 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
+import java.util.List;
 
 @Data
 @Builder
@@ -35,4 +36,6 @@ public class SubscriptionResponse {
     private Integer durationTimes;
     private int executedTimes;
     private LocalDate durationUntil;
+
+    private List<TransactionResponse> history;
 }

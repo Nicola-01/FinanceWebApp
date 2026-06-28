@@ -8,6 +8,9 @@ import type { CurrencyCode } from "../../utils/currencies.ts";
 import { SubscriptionCalendar } from "./SubscriptionCalendar.tsx";
 import { SubscriptionList } from "./SubscriptionList.tsx";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
+import { TransactionDetailsModal, type TransactionDetailsModalHandle } from "../../modals/TransactionModal/TransactionDetailsModal.tsx";
+import { TransactionModal, type TransactionModalHandle } from "../../modals/TransactionModal/TransactionModal.tsx";
+import api from "../../api/axiosConfig.ts";
 
 type ViewMode = 'list' | 'calendar';
 
@@ -20,6 +23,8 @@ export const SubscriptionTab = () => {
 
     const modalRef = useRef<SubscriptionModalHandle>(null);
     const detailsModalRef = useRef<SubscriptionDetailsModalHandle>(null);
+    const txDetailsModalRef = useRef<TransactionDetailsModalHandle>(null);
+    const txModalRef = useRef<TransactionModalHandle>(null);
 
     return (
         <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out]">
@@ -100,11 +105,13 @@ export const SubscriptionTab = () => {
                 ) : (
                     viewMode === 'list'
                         ? <SubscriptionList subscriptions={subscriptions}
-                            onEditSubscription={(sub) => detailsModalRef.current?.openModal(sub)} />
+                            onEditSubscription={(sub) => detailsModalRef.current?.openModal(sub)}
+                            onTransactionClick={(tx) => txDetailsModalRef.current?.openModal(tx)} />
                         : <SubscriptionCalendar
                             subscriptions={subscriptions}
                             onEditSubscription={(sub, date) => detailsModalRef.current?.openModal(sub, date)}
                             onAddSubscription={(date) => modalRef.current?.openModal(undefined, date)}
+                            onTransactionClick={(tx) => txDetailsModalRef.current?.openModal(tx)}
                         />
                 )}
             </div>
@@ -122,6 +129,24 @@ export const SubscriptionTab = () => {
                 wallet={wallet}
                 onDeleteSuccess={() => fetchData()}
                 onEditRequest={(sub) => modalRef.current?.openModal(sub)}
+            />
+
+            <TransactionDetailsModal
+                ref={txDetailsModalRef}
+                wallet={wallet}
+                handleDeleteSuccess={async (id) => {
+                    await api.delete(`/transactions/${wallet.id}/${id}`);
+                    fetchData();
+                }}
+                onEditRequest={(tx) => txModalRef.current?.openModal(tx)}
+            />
+
+            <TransactionModal
+                ref={txModalRef}
+                wallet={wallet}
+                tags={tags}
+                baseCurrency={wallet.currency as CurrencyCode}
+                onSuccess={fetchData}
             />
 
             {

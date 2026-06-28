@@ -241,9 +241,18 @@ public class SubscriptionService {
      * @param sub The Subscription entity to execute
      */
     private void executeSubscription(Subscription sub) {
+        String generatedNotes = "Recurrent " + sub.getName() + ", Transaction " + (sub.getExecutedTimes() + 1);
+        if (sub.getDuration() == Subscription.Duration.TIMES && sub.getDurationTimes() != null) {
+            generatedNotes += " / " + sub.getDurationTimes();
+        }
+        if (sub.getNotes() != null && !sub.getNotes().isBlank()) {
+            generatedNotes += " - " + sub.getNotes();
+        }
+
         // 1. Create the actual Transaction entity linked to the wallet
         Transaction transaction = Transaction.builder()
                 .wallet(sub.getWallet())
+                .subscription(sub)
                 .tag(sub.getTag())
                 .name(sub.getName())
                 .amount(sub.getAmount())
@@ -251,7 +260,7 @@ public class SubscriptionService {
                 .originalCurrency(sub.getOriginalCurrency())
                 .exchangeValue(sub.getExchangeValue())
                 .type(Transaction.Type.valueOf(sub.getType().name()))
-                .notes("Recurrent: " + sub.getName() + (sub.getNotes() != null ? " - " + sub.getNotes() : ""))
+                .notes(generatedNotes)
                 .transactionDate(sub.getNextExecutionDate()) // Transaction date is when it was scheduled
                 .build();
 

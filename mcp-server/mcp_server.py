@@ -535,7 +535,7 @@ async def update_transaction(
         amount: Annotated[float, Field(description="Updated amount as a decimal number.", gt=0)],
         type: Annotated[Literal["INCOME", "EXPENSE"], Field(description="Transaction type.")],
         ctx: Context[ServerSession, AppContext],
-        tag: Annotated[str | None, Field(description="Tag name. Empty string to remove, null to keep unchanged.")] = None,
+        tag: Annotated[str, Field(description="Update tag. Null to keep unchanged.")] = None,
         notes: Annotated[str, Field(description="Optional notes for the transaction.")] = "",
         transaction_date: Annotated[str | None, Field(description="Date in YYYY-MM-DD format. Null keeps the existing date.")] = None,
         original_amount: Annotated[float | None, Field(description="Original amount for foreign currency conversions.")] = None,

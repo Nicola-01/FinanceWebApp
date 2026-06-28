@@ -4,16 +4,19 @@ import {SubscriptionCard} from './SubscriptionCard';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faRepeat, faChevronDown, faChevronUp} from '@fortawesome/free-solid-svg-icons';
 import {useWalletContext} from "../wallet/WalletContext.tsx";
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SubscriptionListProps {
     subscriptions: Subscription[];
     onEditSubscription?: (subscription: Subscription) => void;
+    onTransactionClick?: (tx: any) => void;
 }
 
-export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions, onEditSubscription}) => {
+export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions, onEditSubscription, onTransactionClick}) => {
 
     const {wallet} = useWalletContext();
     const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
+    const [visibleMonthsCount, setVisibleMonthsCount] = useState<number>(4);
 
     if (subscriptions.length === 0) {
         return (
@@ -47,13 +50,21 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
     within31Days.sort((a, b) => new Date(a.nextExecutionDate).getTime() - new Date(b.nextExecutionDate).getTime());
 
     // --- PAST SUBSCRIPTIONS ---
-    const pastSubs = subscriptions.filter(sub => sub.lastExecutionDate);
-    const groupedPastSubs: Record<string, Subscription[]> = {};
-    pastSubs.forEach(sub => {
-        const d = new Date(sub.lastExecutionDate!);
+    const pastTransactions: { sub: Subscription; tx: any }[] = [];
+    subscriptions.forEach(sub => {
+        if (sub.history) {
+            sub.history.forEach(tx => {
+                pastTransactions.push({ sub, tx });
+            });
+        }
+    });
+
+    const groupedPastSubs: Record<string, { sub: Subscription; tx: any }[]> = {};
+    pastTransactions.forEach(({ sub, tx }) => {
+        const d = new Date(tx.transactionDate);
         const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
         if (!groupedPastSubs[monthKey]) groupedPastSubs[monthKey] = [];
-        groupedPastSubs[monthKey].push(sub);
+        groupedPastSubs[monthKey].push({ sub, tx });
     });
 
     const sortedMonthKeys = Object.keys(groupedPastSubs).sort((a, b) => b.localeCompare(a));
@@ -75,7 +86,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
     };
 
     const hasUpcoming = within7Days.length > 0 || within31Days.length > 0;
-    const hasPast = pastSubs.length > 0;
+    const hasPast = pastTransactions.length > 0;
 
     return (
         <div className="animate-[fadeIn_0.3s_ease-out] flex flex-col gap-6 pb-10">
@@ -132,29 +143,57 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
                 <div className="bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem] p-5 sm:p-7 flex flex-col gap-8">
                     <h3 className="text-xl font-bold text-app-text ml-1" style={{ color: wallet.color }}>Paid</h3>
                     
-                    {sortedMonthKeys.map(monthKey => {
-                        const subs = groupedPastSubs[monthKey].sort((a, b) => b.amount - a.amount);
+                    <AnimatePresence initial={false}>
+                    {sortedMonthKeys.slice(0, visibleMonthsCount).map(monthKey => {
+                        const subs = groupedPastSubs[monthKey].sort((a, b) => b.tx.amount - a.tx.amount);
                         const expanded = isExpanded(monthKey);
-                        const visibleSubs = expanded ? subs : subs.slice(0, 2);
-                        const hiddenCount = subs.length - 2;
+                        const hiddenCount = subs.length - 3;
 
                         return (
-                            <div key={monthKey} className="flex flex-col gap-3">
+                            <motion.div 
+                                key={monthKey} 
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="flex flex-col gap-3"
+                            >
                                 <h4 className="text-sm font-bold text-app-text capitalize ml-1">
                                     {formatMonthLabel(monthKey)}
                                 </h4>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {visibleSubs.map(sub => (
-                                        <div key={`past-${sub.id}`} className="opacity-60 saturate-50 hover:opacity-100 hover:saturate-100 transition-all duration-300">
+                                    {subs.slice(0, 3).map(({ sub, tx }) => (
+                                        <div key={`past-${tx.id}`} className="opacity-60 saturate-50 hover:opacity-100 hover:saturate-100 transition-all duration-300">
                                             <SubscriptionCard
-                                                subscription={sub}
-                                                date={sub.lastExecutionDate!}
-                                                onClick={() => onEditSubscription && onEditSubscription(sub)}
+                                                subscription={{...sub, amount: tx.amount, originalAmount: tx.originalAmount ?? sub.originalAmount, originalCurrency: tx.originalCurrency ?? sub.originalCurrency, exchangeValue: tx.exchangeValue ?? sub.exchangeValue}}
+                                                date={tx.transactionDate}
+                                                onClick={() => onTransactionClick && onTransactionClick(tx)}
                                             />
                                         </div>
                                     ))}
                                 </div>
+                                
+                                <AnimatePresence initial={false}>
+                                    {expanded && hiddenCount > 0 && (
+                                        <motion.div 
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-hidden"
+                                        >
+                                            {subs.slice(3).map(({ sub, tx }) => (
+                                                <div key={`past-${tx.id}`} className="opacity-60 saturate-50 hover:opacity-100 hover:saturate-100 transition-all duration-300">
+                                                    <SubscriptionCard
+                                                        subscription={{...sub, amount: tx.amount, originalAmount: tx.originalAmount ?? sub.originalAmount, originalCurrency: tx.originalCurrency ?? sub.originalCurrency, exchangeValue: tx.exchangeValue ?? sub.exchangeValue}}
+                                                        date={tx.transactionDate}
+                                                        onClick={() => onTransactionClick && onTransactionClick(tx)}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                                 
                                 {hiddenCount > 0 && (
                                     <button 
@@ -172,9 +211,21 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({subscriptions
                                         )}
                                     </button>
                                 )}
-                            </div>
+                            </motion.div>
                         );
                     })}
+                    </AnimatePresence>
+
+                    {sortedMonthKeys.length > visibleMonthsCount && (
+                        <div className="flex justify-center mt-4">
+                            <button
+                                onClick={() => setVisibleMonthsCount(prev => prev + 12)}
+                                className="px-6 py-2 rounded-full bg-app-surface border border-app-border text-sm font-bold text-app-text hover:bg-app-hover transition-colors flex items-center gap-2"
+                            >
+                                Load more past months <FontAwesomeIcon icon={faChevronDown} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
             
