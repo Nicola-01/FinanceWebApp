@@ -112,7 +112,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
     };
 
     return (
-        <div className="flex flex-col h-full bg-app-card border border-app-border rounded-2xl p-2 sm:p-4 md:p-6 animate-[fadeIn_0.3s_ease-out]">
+        <div className="flex flex-col h-full bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem] p-4 sm:p-6 md:p-8 animate-[fadeIn_0.3s_ease-out]">
 
             {/* Header Calendario */}
             <div className="flex items-center justify-center sm:justify-start mb-3 sm:mb-6 w-full">
@@ -165,9 +165,12 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({ subs
                             className={`flex flex-col p-1 sm:p-2 rounded-lg sm:rounded-xl border cursor-pointer transition-all min-w-0 overflow-hidden ${isCurrentMonth
                                 ? 'bg-app-input/50 border-app-border hover:bg-app-input/80 hover:border-app-border'
                                 : 'theme-bg-transparent theme-border-transparent opacity-40'
-                                } ${isToday ? 'ring-1 ring-app-sky' : ''}`}
+                                }`}
+                            style={isToday ? { boxShadow: `0 0 0 1px ${wallet.color}` } : {}}
                         >
-                            <span className={`text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 shrink-0 ${isToday ? 'text-app-sky' : 'text-app-muted'}`}>
+                            <span className={`text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 shrink-0 ${isToday ? '' : 'text-app-muted'}`}
+                                style={isToday ? { color: wallet.color } : {}}
+                            >
                                 {format(calendarDay, 'd')}
                             </span>
 

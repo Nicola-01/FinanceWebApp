@@ -1,102 +1,124 @@
 import {
-    faAppleWhole,
-    faBaby,
-    faBasketball,
-    faBasketShopping,
-    faBolt,
-    faBook,
-    faBowlFood,
-    faBowlRice,
-    faBrain,
-    faBriefcase,
-    faBuildingColumns,
-    faBurger,
-    faBus,
-    faCalendarDays,
-    faCamera,
-    faCar,
-    faCartShopping,
-    faCat,
-    faChartLine,
-    faCoins,
-    faCreditCard,
-    faDog,
-    faDumbbell,
-    faFilm,
-    faFutbol,
-    faGamepad,
-    faGasPump,
-    faGift,
-    faGraduationCap,
-    faHeart,
-    faHouse,
-    faIceCream,
-    faKitMedical,
-    faLaptop,
-    faMobile,
-    faMoneyBillWave,
-    faMugHot,
-    faMusic,
-    faPaw,
-    faPen,
-    faPiggyBank,
-    faPills,
-    faPizzaSlice,
-    faPlane,
-    faReceipt,
-    faRobot,
-    faScissors,
-    faShirt,
-    faStethoscope,
-    faTag,
-    faTooth,
-    faTrain,
-    faTv,
-    faUmbrellaBeach,
-    faUtensils,
-    faWallet,
-    faWandMagicSparkles,
-    faWifi,
-    faWineGlass,
-    faWrench
+    faAppleWhole, faBaby, faBasketball, faBasketShopping, faBolt, faBook, faBowlFood,
+    faBowlRice, faBrain, faBriefcase, faBuildingColumns, faBurger, faBus, faCalendarDays,
+    faCamera, faCar, faCartShopping, faCat, faChartLine, faCoins, faCreditCard, faDog,
+    faDumbbell, faFilm, faFutbol, faGamepad, faGasPump, faGift, faGraduationCap, faHeart,
+    faHouse, faIceCream, faKitMedical, faLaptop, faMobile, faMoneyBillWave, faMugHot, faMusic,
+    faPaw, faPen, faPiggyBank, faPills, faPizzaSlice, faPlane, faReceipt, faRobot, faScissors,
+    faShirt, faStethoscope, faTag, faTooth, faTrain, faTv, faUmbrellaBeach, faUtensils, faWallet,
+    faWandMagicSparkles, faWifi, faWineGlass, faWrench,
+    // New icons
+    faSackDollar, faMoneyBillTransfer, faChartPie, faVault, faHandHoldingDollar, faFileInvoiceDollar,
+    faLandmark, faScaleBalanced, faStore, faBagShopping, faShop, faBoxOpen, faTags, faBarcode,
+    faShip, faMotorcycle, faBicycle, faTaxi, faHelicopter, faEarthAmericas, faMapLocationDot,
+    faPassport, faHotel, faDroplet, faFire, faLightbulb, faTrashCan, faHammer, faTree, faPlug,
+    faCarrot, faFish, faBreadSlice, faCheese, faHotdog, faCookie, faLungs, faEye, faDna,
+    faPrescriptionBottleMedical, faBath, faShower, faChalkboardUser, faBookOpen, faUserTie,
+    faCalculator, faPaperclip, faFolderOpen, faHeadphones, faMicrophone, faPalette, faDice,
+    faPuzzlePiece, faVolleyball, faBaseball, faTableTennisPaddleBall, faPersonRunning,
+    faPersonSwimming, faPersonBiking, faDesktop, faKeyboard, faMouse, faServer, faDatabase,
+    faCloud, faMicrochip, faMagnifyingGlass, faBell, faGear, faUser, faEnvelope, faLock, faKey,
+    faChildren, faRing, faPeopleGroup,
+    // Even more icons
+    // faArrowRight, faArrowLeft, faArrowUp, faArrowDown, faChevronRight, faChevronLeft, faChevronUp, faChevronDown,
+    // faPlay, faPause, faStop, faBackward, faForward, faMap,
+    faStar, faCircle, faSquare, faCheck, faXmark, faPlus, faMinus,
+    faInfo, faQuestion, faExclamation, faBan, faTriangleExclamation, faShield, faShieldHalved, faSkull, faGhost,
+    faSnowflake, faSun, faCloudRain, faWind, faMoon, faUmbrella, faCrown, faMedal, faTrophy, faCompass,
+    faFlag, faAnchor, faTruck, faRocket, faAtom, faBiohazard, faRadiation
 } from '@fortawesome/free-solid-svg-icons';
 
 export const ICONS = {
     // Finance & Money
     wallet: faWallet, piggyBank: faPiggyBank, creditCard: faCreditCard, moneyBill: faMoneyBillWave,
     coins: faCoins, bank: faBuildingColumns, invest: faChartLine, receipt: faReceipt,
+    sack: faSackDollar, transfer: faMoneyBillTransfer, pieChart: faChartPie, vault: faVault,
+    handDollar: faHandHoldingDollar, invoice: faFileInvoiceDollar, landmark: faLandmark, scale: faScaleBalanced,
 
     // Shopping & Purchases
     cart: faCartShopping, basket: faBasketShopping, tag: faTag, clothes: faShirt, gift: faGift,
+    store: faStore, bag: faBagShopping, shop: faShop, box: faBoxOpen, tags: faTags, barcode: faBarcode,
 
     // Transport & Travel
     car: faCar, bus: faBus, train: faTrain, plane: faPlane, gas: faGasPump, vacation: faUmbrellaBeach,
+    ship: faShip, motorcycle: faMotorcycle, bicycle: faBicycle, taxi: faTaxi, helicopter: faHelicopter,
+    globe: faEarthAmericas, map: faMapLocationDot, passport: faPassport, hotel: faHotel, truck: faTruck,
 
     // Home & Utilities
     house: faHouse, energy: faBolt, repair: faWrench, internet: faWifi,
+    water: faDroplet, fire: faFire, light: faLightbulb, trash: faTrashCan, hammer: faHammer, tree: faTree, plug: faPlug,
 
     // Food & Dining
     groceries: faAppleWhole, dining: faUtensils, coffee: faMugHot, fastFood: faBurger,
     pizza: faPizzaSlice, bowl: faBowlFood, sushi: faBowlRice, drinks: faWineGlass, dessert: faIceCream,
+    carrot: faCarrot, fish: faFish, bread: faBreadSlice, cheese: faCheese, hotdog: faHotdog, cookie: faCookie,
 
     // Health & Personal Care
     health: faHeart, doctor: faStethoscope, dentist: faTooth, pharmacy: faPills,
     medical: faKitMedical, haircut: faScissors,
+    lungs: faLungs, eye: faEye, dna: faDna, prescription: faPrescriptionBottleMedical, bath: faBath, shower: faShower,
 
     // Work & Education
     work: faBriefcase, education: faGraduationCap, calendar: faCalendarDays, pen: faPen, books: faBook,
+    teacher: faChalkboardUser, bookOpen: faBookOpen, userTie: faUserTie, calculator: faCalculator, paperclip: faPaperclip, folder: faFolderOpen,
 
     // Entertainment & Hobbies
     games: faGamepad, tv: faTv, movies: faFilm, music: faMusic, photos: faCamera,
+    headphones: faHeadphones, mic: faMicrophone, palette: faPalette, dice: faDice, puzzle: faPuzzlePiece,
 
     // Sports & Fitness
     gym: faDumbbell, soccer: faFutbol, basketball: faBasketball,
+    volleyball: faVolleyball, baseball: faBaseball, pingpong: faTableTennisPaddleBall, running: faPersonRunning, swimming: faPersonSwimming, biking: faPersonBiking,
 
     // Tech & AI
     laptop: faLaptop, mobile: faMobile, ai: faRobot, mind: faBrain, magic: faWandMagicSparkles,
+    desktop: faDesktop, keyboard: faKeyboard, mouse: faMouse, server: faServer, database: faDatabase, cloud: faCloud, chip: faMicrochip,
+
+    // UI Elements
+    search: faMagnifyingGlass, notification: faBell, settings: faGear, user: faUser, email: faEnvelope, lock: faLock, key: faKey,
+
+    // Navigation & Arrows
+    // arrowRight: faArrowRight, arrowLeft: faArrowLeft, arrowUp: faArrowUp, arrowDown: faArrowDown,
+    // chevronRight: faChevronRight, chevronLeft: faChevronLeft, chevronUp: faChevronUp, chevronDown: faChevronDown,
+    
+    // Media & Controls
+    // play: faPlay, pause: faPause, stop: faStop, backward: faBackward, forward: faForward,
+    
+    // Shapes & Symbols
+    star: faStar, circle: faCircle, square: faSquare, check: faCheck, xmark: faXmark, plus: faPlus, minus: faMinus,
+    info: faInfo, question: faQuestion, exclamation: faExclamation, ban: faBan, warning: faTriangleExclamation,
+    
+    // Weather & Nature
+    snowflake: faSnowflake, sun: faSun, rain: faCloudRain, wind: faWind, moon: faMoon, umbrella: faUmbrella,
+    
+    // Miscellaneous
+    crown: faCrown, medal: faMedal, trophy: faTrophy, compass: faCompass, flag: faFlag,
+    anchor: faAnchor, rocket: faRocket, atom: faAtom, biohazard: faBiohazard, radiation: faRadiation,
+    shield: faShield, shieldHalf: faShieldHalved, skull: faSkull, ghost: faGhost,
 
     // Family & Pets
-    baby: faBaby, pets: faPaw, dog: faDog, cat: faCat
+    baby: faBaby, pets: faPaw, dog: faDog, cat: faCat,
+    children: faChildren, ring: faRing, group: faPeopleGroup
 };
 
 export type IconKey = keyof typeof ICONS;
+
+export const ICON_CATEGORIES: Record<string, IconKey[]> = {
+    "Finance & Money": ['wallet', 'piggyBank', 'creditCard', 'moneyBill', 'coins', 'bank', 'invest', 'receipt', 'sack', 'transfer', 'pieChart', 'vault', 'handDollar', 'invoice', 'landmark', 'scale'],
+    "Shopping & Purchases": ['cart', 'basket', 'tag', 'clothes', 'gift', 'store', 'bag', 'shop', 'box', 'tags', 'barcode'],
+    "Transport & Travel": ['car', 'bus', 'train', 'plane', 'gas', 'vacation', 'ship', 'motorcycle', 'bicycle', 'taxi', 'helicopter', 'globe', 'map', 'passport', 'hotel', 'truck'],
+    "Home & Utilities": ['house', 'energy', 'repair', 'internet', 'water', 'fire', 'light', 'trash', 'hammer', 'tree', 'plug'],
+    "Food & Dining": ['groceries', 'dining', 'coffee', 'fastFood', 'pizza', 'bowl', 'sushi', 'drinks', 'dessert', 'carrot', 'fish', 'bread', 'cheese', 'hotdog', 'cookie'],
+    "Health & Personal Care": ['health', 'doctor', 'dentist', 'pharmacy', 'medical', 'haircut', 'lungs', 'eye', 'dna', 'prescription', 'bath', 'shower'],
+    "Work & Education": ['work', 'education', 'calendar', 'pen', 'books', 'teacher', 'bookOpen', 'userTie', 'calculator', 'paperclip', 'folder'],
+    "Entertainment & Hobbies": ['games', 'tv', 'movies', 'music', 'photos', 'headphones', 'mic', 'palette', 'dice', 'puzzle'],
+    "Sports & Fitness": ['gym', 'soccer', 'basketball', 'volleyball', 'baseball', 'pingpong', 'running', 'swimming', 'biking'],
+    "Tech & AI": ['laptop', 'mobile', 'ai', 'mind', 'magic', 'desktop', 'keyboard', 'mouse', 'server', 'database', 'cloud', 'chip'],
+    "UI Elements": ['search', 'notification', 'settings', 'user', 'email', 'lock', 'key'],
+    // "Navigation & Arrows": ['arrowRight', 'arrowLeft', 'arrowUp', 'arrowDown', 'chevronRight', 'chevronLeft', 'chevronUp', 'chevronDown'],
+    "Shapes & Symbols": ['star', 'circle', 'square', 'check', 'xmark', 'plus', 'minus', 'info', 'question', 'exclamation', 'ban', 'warning'],
+    "Weather & Nature": ['snowflake', 'sun', 'rain', 'wind', 'moon', 'umbrella'],
+    "Miscellaneous": ['crown', 'medal', 'trophy', 'compass', 'flag', 'anchor', 'rocket', 'atom', 'biohazard', 'radiation', 'shield', 'shieldHalf', 'skull', 'ghost'],
+    // "Media & Controls": ['play', 'pause', 'stop', 'backward', 'forward'],
+    "Family & Pets": ['baby', 'pets', 'dog', 'cat', 'children', 'ring', 'group']
+};
