@@ -120,6 +120,22 @@ public class JwtService {
     }
 
     /**
+     * Finestra di rinnovo: ultimi 7 giorni di vita del refresh token.
+     * Se il token scade entro questo periodo, va ruotato con uno nuovo.
+     */
+    private static final long RENEWAL_WINDOW_MS = 7L * 24 * 60 * 60 * 1000; // 7 giorni
+
+    /**
+     * Controlla se il refresh token è nella finestra di rinnovo (ultimi 7 giorni).
+     * Se true, il token dovrebbe essere ruotato con uno nuovo.
+     */
+    public boolean isInRenewalWindow(String token) {
+        Date expiration = extractExpiration(token);
+        long timeToExpiry = expiration.getTime() - System.currentTimeMillis();
+        return timeToExpiry <= RENEWAL_WINDOW_MS;
+    }
+
+    /**
      * Getter per la durata del refresh token (usato nel cookie Max-Age).
      */
     public long getRefreshExpiration() {

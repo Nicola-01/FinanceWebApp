@@ -18,6 +18,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,9 @@ public class AuthController {
     private final UserService userService;
     private final RegisterService registerService;
     private final UserDetailsService userDetailsService;
+
+    @Value("${application.frontend.url}")
+    private String frontendUrl;
 
     private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
@@ -97,16 +102,22 @@ public class AuthController {
             return ResponseEntity.status(401).body(Map.of("message", "Refresh token expired or revoked"));
         }
 
-        // 5. Genera nuovo access token + nuovo refresh token (rotation)
+        // 5. Genera nuovo access token
         User user = (User) userDetails;
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", user.getRole());
         extraClaims.put("userId", user.getId());
 
         String newAccessToken = jwtService.generateToken(extraClaims, user);
-        String newRefreshToken = jwtService.generateRefreshToken(user);
 
-        addRefreshTokenCookie(response, newRefreshToken, true);
+        // 6. Refresh Token Rotation: ruota solo se siamo nella finestra di rinnovo (ultimi 7 giorni)
+        //    - Prima dei 7 giorni finali: emette solo un nuovo access token, il refresh token resta invariato
+        //    - Negli ultimi 7 giorni: emette anche un nuovo refresh token (30 giorni freschi)
+        //    Questo permette all'utente di restare loggato indefinitamente finché usa l'app
+        if (jwtService.isInRenewalWindow(refreshToken)) {
+            String newRefreshToken = jwtService.generateRefreshToken(user);
+            addRefreshTokenCookie(response, newRefreshToken, true);
+        }
 
         return ResponseEntity.ok(AuthResponse.builder()
                 .token(newAccessToken)
@@ -189,12 +200,16 @@ public class AuthController {
 
     // ==================== HELPER METHODS ====================
 
+    private boolean isSecureCookie() {
+        return frontendUrl != null && frontendUrl.startsWith("https");
+    }
+
     private void addRefreshTokenCookie(HttpServletResponse response, String refreshToken, boolean rememberMe) {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE, refreshToken);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(isSecureCookie());
         cookie.setPath("/api/auth");
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", isSecureCookie() ? "Strict" : "Lax");
 
         if (rememberMe) {
             cookie.setMaxAge((int) (jwtService.getRefreshExpiration() / 1000));
@@ -208,9 +223,9 @@ public class AuthController {
     private void clearRefreshTokenCookie(HttpServletResponse response) {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE, "");
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(isSecureCookie());
         cookie.setPath("/api/auth");
-        cookie.setAttribute("SameSite", "Strict");
+        cookie.setAttribute("SameSite", isSecureCookie() ? "Strict" : "Lax");
         cookie.setMaxAge(0);
         response.addCookie(cookie);
     }
