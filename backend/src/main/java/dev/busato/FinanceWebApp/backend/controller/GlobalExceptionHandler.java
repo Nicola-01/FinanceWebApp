@@ -84,6 +84,20 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex, HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
+    // --- 500 INTERNAL SERVER ERROR (Information Leak Prevention) ---
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ProblemDetail> handleGenericException(Exception ex, HttpServletRequest request) {
+        // Log the actual exception for internal debugging, but DO NOT expose the message or stack trace to the client
+        // to prevent sensitive information leakage (e.g., database details, internal paths).
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred. Please try again later.");
+        problemDetail.setTitle("Internal Server Error");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        problemDetail.setProperty("timestamp", LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problemDetail);
+    }
+
     /**
      * Constructs the standardised ProblemDetail response.
      * * @param ex The captured exception

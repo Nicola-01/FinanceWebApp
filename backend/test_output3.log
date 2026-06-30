@@ -1,0 +1,437 @@
+Initialized native services in: /home/nicola/.gradle/native
+Initialized jansi services in: /home/nicola/.gradle/native
+The client will now receive all logging from the daemon (pid: 81762). The daemon log file: /home/nicola/.gradle/daemon/8.14.4/daemon-81762.out.log
+Starting 10th build in daemon [uptime: 6 mins 3.853 secs, performance: 100%, GC rate: 0.00/s, heap usage: 10% of 512 MiB, non-heap usage: 25% of 384 MiB]
+Using 16 worker leases.
+Now considering [/home/nicola/Desktop/FinanceWebApp/backend] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Settings evaluated using settings file '/home/nicola/Desktop/FinanceWebApp/backend/settings.gradle'.
+Projects loaded. Root project using build file '/home/nicola/Desktop/FinanceWebApp/backend/build.gradle'.
+Included projects: [root project 'backend']
+
+> Configure project :
+Evaluating root project 'backend' using build file '/home/nicola/Desktop/FinanceWebApp/backend/build.gradle'.
+Resolved plugin [id: 'java']
+Resolved plugin [id: 'org.springframework.boot', version: '3.5.10']
+Resolved plugin [id: 'io.spring.dependency-management', version: '1.1.7']
+Applying dependency management to configuration 'annotationProcessor' in project 'backend'
+Applying dependency management to configuration 'apiElements' in project 'backend'
+Applying dependency management to configuration 'archives' in project 'backend'
+Applying dependency management to configuration 'bootArchives' in project 'backend'
+Applying dependency management to configuration 'compileClasspath' in project 'backend'
+Applying dependency management to configuration 'compileOnly' in project 'backend'
+Applying dependency management to configuration 'default' in project 'backend'
+Applying dependency management to configuration 'developmentOnly' in project 'backend'
+Applying dependency management to configuration 'implementation' in project 'backend'
+Applying dependency management to configuration 'mainSourceElements' in project 'backend'
+Applying dependency management to configuration 'productionRuntimeClasspath' in project 'backend'
+Applying dependency management to configuration 'runtimeClasspath' in project 'backend'
+Applying dependency management to configuration 'runtimeElements' in project 'backend'
+Applying dependency management to configuration 'runtimeOnly' in project 'backend'
+Applying dependency management to configuration 'testAndDevelopmentOnly' in project 'backend'
+Applying dependency management to configuration 'testAnnotationProcessor' in project 'backend'
+Applying dependency management to configuration 'testCompileClasspath' in project 'backend'
+Applying dependency management to configuration 'testCompileOnly' in project 'backend'
+Applying dependency management to configuration 'testImplementation' in project 'backend'
+Applying dependency management to configuration 'testResultsElementsForTest' in project 'backend'
+Applying dependency management to configuration 'testRuntimeClasspath' in project 'backend'
+Applying dependency management to configuration 'testRuntimeOnly' in project 'backend'
+All projects evaluated.
+Task name matched 'test'
+Selected primary task 'test' from project :
+Path for java installation '/usr/lib/jvm/openjdk-17' (Common Linux Locations) auto-detected does not contain a java executable
+Path for java installation '/usr/lib/jvm/openjdk-21' (Common Linux Locations) auto-detected does not contain a java executable
+Resolving global dependency management for project 'backend'
+Excluding []
+Excluding []
+Excluding []
+Excluding []
+Excluding []
+Excluding []
+Tasks to be executed: [task ':compileJava', task ':processResources', task ':classes', task ':compileTestJava', task ':processTestResources', task ':testClasses', task ':test']
+Tasks that were excluded: []
+Resolve mutations for :compileJava (Thread[#2112,Execution worker,5,main]) started.
+:compileJava (Thread[#2119,Execution worker Thread 8,5,main]) started.
+
+> Task :compileJava UP-TO-DATE
+Custom actions are attached to task ':compileJava'.
+Caching disabled for task ':compileJava' because:
+  Build cache is disabled
+Skipping task ':compileJava' as it is up-to-date.
+Resolve mutations for :processResources (Thread[#2119,Execution worker Thread 8,5,main]) started.
+:processResources (Thread[#2119,Execution worker Thread 8,5,main]) started.
+
+> Task :processResources UP-TO-DATE
+Caching disabled for task ':processResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':processResources' as it is up-to-date.
+Resolve mutations for :classes (Thread[#2119,Execution worker Thread 8,5,main]) started.
+:classes (Thread[#2126,Execution worker Thread 15,5,main]) started.
+
+> Task :classes UP-TO-DATE
+Skipping task ':classes' as it has no actions.
+Resolve mutations for :compileTestJava (Thread[#2126,Execution worker Thread 15,5,main]) started.
+:compileTestJava (Thread[#2126,Execution worker Thread 15,5,main]) started.
+
+> Task :compileTestJava UP-TO-DATE
+Custom actions are attached to task ':compileTestJava'.
+Caching disabled for task ':compileTestJava' because:
+  Build cache is disabled
+Skipping task ':compileTestJava' as it is up-to-date.
+Resolve mutations for :processTestResources (Thread[#2126,Execution worker Thread 15,5,main]) started.
+:processTestResources (Thread[#2126,Execution worker Thread 15,5,main]) started.
+
+> Task :processTestResources UP-TO-DATE
+Caching disabled for task ':processTestResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':processTestResources' as it is up-to-date.
+Resolve mutations for :testClasses (Thread[#2126,Execution worker Thread 15,5,main]) started.
+:testClasses (Thread[#2113,Execution worker Thread 2,5,main]) started.
+
+> Task :testClasses UP-TO-DATE
+Skipping task ':testClasses' as it has no actions.
+Resolve mutations for :test (Thread[#2113,Execution worker Thread 2,5,main]) started.
+:test (Thread[#2113,Execution worker Thread 2,5,main]) started.
+Gradle Test Executor 8 started executing tests.
+
+> Task :test
+Caching disabled for task ':test' because:
+  Build cache is disabled
+Task ':test' is not up-to-date because:
+  Task has failed previously.
+Starting process 'Gradle Test Executor 8'. Working directory: /home/nicola/Desktop/FinanceWebApp/backend Command: /usr/lib/jvm/java-21-openjdk-amd64/bin/java -Dorg.gradle.internal.worker.tmpdir=/home/nicola/Desktop/FinanceWebApp/backend/build/tmp/test/work @/home/nicola/.gradle/.tmp/gradle-worker-classpath14664523275383918635txt -Xmx512m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -ea worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Test Executor 8'
+Successfully started process 'Gradle Test Executor 8'
+
+IdorIntegrationTest STANDARD_OUT
+    00:15:02.635 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [dev.busato.FinanceWebApp.backend.integration.IdorIntegrationTest]: IdorIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+    00:15:02.691 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration dev.busato.FinanceWebApp.backend.BackendApplication for test class dev.busato.FinanceWebApp.backend.integration.IdorIntegrationTest
+
+      .   ____          _            __ _ _
+     /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+    ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+     \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+      '  |____| .__|_| |_|_| |_\__, | / / / /
+     =========|_|==============|___/=/_/_/_/
+
+     :: Spring Boot ::               (v3.5.10)
+
+    2026-07-01T00:15:02.857+02:00  INFO 87833 --- [backend-test] [    Test worker] d.b.F.b.integration.IdorIntegrationTest  : Starting IdorIntegrationTest using Java 21.0.9 with PID 87833 (started by nicola in /home/nicola/Desktop/FinanceWebApp/backend)
+    2026-07-01T00:15:02.857+02:00  INFO 87833 --- [backend-test] [    Test worker] d.b.F.b.integration.IdorIntegrationTest  : The following 1 profile is active: "test"
+    2026-07-01T00:15:02.863+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.c.s.GenericWebApplicationContext   : Refreshing org.springframework.web.context.support.GenericWebApplicationContext@7ce4de34
+    2026-07-01T00:15:03.154+02:00  INFO 87833 --- [backend-test] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+    2026-07-01T00:15:03.185+02:00  INFO 87833 --- [backend-test] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 27 ms. Found 9 JPA repository interfaces.
+
+IdorIntegrationTest STANDARD_ERROR
+    Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+    WARNING: A Java agent has been loaded dynamically (/home/nicola/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.17.8/f09415827a71be7ed621c7bd02550678f28bc81c/byte-buddy-agent-1.17.8.jar)
+    WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+    WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+    WARNING: Dynamic loading of agents will be disallowed by default in a future release
+
+IdorIntegrationTest STANDARD_OUT
+    2026-07-01T00:15:04.027+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : Class org.h2.Driver found in Thread context class loader jdk.internal.loader.ClassLoaders$AppClassLoader@639fee48
+    2026-07-01T00:15:04.110+02:00  INFO 87833 --- [backend-test] [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+    2026-07-01T00:15:04.132+02:00  INFO 87833 --- [backend-test] [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.41.Final
+    2026-07-01T00:15:04.146+02:00  INFO 87833 --- [backend-test] [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+    2026-07-01T00:15:04.195+02:00  INFO 87833 --- [backend-test] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+    2026-07-01T00:15:04.207+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : HikariPool-1 - configuration:
+    2026-07-01T00:15:04.209+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : allowPoolSuspension.............false
+    2026-07-01T00:15:04.209+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : autoCommit......................true
+    2026-07-01T00:15:04.209+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : catalog.........................none
+    2026-07-01T00:15:04.209+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : connectionInitSql...............none
+    2026-07-01T00:15:04.209+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : connectionTestQuery.............none
+    2026-07-01T00:15:04.210+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : connectionTimeout...............30000
+    2026-07-01T00:15:04.210+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : credentials.....................com.zaxxer.hikari.util.Credentials@9976b27
+    2026-07-01T00:15:04.210+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : dataSource......................none
+    2026-07-01T00:15:04.210+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : dataSourceClassName.............none
+    2026-07-01T00:15:04.210+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : dataSourceJNDI..................none
+    2026-07-01T00:15:04.210+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : dataSourceProperties............{password=<masked>}
+    2026-07-01T00:15:04.211+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : driverClassName................."org.h2.Driver"
+    2026-07-01T00:15:04.211+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : exceptionOverride...............none
+    2026-07-01T00:15:04.211+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : exceptionOverrideClassName......none
+    2026-07-01T00:15:04.211+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : healthCheckProperties...........{}
+    2026-07-01T00:15:04.211+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : healthCheckRegistry.............none
+    2026-07-01T00:15:04.211+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : idleTimeout.....................600000
+    2026-07-01T00:15:04.211+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : initializationFailTimeout.......1
+    2026-07-01T00:15:04.211+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : isolateInternalQueries..........false
+    2026-07-01T00:15:04.212+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : jdbcUrl.........................jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    2026-07-01T00:15:04.212+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : keepaliveTime...................120000
+    2026-07-01T00:15:04.212+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : leakDetectionThreshold..........0
+    2026-07-01T00:15:04.212+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : maxLifetime.....................1800000
+    2026-07-01T00:15:04.212+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : maximumPoolSize.................10
+    2026-07-01T00:15:04.212+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : metricRegistry..................none
+    2026-07-01T00:15:04.212+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : metricsTrackerFactory...........none
+    2026-07-01T00:15:04.212+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : minimumIdle.....................10
+    2026-07-01T00:15:04.212+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : password........................<masked>
+    2026-07-01T00:15:04.213+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : poolName........................"HikariPool-1"
+    2026-07-01T00:15:04.213+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : readOnly........................false
+    2026-07-01T00:15:04.213+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : registerMbeans..................false
+    2026-07-01T00:15:04.213+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : scheduledExecutor...............none
+    2026-07-01T00:15:04.213+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : schema..........................none
+    2026-07-01T00:15:04.213+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : threadFactory...................internal
+    2026-07-01T00:15:04.213+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : transactionIsolation............default
+    2026-07-01T00:15:04.213+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : username........................"sa"
+    2026-07-01T00:15:04.213+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariConfig           : validationTimeout...............5000
+    2026-07-01T00:15:04.213+02:00  INFO 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+    2026-07-01T00:15:04.220+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (acf504a2-2d74-41ed-9c96-06b6a0d760fd)
+    2026-07-01T00:15:04.290+02:00 DEBUG 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (acf504a2-2d74-41ed-9c96-06b6a0d760fd)
+    2026-07-01T00:15:04.291+02:00  INFO 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.292+02:00  INFO 87833 --- [backend-test] [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+    2026-07-01T00:15:04.303+02:00  WARN 87833 --- [backend-test] [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+    2026-07-01T00:15:04.313+02:00  INFO 87833 --- [backend-test] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+    	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+    	Database driver: undefined/unknown
+    	Database version: 2.3.232
+    	Autocommit mode: undefined/unknown
+    	Isolation level: undefined/unknown
+    	Minimum pool size: undefined/unknown
+    	Maximum pool size: undefined/unknown
+    2026-07-01T00:15:04.392+02:00 DEBUG 87833 --- [backend-test] [l-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Pool stats (total=1/10, idle=1/10, active=0, waiting=0)
+    2026-07-01T00:15:04.393+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (b5f6fc90-9e47-4d98-bac1-edcc9b8361e8)
+    2026-07-01T00:15:04.393+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (b5f6fc90-9e47-4d98-bac1-edcc9b8361e8)
+    2026-07-01T00:15:04.394+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn1: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.424+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After adding stats (total=2/10, idle=2/10, active=0, waiting=0)
+    2026-07-01T00:15:04.424+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (5fff25b3-d577-4acc-b4bd-c5b65e7dfe21)
+    2026-07-01T00:15:04.425+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (5fff25b3-d577-4acc-b4bd-c5b65e7dfe21)
+    2026-07-01T00:15:04.425+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn2: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.455+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After adding stats (total=3/10, idle=3/10, active=0, waiting=0)
+    2026-07-01T00:15:04.456+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (16f50f0e-6306-452e-8b86-223104d98e02)
+    2026-07-01T00:15:04.457+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (16f50f0e-6306-452e-8b86-223104d98e02)
+    2026-07-01T00:15:04.457+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn3: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.487+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After adding stats (total=4/10, idle=4/10, active=0, waiting=0)
+    2026-07-01T00:15:04.488+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (575bbb38-5657-4940-83f3-94a3b8c1133a)
+    2026-07-01T00:15:04.488+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (575bbb38-5657-4940-83f3-94a3b8c1133a)
+    2026-07-01T00:15:04.488+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn4: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.518+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After adding stats (total=5/10, idle=5/10, active=0, waiting=0)
+    2026-07-01T00:15:04.519+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (1d402ad3-ac7e-45ab-b950-592d6efd27a9)
+    2026-07-01T00:15:04.519+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (1d402ad3-ac7e-45ab-b950-592d6efd27a9)
+    2026-07-01T00:15:04.519+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn5: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.549+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After adding stats (total=6/10, idle=6/10, active=0, waiting=0)
+    2026-07-01T00:15:04.550+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (34ef3121-6a32-4161-87bd-111374abdd1d)
+    2026-07-01T00:15:04.550+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (34ef3121-6a32-4161-87bd-111374abdd1d)
+    2026-07-01T00:15:04.550+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn6: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.580+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After adding stats (total=7/10, idle=7/10, active=0, waiting=0)
+    2026-07-01T00:15:04.581+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (8838844e-e81d-4069-80d4-ba532d8849be)
+    2026-07-01T00:15:04.581+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (8838844e-e81d-4069-80d4-ba532d8849be)
+    2026-07-01T00:15:04.581+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn7: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.611+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After adding stats (total=8/10, idle=8/10, active=0, waiting=0)
+    2026-07-01T00:15:04.611+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (84681da7-e99c-4917-8fa3-4009a5794d26)
+    2026-07-01T00:15:04.612+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (84681da7-e99c-4917-8fa3-4009a5794d26)
+    2026-07-01T00:15:04.612+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn8: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.642+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After adding stats (total=9/10, idle=9/10, active=0, waiting=0)
+    2026-07-01T00:15:04.643+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Attempting to create/setup new connection (4df2708c-c4e5-483a-95e2-2a4b411e4de8)
+    2026-07-01T00:15:04.643+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Established new connection (4df2708c-c4e5-483a-95e2-2a4b411e4de8)
+    2026-07-01T00:15:04.643+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn9: url=jdbc:h2:mem:testdb user=SA
+    2026-07-01T00:15:04.673+02:00 DEBUG 87833 --- [backend-test] [onnection-adder] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After adding stats (total=10/10, idle=10/10, active=0, waiting=0)
+    2026-07-01T00:15:04.708+02:00  INFO 87833 --- [backend-test] [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+    2026-07-01T00:15:04.713+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : drop table if exists app_users cascade 
+    Hibernate: drop table if exists app_users cascade 
+    2026-07-01T00:15:04.715+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : drop table if exists personal_access_tokens cascade 
+    Hibernate: drop table if exists personal_access_tokens cascade 
+    2026-07-01T00:15:04.715+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : drop table if exists registrations cascade 
+    Hibernate: drop table if exists registrations cascade 
+    2026-07-01T00:15:04.715+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : drop table if exists subscriptions cascade 
+    Hibernate: drop table if exists subscriptions cascade 
+    2026-07-01T00:15:04.715+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : drop table if exists tags cascade 
+    Hibernate: drop table if exists tags cascade 
+    2026-07-01T00:15:04.715+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : drop table if exists transactions cascade 
+    Hibernate: drop table if exists transactions cascade 
+    2026-07-01T00:15:04.716+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : drop table if exists wallet_access cascade 
+    Hibernate: drop table if exists wallet_access cascade 
+    2026-07-01T00:15:04.716+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : drop table if exists wallets cascade 
+    Hibernate: drop table if exists wallets cascade 
+    2026-07-01T00:15:04.718+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : create table app_users (created_at date, demo boolean not null, password_must_change boolean not null, token_version integer default 0 not null, id uuid not null, email varchar(255) not null unique, password varchar(255) not null, username varchar(255) not null unique, role enum ('ADMIN','USER'), primary key (id))
+    Hibernate: create table app_users (created_at date, demo boolean not null, password_must_change boolean not null, token_version integer default 0 not null, id uuid not null, email varchar(255) not null unique, password varchar(255) not null, username varchar(255) not null unique, role enum ('ADMIN','USER'), primary key (id))
+    2026-07-01T00:15:04.721+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : create table personal_access_tokens (created_at timestamp(6) not null, expires_at timestamp(6), last_used_at timestamp(6), id uuid not null, user_id uuid not null, name varchar(255) not null, token_hash varchar(255) not null unique, token_prefix varchar(255) not null, wallet_permissions TEXT, primary key (id))
+    Hibernate: create table personal_access_tokens (created_at timestamp(6) not null, expires_at timestamp(6), last_used_at timestamp(6), id uuid not null, user_id uuid not null, name varchar(255) not null, token_hash varchar(255) not null unique, token_prefix varchar(255) not null, wallet_permissions TEXT, primary key (id))
+    2026-07-01T00:15:04.721+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : create table registrations (created_at timestamp(6), expires_at timestamp(6) not null, id uuid not null, email varchar(255) not null unique, note varchar(255), token varchar(255) not null unique, status enum ('ACCEPTED','FORGOTPASSWORD','PENDING','REVOKED') not null, primary key (id))
+    Hibernate: create table registrations (created_at timestamp(6), expires_at timestamp(6) not null, id uuid not null, email varchar(255) not null unique, note varchar(255), token varchar(255) not null unique, status enum ('ACCEPTED','FORGOTPASSWORD','PENDING','REVOKED') not null, primary key (id))
+    2026-07-01T00:15:04.722+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : create table subscriptions (amount numeric(19,2) not null, auto_exchange_rate boolean not null, duration_times integer, duration_until date, exchange_value numeric(19,6), executed_times integer not null, frequency_interval integer not null, last_execution_date date, last_working_day_of_month boolean not null, monthly_specific_day integer, next_execution_date date not null, original_amount numeric(19,2) not null, start_date date not null, id uuid not null, tag_id uuid, wallet_id uuid not null, encrypted_amount varchar(255), name varchar(255) not null, notes TEXT, original_currency varchar(255), duration enum ('FOREVER','TIMES','UNTIL') not null, frequency_type enum ('DAILY','MONTHLY','WEEKLY','YEARLY') not null, status enum ('ACTIVE','COMPLETED','PAUSED') not null, type enum ('EXPENSE','INCOME') not null, primary key (id))
+    Hibernate: create table subscriptions (amount numeric(19,2) not null, auto_exchange_rate boolean not null, duration_times integer, duration_until date, exchange_value numeric(19,6), executed_times integer not null, frequency_interval integer not null, last_execution_date date, last_working_day_of_month boolean not null, monthly_specific_day integer, next_execution_date date not null, original_amount numeric(19,2) not null, start_date date not null, id uuid not null, tag_id uuid, wallet_id uuid not null, encrypted_amount varchar(255), name varchar(255) not null, notes TEXT, original_currency varchar(255), duration enum ('FOREVER','TIMES','UNTIL') not null, frequency_type enum ('DAILY','MONTHLY','WEEKLY','YEARLY') not null, status enum ('ACTIVE','COMPLETED','PAUSED') not null, type enum ('EXPENSE','INCOME') not null, primary key (id))
+    2026-07-01T00:15:04.723+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : create table tags (id uuid not null, parent_id uuid, wallet_id uuid not null, color_hex varchar(255), icon varchar(255), name varchar(255) not null, primary key (id), constraint uk_tag_wallet_name unique (wallet_id, name))
+    Hibernate: create table tags (id uuid not null, parent_id uuid, wallet_id uuid not null, color_hex varchar(255), icon varchar(255), name varchar(255) not null, primary key (id), constraint uk_tag_wallet_name unique (wallet_id, name))
+    2026-07-01T00:15:04.725+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : create table transactions (amount numeric(19,2) not null, exchange_value numeric(19,6), original_amount numeric(19,2) not null, transaction_date date not null, id uuid not null, subscription_id uuid, tag_id uuid, wallet_id uuid not null, encrypted_amount varchar(255), name varchar(255) not null, notes TEXT, original_currency varchar(255), type enum ('EXPENSE','INCOME'), primary key (id))
+    Hibernate: create table transactions (amount numeric(19,2) not null, exchange_value numeric(19,6), original_amount numeric(19,2) not null, transaction_date date not null, id uuid not null, subscription_id uuid, tag_id uuid, wallet_id uuid not null, encrypted_amount varchar(255), name varchar(255) not null, notes TEXT, original_currency varchar(255), type enum ('EXPENSE','INCOME'), primary key (id))
+    2026-07-01T00:15:04.725+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : create table wallet_access (invited_at date not null, updated_at date not null, user_id uuid not null, wallet_id uuid not null, role enum ('EDITOR','OWNER','VIEWER') not null, status enum ('ACCEPTED','LEFT','PENDING','REJECTED','REVOKED') not null, primary key (user_id, wallet_id))
+    Hibernate: create table wallet_access (invited_at date not null, updated_at date not null, user_id uuid not null, wallet_id uuid not null, role enum ('EDITOR','OWNER','VIEWER') not null, status enum ('ACCEPTED','LEFT','PENDING','REJECTED','REVOKED') not null, primary key (user_id, wallet_id))
+    2026-07-01T00:15:04.726+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : create table wallets (created_at date, encrypted_wallet boolean not null, id uuid not null, color varchar(255), currency varchar(255), icon varchar(255), name varchar(255) not null, primary key (id))
+    Hibernate: create table wallets (created_at date, encrypted_wallet boolean not null, id uuid not null, color varchar(255), currency varchar(255), icon varchar(255), name varchar(255) not null, primary key (id))
+    2026-07-01T00:15:04.726+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : create index idx_pat_user_id on personal_access_tokens (user_id)
+    Hibernate: create index idx_pat_user_id on personal_access_tokens (user_id)
+    2026-07-01T00:15:04.727+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists personal_access_tokens add constraint FKk888y74r3ppktjpnvf1wp2i9o foreign key (user_id) references app_users
+    Hibernate: alter table if exists personal_access_tokens add constraint FKk888y74r3ppktjpnvf1wp2i9o foreign key (user_id) references app_users
+    2026-07-01T00:15:04.731+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists subscriptions add constraint FKbad2t4jybbaofi4q11eqli8la foreign key (tag_id) references tags
+    Hibernate: alter table if exists subscriptions add constraint FKbad2t4jybbaofi4q11eqli8la foreign key (tag_id) references tags
+    2026-07-01T00:15:04.732+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists subscriptions add constraint FKa16jniq1xj0fwgeo5ijm6ae32 foreign key (wallet_id) references wallets
+    Hibernate: alter table if exists subscriptions add constraint FKa16jniq1xj0fwgeo5ijm6ae32 foreign key (wallet_id) references wallets
+    2026-07-01T00:15:04.733+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists tags add constraint FKbflc4hhgg5g0bwsn8buvs2lby foreign key (parent_id) references tags
+    Hibernate: alter table if exists tags add constraint FKbflc4hhgg5g0bwsn8buvs2lby foreign key (parent_id) references tags
+    2026-07-01T00:15:04.733+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists tags add constraint FK3tsmwh1p5t0tmw5l94xds9ild foreign key (wallet_id) references wallets
+    Hibernate: alter table if exists tags add constraint FK3tsmwh1p5t0tmw5l94xds9ild foreign key (wallet_id) references wallets
+    2026-07-01T00:15:04.734+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists transactions add constraint FKe05g7iatmlwyue82p7x0nyk6e foreign key (subscription_id) references subscriptions
+    Hibernate: alter table if exists transactions add constraint FKe05g7iatmlwyue82p7x0nyk6e foreign key (subscription_id) references subscriptions
+    2026-07-01T00:15:04.734+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists transactions add constraint FKedpfcbqvkwh9plh3wqn862sad foreign key (tag_id) references tags
+    Hibernate: alter table if exists transactions add constraint FKedpfcbqvkwh9plh3wqn862sad foreign key (tag_id) references tags
+    2026-07-01T00:15:04.735+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists transactions add constraint FK23bop5lktue0o5q7kr19ti8h foreign key (wallet_id) references wallets
+    Hibernate: alter table if exists transactions add constraint FK23bop5lktue0o5q7kr19ti8h foreign key (wallet_id) references wallets
+    2026-07-01T00:15:04.736+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists wallet_access add constraint FKd7h5eo86u3ch56whxpijdj1wq foreign key (user_id) references app_users
+    Hibernate: alter table if exists wallet_access add constraint FKd7h5eo86u3ch56whxpijdj1wq foreign key (user_id) references app_users
+    2026-07-01T00:15:04.736+02:00 DEBUG 87833 --- [backend-test] [    Test worker] org.hibernate.SQL                        : alter table if exists wallet_access add constraint FK4eweujq3kpqrmjqpugisa4cld foreign key (wallet_id) references wallets
+    Hibernate: alter table if exists wallet_access add constraint FK4eweujq3kpqrmjqpugisa4cld foreign key (wallet_id) references wallets
+    2026-07-01T00:15:04.739+02:00  INFO 87833 --- [backend-test] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+    2026-07-01T00:15:04.749+02:00  INFO 87833 --- [backend-test] [    Test worker] d.b.F.backend.service.R2StorageService   : [R2] Integration disabled (r2.enabled=false) – operating in local-only mode.
+    2026-07-01T00:15:05.080+02:00  INFO 87833 --- [backend-test] [    Test worker] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+    2026-07-01T00:15:05.247+02:00  INFO 87833 --- [backend-test] [    Test worker] eAuthenticationProviderManagerConfigurer : Global AuthenticationManager configured with AuthenticationProvider bean with name authenticationProvider
+    2026-07-01T00:15:05.247+02:00  WARN 87833 --- [backend-test] [    Test worker] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with an AuthenticationProvider bean. UserDetailsService beans will not be used by Spring Security for automatically configuring username/password login. Consider removing the AuthenticationProvider bean. Alternatively, consider using the UserDetailsService in a manually instantiated DaoAuthenticationProvider. If the current configuration is intentional, to turn off this warning, increase the logging level of 'org.springframework.security.config.annotation.authentication.configuration.InitializeUserDetailsBeanManagerConfigurer' to ERROR
+    2026-07-01T00:15:05.327+02:00  WARN 87833 --- [backend-test] [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+    2026-07-01T00:15:05.381+02:00 DEBUG 87833 --- [backend-test] [    Test worker] s.w.s.m.m.a.RequestMappingHandlerMapping : 55 mappings in 'requestMappingHandlerMapping'
+    2026-07-01T00:15:05.416+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**] in 'resourceHandlerMapping'
+    2026-07-01T00:15:05.462+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with filters: DisableEncodeUrlFilter, WebAsyncManagerIntegrationFilter, SecurityContextHolderFilter, HeaderWriterFilter, CorsFilter, LogoutFilter, PatAuthenticationFilter, JwtAuthenticationFilter, RequestCacheAwareFilter, SecurityContextHolderAwareRequestFilter, AnonymousAuthenticationFilter, SessionManagementFilter, ExceptionTranslationFilter, AuthorizationFilter
+    2026-07-01T00:15:05.527+02:00 DEBUG 87833 --- [backend-test] [    Test worker] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+    2026-07-01T00:15:05.548+02:00 DEBUG 87833 --- [backend-test] [    Test worker] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+    2026-07-01T00:15:05.593+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.b.w.s.ServletContextInitializerBeans : Mapping filters: springSecurityFilterChain urls=[/*] order=-100, characterEncodingFilter urls=[/*] order=-2147483648, formContentFilter urls=[/*] order=-9900, requestContextFilter urls=[/*] order=-105, jwtAuthenticationFilter urls=[/*] order=2147483647, patAuthenticationFilter urls=[/*] order=2147483647
+    2026-07-01T00:15:05.593+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.b.w.s.ServletContextInitializerBeans : Mapping servlets: 
+    2026-07-01T00:15:05.601+02:00  INFO 87833 --- [backend-test] [    Test worker] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+    2026-07-01T00:15:05.601+02:00  INFO 87833 --- [backend-test] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+    2026-07-01T00:15:05.602+02:00  INFO 87833 --- [backend-test] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+    2026-07-01T00:15:05.618+02:00  INFO 87833 --- [backend-test] [    Test worker] d.b.F.b.integration.IdorIntegrationTest  : Started IdorIntegrationTest in 2.874 seconds (process running for 3.327)
+    No users found in the database. Creating default ADMIN user...
+    Admin user created, username and password taken from the .env file
+
+IdorIntegrationTest > getTransactions_WithoutWalletAccess_Returns403() STANDARD_OUT
+    2026-07-01T00:15:05.709+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.security.web.FilterChainProxy        : Securing GET /api/transactions/e689362e-acc1-4dae-9a10-01cb11b964d3
+    2026-07-01T00:15:05.734+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.security.web.FilterChainProxy        : Secured GET /api/transactions/e689362e-acc1-4dae-9a10-01cb11b964d3
+    2026-07-01T00:15:05.736+02:00 DEBUG 87833 --- [backend-test] [    Test worker] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to dev.busato.FinanceWebApp.backend.controller.TransactionController#getTransactions(UUID, User)
+    2026-07-01T00:15:05.743+02:00 DEBUG 87833 --- [backend-test] [    Test worker] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public java.util.List dev.busato.FinanceWebApp.backend.service.TransactionService.getTransactionsByWalletID(java.util.UUID,java.util.UUID); target is of class [dev.busato.FinanceWebApp.backend.service.TransactionService]
+    2026-07-01T00:15:05.747+02:00 DEBUG 87833 --- [backend-test] [    Test worker] .m.m.a.ExceptionHandlerExceptionResolver : Using @ExceptionHandler dev.busato.FinanceWebApp.backend.controller.GlobalExceptionHandler#handleWalletNotFoundException(WalletNotFoundException, HttpServletRequest)
+    2026-07-01T00:15:05.757+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/problem+json', given [*/*] and supported [application/problem+json]
+    2026-07-01T00:15:05.759+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [ProblemDetail[type='about:blank', title='Wallet Not Found', status=404, detail='Could not find walle (truncated)...]
+    2026-07-01T00:15:05.761+02:00 DEBUG 87833 --- [backend-test] [    Test worker] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException: Could not find wallet with id: e689362e-acc1-4dae-9a10-01cb11b964d3]
+
+    MockHttpServletRequest:
+          HTTP Method = GET
+          Request URI = /api/transactions/e689362e-acc1-4dae-9a10-01cb11b964d3
+           Parameters = {}
+              Headers = [Authorization:"Bearer eyJhbGciOiJIUzI1NiJ9.eyJ2ZXIiOjEsInN1YiI6InRlc3R1c2VyQGV4YW1wbGUuY29tIiwiaWF0IjoxNzgyODU3NzA1LCJleHAiOjE3ODI4NjEzMDV9.B-NJlqqeEH6QK5udyUuQdCsoduepPbrxrLVssiFVelA"]
+                 Body = null
+        Session Attrs = {}
+
+    Handler:
+                 Type = dev.busato.FinanceWebApp.backend.controller.TransactionController
+               Method = dev.busato.FinanceWebApp.backend.controller.TransactionController#getTransactions(UUID, User)
+
+    Async:
+        Async started = false
+         Async result = null
+
+    Resolved Exception:
+                 Type = dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException
+
+    ModelAndView:
+            View name = null
+                 View = null
+                Model = null
+
+    FlashMap:
+           Attributes = null
+
+    MockHttpServletResponse:
+               Status = 404
+        Error message = null
+              Headers = [Vary:"Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers", Content-Type:"application/problem+json", X-Content-Type-Options:"nosniff", X-XSS-Protection:"0", Cache-Control:"no-cache, no-store, max-age=0, must-revalidate", Pragma:"no-cache", Expires:"0", X-Frame-Options:"DENY"]
+         Content type = application/problem+json
+                 Body = {"type":"about:blank","title":"Wallet Not Found","status":404,"detail":"Could not find wallet with id: e689362e-acc1-4dae-9a10-01cb11b964d3","instance":"/api/transactions/e689362e-acc1-4dae-9a10-01cb11b964d3","timestamp":"2026-07-01T00:15:05.747962746"}
+        Forwarded URL = null
+       Redirected URL = null
+              Cookies = []
+
+IdorIntegrationTest > getTransactions_WithoutWalletAccess_Returns403() FAILED
+    java.lang.AssertionError: Status expected:<403> but was:<404>
+        at org.springframework.test.util.AssertionErrors.fail(AssertionErrors.java:61)
+        at org.springframework.test.util.AssertionErrors.assertEquals(AssertionErrors.java:128)
+        at org.springframework.test.web.servlet.result.StatusResultMatchers.lambda$matcher$9(StatusResultMatchers.java:640)
+        at org.springframework.test.web.servlet.MockMvc$1.andExpect(MockMvc.java:214)
+        at dev.busato.FinanceWebApp.backend.integration.IdorIntegrationTest.getTransactions_WithoutWalletAccess_Returns403(IdorIntegrationTest.java:90)
+
+IdorIntegrationTest > createTransaction_WithPendingInvite_Returns403() STANDARD_OUT
+    2026-07-01T00:15:05.780+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.security.web.FilterChainProxy        : Securing POST /api/transactions/defed83b-64ad-4077-9bc6-122d67e65b5a
+    2026-07-01T00:15:05.783+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.security.web.FilterChainProxy        : Secured POST /api/transactions/defed83b-64ad-4077-9bc6-122d67e65b5a
+    2026-07-01T00:15:05.784+02:00 DEBUG 87833 --- [backend-test] [    Test worker] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to dev.busato.FinanceWebApp.backend.controller.TransactionController#createTransaction(TransactionRequest, UUID, User)
+    2026-07-01T00:15:05.796+02:00 DEBUG 87833 --- [backend-test] [    Test worker] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [TransactionRequest(name=Test Transaction, tag=null, subscriptionId=null, amount=10.00, originalAmoun (truncated)...]
+    2026-07-01T00:15:05.797+02:00 DEBUG 87833 --- [backend-test] [    Test worker] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public dev.busato.FinanceWebApp.backend.dto.TransactionResponse dev.busato.FinanceWebApp.backend.service.TransactionService.createTransaction(dev.busato.FinanceWebApp.backend.dto.TransactionRequest,java.util.UUID,java.util.UUID); target is of class [dev.busato.FinanceWebApp.backend.service.TransactionService]
+    2026-07-01T00:15:05.798+02:00 DEBUG 87833 --- [backend-test] [    Test worker] .m.m.a.ExceptionHandlerExceptionResolver : Using @ExceptionHandler dev.busato.FinanceWebApp.backend.controller.GlobalExceptionHandler#handlePermissionDeniedException(PermissionDeniedException, HttpServletRequest)
+    2026-07-01T00:15:05.799+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/problem+json', given [*/*] and supported [application/problem+json]
+    2026-07-01T00:15:05.799+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [ProblemDetail[type='about:blank', title='Permission Denied', status=403, detail='The user testuser@e (truncated)...]
+    2026-07-01T00:15:05.799+02:00 DEBUG 87833 --- [backend-test] [    Test worker] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [dev.busato.FinanceWebApp.backend.exceptions.PermissionDeniedException: The user testuser@example.com does not have permission to write in wallet defed83b-64ad-4077-9bc6-122d67e65b5a]
+
+IdorIntegrationTest > getTransactions_WithViewerAccess_Returns200() STANDARD_OUT
+    2026-07-01T00:15:05.804+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.security.web.FilterChainProxy        : Securing GET /api/transactions/997085b1-ecb3-40b9-adaa-8bd116521670
+    2026-07-01T00:15:05.809+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.security.web.FilterChainProxy        : Secured GET /api/transactions/997085b1-ecb3-40b9-adaa-8bd116521670
+    2026-07-01T00:15:05.810+02:00 DEBUG 87833 --- [backend-test] [    Test worker] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to dev.busato.FinanceWebApp.backend.controller.TransactionController#getTransactions(UUID, User)
+    2026-07-01T00:15:05.810+02:00 DEBUG 87833 --- [backend-test] [    Test worker] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public java.util.List dev.busato.FinanceWebApp.backend.service.TransactionService.getTransactionsByWalletID(java.util.UUID,java.util.UUID); target is of class [dev.busato.FinanceWebApp.backend.service.TransactionService]
+    2026-07-01T00:15:05.811+02:00 DEBUG 87833 --- [backend-test] [    Test worker] horizationManagerBeforeMethodInterceptor : Authorized method invocation ReflectiveMethodInvocation: public java.util.List dev.busato.FinanceWebApp.backend.service.TransactionService.getTransactionsByWalletID(java.util.UUID,java.util.UUID); target is of class [dev.busato.FinanceWebApp.backend.service.TransactionService]
+    2026-07-01T00:15:05.812+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+    2026-07-01T00:15:05.812+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [[]]
+
+IdorIntegrationTest > createTransaction_WithViewerAccess_Returns403() STANDARD_OUT
+    2026-07-01T00:15:05.818+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.security.web.FilterChainProxy        : Securing POST /api/transactions/cb647ddd-3e87-41e3-99d3-08bb6c3cde9e
+    2026-07-01T00:15:05.820+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.security.web.FilterChainProxy        : Secured POST /api/transactions/cb647ddd-3e87-41e3-99d3-08bb6c3cde9e
+    2026-07-01T00:15:05.820+02:00 DEBUG 87833 --- [backend-test] [    Test worker] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to dev.busato.FinanceWebApp.backend.controller.TransactionController#createTransaction(TransactionRequest, UUID, User)
+    2026-07-01T00:15:05.821+02:00 DEBUG 87833 --- [backend-test] [    Test worker] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [TransactionRequest(name=Test Transaction, tag=null, subscriptionId=null, amount=10.00, originalAmoun (truncated)...]
+    2026-07-01T00:15:05.821+02:00 DEBUG 87833 --- [backend-test] [    Test worker] horizationManagerBeforeMethodInterceptor : Authorizing method invocation ReflectiveMethodInvocation: public dev.busato.FinanceWebApp.backend.dto.TransactionResponse dev.busato.FinanceWebApp.backend.service.TransactionService.createTransaction(dev.busato.FinanceWebApp.backend.dto.TransactionRequest,java.util.UUID,java.util.UUID); target is of class [dev.busato.FinanceWebApp.backend.service.TransactionService]
+    2026-07-01T00:15:05.821+02:00 DEBUG 87833 --- [backend-test] [    Test worker] .m.m.a.ExceptionHandlerExceptionResolver : Using @ExceptionHandler dev.busato.FinanceWebApp.backend.controller.GlobalExceptionHandler#handlePermissionDeniedException(PermissionDeniedException, HttpServletRequest)
+    2026-07-01T00:15:05.822+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/problem+json', given [*/*] and supported [application/problem+json]
+    2026-07-01T00:15:05.822+02:00 DEBUG 87833 --- [backend-test] [    Test worker] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [ProblemDetail[type='about:blank', title='Permission Denied', status=403, detail='The user testuser@e (truncated)...]
+    2026-07-01T00:15:05.822+02:00 DEBUG 87833 --- [backend-test] [    Test worker] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [dev.busato.FinanceWebApp.backend.exceptions.PermissionDeniedException: The user testuser@example.com does not have permission to write in wallet cb647ddd-3e87-41e3-99d3-08bb6c3cde9e]
+
+Gradle Test Executor 8 finished executing tests.
+2026-07-01T00:15:05.827+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] o.s.w.c.s.GenericWebApplicationContext   : Closing org.springframework.web.context.support.GenericWebApplicationContext@7ce4de34, started on Wed Jul 01 00:15:02 CEST 2026
+2026-07-01T00:15:05.830+02:00  INFO 87833 --- [backend-test] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-07-01T00:15:05.831+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] org.hibernate.SQL                        : drop table if exists app_users cascade 
+Hibernate: drop table if exists app_users cascade 
+2026-07-01T00:15:05.832+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] org.hibernate.SQL                        : drop table if exists personal_access_tokens cascade 
+Hibernate: drop table if exists personal_access_tokens cascade 
+2026-07-01T00:15:05.832+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] org.hibernate.SQL                        : drop table if exists registrations cascade 
+Hibernate: drop table if exists registrations cascade 
+2026-07-01T00:15:05.833+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] org.hibernate.SQL                        : drop table if exists subscriptions cascade 
+Hibernate: drop table if exists subscriptions cascade 
+2026-07-01T00:15:05.833+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] org.hibernate.SQL                        : drop table if exists tags cascade 
+Hibernate: drop table if exists tags cascade 
+2026-07-01T00:15:05.833+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] org.hibernate.SQL                        : drop table if exists transactions cascade 
+Hibernate: drop table if exists transactions cascade 
+2026-07-01T00:15:05.834+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] org.hibernate.SQL                        : drop table if exists wallet_access cascade 
+Hibernate: drop table if exists wallet_access cascade 
+2026-07-01T00:15:05.834+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] org.hibernate.SQL                        : drop table if exists wallets cascade 
+Hibernate: drop table if exists wallets cascade 
+2026-07-01T00:15:05.835+02:00  INFO 87833 --- [backend-test] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-07-01T00:15:05.835+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Before shutdown stats (total=10/10, idle=10/10, active=0, waiting=0)
+2026-07-01T00:15:05.835+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn0: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn1: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn2: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn3: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn4: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn5: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn6: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn7: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn8: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [nnection-closer] com.zaxxer.hikari.pool.PoolBase          : HikariPool-1 - Closing connection conn9: url=jdbc:h2:mem:testdb user=SA: (connection evicted)
+2026-07-01T00:15:05.836+02:00 DEBUG 87833 --- [backend-test] [ionShutdownHook] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - After  shutdown stats (total=0/10, idle=0/10, active=0, waiting=0)
+2026-07-01T00:15:05.836+02:00  INFO 87833 --- [backend-test] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+
+> Task :test FAILED
+Finished generating test XML results (0.0 secs) into: /home/nicola/Desktop/FinanceWebApp/backend/build/test-results/test
+Generating HTML test report...
+Finished generating test html results (0.001 secs) into: /home/nicola/Desktop/FinanceWebApp/backend/build/reports/tests/test
+
+[Incubating] Problems report is available at: file:///home/nicola/Desktop/FinanceWebApp/backend/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.14.4/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+5 actionable tasks: 1 executed, 4 up-to-date

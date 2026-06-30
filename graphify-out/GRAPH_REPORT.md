@@ -1,16 +1,16 @@
-# Graph Report - FinanceWebApp  (2026-06-28)
+# Graph Report - FinanceWebApp  (2026-07-01)
 
 ## Corpus Check
-- 262 files · ~124,833 words
+- 289 files · ~134,398 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1307 nodes · 3638 edges · 64 communities (55 shown, 9 thin omitted)
-- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 204 edges (avg confidence: 0.8)
+- 1552 nodes · 4659 edges · 83 communities (69 shown, 14 thin omitted)
+- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 441 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b2bad2ba`
+- Built from commit: `2bc16d14`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -62,31 +62,49 @@
 - [[_COMMUNITY_Amount Input Component|Amount Input Component]]
 - [[_COMMUNITY_Admin User Invites|Admin User Invites]]
 - [[_COMMUNITY_Frontend Package Config|Frontend Package Config]]
+- [[_COMMUNITY_Community 47|Community 47]]
 - [[_COMMUNITY_Root Package DnD Kit|Root Package DnD Kit]]
 - [[_COMMUNITY_Frontend TSConfig|Frontend TSConfig]]
 - [[_COMMUNITY_Recurring Payment Toggle|Recurring Payment Toggle]]
 - [[_COMMUNITY_User Request DTO|User Request DTO]]
 - [[_COMMUNITY_MCP Server Document|MCP Server Document]]
 - [[_COMMUNITY_MCP Requirements|MCP Requirements]]
+- [[_COMMUNITY_Community 58|Community 58]]
+- [[_COMMUNITY_Community 59|Community 59]]
 - [[_COMMUNITY_Community 60|Community 60]]
 - [[_COMMUNITY_Community 61|Community 61]]
 - [[_COMMUNITY_Community 62|Community 62]]
 - [[_COMMUNITY_Community 63|Community 63]]
+- [[_COMMUNITY_Community 64|Community 64]]
+- [[_COMMUNITY_Community 65|Community 65]]
 - [[_COMMUNITY_Community 66|Community 66]]
 - [[_COMMUNITY_Community 67|Community 67]]
+- [[_COMMUNITY_Community 68|Community 68]]
+- [[_COMMUNITY_Community 69|Community 69]]
 - [[_COMMUNITY_Community 70|Community 70]]
+- [[_COMMUNITY_Community 71|Community 71]]
+- [[_COMMUNITY_Community 72|Community 72]]
+- [[_COMMUNITY_Community 73|Community 73]]
+- [[_COMMUNITY_Community 74|Community 74]]
+- [[_COMMUNITY_Community 75|Community 75]]
+- [[_COMMUNITY_Community 76|Community 76]]
+- [[_COMMUNITY_Community 77|Community 77]]
+- [[_COMMUNITY_Community 78|Community 78]]
+- [[_COMMUNITY_Community 79|Community 79]]
+- [[_COMMUNITY_Community 80|Community 80]]
+- [[_COMMUNITY_Community 81|Community 81]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `Wallet` - 40 edges
-2. `useWalletContext()` - 38 edges
-3. `User` - 32 edges
-4. `api` - 30 edges
-5. `triggerToast()` - 30 edges
-6. `_backend_request()` - 30 edges
-7. `Transaction` - 29 edges
-8. `AppContext` - 29 edges
-9. `Tag` - 26 edges
-10. `WalletAccess` - 25 edges
+1. `User` - 69 edges
+2. `WalletAccess` - 45 edges
+3. `useWalletContext()` - 42 edges
+4. `Wallet` - 40 edges
+5. `api` - 31 edges
+6. `triggerToast()` - 30 edges
+7. `_backend_request()` - 30 edges
+8. `PersonalAccessToken` - 29 edges
+9. `Transaction` - 29 edges
+10. `AppContext` - 29 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Docker Compose Production Environment` --semantically_similar_to--> `Docker Compose Dev Environment`  [INFERRED] [semantically similar]
@@ -108,67 +126,67 @@
 - **Email Notification System** — docker_compose_mail_config, email_forgotpasswordemail, email_registrationinviteemail, email_walletinviteemail [INFERRED 0.85]
 - **CI/CD Deployment Pipeline** — workflows_deploy, workflows_deploy_matrix_deploy, workflows_deploy_git_post_deploy, workflows_deploy_weekly_cleanup, docker_compose_prod [EXTRACTED 1.00]
 
-## Communities (64 total, 9 thin omitted)
+## Communities (83 total, 14 thin omitted)
 
 ### Community 0 - "MCP Server Tools"
-Cohesion: 0.17
-Nodes (13): AnimateBackground(), ChangePasswordModal, ChangePasswordModalHandle, PasswordInput(), PasswordInputProps, getPasswordRequirements(), isPasswordValid(), PasswordRequirements() (+5 more)
+Cohesion: 0.06
+Nodes (33): ADMIN_TABS, UsersPageProps, ActionCardProps, BackupEntry, BackupSelectorProps, CreateInviteForm(), CreateInviteFormProps, AdminInvite (+25 more)
 
 ### Community 1 - "Frontend Dependencies"
-Cohesion: 0.13
-Nodes (8): BackendApplication, CommandLineRunner, DataInitializer, GrantedAuthority, User, Override, PrePersist, ManageUserRepository
+Cohesion: 0.14
+Nodes (11): FilterChain, GrantedAuthority, User, OncePerRequestFilter, Override, ManageUserRepository, CustomUserDetailsService, JwtAuthenticationFilter (+3 more)
 
 ### Community 2 - "Transaction Modal UI"
-Cohesion: 0.18
-Nodes (12): ADMIN_TABS, UsersPageProps, CreateInviteForm(), CreateInviteFormProps, AdminInvite, InvitesTable(), InvitesTableProps, ToastData (+4 more)
+Cohesion: 0.14
+Nodes (4): PermissionDeniedException, PatWalletPermission, WalletSecurity, WalletSecurityTest
 
 ### Community 3 - "Wallet Dashboard"
-Cohesion: 0.09
-Nodes (16): Collection, MemberRequest, MemberResponse, WalletInviteResponse, IllegalArgumentException, PatWalletPermission, WalletMapper, WalletAccess (+8 more)
+Cohesion: 0.11
+Nodes (9): Collection, EntityGraph, PatWalletPermission, WalletMapper, Optional, UserRepository, WalletAccessRepository, WalletRepository (+1 more)
 
 ### Community 4 - "Tag Management UI"
 Cohesion: 0.08
 Nodes (72): BaseHTTPMiddleware, Context, description, FastMCP, Field, ge, gt, JSONResponse (+64 more)
 
 ### Community 5 - "Statistics Charts"
-Cohesion: 0.07
-Nodes (46): CustomDatePicker(), CustomDatePickerProps, DatePickerValue, DateRangeValue, ThemeSelector(), SettingsTab(), buildMonthlyBuckets(), MonthlyBucket (+38 more)
+Cohesion: 0.12
+Nodes (25): DateRangeValue, DataTab(), InviteSection(), InviteSectionProps, SettingsCard(), SettingsCardProps, SettingsTab(), ShareSettingsSection() (+17 more)
 
 ### Community 6 - "Subscription UI"
-Cohesion: 0.20
-Nodes (15): CurrencySelector(), CurrencySelectorProps, Props, TagPicker(), ExchangeRateSection(), UnifiedExchangeRateProps, Props, TransactionMetadataInputs() (+7 more)
+Cohesion: 0.09
+Nodes (35): CurrencySelector(), CurrencySelectorProps, Props, SubscriptionModal, SubscriptionModalHandle, ViewMode, TagPicker(), TransactionRowProps (+27 more)
 
 ### Community 7 - "Landing Page"
-Cohesion: 0.09
-Nodes (19): BackupEntry, AdminDatabaseController, AdminUserController, MembersController, OAuthAuthorizeRequest, OAuthController, PatController, TagController (+11 more)
+Cohesion: 0.16
+Nodes (7): MembersController, DeleteMapping, MemberRequest, MemberResponse, WalletInviteResponse, User, Void
 
 ### Community 8 - "User Service Layer"
-Cohesion: 0.12
-Nodes (18): AboutAppModal, AboutAppModalHandle, LogoutModal, LogoutModalHandle, ProfileModal, ProfileModalHandle, AppHeader(), AppHeaderProps (+10 more)
+Cohesion: 0.13
+Nodes (20): AboutAppModal, AboutAppModalHandle, ChangePasswordModal, ChangePasswordModalHandle, LogoutModal, LogoutModalHandle, ProfileModal, ProfileModalHandle (+12 more)
 
 ### Community 9 - "Date Picker Component"
-Cohesion: 0.20
-Nodes (14): DeleteModal, DeleteModalProvider(), LandingPage(), App(), ToDoPage(), PWAPrompt(), ToastNotification(), DecodedToken (+6 more)
+Cohesion: 0.19
+Nodes (10): DeleteModal, DeleteModalProvider(), App(), PWAPrompt(), ToastNotification(), PWAContext, PWAContextType, PWAProvider() (+2 more)
 
 ### Community 10 - "Wallet Service Layer"
-Cohesion: 0.14
-Nodes (11): TagRequest, TagResponse, TransactionRequest, TransactionResponse, TagNotFoundException, TransactionMapper, PreAuthorize, TagRepository (+3 more)
+Cohesion: 0.10
+Nodes (12): TagController, TagRequest, TagResponse, TagHasChildrenException, TagInUseException, TagNotFoundException, TagMapper, Tag (+4 more)
 
 ### Community 11 - "Icon Selector Component"
-Cohesion: 0.10
-Nodes (14): GlobalExceptionHandler, Exception, ExceptionHandler, PermissionDeniedException, TagHasChildrenException, TagInUseException, UserAlreadyExistsException, WalletNotFoundException (+6 more)
+Cohesion: 0.18
+Nodes (10): GlobalExceptionHandler, GlobalExceptionHandlerTest, OAuthAuthorizeRequest, Exception, ExceptionHandler, UserAlreadyExistsException, HttpServletRequest, HttpStatus (+2 more)
 
 ### Community 12 - "Theme & PWA Context"
-Cohesion: 0.16
-Nodes (5): InvitationStatus, EmailService, RegistrationsRepository, SendEmailService, String
+Cohesion: 0.10
+Nodes (7): BackendApplication, OAuthController, EmailService, AuthCodeEntry, OAuthAuthCodeStore, SendEmailService, String
 
 ### Community 13 - "Subscription Service"
-Cohesion: 0.12
-Nodes (26): DayDetailModalHandle, DayDetailPanel, DayDetailPanelProps, SubscriptionCalendar(), SubscriptionCalendarProps, formatCompactFrequency(), getDaysLeft(), getDaysLeftColor() (+18 more)
+Cohesion: 0.16
+Nodes (19): CalendarDayDetailPanel, CalendarDayDetailPanelProps, DayDetailModalHandle, SubscriptionCalendar(), SubscriptionCalendarProps, formatCompactFrequency(), getDaysLeft(), getDaysLeftColor() (+11 more)
 
 ### Community 14 - "Tag Service Layer"
-Cohesion: 0.13
-Nodes (6): CTASectionProps, DemoSectionProps, Footer(), HeroProps, NavbarProps, ToDoSection()
+Cohesion: 0.20
+Nodes (7): Footer(), HeroProps, LandingPage(), NavbarProps, ToDoSection(), ToDoPage(), getUserAuth()
 
 ### Community 15 - "Transaction Service"
 Cohesion: 0.09
@@ -179,160 +197,212 @@ Cohesion: 0.21
 Nodes (10): AdminStats(), AdminStatsProps, StatCard(), StatCardProps, SortConfig, UserDirectory(), UserDirectoryProps, UserRow() (+2 more)
 
 ### Community 17 - "User Registration"
-Cohesion: 0.20
-Nodes (3): ActionCardProps, BackupEntry, BackupSelectorProps
+Cohesion: 0.16
+Nodes (7): BadCredentialsException, Cacheable, CacheEvict, ChangePasswordRequest, PasswordEncoder, UserService, UserServiceTest
 
 ### Community 18 - "PAT Token Management"
-Cohesion: 0.09
-Nodes (14): BackupCronJob, SubscriptionCronJob, fileMoves, project, Key, Path, PostConstruct, ProcessBuilder (+6 more)
+Cohesion: 0.15
+Nodes (9): fileMoves, project, Key, Path, PostConstruct, ProcessBuilder, BackupService, BackupEntry (+1 more)
 
 ### Community 19 - "Member Management"
 Cohesion: 0.08
 Nodes (25): dependencies, axios, date-fns, dexie, @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, @emotion/react (+17 more)
 
 ### Community 20 - "User Model & Repository"
-Cohesion: 0.10
-Nodes (13): Async, BadCredentialsException, Cacheable, CacheEvict, ChangePasswordRequest, WalletPermission, EntityGraph, InvalidTokenException (+5 more)
+Cohesion: 0.11
+Nodes (12): Async, PatController, PatCreateRequest, PatCreateResponse, PatResponse, PatUpdateRequest, WalletPermission, InvalidTokenException (+4 more)
 
 ### Community 21 - "Docker Infrastructure"
-Cohesion: 0.08
-Nodes (31): Icon(), WalletIconProps, ColorSelectorPropsProps, IconColorSelector(), IconPickerButton(), IconPickerButtonProps, IconSelector(), IconSelectorProps (+23 more)
+Cohesion: 0.10
+Nodes (24): ColorSelectorPropsProps, IconColorSelector(), IconPickerButton(), IconPickerButtonProps, IconSelector(), IconSelectorProps, ColorSelector(), ColorSelectorProps (+16 more)
 
 ### Community 22 - "CI/CD Pipeline"
 Cohesion: 0.09
 Nodes (21): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, jsx, lib, module, moduleDetection, moduleResolution (+13 more)
 
 ### Community 23 - "Profile & Settings Modals"
-Cohesion: 0.17
-Nodes (9): CalendarContainerProps, ViewState, PresetType, DayCellProps, MonthGrid(), MonthGridProps, MonthSelector(), MonthSelectorProps (+1 more)
+Cohesion: 0.18
+Nodes (11): CalendarContainerProps, ViewState, CustomDatePicker(), CustomDatePickerProps, DatePickerValue, PresetType, DayCellProps, MonthGrid() (+3 more)
 
 ### Community 24 - "Offline DB & Sync"
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, lib, module, moduleDetection, moduleResolution, noEmit (+11 more)
 
 ### Community 25 - "Subscription Calendar"
-Cohesion: 0.11
-Nodes (10): DemoCleanupCronJob, PatCreateRequest, PatCreateResponse, PatResponse, PatUpdateRequest, UserNotFoundException, List, TransactionRepository (+2 more)
+Cohesion: 0.12
+Nodes (7): UserResponse, UserNotFoundException, UserMapper, PersonalAccessTokenRepository, Scheduled, AdminUserInviteService, UUID
 
 ### Community 26 - "Frontend Vite Config"
-Cohesion: 0.11
-Nodes (12): SubscriptionController, SubscriptionRequest, SubscriptionResponse, LocalDate, SubscriptionMapper, Subscription, Tag, Transaction (+4 more)
+Cohesion: 0.18
+Nodes (6): LocalDate, Subscription, Wallet, SubscriptionRepository, SubscriptionService, Subscription
 
 ### Community 27 - "Frontend Dev Dependencies"
 Cohesion: 0.10
 Nodes (20): devDependencies, autoprefixer, eslint, @eslint/js, eslint-plugin-react-hooks, eslint-plugin-react-refresh, globals, postcss (+12 more)
 
 ### Community 28 - "Axios & Shared Modals"
-Cohesion: 0.14
-Nodes (24): ConsentView, PatFormView(), PatFormViewProps, PatListView(), PatListViewProps, PatShowTokenView(), PatShowTokenViewProps, TokenActionButtons() (+16 more)
+Cohesion: 0.12
+Nodes (25): ConsentView, PatFormView(), PatFormViewProps, PatListView(), PatListViewProps, PatModal, PatModalHandle, PatShowTokenView() (+17 more)
 
 ### Community 29 - "Admin & Wallet Modals"
-Cohesion: 0.19
-Nodes (12): AuthenticationConfiguration, AuthenticationManager, AuthenticationProvider, Bean, CacheManager, ApplicationConfig, CacheConfig, SecurityConfig (+4 more)
+Cohesion: 0.17
+Nodes (12): AuthenticationConfiguration, AuthenticationManager, AuthenticationProvider, Bean, CacheManager, Clock, ApplicationConfig, CacheConfig (+4 more)
 
 ### Community 30 - "Transaction Backend"
-Cohesion: 0.09
-Nodes (21): AdminDashboard(), DeleteModalHandle, DeleteModalContext, useDeleteModal(), ModalDialog(), ModalDialogProps, ModalDialogRightAction(), ModalDialogRightActionProp (+13 more)
+Cohesion: 0.11
+Nodes (19): AdminDashboard(), DeleteModalHandle, DeleteModalContext, useDeleteModal(), UserDashboard(), Props, SubscriptionDetailsModal, SubscriptionDetailsModalHandle (+11 more)
 
 ### Community 31 - "Wallet Controller"
-Cohesion: 0.27
-Nodes (3): AuthController, ForgotPasswordRequest, HttpServletResponse
+Cohesion: 0.30
+Nodes (4): AuthController, ForgotPasswordRequest, HttpServletResponse, PostMapping
 
 ### Community 32 - "Settings & Overview UI"
-Cohesion: 0.21
-Nodes (5): WalletController, WalletRequest, WalletResponse, UnauthorizedAccessException, WalletService
+Cohesion: 0.16
+Nodes (7): WalletController, WalletResponse, UnauthorizedAccessException, WalletAccessId, PutMapping, Serializable, WalletService
 
 ### Community 33 - "Auth Registration Flow"
-Cohesion: 0.14
-Nodes (7): RegisterInviteRequest, RegisterInviteResponse, ResetPasswordRequest, AdminInviteMapper, Registrations, RegisterInviteResponse, RegisterService
+Cohesion: 0.24
+Nodes (4): RegisterInviteRequest, RegisterInviteResponse, RegisterService, RegisterServiceTest
 
 ### Community 34 - "Demo Service & Tags"
-Cohesion: 0.42
-Nodes (4): Frequency, DemoService, Tag, Wallet
+Cohesion: 0.38
+Nodes (5): Frequency, type, DemoService, Tag, Wallet
 
 ### Community 35 - "Login & Demo Controller"
-Cohesion: 0.22
-Nodes (11): DataTab(), InviteSection(), InviteSectionProps, MemberCategory(), MemberCategoryProps, MemberRow(), MemberRowProps, SettingsCard() (+3 more)
+Cohesion: 0.48
+Nodes (5): MemberCategory(), MemberCategoryProps, MemberRow(), MemberRowProps, WalletMember
 
 ### Community 36 - "Cron Jobs & Scheduling"
-Cohesion: 0.32
-Nodes (3): Sphere(), SphereProps, RegisterInviteResponse
+Cohesion: 0.14
+Nodes (7): TransactionController, TransactionRequest, TransactionResponse, TransactionMapper, Transaction, TransactionRepository, Transaction
 
 ### Community 37 - "JWT Token Service"
-Cohesion: 0.26
-Nodes (5): Claims, Date, Function, JwtService, T
+Cohesion: 0.11
+Nodes (8): Claims, Date, Function, Map, Object, JwtService, JwtServiceTest, T
 
 ### Community 38 - "OAuth Controller"
-Cohesion: 0.31
-Nodes (6): FilterChain, OncePerRequestFilter, CustomUserDetailsService, JwtAuthenticationFilter, PatAuthenticationFilter, UserDetailsService
+Cohesion: 0.16
+Nodes (14): Icon(), WalletIconProps, TagCardProps, TagChildRowProps, TagFilter(), TagFilterProps, TagFilterRow(), TagFilterRowProps (+6 more)
+
+### Community 39 - "Subscription Controller"
+Cohesion: 0.27
+Nodes (6): WalletNotFoundException, IllegalArgumentException, PreAuthorize, MemberService, TransactionService, Transactional
 
 ### Community 40 - "Password Reset UI"
-Cohesion: 0.18
-Nodes (7): DemoController, AuthResponse, LoginRequest, MemberMapper, Object, Role, UserDetails
+Cohesion: 0.27
+Nodes (4): DemoController, AuthResponse, MemberMapper, Role
 
 ### Community 41 - "ToDo Feature"
 Cohesion: 0.15
 Nodes (12): 🏗️ Architecture Overview, 🚀 Automated Deployment, 🧩 Core Stack, ⚡ Demo & Onboarding Mode, ⚙️ Development Setup, Enabling Demo Features, 🚀 Engineering Highlights, 🛠️ Infrastructure & CI/CD (+4 more)
 
 ### Community 42 - "Admin Backups UI"
-Cohesion: 0.36
-Nodes (5): Status, BackendApplicationTests, AdminUserIntegrationTest, Test, WithMockUser
+Cohesion: 0.09
+Nodes (7): BackendApplicationTests, SubscriptionControllerTest, TransactionControllerTest, JwtAuthenticationFilterTest, SendEmailServiceTest, TransactionServiceTest, Test
+
+### Community 43 - "Community 43"
+Cohesion: 0.21
+Nodes (3): Modifying, Query, RegistrationsRepository
 
 ### Community 44 - "Amount Input Component"
 Cohesion: 0.33
 Nodes (6): useMobileMath(), AmountInput(), AmountInputProps, formatAmountString(), hasOperators(), evaluateMathExpression()
 
 ### Community 45 - "Admin User Invites"
-Cohesion: 0.13
-Nodes (6): AdminInviteRequest, AdminInviteResponse, UserResponse, LocalDateTime, UserMapper, AdminUserInviteService
+Cohesion: 0.12
+Nodes (8): AdminInviteRequest, AdminInviteResponse, RegisterInviteResponse, ResetPasswordRequest, LocalDateTime, AdminInviteMapper, Registrations, AdminUserInviteServiceTest
 
 ### Community 46 - "Frontend Package Config"
-Cohesion: 0.20
-Nodes (9): name, private, scripts, build, dev, lint, preview, type (+1 more)
+Cohesion: 0.22
+Nodes (8): name, private, scripts, build, dev, lint, preview, version
+
+### Community 47 - "Community 47"
+Cohesion: 0.14
+Nodes (16): buildMonthlyBuckets(), MonthlyBucket, CumulativeChart(), CumulativeChartProps, darkTheme, lightTheme, MONTH_LABELS, darkTheme (+8 more)
 
 ### Community 48 - "Root Package DnD Kit"
 Cohesion: 0.40
 Nodes (4): dependencies, @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities
+
+### Community 56 - "MCP Server Document"
+Cohesion: 0.11
+Nodes (3): AfterEach, PatAuthenticationFilterTest, BackupServiceTest
+
+### Community 58 - "Community 58"
+Cohesion: 0.15
+Nodes (3): SubscriptionCronJob, SubscriptionCronJobTest, SubscriptionServiceTest
+
+### Community 59 - "Community 59"
+Cohesion: 0.18
+Nodes (4): AdminUserController, GetMapping, InvitationStatus, List
 
 ### Community 60 - "Community 60"
 Cohesion: 0.50
 Nodes (3): Expanding the ESLint configuration, React Compiler, React + TypeScript + Vite
 
 ### Community 61 - "Community 61"
+Cohesion: 0.29
+Nodes (5): CacheItem, FinanceDb, offlineDb, SyncQueueItem, syncOfflineData()
+
+### Community 64 - "Community 64"
 Cohesion: 0.18
-Nodes (9): api, failedQueue, LoginForm(), Requirements, CacheItem, FinanceDb, offlineDb, SyncQueueItem (+1 more)
+Nodes (3): BeforeEach, WalletAccess, MemberServiceTest
+
+### Community 65 - "Community 65"
+Cohesion: 0.24
+Nodes (4): SubscriptionController, SubscriptionRequest, SubscriptionResponse, SubscriptionMapper
 
 ### Community 66 - "Community 66"
 Cohesion: 0.24
 Nodes (5): rawToDoData, todoData, ToDoItem, ToDoItemInput, ToDoStatus
 
 ### Community 67 - "Community 67"
-Cohesion: 0.12
-Nodes (15): CellType, formatAmount(), OverviewCell(), OverviewCellProps, DataItem, OverviewRow(), OverviewRowProps, MonthlyOverviewProps (+7 more)
+Cohesion: 0.20
+Nodes (8): MonthlyOverviewProps, MONTHS, OverviewTable(), TABS, ViewMode, SwitchableCard(), SwitchableCardProps, Tab
+
+### Community 68 - "Community 68"
+Cohesion: 0.20
+Nodes (3): WalletControllerTest, WalletRequest, WalletServiceTest
+
+### Community 69 - "Community 69"
+Cohesion: 0.29
+Nodes (4): Status, ManageUserServiceTest, IdorIntegrationTest, WithMockUser
 
 ### Community 70 - "Community 70"
-Cohesion: 0.08
-Nodes (23): darkMuiTheme, DEMO_TRANSACTIONS, Features(), CashFlowSankey(), CashFlowSankeyProps, LinkDef, NodeDef, StyledText (+15 more)
+Cohesion: 0.13
+Nodes (15): darkMuiTheme, DEMO_TRANSACTIONS, Features(), ThemeSelector(), CashFlowSankey(), CashFlowSankeyProps, LinkDef, NodeDef (+7 more)
+
+### Community 71 - "Community 71"
+Cohesion: 0.21
+Nodes (4): BackupEntry, AdminDatabaseController, MultipartFile, Resource
+
+### Community 73 - "Community 73"
+Cohesion: 0.28
+Nodes (7): CellType, formatAmount(), OverviewCell(), OverviewCellProps, DataItem, OverviewRow(), OverviewRowProps
+
+### Community 76 - "Community 76"
+Cohesion: 0.57
+Nodes (5): DecodedToken, getDecodedToken(), getToken(), isTokenValid(), ProtectedRoute()
 
 ## Knowledge Gaps
-- **213 isolated node(s):** `UserRequest`, `PatWalletPermission`, `ManageUserRepository`, `WalletRepository`, `PatWalletPermission` (+208 more)
+- **217 isolated node(s):** `recordToolUse.sh script`, `UserRequest`, `PatWalletPermission`, `ManageUserRepository`, `WalletRepository` (+212 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Status` connect `Admin Backups UI` to `User Registration`, `Frontend Vite Config`?**
-  _High betweenness centrality (0.354) - this node is a cross-community bridge._
-- **Why does `api` connect `Community 61` to `MCP Server Tools`, `Transaction Modal UI`, `Login & Demo Controller`, `Cron Jobs & Scheduling`, `Statistics Charts`, `Subscription UI`, `Community 70`, `User Service Layer`, `Subscription Service`, `Tag Service Layer`, `User Registration`, `Docker Infrastructure`, `Axios & Shared Modals`, `Transaction Backend`?**
-  _High betweenness centrality (0.062) - this node is a cross-community bridge._
-- **Why does `triggerToast()` connect `Transaction Modal UI` to `MCP Server Tools`, `Login & Demo Controller`, `Cron Jobs & Scheduling`, `Statistics Charts`, `Subscription UI`, `Community 70`, `User Service Layer`, `Date Picker Component`, `Subscription Service`, `Tag Service Layer`, `User Registration`, `Docker Infrastructure`, `Axios & Shared Modals`, `Community 61`, `Transaction Backend`?**
+- **Why does `Status` connect `Community 69` to `MCP Server Tools`, `Frontend Vite Config`, `Community 58`?**
+  _High betweenness centrality (0.347) - this node is a cross-community bridge._
+- **Why does `api` connect `MCP Server Tools` to `Statistics Charts`, `Subscription UI`, `User Service Layer`, `Tag Service Layer`, `Docker Infrastructure`, `Axios & Shared Modals`, `Community 61`, `Transaction Backend`?**
+  _High betweenness centrality (0.071) - this node is a cross-community bridge._
+- **Why does `triggerToast()` connect `MCP Server Tools` to `Statistics Charts`, `Subscription UI`, `User Service Layer`, `Tag Service Layer`, `Docker Infrastructure`, `Axios & Shared Modals`, `Transaction Backend`?**
   _High betweenness centrality (0.061) - this node is a cross-community bridge._
-- **What connects `UserRequest`, `PatWalletPermission`, `ManageUserRepository` to the rest of the system?**
-  _243 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `recordToolUse.sh script`, `UserRequest`, `PatWalletPermission` to the rest of the system?**
+  _247 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `MCP Server Tools` be split into smaller, more focused modules?**
+  _Cohesion score 0.06498015873015874 - nodes in this community are weakly interconnected._
 - **Should `Frontend Dependencies` be split into smaller, more focused modules?**
-  _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
-- **Should `Wallet Dashboard` be split into smaller, more focused modules?**
-  _Cohesion score 0.09065679925994449 - nodes in this community are weakly interconnected._
-- **Should `Tag Management UI` be split into smaller, more focused modules?**
-  _Cohesion score 0.08144144144144144 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13636363636363635 - nodes in this community are weakly interconnected._
+- **Should `Transaction Modal UI` be split into smaller, more focused modules?**
+  _Cohesion score 0.14444444444444443 - nodes in this community are weakly interconnected._

@@ -41,6 +41,7 @@ public class SubscriptionService {
     private final TagRepository tagRepository;
     private final TransactionRepository transactionRepository;
     private final SubscriptionMapper subscriptionMapper;
+    private final java.time.Clock clock;
 
 
     /**
@@ -95,7 +96,7 @@ public class SubscriptionService {
                 .type(Subscription.Type.valueOf(request.getType()))
                 .notes(request.getNotes())
                 .status(Subscription.Status.valueOf(request.getStatus() != null ? request.getStatus() : "ACTIVE"))
-                .startDate(request.getStartDate() != null ? request.getStartDate() : LocalDate.now())
+                .startDate(request.getStartDate() != null ? request.getStartDate() : LocalDate.now(clock))
                 .frequencyType(Subscription.Frequency.valueOf(request.getFrequencyType()))
                 .frequencyInterval(request.getFrequencyInterval() > 0 ? request.getFrequencyInterval() : 1)
                 .monthlySpecificDay(request.getMonthlySpecificDay())
@@ -108,7 +109,7 @@ public class SubscriptionService {
 
         sub.setNextExecutionDate(calculateNextExecutionDate(sub, sub.getStartDate(), false));
 
-        if (!sub.getNextExecutionDate().isAfter(LocalDate.now()))
+        if (!sub.getNextExecutionDate().isAfter(LocalDate.now(clock)))
             executeSubscription(sub);
 
         sub = subscriptionRepository.save(sub);
@@ -225,7 +226,7 @@ public class SubscriptionService {
      */
     @Transactional
     public void processDueSubscriptions() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
 
         // Retrieve all active and paused subscriptions that are due for execution
         List<Subscription> dueSubscriptions = subscriptionRepository
@@ -319,7 +320,7 @@ public class SubscriptionService {
      * @return The calculated next execution date
      */
     private LocalDate calculateNextExecutionDate(Subscription sub, LocalDate lastExecutionDate, boolean avoidToday) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
 
         // 1. MATHEMATICAL FAST-FORWARD: Skip over large time gaps instantly
         LocalDate nextDate = applyFastForward(sub, lastExecutionDate, today);
