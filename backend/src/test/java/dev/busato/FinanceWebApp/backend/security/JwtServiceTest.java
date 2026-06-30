@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -143,5 +144,44 @@ class JwtServiceTest {
         String token = jwtService.generateRefreshToken(mockUser);
 
         assertFalse(jwtService.isInRenewalWindow(token));
+    }
+
+    @Test
+    void generateToken_NonUserDetails_DoesNotIncludeVersionClaim() {
+        org.springframework.security.core.userdetails.User nonUser =
+                (org.springframework.security.core.userdetails.User)
+                        org.springframework.security.core.userdetails.User
+                                .withUsername("testuser@example.com")
+                                .password("password")
+                                .authorities(Collections.emptyList())
+                                .build();
+
+        String token = jwtService.generateToken(new HashMap<>(), nonUser);
+
+        assertNotNull(token);
+        assertEquals("testuser@example.com", jwtService.extractUsername(token));
+        // ver claim NON deve essere presente perché UserDetails non è instanceof User
+        assertNull(jwtService.extractClaim(token, claims -> claims.get("ver", Integer.class)));
+    }
+
+    @Test
+    void isTokenValid_NonUserDetails_SkipsVersionCheckAndReturnsTrue() {
+        org.springframework.security.core.userdetails.User nonUser =
+                (org.springframework.security.core.userdetails.User)
+                        org.springframework.security.core.userdetails.User
+                                .withUsername("testuser@example.com")
+                                .password("password")
+                                .authorities(Collections.emptyList())
+                                .build();
+
+        String token = jwtService.generateToken(new HashMap<>(), nonUser);
+
+        // isTokenValid deve restituire true senza controllare tokenVersion
+        assertTrue(jwtService.isTokenValid(token, nonUser));
+    }
+
+    @Test
+    void getRefreshExpiration_ReturnsConfiguredValue() {
+        assertEquals(1000 * 60 * 60 * 24 * 30L, jwtService.getRefreshExpiration());
     }
 }

@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -168,5 +170,115 @@ class TagServiceTest {
         when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId)).thenReturn(Optional.of(tag));
 
         assertThrows(IllegalArgumentException.class, () -> tagService.updateTag("Food", request, walletId, userId));
+    }
+
+    // ==================== createTag — edge cases ====================
+
+    @Test
+    void createTag_NameTooShort_ThrowsException() {
+        TagRequest request = TagRequest.builder().build();
+        request.setName("A"); // < 2 chars
+
+        assertThrows(IllegalArgumentException.class, () -> tagService.createTag(request, walletId, userId));
+    }
+
+    @Test
+    void createTag_NameTooLong_ThrowsException() {
+        TagRequest request = TagRequest.builder().build();
+        request.setName("A".repeat(26)); // > 25 chars
+
+        assertThrows(IllegalArgumentException.class, () -> tagService.createTag(request, walletId, userId));
+    }
+
+    @Test
+    void createTag_WithValidParent_CreatesTagWithParent() {
+        TagRequest request = TagRequest.builder().build();
+        request.setName("SubFood");
+        request.setParentName("Food");
+
+        Tag parentTag = new Tag();
+        parentTag.setName("Food");
+
+        when(tagRepository.existsByNameIgnoreCaseAndWalletId("SubFood", walletId)).thenReturn(false);
+        when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+        when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId)).thenReturn(Optional.of(parentTag));
+
+        tagService.createTag(request, walletId, userId);
+
+        verify(tagRepository).save(any(Tag.class));
+    }
+
+    @Test
+    void createTag_ParentSameAsChild_ThrowsException() {
+        TagRequest request = TagRequest.builder().build();
+        request.setName("Food");
+        request.setParentName("Food");
+
+        Tag parentTag = new Tag();
+        parentTag.setName("Food");
+
+        when(tagRepository.existsByNameIgnoreCaseAndWalletId("Food", walletId)).thenReturn(false);
+        when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+        when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId)).thenReturn(Optional.of(parentTag));
+
+        assertThrows(IllegalArgumentException.class, () -> tagService.createTag(request, walletId, userId));
+    }
+
+    @Test
+    void createTag_ParentNotFound_ThrowsTagNotFoundException() {
+        TagRequest request = TagRequest.builder().build();
+        request.setName("SubTag");
+        request.setParentName("Ghost");
+
+        when(tagRepository.existsByNameIgnoreCaseAndWalletId("SubTag", walletId)).thenReturn(false);
+        when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+        when(tagRepository.findByNameIgnoreCaseAndWalletId("Ghost", walletId)).thenReturn(Optional.empty());
+
+        assertThrows(dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException.class,
+                () -> tagService.createTag(request, walletId, userId));
+    }
+
+    // ==================== deleteTag — edge case ====================
+
+    @Test
+    void deleteTag_TagNotFound_ThrowsTagNotFoundException() {
+        when(tagRepository.findByNameIgnoreCaseAndWalletId("Ghost", walletId)).thenReturn(Optional.empty());
+
+        assertThrows(dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException.class,
+                () -> tagService.deleteTag("Ghost", walletId, userId));
+    }
+
+    // ==================== updateTag — edge cases ====================
+
+    @Test
+    void updateTag_BlankParentName_RemovesParent() {
+        TagRequest request = TagRequest.builder().build();
+        request.setParentName(""); // blank → remove parent
+
+        Tag tag = new Tag();
+        tag.setName("SubFood");
+        Tag oldParent = new Tag();
+        oldParent.setName("Food");
+        tag.setParent(oldParent);
+
+        when(tagRepository.findByNameIgnoreCaseAndWalletId("SubFood", walletId)).thenReturn(Optional.of(tag));
+
+        tagService.updateTag("SubFood", request, walletId, userId);
+
+        assertNull(tag.getParent());
+    }
+
+    @Test
+    void updateTag_DuplicateNewName_ThrowsException() {
+        TagRequest request = TagRequest.builder().build();
+        request.setName("ExistingTag");
+
+        Tag tag = new Tag();
+        tag.setName("OriginalName");
+
+        when(tagRepository.findByNameIgnoreCaseAndWalletId("OriginalName", walletId)).thenReturn(Optional.of(tag));
+        when(tagRepository.existsByNameIgnoreCaseAndWalletId("ExistingTag", walletId)).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> tagService.updateTag("OriginalName", request, walletId, userId));
     }
 }

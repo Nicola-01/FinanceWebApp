@@ -136,4 +136,34 @@ class PatAuthenticationFilterTest {
         assertTrue(responseBody.contains("Invalid PAT"));
         assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
+
+    @Test
+    void doFilterInternal_EmptyPatToken_Returns401() throws ServletException, IOException {
+        // Token con solo prefix, senza valore effettivo
+        when(request.getHeader("Authorization")).thenReturn("Bearer fin_pat_");
+
+        when(patService.validateToken("fin_pat_")).thenThrow(new InvalidTokenException("Empty token"));
+
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        when(response.getWriter()).thenReturn(printWriter);
+
+        patAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        verify(filterChain, never()).doFilter(any(), any());
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    @Test
+    void doFilterInternal_UnexpectedExceptionFromPatService_PropagatesException() {
+        String token = "fin_pat_something";
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
+        when(patService.validateToken(token)).thenThrow(new RuntimeException("DB connection failed"));
+
+        // L'eccezione non è InvalidTokenException, quindi non viene catturata e propaga
+        assertThrows(RuntimeException.class,
+                () -> patAuthenticationFilter.doFilterInternal(request, response, filterChain));
+    }
 }

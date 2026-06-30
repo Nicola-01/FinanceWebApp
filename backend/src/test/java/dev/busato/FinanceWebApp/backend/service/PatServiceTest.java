@@ -230,4 +230,84 @@ class PatServiceTest {
         verify(tokenRepository).save(token);
         assertEquals("[{\"walletId\":\"" + walletId + "\", \"permissions\":[\"READ\",\"WRITE\"]}]", token.getWalletPermissions());
     }
+
+    // ==================== createToken — edge cases ====================
+
+    @Test
+    void createToken_NullWalletPermissions_SkipsValidation() {
+        PatCreateRequest request = new PatCreateRequest();
+        request.setName("Simple PAT");
+        request.setWalletPermissions(null); // null → validateTokenPermissions does early return
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(tokenRepository.save(any(PersonalAccessToken.class))).thenAnswer(invocation -> {
+            PersonalAccessToken saved = invocation.getArgument(0);
+            saved.setId(tokenId);
+            return saved;
+        });
+
+        PatCreateResponse mockResponse = PatCreateResponse.builder().build();
+        when(patMapper.toCreateResponse(any(), any())).thenReturn(mockResponse);
+
+        assertDoesNotThrow(() -> patService.createToken(userId, request));
+        verify(tokenRepository).save(any());
+    }
+
+    @Test
+    void createToken_WritePermissionWithEditorAccess_Succeeds() {
+        PatCreateRequest request = new PatCreateRequest();
+        request.setName("Editor PAT");
+        WalletPermission perm = new WalletPermission(walletId, List.of("WRITE"));
+        request.setWalletPermissions(List.of(perm));
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+
+        WalletAccess access = new WalletAccess();
+        access.setRole(WalletAccess.WalletRole.EDITOR);
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.of(access));
+
+        when(tokenRepository.save(any(PersonalAccessToken.class))).thenAnswer(invocation -> {
+            PersonalAccessToken saved = invocation.getArgument(0);
+            saved.setId(tokenId);
+            return saved;
+        });
+
+        PatCreateResponse mockResponse = PatCreateResponse.builder().build();
+        when(patMapper.toCreateResponse(any(), any())).thenReturn(mockResponse);
+
+        assertDoesNotThrow(() -> patService.createToken(userId, request));
+    }
+
+    @Test
+    void createToken_WalletNotAccessible_ThrowsException() {
+        PatCreateRequest request = new PatCreateRequest();
+        request.setName("No Access PAT");
+        WalletPermission perm = new WalletPermission(walletId, List.of("WRITE"));
+        request.setWalletPermissions(List.of(perm));
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> patService.createToken(userId, request));
+    }
+
+    // ==================== updateToken — edge case ====================
+
+    @Test
+    void updateToken_TokenNotFound_ThrowsException() {
+        PatUpdateRequest request = new PatUpdateRequest();
+        when(tokenRepository.findByIdAndUserId(tokenId, userId)).thenReturn(Optional.empty());
+
+        assertThrows(InvalidTokenException.class, () -> patService.updateToken(tokenId, userId, request));
+    }
+
+    // ==================== addWalletToToken — edge case ====================
+
+    @Test
+    void addWalletToToken_TokenNotFound_ReturnsEarly() {
+        when(tokenRepository.findById(tokenId)).thenReturn(Optional.empty());
+
+        assertDoesNotThrow(() -> patService.addWalletToToken(tokenId, walletId));
+        verify(tokenRepository, never()).save(any());
+    }
 }

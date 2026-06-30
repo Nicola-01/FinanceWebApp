@@ -162,4 +162,131 @@ class TransactionServiceTest {
 
         verify(transactionRepository).delete(transaction);
     }
+
+    // ==================== createTransaction — edge cases ====================
+
+    @Test
+    void createTransaction_NameTooShort_ThrowsException() {
+        TransactionRequest request = TransactionRequest.builder().build();
+        request.setName("AB"); // < 3 chars
+        request.setAmount(new BigDecimal("50.00"));
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> transactionService.createTransaction(request, walletId, userId));
+    }
+
+    @Test
+    void createTransaction_NameTooLong_ThrowsException() {
+        TransactionRequest request = TransactionRequest.builder().build();
+        request.setName("A".repeat(41)); // > 40 chars
+        request.setAmount(new BigDecimal("50.00"));
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> transactionService.createTransaction(request, walletId, userId));
+    }
+
+    @Test
+    void createTransaction_NullTag_CreatesWithNullTag() {
+        TransactionRequest request = TransactionRequest.builder().build();
+        request.setName("Groceries");
+        request.setAmount(new BigDecimal("50.00"));
+        request.setType("EXPENSE");
+        // tag is null
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+
+        transactionService.createTransaction(request, walletId, userId);
+
+        verify(transactionRepository).save(any(Transaction.class));
+    }
+
+    @Test
+    void createTransaction_SubscriptionNotFound_ThrowsException() {
+        TransactionRequest request = TransactionRequest.builder().build();
+        request.setName("Netflix");
+        request.setAmount(new BigDecimal("15.99"));
+        request.setType("EXPENSE");
+        UUID subId = UUID.randomUUID();
+        request.setSubscriptionId(subId);
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(subscriptionRepository.findByIdAndWalletId(subId, walletId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> transactionService.createTransaction(request, walletId, userId));
+    }
+
+    @Test
+    void createTransaction_NullTransactionDate_DefaultsToToday() {
+        TransactionRequest request = TransactionRequest.builder().build();
+        request.setName("Groceries");
+        request.setAmount(new BigDecimal("50.00"));
+        request.setType("EXPENSE");
+        // transactionDate is null
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+
+        transactionService.createTransaction(request, walletId, userId);
+
+        verify(transactionRepository).save(any(Transaction.class));
+    }
+
+    // ==================== updateTransaction — edge cases ====================
+
+    @Test
+    void updateTransaction_TransactionNotFound_ThrowsException() {
+        TransactionRequest request = TransactionRequest.builder().build();
+        request.setAmount(new BigDecimal("10.00"));
+
+        when(transactionRepository.findByIdAndWalletId(transactionId, walletId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> transactionService.updateTransaction(transactionId, request, walletId, userId));
+    }
+
+    @Test
+    void updateTransaction_NameTooShort_ThrowsException() {
+        TransactionRequest request = TransactionRequest.builder().build();
+        request.setName("A"); // < 2 chars
+        request.setAmount(new BigDecimal("50.00"));
+
+        Transaction transaction = new Transaction();
+        transaction.setName("Old Name");
+        transaction.setAmount(new BigDecimal("50.00"));
+
+        when(transactionRepository.findByIdAndWalletId(transactionId, walletId)).thenReturn(Optional.of(transaction));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> transactionService.updateTransaction(transactionId, request, walletId, userId));
+    }
+
+    @Test
+    void updateTransaction_NegativeAmount_ThrowsException() {
+        TransactionRequest request = TransactionRequest.builder().build();
+        request.setAmount(new BigDecimal("-10.00"));
+
+        Transaction transaction = new Transaction();
+        transaction.setAmount(new BigDecimal("50.00"));
+
+        when(transactionRepository.findByIdAndWalletId(transactionId, walletId)).thenReturn(Optional.of(transaction));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> transactionService.updateTransaction(transactionId, request, walletId, userId));
+    }
+
+    // ==================== deleteTransaction — edge case ====================
+
+    @Test
+    void deleteTransaction_NotFound_ThrowsException() {
+        when(transactionRepository.findByIdAndWalletId(transactionId, walletId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> transactionService.deleteTransaction(transactionId, walletId, userId));
+    }
 }

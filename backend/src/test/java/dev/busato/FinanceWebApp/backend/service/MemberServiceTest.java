@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
@@ -194,5 +194,155 @@ class MemberServiceTest {
         memberService.removeMember(walletId, targetUserId, userId);
 
         assertEquals(WalletAccess.InvitationStatus.REVOKED, access.getStatus());
+    }
+
+    // ==================== inviteMember — edge cases ====================
+
+    @Test
+    void inviteMember_UserNotFoundInSystem_ReturnsStubResponse() {
+        MemberRequest request = new MemberRequest();
+        request.setUser("unknown@email.com");
+        request.setRole("VIEWER");
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(userRepository.findByUsernameIgnoreCaseOrEmailIgnoreCase("unknown@email.com", "unknown@email.com"))
+                .thenReturn(Optional.empty());
+
+        MemberResponse response = memberService.inviteMember(walletId, request, userId);
+
+        assertEquals("unknown@email.com", response.getUsername());
+        assertEquals("VIEWER", response.getRole());
+        assertEquals(WalletAccess.InvitationStatus.PENDING.name(), response.getStatus());
+    }
+
+    @Test
+    void inviteMember_RecentlyRejected_ThrowsException() {
+        MemberRequest request = new MemberRequest();
+        request.setUser("targetUser");
+        request.setRole("VIEWER");
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(userRepository.findByUsernameIgnoreCaseOrEmailIgnoreCase("targetUser", "targetUser"))
+                .thenReturn(Optional.of(targetUser));
+        when(walletAccessRepository.existsByWalletIdAndUserIdAndStatusIn(eq(walletId), eq(targetUserId), any()))
+                .thenReturn(false);
+        when(walletAccessRepository.existsByWalletIdAndUserIdAndStatusInAndUpdatedAtAfter(eq(walletId), eq(targetUserId), any(), any()))
+                .thenReturn(true); // Rejected/left within 3 days
+
+        assertThrows(IllegalArgumentException.class, () -> memberService.inviteMember(walletId, request, userId));
+    }
+
+    @Test
+    void inviteMember_EmailSendFails_ThrowsRuntimeException() throws Exception {
+        MemberRequest request = new MemberRequest();
+        request.setUser("targetUser");
+        request.setRole("VIEWER");
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+        when(userRepository.findByUsernameIgnoreCaseOrEmailIgnoreCase("targetUser", "targetUser"))
+                .thenReturn(Optional.of(targetUser));
+        when(walletAccessRepository.existsByWalletIdAndUserIdAndStatusIn(eq(walletId), eq(targetUserId), any()))
+                .thenReturn(false);
+        when(walletAccessRepository.existsByWalletIdAndUserIdAndStatusInAndUpdatedAtAfter(eq(walletId), eq(targetUserId), any(), any()))
+                .thenReturn(false);
+
+        User owner = new User();
+        owner.setUsername("owner");
+        when(userRepository.findById(userId)).thenReturn(Optional.of(owner));
+
+        doThrow(new RuntimeException("SMTP error")).when(sendEmailService)
+                .sendWalletInvitation(any(), any(), any(), anyBoolean());
+
+        assertThrows(RuntimeException.class, () -> memberService.inviteMember(walletId, request, userId));
+    }
+
+    @Test
+    void inviteMember_WalletNotFound_ThrowsWalletNotFoundException() {
+        MemberRequest request = new MemberRequest();
+        request.setUser("targetUser");
+        request.setRole("VIEWER");
+
+        when(walletRepository.findById(walletId)).thenReturn(Optional.empty());
+
+        assertThrows(dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException.class,
+                () -> memberService.inviteMember(walletId, request, userId));
+    }
+
+    // ==================== removeMember — edge cases ====================
+
+    @Test
+    void removeMember_AttemptToRemoveOwner_ThrowsException() {
+        WalletAccess access = new WalletAccess();
+        access.setRole(WalletAccess.WalletRole.OWNER);
+
+        when(walletAccessRepository.findByWalletIdAndUserId(walletId, targetUserId))
+                .thenReturn(Optional.of(access));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> memberService.removeMember(walletId, targetUserId, userId));
+    }
+
+    @Test
+    void removeMember_MemberNotFound_ThrowsException() {
+        when(walletAccessRepository.findByWalletIdAndUserId(walletId, targetUserId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> memberService.removeMember(walletId, targetUserId, userId));
+    }
+
+    // ==================== getInvites ====================
+
+    @Test
+    void getInvites_ReturnsPendingInvites() {
+        User invitedUser = new User();
+        invitedUser.setId(targetUserId);
+
+        WalletAccess access = new WalletAccess();
+        access.setStatus(WalletAccess.InvitationStatus.PENDING);
+        access.setWallet(wallet);
+
+        when(walletAccessRepository.findAllByUserIdAndStatus(targetUserId, WalletAccess.InvitationStatus.PENDING))
+                .thenReturn(List.of(access));
+
+        WalletAccess ownerAccess = new WalletAccess();
+        User ownerUser = new User();
+        ownerUser.setUsername("walletOwner");
+        ownerAccess.setUser(ownerUser);
+
+        when(walletAccessRepository.findByWalletIdAndRole(walletId, WalletAccess.WalletRole.OWNER))
+                .thenReturn(Optional.of(ownerAccess));
+
+        when(memberMapper.mapToWalletInviteResponse(any(), eq("walletOwner")))
+                .thenReturn(dev.busato.FinanceWebApp.backend.dto.WalletInviteResponse.builder().build());
+
+        var result = memberService.getInvites(invitedUser);
+
+        assertEquals(1, result.size());
+    }
+
+    // ==================== setStatus ====================
+
+    @Test
+    void setStatus_ValidRequest_UpdatesStatus() {
+        WalletAccess access = new WalletAccess();
+        access.setStatus(WalletAccess.InvitationStatus.PENDING);
+
+        when(walletAccessRepository.findByWalletIdAndUserId(walletId, targetUserId))
+                .thenReturn(Optional.of(access));
+
+        memberService.setStatus(targetUserId, walletId, WalletAccess.InvitationStatus.ACCEPTED);
+
+        assertEquals(WalletAccess.InvitationStatus.ACCEPTED, access.getStatus());
+        verify(walletAccessRepository).save(access);
+    }
+
+    @Test
+    void setStatus_MemberNotFound_ThrowsException() {
+        when(walletAccessRepository.findByWalletIdAndUserId(walletId, targetUserId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> memberService.setStatus(targetUserId, walletId, WalletAccess.InvitationStatus.ACCEPTED));
     }
 }

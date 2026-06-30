@@ -192,4 +192,55 @@ class WalletServiceTest {
         List<WalletResponse> responses = walletService.getWallets(userId);
         assertEquals(1, responses.size());
     }
+
+    // ==================== createWallet — edge case ====================
+
+    @Test
+    void createWallet_NameTooShort_ThrowsException() {
+        WalletRequest request = new WalletRequest();
+        request.setName("AB"); // < 3 chars
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThrows(IllegalArgumentException.class, () -> walletService.createWallet(request, userId));
+    }
+
+    @Test
+    void createWallet_NameTooLong_ThrowsException() {
+        WalletRequest request = new WalletRequest();
+        request.setName("A".repeat(26)); // > 25 chars
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        assertThrows(IllegalArgumentException.class, () -> walletService.createWallet(request, userId));
+    }
+
+    // ==================== updateWallet — edge case ====================
+
+    @Test
+    void updateWallet_NameTooShort_ThrowsException() {
+        WalletRequest request = new WalletRequest();
+        request.setName("AB"); // < 3 chars
+
+        assertThrows(IllegalArgumentException.class, () -> walletService.updateWallet(walletId, request, userId));
+    }
+
+    // ==================== removeWallet — edge case ====================
+
+    @Test
+    void removeWallet_NoAccess_ThrowsUnauthorizedAccessException() {
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.empty());
+
+        assertThrows(UnauthorizedAccessException.class, () -> walletService.removeWallet(walletId, userId));
+    }
+
+    // ==================== getWallet — edge case ====================
+
+    @Test
+    void getWallet_WalletNotFound_ThrowsWalletNotFoundException() {
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.empty());
+
+        assertThrows(dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException.class,
+                () -> walletService.getWallet(userId, walletId));
+    }
 }

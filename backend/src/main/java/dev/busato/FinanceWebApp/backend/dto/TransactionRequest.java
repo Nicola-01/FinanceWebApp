@@ -7,9 +7,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import jakarta.validation.constraints.NotBlank;
+
 @Data
 @Builder
 public class TransactionRequest {
+    @NotBlank(message = "Name is required")
     private String name;
 
     private String tag;

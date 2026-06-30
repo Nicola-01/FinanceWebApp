@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,7 +37,7 @@ public class MembersController {
     @PreAuthorize("!principal.demo")
     public ResponseEntity<MemberResponse> inviteMember(
             @PathVariable UUID walletID,
-            @RequestBody MemberRequest request,
+            @Valid @RequestBody MemberRequest request,
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(memberService.inviteMember(walletID, request, user.getId()));
     }
@@ -47,7 +48,7 @@ public class MembersController {
     public ResponseEntity<MemberResponse> updateMemberRole(
             @PathVariable UUID walletID,
             @PathVariable UUID memberID,
-            @RequestBody MemberRequest request,
+            @Valid @RequestBody MemberRequest request,
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(memberService.updateMemberRole(walletID, memberID, request, user.getId()));
     }

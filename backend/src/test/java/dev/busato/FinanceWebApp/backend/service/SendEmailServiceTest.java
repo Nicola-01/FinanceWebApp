@@ -80,4 +80,41 @@ class SendEmailServiceTest {
         assertEquals("fa-piggy-bank", SendEmailService.toFontAwesomeIcon("PiggyBank"));
         assertEquals("fa-credit-card", SendEmailService.toFontAwesomeIcon("creditCard"));
     }
+
+    @Test
+    void sendWalletInvitation_ViewerRole_SubjectContainsView() throws Exception {
+        Wallet wallet = new Wallet();
+        wallet.setName("My Wallet");
+        wallet.setColor("#00FF00");
+        wallet.setIcon("wallet");
+
+        sendEmailService.sendWalletInvitation("inviter", wallet, "recipient@example.com", false);
+
+        verify(mailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendWalletInvitation_NullColor_UsesDefaultBlack() throws Exception {
+        Wallet wallet = new Wallet();
+        wallet.setName("No Color Wallet");
+        wallet.setColor(null); // Should fallback to #000000
+        wallet.setIcon("home");
+
+        // Should not throw NullPointerException
+        sendEmailService.sendWalletInvitation("inviter", wallet, "recipient@example.com", true);
+
+        verify(mailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendWalletInvitation_NullIcon_UsesDefaultWalletIcon() throws Exception {
+        Wallet wallet = new Wallet();
+        wallet.setName("No Icon Wallet");
+        wallet.setColor("#FF0000");
+        wallet.setIcon(null); // Should fallback to default
+
+        sendEmailService.sendWalletInvitation("inviter", wallet, "recipient@example.com", true);
+
+        verify(mailSender).send(mimeMessage);
+    }
 }

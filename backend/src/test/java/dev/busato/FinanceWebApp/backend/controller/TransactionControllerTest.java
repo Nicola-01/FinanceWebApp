@@ -2,85 +2,97 @@ package dev.busato.FinanceWebApp.backend.controller;
 
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
-import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.TransactionService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
-class TransactionControllerTest {
+@WebMvcTest(controllers = TransactionController.class, 
+            excludeAutoConfiguration = {
+                org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
+            })
+class TransactionControllerTest extends BaseWebMvcTest {
 
-    @Mock
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
     private TransactionService transactionService;
 
-    @InjectMocks
-    private TransactionController transactionController;
+    @Test
+    void getTransactions_ShouldReturn200() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        TransactionResponse mockResponse = TransactionResponse.builder().name("Lunch").build();
 
-    private User user;
-    private UUID walletId;
-    private UUID transactionId;
+        when(transactionService.getTransactionsByWalletID(eq(walletId), any(UUID.class)))
+                .thenReturn(List.of(mockResponse));
 
-    @BeforeEach
-    void setUp() {
-        user = new User();
-        user.setId(UUID.randomUUID());
-        walletId = UUID.randomUUID();
-        transactionId = UUID.randomUUID();
+        mockMvc.perform(get("/api/transactions/{walletID}", walletId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Lunch"));
     }
 
     @Test
-    void getTransactionsByWallet_ReturnsOk() {
-        List<TransactionResponse> responses = List.of(TransactionResponse.builder().build());
-        when(transactionService.getTransactionsByWalletID(walletId, user.getId())).thenReturn(responses);
+    void createTransaction_ShouldReturn200() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        TransactionRequest request = TransactionRequest.builder().name("Lunch").build();
+        TransactionResponse mockResponse = TransactionResponse.builder().name("Lunch").build();
 
-        ResponseEntity<List<TransactionResponse>> response = transactionController.getTransactions(walletId, user);
+        when(transactionService.createTransaction(any(TransactionRequest.class), eq(walletId), any(UUID.class)))
+                .thenReturn(mockResponse);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(responses, response.getBody());
+        mockMvc.perform(post("/api/transactions/{walletID}", walletId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Lunch"));
     }
 
     @Test
-    void createTransaction_ReturnsOk() {
-        TransactionRequest request = TransactionRequest.builder().build();
-        TransactionResponse mockResponse = TransactionResponse.builder().build();
-        when(transactionService.createTransaction(request, walletId, user.getId())).thenReturn(mockResponse);
+    void createTransaction_WithInvalidPayload_ShouldReturn400() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        TransactionRequest request = TransactionRequest.builder().build(); // Missing name
 
-        ResponseEntity<TransactionResponse> response = transactionController.createTransaction(request, walletId, user);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockResponse, response.getBody());
+        mockMvc.perform(post("/api/transactions/{walletID}", walletId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Validation Error"))
+                .andExpect(jsonPath("$.detail").value("Invalid input data"));
     }
 
     @Test
-    void updateTransaction_ReturnsOk() {
-        TransactionRequest request = TransactionRequest.builder().build();
-        TransactionResponse mockResponse = TransactionResponse.builder().build();
-        when(transactionService.updateTransaction(transactionId, request, walletId, user.getId())).thenReturn(mockResponse);
+    void updateTransaction_ShouldReturn200() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        UUID transactionId = UUID.randomUUID();
+        TransactionRequest request = TransactionRequest.builder().name("Dinner").build();
+        TransactionResponse mockResponse = TransactionResponse.builder().name("Dinner").build();
 
-        ResponseEntity<TransactionResponse> response = transactionController.updateTransaction(walletId, transactionId, request, user);
+        when(transactionService.updateTransaction(eq(transactionId), any(TransactionRequest.class), eq(walletId), any(UUID.class)))
+                .thenReturn(mockResponse);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockResponse, response.getBody());
+        mockMvc.perform(put("/api/transactions/{walletID}/{transactionID}", walletId, transactionId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Dinner"));
     }
 
     @Test
-    void deleteTransaction_ReturnsNoContent() {
-        ResponseEntity<Void> response = transactionController.deleteTransaction(walletId, transactionId, user);
+    void deleteTransaction_ShouldReturn204() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        UUID transactionId = UUID.randomUUID();
 
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(transactionService).deleteTransaction(transactionId, walletId, user.getId());
+        mockMvc.perform(delete("/api/transactions/{walletID}/{transactionID}", walletId, transactionId))
+                .andExpect(status().isNoContent());
+
+        verify(transactionService).deleteTransaction(eq(transactionId), eq(walletId), any(UUID.class));
     }
 }

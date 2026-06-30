@@ -165,4 +165,174 @@ class RegisterServiceTest {
         verify(mockCache).evict(user.getId());
         assertEquals(Registrations.InvitationStatus.ACCEPTED, validRegistration.getStatus());
     }
+
+    // ==================== getRegisterInvite — edge cases ====================
+
+    @Test
+    void getRegisterInvite_InvalidToken_ThrowsException() {
+        when(userInvitationRepository.findByToken("badToken")).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> registerService.getRegisterInvite("badToken"));
+    }
+
+    // ==================== registerViaInvite — edge cases ====================
+
+    @Test
+    void registerViaInvite_StatusRevoked_ThrowsException() {
+        validRegistration.setStatus(Registrations.InvitationStatus.REVOKED);
+        when(userInvitationRepository.findByToken("validToken")).thenReturn(Optional.of(validRegistration));
+
+        RegisterInviteRequest request = new RegisterInviteRequest();
+        assertThrows(IllegalArgumentException.class, () -> registerService.registerViaInvite("validToken", request));
+    }
+
+    @Test
+    void registerViaInvite_UsernameTaken_ThrowsException() {
+        when(userInvitationRepository.findByToken("validToken")).thenReturn(Optional.of(validRegistration));
+        when(userRepository.findByUsernameIgnoreCaseOrEmailIgnoreCase("takenUser", "takenUser"))
+                .thenReturn(Optional.of(new User()));
+
+        RegisterInviteRequest request = new RegisterInviteRequest();
+        request.setUsername("takenUser");
+        request.setPassword("ValidP@ss1");
+
+        assertThrows(IllegalArgumentException.class, () -> registerService.registerViaInvite("validToken", request));
+    }
+
+    @Test
+    void registerViaInvite_TokenNotFound_ThrowsException() {
+        when(userInvitationRepository.findByToken("unknown")).thenReturn(Optional.empty());
+
+        RegisterInviteRequest request = new RegisterInviteRequest();
+        assertThrows(IllegalArgumentException.class, () -> registerService.registerViaInvite("unknown", request));
+    }
+
+    // ==================== requestPasswordReset — edge cases ====================
+
+    @Test
+    void requestPasswordReset_EmailNotFound_ThrowsException() {
+        when(userRepository.findByEmailIgnoreCase("unknown@x.com")).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> registerService.requestPasswordReset("unknown@x.com"));
+    }
+
+    @Test
+    void requestPasswordReset_CooldownExpired_DeletesOldAndCreatesNew() throws Exception {
+        User user = new User();
+        user.setEmail("test@example.com");
+
+        Registrations existing = new Registrations();
+        existing.setCreatedAt(LocalDateTime.now().minusSeconds(120)); // 2 min ago → cooldown passed
+
+        when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
+        when(userInvitationRepository.findByEmailIgnoreCaseAndStatus("test@example.com", Registrations.InvitationStatus.FORGOTPASSWORD))
+                .thenReturn(Optional.of(existing));
+
+        registerService.requestPasswordReset("test@example.com");
+
+        verify(userInvitationRepository).deleteByEmailIgnoreCaseAndStatus("test@example.com", Registrations.InvitationStatus.FORGOTPASSWORD);
+        verify(userInvitationRepository).save(any(Registrations.class));
+    }
+
+    @Test
+    void requestPasswordReset_EmailSendFails_ThrowsRuntimeException() throws Exception {
+        User user = new User();
+        user.setEmail("test@example.com");
+
+        when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
+        when(userInvitationRepository.findByEmailIgnoreCaseAndStatus(any(), any())).thenReturn(Optional.empty());
+
+        doThrow(new RuntimeException("SMTP down")).when(sendEmailService).sendForgotPasswordEmail(any(), any(), any());
+
+        assertThrows(RuntimeException.class, () -> registerService.requestPasswordReset("test@example.com"));
+    }
+
+    // ==================== getResetPasswordInvite — all 3 branches ====================
+
+    @Test
+    void getResetPasswordInvite_TokenNotFound_ThrowsException() {
+        when(userInvitationRepository.findByToken("badReset")).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> registerService.getResetPasswordInvite("badReset"));
+    }
+
+    @Test
+    void getResetPasswordInvite_StatusNotForgotPassword_ThrowsException() {
+        Registrations record = new Registrations();
+        record.setStatus(Registrations.InvitationStatus.PENDING);
+        record.setEmail("test@example.com");
+        when(userInvitationRepository.findByToken("wrongStatus")).thenReturn(Optional.of(record));
+
+        assertThrows(IllegalArgumentException.class, () -> registerService.getResetPasswordInvite("wrongStatus"));
+    }
+
+    @Test
+    void getResetPasswordInvite_Expired_ThrowsException() {
+        Registrations record = new Registrations();
+        record.setStatus(Registrations.InvitationStatus.FORGOTPASSWORD);
+        record.setExpiresAt(LocalDateTime.now().minusHours(1));
+        record.setEmail("test@example.com");
+        when(userInvitationRepository.findByToken("expired")).thenReturn(Optional.of(record));
+
+        assertThrows(IllegalArgumentException.class, () -> registerService.getResetPasswordInvite("expired"));
+    }
+
+    @Test
+    void getResetPasswordInvite_Valid_ReturnsResponse() {
+        Registrations record = new Registrations();
+        record.setStatus(Registrations.InvitationStatus.FORGOTPASSWORD);
+        record.setExpiresAt(LocalDateTime.now().plusHours(1));
+        record.setEmail("test@example.com");
+        record.setCreatedAt(LocalDateTime.now());
+        when(userInvitationRepository.findByToken("validReset")).thenReturn(Optional.of(record));
+
+        RegisterInviteResponse response = registerService.getResetPasswordInvite("validReset");
+        assertNotNull(response);
+    }
+
+    // ==================== resetPassword — edge cases ====================
+
+    @Test
+    void resetPassword_PasswordMismatch_ThrowsException() {
+        validRegistration.setStatus(Registrations.InvitationStatus.FORGOTPASSWORD);
+        when(userInvitationRepository.findByToken("validToken")).thenReturn(Optional.of(validRegistration));
+
+        ResetPasswordRequest request = new ResetPasswordRequest();
+        request.setNewPassword("NewSecureP@ss1");
+        request.setConfirmPassword("DifferentP@ss2");
+
+        assertThrows(IllegalArgumentException.class, () -> registerService.resetPassword("validToken", request));
+    }
+
+    @Test
+    void resetPassword_WeakPassword_ThrowsException() {
+        validRegistration.setStatus(Registrations.InvitationStatus.FORGOTPASSWORD);
+        when(userInvitationRepository.findByToken("validToken")).thenReturn(Optional.of(validRegistration));
+
+        ResetPasswordRequest request = new ResetPasswordRequest();
+        request.setNewPassword("weak");
+        request.setConfirmPassword("weak");
+
+        assertThrows(IllegalArgumentException.class, () -> registerService.resetPassword("validToken", request));
+    }
+
+    @Test
+    void resetPassword_NullCache_SkipsCacheEviction() {
+        validRegistration.setStatus(Registrations.InvitationStatus.FORGOTPASSWORD);
+        when(userInvitationRepository.findByToken("validToken")).thenReturn(Optional.of(validRegistration));
+
+        User user = new User();
+        user.setId(UUID.randomUUID());
+        user.setEmail("test@example.com");
+        user.setTokenVersion(1);
+
+        when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.encode("NewSecureP@ss1")).thenReturn("hashed");
+        when(cacheManager.getCache("tokenVersions")).thenReturn(null); // Cache is null
+
+        ResetPasswordRequest request = new ResetPasswordRequest();
+        request.setNewPassword("NewSecureP@ss1");
+        request.setConfirmPassword("NewSecureP@ss1");
+
+        // Should NOT throw NullPointerException — the null check protects this
+        assertDoesNotThrow(() -> registerService.resetPassword("validToken", request));
+        assertEquals(Registrations.InvitationStatus.ACCEPTED, validRegistration.getStatus());
+    }
 }

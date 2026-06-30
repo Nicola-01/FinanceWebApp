@@ -262,4 +262,128 @@ class WalletSecurityTest {
         setupSecurityContext(new PersonalAccessToken());
         assertThrows(AccessDeniedException.class, () -> walletSecurity.preventPatAccess());
     }
+
+    // ==================== verifyPatPermissions — edge case ====================
+
+    @Test
+    void hasWriteAccess_WithPatPermissionForDifferentWallet_ThrowsPermissionDeniedException() throws Exception {
+        mockAccess.setRole(WalletAccess.WalletRole.EDITOR);
+        mockAccess.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.of(mockAccess));
+
+        // PAT con permessi WRITE ma per un wallet DIVERSO
+        UUID differentWalletId = UUID.randomUUID();
+        PersonalAccessToken pat = new PersonalAccessToken();
+        pat.setWalletPermissions("[{\"walletId\":\"" + differentWalletId + "\", \"permissions\":[\"WRITE\"]}]");
+        setupSecurityContext(pat);
+
+        WalletSecurity.PatWalletPermission perm = new WalletSecurity.PatWalletPermission();
+        perm.setWalletId(differentWalletId.toString());
+        perm.setPermissions(List.of("WRITE"));
+        when(objectMapper.readValue(any(String.class), any(TypeReference.class))).thenReturn(List.of(perm));
+
+        assertThrows(PermissionDeniedException.class, () -> walletSecurity.hasWriteAccess(userId, walletId));
+    }
+
+    @Test
+    void hasWriteAccess_WithPatNullPermissions_ThrowsPermissionDeniedException() {
+        mockAccess.setRole(WalletAccess.WalletRole.EDITOR);
+        mockAccess.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.of(mockAccess));
+
+        PersonalAccessToken pat = new PersonalAccessToken();
+        pat.setWalletPermissions(null);
+        setupSecurityContext(pat);
+
+        assertThrows(PermissionDeniedException.class, () -> walletSecurity.hasWriteAccess(userId, walletId));
+    }
+
+    @Test
+    void hasWriteAccess_WithPatBlankPermissions_ThrowsPermissionDeniedException() {
+        mockAccess.setRole(WalletAccess.WalletRole.EDITOR);
+        mockAccess.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.of(mockAccess));
+
+        PersonalAccessToken pat = new PersonalAccessToken();
+        pat.setWalletPermissions("   ");
+        setupSecurityContext(pat);
+
+        assertThrows(PermissionDeniedException.class, () -> walletSecurity.hasWriteAccess(userId, walletId));
+    }
+
+    @Test
+    void hasReadAccess_WithPatWritePermission_ReturnsTrue() throws Exception {
+        // WRITE implica READ — un PAT con solo WRITE deve poter leggere
+        mockAccess.setRole(WalletAccess.WalletRole.VIEWER);
+        mockAccess.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.of(mockAccess));
+
+        PersonalAccessToken pat = new PersonalAccessToken();
+        pat.setWalletPermissions("[{\"walletId\":\"" + walletId + "\", \"permissions\":[\"WRITE\"]}]");
+        setupSecurityContext(pat);
+
+        WalletSecurity.PatWalletPermission perm = new WalletSecurity.PatWalletPermission();
+        perm.setWalletId(walletId.toString());
+        perm.setPermissions(List.of("WRITE"));
+        when(objectMapper.readValue(any(String.class), any(TypeReference.class))).thenReturn(List.of(perm));
+
+        assertTrue(walletSecurity.hasReadAccess(userId, walletId));
+    }
+
+    @Test
+    void hasReadAccess_UserIsPending_ThrowsPermissionDeniedException() {
+        mockAccess.setRole(WalletAccess.WalletRole.VIEWER);
+        mockAccess.setStatus(WalletAccess.InvitationStatus.PENDING);
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.of(mockAccess));
+
+        assertThrows(PermissionDeniedException.class, () -> walletSecurity.hasReadAccess(userId, walletId));
+    }
+
+    @Test
+    void hasWriteAccess_UserIsOwnerAccepted_ReturnsTrue() {
+        // OWNER con status ACCEPTED deve avere write access (non è VIEWER)
+        mockAccess.setRole(WalletAccess.WalletRole.OWNER);
+        mockAccess.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.of(mockAccess));
+
+        SecurityContextHolder.clearContext();
+
+        assertTrue(walletSecurity.hasWriteAccess(userId, walletId));
+    }
+
+    @Test
+    void hasWriteAccess_WithPatCorruptedJson_ThrowsPermissionDeniedException() throws Exception {
+        mockAccess.setRole(WalletAccess.WalletRole.EDITOR);
+        mockAccess.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.of(mockAccess));
+
+        PersonalAccessToken pat = new PersonalAccessToken();
+        pat.setWalletPermissions("{corrupted json}");
+        setupSecurityContext(pat);
+
+        when(objectMapper.readValue(any(String.class), any(TypeReference.class)))
+                .thenThrow(new RuntimeException("Corrupted JSON"));
+
+        assertThrows(PermissionDeniedException.class, () -> walletSecurity.hasWriteAccess(userId, walletId));
+    }
+
+    // ==================== getWalletAccess — WalletNotFoundException diretti ====================
+
+    @Test
+    void isWalletOwner_NoWalletAccess_ThrowsWalletNotFoundException() {
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.empty());
+        assertThrows(WalletNotFoundException.class, () -> walletSecurity.isWalletOwner(userId, walletId));
+    }
+
+    @Test
+    void hasWriteAccess_NoWalletAccess_ThrowsWalletNotFoundException() {
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.empty());
+        assertThrows(WalletNotFoundException.class, () -> walletSecurity.hasWriteAccess(userId, walletId));
+    }
+
+    @Test
+    void hasReadAccess_NoWalletAccess_ThrowsWalletNotFoundException() {
+        when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId)).thenReturn(Optional.empty());
+        assertThrows(WalletNotFoundException.class, () -> walletSecurity.hasReadAccess(userId, walletId));
+    }
 }

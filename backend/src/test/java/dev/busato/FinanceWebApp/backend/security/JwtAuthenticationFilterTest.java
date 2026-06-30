@@ -15,12 +15,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -177,5 +181,70 @@ class JwtAuthenticationFilterTest {
 
         verify(filterChain).doFilter(request, response);
         assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    @Test
+    void doFilterInternal_TokenInvalidByJwtService_DoesNotAuthenticate() throws ServletException, IOException {
+        String token = "invalid_sig_token";
+        String username = "user@test.com";
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(jwtService.isRefreshToken(token)).thenReturn(false);
+        when(jwtService.extractUsername(token)).thenReturn(username);
+
+        User mockUser = new User();
+        mockUser.setUsername(username);
+
+        when(userDetailsService.loadUserByUsername(username)).thenReturn(mockUser);
+        when(jwtService.isTokenValid(token, mockUser)).thenReturn(false);
+
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        verify(filterChain).doFilter(request, response);
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    @Test
+    void doFilterInternal_UserDetailsNotInstanceOfUser_AuthenticatesWithoutVersionCheck() throws ServletException, IOException {
+        String token = "valid_token";
+        String username = "user@test.com";
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(jwtService.isRefreshToken(token)).thenReturn(false);
+        when(jwtService.extractUsername(token)).thenReturn(username);
+
+        // UserDetails che NON è instanceof User — salta il double-check tokenVersion
+        UserDetails nonUserDetails = org.springframework.security.core.userdetails.User
+                .withUsername(username)
+                .password("password")
+                .authorities(Collections.emptyList())
+                .build();
+
+        when(userDetailsService.loadUserByUsername(username)).thenReturn(nonUserDetails);
+        when(jwtService.isTokenValid(token, nonUserDetails)).thenReturn(true);
+
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        verify(filterChain).doFilter(request, response);
+        // Deve autenticare senza mai chiamare userService.getTokenVersion
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        assertNotNull(auth);
+        assertEquals(nonUserDetails, auth.getPrincipal());
+        verify(userService, never()).getTokenVersion(any());
+    }
+
+    @Test
+    void doFilterInternal_ExtractUsernameReturnsNull_DoesNotAuthenticate() throws ServletException, IOException {
+        String token = "token_with_null_subject";
+
+        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+        when(jwtService.isRefreshToken(token)).thenReturn(false);
+        when(jwtService.extractUsername(token)).thenReturn(null);
+
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+        verify(filterChain).doFilter(request, response);
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(userDetailsService, never()).loadUserByUsername(any());
     }
 }

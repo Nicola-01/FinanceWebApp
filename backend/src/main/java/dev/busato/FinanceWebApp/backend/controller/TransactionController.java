@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,7 +25,7 @@ public class TransactionController {
     }
 
     @PostMapping("/{walletID}")
-    public ResponseEntity<TransactionResponse> createTransaction(@RequestBody TransactionRequest request,
+    public ResponseEntity<TransactionResponse> createTransaction(@Valid @RequestBody TransactionRequest request,
                                                                 @PathVariable UUID walletID,
                                                                 @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(transactionService.createTransaction(request, walletID, user.getId()));
@@ -34,7 +35,7 @@ public class TransactionController {
     public ResponseEntity<TransactionResponse> updateTransaction(
             @PathVariable UUID walletID,
             @PathVariable UUID transactionID,
-            @RequestBody TransactionRequest request,
+            @Valid @RequestBody TransactionRequest request,
             @AuthenticationPrincipal User user) {
 
         return ResponseEntity.ok(transactionService.updateTransaction(transactionID, request, walletID, user.getId()));

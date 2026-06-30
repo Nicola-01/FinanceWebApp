@@ -2,88 +2,106 @@ package dev.busato.FinanceWebApp.backend.controller;
 
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
-import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.SubscriptionService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.http.MediaType;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
-class SubscriptionControllerTest {
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 
-    @Mock
+@WebMvcTest(controllers = SubscriptionController.class, 
+            excludeAutoConfiguration = {SecurityAutoConfiguration.class, SecurityFilterAutoConfiguration.class})
+public class SubscriptionControllerTest extends BaseWebMvcTest {
+
+    @MockitoBean
     private SubscriptionService subscriptionService;
 
-    @InjectMocks
-    private SubscriptionController subscriptionController;
+    @Test
+    void getSubscriptionByWallet_ShouldReturn200() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        List<SubscriptionResponse> mockResponse = List.of();
+        
+        when(subscriptionService.getSubscriptionsByWalletID(eq(walletId), any(UUID.class))).thenReturn(mockResponse);
 
-    private User user;
-    private UUID userId;
-    private UUID walletId;
-    private UUID subscriptionId;
+        mockMvc.perform(get("/api/subscription/{walletID}", walletId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("[]"));
 
-    @BeforeEach
-    void setUp() {
-        userId = UUID.randomUUID();
-        walletId = UUID.randomUUID();
-        subscriptionId = UUID.randomUUID();
-
-        user = new User();
-        user.setId(userId);
+        verify(subscriptionService).getSubscriptionsByWalletID(walletId, mockUser.getId());
     }
 
     @Test
-    void getSubscriptionByWallet_ReturnsOk() {
-        List<SubscriptionResponse> responses = List.of(SubscriptionResponse.builder().build());
-        when(subscriptionService.getSubscriptionsByWalletID(walletId, userId)).thenReturn(responses);
+    void createSubscription_ShouldReturn200() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        SubscriptionRequest request = SubscriptionRequest.builder()
+                .name("Netflix")
+                .amount(new BigDecimal("15.99"))
+                .type("EXPENSE")
+                .build();
 
-        ResponseEntity<List<SubscriptionResponse>> response = subscriptionController.getSubscriptionByWallet(walletId, user);
+        SubscriptionResponse mockResponse = SubscriptionResponse.builder().name("Netflix").build();
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(responses, response.getBody());
+        when(subscriptionService.createSubscription(any(SubscriptionRequest.class), eq(walletId), any(UUID.class)))
+                .thenReturn(mockResponse);
+
+        mockMvc.perform(post("/api/subscription/{walletID}", walletId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Netflix"));
     }
 
     @Test
-    void createSubscription_ReturnsOk() {
-        SubscriptionRequest request = SubscriptionRequest.builder().build();
-        SubscriptionResponse mockResponse = SubscriptionResponse.builder().build();
-        when(subscriptionService.createSubscription(request, walletId, userId)).thenReturn(mockResponse);
+    void updateSubscription_ShouldReturn200() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        UUID subId = UUID.randomUUID();
+        SubscriptionRequest request = SubscriptionRequest.builder()
+                .name("Spotify")
+                .amount(new BigDecimal("9.99"))
+                .type("EXPENSE")
+                .build();
 
-        ResponseEntity<SubscriptionResponse> response = subscriptionController.createSubscription(request, walletId, user);
+        SubscriptionResponse mockResponse = SubscriptionResponse.builder().name("Spotify").build();
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockResponse, response.getBody());
+        when(subscriptionService.updateSubscription(eq(subId), any(SubscriptionRequest.class), eq(walletId), any(UUID.class)))
+                .thenReturn(mockResponse);
+
+        mockMvc.perform(put("/api/subscription/{walletID}/{subscriptionID}", walletId, subId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Spotify"));
     }
 
     @Test
-    void updateSubscription_ReturnsOk() {
-        SubscriptionRequest request = SubscriptionRequest.builder().build();
-        SubscriptionResponse mockResponse = SubscriptionResponse.builder().build();
-        when(subscriptionService.updateSubscription(subscriptionId, request, walletId, userId)).thenReturn(mockResponse);
+    void deleteSubscription_ShouldReturn204() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        UUID subId = UUID.randomUUID();
 
-        ResponseEntity<SubscriptionResponse> response = subscriptionController.updateSubscription(walletId, subscriptionId, request, user);
+        mockMvc.perform(delete("/api/subscription/{walletID}/{subscriptionID}", walletId, subId))
+                .andDo(print())
+                .andExpect(status().isNoContent());
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockResponse, response.getBody());
-    }
-
-    @Test
-    void deleteSubscription_ReturnsNoContent() {
-        ResponseEntity<Void> response = subscriptionController.deleteSubscription(walletId, subscriptionId, user);
-
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(subscriptionService).deleteSubscription(subscriptionId, walletId, userId);
+        verify(subscriptionService).deleteSubscription(eq(subId), eq(walletId), any(UUID.class));
     }
 }

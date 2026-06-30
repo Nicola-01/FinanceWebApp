@@ -25,7 +25,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AdminUserInviteServiceTest {
@@ -135,5 +135,86 @@ class AdminUserInviteServiceTest {
         adminUserInviteService.revokeInvite("test@example.com");
 
         assertEquals(Registrations.InvitationStatus.REVOKED, invite.getStatus());
+    }
+
+    // ==================== getUsersWithStats — edge cases ====================
+
+    @Test
+    void getUsersWithStats_ExcludesDemoWallet() {
+        when(userRepository.findAllByRole(User.Role.USER)).thenReturn(List.of(user));
+
+        UserResponse mappedResponse = UserResponse.builder().build();
+        when(userMapper.mapToResponse(user)).thenReturn(mappedResponse);
+
+        WalletAccess demoAccess = new WalletAccess();
+        Wallet demoWallet = new Wallet();
+        demoWallet.setId(UUID.randomUUID());
+        demoWallet.setName("Portafoglio Demo"); // Should be excluded
+        demoAccess.setWallet(demoWallet);
+
+        WalletAccess normalAccess = new WalletAccess();
+        Wallet normalWallet = new Wallet();
+        normalWallet.setId(UUID.randomUUID());
+        normalWallet.setName("Personal");
+        normalAccess.setWallet(normalWallet);
+
+        when(walletAccessRepository.findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED))
+                .thenReturn(List.of(demoAccess, normalAccess));
+
+        when(transactionRepository.countByWalletId(normalWallet.getId())).thenReturn(3L);
+
+        List<UserResponse> responses = adminUserInviteService.getUsersWithStats();
+
+        assertEquals(1, responses.size());
+        assertEquals(1, responses.get(0).getWallets()); // Only normal wallet counted
+        assertEquals(3, responses.get(0).getTransactions());
+    }
+
+    // ==================== createInvite — edge cases ====================
+
+    @Test
+    void createInvite_ExistingInvite_UpdatesExistingRecord() throws Exception {
+        AdminInviteRequest request = new AdminInviteRequest();
+        request.setEmail("existing@example.com");
+
+        Registrations existingInvite = new Registrations();
+        existingInvite.setEmail("existing@example.com");
+
+        when(userRepository.findByEmailIgnoreCase("existing@example.com")).thenReturn(Optional.empty());
+        when(userInvitationRepository.findByEmailIgnoreCase("existing@example.com")).thenReturn(Optional.of(existingInvite));
+
+        AdminInviteResponse mockResponse = AdminInviteResponse.builder().build();
+        when(adminInviteMapper.mapToAdminInviteResponse(any())).thenReturn(mockResponse);
+
+        adminUserInviteService.createInvite(request);
+
+        verify(userInvitationRepository).save(existingInvite);
+        assertEquals(Registrations.InvitationStatus.PENDING, existingInvite.getStatus());
+    }
+
+    @Test
+    void createInvite_EmailSendFails_ThrowsRuntimeException() throws Exception {
+        AdminInviteRequest request = new AdminInviteRequest();
+        request.setEmail("fail@example.com");
+
+        when(userRepository.findByEmailIgnoreCase("fail@example.com")).thenReturn(Optional.empty());
+        when(userInvitationRepository.findByEmailIgnoreCase("fail@example.com")).thenReturn(Optional.empty());
+
+        AdminInviteResponse mockResponse = AdminInviteResponse.builder().build();
+        when(adminInviteMapper.mapToAdminInviteResponse(any())).thenReturn(mockResponse);
+
+        doThrow(new RuntimeException("SMTP down")).when(sendEmailService).sendRegistrationInvitation(any());
+
+        assertThrows(RuntimeException.class, () -> adminUserInviteService.createInvite(request));
+    }
+
+    // ==================== revokeInvite — edge case ====================
+
+    @Test
+    void revokeInvite_NotFound_ThrowsUserNotFoundException() {
+        when(userInvitationRepository.findByEmailIgnoreCase("unknown@example.com")).thenReturn(Optional.empty());
+
+        assertThrows(dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException.class,
+                () -> adminUserInviteService.revokeInvite("unknown@example.com"));
     }
 }

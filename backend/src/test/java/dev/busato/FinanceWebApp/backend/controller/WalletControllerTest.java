@@ -2,94 +2,105 @@ package dev.busato.FinanceWebApp.backend.controller;
 
 import dev.busato.FinanceWebApp.backend.dto.WalletRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
-import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.WalletService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
-class WalletControllerTest {
+@WebMvcTest(controllers = WalletController.class, 
+            excludeAutoConfiguration = {
+                org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
+            })
+class WalletControllerTest extends BaseWebMvcTest {
 
-    @Mock
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
     private WalletService walletService;
 
-    @InjectMocks
-    private WalletController walletController;
+    @Test
+    void getMyWallets_ShouldReturn200() throws Exception {
+        WalletResponse mockResponse = WalletResponse.builder().name("Main Wallet").build();
 
-    private User user;
-    private UUID walletId;
+        when(walletService.getWallets(any(UUID.class)))
+                .thenReturn(List.of(mockResponse));
 
-    @BeforeEach
-    void setUp() {
-        user = new User();
-        user.setId(UUID.randomUUID());
-        walletId = UUID.randomUUID();
+        mockMvc.perform(get("/api/wallets"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Main Wallet"));
     }
 
     @Test
-    void getWallets_ReturnsOk() {
-        List<WalletResponse> responses = List.of(WalletResponse.builder().build());
-        when(walletService.getWallets(user.getId())).thenReturn(responses);
+    void getWalletById_ShouldReturn200() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        WalletResponse mockResponse = WalletResponse.builder().name("Main Wallet").build();
 
-        ResponseEntity<List<WalletResponse>> response = walletController.getMyWallets(user);
+        when(walletService.getWallet(any(UUID.class), eq(walletId)))
+                .thenReturn(mockResponse);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(responses, response.getBody());
+        mockMvc.perform(get("/api/wallets/{walletID}", walletId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Main Wallet"));
     }
 
     @Test
-    void createWallet_ReturnsOk() {
-        WalletRequest request = new WalletRequest();
-        WalletResponse mockResponse = WalletResponse.builder().build();
-        when(walletService.createWallet(request, user.getId())).thenReturn(mockResponse);
+    void createWallet_ShouldReturn200() throws Exception {
+        WalletRequest request = WalletRequest.builder().name("New Wallet").currency("USD").build();
+        WalletResponse mockResponse = WalletResponse.builder().name("New Wallet").build();
 
-        ResponseEntity<WalletResponse> response = walletController.createWallet(request, user);
+        when(walletService.createWallet(any(WalletRequest.class), any(UUID.class)))
+                .thenReturn(mockResponse);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockResponse, response.getBody());
+        mockMvc.perform(post("/api/wallets")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("New Wallet"));
     }
 
     @Test
-    void getWallet_ReturnsOk() {
-        WalletResponse mockResponse = WalletResponse.builder().build();
-        when(walletService.getWallet(user.getId(), walletId)).thenReturn(mockResponse);
+    void createWallet_WithInvalidPayload_ShouldReturn400() throws Exception {
+        WalletRequest request = WalletRequest.builder().build(); // Missing name
 
-        ResponseEntity<WalletResponse> response = walletController.getWalletById(walletId, user);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockResponse, response.getBody());
+        mockMvc.perform(post("/api/wallets")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Validation Error"))
+                .andExpect(jsonPath("$.detail").value("Invalid input data"));
     }
 
     @Test
-    void updateWallet_ReturnsOk() {
-        WalletRequest request = new WalletRequest();
-        WalletResponse mockResponse = WalletResponse.builder().build();
-        when(walletService.updateWallet(walletId, request, user.getId())).thenReturn(mockResponse);
+    void updateWallet_ShouldReturn200() throws Exception {
+        UUID walletId = UUID.randomUUID();
+        WalletRequest request = WalletRequest.builder().name("Updated Wallet").build();
+        WalletResponse mockResponse = WalletResponse.builder().name("Updated Wallet").build();
 
-        ResponseEntity<WalletResponse> response = walletController.updateWallet(walletId, request, user);
+        when(walletService.updateWallet(eq(walletId), any(WalletRequest.class), any(UUID.class)))
+                .thenReturn(mockResponse);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockResponse, response.getBody());
+        mockMvc.perform(put("/api/wallets/{walletID}", walletId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Wallet"));
     }
 
     @Test
-    void removeWallet_ReturnsNoContent() {
-        ResponseEntity<Void> response = walletController.deleteWalletById(user, walletId);
+    void deleteWalletById_ShouldReturn204() throws Exception {
+        UUID walletId = UUID.randomUUID();
 
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(walletService).removeWallet(walletId, user.getId());
+        mockMvc.perform(delete("/api/wallets/{walletID}", walletId))
+                .andExpect(status().isNoContent());
+
+        verify(walletService).removeWallet(eq(walletId), any(UUID.class));
     }
 }

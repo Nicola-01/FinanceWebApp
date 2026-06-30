@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,7 +32,7 @@ public class TagController {
     @PostMapping("/{walletID}")
     public ResponseEntity<TagResponse> createTag(@PathVariable UUID walletID,
                                                  @AuthenticationPrincipal User user,
-                                                 @RequestBody TagRequest tagRequest
+                                                 @Valid @RequestBody TagRequest tagRequest
     ) {
         return ResponseEntity.ok(tagService.createTag(tagRequest, walletID, user.getId()));
     }
@@ -46,7 +47,7 @@ public class TagController {
     public ResponseEntity<TagResponse> updateTag(@PathVariable String tagName,
                                                  @PathVariable UUID walletID,
                                                  @AuthenticationPrincipal User user,
-                                                 @RequestBody TagRequest tagRequest
+                                                 @Valid @RequestBody TagRequest tagRequest
     ) {
         return ResponseEntity.ok(tagService.updateTag(tagName, tagRequest, walletID, user.getId()));
     }
