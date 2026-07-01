@@ -14,8 +14,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
@@ -94,13 +93,12 @@ class SendEmailServiceTest {
     }
 
     @Test
-    void sendWalletInvitation_NullColor_UsesDefaultBlack() throws Exception {
+    void sendWalletInvitation_NullColor_FallsBackToBlack() throws Exception {
         Wallet wallet = new Wallet();
         wallet.setName("No Color Wallet");
-        wallet.setColor(null); // Should fallback to #000000
+        wallet.setColor(null); // Falls back to #000000
         wallet.setIcon("home");
 
-        // Should not throw NullPointerException
         sendEmailService.sendWalletInvitation("inviter", wallet, "recipient@example.com", true);
 
         verify(mailSender).send(mimeMessage);

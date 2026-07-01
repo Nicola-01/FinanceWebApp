@@ -21,6 +21,8 @@ import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class PatIntegrationTest extends BaseIntegrationTest {
@@ -74,7 +76,7 @@ public class PatIntegrationTest extends BaseIntegrationTest {
         walletAccessRepository.save(access);
 
         // 3. Create a READ-ONLY PAT
-        readOnlyPatPlain = "fin_pat_readonly12345678901234567890";
+        readOnlyPatPlain = "fin_pat_read_" + UUID.randomUUID().toString();
         PersonalAccessToken readOnlyPat = new PersonalAccessToken();
         readOnlyPat.setName("Read Only Token");
         readOnlyPat.setTokenHash(PatService.hashToken(readOnlyPatPlain));
@@ -84,7 +86,7 @@ public class PatIntegrationTest extends BaseIntegrationTest {
         patRepository.save(readOnlyPat);
 
         // 4. Create a READ-WRITE PAT
-        readWritePatPlain = "fin_pat_readwrite1234567890123456789";
+        readWritePatPlain = "fin_pat_writ_" + UUID.randomUUID().toString();
         PersonalAccessToken readWritePat = new PersonalAccessToken();
         readWritePat.setName("Read Write Token");
         readWritePat.setTokenHash(PatService.hashToken(readWritePatPlain));
@@ -123,6 +125,121 @@ public class PatIntegrationTest extends BaseIntegrationTest {
         request.setType("EXPENSE");
 
         mockMvc.perform(post("/api/transactions/" + testWallet.getId())
+                        .header("Authorization", "Bearer " + readWritePatPlain)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void updateTransaction_WithReadOnlyPat_Returns403() throws Exception {
+        TransactionRequest request = TransactionRequest.builder().build();
+        request.setName("Updated Transaction");
+        request.setAmount(new BigDecimal("20.00"));
+        request.setType("EXPENSE");
+
+        mockMvc.perform(put("/api/transactions/" + testWallet.getId() + "/" + UUID.randomUUID())
+                        .header("Authorization", "Bearer " + readOnlyPatPlain)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void deleteTransaction_WithReadOnlyPat_Returns403() throws Exception {
+        mockMvc.perform(delete("/api/transactions/" + testWallet.getId() + "/" + UUID.randomUUID())
+                        .header("Authorization", "Bearer " + readOnlyPatPlain))
+                .andExpect(status().isForbidden());
+    }
+
+    // Note: We don't necessarily test update/delete with ReadWrite PAT returning 200/204 here
+    // unless we also create the transaction in the DB first, otherwise we'd get a 404 from the service.
+    // The createTransaction_WithReadWritePat_Returns201 already proves ReadWrite works for mutating operations.
+
+    @Test
+    void patIsSubjectToIdor_CannotAccessOtherUserWallet() throws Exception {
+        // 1. Create a second user and wallet
+        User user2 = new User();
+        user2.setUsername("patuser2@example.com");
+        user2.setEmail("patuser2@example.com");
+        user2.setPassword("password");
+        user2.setRole(User.Role.USER);
+        user2.setTokenVersion(1);
+        user2 = userRepository.save(user2);
+
+        Wallet wallet2 = new Wallet();
+        wallet2.setName("User 2 Wallet");
+        wallet2.setCurrency("EUR");
+        wallet2 = walletRepository.save(wallet2);
+
+        WalletAccess access2 = new WalletAccess();
+        access2.setId(new WalletAccess.WalletAccessId(user2.getId(), wallet2.getId()));
+        access2.setRole(WalletAccess.WalletRole.OWNER);
+        access2.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+        access2.setUser(user2);
+        access2.setWallet(wallet2);
+        walletAccessRepository.save(access2);
+
+        // 2. Try to access wallet2 using testUser's PAT (readOnlyPatPlain)
+        mockMvc.perform(get("/api/transactions/" + wallet2.getId())
+                        .header("Authorization", "Bearer " + readOnlyPatPlain))
+                .andExpect(status().isNotFound()); // Or 403, depending on Filter logic (WalletSecurity usually throws 404 for security)
+    }
+
+    // =================================================================================================
+    // TAG CONTROLLER TESTS
+    // =================================================================================================
+
+    @Test
+    void getTags_WithReadOnlyPat_Returns200() throws Exception {
+        mockMvc.perform(get("/api/tags/" + testWallet.getId())
+                        .header("Authorization", "Bearer " + readOnlyPatPlain))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void createTag_WithReadOnlyPat_Returns403() throws Exception {
+        dev.busato.FinanceWebApp.backend.dto.TagRequest request = dev.busato.FinanceWebApp.backend.dto.TagRequest.builder().build();
+        request.setName("New Tag");
+        request.setIcon("icon");
+        request.setColorHex("#000000");
+
+        mockMvc.perform(post("/api/tags/" + testWallet.getId())
+                        .header("Authorization", "Bearer " + readOnlyPatPlain)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void updateTag_WithReadOnlyPat_Returns403() throws Exception {
+        dev.busato.FinanceWebApp.backend.dto.TagRequest request = dev.busato.FinanceWebApp.backend.dto.TagRequest.builder().build();
+        request.setName("Updated Tag");
+        request.setIcon("icon");
+        request.setColorHex("#FFFFFF");
+
+        mockMvc.perform(put("/api/tags/" + testWallet.getId() + "/SomeTag")
+                        .header("Authorization", "Bearer " + readOnlyPatPlain)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void deleteTag_WithReadOnlyPat_Returns403() throws Exception {
+        mockMvc.perform(delete("/api/tags/" + testWallet.getId() + "/SomeTag")
+                        .header("Authorization", "Bearer " + readOnlyPatPlain))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void createTag_WithReadWritePat_Returns200() throws Exception {
+        dev.busato.FinanceWebApp.backend.dto.TagRequest request = dev.busato.FinanceWebApp.backend.dto.TagRequest.builder().build();
+        request.setName("New Tag");
+        request.setIcon("icon");
+        request.setColorHex("#000000");
+
+        mockMvc.perform(post("/api/tags/" + testWallet.getId())
                         .header("Authorization", "Bearer " + readWritePatPlain)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

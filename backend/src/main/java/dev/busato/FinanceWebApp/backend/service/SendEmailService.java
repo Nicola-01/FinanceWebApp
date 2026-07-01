@@ -98,9 +98,11 @@ public class SendEmailService {
     public void sendWalletInvitation(String inviterUsername, Wallet wallet, String recipientEmail, boolean editor) throws Exception {
         String htmlTemplate = getHtmlTemplate("templates/email/walletInviteEmail.html");
 
+        String safeColor = wallet.getColor() != null ? wallet.getColor() : "#000000";
+
         // Sostituisci i segnaposto (rimuoviamo {{walletIconClass}} perché usiamo l'immagine)
         String finalHtml = htmlTemplate
-                .replace("{{walletColor}}", wallet.getColor())
+                .replace("{{walletColor}}", safeColor)
                 .replace("{{inviterUsername}}", inviterUsername)
                 .replace("{{appUrl}}", FRONTEND_URL)
                 .replace("{{walletName}}", wallet.getName());
