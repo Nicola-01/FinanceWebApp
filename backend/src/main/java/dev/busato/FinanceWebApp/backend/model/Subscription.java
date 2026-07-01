@@ -1,16 +1,15 @@
 package dev.busato.FinanceWebApp.backend.model;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.UUID;
-import java.util.List;
-import java.util.ArrayList;
 
 @Data
 @Builder
@@ -20,89 +19,108 @@ import java.util.ArrayList;
 @Table(name = "subscriptions") // Corretto il typo
 public class Subscription {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "wallet_id", nullable = false)
-    private Wallet wallet;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "wallet_id", nullable = false)
+  private Wallet wallet;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id")
-    private Tag tag;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "tag_id")
+  private Tag tag;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal amount;
+  @Column(nullable = false, precision = 19, scale = 2)
+  private BigDecimal amount;
 
-    private String encryptedAmount;
+  private String encryptedAmount;
 
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal originalAmount;
+  @Column(nullable = false, precision = 19, scale = 2)
+  private BigDecimal originalAmount;
 
-    @Column(precision = 19, scale = 6)
-    private BigDecimal exchangeValue;
+  @Column(precision = 19, scale = 6)
+  private BigDecimal exchangeValue;
 
-    private String originalCurrency;
+  private String originalCurrency;
 
-    private boolean autoExchangeRate;
+  private boolean autoExchangeRate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Type type;
-    public enum Type { INCOME, EXPENSE }
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Type type;
 
-    @Column(columnDefinition = "TEXT")
-    private String notes;
+  public enum Type {
+    INCOME,
+    EXPENSE
+  }
 
-    // --- REGOLE DI SCHEDULAZIONE (Core del Cron Job) ---
+  @Column(columnDefinition = "TEXT")
+  private String notes;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Status status; // Per poter mettere in pausa un abbonamento
-    public enum Status { ACTIVE, PAUSED, COMPLETED }
+  // --- REGOLE DI SCHEDULAZIONE (Core del Cron Job) ---
 
-    @Column(nullable = false)
-    private LocalDate startDate; // Quando inizia
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Status status; // Per poter mettere in pausa un abbonamento
 
-    @Column(nullable = false)
-    private LocalDate nextExecutionDate; // IL CAMPO PIÙ IMPORTANTE: Il job legge questo!
+  public enum Status {
+    ACTIVE,
+    PAUSED,
+    COMPLETED
+  }
 
-    private LocalDate lastExecutionDate; // Per lo storico
+  @Column(nullable = false)
+  private LocalDate startDate; // Quando inizia
 
-    // --- REGOLE DI FREQUENZA ---
+  @Column(nullable = false)
+  private LocalDate nextExecutionDate; // IL CAMPO PIÙ IMPORTANTE: Il job legge questo!
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Frequency frequencyType;
-    public enum Frequency { DAILY, WEEKLY, MONTHLY, YEARLY }
+  private LocalDate lastExecutionDate; // Per lo storico
 
-    @Column(nullable = false)
-    @Builder.Default
-    private int frequencyInterval = 1; // "Ogni N" (es. 1 = ogni mese, 2 = ogni 2 settimane)
+  // --- REGOLE DI FREQUENZA ---
 
-    // Opzioni avanzate (popolate solo se la logica lo richiede)
-    private Integer monthlySpecificDay; // es. 24 (esegui il 24 di ogni mese)
-    private boolean lastWorkingDayOfMonth; // es. true (esegui l'ultimo giorno feriale del mese)
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Frequency frequencyType;
 
-    // --- LIMITI DI DURATA (Ottima la tua intuizione qui!) ---
+  public enum Frequency {
+    DAILY,
+    WEEKLY,
+    MONTHLY,
+    YEARLY
+  }
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Duration duration;
-    public enum Duration { FOREVER, TIMES, UNTIL }
+  @Column(nullable = false)
+  @Builder.Default
+  private int frequencyInterval = 1; // "Ogni N" (es. 1 = ogni mese, 2 = ogni 2 settimane)
 
-    private Integer durationTimes; // Es: ripeti per 12 volte
+  // Opzioni avanzate (popolate solo se la logica lo richiede)
+  private Integer monthlySpecificDay; // es. 24 (esegui il 24 di ogni mese)
+  private boolean lastWorkingDayOfMonth; // es. true (esegui l'ultimo giorno feriale del mese)
 
-    @Builder.Default
-    private int executedTimes = 0; // Contatore: quante volte è GIA' stato eseguito
+  // --- LIMITI DI DURATA (Ottima la tua intuizione qui!) ---
 
-    private LocalDate durationUntil; // Es: ripeti fino al 31-12-2026
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Duration duration;
 
-    @OneToMany(mappedBy = "subscription", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @OrderBy("transactionDate DESC")
-    private List<Transaction> history = new ArrayList<>();
+  public enum Duration {
+    FOREVER,
+    TIMES,
+    UNTIL
+  }
+
+  private Integer durationTimes; // Es: ripeti per 12 volte
+
+  @Builder.Default private int executedTimes = 0; // Contatore: quante volte è GIA' stato eseguito
+
+  private LocalDate durationUntil; // Es: ripeti fino al 31-12-2026
+
+  @OneToMany(mappedBy = "subscription", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  @OrderBy("transactionDate DESC")
+  private List<Transaction> history = new ArrayList<>();
 }

@@ -1,22 +1,19 @@
 package dev.busato.FinanceWebApp.backend.dto;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.Data;
 
-/**
- * Request body for creating a new Personal Access Token.
- */
+/** Request body for creating a new Personal Access Token. */
 @Data
 public class PatCreateRequest {
 
-    /** User-defined name/label for easy identification */
-    private String name;
+  /** User-defined name/label for easy identification */
+  private String name;
 
-    /** List of wallets and their granted permissions */
-    private List<WalletPermission> walletPermissions;
+  /** List of wallets and their granted permissions */
+  private List<WalletPermission> walletPermissions;
 
-    /** Optional expiration date (null = never expires) */
-    private LocalDateTime expiresAt;
+  /** Optional expiration date (null = never expires) */
+  private LocalDateTime expiresAt;
 }

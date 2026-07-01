@@ -1,16 +1,15 @@
 package dev.busato.FinanceWebApp.backend.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -20,34 +19,33 @@ import java.util.UUID;
 @Table(name = "wallets")
 public class Wallet {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id ;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    private String color;
-    private String icon;
+  private String color;
+  private String icon;
 
-    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<WalletAccess> accesses = new ArrayList<>();
+  @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Builder.Default
+  private List<WalletAccess> accesses = new ArrayList<>();
 
-    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Tag> tags = new ArrayList<>();
+  @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Builder.Default
+  private List<Tag> tags = new ArrayList<>();
 
-    @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Transaction> transactions = new ArrayList<>();
+  @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Builder.Default
+  private List<Transaction> transactions = new ArrayList<>();
 
-    @Builder.Default
-    private String currency = "EUR";
+  @Builder.Default private String currency = "EUR";
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDate createdAt;
+  @CreationTimestamp
+  @Column(updatable = false)
+  private LocalDate createdAt;
 
-    private boolean encryptedWallet = false;
+  private boolean encryptedWallet = false;
 }

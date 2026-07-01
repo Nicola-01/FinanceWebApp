@@ -9,21 +9,22 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TransactionMapper {
 
-    private final TagMapper tagMapper;
+  private final TagMapper tagMapper;
 
-    public TransactionResponse mapToResponse(Transaction transaction) {
-        return TransactionResponse.builder()
-                .id(transaction.getId())
-                .name(transaction.getName())
-                .amount(transaction.getAmount())
-                .originalAmount(transaction.getOriginalAmount())
-                .originalCurrency(transaction.getOriginalCurrency())
-                .exchangeValue(transaction.getExchangeValue())
-                .tag(transaction.getTag() != null ? tagMapper.mapToResponse(transaction.getTag()) : null)
-                .subscriptionId(transaction.getSubscription() != null ? transaction.getSubscription().getId() : null)
-                .transactionDate(transaction.getTransactionDate())
-                .type(transaction.getType().toString())
-                .notes(transaction.getNotes())
-                .build();
-    }
+  public TransactionResponse mapToResponse(Transaction transaction) {
+    return TransactionResponse.builder()
+        .id(transaction.getId())
+        .name(transaction.getName())
+        .amount(transaction.getAmount())
+        .originalAmount(transaction.getOriginalAmount())
+        .originalCurrency(transaction.getOriginalCurrency())
+        .exchangeValue(transaction.getExchangeValue())
+        .tag(transaction.getTag() != null ? tagMapper.mapToResponse(transaction.getTag()) : null)
+        .subscriptionId(
+            transaction.getSubscription() != null ? transaction.getSubscription().getId() : null)
+        .transactionDate(transaction.getTransactionDate())
+        .type(transaction.getType().toString())
+        .notes(transaction.getNotes())
+        .build();
+  }
 }

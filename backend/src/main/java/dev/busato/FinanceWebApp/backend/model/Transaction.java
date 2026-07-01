@@ -1,15 +1,13 @@
 package dev.busato.FinanceWebApp.backend.model;
 
-
 import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -19,47 +17,50 @@ import java.util.UUID;
 @Table(name = "transactions")
 public class Transaction {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id ;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "wallet_id", nullable = false)
-    private Wallet wallet;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "wallet_id", nullable = false)
+  private Wallet wallet;
 
-    // Se nullo, è una transazione senza categoria (da categorizzare)
-    @ManyToOne
-    @JoinColumn(name = "tag_id")
-    private Tag tag;
+  // Se nullo, è una transazione senza categoria (da categorizzare)
+  @ManyToOne
+  @JoinColumn(name = "tag_id")
+  private Tag tag;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subscription_id")
-    private Subscription subscription;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "subscription_id")
+  private Subscription subscription;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal amount; // In wallet Value (EUR)
+  @Column(nullable = false, precision = 19, scale = 2)
+  private BigDecimal amount; // In wallet Value (EUR)
 
-    private String encryptedAmount;
+  private String encryptedAmount;
 
-    @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal originalAmount;
+  @Column(nullable = false, precision = 19, scale = 2)
+  private BigDecimal originalAmount;
 
-    @Column(precision = 19, scale = 6)
-    private BigDecimal exchangeValue;
+  @Column(precision = 19, scale = 6)
+  private BigDecimal exchangeValue;
 
-    private String originalCurrency;
+  private String originalCurrency;
 
-    @Enumerated(EnumType.STRING)
-    private Type type; // INCOME, EXPENSE
+  @Enumerated(EnumType.STRING)
+  private Type type; // INCOME, EXPENSE
 
-    @Column(columnDefinition = "TEXT")
-    private String notes;
+  @Column(columnDefinition = "TEXT")
+  private String notes;
 
-    @Column(nullable = false)
-    private LocalDate transactionDate;
+  @Column(nullable = false)
+  private LocalDate transactionDate;
 
-    public enum Type { INCOME, EXPENSE }
+  public enum Type {
+    INCOME,
+    EXPENSE
+  }
 }

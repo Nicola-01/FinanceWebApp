@@ -5,131 +5,132 @@ import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.UnauthorizedAccessException;
 import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
+import dev.busato.FinanceWebApp.backend.mappers.WalletMapper;
 import dev.busato.FinanceWebApp.backend.model.*;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository; // <--- Nuovo import
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import dev.busato.FinanceWebApp.backend.mappers.WalletMapper;
 import dev.busato.FinanceWebApp.backend.security.WalletSecurity;
-import dev.busato.FinanceWebApp.backend.service.PatService;
 import jakarta.transaction.Transactional;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class WalletService {
 
-    private final WalletRepository walletRepository;
-    private final WalletAccessRepository walletAccessRepository;
-    private final UserRepository userRepository;
-    private final WalletMapper walletMapper;
-    private final WalletSecurity walletSecurity;
-    private final PatService patService;
+  private final WalletRepository walletRepository;
+  private final WalletAccessRepository walletAccessRepository;
+  private final UserRepository userRepository;
+  private final WalletMapper walletMapper;
+  private final WalletSecurity walletSecurity;
+  private final PatService patService;
 
-    @Transactional
-    public WalletResponse createWallet(WalletRequest request, UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+  @Transactional
+  public WalletResponse createWallet(WalletRequest request, UUID userId) {
+    User user =
+        userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
-        if (request.getName().length() < 3 || request.getName().length() > 25)
-            throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
+    if (request.getName().length() < 3 || request.getName().length() > 25)
+      throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
 
-        // Create the wallet
-        Wallet wallet = Wallet.builder()
-                .name(request.getName())
-                .color(Optional.ofNullable(request.getColor()).orElse("#abababa"))
-                .icon(request.getIcon())
-                .currency(Optional.ofNullable(request.getCurrency()).orElse("EUR"))
-                .createdAt(LocalDate.now())
-                .build();
+    // Create the wallet
+    Wallet wallet =
+        Wallet.builder()
+            .name(request.getName())
+            .color(Optional.ofNullable(request.getColor()).orElse("#abababa"))
+            .icon(request.getIcon())
+            .currency(Optional.ofNullable(request.getCurrency()).orElse("EUR"))
+            .createdAt(LocalDate.now())
+            .build();
 
-        wallet = walletRepository.save(wallet);
+    wallet = walletRepository.save(wallet);
 
-        // Set the access
-        WalletAccess.WalletAccessId accessId = new WalletAccess.WalletAccessId(userId, wallet.getId());
+    // Set the access
+    WalletAccess.WalletAccessId accessId = new WalletAccess.WalletAccessId(userId, wallet.getId());
 
-        WalletAccess access = new WalletAccess();
-        access.setId(accessId);
-        access.setUser(user);
-        access.setWallet(wallet);
-        access.setRole(WalletAccess.WalletRole.OWNER);
-        access.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
-        access.setInvitedAt(LocalDate.now());
+    WalletAccess access = new WalletAccess();
+    access.setId(accessId);
+    access.setUser(user);
+    access.setWallet(wallet);
+    access.setRole(WalletAccess.WalletRole.OWNER);
+    access.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+    access.setInvitedAt(LocalDate.now());
 
-        walletAccessRepository.save(access);
+    walletAccessRepository.save(access);
 
-        // If a PAT created this wallet, auto-grant it READ and WRITE access
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getCredentials() instanceof PersonalAccessToken pat) {
-            patService.addWalletToToken(pat.getId(), wallet.getId());
-        }
-
-        return walletMapper.mapToResponse(access);
-
+    // If a PAT created this wallet, auto-grant it READ and WRITE access
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth != null && auth.getCredentials() instanceof PersonalAccessToken pat) {
+      patService.addWalletToToken(pat.getId(), wallet.getId());
     }
 
-    @Transactional
-    @PreAuthorize("@walletSecurity.isWalletOwner(#userId, #walletId)")
-    public WalletResponse updateWallet(UUID walletId, WalletRequest request, UUID userId) {
+    return walletMapper.mapToResponse(access);
+  }
 
-        if (request.getName().length() < 3 || request.getName().length() > 25)
-            throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
+  @Transactional
+  @PreAuthorize("@walletSecurity.isWalletOwner(#userId, #walletId)")
+  public WalletResponse updateWallet(UUID walletId, WalletRequest request, UUID userId) {
 
-        WalletAccess ownerAccess = walletAccessRepository.findByWalletIdAndUserIdAndRole(walletId, userId, WalletAccess.WalletRole.OWNER)
-                .orElseThrow(() -> new UnauthorizedAccessException("Only the owner can update this wallet"));
+    if (request.getName().length() < 3 || request.getName().length() > 25)
+      throw new IllegalArgumentException("The name must be between 3 and 25 characters long.");
 
-        Wallet wallet = ownerAccess.getWallet();
+    WalletAccess ownerAccess =
+        walletAccessRepository
+            .findByWalletIdAndUserIdAndRole(walletId, userId, WalletAccess.WalletRole.OWNER)
+            .orElseThrow(
+                () -> new UnauthorizedAccessException("Only the owner can update this wallet"));
 
-        if (request.getName() != null && !request.getName().isBlank())
-            wallet.setName(request.getName());
-        if (request.getColor() != null && !request.getColor().isBlank())
-            wallet.setColor(request.getColor());
-        if (request.getIcon() != null && !request.getIcon().isBlank())
-            wallet.setIcon(request.getIcon());
+    Wallet wallet = ownerAccess.getWallet();
 
-        return walletMapper.mapToResponse(ownerAccess);
+    if (request.getName() != null && !request.getName().isBlank())
+      wallet.setName(request.getName());
+    if (request.getColor() != null && !request.getColor().isBlank())
+      wallet.setColor(request.getColor());
+    if (request.getIcon() != null && !request.getIcon().isBlank())
+      wallet.setIcon(request.getIcon());
 
-    }
+    return walletMapper.mapToResponse(ownerAccess);
+  }
 
-    @Transactional
-    @PreAuthorize("@walletSecurity.preventPatAccess()")
-    public void removeWallet(UUID walletId, UUID userId) {
-        WalletAccess userAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletId)
-                .orElseThrow(() -> new UnauthorizedAccessException("No access to this wallet"));
+  @Transactional
+  @PreAuthorize("@walletSecurity.preventPatAccess()")
+  public void removeWallet(UUID walletId, UUID userId) {
+    WalletAccess userAccess =
+        walletAccessRepository
+            .findByUserIdAndWalletId(userId, walletId)
+            .orElseThrow(() -> new UnauthorizedAccessException("No access to this wallet"));
 
-        if (userAccess.getRole() == WalletAccess.WalletRole.OWNER)
-            walletRepository.delete(userAccess.getWallet());
-        else
-            userAccess.setStatus(WalletAccess.InvitationStatus.LEFT);
-    }
+    if (userAccess.getRole() == WalletAccess.WalletRole.OWNER)
+      walletRepository.delete(userAccess.getWallet());
+    else userAccess.setStatus(WalletAccess.InvitationStatus.LEFT);
+  }
 
-    public List<WalletResponse> getWallets(UUID userId) {
-        return walletAccessRepository.findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED)
-                .stream()
-                .filter(access -> walletSecurity.hasReadAccessQuietly(userId, access.getWallet().getId()))
-                .map(walletMapper::mapToResponse)
-                .sorted((w1, w2) -> w2.getCreatedAt().compareTo(w1.getCreatedAt()))
-                .collect(Collectors.toList());
-    }
+  public List<WalletResponse> getWallets(UUID userId) {
+    return walletAccessRepository
+        .findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED)
+        .stream()
+        .filter(access -> walletSecurity.hasReadAccessQuietly(userId, access.getWallet().getId()))
+        .map(walletMapper::mapToResponse)
+        .sorted((w1, w2) -> w2.getCreatedAt().compareTo(w1.getCreatedAt()))
+        .collect(Collectors.toList());
+  }
 
-    @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletID)")
-    public WalletResponse getWallet(UUID userId, UUID walletID) {
-        WalletAccess walletAccess = walletAccessRepository.findByUserIdAndWalletId(userId, walletID)
-                .orElseThrow(() -> new WalletNotFoundException(walletID));
+  @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletID)")
+  public WalletResponse getWallet(UUID userId, UUID walletID) {
+    WalletAccess walletAccess =
+        walletAccessRepository
+            .findByUserIdAndWalletId(userId, walletID)
+            .orElseThrow(() -> new WalletNotFoundException(walletID));
 
-        return walletMapper.mapToResponse(walletAccess);
-
-    }
-
-
+    return walletMapper.mapToResponse(walletAccess);
+  }
 }

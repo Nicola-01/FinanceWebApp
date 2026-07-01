@@ -1,5 +1,8 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.busato.FinanceWebApp.backend.dto.AdminInviteRequest;
 import dev.busato.FinanceWebApp.backend.service.SendEmailService;
@@ -13,46 +16,48 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 class ManageUserServiceTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private SendEmailService sendEmailService;
+  @MockitoBean private SendEmailService sendEmailService;
 
-    @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
-    void testCreateInviteAsAdmin() throws Exception {
+  @Test
+  @WithMockUser(
+      username = "admin",
+      roles = {"ADMIN"})
+  void testCreateInviteAsAdmin() throws Exception {
 
-        AdminInviteRequest request = new AdminInviteRequest();
-        request.setEmail("newuser@example.com");
+    AdminInviteRequest request = new AdminInviteRequest();
+    request.setEmail("newuser@example.com");
 
-        mockMvc.perform(post("/api/admin/management")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
-    }
+    mockMvc
+        .perform(
+            post("/api/admin/management")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    @WithMockUser(username = "simpleUser", roles = {"USER"})
-    void testCreateInviteAsSimpleUser_ShouldFail() throws Exception {
+  @Test
+  @WithMockUser(
+      username = "simpleUser",
+      roles = {"USER"})
+  void testCreateInviteAsSimpleUser_ShouldFail() throws Exception {
 
-        AdminInviteRequest request = new AdminInviteRequest();
-        request.setEmail("newuser@example.com");
+    AdminInviteRequest request = new AdminInviteRequest();
+    request.setEmail("newuser@example.com");
 
-        mockMvc.perform(post("/api/admin/management")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
-    }
+    mockMvc
+        .perform(
+            post("/api/admin/management")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isForbidden());
+  }
 }

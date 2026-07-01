@@ -1,15 +1,5 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
-import dev.busato.FinanceWebApp.backend.dto.TagRequest;
-import dev.busato.FinanceWebApp.backend.dto.TagResponse;
-import dev.busato.FinanceWebApp.backend.service.TagService;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
-
-import java.util.List;
-import java.util.UUID;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -17,83 +7,99 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = TagController.class, 
-            excludeAutoConfiguration = {
-                org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
-            })
+import dev.busato.FinanceWebApp.backend.dto.TagRequest;
+import dev.busato.FinanceWebApp.backend.dto.TagResponse;
+import dev.busato.FinanceWebApp.backend.service.TagService;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+
+@WebMvcTest(
+    controllers = TagController.class,
+    excludeAutoConfiguration = {
+      org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class
+    })
 class TagControllerTest extends BaseWebMvcTest {
 
-    @org.springframework.test.context.bean.override.mockito.MockitoBean
-    private TagService tagService;
+  @org.springframework.test.context.bean.override.mockito.MockitoBean private TagService tagService;
 
-    @Test
-    void getTags_ShouldReturn200() throws Exception {
-        UUID walletId = UUID.randomUUID();
-        TagResponse mockResponse = TagResponse.builder().name("Groceries").build();
-        
-        when(tagService.getTags(eq(walletId), any(UUID.class)))
-                .thenReturn(List.of(mockResponse));
+  @Test
+  void getTags_ShouldReturn200() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    TagResponse mockResponse = TagResponse.builder().name("Groceries").build();
 
-        mockMvc.perform(get("/api/tags/{walletID}", walletId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Groceries"));
-    }
+    when(tagService.getTags(eq(walletId), any(UUID.class))).thenReturn(List.of(mockResponse));
 
-    @Test
-    void createTag_ShouldReturn200() throws Exception {
-        UUID walletId = UUID.randomUUID();
-        TagRequest request = TagRequest.builder().name("Groceries").build();
-        TagResponse mockResponse = TagResponse.builder().name("Groceries").build();
+    mockMvc
+        .perform(get("/api/tags/{walletID}", walletId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].name").value("Groceries"));
+  }
 
-        when(tagService.createTag(any(TagRequest.class), eq(walletId), any(UUID.class)))
-                .thenReturn(mockResponse);
+  @Test
+  void createTag_ShouldReturn200() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    TagRequest request = TagRequest.builder().name("Groceries").build();
+    TagResponse mockResponse = TagResponse.builder().name("Groceries").build();
 
-        mockMvc.perform(post("/api/tags/{walletID}", walletId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Groceries"));
-    }
+    when(tagService.createTag(any(TagRequest.class), eq(walletId), any(UUID.class)))
+        .thenReturn(mockResponse);
 
-    @Test
-    void createTag_WithInvalidPayload_ShouldReturn400() throws Exception {
-        UUID walletId = UUID.randomUUID();
-        // Missing name field, should trigger @Valid @NotBlank
-        TagRequest request = TagRequest.builder().build();
+    mockMvc
+        .perform(
+            post("/api/tags/{walletID}", walletId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Groceries"));
+  }
 
-        mockMvc.perform(post("/api/tags/{walletID}", walletId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.title").value("Validation Error"))
-                .andExpect(jsonPath("$.detail").value("Invalid input data"));
-    }
+  @Test
+  void createTag_WithInvalidPayload_ShouldReturn400() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    // Missing name field, should trigger @Valid @NotBlank
+    TagRequest request = TagRequest.builder().build();
 
-    @Test
-    void updateTag_ShouldReturn200() throws Exception {
-        UUID walletId = UUID.randomUUID();
-        String tagName = "Groceries";
-        TagRequest request = TagRequest.builder().name("Groceries-Updated").build();
-        TagResponse mockResponse = TagResponse.builder().name("Groceries-Updated").build();
+    mockMvc
+        .perform(
+            post("/api/tags/{walletID}", walletId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Validation Error"))
+        .andExpect(jsonPath("$.detail").value("Invalid input data"));
+  }
 
-        when(tagService.updateTag(eq(tagName), any(TagRequest.class), eq(walletId), any(UUID.class)))
-                .thenReturn(mockResponse);
+  @Test
+  void updateTag_ShouldReturn200() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    String tagName = "Groceries";
+    TagRequest request = TagRequest.builder().name("Groceries-Updated").build();
+    TagResponse mockResponse = TagResponse.builder().name("Groceries-Updated").build();
 
-        mockMvc.perform(put("/api/tags/{walletID}/{tagName}", walletId, tagName)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Groceries-Updated"));
-    }
+    when(tagService.updateTag(eq(tagName), any(TagRequest.class), eq(walletId), any(UUID.class)))
+        .thenReturn(mockResponse);
 
-    @Test
-    void deleteTag_ShouldReturn204() throws Exception {
-        UUID walletId = UUID.randomUUID();
-        String tagName = "Groceries";
+    mockMvc
+        .perform(
+            put("/api/tags/{walletID}/{tagName}", walletId, tagName)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Groceries-Updated"));
+  }
 
-        mockMvc.perform(delete("/api/tags/{walletID}/{tagName}", walletId, tagName))
-                .andExpect(status().isNoContent());
+  @Test
+  void deleteTag_ShouldReturn204() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    String tagName = "Groceries";
 
-        verify(tagService).deleteTag(eq(tagName), eq(walletId), any(UUID.class));
-    }
+    mockMvc
+        .perform(delete("/api/tags/{walletID}/{tagName}", walletId, tagName))
+        .andExpect(status().isNoContent());
+
+    verify(tagService).deleteTag(eq(tagName), eq(walletId), any(UUID.class));
+  }
 }

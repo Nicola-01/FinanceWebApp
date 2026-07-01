@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SubscriptionCronJob {
 
-    private final SubscriptionService subscriptionService;
+  private final SubscriptionService subscriptionService;
 
-    // Run every day at 0:05 a.m.
-    @Scheduled(cron = "0 5 0 * * *")
-    public void runDailySubscriptions() {
-        System.out.println("Running the daily subscription job...");
-        subscriptionService.processDueSubscriptions();
-    }
+  // Run every day at 0:05 a.m.
+  @Scheduled(cron = "0 5 0 * * *")
+  public void runDailySubscriptions() {
+    System.out.println("Running the daily subscription job...");
+    subscriptionService.processDueSubscriptions();
+  }
 }

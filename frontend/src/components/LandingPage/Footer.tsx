@@ -1,11 +1,13 @@
-import React from 'react';
+import React from "react";
 
 const Footer: React.FC = () => {
-    return (
-        <footer className="border-t border-app-border py-8 text-center theme-text-subtle text-sm">
-            <p>&copy; {new Date().getFullYear()} FinanceWebApp. All rights reserved.</p>
-        </footer>
-    );
+  return (
+    <footer className="border-t border-app-border py-8 text-center theme-text-subtle text-sm">
+      <p>
+        &copy; {new Date().getFullYear()} FinanceWebApp. All rights reserved.
+      </p>
+    </footer>
+  );
 };
 
 export default Footer;

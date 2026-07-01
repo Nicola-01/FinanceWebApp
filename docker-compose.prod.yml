@@ -22,9 +22,7 @@ services:
 
   # 2. Backend Service
   backend:
-    build:
-      context: ./backend
-      target: production
+    image: ghcr.io/${GHCR_OWNER}/app-backend:${APP_TAG:-prod}
     container_name: finance_backend_prod
     restart: always
     ports:
@@ -73,15 +71,7 @@ services:
 
   # 3. Frontend Service (PULITO)
   frontend:
-    build:
-      context: ./frontend
-      target: production
-      args:
-        VITE_API_URL: ${BACKEND_URL}
-        VITE_ALLOWED_HOSTS: ${FRONTEND_URL}
-        VITE_APP_VERSION: ${VITE_APP_VERSION:-'dev'}
-        VITE_APP_BUILD_DATE: ${VITE_APP_BUILD_DATE:-''}
-        VITE_DEMO_ENABLED: ${DEMO_ENABLED}
+    image: ghcr.io/${GHCR_OWNER}/app-frontend:${APP_TAG:-prod}
     container_name: finance_frontend_prod
     restart: always
     ports:

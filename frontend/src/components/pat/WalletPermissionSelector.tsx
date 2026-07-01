@@ -1,76 +1,85 @@
-import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faPen, faBan } from '@fortawesome/free-solid-svg-icons';
-import { Icon } from '../icon/Icon.tsx';
-import type { WalletPermState } from '../../utils/types';
-import { Selector } from '../ui/Selector.tsx';
+import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faPen, faBan } from "@fortawesome/free-solid-svg-icons";
+import { Icon } from "../icon/Icon.tsx";
+import type { WalletPermState } from "../../utils/types";
+import { Selector } from "../ui/Selector.tsx";
 
 interface WalletPermissionSelectorProps {
-    walletPerms: WalletPermState[];
-    setPermission: (walletId: string, level: 'none' | 'read' | 'write') => void;
+  walletPerms: WalletPermState[];
+  setPermission: (walletId: string, level: "none" | "read" | "write") => void;
 }
 
-export const WalletPermissionSelector: React.FC<WalletPermissionSelectorProps> = ({
-    walletPerms,
-    setPermission
-}) => {
+export const WalletPermissionSelector: React.FC<
+  WalletPermissionSelectorProps
+> = ({ walletPerms, setPermission }) => {
+  return (
+    <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
+      {walletPerms.map((wp) => (
+        <div
+          key={wp.walletId}
+          className={`rounded-xl border p-3.5 transition-all ${
+            wp.enabled
+              ? "border-[#a78bfa]/40 bg-[#a78bfa]/5"
+              : "border-app-border bg-app-input/30"
+          }`}
+        >
+          <div className="flex flex-col gap-3">
+            {/* Wallet info */}
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg"
+                style={{
+                  backgroundColor: (wp.walletColor || "#6b7280") + "20",
+                }}
+              >
+                <Icon icon={wp.walletIcon} color={wp.walletColor} />
+              </div>
+              <span className="text-sm font-semibold text-app-text">
+                {wp.walletName}
+              </span>
+            </div>
 
-    return (
-        <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
-            {walletPerms.map(wp => (
-                <div
-                    key={wp.walletId}
-                    className={`rounded-xl border p-3.5 transition-all ${
-                        wp.enabled
-                            ? 'border-[#a78bfa]/40 bg-[#a78bfa]/5'
-                            : 'border-app-border bg-app-input/30'
-                    }`}
-                >
-                    <div className="flex flex-col gap-3">
-                        {/* Wallet info */}
-                        <div className="flex items-center gap-3">
-                            <div
-                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg"
-                                style={{ backgroundColor: (wp.walletColor || '#6b7280') + '20' }}
-                            >
-                                <Icon icon={wp.walletIcon} color={wp.walletColor} />
-                            </div>
-                            <span className="text-sm font-semibold text-app-text">
-                                {wp.walletName}
-                            </span>
-                        </div>
-
-                        {/* Segmented Control */}
-                        <Selector
-                            value={wp.enabled ? (wp.write ? 'write' : 'read') : 'none'}
-                            onChange={(val) => setPermission(wp.walletId, val)}
-                            size="md"
-                            options={[
-                                {
-                                    value: 'none',
-                                    label: 'Unauthorized',
-                                    icon: <FontAwesomeIcon icon={faBan} className="text-[10px]" />,
-                                    activeColorClass: 'text-app-red'
-                                },
-                                {
-                                    value: 'read',
-                                    label: 'Read',
-                                    icon: <FontAwesomeIcon icon={faEye} className="text-[10px]" />,
-                                    activeColorClass: 'theme-text-primary'
-                                },
-                                {
-                                    value: 'write',
-                                    label: 'Write',
-                                    icon: <FontAwesomeIcon icon={faPen} className="text-[10px]" />,
-                                    activeColorClass: 'theme-text-warning',
-                                    disabled: wp.userRole === 'VIEWER',
-                                    disabledTitle: wp.userRole === 'VIEWER' ? "Non hai il permesso editor dal owner del wallet" : undefined
-                                }
-                            ]}
-                        />
-                    </div>
-                </div>
-            ))}
+            {/* Segmented Control */}
+            <Selector
+              value={wp.enabled ? (wp.write ? "write" : "read") : "none"}
+              onChange={(val) => setPermission(wp.walletId, val)}
+              size="md"
+              options={[
+                {
+                  value: "none",
+                  label: "Unauthorized",
+                  icon: (
+                    <FontAwesomeIcon icon={faBan} className="text-[10px]" />
+                  ),
+                  activeColorClass: "text-app-red",
+                },
+                {
+                  value: "read",
+                  label: "Read",
+                  icon: (
+                    <FontAwesomeIcon icon={faEye} className="text-[10px]" />
+                  ),
+                  activeColorClass: "theme-text-primary",
+                },
+                {
+                  value: "write",
+                  label: "Write",
+                  icon: (
+                    <FontAwesomeIcon icon={faPen} className="text-[10px]" />
+                  ),
+                  activeColorClass: "theme-text-warning",
+                  disabled: wp.userRole === "VIEWER",
+                  disabledTitle:
+                    wp.userRole === "VIEWER"
+                      ? "Non hai il permesso editor dal owner del wallet"
+                      : undefined,
+                },
+              ]}
+            />
+          </div>
         </div>
-    );
+      ))}
+    </div>
+  );
 };

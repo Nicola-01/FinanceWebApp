@@ -12,29 +12,30 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
-    @Value("${application.security.admin.username}")
-    private String ADMIN_USERNAME;
-    @Value("${application.security.admin.email}")
-    private String ADMIN_EMAIL;
-    @Value("${application.security.admin.password}")
-    private String ADMIN_PASSWORD;
+  @Value("${application.security.admin.username}")
+  private String ADMIN_USERNAME;
 
+  @Value("${application.security.admin.email}")
+  private String ADMIN_EMAIL;
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+  @Value("${application.security.admin.password}")
+  private String ADMIN_PASSWORD;
 
-    @Override
-    public void run(String... args) throws Exception {
-        if (userRepository.count() == 0) {
-            System.out.println("No users found in the database. Creating default ADMIN user...");
+  private final UserRepository userRepository;
+  private final PasswordEncoder passwordEncoder;
 
-            User admin = new User();
-            admin.setUsername(ADMIN_USERNAME);
-            admin.setEmail(ADMIN_EMAIL);
-            admin.setPassword(passwordEncoder.encode(ADMIN_PASSWORD));
-            admin.setRole(User.Role.ADMIN);
-            userRepository.save(admin);
-            System.out.println("Admin user created, username and password taken from the .env file");
-        }
+  @Override
+  public void run(String... args) throws Exception {
+    if (userRepository.count() == 0) {
+      System.out.println("No users found in the database. Creating default ADMIN user...");
+
+      User admin = new User();
+      admin.setUsername(ADMIN_USERNAME);
+      admin.setEmail(ADMIN_EMAIL);
+      admin.setPassword(passwordEncoder.encode(ADMIN_PASSWORD));
+      admin.setRole(User.Role.ADMIN);
+      userRepository.save(admin);
+      System.out.println("Admin user created, username and password taken from the .env file");
     }
+  }
 }

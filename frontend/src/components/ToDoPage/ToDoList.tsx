@@ -1,125 +1,150 @@
-import React from 'react';
-import { CheckCircle2, Circle, ArrowRightCircle } from 'lucide-react';
-import { todoData, type ToDoItem, type ToDoStatus } from './todoData';
+import React from "react";
+import { CheckCircle2, Circle, ArrowRightCircle } from "lucide-react";
+import { todoData, type ToDoItem, type ToDoStatus } from "./todoData";
 
 const StatusIcon = ({ status }: { status: ToDoStatus }) => {
-    switch (status) {
-        case 'FINISHED':
-            return <CheckCircle2 className="w-6 h-6 text-app-green" />;
-        case 'STARTED':
-            return <ArrowRightCircle className="w-6 h-6 theme-text-primary" />;
-        case 'PLANNED':
-        default:
-            return <Circle className="w-6 h-6 theme-text-subtle" />;
-    }
+  switch (status) {
+    case "FINISHED":
+      return <CheckCircle2 className="w-6 h-6 text-app-green" />;
+    case "STARTED":
+      return <ArrowRightCircle className="w-6 h-6 theme-text-primary" />;
+    case "PLANNED":
+    default:
+      return <Circle className="w-6 h-6 theme-text-subtle" />;
+  }
 };
 
 const StatusBadge = ({ status }: { status: ToDoStatus }) => {
-    switch (status) {
-        case 'FINISHED':
-            return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-green/10 text-app-green border border-app-green/20 text-xs font-semibold">Completed</span>;
-        case 'STARTED':
-            return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-primary-transparent theme-text-primary-light border theme-border-primary text-xs font-semibold">Started</span>;
-        case 'PLANNED':
-        default:
-            return <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-input theme-text-muted border border-app-border text-xs font-semibold">Planned</span>;
-    }
+  switch (status) {
+    case "FINISHED":
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-green/10 text-app-green border border-app-green/20 text-xs font-semibold">
+          Completed
+        </span>
+      );
+    case "STARTED":
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-primary-transparent theme-text-primary-light border theme-border-primary text-xs font-semibold">
+          Started
+        </span>
+      );
+    case "PLANNED":
+    default:
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-input theme-text-muted border border-app-border text-xs font-semibold">
+          Planned
+        </span>
+      );
+  }
 };
 
 const ToDoCard: React.FC<{ item: ToDoItem }> = ({ item }) => {
-    const [isExpanded, setIsExpanded] = React.useState(false);
-    const showLimit = 3;
-    const hasMore = (item.subtasks?.length || 0) > showLimit;
-    const displayedSubtasks = isExpanded ? item.subtasks : item.subtasks?.slice(0, showLimit);
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const showLimit = 3;
+  const hasMore = (item.subtasks?.length || 0) > showLimit;
+  const displayedSubtasks = isExpanded
+    ? item.subtasks
+    : item.subtasks?.slice(0, showLimit);
 
-    return (
-        <div className="bg-app-input border border-app-border rounded-2xl p-6 backdrop-blur-sm transition-all hover:bg-app-hover flex flex-col gap-4">
-            <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <StatusIcon status={item.status} />
-                    <h3 className="text-xl font-bold theme-text-default">{item.title}</h3>
-                </div>
-                <StatusBadge status={item.status} />
-            </div>
-            
-            {item.description && (
-                <p className="theme-text-muted text-sm leading-relaxed pl-9">
-                    {item.description}
-                </p>
-            )}
-
-            {item.subtasks && item.subtasks.length > 0 && (
-                <div className="pl-9 mt-2">
-                    <ul className="space-y-2">
-                        {displayedSubtasks?.map((task, idx) => (
-                            <li key={idx} className="flex items-start gap-2 text-sm theme-text-muted">
-                                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
-                                {task}
-                            </li>
-                        ))}
-                    </ul>
-                    
-                    {hasMore && (
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsExpanded(!isExpanded);
-                            }}
-                            className="mt-3 text-xs font-medium theme-text-primary hover:theme-text-primary-light flex items-center gap-1 transition-colors"
-                        >
-                            {isExpanded ? 'Show less' : `+${item.subtasks.length - showLimit} more subtasks (show more)`}
-                        </button>
-                    )}
-                </div>
-            )}
+  return (
+    <div className="bg-app-input border border-app-border rounded-2xl p-6 backdrop-blur-sm transition-all hover:bg-app-hover flex flex-col gap-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <StatusIcon status={item.status} />
+          <h3 className="text-xl font-bold theme-text-default">{item.title}</h3>
         </div>
-    );
+        <StatusBadge status={item.status} />
+      </div>
+
+      {item.description && (
+        <p className="theme-text-muted text-sm leading-relaxed pl-9">
+          {item.description}
+        </p>
+      )}
+
+      {item.subtasks && item.subtasks.length > 0 && (
+        <div className="pl-9 mt-2">
+          <ul className="space-y-2">
+            {displayedSubtasks?.map((task, idx) => (
+              <li
+                key={idx}
+                className="flex items-start gap-2 text-sm theme-text-muted"
+              >
+                <div className="mt-1 w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
+                {task}
+              </li>
+            ))}
+          </ul>
+
+          {hasMore && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="mt-3 text-xs font-medium theme-text-primary hover:theme-text-primary-light flex items-center gap-1 transition-colors"
+            >
+              {isExpanded
+                ? "Show less"
+                : `+${item.subtasks.length - showLimit} more subtasks (show more)`}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
 const ToDoList: React.FC = () => {
-    const finished = todoData.filter(i => i.status === 'FINISHED');
-    const started = todoData.filter(i => i.status === 'STARTED');
-    const planned = todoData.filter(i => i.status === 'PLANNED');
+  const finished = todoData.filter((i) => i.status === "FINISHED");
+  const started = todoData.filter((i) => i.status === "STARTED");
+  const planned = todoData.filter((i) => i.status === "PLANNED");
 
-    return (
-        <div className="max-w-4xl xl:max-w-6xl mx-auto space-y-12 pb-24">
-            {started.length > 0 && (
-                <section>
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                        <span className="w-3 h-3 rounded-full theme-bg-primary animate-pulse"></span>
-                        Currently In Progress
-                    </h2>
-                    <div className="grid md:grid-cols-2 gap-6">
-                        {started.map(item => <ToDoCard key={item.id} item={item} />)}
-                    </div>
-                </section>
-            )}
+  return (
+    <div className="max-w-4xl xl:max-w-6xl mx-auto space-y-12 pb-24">
+      {started.length > 0 && (
+        <section>
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full theme-bg-primary animate-pulse"></span>
+            Currently In Progress
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {started.map((item) => (
+              <ToDoCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
 
-            {planned.length > 0 && (
-                <section>
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 theme-text-muted">
-                        <span className="w-3 h-3 rounded-full theme-bg-neutral"></span>
-                        Future Roadmap
-                    </h2>
-                    <div className="grid md:grid-cols-2 gap-6">
-                        {planned.map(item => <ToDoCard key={item.id} item={item} />)}
-                    </div>
-                </section>
-            )}
+      {planned.length > 0 && (
+        <section>
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 theme-text-muted">
+            <span className="w-3 h-3 rounded-full theme-bg-neutral"></span>
+            Future Roadmap
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {planned.map((item) => (
+              <ToDoCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
 
-            {finished.length > 0 && (
-                <section>
-                    <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 theme-text-muted">
-                        <span className="w-3 h-3 rounded-full bg-app-green"></span>
-                        Recently Shipped
-                    </h2>
-                    <div className="grid md:grid-cols-2 gap-6 opacity-80">
-                        {finished.map(item => <ToDoCard key={item.id} item={item} />)}
-                    </div>
-                </section>
-            )}
-        </div>
-    );
+      {finished.length > 0 && (
+        <section>
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 theme-text-muted">
+            <span className="w-3 h-3 rounded-full bg-app-green"></span>
+            Recently Shipped
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6 opacity-80">
+            {finished.map((item) => (
+              <ToDoCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  );
 };
 
 export default ToDoList;

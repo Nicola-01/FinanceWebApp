@@ -1,10 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
 @import "./theme-colors.css";
 @tailwind utilities;
 
 /* Resetta html, body e root per occupare tutto lo schermo */
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   width: 100%;
   margin: 0;
@@ -12,7 +14,9 @@ html, body, #root {
   display: block;
   background-color: rgb(var(--bg-main));
   color: rgb(var(--text-primary));
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 @theme {
@@ -41,13 +45,27 @@ html, body, #root {
   --animate-shake: shake 0.5s ease-in-out;
 
   @keyframes gradient-x {
-    0%, 100% { background-size: 200% 200%; background-position: left center; }
-    50% { background-size: 200% 200%; background-position: right center; }
+    0%,
+    100% {
+      background-size: 200% 200%;
+      background-position: left center;
+    }
+    50% {
+      background-size: 200% 200%;
+      background-position: right center;
+    }
   }
   @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-5px);
+    }
+    75% {
+      transform: translateX(5px);
+    }
   }
 }
 
@@ -84,18 +102,34 @@ html, body, #root {
 }
 
 @keyframes modalFadeIn {
-  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Nasconde il watermark di MUI X Pro (Solo per progetti personali/sviluppo) */
@@ -112,7 +146,7 @@ div:has(> a[href*="mui.com/r/x-license"]) {
 }
 
 .font-app-mono {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: "JetBrains Mono", monospace !important;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.07em;
 }

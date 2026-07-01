@@ -1,12 +1,11 @@
 package dev.busato.FinanceWebApp.backend.model;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Data
 @Builder
@@ -16,31 +15,29 @@ import java.util.UUID;
 @Table(
     name = "tags",
     uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_tag_wallet_name",
-            columnNames = {"wallet_id", "name"}
-        )
-    }
-)
+      @UniqueConstraint(
+          name = "uk_tag_wallet_name",
+          columnNames = {"wallet_id", "name"})
+    })
 public class Tag {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
-    @Column(nullable = false)
-    private String name;
+  @Column(nullable = false)
+  private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "wallet_id", nullable = false)
-    private Wallet wallet;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "wallet_id", nullable = false)
+  private Wallet wallet;
 
-    private String icon;
-    private String colorHex;
-//    private String description;
+  private String icon;
+  private String colorHex;
 
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
-    private Tag parent;
+  //    private String description;
 
+  @ManyToOne
+  @JoinColumn(name = "parent_id")
+  private Tag parent;
 }

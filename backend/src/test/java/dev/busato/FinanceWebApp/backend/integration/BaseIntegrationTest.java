@@ -17,16 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public abstract class BaseIntegrationTest {
 
-    @Autowired
-    protected MockMvc mockMvc;
+  @Autowired protected MockMvc mockMvc;
 
-    @Autowired
-    protected ObjectMapper objectMapper;
+  @Autowired protected ObjectMapper objectMapper;
 
-    // Mock all external integrations to prevent network calls during E2E tests
-    @MockitoBean
-    protected SendEmailService sendEmailService;
+  // Mock all external integrations to prevent network calls during E2E tests
+  @MockitoBean protected SendEmailService sendEmailService;
 
-    @MockitoBean
-    protected R2StorageService r2StorageService;
+  @MockitoBean protected R2StorageService r2StorageService;
 }

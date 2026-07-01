@@ -8,21 +8,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class AdminInviteMapper {
 
-    @Value("${application.frontend.url}")
-    private String FRONTEND_URL;
+  @Value("${application.frontend.url}")
+  private String FRONTEND_URL;
 
-    public AdminInviteResponse mapToAdminInviteResponse(Registrations invitation) {
-        return AdminInviteResponse.builder()
-                .email(invitation.getEmail())
-                .url(generateInviteUrl(invitation.getToken()))
-                .note(invitation.getNote())
-                .status(invitation.getStatus().name())
-                .expiresAt(invitation.getExpiresAt())
-                .createdAt(invitation.getCreatedAt())
-                .build();
-    }
+  public AdminInviteResponse mapToAdminInviteResponse(Registrations invitation) {
+    return AdminInviteResponse.builder()
+        .email(invitation.getEmail())
+        .url(generateInviteUrl(invitation.getToken()))
+        .note(invitation.getNote())
+        .status(invitation.getStatus().name())
+        .expiresAt(invitation.getExpiresAt())
+        .createdAt(invitation.getCreatedAt())
+        .build();
+  }
 
-    private String generateInviteUrl(String token) {
-        return FRONTEND_URL + "/register?token=" + token;
-    }
+  private String generateInviteUrl(String token) {
+    return FRONTEND_URL + "/register?token=" + token;
+  }
 }
