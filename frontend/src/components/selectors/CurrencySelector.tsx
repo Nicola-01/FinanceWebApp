@@ -43,6 +43,10 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
   };
 
   useEffect(() => {
+    // Copia del nodo al momento dell'effetto: la cleanup deve agire sullo stesso
+    // elemento catturato ora, non su popoverRef.current che potrebbe essere cambiato.
+    const popover = popoverRef.current;
+
     const handleScroll = (e: Event) => {
       // IL FIX: Se l'utente sta scrollando dentro la tendina, non facciamo nulla!
       const target = e.target as HTMLElement;
@@ -65,9 +69,9 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
       window.addEventListener("scroll", handleScroll, true);
       window.addEventListener("resize", handleResize);
 
-      if (popoverRef.current) {
+      if (popover) {
         try {
-          popoverRef.current.showPopover();
+          popover.showPopover();
         } catch {
           console.warn("Popover API not supported by this browser");
         }
@@ -78,10 +82,10 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
       window.removeEventListener("scroll", handleScroll, true);
       window.removeEventListener("resize", handleResize);
 
-      if (popoverRef.current) {
+      if (popover) {
         try {
-          if (popoverRef.current.matches(":popover-open")) {
-            popoverRef.current.hidePopover();
+          if (popover.matches(":popover-open")) {
+            popover.hidePopover();
           }
         } catch {
           /* Popover API non supportata: nessuna azione necessaria */
@@ -143,7 +147,7 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
           >
             {/* Aggiunta la classe vitale 'currency-scroll-container' */}
             <div className="currency-scroll-container max-h-[200px] overflow-y-auto pointer-events-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-track]:theme-bg-transparent [&::-webkit-scrollbar]:w-1.5">
-              {availableCurrencies.map(([code, data]: [string, any]) => (
+              {availableCurrencies.map(([code, data]) => (
                 <div
                   key={code}
                   className={`cursor-pointer px-4 py-2.5 text-sm transition-colors hover:bg-app-surface ${safeCode === code ? "border-l-2 border-app-green bg-app-green/10 text-app-green" : "border-l-2 theme-border-transparent theme-text-muted"}`}

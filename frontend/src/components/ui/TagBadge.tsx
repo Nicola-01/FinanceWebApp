@@ -1,3 +1,4 @@
+import type React from "react";
 import type { Tag } from "../../utils/types.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
@@ -11,11 +12,11 @@ export const TagBadge = ({
   compact = false,
   onClick,
 }: {
-  tag: Tag | any;
+  tag?: Tag;
   showParent?: boolean;
   forceShowParent?: boolean;
   compact?: boolean;
-  onClick?: (e?: any) => any;
+  onClick?: (e: React.MouseEvent) => void;
 }) => {
   const { tags } = useWalletContext();
   if (!tag) return null;

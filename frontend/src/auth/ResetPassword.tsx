@@ -11,11 +11,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
-import {
-  PasswordRequirements,
-  isPasswordValid,
-} from "../components/auth/PasswordRequirements.tsx";
+import { PasswordRequirements } from "../components/auth/PasswordRequirements.tsx";
+import { isPasswordValid } from "../components/auth/passwordRequirements.ts";
 import { AnimateBackground } from "./AnimateBackground.tsx";
+import { getApiErrorTitle } from "../utils/apiError";
 
 interface ResetInviteResponse {
   email: string;
@@ -58,8 +57,8 @@ const ResetPassword: React.FC = () => {
         if (res.data.status !== "FORGOTPASSWORD") {
           setError("This reset link has already been used.");
         }
-      } catch (err: any) {
-        setError(err.response?.data?.title || "Invalid or expired reset link.");
+      } catch (err: unknown) {
+        setError(getApiErrorTitle(err, "Invalid or expired reset link."));
       } finally {
         setIsLoading(false);
       }
@@ -90,13 +89,10 @@ const ResetPassword: React.FC = () => {
 
       triggerToast("Password reset successfully! You can now log in.", true);
       navigate("/login");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError("shake");
       setTimeout(() => setError(""), 500);
-      triggerToast(
-        err.response?.data?.title || "Error resetting password.",
-        false,
-      );
+      triggerToast(getApiErrorTitle(err, "Error resetting password."), false);
     } finally {
       setIsSubmitting(false);
     }

@@ -9,7 +9,7 @@ import {
   isSameDay,
   addDays,
 } from "date-fns";
-import type { Subscription } from "../../utils/types";
+import type { Subscription, Transaction } from "../../utils/types";
 import { buildYearsMap } from "../../utils/subscriptionHelper";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import CustomDatePicker from "../../components/DataPicker/CustomDatePicker.tsx";
@@ -23,7 +23,7 @@ interface SubscriptionCalendarProps {
   subscriptions: Subscription[];
   onEditSubscription?: (subscription: Subscription, date: Date) => void;
   onAddSubscription?: (date: Date) => void;
-  onTransactionClick?: (tx: any) => void;
+  onTransactionClick?: (tx: Transaction) => void;
 }
 
 export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({

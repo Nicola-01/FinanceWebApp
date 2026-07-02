@@ -26,8 +26,8 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
 }) => {
   const isIncome = sub.type === "INCOME";
 
-  const displayExchangeRate = (sub as any).exchangeValue
-    ? Number((sub as any).exchangeValue)
+  const displayExchangeRate = sub.exchangeValue
+    ? Number(sub.exchangeValue)
         .toFixed(6)
         .replace(/\.?0+$/, "")
     : "1";
@@ -164,19 +164,18 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
         )}
 
         {/* Exchange Rate Box (Only if applicable) */}
-        {(sub as any).originalCurrency &&
-          (sub as any).originalCurrency !== wallet.currency && (
-            <div className="p-4 sm:p-5">
-              <ExchangeRateSection
-                mode="view"
-                baseCurrency={wallet.currency as CurrencyCode}
-                selectedCurrency={(sub as any).originalCurrency as CurrencyCode}
-                originalAmount={(sub as any).originalAmount || 0}
-                exchangeRate={displayExchangeRate}
-                convertedAmount={sub.amount}
-              />
-            </div>
-          )}
+        {sub.originalCurrency && sub.originalCurrency !== wallet.currency && (
+          <div className="p-4 sm:p-5">
+            <ExchangeRateSection
+              mode="view"
+              baseCurrency={wallet.currency as CurrencyCode}
+              selectedCurrency={sub.originalCurrency as CurrencyCode}
+              originalAmount={sub.originalAmount || 0}
+              exchangeRate={displayExchangeRate}
+              convertedAmount={sub.amount}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

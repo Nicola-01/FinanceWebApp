@@ -10,10 +10,9 @@ import {
 import { ModalDialog } from "../common/ModalDialog";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { PasswordInput } from "./PasswordInput";
-import {
-  PasswordRequirements,
-  isPasswordValid,
-} from "../../components/auth/PasswordRequirements.tsx";
+import { PasswordRequirements } from "../../components/auth/PasswordRequirements.tsx";
+import { isPasswordValid } from "../../components/auth/passwordRequirements.ts";
+import { getApiErrorDetail } from "../../utils/apiError";
 
 export interface ChangePasswordModalHandle {
   openModal: (mandatoryChange?: boolean) => void;
@@ -56,9 +55,8 @@ export const ChangePasswordModal = forwardRef<ChangePasswordModalHandle>(
         });
         triggerToast("Password updated successfully!", true);
         localStorage.setItem("mustChangePWD", JSON.stringify(false));
-      } catch (err: any) {
-        const errorMessage =
-          err.response?.data?.detail || "Error updating password";
+      } catch (err: unknown) {
+        const errorMessage = getApiErrorDetail(err, "Error updating password");
         triggerToast(errorMessage, false);
       } finally {
         setLoading(false);

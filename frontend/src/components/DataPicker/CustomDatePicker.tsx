@@ -133,7 +133,6 @@ export default function CustomDatePicker({
       case "today":
         // Derivazione dell'intervallo da preset+currentDate con jump imperativi:
         // sincronizzazione legittima in effetto.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStartDate(today);
         setEndDate(null);
         jumpToToday();
@@ -184,9 +183,12 @@ export default function CustomDatePicker({
   useEffect(() => {
     if (!isRange && startDate && isOpen) {
       // Auto-chiusura in risposta alla selezione di una data in un componente figlio.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsOpen(false);
     }
+    // `isOpen` escluso di proposito: l'effetto deve reagire solo a una NUOVA
+    // selezione di data (startDate/isRange). Includere isOpen richiuderebbe il
+    // picker nell'istante stesso in cui viene aperto con una data già selezionata.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, isRange]);
 
   const renderTriggerContent = () => {

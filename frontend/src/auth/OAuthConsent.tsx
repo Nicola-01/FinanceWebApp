@@ -17,6 +17,7 @@ import { PatFormView } from "../modals/pat/PatFormView";
 import { AnimateBackground } from "./AnimateBackground";
 import api from "../api/axiosConfig";
 import axios from "axios";
+import { getApiErrorDetail, isReplayError } from "../utils/apiError";
 
 type ConsentView = "select" | "create";
 
@@ -81,6 +82,9 @@ const OAuthConsent = () => {
 
     fetchTokens();
     fetchWalletsMap();
+    // Init one-shot al mount: valida i parametri OAuth (derivati dall'URL, stabili
+    // per la vita della pagina) e carica token/wallet una sola volta.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Data fetching ───────────────────────────────────────────────────────
@@ -150,17 +154,11 @@ const OAuthConsent = () => {
       const plainToken = createRes.data.plainToken;
 
       await completeAuthorization(plainToken);
-    } catch (err: any) {
-      if (
-        err.response?.status === 400 &&
-        err.response?.data?.error === "replay_detected"
-      ) {
+    } catch (err: unknown) {
+      if (isReplayError(err)) {
         setHasReplayError(true);
       } else {
-        triggerToast(
-          err.response?.data?.detail || "Authorization failed",
-          false,
-        );
+        triggerToast(getApiErrorDetail(err, "Authorization failed"), false);
       }
     } finally {
       setAuthorizing(false);
@@ -199,17 +197,11 @@ const OAuthConsent = () => {
       const plainToken = createRes.data.plainToken;
 
       await completeAuthorization(plainToken);
-    } catch (err: any) {
-      if (
-        err.response?.status === 400 &&
-        err.response?.data?.error === "replay_detected"
-      ) {
+    } catch (err: unknown) {
+      if (isReplayError(err)) {
         setHasReplayError(true);
       } else {
-        triggerToast(
-          err.response?.data?.detail || "Failed to create token",
-          false,
-        );
+        triggerToast(getApiErrorDetail(err, "Failed to create token"), false);
       }
     } finally {
       setCreating(false);
@@ -246,11 +238,8 @@ const OAuthConsent = () => {
 
       // Redirect the browser to the MCP client
       window.location.href = res.data.redirectUrl;
-    } catch (err: any) {
-      if (
-        err.response?.status === 400 &&
-        err.response?.data?.error === "replay_detected"
-      ) {
+    } catch (err: unknown) {
+      if (isReplayError(err)) {
         setHasReplayError(true);
       } else {
         throw err;

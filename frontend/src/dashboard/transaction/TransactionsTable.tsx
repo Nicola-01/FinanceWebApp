@@ -15,6 +15,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
 import type { CurrencyCode } from "../../utils/currencies.ts";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
+import { getApiErrorTitle } from "../../utils/apiError";
 
 interface TransactionsTableProps {
   wallet: Wallet;
@@ -94,11 +95,8 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
       await api.delete(`/transactions/${wallet.id}/${id}`);
       onRefresh(); // Più sicuro chiamare il refresh dal padre che mutare l'array localmente
       return true;
-    } catch (err: any) {
-      triggerToast(
-        err.response?.data?.title || "Error deleting transaction",
-        false,
-      );
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error deleting transaction"), false);
       return false;
     }
   };

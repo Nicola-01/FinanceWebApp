@@ -1,5 +1,5 @@
 import React from "react";
-import type { TabType } from "./WalletContext.tsx";
+import type { TabType } from "./walletTabs";
 import { useWalletContext } from "./WalletContext.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -9,13 +9,14 @@ import {
   faGear,
   faReceipt,
 } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 export const WalletTabs: React.FC = () => {
   const { activeTab, setActiveTab, wallet } = useWalletContext();
   const walletColor = wallet.color;
 
   // Aggiunta la proprietà "icon" per ogni tab
-  const tabs: { id: TabType; label: string; icon: any }[] = [
+  const tabs: { id: TabType; label: string; icon: IconDefinition }[] = [
     { id: "transactions", label: "Transactions", icon: faReceipt },
     { id: "subscription", label: "Subscriptions", icon: faCalendarDays },
     { id: "category", label: "Categories", icon: faChartPie },

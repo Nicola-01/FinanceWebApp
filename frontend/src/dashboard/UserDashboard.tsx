@@ -9,6 +9,7 @@ import { useDeleteModal } from "../modals/common/DeleteModalContext";
 import { AppHeader } from "../header/AppHeader.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPiggyBank } from "@fortawesome/free-solid-svg-icons";
+import { getApiErrorTitle } from "../utils/apiError";
 
 const UserDashboard: React.FC = () => {
   const { walletId } = useParams<{ walletId: string }>();
@@ -56,6 +57,9 @@ const UserDashboard: React.FC = () => {
   // Execute on first load
   useEffect(() => {
     fetchData();
+    // Caricamento una tantum al mount: scarica tutti i wallet una sola volta.
+    // Il redirect sul wallet selezionato è gestito dall'effetto successivo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Deletion handling: se il wallet selezionato sparisce, naviga al primo disponibile
@@ -79,8 +83,8 @@ const UserDashboard: React.FC = () => {
       await api.delete(`/wallets/${idToDelete}`);
       setWallets((prev) => prev.filter((w) => w.id !== idToDelete));
       triggerToast("Deleted!", true);
-    } catch (err: any) {
-      triggerToast(err.response?.data?.title || "Error deleting.", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error deleting."), false);
     }
   };
 

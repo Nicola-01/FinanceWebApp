@@ -19,6 +19,7 @@ import type {
 import { PatListView } from "./PatListView";
 import { PatFormView } from "./PatFormView";
 import { PatShowTokenView } from "./PatShowTokenView";
+import { getApiErrorDetail } from "../../utils/apiError";
 
 export interface PatModalHandle {
   openModal: () => void;
@@ -70,11 +71,8 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
     try {
       const res = await api.get("/tokens");
       setTokens(res.data);
-    } catch (err: any) {
-      triggerToast(
-        err.response?.data?.detail || "Failed to load tokens",
-        false,
-      );
+    } catch (err: unknown) {
+      triggerToast(getApiErrorDetail(err, "Failed to load tokens"), false);
     } finally {
       setLoadingTokens(false);
     }
@@ -162,8 +160,8 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
         setView("showToken");
         triggerToast("Token created successfully!", true);
       }
-    } catch (err: any) {
-      triggerToast(err.response?.data?.detail || "Failed to save token", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorDetail(err, "Failed to save token"), false);
     } finally {
       setIsSubmitting(false);
     }
@@ -175,11 +173,8 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
       await api.delete(`/tokens/${tokenId}`);
       setTokens((prev) => prev.filter((t) => t.id !== tokenId));
       triggerToast("Token revoked", true);
-    } catch (err: any) {
-      triggerToast(
-        err.response?.data?.detail || "Failed to revoke token",
-        false,
-      );
+    } catch (err: unknown) {
+      triggerToast(getApiErrorDetail(err, "Failed to revoke token"), false);
     } finally {
       setRevokingId(null);
     }

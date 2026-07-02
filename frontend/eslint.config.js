@@ -21,11 +21,10 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
-      // Debito tecnico noto, degradato a warning per non bloccare la CI.
-      // Vedi DEPLOY_FIX_TODO.md §4: riportare a "error" una volta risanato.
-      "@typescript-eslint/no-explicit-any": "warn",
-      "react-hooks/set-state-in-effect": "warn",
-      "react-refresh/only-export-components": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
+      "react-refresh/only-export-components": "error",
+      "react-hooks/set-state-in-effect": "error",
+      "react-hooks/exhaustive-deps": "error",
     },
   },
   eslintPluginPrettierRecommended,

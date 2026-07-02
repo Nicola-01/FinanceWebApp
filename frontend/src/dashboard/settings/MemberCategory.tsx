@@ -1,12 +1,13 @@
 import React from "react";
 import { MemberRow } from "./MemberRow";
 import type { WalletMember } from "../../utils/types";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 interface MemberCategoryProps {
   title: string;
   titleColor?: string;
   members: WalletMember[];
-  icon: any;
+  icon: IconDefinition;
   iconColor: string;
   canManage: boolean;
   onRemove: (id: string, name: string) => void;

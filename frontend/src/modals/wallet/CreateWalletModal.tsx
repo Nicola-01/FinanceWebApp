@@ -16,6 +16,7 @@ import type { CurrencyCode } from "../../utils/currencies";
 import { type IconKey, ICONS } from "../../utils/icons";
 import { CurrencySelector } from "../../components/selectors/CurrencySelector.tsx";
 import { IconColorSelector } from "../../components/icon/IconColorSelector.tsx";
+import { getApiErrorTitle } from "../../utils/apiError";
 
 // import {IconPickerButton} from "../components/IconPickerButton.tsx";
 
@@ -88,11 +89,8 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
         triggerToast("WalletCard created successfully!", true);
         onSuccess(response.data.id);
         dialogRef.current?.close();
-      } catch (err: any) {
-        triggerToast(
-          err.response?.data?.title || "Error creating wallet",
-          false,
-        );
+      } catch (err: unknown) {
+        triggerToast(getApiErrorTitle(err, "Error creating wallet"), false);
       } finally {
         setLoading(false);
       }

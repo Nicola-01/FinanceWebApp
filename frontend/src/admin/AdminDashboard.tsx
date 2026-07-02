@@ -100,11 +100,8 @@ const AdminDashboard: React.FC = () => {
         ),
       );
       triggerToast("Invite revoked!", true);
-    } catch (err: any) {
-      triggerToast(
-        err.response?.data?.title || "Error revoking invite.",
-        false,
-      );
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error revoking invite."), false);
     }
   };
 

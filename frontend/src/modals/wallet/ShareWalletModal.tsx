@@ -16,6 +16,7 @@ import {
 import { ModalDialog } from "../common/ModalDialog";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import type { Wallet } from "../../utils/types";
+import { getApiErrorTitle } from "../../utils/apiError";
 
 export interface ShareWalletModalHandle {
   openModal: () => void;
@@ -56,11 +57,8 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
 
         triggerToast(`Wallet shared successfully with ${identifier}!`, true);
         if (dialogRef.current?.open) dialogRef.current.close();
-      } catch (err: any) {
-        triggerToast(
-          err.response?.data?.title || "Error sharing wallet",
-          false,
-        );
+      } catch (err: unknown) {
+        triggerToast(getApiErrorTitle(err, "Error sharing wallet"), false);
       } finally {
         setLoading(false);
       }

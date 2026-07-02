@@ -4,6 +4,7 @@ import { faUser, faCheck } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "../common/ModalDialog";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import api from "../../api/axiosConfig";
+import { getApiErrorTitle } from "../../utils/apiError";
 
 export interface ProfileModalHandle {
   openModal: () => void;
@@ -29,17 +30,17 @@ export const ProfileModal = forwardRef<ProfileModalHandle>((_props, ref) => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const payload: any = { name, email };
+      const payload: { name: string; email: string; password?: string } = {
+        name,
+        email,
+      };
       if (password) payload.password = password; // Invia la password solo se modificata
 
       await api.put(`/users/me`, payload);
       triggerToast("Profile updated successfully!", true);
       dialogRef.current?.close();
-    } catch (err: any) {
-      triggerToast(
-        err.response?.data?.title || "Error updating profile",
-        false,
-      );
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error updating profile"), false);
     } finally {
       setLoading(false);
     }

@@ -96,7 +96,7 @@ export const TransactionPieChart = ({
       color: data.color,
     }));
 
-  const outerData: any[] = [];
+  const outerData: typeof innerData = [];
   innerData.forEach((mainItem) => {
     const subs = Array.from(subMap.entries())
       .filter(([, data]) => data.main === mainItem.id)
@@ -133,7 +133,7 @@ export const TransactionPieChart = ({
               outerRadius: middleRadius,
               data: innerData,
               arcLabel: (item) =>
-                (item as any).percentage > 5 ? `${item.id}` : "",
+                (item.value / totalAmount) * 100 > 5 ? `${item.id}` : "",
               valueFormatter: ({ value }) =>
                 `${value.toFixed(2)} (${((value / totalAmount) * 100).toFixed(1)}%)`,
               highlightScope: { fade: "global", highlight: "item" },
@@ -145,7 +145,7 @@ export const TransactionPieChart = ({
               outerRadius: middleRadius + outerRadiusDelta,
               data: outerData,
               arcLabel: (item) => {
-                if ((item as any).percentage <= 3) return "";
+                if ((item.value / totalAmount) * 100 <= 3) return "";
                 const label = String(item.id);
                 if (isMobile) {
                   return label.length > 3

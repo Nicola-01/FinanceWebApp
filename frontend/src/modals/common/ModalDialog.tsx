@@ -10,7 +10,7 @@ interface ModalDialogProps {
   children: React.ReactNode;
   className?: string;
   onClose?: () => void;
-  onCancel?: (e: any) => void;
+  onCancel?: (e: React.SyntheticEvent<HTMLDialogElement>) => void;
   showClose?: boolean;
   onCloseClick?: () => void;
   title?: React.ReactNode;

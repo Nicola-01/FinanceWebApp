@@ -12,6 +12,7 @@ import {
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { AnimateBackground } from "./AnimateBackground.tsx";
+import { getApiErrorTitle } from "../utils/apiError";
 
 const COOLDOWN_SECONDS = 60;
 
@@ -54,11 +55,11 @@ const ForgotPassword: React.FC = () => {
         setEmailSent(true);
         setCooldown(COOLDOWN_SECONDS);
         triggerToast("Reset email sent successfully!", true);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setShake(true);
         setTimeout(() => setShake(false), 500);
         triggerToast(
-          err.response?.data?.title || "Failed to send reset email.",
+          getApiErrorTitle(err, "Failed to send reset email."),
           false,
         );
       } finally {
@@ -77,9 +78,9 @@ const ForgotPassword: React.FC = () => {
       await api.post("/auth/forgot-password", { email: email.trim() });
       setCooldown(COOLDOWN_SECONDS);
       triggerToast("Reset email resent successfully!", true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       triggerToast(
-        err.response?.data?.title || "Failed to resend reset email.",
+        getApiErrorTitle(err, "Failed to resend reset email."),
         false,
       );
     } finally {
