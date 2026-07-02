@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.10'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '6.25.0'
+    id 'jacoco'
 }
 
 group = 'dev.busato'
@@ -34,6 +36,7 @@ dependencies {
     implementation 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'com.h2database:h2'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -50,4 +53,34 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
 }
+
+spotless {
+    java {
+        googleJavaFormat()
+        removeUnusedImports()
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+jacocoTestReport {
+    dependsOn test
+}
+
+jacocoTestCoverageVerification {
+    dependsOn test
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.90
+            }
+        }
+    }
+}
+
+check.dependsOn jacocoTestCoverageVerification

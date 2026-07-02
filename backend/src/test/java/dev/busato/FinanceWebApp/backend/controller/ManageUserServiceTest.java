@@ -1,60 +1,63 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.busato.FinanceWebApp.backend.dto.UserRequest;
+import dev.busato.FinanceWebApp.backend.dto.AdminInviteRequest;
+import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @SpringBootTest
+@ActiveProfiles("test")
 @AutoConfigureMockMvc
-class AdminUserIntegrationTest {
+class ManageUserServiceTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper; // Per convertire oggetti in JSON
+  @Autowired private ObjectMapper objectMapper;
 
-    @Test
-    @WithMockUser(username = "admin", roles = {"ADMIN"}) // <--- FINGE DI ESSERE ADMIN!
-    void testCreateUserAsAdmin() throws Exception {
+  @MockitoBean private SendEmailService sendEmailService;
 
-        // 1. Preparo i dati
-        UserRequest request = UserRequest.builder()
-                .username("test.user").build();
-//        request.setRole(User.Role.USER);
+  @Test
+  @WithMockUser(
+      username = "admin",
+      roles = {"ADMIN"})
+  void testCreateInviteAsAdmin() throws Exception {
 
-        // 2. Chiamo l'endpoint simulando una richiesta HTTP
-        mockMvc.perform(post("/api/admin/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))) // converte request in stringa JSON
+    AdminInviteRequest request = new AdminInviteRequest();
+    request.setEmail("newuser@example.com");
 
-                // 3. Verifico i risultati
-                .andExpect(status().isOk()); // Mi aspetto 200 OK
-//                .andExpect(jsonPath("$.username").value("test.user")) // Controllo il nome
-//                .andExpect(jsonPath("$.tempPassword").exists()); // Controllo che ci sia la psw
-    }
+    mockMvc
+        .perform(
+            post("/api/admin/management")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    @WithMockUser(username = "simpleUser", roles = {"USER"}) // <--- FINGE DI ESSERE USER NORMALE
-    void testCreateUserAsSimpleUser_ShouldFail() throws Exception {
+  @Test
+  @WithMockUser(
+      username = "simpleUser",
+      roles = {"USER"})
+  void testCreateInviteAsSimpleUser_ShouldFail() throws Exception {
 
-        UserRequest request = UserRequest.builder()
-                .username("hacker.user").build();
+    AdminInviteRequest request = new AdminInviteRequest();
+    request.setEmail("newuser@example.com");
 
-        mockMvc.perform(post("/api/admin/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-
-                .andExpect(status().isForbidden()); // Mi aspetto 403 Forbidden!
-    }
+    mockMvc
+        .perform(
+            post("/api/admin/management")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isForbidden());
+  }
 }

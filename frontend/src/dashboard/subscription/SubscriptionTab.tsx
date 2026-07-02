@@ -1,151 +1,173 @@
-import { useRef, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendarDays, faList } from '@fortawesome/free-solid-svg-icons';
+import { useRef, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendarDays, faList } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
-import { SubscriptionModal, type SubscriptionModalHandle } from "../../modals/subscription/SubscriptionModal.tsx";
-import { SubscriptionDetailsModal, type SubscriptionDetailsModalHandle } from "../../modals/subscription/SubscriptionDetailsModal.tsx";
+import {
+  SubscriptionModal,
+  type SubscriptionModalHandle,
+} from "../../modals/subscription/SubscriptionModal.tsx";
+import {
+  SubscriptionDetailsModal,
+  type SubscriptionDetailsModalHandle,
+} from "../../modals/subscription/SubscriptionDetailsModal.tsx";
 import type { CurrencyCode } from "../../utils/currencies.ts";
 import { SubscriptionCalendar } from "./SubscriptionCalendar.tsx";
 import { SubscriptionList } from "./SubscriptionList.tsx";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
-import { TransactionDetailsModal, type TransactionDetailsModalHandle } from "../../modals/TransactionModal/TransactionDetailsModal.tsx";
-import { TransactionModal, type TransactionModalHandle } from "../../modals/TransactionModal/TransactionModal.tsx";
+import {
+  TransactionDetailsModal,
+  type TransactionDetailsModalHandle,
+} from "../../modals/TransactionModal/TransactionDetailsModal.tsx";
+import {
+  TransactionModal,
+  type TransactionModalHandle,
+} from "../../modals/TransactionModal/TransactionModal.tsx";
 import api from "../../api/axiosConfig.ts";
-import { Selector } from '../../components/ui/Selector.tsx';
+import { Selector } from "../../components/ui/Selector.tsx";
 
-type ViewMode = 'list' | 'calendar';
+type ViewMode = "list" | "calendar";
 
 export const SubscriptionTab = () => {
+  const { subscriptions, fetchData, isLoading } = useWalletContext();
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
-    const { subscriptions, fetchData, isLoading } = useWalletContext();
-    const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const { wallet, tags } = useWalletContext();
 
-    const { wallet, tags } = useWalletContext();
+  const modalRef = useRef<SubscriptionModalHandle>(null);
+  const detailsModalRef = useRef<SubscriptionDetailsModalHandle>(null);
+  const txDetailsModalRef = useRef<TransactionDetailsModalHandle>(null);
+  const txModalRef = useRef<TransactionModalHandle>(null);
 
-    const modalRef = useRef<SubscriptionModalHandle>(null);
-    const detailsModalRef = useRef<SubscriptionDetailsModalHandle>(null);
-    const txDetailsModalRef = useRef<TransactionDetailsModalHandle>(null);
-    const txModalRef = useRef<TransactionModalHandle>(null);
-
-    return (
-        <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out]">
-
-            {/* Header: Titolo, Toggle Viste, Bottone Aggiungi */}
-            <div className="flex items-center justify-end gap-4 mb-6">
-
-                {/* Toggle View */}
-                {/* Toggle View */}
-                <Selector
-                    value={viewMode}
-                    onChange={(val) => setViewMode(val as ViewMode)}
-                    size="lg"
-                    fullWidth={false}
-                    className="w-full sm:w-auto"
-                    options={[
-                        {
-                            value: 'list',
-                            label: 'List',
-                            icon: <FontAwesomeIcon icon={faList} />,
-                            style: viewMode === 'list' ? { color: wallet.color } : undefined
-                        },
-                        {
-                            value: 'calendar',
-                            label: 'Calendar',
-                            icon: <FontAwesomeIcon icon={faCalendarDays} />,
-                            style: viewMode === 'calendar' ? { color: wallet.color } : undefined
-                        }
-                    ]}
-                />
-
-                {/* Pulsante Nuova Subscription */}
-                {/*<button*/}
-                {/*    onClick={() => modalRef.current?.openModal()}*/}
-                {/*    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-app-sky to-[#00ff7f] theme-text-inverse font-bold text-sm hover:opacity-90 transition-opacity w-full sm:w-auto shadow-lg shadow-app-sky/20"*/}
-                {/*>*/}
-                {/*    <FontAwesomeIcon icon={faPlus} />*/}
-                {/*    New Subscription*/}
-                {/*</button>*/}
-
-
-            </div>
-
-            {/* Container Dinamico delle Viste */}
-            <div className="flex-1 relative">
-                {isLoading ? (
-                    <div className="w-full">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
-                            {Array.from({ length: 6 }).map((_, i) => (
-                                <div key={i}
-                                    className="flex items-center justify-between p-4 bg-app-input rounded-2xl animate-pulse">
-                                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                                        <div className="h-12 w-12 rounded-xl bg-app-surface shrink-0" />
-                                        <div className="flex flex-col gap-2">
-                                            <div className="h-4 w-24 bg-app-surface rounded-md" />
-                                            <div className="h-3 w-16 bg-app-surface/60 rounded-full" />
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-end gap-2 shrink-0 pl-3">
-                                        <div className="h-5 w-20 bg-app-surface rounded-md" />
-                                        <div className="h-3 w-14 bg-app-surface/40 rounded-md" />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ) : (
-                    viewMode === 'list'
-                        ? <SubscriptionList subscriptions={subscriptions}
-                            onEditSubscription={(sub) => detailsModalRef.current?.openModal(sub)}
-                            onTransactionClick={(tx) => txDetailsModalRef.current?.openModal(tx)} />
-                        : <SubscriptionCalendar
-                            subscriptions={subscriptions}
-                            onEditSubscription={(sub, date) => detailsModalRef.current?.openModal(sub, date)}
-                            onAddSubscription={(date) => modalRef.current?.openModal(undefined, date)}
-                            onTransactionClick={(tx) => txDetailsModalRef.current?.openModal(tx)}
-                        />
-                )}
-            </div>
-
-            <SubscriptionModal
-                ref={modalRef}
-                wallet={wallet}
-                tags={tags}
-                baseCurrency={wallet.currency as CurrencyCode}
-                onSuccess={fetchData}
-            />
-
-            <SubscriptionDetailsModal
-                ref={detailsModalRef}
-                wallet={wallet}
-                onDeleteSuccess={() => fetchData()}
-                onEditRequest={(sub) => modalRef.current?.openModal(sub)}
-            />
-
-            <TransactionDetailsModal
-                ref={txDetailsModalRef}
-                wallet={wallet}
-                handleDeleteSuccess={async (id) => {
-                    await api.delete(`/transactions/${wallet.id}/${id}`);
-                    fetchData();
-                }}
-                onEditRequest={(tx) => txModalRef.current?.openModal(tx)}
-            />
-
-            <TransactionModal
-                ref={txModalRef}
-                wallet={wallet}
-                tags={tags}
-                baseCurrency={wallet.currency as CurrencyCode}
-                onSuccess={fetchData}
-            />
-
+  return (
+    <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out]">
+      {/* Header: Titolo, Toggle Viste, Bottone Aggiungi */}
+      <div className="flex items-center justify-end gap-4 mb-6">
+        {/* Toggle View */}
+        {/* Toggle View */}
+        <Selector
+          value={viewMode}
+          onChange={(val) => setViewMode(val as ViewMode)}
+          size="lg"
+          fullWidth={false}
+          className="w-full sm:w-auto"
+          options={[
             {
-                (viewMode === 'list') &&
-                <FloatingActionButton
-                    wallet={wallet}
-                    onClick={() => modalRef.current?.openModal()}
-                    label="New Subscription" />
+              value: "list",
+              label: "List",
+              icon: <FontAwesomeIcon icon={faList} />,
+              style: viewMode === "list" ? { color: wallet.color } : undefined,
+            },
+            {
+              value: "calendar",
+              label: "Calendar",
+              icon: <FontAwesomeIcon icon={faCalendarDays} />,
+              style:
+                viewMode === "calendar" ? { color: wallet.color } : undefined,
+            },
+          ]}
+        />
+
+        {/* Pulsante Nuova Subscription */}
+        {/*<button*/}
+        {/*    onClick={() => modalRef.current?.openModal()}*/}
+        {/*    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-app-sky to-[#00ff7f] theme-text-inverse font-bold text-sm hover:opacity-90 transition-opacity w-full sm:w-auto shadow-lg shadow-app-sky/20"*/}
+        {/*>*/}
+        {/*    <FontAwesomeIcon icon={faPlus} />*/}
+        {/*    New Subscription*/}
+        {/*</button>*/}
+      </div>
+
+      {/* Container Dinamico delle Viste */}
+      <div className="flex-1 relative">
+        {isLoading ? (
+          <div className="w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-4 bg-app-input rounded-2xl animate-pulse"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="h-12 w-12 rounded-xl bg-app-surface shrink-0" />
+                    <div className="flex flex-col gap-2">
+                      <div className="h-4 w-24 bg-app-surface rounded-md" />
+                      <div className="h-3 w-16 bg-app-surface/60 rounded-full" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0 pl-3">
+                    <div className="h-5 w-20 bg-app-surface rounded-md" />
+                    <div className="h-3 w-14 bg-app-surface/40 rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : viewMode === "list" ? (
+          <SubscriptionList
+            subscriptions={subscriptions}
+            onEditSubscription={(sub) =>
+              detailsModalRef.current?.openModal(sub)
             }
-        </div>
-    );
+            onTransactionClick={(tx) =>
+              txDetailsModalRef.current?.openModal(tx)
+            }
+          />
+        ) : (
+          <SubscriptionCalendar
+            subscriptions={subscriptions}
+            onEditSubscription={(sub, date) =>
+              detailsModalRef.current?.openModal(sub, date)
+            }
+            onAddSubscription={(date) =>
+              modalRef.current?.openModal(undefined, date)
+            }
+            onTransactionClick={(tx) =>
+              txDetailsModalRef.current?.openModal(tx)
+            }
+          />
+        )}
+      </div>
+
+      <SubscriptionModal
+        ref={modalRef}
+        wallet={wallet}
+        tags={tags}
+        baseCurrency={wallet.currency as CurrencyCode}
+        onSuccess={fetchData}
+      />
+
+      <SubscriptionDetailsModal
+        ref={detailsModalRef}
+        wallet={wallet}
+        onDeleteSuccess={() => fetchData()}
+        onEditRequest={(sub) => modalRef.current?.openModal(sub)}
+      />
+
+      <TransactionDetailsModal
+        ref={txDetailsModalRef}
+        wallet={wallet}
+        handleDeleteSuccess={async (id) => {
+          await api.delete(`/transactions/${wallet.id}/${id}`);
+          fetchData();
+        }}
+        onEditRequest={(tx) => txModalRef.current?.openModal(tx)}
+      />
+
+      <TransactionModal
+        ref={txModalRef}
+        wallet={wallet}
+        tags={tags}
+        baseCurrency={wallet.currency as CurrencyCode}
+        onSuccess={fetchData}
+      />
+
+      {viewMode === "list" && (
+        <FloatingActionButton
+          wallet={wallet}
+          onClick={() => modalRef.current?.openModal()}
+          label="New Subscription"
+        />
+      )}
+    </div>
+  );
 };

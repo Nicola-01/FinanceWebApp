@@ -10,25 +10,25 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MemberMapper {
 
-    private final WalletMapper walletMapper;
+  private final WalletMapper walletMapper;
 
-    public MemberResponse mapToResponse(WalletAccess access) {
-        return MemberResponse.builder()
-                .userId(access.getUser().getId())
-                .username(access.getUser().getUsername())
-                .role(access.getRole().toString())
-                .status(access.getStatus().toString())
-                .invitedAt(access.getInvitedAt())
-                .build();
-    }
+  public MemberResponse mapToResponse(WalletAccess access) {
+    return MemberResponse.builder()
+        .userId(access.getUser().getId())
+        .username(access.getUser().getUsername())
+        .role(access.getRole().toString())
+        .status(access.getStatus().toString())
+        .invitedAt(access.getInvitedAt())
+        .build();
+  }
 
-    public WalletInviteResponse mapToWalletInviteResponse(WalletAccess access, String ownerUsername) {
-        return WalletInviteResponse.builder()
-                .walletOwner(ownerUsername)
-                .wallet(walletMapper.mapToResponse(access))
-                .role(access.getRole().name())
-                .status(access.getStatus().name())
-                .invitedAt(access.getInvitedAt())
-                .build();
-    }
+  public WalletInviteResponse mapToWalletInviteResponse(WalletAccess access, String ownerUsername) {
+    return WalletInviteResponse.builder()
+        .walletOwner(ownerUsername)
+        .wallet(walletMapper.mapToResponse(access))
+        .role(access.getRole().name())
+        .status(access.getStatus().name())
+        .invitedAt(access.getInvitedAt())
+        .build();
+  }
 }
