@@ -90,6 +90,13 @@ export interface Subscription {
   history?: Transaction[];
 }
 
+export interface WalletDashboardData {
+  wallet: Wallet;
+  transactions: Transaction[];
+  subscriptions: Subscription[];
+  tags: Tag[];
+}
+
 export interface SubscriptionRequestDTO {
   name: string;
   tag: string;
