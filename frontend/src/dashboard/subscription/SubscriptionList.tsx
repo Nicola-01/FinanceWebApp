@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Subscription } from "../../utils/types";
+import type { Subscription, Transaction } from "../../utils/types";
 import { SubscriptionCard } from "./SubscriptionCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface SubscriptionListProps {
   subscriptions: Subscription[];
   onEditSubscription?: (subscription: Subscription) => void;
-  onTransactionClick?: (tx: any) => void;
+  onTransactionClick?: (tx: Transaction) => void;
 }
 
 export const SubscriptionList: React.FC<SubscriptionListProps> = ({
@@ -77,7 +77,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
   );
 
   // --- PAST SUBSCRIPTIONS ---
-  const pastTransactions: { sub: Subscription; tx: any }[] = [];
+  const pastTransactions: { sub: Subscription; tx: Transaction }[] = [];
   subscriptions.forEach((sub) => {
     if (sub.history) {
       sub.history.forEach((tx) => {
@@ -86,7 +86,10 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
     }
   });
 
-  const groupedPastSubs: Record<string, { sub: Subscription; tx: any }[]> = {};
+  const groupedPastSubs: Record<
+    string,
+    { sub: Subscription; tx: Transaction }[]
+  > = {};
   pastTransactions.forEach(({ sub, tx }) => {
     const d = new Date(tx.transactionDate);
     const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;

@@ -169,7 +169,7 @@ api.interceptors.response.use(
         }
       } else if (
         ["POST", "PUT", "DELETE"].includes(method) &&
-        !(config as any).isSyncRequest
+        !config.isSyncRequest
       ) {
         try {
           let payloadData = null;

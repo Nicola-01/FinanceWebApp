@@ -18,6 +18,7 @@ import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
 import { TransactionTypeToggle } from "./TransactionTypeToggle.tsx";
 import { TransactionMetadataInputs } from "./TransactionMetadataInputs.tsx";
 import CustomDatePicker from "../../components/DataPicker/CustomDatePicker.tsx";
+import { getApiErrorTitle } from "../../utils/apiError";
 
 export interface TransactionModalHandle {
   openModal: (tx?: Transaction) => void;
@@ -60,15 +61,15 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
           setType(tx.type);
           setName(tx.name || "");
 
-          const origCurrency = (tx as any).originalCurrency || baseCurrency;
-          setCurrency(origCurrency);
+          const origCurrency = tx.originalCurrency || baseCurrency;
+          setCurrency(origCurrency as CurrencyCode);
 
-          const origAmount = (tx as any).originalAmount || tx.amount;
+          const origAmount = tx.originalAmount || tx.amount;
           setAmount(origAmount.toString());
 
           setConvertedAmount(tx.amount.toString());
 
-          const exRate = (tx as any).exchangeValue || 1;
+          const exRate = tx.exchangeValue || 1;
           setExchangeRate(exRate.toString());
 
           setDate(new Date(tx.transactionDate));
@@ -124,10 +125,10 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
 
         onSuccess();
         if (dialogRef.current?.open) dialogRef.current.close();
-      } catch (err: any) {
+      } catch (err: unknown) {
         const actionText = editingTxId ? "updating" : "creating";
         triggerToast(
-          err.response?.data?.title || `Error ${actionText} transaction`,
+          getApiErrorTitle(err, `Error ${actionText} transaction`),
           false,
         );
       } finally {

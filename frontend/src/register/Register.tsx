@@ -12,11 +12,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
-import {
-  PasswordRequirements,
-  isPasswordValid,
-} from "../components/auth/PasswordRequirements.tsx";
+import { PasswordRequirements } from "../components/auth/PasswordRequirements.tsx";
+import { isPasswordValid } from "../components/auth/passwordRequirements.ts";
 import { AnimateBackground } from "../auth/AnimateBackground.tsx"; // Import del nuovo componente password
+import { getApiErrorTitle } from "../utils/apiError";
 
 interface RegisterInviteResponse {
   email: string;
@@ -62,10 +61,8 @@ const Register: React.FC = () => {
         if (res.data.status !== "PENDING") {
           setError("This invitation has already been used or was revoked.");
         }
-      } catch (err: any) {
-        setError(
-          err.response?.data?.title || "Invalid or expired invitation link.",
-        );
+      } catch (err: unknown) {
+        setError(getApiErrorTitle(err, "Invalid or expired invitation link."));
       } finally {
         setIsLoading(false);
       }
@@ -107,13 +104,10 @@ const Register: React.FC = () => {
 
       triggerToast("Registration successful! You can now log in.", true);
       navigate("/login");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError("shake");
       setTimeout(() => setError(""), 500);
-      triggerToast(
-        err.response?.data?.title || "Error during registration.",
-        false,
-      );
+      triggerToast(getApiErrorTitle(err, "Error during registration."), false);
     } finally {
       setIsSubmitting(false);
     }

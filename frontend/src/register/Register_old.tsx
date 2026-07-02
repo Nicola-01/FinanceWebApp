@@ -14,6 +14,7 @@ import {
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import Sphere from "../assets/Sphere";
+import { getApiErrorTitle } from "../utils/apiError";
 
 // Tipi basati sui tuoi DTO Java
 interface RegisterInviteResponse {
@@ -60,10 +61,8 @@ const Register: React.FC = () => {
         if (res.data.status !== "PENDING") {
           setError("This invitation has already been used or was revoked.");
         }
-      } catch (err: any) {
-        setError(
-          err.response?.data?.title || "Invalid or expired invitation link.",
-        );
+      } catch (err: unknown) {
+        setError(getApiErrorTitle(err, "Invalid or expired invitation link."));
       } finally {
         setIsLoading(false);
       }
@@ -105,11 +104,8 @@ const Register: React.FC = () => {
 
       // Reindirizza alla pagina di login
       navigate("/login");
-    } catch (err: any) {
-      triggerToast(
-        err.response?.data?.title || "Error during registration.",
-        false,
-      );
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error during registration."), false);
     } finally {
       setIsSubmitting(false);
     }

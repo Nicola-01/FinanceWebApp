@@ -13,6 +13,8 @@ import { SubscriptionView } from "./SubscriptionView";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import api from "../../api/axiosConfig";
 import { format } from "date-fns";
+import { getApiErrorTitle } from "../../utils/apiError";
+import type { ModalDialogRightActionProp } from "../common/ModalDialogRightAction";
 
 export interface SubscriptionDetailsModalHandle {
   openModal: (subscription: Subscription, date?: Date) => void;
@@ -52,8 +54,8 @@ export const SubscriptionDetailsModal = forwardRef<
       triggerToast("Subscription deleted successfully", true);
       onDeleteSuccess();
       handleClose();
-    } catch (err: any) {
-      triggerToast(err.response?.data?.title || "Error deleting.", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error deleting."), false);
     }
   };
 
@@ -91,16 +93,16 @@ export const SubscriptionDetailsModal = forwardRef<
       triggerToast(`Subscription stopped at ${formattedDate}`, true);
       onDeleteSuccess();
       handleClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       triggerToast(
-        err.response?.data?.title || "Error stopping subscription.",
+        getApiErrorTitle(err, "Error stopping subscription."),
         false,
       );
     }
   };
 
   const rightActions = () => {
-    let actions: any[] = [];
+    let actions: ModalDialogRightActionProp[] = [];
     if (sub && wallet.userRole !== "VIEWER") {
       actions = [
         {

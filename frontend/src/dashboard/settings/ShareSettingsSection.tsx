@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -18,17 +18,14 @@ import { InviteSection } from "./InviteSection";
 import { MemberCategory } from "./MemberCategory";
 
 import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { getApiErrorTitle } from "../../utils/apiError";
 
 export const ShareSettingsSection: React.FC = () => {
   const { wallet } = useWalletContext();
   const [members, setMembers] = useState<WalletMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchMembers();
-  }, [wallet.id]);
-
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await api.get(`/invitations/${wallet.id}`);
@@ -38,7 +35,11 @@ export const ShareSettingsSection: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [wallet.id]);
+
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
 
   const isOwner = wallet.userRole === "OWNER";
 
@@ -56,8 +57,8 @@ export const ShareSettingsSection: React.FC = () => {
       triggerToast(`Invitation sent to ${identifier}!`, true);
       fetchMembers();
       return true;
-    } catch (err: any) {
-      triggerToast(err.response?.data?.title || "Error sending invite", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error sending invite"), false);
       return false;
     }
   };

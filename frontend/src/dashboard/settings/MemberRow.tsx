@@ -9,10 +9,11 @@ import {
 import type { WalletMember } from "../../utils/types";
 import { getUserAuth } from "../../utils/authHelper.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 interface MemberRowProps {
   member: WalletMember;
-  icon: any;
+  icon: IconDefinition;
   iconColor: string;
   canManage: boolean;
   onRemove: (id: string, name: string) => void;

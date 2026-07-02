@@ -1,5 +1,6 @@
 import { offlineDb } from "./offlineDb";
 import api from "../api/axiosConfig";
+import { getApiErrorStatus } from "./apiError";
 
 export const syncOfflineData = async () => {
   if (!navigator.onLine) return;
@@ -18,15 +19,15 @@ export const syncOfflineData = async () => {
           data: item.payload,
           headers: item.headers,
           isSyncRequest: true, // custom flag to avoid re-queueing
-        } as any);
+        });
 
         if (item.id) {
           await offlineDb.syncQueue.delete(item.id);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to sync item:", item, err);
 
-        const status = err.response?.status;
+        const status = getApiErrorStatus(err);
         if (
           status &&
           status >= 400 &&

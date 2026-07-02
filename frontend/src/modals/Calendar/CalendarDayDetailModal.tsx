@@ -15,7 +15,7 @@ import {
   faRepeat,
   faCalendarDay,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Subscription } from "../../utils/types";
+import type { Subscription, Transaction } from "../../utils/types";
 import { SubscriptionCard } from "../../dashboard/subscription/SubscriptionCard";
 import { ModalDialog } from "../common/ModalDialog";
 
@@ -28,7 +28,7 @@ interface CalendarDayDetailPanelProps {
   getSubscriptionsForDate: (date: Date) => Subscription[];
   onEditSubscription?: (subscription: Subscription, date: Date) => void;
   onAddSubscription?: (date: Date) => void;
-  onTransactionClick?: (tx: any) => void;
+  onTransactionClick?: (tx: Transaction) => void;
 }
 
 export const CalendarDayDetailPanel = forwardRef<

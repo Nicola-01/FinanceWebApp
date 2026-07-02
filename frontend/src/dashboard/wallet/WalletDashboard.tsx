@@ -8,7 +8,8 @@ import { WalletTabs } from "./WalletTabs.tsx";
 // import { WalletMenu } from "./WalletMenu.tsx";
 import { TagsTab } from "../tag/TagsTab.tsx";
 import { SettingsTab } from "../settings/SettingsTab.tsx";
-import { WalletProvider, useWalletContext } from "./WalletContext.tsx";
+import { WalletProvider } from "./WalletProvider.tsx";
+import { useWalletContext } from "./WalletContext.tsx";
 import { TransactionsFilter } from "../transaction/TransactionsFilter.tsx";
 
 interface WalletDashboardProps {

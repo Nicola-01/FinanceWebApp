@@ -12,6 +12,7 @@ import { ModalDialog } from "../common/ModalDialog";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { type IconKey, ICONS } from "../../utils/icons";
 import { IconColorSelector } from "../../components/icon/IconColorSelector.tsx";
+import { getApiErrorTitle } from "../../utils/apiError";
 
 export interface CreateTagModalHandle {
   openModal: () => void;
@@ -74,8 +75,8 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
         triggerToast("Parent Tag created!", true);
         onSuccess();
         dialogRef.current?.close();
-      } catch (err: any) {
-        triggerToast(err.response?.data?.title || "Error creating tag", false);
+      } catch (err: unknown) {
+        triggerToast(getApiErrorTitle(err, "Error creating tag"), false);
       } finally {
         setLoading(false);
       }

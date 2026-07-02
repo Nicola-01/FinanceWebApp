@@ -10,6 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
+import { getApiErrorTitle } from "../utils/apiError";
 
 interface Requirements {
   username?: string;
@@ -32,7 +33,9 @@ export const LoginForm: React.FC = () => {
   const location = useLocation();
 
   // If redirected from a protected page (e.g., OAuth consent), go back after login
-  const returnTo: string = (location.state as any)?.from?.pathname || "/";
+  const returnTo: string =
+    (location.state as { from?: { pathname?: string } } | null)?.from
+      ?.pathname || "/";
 
   // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,12 +84,12 @@ export const LoginForm: React.FC = () => {
       else sessionStorage.setItem("jwtToken", token);
 
       navigate(returnTo);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Error handling & shake animation
       setError("shake");
       setTimeout(() => setError(""), 500);
 
-      const title = err.response?.data?.title || "Connection Error.";
+      const title = getApiErrorTitle(err, "Connection Error.");
       triggerToast(title, false);
       console.error(err);
     } finally {

@@ -4,19 +4,19 @@ import Login from "./auth/Login";
 import UserDashboard from "./dashboard/UserDashboard.tsx";
 import AdminDashboard from "./admin/AdminDashboard"; // Importa la pagina Admin
 import ProtectedRoute from "./utils/ProtectedRoute.tsx";
-import { ToastNotification } from "./components/ui/ToastNotification.tsx";
+import { ToastHost } from "./components/ui/ToastHost.tsx";
 import {
   DeleteModal,
   type DeleteModalHandle,
 } from "./modals/common/DeleteModal";
-import { DeleteModalProvider } from "./modals/common/DeleteModalContext";
+import { DeleteModalProvider } from "./modals/common/DeleteModalProvider";
 import Register from "./register/Register.tsx";
 import ForgotPassword from "./auth/ForgotPassword.tsx";
 import ResetPassword from "./auth/ResetPassword.tsx";
 import { initSync } from "./utils/syncService.ts";
-import { ThemeProvider } from "./utils/ThemeContext.tsx";
+import { ThemeProvider } from "./utils/ThemeProvider.tsx";
 import { getUserAuth } from "./utils/authHelper.ts";
-import { PWAProvider } from "./utils/PWAContext.tsx";
+import { PWAProvider } from "./utils/PWAProvider.tsx";
 import { PWAPrompt } from "./components/ui/PWAPrompt.tsx";
 import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import ToDoPage from "./components/ToDoPage/ToDoPage.tsx";
@@ -49,7 +49,7 @@ const App: React.FC = () => {
     <ThemeProvider>
       <PWAProvider>
         <PWAPrompt />
-        <ToastNotification />
+        <ToastHost />
         <DeleteModalProvider deleteModalRef={deleteModalRef}>
           <DeleteModal ref={deleteModalRef} />
           <Routes>

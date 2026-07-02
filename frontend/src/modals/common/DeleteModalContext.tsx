@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from "react";
 import type { DeleteModalHandle } from "./DeleteModal";
 
-const DeleteModalContext =
+export const DeleteModalContext =
   createContext<React.RefObject<DeleteModalHandle | null> | null>(null);
 
 export const useDeleteModal = () => {
@@ -10,15 +10,4 @@ export const useDeleteModal = () => {
     throw new Error("useDeleteModal must be used within a DeleteModalProvider");
   }
   return context;
-};
-
-export const DeleteModalProvider: React.FC<{
-  deleteModalRef: React.RefObject<DeleteModalHandle | null>;
-  children: React.ReactNode;
-}> = ({ deleteModalRef, children }) => {
-  return (
-    <DeleteModalContext.Provider value={deleteModalRef}>
-      {children}
-    </DeleteModalContext.Provider>
-  );
 };

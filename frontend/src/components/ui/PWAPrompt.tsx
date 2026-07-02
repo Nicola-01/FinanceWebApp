@@ -10,7 +10,7 @@ export const PWAPrompt: React.FC = () => {
     onRegisteredSW(swUrl: string) {
       console.log("SW Registered:", swUrl);
     },
-    onRegisterError(error: any) {
+    onRegisterError(error: unknown) {
       console.error("SW Registration Error:", error);
     },
   });

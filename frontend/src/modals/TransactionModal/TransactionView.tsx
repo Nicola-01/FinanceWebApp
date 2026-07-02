@@ -39,8 +39,8 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
     }
   };
 
-  const displayExchangeRate = (tx as any).exchangeValue
-    ? Number((tx as any).exchangeValue)
+  const displayExchangeRate = tx.exchangeValue
+    ? Number(tx.exchangeValue)
         .toFixed(6)
         .replace(/\.?0+$/, "")
     : "1";
@@ -128,21 +128,18 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
           )}
 
           {/* Box Cambio Valuta (Integrato nell'elenco) */}
-          {(tx as any).originalCurrency &&
-            (tx as any).originalCurrency !== wallet.currency && (
-              <div className="p-4 sm:p-5">
-                <ExchangeRateSection
-                  mode="view"
-                  baseCurrency={wallet.currency as CurrencyCode}
-                  selectedCurrency={
-                    (tx as any).originalCurrency as CurrencyCode
-                  }
-                  originalAmount={(tx as any).originalAmount || 0}
-                  exchangeRate={displayExchangeRate}
-                  convertedAmount={tx.amount}
-                />
-              </div>
-            )}
+          {tx.originalCurrency && tx.originalCurrency !== wallet.currency && (
+            <div className="p-4 sm:p-5">
+              <ExchangeRateSection
+                mode="view"
+                baseCurrency={wallet.currency as CurrencyCode}
+                selectedCurrency={tx.originalCurrency as CurrencyCode}
+                originalAmount={tx.originalAmount || 0}
+                exchangeRate={displayExchangeRate}
+                convertedAmount={tx.amount}
+              />
+            </div>
+          )}
         </div>
       </div>
       <SubscriptionModal

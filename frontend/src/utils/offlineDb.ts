@@ -2,7 +2,7 @@ import Dexie, { type Table } from "dexie";
 
 export interface CacheItem {
   url: string;
-  data: any;
+  data: unknown;
   timestamp: number;
 }
 
@@ -10,8 +10,8 @@ export interface SyncQueueItem {
   id?: number;
   url: string;
   method: string;
-  payload: any;
-  headers: any;
+  payload: unknown;
+  headers: Record<string, string>;
   createdAt: number;
 }
 

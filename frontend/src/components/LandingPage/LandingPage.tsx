@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { getUserAuth } from "../../utils/authHelper";
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../ui/ToastNotification.tsx";
+import { getApiErrorTitle } from "../../utils/apiError";
 
 // Sub-components
 import BackgroundBlobs from "./BackgroundBlobs";
@@ -37,9 +38,8 @@ const LandingPage: React.FC = () => {
       sessionStorage.setItem("jwtToken", token);
       navigate("/dashboard");
       window.location.reload(); // Quick refresh to apply auth state
-    } catch (err: any) {
-      const title =
-        err.response?.data?.title || "Could not create demo account.";
+    } catch (err: unknown) {
+      const title = getApiErrorTitle(err, "Could not create demo account.");
       triggerToast(title, false);
       console.error(err);
     } finally {

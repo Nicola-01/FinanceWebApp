@@ -22,6 +22,7 @@ import { TagPicker } from "../TransactionModal/TagPicker/TagPicker";
 import { ExchangeRateSection } from "../TransactionModal/ExchangeRateSection";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { CustomSelect } from "../../components/ui/CustomSelect.tsx";
+import { getApiErrorTitle } from "../../utils/apiError";
 
 export interface SubscriptionModalHandle {
   openModal: (sub?: Subscription, initialDate?: Date) => void;
@@ -77,7 +78,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setType(sub.type);
           setName(sub.name || "");
 
-          const origCurrency = (sub as any).originalCurrency || baseCurrency;
+          const origCurrency = sub.originalCurrency || baseCurrency;
           setCurrency(origCurrency as CurrencyCode);
 
           const origAmount = sub.originalAmount || sub.amount;
@@ -175,10 +176,10 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
 
         onSuccess();
         if (dialogRef.current?.open) dialogRef.current.close();
-      } catch (err: any) {
+      } catch (err: unknown) {
         const actionText = editingSubId ? "updating" : "creating";
         triggerToast(
-          err.response?.data?.title || `Error ${actionText} subscription`,
+          getApiErrorTitle(err, `Error ${actionText} subscription`),
           false,
         );
       } finally {
@@ -232,7 +233,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             <AmountInput
               value={amount}
               type={type}
-              setType={setType as any} // Cast per sicurezza sui tipi
+              setType={setType}
               currencySymbol={currencySymbol}
               onAmountChange={(val) => {
                 setAmount(val);
@@ -243,10 +244,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                 else setConvertedAmount(val);
               }}
             />
-            <TransactionTypeToggle
-              type={type as any}
-              setType={setType as any}
-            />
+            <TransactionTypeToggle type={type} setType={setType} />
           </div>
 
           {/* 2. TAGS & START DATE */}
@@ -298,7 +296,11 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                   />
                   <CustomSelect
                     value={frequencyType}
-                    onChange={(val) => setFrequencyType(val as any)}
+                    onChange={(val) =>
+                      setFrequencyType(
+                        val as "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY",
+                      )
+                    }
                     className="w-1/2 bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer"
                     activeColor={wallet.color}
                     options={[
@@ -319,7 +321,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                 <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:theme-border-focus transition-colors h-12">
                   <CustomSelect
                     value={duration}
-                    onChange={(val) => setDuration(val as any)}
+                    onChange={(val) =>
+                      setDuration(val as "FOREVER" | "TIMES" | "UNTIL")
+                    }
                     className={`${duration === "FOREVER" ? "w-full" : "w-1/2 border-r border-app-border"} bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer`}
                     activeColor={wallet.color}
                     options={[
@@ -367,7 +371,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
               </label>
               <Selector
                 value={status}
-                onChange={(val) => setStatus(val as any)}
+                onChange={(val) => setStatus(val)}
                 size="md"
                 options={[
                   {
