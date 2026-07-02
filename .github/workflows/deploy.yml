@@ -33,7 +33,10 @@ jobs:
   # -------------------------------------------------------------
   build-backend:
     needs: changes
-    if: ${{ needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch' }}
+    # Non builda su main: main applica solo le immagini gia costruite da release/*.
+    if: >
+      github.ref != 'refs/heads/main' &&
+      (needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -75,7 +78,7 @@ jobs:
             type=sha
             type=ref,event=branch
             type=raw,value=demo,enable=${{ github.ref == 'refs/heads/demo' }}
-            type=raw,value=prod,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=prod,enable=${{ startsWith(github.ref, 'refs/heads/release/') }}
             type=match,pattern=release/(.*),group=1
             
       - name: Build and push Docker image
@@ -92,7 +95,10 @@ jobs:
   # -------------------------------------------------------------
   build-frontend:
     needs: changes
-    if: ${{ needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch' }}
+    # Non builda su main: main applica solo le immagini gia costruite da release/*.
+    if: >
+      github.ref != 'refs/heads/main' &&
+      (needs.changes.outputs.frontend == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -134,7 +140,7 @@ jobs:
             type=sha
             type=ref,event=branch
             type=raw,value=demo,enable=${{ github.ref == 'refs/heads/demo' }}
-            type=raw,value=prod,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=prod,enable=${{ startsWith(github.ref, 'refs/heads/release/') }}
             type=match,pattern=release/(.*),group=1
             
       - name: Build and push Docker image
@@ -145,9 +151,10 @@ jobs:
           push: true
           # NOTA: Per il frontend, Vite "cuoce" le variabili d'ambiente a tempo di compilazione.
           # Imposta queste variabili nei GitHub Actions Variables del repo!
+          # Versione e data NON stanno qui: vengono iniettate a RUNTIME nel container
+          # (vedi job tag-release + step deploy + version.json), cosi una release che
+          # tocca solo il BE aggiorna la versione mostrata senza ricostruire il FE.
           build-args: |
-            VITE_APP_VERSION=${{ github.sha }}
-            VITE_APP_BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
             VITE_DEMO_ENABLED=${{ github.ref == 'refs/heads/demo' && 'true' || 'false' }}
             VITE_API_URL=${{ vars.VITE_API_URL }}
             VITE_ALLOWED_HOSTS=${{ vars.VITE_ALLOWED_HOSTS }}
@@ -155,15 +162,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   # -------------------------------------------------------------
-  # 4. AUTO-PROMOTE release/* -> main (dopo CI verde)
+  # 4. TAG RELEASE (vX.Y.Z dal nome del branch)
   # -------------------------------------------------------------
-  # Se la CI su un branch release/* passa, il codice viene mergiato
-  # automaticamente in main. Il push usa un PAT (secrets.PAT_PROMOTE),
-  # NON il GITHUB_TOKEN di default: quest'ultimo, per protezione
-  # anti-loop di GitHub, non farebbe ripartire nessun workflow — e
-  # quindi il deploy su prod non scatterebbe mai. Col PAT il push su
-  # main ritrigghera l'intera pipeline (build immagine 'prod' + deploy).
-  promote-to-main:
+  # Su un push a release/vX.Y.Z (CI verde), crea e pusha il git tag vX.Y.Z
+  # sul commit di release. Questo tag e la SORGENTE UNICA della versione:
+  # sia demo (merge da release) sia prod (promote in main) avranno quel
+  # commit come antenato, quindi lo step di deploy lo legge con `git describe`
+  # e lo inietta a runtime nel container (version.json). Idempotente: se il
+  # tag esiste gia non fa nulla. Basta il GITHUB_TOKEN (un tag push non deve
+  # ritriggerare workflow).
+  tag-release:
     needs: [build-backend, build-frontend]
     if: |
       always() &&
@@ -172,6 +180,47 @@ jobs:
       needs.build-backend.result != 'cancelled' &&
       needs.build-frontend.result != 'failure' &&
       needs.build-frontend.result != 'cancelled'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create and push tag vX.Y.Z
+        run: |
+          VERSION="${GITHUB_REF_NAME#release/}"   # release/v2.7.1 -> v2.7.1
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --tags origin "refs/tags/$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION gia esistente, skip."
+          else
+            git tag -a "$VERSION" -m "Release $VERSION"
+            git push origin "refs/tags/$VERSION"
+          fi
+
+  # -------------------------------------------------------------
+  # 5. AUTO-PROMOTE release/* -> main (dopo CI verde)
+  # -------------------------------------------------------------
+  # Se la CI su un branch release/* passa, il codice viene mergiato
+  # automaticamente in main. Il push usa un PAT (secrets.PAT_PROMOTE),
+  # NON il GITHUB_TOKEN di default: quest'ultimo, per protezione
+  # anti-loop di GitHub, non farebbe ripartire nessun workflow — e
+  # quindi il deploy su prod non scatterebbe mai. Col PAT il push su
+  # main ritrigghera l'intera pipeline (build immagine 'prod' + deploy).
+  promote-to-main:
+    # Dipende da tag-release: il tag vX.Y.Z deve essere pushato PRIMA di
+    # promuovere in main, altrimenti il deploy su main partirebbe e `git describe`
+    # non troverebbe ancora il tag (versione mostrata errata).
+    needs: [build-backend, build-frontend, tag-release]
+    if: |
+      always() &&
+      startsWith(github.ref, 'refs/heads/release/') &&
+      needs.build-backend.result != 'failure' &&
+      needs.build-backend.result != 'cancelled' &&
+      needs.build-frontend.result != 'failure' &&
+      needs.build-frontend.result != 'cancelled' &&
+      needs.tag-release.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout (con PAT per ritriggerare Actions su main)
@@ -190,12 +239,12 @@ jobs:
           git push origin main
 
   # -------------------------------------------------------------
-  # 5. DEPLOY (Self-hosted on minipc)
+  # 6. DEPLOY (Self-hosted on minipc)
   # -------------------------------------------------------------
   deploy:
     needs: [changes, build-backend, build-frontend]
     if: |
-      always() && 
+      always() &&
       (needs.build-backend.result == 'success' || needs.build-backend.result == 'skipped') &&
       (needs.build-frontend.result == 'success' || needs.build-frontend.result == 'skipped') &&
       (github.ref == 'refs/heads/demo' || github.ref == 'refs/heads/main')
@@ -203,12 +252,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+        with:
+          fetch-depth: 0        # serve la storia + i tag per `git describe`
+          fetch-tags: true
+
       - name: Setup environment variables
         run: |
           cp /home/deployer/.env .
-          echo "GHCR_OWNER=${{ github.repository_owner }}" >> .env
+          # GHCR/Docker richiedono il nome repository tutto minuscolo (owner incluso).
+          echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> .env
           echo "APP_TAG=${{ github.ref == 'refs/heads/demo' && 'demo' || 'prod' }}" >> .env
+          # Versione (dal tag piu recente raggiungibile) e data del deploy (senza orario),
+          # iniettate a runtime nel container frontend via version.json.
+          APP_VERSION="$(git describe --tags --abbrev=0 2>/dev/null || echo dev)"
+          echo "APP_VERSION=${APP_VERSION}" >> .env
+          echo "APP_BUILD_DATE=$(date -u +'%Y-%m-%d')" >> .env
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -223,7 +281,7 @@ jobs:
         run: docker image prune -f
 
   # -------------------------------------------------------------
-  # 6. WEEKLY SYSTEM MAINTENANCE
+  # 7. WEEKLY SYSTEM MAINTENANCE
   # -------------------------------------------------------------
   cron-cleanup:
     name: Weekly Deep Clean
