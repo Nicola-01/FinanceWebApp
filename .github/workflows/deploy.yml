@@ -149,14 +149,12 @@ jobs:
           context: ./frontend
           target: production
           push: true
-          # NOTA: Per il frontend, Vite "cuoce" le variabili d'ambiente a tempo di compilazione.
-          # Imposta queste variabili nei GitHub Actions Variables del repo!
-          # Versione e data NON stanno qui: vengono iniettate a RUNTIME nel container
-          # (vedi job tag-release + step deploy + version.json), cosi una release che
-          # tocca solo il BE aggiorna la versione mostrata senza ricostruire il FE.
+          # NOTA: a build-time Vite cuoce solo VITE_DEMO_ENABLED / VITE_ALLOWED_HOSTS.
+          # API URL, versione e data NON stanno qui: sono iniettate a RUNTIME nel
+          # container via /config.js (window.__ENV__). Una sola immagine serve tutti
+          # gli ambienti; i valori arrivano dal .env del rispettivo LXC allo start.
           build-args: |
             VITE_DEMO_ENABLED=${{ github.ref == 'refs/heads/demo' && 'true' || 'false' }}
-            VITE_API_URL=${{ github.ref == 'refs/heads/demo' && vars.VITE_API_URL_DEMO || vars.VITE_API_URL_PROD }}
             VITE_ALLOWED_HOSTS=${{ vars.VITE_ALLOWED_HOSTS }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -263,7 +261,8 @@ jobs:
           echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> .env
           echo "APP_TAG=${{ github.ref == 'refs/heads/demo' && 'demo' || 'prod' }}" >> .env
           # Versione (dal tag piu recente raggiungibile) e data del deploy (senza orario),
-          # iniettate a runtime nel container frontend via version.json.
+          # iniettate a runtime nel container frontend via config.js (window.__ENV__).
+          # L'API URL arriva invece da VITE_API_URL, gia presente nel .env del server.
           APP_VERSION="$(git describe --tags --abbrev=0 2>/dev/null || echo dev)"
           echo "APP_VERSION=${APP_VERSION}" >> .env
           echo "APP_BUILD_DATE=$(date -u +'%Y-%m-%d')" >> .env
