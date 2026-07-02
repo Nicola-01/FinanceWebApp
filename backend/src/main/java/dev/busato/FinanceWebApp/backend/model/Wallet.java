@@ -49,5 +49,5 @@ public class Wallet {
   @Column(updatable = false)
   private LocalDate createdAt;
 
-  private boolean encryptedWallet = false;
+  @Builder.Default private boolean encryptedWallet = false;
 }

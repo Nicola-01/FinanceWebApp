@@ -124,5 +124,6 @@ public class Subscription {
 
   @OneToMany(mappedBy = "subscription", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
   @OrderBy("transactionDate DESC")
+  @Builder.Default
   private List<Transaction> history = new ArrayList<>();
 }
