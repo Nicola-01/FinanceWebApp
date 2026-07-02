@@ -280,4 +280,89 @@ class BackupServiceTest {
             () -> method.invoke(backupService, pb, "test-fail"));
     assertInstanceOf(IOException.class, ex.getCause());
   }
+
+  // ==================== helpers ====================
+
+  /**
+   * Builds a genuinely valid encrypted+gzipped backup file at {@code target} using the real
+   * openssl/gzip binaries (mirrors what {@code BackupService#compressAndEncrypt} produces), so that
+   * {@code downloadBackup}/{@code decryptAndDecompress} can be exercised end-to-end without needing
+   * pg_dump/psql.
+   */
+  private void createValidEncBackup(Path target, String content)
+      throws IOException, InterruptedException {
+    String cmd =
+        "printf '%s' "
+            + "'"
+            + content.replace("'", "'\\''")
+            + "'"
+            + " | gzip -c | openssl enc -aes-256-cbc -salt -pbkdf2 -pass pass:testsecretpassword -out "
+            + target.toAbsolutePath();
+    Process p = new ProcessBuilder("bash", "-c", cmd).start();
+    int exit = p.waitFor();
+    assertEquals(0, exit, "Failed to build valid encrypted fixture file for test");
+    assertTrue(Files.exists(target));
+  }
+
+  // ==================== downloadBackup — full success path ====================
+
+  @Test
+  void downloadBackup_R2Disabled_FullSuccess_DecryptsAndStripsExtension() throws Exception {
+    when(r2.isEnabled()).thenReturn(false);
+    String content = "test sql content\n";
+    Path encFile = Path.of(backupDir, "myfile.sql.gz.enc");
+    createValidEncBackup(encFile, content);
+
+    var resource = backupService.downloadBackup("myfile.sql.gz.enc");
+
+    assertNotNull(resource);
+    assertEquals("myfile.sql", resource.getFilename());
+    byte[] bytes;
+    try (var in = resource.getInputStream()) {
+      bytes = in.readAllBytes();
+    }
+    assertEquals(content, new String(bytes));
+  }
+
+  @Test
+  void downloadBackup_R2Disabled_FullSuccess_StripsGzEncOnlyExtension() throws Exception {
+    when(r2.isEnabled()).thenReturn(false);
+    String content = "another payload\n";
+    Path encFile = Path.of(backupDir, "raw.gz.enc");
+    createValidEncBackup(encFile, content);
+
+    var resource = backupService.downloadBackup("raw.gz.enc");
+
+    assertEquals("raw.sql", resource.getFilename());
+    try (var in = resource.getInputStream()) {
+      assertEquals(content, new String(in.readAllBytes()));
+    }
+  }
+
+  @Test
+  void downloadBackup_R2Enabled_FullSuccess_DownloadsDecryptsAndCleansUpTemp() throws Exception {
+    when(r2.isEnabled()).thenReturn(true);
+    String content = "r2 backed content\n";
+    String key = "remote_backup.sql.gz.enc";
+    Path tempEncFile = Path.of(backupDir, "dl_tmp_" + key);
+
+    doAnswer(
+            invocation -> {
+              Path dest = invocation.getArgument(1);
+              createValidEncBackup(dest, content);
+              return null;
+            })
+        .when(r2)
+        .download(eq(key), any(Path.class));
+
+    var resource = backupService.downloadBackup(key);
+
+    assertEquals("remote_backup.sql", resource.getFilename());
+    try (var in = resource.getInputStream()) {
+      assertEquals(content, new String(in.readAllBytes()));
+    }
+    verify(r2).download(eq(key), any(Path.class));
+    // Temp downloaded enc file must be cleaned up after decryption
+    assertFalse(Files.exists(tempEncFile));
+  }
 }
