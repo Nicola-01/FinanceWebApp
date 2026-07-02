@@ -10,6 +10,7 @@ import { AppHeader } from "../header/AppHeader.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPiggyBank } from "@fortawesome/free-solid-svg-icons";
 import { getApiErrorTitle } from "../utils/apiError";
+import { walletSlug } from "../utils/walletSlug";
 
 const UserDashboard: React.FC = () => {
   const { walletId } = useParams<{ walletId: string }>();
@@ -45,7 +46,9 @@ const UserDashboard: React.FC = () => {
             console.error("Error parsing wallet_order from localStorage", e);
           }
         }
-        navigate(`/dashboard/${targetId}`, { replace: true });
+        const target = fetchedWallets.find((w) => w.id === targetId);
+        if (target)
+          navigate(`/dashboard/${walletSlug(target)}`, { replace: true });
       }
     } catch {
       triggerToast("Error loading data", false);
@@ -62,19 +65,35 @@ const UserDashboard: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Deletion handling: se il wallet selezionato sparisce, naviga al primo disponibile
+  // Risolve lo slug URL (`nome-<ultimi5uuid>`) verso un wallet della lista.
+  // 1) match esatto sull'id -> retrocompatibilità con vecchi link full-UUID.
+  // 2) match sul suffisso -> ultimo segmento dello slug == ultimi 5 char dell'id.
+  const resolveWallet = (param: string | undefined): Wallet | null => {
+    if (!param) return null;
+    const exact = wallets.find((w) => w.id === param);
+    if (exact) return exact;
+    const suffix = param.split("-").pop();
+    return wallets.find((w) => w.id.slice(-5) === suffix) || null;
+  };
+
+  // Gestisce due casi sul cambio di walletId/lista:
+  // - il wallet risolto ha uno slug diverso dal param (vecchio UUID o nome
+  //   cambiato) -> riscrive l'URL nella forma canonica (replace).
+  // - il param non risolve alcun wallet (es. cancellato) -> naviga al primo.
   useEffect(() => {
-    if (
-      !loading &&
-      wallets.length > 0 &&
-      walletId &&
-      !wallets.find((w) => w.id === walletId)
-    ) {
-      navigate(`/dashboard/${wallets[0].id}`, { replace: true });
+    if (loading || wallets.length === 0 || !walletId) return;
+    const current = resolveWallet(walletId);
+    if (current) {
+      const canonical = walletSlug(current);
+      if (walletId !== canonical)
+        navigate(`/dashboard/${canonical}`, { replace: true });
+    } else {
+      navigate(`/dashboard/${walletSlug(wallets[0])}`, { replace: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletId, wallets, loading, navigate]);
 
-  const selectedWallet = wallets.find((w) => w.id === walletId) || null;
+  const selectedWallet = resolveWallet(walletId);
 
   const deleteModalRef = useDeleteModal();
 
@@ -89,7 +108,8 @@ const UserDashboard: React.FC = () => {
   };
 
   function handleChangeWallet(id: string) {
-    navigate(`/dashboard/${id}`);
+    const w = wallets.find((wallet) => wallet.id === id);
+    navigate(`/dashboard/${w ? walletSlug(w) : id}`);
   }
 
   return (
