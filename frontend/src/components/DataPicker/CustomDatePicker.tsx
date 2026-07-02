@@ -131,6 +131,9 @@ export default function CustomDatePicker({
 
     switch (preset) {
       case "today":
+        // Derivazione dell'intervallo da preset+currentDate con jump imperativi:
+        // sincronizzazione legittima in effetto.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStartDate(today);
         setEndDate(null);
         jumpToToday();
@@ -180,6 +183,8 @@ export default function CustomDatePicker({
   // Auto-close on single-date selection
   useEffect(() => {
     if (!isRange && startDate && isOpen) {
+      // Auto-chiusura in risposta alla selezione di una data in un componente figlio.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsOpen(false);
     }
   }, [startDate, isRange]);

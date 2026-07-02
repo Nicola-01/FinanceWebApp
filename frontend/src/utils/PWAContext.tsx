@@ -15,14 +15,12 @@ export const usePWA = () => useContext(PWAContext);
 export const PWAProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  // Init lazy: recupera l'evento se scattato prima che React montasse il componente
+  const [installPrompt, setInstallPrompt] = useState<any>(
+    () => (window as any)._pwaInstallPrompt ?? null,
+  );
 
   useEffect(() => {
-    // Controlliamo se per caso è scattato prima che React montasse il componente
-    if ((window as any)._pwaInstallPrompt) {
-      setInstallPrompt((window as any)._pwaInstallPrompt);
-    }
-
     const handler = (e: any) => {
       console.log("PWA beforeinstallprompt event captured");
       // Prevent the mini-infobar from appearing on mobile

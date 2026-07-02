@@ -88,11 +88,33 @@ Rete di sicurezza: il frontend **non ha test runner** → verifica con `npm run 
 
 ## 4. Debito tecnico tracciato (warning, da smaltire in futuro)
 
-Dopo il fix restano **127 warning** non bloccanti. Backlog consigliato, in ordine di priorità:
+Backlog residuo (warning non bloccanti):
 
-1. **`react-hooks/set-state-in-effect` (14)** — potenziali render a cascata; rivedere ogni effetto (spesso derivabile in render o via evento).
-2. **`no-explicit-any` (100)** — tipizzare progressivamente, partendo da `catch (err)` → `unknown` + narrowing e dai payload API.
+1. ✅ **`react-hooks/set-state-in-effect` — RISOLTO (14 → 0).** 7 effetti rifattorizzati (lazy-init / derived-state-in-render / prev-prop pattern) e 7 `eslint-disable` motivati su effetti legittimi (misura DOM, sync `<input>` non-controllato, fetch async, cache stateful, derivazione date). Regola riportabile a `error` in `eslint.config.js`.
+2. **`no-explicit-any` (~92)** — tipizzare progressivamente, partendo da `catch (err)` → `unknown` + narrowing e dai payload API.
 3. **`react-refresh/only-export-components` (7)** — separare hook/costanti dai file dei Context.
 4. **`react-hooks/exhaustive-deps` (6)** — completare le dependency array.
 
 > ⚠️ Nota: quando queste regole verranno risanate, riportarle a `error` in `eslint.config.js`.
+
+### Dettaglio risoluzione `set-state-in-effect`
+
+**Rifattorizzati (effetto era un code-smell):**
+- `hooks/useMobileMath.ts` — `useState` lazy init per `isMobile`.
+- `components/ToDoPage/ToDoPage.tsx` — `useState(() => !!getUserAuth())`, effetto rimosso.
+- `utils/PWAContext.tsx` — lazy init di `installPrompt`.
+- `dashboard/settings/MemberRow.tsx` — prev-prop pattern (setState in render).
+- `components/DataPicker/CalendarContainer.tsx` — prev-prop pattern.
+- `modals/TransactionModal/TagPicker/TagPicker.tsx` — prev-prop pattern.
+- `modals/TransactionModal/TagPicker/TagPickerAddForm.tsx` — prev-prop pattern.
+
+**Refactor "vero" successivo (con test a copertura):**
+- `dashboard/subscription/SubscriptionCalendar.tsx` — era una **memoization travestita da effetto**. Estratta la logica in `buildYearsMap()` (funzione pura in `utils/subscriptionHelper.ts`) e sostituito stato+effetto+cache con un `useMemo`. Coperta da `utils/subscriptionHelper.test.ts` (6 test). **`disable` rimosso.**
+
+**`eslint-disable` motivato (effetto legittimo, falso positivo del React Compiler — confermato da analisi puntuale):**
+- `components/icon/IconPickerButton.tsx` — misura DOM (`getBoundingClientRect`): pattern documentato da React (`useLayoutEffect`).
+- `components/ui/AmountInput.tsx` (×2) — sync con `<input>` **non-controllato** (sistema esterno).
+- `admin/AdminDashboard.tsx` — fetch async al mount (gli setState avvengono dopo `await`).
+- `components/DataPicker/CustomDatePicker.tsx` (×2) — derivazione intervallo che **legge il tempo corrente** (`new Date()`): farlo in render violerebbe `react-hooks/purity`.
+
+> **Test runner introdotto** (prima assente): **Vitest + Testing Library** (`vitest.config.ts`, `src/test/setup.ts`, script `npm test`). I file `*.test.*` sono esclusi dal build di produzione (`tsconfig.app.json`).

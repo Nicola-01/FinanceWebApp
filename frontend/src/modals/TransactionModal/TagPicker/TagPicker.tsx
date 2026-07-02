@@ -52,10 +52,12 @@ export const TagPicker: React.FC<HierarchicalTagSelectorProps> = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  // Resetta l'aggiunta rapida se l'utente naviga tra le cartelle
-  useEffect(() => {
+  // Resetta l'aggiunta rapida se l'utente naviga tra le cartelle (senza effetto)
+  const [prevParentName, setPrevParentName] = useState(currentParentName);
+  if (prevParentName !== currentParentName) {
+    setPrevParentName(currentParentName);
     setIsAddingTag(false);
-  }, [currentParentName]);
+  }
 
   const selectedTag = tags.find((t) => t.name === selectedTagName);
   const displayedTags = tags.filter(

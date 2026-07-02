@@ -4,6 +4,7 @@ import api from "../api/axiosConfig";
 import Sphere from "../assets/Sphere";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import type { User } from "../utils/types.ts";
+import { getApiErrorTitle } from "../utils/apiError.ts";
 
 import { AdminStats } from "./AdminStats";
 import { CreateInviteForm } from "./CreateInviteForm";
@@ -60,15 +61,17 @@ const AdminDashboard: React.FC = () => {
       ]);
       setUsers(usersRes.data);
       setInvites(invitesRes.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       triggerToast(
-        err.response?.data?.title || "Error loading dashboard data",
+        getApiErrorTitle(err, "Error loading dashboard data"),
         false,
       );
     }
   }, []);
 
   useEffect(() => {
+    // Fetch asincrono al mount: gli setState avvengono dopo l'await, non in modo sincrono.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -77,8 +80,8 @@ const AdminDashboard: React.FC = () => {
       await api.delete(`/admin/management/${userId}`);
       setUsers((prev) => prev.filter((u) => u.id !== userId));
       triggerToast("Deleted!", true);
-    } catch (err: any) {
-      triggerToast(err.response?.data?.title || "Error deleting.", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error deleting."), false);
     }
   };
 

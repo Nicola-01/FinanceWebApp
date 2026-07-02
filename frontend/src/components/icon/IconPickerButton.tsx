@@ -52,6 +52,9 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
       const openUpward =
         spaceBelow < POPUP_HEIGHT + 8 && rect.top > POPUP_HEIGHT + 8;
 
+      // Misura del DOM (getBoundingClientRect) per posizionare il popup:
+      // richiede necessariamente un effetto post-render.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCoords({
         top: openUpward ? rect.top - POPUP_HEIGHT + 40 : rect.bottom + 8,
         left: leftPos,

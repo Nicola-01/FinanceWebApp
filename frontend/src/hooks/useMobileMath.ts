@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 
 export const useMobileMath = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile] = useState(
+    () => window.matchMedia("(pointer: coarse)").matches,
+  );
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
-    const mobile = window.matchMedia("(pointer: coarse)").matches;
-    setIsMobile(mobile);
-
-    if (!mobile || !window.visualViewport) return;
+    if (!isMobile || !window.visualViewport) return;
 
     const handleViewportChange = () => {
       const vv = window.visualViewport!;
@@ -30,7 +29,7 @@ export const useMobileMath = () => {
         handleViewportChange,
       );
     };
-  }, []);
+  }, [isMobile]);
 
   return { isMobile, keyboardHeight };
 };

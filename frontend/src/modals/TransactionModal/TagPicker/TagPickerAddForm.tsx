@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faSpinner, faXmark } from "@fortawesome/free-solid-svg-icons";
 import type { Tag } from "../../../utils/types";
@@ -29,13 +29,21 @@ export const TagPickerAddForm: React.FC<TagPickerAddFormProps> = ({
   });
 
   // Aggiorna colore e padre se l'utente naviga nel menu mentre il form è aperto
-  useEffect(() => {
+  const [prevParent, setPrevParent] = useState({
+    color: currentParentColor,
+    name: currentParentName,
+  });
+  if (
+    prevParent.color !== currentParentColor ||
+    prevParent.name !== currentParentName
+  ) {
+    setPrevParent({ color: currentParentColor, name: currentParentName });
     setNewTag((prev) => ({
       ...prev,
       colorHex: currentParentColor,
       parentName: currentParentName,
     }));
-  }, [currentParentColor, currentParentName]);
+  }
 
   const handleSave = async () => {
     if (!newTag.name.trim()) {

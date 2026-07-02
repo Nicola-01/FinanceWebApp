@@ -39,8 +39,12 @@ npm install
 npm run dev        # Vite dev server on :5173
 npm run build      # tsc -b && vite build
 npm run lint       # ESLint (Prettier config)
+npm test           # Vitest (run once); npm run test:watch for watch mode
 ```
-Note: the frontend has **no test runner configured** — only lint/build gate it.
+Note: **Vitest + Testing Library** are configured (`vitest.config.ts`, jsdom, setup in
+`src/test/setup.ts`); `*.test.*` files live next to sources and are excluded from the
+production build (`tsconfig.app.json`). Coverage is sparse — **CI gates on lint/build only**,
+tests are not yet wired into the pipeline.
 
 Full stack (from repo root):
 ```bash

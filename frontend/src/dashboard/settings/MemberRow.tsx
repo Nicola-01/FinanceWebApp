@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTrash,
@@ -33,11 +33,15 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   const [selectedRole, setSelectedRole] = useState<"EDITOR" | "VIEWER">(
     member.role === "OWNER" ? "VIEWER" : member.role,
   );
-  const hasRoleChanged = selectedRole !== member.role;
 
-  useEffect(() => {
+  // Risincronizza il ruolo selezionato quando cambia quello salvato (senza effetto)
+  const [prevRole, setPrevRole] = useState(member.role);
+  if (prevRole !== member.role) {
+    setPrevRole(member.role);
     setSelectedRole(member.role === "OWNER" ? "VIEWER" : member.role);
-  }, [member.role]);
+  }
+
+  const hasRoleChanged = selectedRole !== member.role;
 
   return (
     <div className="flex items-center justify-between p-4 bg-app-input border border-app-border rounded-2xl transition-all hover:bg-app-surface group">

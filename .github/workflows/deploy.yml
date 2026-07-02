@@ -155,7 +155,42 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   # -------------------------------------------------------------
-  # 4. DEPLOY (Self-hosted on minipc)
+  # 4. AUTO-PROMOTE release/* -> main (dopo CI verde)
+  # -------------------------------------------------------------
+  # Se la CI su un branch release/* passa, il codice viene mergiato
+  # automaticamente in main. Il push usa un PAT (secrets.PAT_PROMOTE),
+  # NON il GITHUB_TOKEN di default: quest'ultimo, per protezione
+  # anti-loop di GitHub, non farebbe ripartire nessun workflow — e
+  # quindi il deploy su prod non scatterebbe mai. Col PAT il push su
+  # main ritrigghera l'intera pipeline (build immagine 'prod' + deploy).
+  promote-to-main:
+    needs: [build-backend, build-frontend]
+    if: |
+      always() &&
+      startsWith(github.ref, 'refs/heads/release/') &&
+      needs.build-backend.result != 'failure' &&
+      needs.build-backend.result != 'cancelled' &&
+      needs.build-frontend.result != 'failure' &&
+      needs.build-frontend.result != 'cancelled'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (con PAT per ritriggerare Actions su main)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PAT_PROMOTE }}
+
+      - name: Merge release/* -> main
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git merge --no-ff "$GITHUB_SHA" -m "Auto-promote ${GITHUB_REF_NAME} -> main"
+          git push origin main
+
+  # -------------------------------------------------------------
+  # 5. DEPLOY (Self-hosted on minipc)
   # -------------------------------------------------------------
   deploy:
     needs: [changes, build-backend, build-frontend]
@@ -188,7 +223,7 @@ jobs:
         run: docker image prune -f
 
   # -------------------------------------------------------------
-  # 5. WEEKLY SYSTEM MAINTENANCE
+  # 6. WEEKLY SYSTEM MAINTENANCE
   # -------------------------------------------------------------
   cron-cleanup:
     name: Weekly Deep Clean

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useMemo, useRef, useCallback } from "react";
 import {
   format,
   startOfMonth,
@@ -10,7 +10,7 @@ import {
   addDays,
 } from "date-fns";
 import type { Subscription } from "../../utils/types";
-import { generateSubscriptionOccurrences } from "../../utils/subscriptionHelper";
+import { buildYearsMap } from "../../utils/subscriptionHelper";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import CustomDatePicker from "../../components/DataPicker/CustomDatePicker.tsx";
 import {
@@ -36,91 +36,21 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
   const dayDetailRef = useRef<DayDetailModalHandle>(null);
 
   const currentYear = currentDate.getFullYear();
-  const subsHash = subscriptions
-    .map(
-      (s) =>
-        `${s.id}-${s.status}-${s.frequencyType}-${s.frequencyInterval}-${s.nextExecutionDate}-${s.startDate}-${s.duration}-${s.durationTimes}-${s.durationUntil}`,
-    )
-    .join("|");
-
-  const [cacheInfo, setCacheInfo] = useState<{
-    subsHash: string;
-    yearsMap: Record<number, Record<string, Subscription[]>>;
-  }>({ subsHash: "", yearsMap: {} });
 
   const { wallet } = useWalletContext();
 
-  useEffect(() => {
-    const neededYears = [currentYear - 1, currentYear, currentYear + 1];
-
-    setCacheInfo((prev) => {
-      const isHashChanged = prev.subsHash !== subsHash;
-      const currentMap = isHashChanged ? {} : { ...prev.yearsMap };
-      let hasChanges = isHashChanged;
-
-      for (const y of neededYears) {
-        if (!currentMap[y]) {
-          hasChanges = true;
-          const yearOccurrences: Record<string, Subscription[]> = {};
-
-          subscriptions.forEach((sub) => {
-            // 1. Add historical transactions
-            if (sub.history) {
-              sub.history.forEach((tx) => {
-                const txDate = new Date(tx.transactionDate);
-                if (txDate.getFullYear() === y) {
-                  const dateStr = format(txDate, "yyyy-MM-dd");
-                  if (!yearOccurrences[dateStr]) yearOccurrences[dateStr] = [];
-                  if (!yearOccurrences[dateStr].find((s) => s.id === sub.id)) {
-                    yearOccurrences[dateStr].push(sub);
-                  }
-                }
-              });
-            }
-
-            if (sub.status === "COMPLETED") return;
-
-            // 2. Add future occurrences
-            const dates = generateSubscriptionOccurrences(sub, y, y);
-            dates.forEach((d) => {
-              const dateStr = format(d, "yyyy-MM-dd");
-              const nextExecStr = sub.nextExecutionDate
-                ? format(new Date(sub.nextExecutionDate), "yyyy-MM-dd")
-                : null;
-
-              // Only add predicted dates if they are >= nextExecutionDate
-              if (nextExecStr && dateStr >= nextExecStr) {
-                if (!yearOccurrences[dateStr]) yearOccurrences[dateStr] = [];
-                if (!yearOccurrences[dateStr].find((s) => s.id === sub.id)) {
-                  yearOccurrences[dateStr].push(sub);
-                }
-              }
-            });
-          });
-
-          currentMap[y] = yearOccurrences;
-        }
-      }
-
-      if (hasChanges) {
-        const loadedYears = Object.keys(currentMap).map(Number);
-        if (loadedYears.length > 5) {
-          loadedYears.sort(
-            (a, b) => Math.abs(a - currentYear) - Math.abs(b - currentYear),
-          );
-          const toKeep = loadedYears.slice(0, 5);
-          const finalMap: typeof currentMap = {};
-          toKeep.forEach((y) => {
-            finalMap[y] = currentMap[y];
-          });
-          return { subsHash, yearsMap: finalMap };
-        }
-        return { subsHash, yearsMap: currentMap };
-      }
-
-      return prev;
-    });
-  }, [currentYear, subsHash, subscriptions]);
+  // Mappa anno → giorno "yyyy-MM-dd" → sottoscrizioni, memoizzata sui 3 anni
+  // visibili. Sostituisce la vecchia cache stateful in useEffect: nessuno stato
+  // né setState-in-effect, e la logica è coperta da test unitari (buildYearsMap).
+  const yearsMap = useMemo(
+    () =>
+      buildYearsMap(subscriptions, [
+        currentYear - 1,
+        currentYear,
+        currentYear + 1,
+      ]),
+    [subscriptions, currentYear],
+  );
 
   // Generazione della griglia del calendario
   const weekStartsOn = 1; // Lunedì come default variabile
@@ -150,10 +80,10 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
   const getSubscriptionsForDate = useCallback(
     (date: Date): Subscription[] => {
       const dayStr = format(date, "yyyy-MM-dd");
-      const yearData = cacheInfo.yearsMap[date.getFullYear()];
+      const yearData = yearsMap[date.getFullYear()];
       return yearData ? yearData[dayStr] || [] : [];
     },
-    [cacheInfo],
+    [yearsMap],
   );
 
   const handleDayClick = (clickedDay: Date) => {
@@ -201,7 +131,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
         {calendarDays.map((calendarDay, index) => {
           const dayStr = format(calendarDay, "yyyy-MM-dd");
           const calendarDayYear = calendarDay.getFullYear();
-          const yearData = cacheInfo.yearsMap[calendarDayYear];
+          const yearData = yearsMap[calendarDayYear];
           const daySubscriptions = yearData ? yearData[dayStr] || [] : [];
 
           const isCurrentMonth = isSameMonth(calendarDay, monthStart);

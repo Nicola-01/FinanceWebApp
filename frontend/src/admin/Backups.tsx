@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
   faDatabase,
   faDownload,
@@ -13,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
+import { getApiErrorTitle } from "../utils/apiError.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -131,7 +133,7 @@ const BackupSelector: React.FC<BackupSelectorProps> = ({
 );
 
 interface ActionCardProps {
-  icon: any;
+  icon: IconDefinition;
   title: string;
   description: string;
   accentColor: string;
@@ -192,11 +194,8 @@ const Backups: React.FC = () => {
     try {
       const resp = await api.get<BackupEntry[]>("/admin/backup/list");
       setEntries(resp.data);
-    } catch (err: any) {
-      triggerToast(
-        err.response?.data?.title || "Could not load backup list",
-        false,
-      );
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Could not load backup list"), false);
     } finally {
       setListLoading(false);
     }
@@ -228,8 +227,8 @@ const Backups: React.FC = () => {
       await api.post("/admin/backup");
       triggerToast("Backup completed successfully!", true);
       finalize(setBackupStatus, true, true);
-    } catch (err: any) {
-      triggerToast(err.response?.data?.title || "Error during backup", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error during backup"), false);
       finalize(setBackupStatus, false);
     }
   };
@@ -252,8 +251,8 @@ const Backups: React.FC = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       finalize(setDownloadStatus, true);
-    } catch (err: any) {
-      triggerToast(err.response?.data?.title || "Backup not found", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Backup not found"), false);
       finalize(setDownloadStatus, false);
     }
   };
@@ -274,8 +273,8 @@ const Backups: React.FC = () => {
       await api.post(`/admin/restore/${encodeURIComponent(restoreKey)}`);
       triggerToast(`Restore completed!`, true);
       finalize(setRestoreStatus, true);
-    } catch (err: any) {
-      triggerToast(err.response?.data?.title || "Error during restore", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error during restore"), false);
       finalize(setRestoreStatus, false);
     }
   };
@@ -295,8 +294,8 @@ const Backups: React.FC = () => {
       triggerToast("File uploaded successfully!", true);
       setUploadFile(null);
       finalize(setUploadStatus, true, true);
-    } catch (err: any) {
-      triggerToast(err.response?.data?.title || "Error during upload", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Error during upload"), false);
       finalize(setUploadStatus, false);
     }
   };

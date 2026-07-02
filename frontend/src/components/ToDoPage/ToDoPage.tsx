@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUserAuth } from "../../utils/authHelper";
 
@@ -9,14 +9,7 @@ import ToDoList from "./ToDoList";
 
 const ToDoPage: React.FC = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const user = getUserAuth();
-    if (user) {
-      setIsLoggedIn(true);
-    }
-  }, []);
+  const [isLoggedIn] = useState(() => !!getUserAuth());
 
   return (
     <div className="bg-app-bg min-h-screen theme-text-default font-sans overflow-x-hidden selection:bg-app-green/30">

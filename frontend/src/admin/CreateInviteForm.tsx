@@ -7,6 +7,7 @@ import {
   faStickyNote,
 } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
+import { getApiErrorTitle } from "../utils/apiError.ts";
 
 interface CreateInviteFormProps {
   onInviteCreated: () => void;
@@ -42,8 +43,8 @@ export const CreateInviteForm: React.FC<CreateInviteFormProps> = ({
       setEmail("");
       setNote("");
       onInviteCreated();
-    } catch (err: any) {
-      triggerToast(err.response?.data?.title || "Failed to send invite", false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Failed to send invite"), false);
     } finally {
       setIsLoading(false);
     }

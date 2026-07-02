@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { format, addMonths, subMonths, addYears, subYears } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import MonthGrid from "./MonthGrid";
@@ -42,10 +42,13 @@ export default function CalendarContainer({
   const [view, setView] = useState<ViewState>("calendar");
   const [direction, setDirection] = useState<"next" | "prev">("next");
 
-  useEffect(() => {
+  // Adegua la vista al preset quando questo cambia (senza effetto)
+  const [prevPreset, setPrevPreset] = useState(preset);
+  if (prevPreset !== preset) {
+    setPrevPreset(preset);
     if (preset === "year") setView("months");
     else if (preset === "month" || preset === "today") setView("calendar");
-  }, [preset]);
+  }
 
   const handlePrevMonth = () => {
     setDirection("prev");

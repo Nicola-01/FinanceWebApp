@@ -94,6 +94,8 @@ export const AmountInput = ({
     if (internalRef.current && value !== undefined) {
       if (value === "") {
         internalRef.current.value = "";
+        // Sincronizza lo stato di visualizzazione col reset dell'<input> non-controllato.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setColor("text-app-muted opacity-40");
         setTextSize("text-6xl");
         setLiveResult(null);
@@ -107,6 +109,8 @@ export const AmountInput = ({
   // Gestione colori e cambio segno programmatico
   useEffect(() => {
     if (type === "") {
+      // Colore derivato dal tipo, sincronizzato con l'<input> non-controllato.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setColor("text-app-muted opacity-40");
       return;
     }

@@ -1,4 +1,5 @@
 import {
+  format,
   addDays,
   addWeeks,
   addMonths,
@@ -199,4 +200,55 @@ export const generateSubscriptionOccurrences = (
   }
 
   return occurrences;
+};
+
+// Costruisce la mappa anno → (giorno "yyyy-MM-dd" → sottoscrizioni) per gli anni
+// richiesti. Funzione pura: nessuno stato/effetto React, quindi facilmente testabile.
+export const buildYearsMap = (
+  subscriptions: Subscription[],
+  years: number[],
+): Record<number, Record<string, Subscription[]>> => {
+  const map: Record<number, Record<string, Subscription[]>> = {};
+
+  for (const y of years) {
+    const yearOccurrences: Record<string, Subscription[]> = {};
+
+    subscriptions.forEach((sub) => {
+      // 1. Transazioni storiche
+      if (sub.history) {
+        sub.history.forEach((tx) => {
+          const txDate = new Date(tx.transactionDate);
+          if (txDate.getFullYear() === y) {
+            const dateStr = format(txDate, "yyyy-MM-dd");
+            if (!yearOccurrences[dateStr]) yearOccurrences[dateStr] = [];
+            if (!yearOccurrences[dateStr].find((s) => s.id === sub.id)) {
+              yearOccurrences[dateStr].push(sub);
+            }
+          }
+        });
+      }
+
+      if (sub.status === "COMPLETED") return;
+
+      // 2. Occorrenze future (solo da nextExecutionDate in poi)
+      const dates = generateSubscriptionOccurrences(sub, y, y);
+      dates.forEach((d) => {
+        const dateStr = format(d, "yyyy-MM-dd");
+        const nextExecStr = sub.nextExecutionDate
+          ? format(new Date(sub.nextExecutionDate), "yyyy-MM-dd")
+          : null;
+
+        if (nextExecStr && dateStr >= nextExecStr) {
+          if (!yearOccurrences[dateStr]) yearOccurrences[dateStr] = [];
+          if (!yearOccurrences[dateStr].find((s) => s.id === sub.id)) {
+            yearOccurrences[dateStr].push(sub);
+          }
+        }
+      });
+    });
+
+    map[y] = yearOccurrences;
+  }
+
+  return map;
 };
