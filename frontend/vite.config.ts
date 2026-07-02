@@ -30,6 +30,28 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      // Serve /config.js SOLO in dev (in prod lo genera l'entrypoint del
+      // container). Usa BACKEND_URL dal .env — la stessa chiave usata a runtime
+      // in prod — cosi window.__ENV__ esiste anche in locale, senza 404, e
+      // config.js NON e un asset di build -> non finisce nel precache del SW.
+      {
+        name: "dev-runtime-config",
+        apply: "serve",
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url === "/config.js") {
+              res.setHeader("Content-Type", "application/javascript");
+              res.end(
+                `window.__ENV__ = ${JSON.stringify({
+                  apiUrl: env.BACKEND_URL || "",
+                })};\n`,
+              );
+              return;
+            }
+            next();
+          });
+        },
+      },
       VitePWA({
         registerType: "prompt",
         includeAssets: ["favicon.ico", "apple-touch-icon-180x180.png"],
@@ -66,6 +88,16 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           runtimeCaching: [
+            {
+              // Config runtime (/config.js, generato dal container): rete-first
+              // con fallback cache per l'offline. Non e nel precache perche non
+              // e un asset di build.
+              urlPattern: ({ url }) => url.pathname === "/config.js",
+              handler: "StaleWhileRevalidate",
+              options: {
+                cacheName: "runtime-config",
+              },
+            },
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: "CacheFirst",

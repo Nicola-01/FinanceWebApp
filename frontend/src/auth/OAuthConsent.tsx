@@ -214,7 +214,7 @@ const OAuthConsent = () => {
    */
   const completeAuthorization = async (plainToken: string) => {
     // Use raw axios — OAuth endpoints are NOT under /api/
-    const backendUrl = import.meta.env.VITE_API_URL;
+    const backendUrl = window.__ENV__?.apiUrl ?? import.meta.env.VITE_API_URL;
     const token =
       localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
     try {

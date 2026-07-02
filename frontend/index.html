@@ -8,12 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Finance</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Config runtime: window.__ENV__ (apiUrl/version/date). Generato dal
+         container all'avvio (/config.js). Script CLASSICO nell'head => gira
+         prima del bundle module, cosi __ENV__ e pronto quando axios lo legge. -->
+    <script src="/config.js"></script>
+
   </head>
   <body>
     <div id="root"></div>

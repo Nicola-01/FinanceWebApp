@@ -5,8 +5,12 @@ import axios, {
 } from "axios";
 import { offlineDb } from "../utils/offlineDb";
 
+// API URL a RUNTIME da window.__ENV__ (config.js generato dal container);
+// fallback su import.meta.env per dev/locale.
+const apiBase = window.__ENV__?.apiUrl ?? import.meta.env.VITE_API_URL ?? "";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/api",
+  baseURL: apiBase + "/api",
   headers: {
     "Content-Type": "application/json",
   },

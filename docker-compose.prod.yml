@@ -77,11 +77,13 @@ services:
     ports:
       - "3000:80"
     # Niente volumes (il codice è dentro l'immagine)
-    # Versione e data sono a RUNTIME: passate come env, l'entrypoint dell'immagine
-    # scrive /version.json all'avvio (vedi frontend/Dockerfile). Cambiando questi
-    # valori nel .env e rifacendo `up -d`, la versione mostrata si aggiorna SENZA
-    # ricostruire il frontend.
+    # API URL, versione e data sono a RUNTIME: passate come env, l'entrypoint
+    # dell'immagine scrive /config.js (window.__ENV__) all'avvio. Una SOLA
+    # immagine serve demo e prod: cambia solo il .env del rispettivo LXC, senza
+    # ricostruire il frontend. APP_API_URL usa BACKEND_URL (URL pubblico del
+    # backend) del .env; axios ci aggiunge "/api".
     environment:
+      APP_API_URL: ${BACKEND_URL:-}
       APP_VERSION: ${APP_VERSION:-dev}
       APP_BUILD_DATE: ${APP_BUILD_DATE:-}
 
