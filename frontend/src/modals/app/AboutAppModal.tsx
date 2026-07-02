@@ -1,4 +1,10 @@
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "../common/ModalDialog";
@@ -7,8 +13,46 @@ export interface AboutAppModalHandle {
   openModal: () => void;
 }
 
+// version.json e generato a RUNTIME dall'entrypoint del container frontend
+// (vedi frontend/docker-entrypoint.d/40-version.sh), non e "cotto" nel bundle.
+// Cache in localStorage cosi da mostrare l'ultima versione nota anche offline.
+const VERSION_CACHE_KEY = "app-version-info";
+
+interface VersionInfo {
+  version: string;
+  date: string;
+}
+
+// Formatta una data "YYYY-MM-DD" senza orario, evitando lo shift di fuso orario
+// (new Date("2026-07-02") verrebbe interpretata come UTC).
+function formatBuildDate(raw: string): string {
+  if (!raw) return "Unknown";
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
+  if (!match) return raw;
+  const [, y, m, d] = match;
+  const dateObj = new Date(Number(y), Number(m) - 1, Number(d));
+  return dateObj.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+// Ultima versione nota dalla cache (fallback immediato / offline), letta in modo
+// sincrono all'inizializzazione dello stato.
+function readCachedInfo(): VersionInfo | null {
+  const cached = localStorage.getItem(VERSION_CACHE_KEY);
+  if (!cached) return null;
+  try {
+    return JSON.parse(cached) as VersionInfo;
+  } catch {
+    return null;
+  }
+}
+
 export const AboutAppModal = forwardRef<AboutAppModalHandle>((_props, ref) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [info, setInfo] = useState<VersionInfo | null>(readCachedInfo);
 
   useImperativeHandle(ref, () => ({
     openModal: () => {
@@ -16,23 +60,22 @@ export const AboutAppModal = forwardRef<AboutAppModalHandle>((_props, ref) => {
     },
   }));
 
-  const appVersion = import.meta.env.VITE_APP_VERSION || "Local Development";
-
-  let parsedDate = "Unknown";
-  if (import.meta.env.VITE_APP_BUILD_DATE) {
-    try {
-      const dateObj = new Date(import.meta.env.VITE_APP_BUILD_DATE);
-      parsedDate = dateObj.toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
+  useEffect(() => {
+    // Valore fresco dal container (se online e servito da nginx).
+    fetch("/version.json", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data: VersionInfo) => {
+        if (!data?.version) return;
+        setInfo(data);
+        localStorage.setItem(VERSION_CACHE_KEY, JSON.stringify(data));
+      })
+      .catch(() => {
+        /* offline o in locale (nessun version.json): resta il fallback */
       });
-    } catch {
-      parsedDate = import.meta.env.VITE_APP_BUILD_DATE;
-    }
-  }
+  }, []);
+
+  const appVersion = info?.version || "Local Development";
+  const parsedDate = info?.date ? formatBuildDate(info.date) : "Unknown";
 
   return (
     <ModalDialog

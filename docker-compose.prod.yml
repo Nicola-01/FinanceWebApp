@@ -77,7 +77,13 @@ services:
     ports:
       - "3000:80"
     # Niente volumes (il codice è dentro l'immagine)
-    # Niente environment (le variabili sono già "cotte" nel JS)
+    # Versione e data sono a RUNTIME: passate come env, l'entrypoint dell'immagine
+    # scrive /version.json all'avvio (vedi frontend/Dockerfile). Cambiando questi
+    # valori nel .env e rifacendo `up -d`, la versione mostrata si aggiorna SENZA
+    # ricostruire il frontend.
+    environment:
+      APP_VERSION: ${APP_VERSION:-dev}
+      APP_BUILD_DATE: ${APP_BUILD_DATE:-}
 
   # 4. MCP Server
   mcp:
