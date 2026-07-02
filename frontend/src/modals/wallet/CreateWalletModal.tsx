@@ -98,7 +98,6 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
       }
     };
 
-    // @ts-ignore
     return (
       <ModalDialog
         ref={dialogRef}

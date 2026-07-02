@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import api from "../api/axiosConfig";
 import Sphere from "../assets/Sphere";
@@ -52,11 +52,7 @@ const AdminDashboard: React.FC = () => {
   const [invites, setInvites] = useState<AdminInvite[]>([]);
   const deleteModalRef = useDeleteModal();
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [usersRes, invitesRes] = await Promise.all([
         api.get("/admin/management/users"),
@@ -70,7 +66,11 @@ const AdminDashboard: React.FC = () => {
         false,
       );
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleConfirmDelete = async (userId: string) => {
     try {

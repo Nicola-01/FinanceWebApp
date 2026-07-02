@@ -38,7 +38,7 @@ export const ToastNotification: React.FC = () => {
           }
           // Lo apriamo portandolo sopra a qualsiasi <dialog> attivo!
           toastRef.current.showPopover();
-        } catch (e) {
+        } catch {
           console.warn("Popover API not supported by this browser");
         }
       }

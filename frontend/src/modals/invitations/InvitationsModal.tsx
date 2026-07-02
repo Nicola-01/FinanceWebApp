@@ -41,7 +41,7 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>(
         triggerToast(`Invitation ${action.toLowerCase()}ed!`, true);
         // In un'applicazione reale qui dovresti chiamare una funzione per ricaricare i dati
         dialogRef.current?.close();
-      } catch (err: any) {
+      } catch {
         triggerToast("Error processing invitation.", false);
       } finally {
         setLoading(false);

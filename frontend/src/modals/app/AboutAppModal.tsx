@@ -29,7 +29,7 @@ export const AboutAppModal = forwardRef<AboutAppModalHandle>((_props, ref) => {
         hour: "2-digit",
         minute: "2-digit",
       });
-    } catch (e) {
+    } catch {
       parsedDate = import.meta.env.VITE_APP_BUILD_DATE;
     }
   }

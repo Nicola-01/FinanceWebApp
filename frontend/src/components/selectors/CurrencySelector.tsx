@@ -68,7 +68,7 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
       if (popoverRef.current) {
         try {
           popoverRef.current.showPopover();
-        } catch (e) {
+        } catch {
           console.warn("Popover API not supported by this browser");
         }
       }
@@ -83,7 +83,9 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
           if (popoverRef.current.matches(":popover-open")) {
             popoverRef.current.hidePopover();
           }
-        } catch (e) {}
+        } catch {
+          /* Popover API non supportata: nessuna azione necessaria */
+        }
       }
     };
   }, [isOpen]);

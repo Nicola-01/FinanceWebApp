@@ -118,7 +118,7 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
           };
         }),
       );
-    } catch (err: any) {
+    } catch {
       triggerToast("Failed to load wallets", false);
     }
   };

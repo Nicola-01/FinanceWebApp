@@ -28,7 +28,7 @@ export interface DeleteModalHandle {
 
 const TIMEOUT_DURATION = 2;
 
-export const DeleteModal = forwardRef<DeleteModalHandle>(({}, ref) => {
+export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   // Stati interni del modale

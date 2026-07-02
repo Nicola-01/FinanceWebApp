@@ -26,15 +26,15 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({
   invites,
   onRevoke,
 }) => {
-  const [, setTick] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const timer = setInterval(() => setTick((t) => t + 1), 1000);
+    const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
   const getTimeRemaining = (expiresAt: string) => {
-    const total = new Date(expiresAt).getTime() - Date.now();
+    const total = new Date(expiresAt).getTime() - now;
     if (total <= 0) return "Expired";
 
     const d = Math.floor(total / (1000 * 60 * 60 * 24));
@@ -77,7 +77,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({
               {invites.map((invite, index) => {
                 // Calcolo dello stato effettivo
                 const isExpiredTime =
-                  new Date(invite.expiresAt).getTime() - Date.now() <= 0;
+                  new Date(invite.expiresAt).getTime() - now <= 0;
 
                 let displayStatus = invite.status;
                 if (displayStatus === "PENDING" && isExpiredTime) {

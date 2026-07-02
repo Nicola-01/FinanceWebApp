@@ -17,8 +17,8 @@ export const TagBadge = ({
   compact?: boolean;
   onClick?: (e?: any) => any;
 }) => {
-  if (!tag) return null;
   const { tags } = useWalletContext();
+  if (!tag) return null;
 
   return (
     <span

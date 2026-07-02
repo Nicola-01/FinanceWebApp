@@ -22,28 +22,28 @@ import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import ToDoPage from "./components/ToDoPage/ToDoPage.tsx";
 import OAuthConsent from "./auth/OAuthConsent.tsx";
 
+const RootRedirect = () => {
+  const user = getUserAuth();
+  if (user) {
+    if (user.role === "ADMIN")
+      return <Navigate to="/admin/dashboard" replace />;
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <Navigate to="/about" replace />;
+};
+
+const AdminRoute = () => {
+  const user = getUserAuth();
+  if (user?.role !== "ADMIN") return <Navigate to="/" replace />;
+  return <Outlet />;
+};
+
 const App: React.FC = () => {
   const deleteModalRef = useRef<DeleteModalHandle>(null);
 
   useEffect(() => {
     initSync();
   }, []);
-
-  const RootRedirect = () => {
-    const user = getUserAuth();
-    if (user) {
-      if (user.role === "ADMIN")
-        return <Navigate to="/admin/dashboard" replace />;
-      return <Navigate to="/dashboard" replace />;
-    }
-    return <Navigate to="/about" replace />;
-  };
-
-  const AdminRoute = () => {
-    const user = getUserAuth();
-    if (user?.role !== "ADMIN") return <Navigate to="/" replace />;
-    return <Outlet />;
-  };
 
   return (
     <ThemeProvider>

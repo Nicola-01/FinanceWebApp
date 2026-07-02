@@ -33,7 +33,7 @@ export const ShareSettingsSection: React.FC = () => {
     try {
       const response = await api.get(`/invitations/${wallet.id}`);
       setMembers(response.data);
-    } catch (err) {
+    } catch {
       triggerToast("Error loading wallet members.", false);
     } finally {
       setIsLoading(false);
@@ -70,7 +70,7 @@ export const ShareSettingsSection: React.FC = () => {
       await api.delete(`/invitations/${wallet.id}/${memberId}`);
       setMembers((prev) => prev.filter((m) => m.userId !== memberId));
       triggerToast(`${memberName} removed successfully.`, true);
-    } catch (err) {
+    } catch {
       triggerToast("Error removing member.", false);
     }
   };
@@ -84,7 +84,7 @@ export const ShareSettingsSection: React.FC = () => {
       setMembers((prev) =>
         prev.map((m) => (m.userId === memberId ? { ...m, role: newRole } : m)),
       );
-    } catch (err) {
+    } catch {
       triggerToast("Error updating role.", false);
     }
   };

@@ -99,7 +99,7 @@ export const TransactionPieChart = ({
   const outerData: any[] = [];
   innerData.forEach((mainItem) => {
     const subs = Array.from(subMap.entries())
-      .filter(([_, data]) => data.main === mainItem.id)
+      .filter(([, data]) => data.main === mainItem.id)
       .sort((a, b) => b[1].value - a[1].value);
 
     subs.forEach(([subId, subData]) => {

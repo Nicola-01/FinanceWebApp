@@ -7,7 +7,7 @@ export const PWAPrompt: React.FC = () => {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegisteredSW(swUrl: string, _r: ServiceWorkerRegistration) {
+    onRegisteredSW(swUrl: string) {
       console.log("SW Registered:", swUrl);
     },
     onRegisterError(error: any) {

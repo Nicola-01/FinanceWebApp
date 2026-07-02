@@ -9,7 +9,7 @@ export interface LogoutModalHandle {
   openModal: () => void;
 }
 
-export const LogoutModal = forwardRef<LogoutModalHandle>(({}, ref) => {
+export const LogoutModal = forwardRef<LogoutModalHandle>((_props, ref) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const [logoutAll, setLogoutAll] = useState(false);
@@ -31,7 +31,7 @@ export const LogoutModal = forwardRef<LogoutModalHandle>(({}, ref) => {
       } else {
         await api.post("/auth/logout");
       }
-    } catch (e) {
+    } catch {
       // Ignora errori di rete — procediamo comunque col logout locale
     }
     localStorage.removeItem("jwtToken");

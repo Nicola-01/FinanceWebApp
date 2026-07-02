@@ -46,7 +46,7 @@ const UserDashboard: React.FC = () => {
         }
         navigate(`/dashboard/${targetId}`, { replace: true });
       }
-    } catch (err) {
+    } catch {
       triggerToast("Error loading data", false);
     } finally {
       setLoading(false);

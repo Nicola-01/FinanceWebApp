@@ -258,9 +258,8 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
                         e.stopPropagation();
                         if (pastTx && onTransactionClick) {
                           onTransactionClick(pastTx);
-                        } else {
-                          onEditSubscription &&
-                            onEditSubscription(sub, calendarDay);
+                        } else if (onEditSubscription) {
+                          onEditSubscription(sub, calendarDay);
                         }
                       }}
                     />

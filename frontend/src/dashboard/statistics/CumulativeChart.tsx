@@ -72,16 +72,18 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({
   const dataset = useMemo(() => {
     let cumIncome = 0;
     let cumExpense = 0;
-    return buckets.map((b, i) => {
-      cumIncome += b.income;
-      cumExpense += b.expense;
-      return {
+    const rows = [];
+    for (let i = 0; i < buckets.length; i++) {
+      cumIncome += buckets[i].income;
+      cumExpense += buckets[i].expense;
+      rows.push({
         label: labels[i],
         income: cumIncome,
         expense: cumExpense,
         balance: cumIncome - cumExpense,
-      };
-    });
+      });
+    }
+    return rows;
   }, [buckets, labels]);
 
   if (dataset.length === 0) {

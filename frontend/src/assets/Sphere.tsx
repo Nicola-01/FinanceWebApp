@@ -1,15 +1,15 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, type Transition } from "framer-motion";
 
 interface SphereProps {
-  style: {};
+  style: React.CSSProperties;
   animate: {
     x?: (number | string)[];
     y?: (number | string)[];
     scale?: number[];
     opacity?: number[] | number;
   };
-  transition?: {};
+  transition?: Transition;
 }
 
 // React Function Component

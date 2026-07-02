@@ -18,7 +18,7 @@ interface AmountInputProps {
 // ============================================================================
 const hasOperators = (val: string): boolean => {
   const withoutSign = val.replace(/^[+-]/, "");
-  return /[\+\-\*/%()]/.test(withoutSign);
+  return /[+\-*/%()]/.test(withoutSign);
 };
 
 const formatAmountString = (
@@ -82,6 +82,13 @@ export const AmountInput = ({
   const [liveResult, setLiveResult] = useState<number | null>(null);
   const [isFocused, setIsFocused] = useState(false);
 
+  const adjustTextSize = (text: string) => {
+    const length = text.length;
+    if (length > 12) setTextSize("text-4xl");
+    else if (length > 8) setTextSize("text-5xl");
+    else setTextSize("text-6xl");
+  };
+
   // Sincronizza il valore iniziale (o i reset) con l'input fisico
   useEffect(() => {
     if (internalRef.current && value !== undefined) {
@@ -114,13 +121,6 @@ export const AmountInput = ({
         (type === "EXPENSE" ? "-" : "+") + currentValue;
     }
   }, [type]);
-
-  const adjustTextSize = (text: string) => {
-    const length = text.length;
-    if (length > 12) setTextSize("text-4xl");
-    else if (length > 8) setTextSize("text-5xl");
-    else setTextSize("text-6xl");
-  };
 
   // Centralizziamo gli aggiornamenti di stato
   const updateAmountState = (rawVal: string, selectionStart?: number) => {

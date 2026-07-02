@@ -145,6 +145,9 @@ export const SubscriptionDetailsModal = forwardRef<
     <ModalDialog
       ref={dialogRef}
       className="max-w-[550px]"
+      // rightActions() legge deleteModalRef.current solo dentro handler onClick
+      // (eseguiti fuori dal render): accesso sicuro, falso positivo del linter.
+      // eslint-disable-next-line react-hooks/refs
       rightActions={rightActions()}
     >
       {sub && <SubscriptionView sub={sub} wallet={wallet} />}
