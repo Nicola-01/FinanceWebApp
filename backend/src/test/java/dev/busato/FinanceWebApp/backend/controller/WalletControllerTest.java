@@ -26,6 +26,9 @@ class WalletControllerTest extends BaseWebMvcTest {
   @org.springframework.test.context.bean.override.mockito.MockitoBean
   private WalletService walletService;
 
+  @org.springframework.test.context.bean.override.mockito.MockitoBean
+  private dev.busato.FinanceWebApp.backend.service.WalletDashboardService walletDashboardService;
+
   @Test
   void getMyWallets_ShouldReturn200() throws Exception {
     WalletResponse mockResponse = WalletResponse.builder().name("Main Wallet").build();
@@ -107,5 +110,31 @@ class WalletControllerTest extends BaseWebMvcTest {
     mockMvc.perform(delete("/api/wallets/{walletID}", walletId)).andExpect(status().isNoContent());
 
     verify(walletService).removeWallet(eq(walletId), any(UUID.class));
+  }
+
+  @Test
+  void getWalletDashboard_ShouldReturn200() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    dev.busato.FinanceWebApp.backend.dto.WalletDashboardResponse mockResponse =
+        dev.busato.FinanceWebApp.backend
+            .dto
+            .WalletDashboardResponse
+            .builder()
+            .wallet(WalletResponse.builder().name("Main Wallet").build())
+            .transactions(List.of())
+            .subscriptions(List.of())
+            .tags(List.of())
+            .build();
+
+    when(walletDashboardService.getDashboard(eq(walletId), any(UUID.class)))
+        .thenReturn(mockResponse);
+
+    mockMvc
+        .perform(get("/api/wallets/{walletID}/dashboard", walletId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.wallet.name").value("Main Wallet"))
+        .andExpect(jsonPath("$.transactions").isArray())
+        .andExpect(jsonPath("$.subscriptions").isArray())
+        .andExpect(jsonPath("$.tags").isArray());
   }
 }
