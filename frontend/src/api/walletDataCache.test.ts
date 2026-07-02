@@ -69,6 +69,18 @@ describe("walletDataCache", () => {
     expect(mockedGet).toHaveBeenCalledTimes(1); // one shared request
   });
 
+  it("dedupes a concurrent getWalletData onto an in-flight refreshWalletData", async () => {
+    let resolve!: (v: unknown) => void;
+    mockedGet.mockReturnValue(new Promise((r) => (resolve = r)));
+
+    const refresh = refreshWalletData("w1");
+    const get = getWalletData("w1");
+    resolve({ data: sampleData });
+    await Promise.all([refresh, get]);
+
+    expect(mockedGet).toHaveBeenCalledTimes(1); // one shared request
+  });
+
   it("refreshWalletData bypasses the TTL and updates the cache", async () => {
     mockedGet.mockResolvedValue({ data: sampleData });
     await getWalletData("w1");
