@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.model;
 
+import dev.busato.FinanceWebApp.backend.persistence.UuidV7Generator;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -8,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UuidGenerator;
 
 /**
  * JPA entity for Personal Access Tokens (PATs).
@@ -29,7 +31,7 @@ import org.hibernate.annotations.CreationTimestamp;
 public class PersonalAccessToken {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
+  @UuidGenerator(algorithm = UuidV7Generator.class)
   private UUID id;
 
   /** User-defined label for easy identification (e.g., "CI/CD Bot") */

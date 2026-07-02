@@ -34,6 +34,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     implementation 'org.postgresql:postgresql'
+
+    // UUIDv7 (RFC 9562) generation for time-ordered primary keys
+    implementation 'com.github.f4b6a3:uuid-creator:6.0.0'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.h2database:h2'
