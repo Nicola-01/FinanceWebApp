@@ -23,7 +23,10 @@ describe("slugify", () => {
 describe("walletSlug", () => {
   it("joins slugified name with the last 5 chars of the id", () => {
     expect(
-      walletSlug({ id: "123e4567-e89b-12d3-a456-42661417a4f9c", name: "La Mia Carta €" }),
+      walletSlug({
+        id: "123e4567-e89b-12d3-a456-42661417a4f9c",
+        name: "La Mia Carta €",
+      }),
     ).toBe("la-mia-carta-a4f9c");
   });
 
