@@ -108,6 +108,12 @@ every tool forwards the bearer token to the backend, which enforces per-wallet p
 
 ## Conventions & gotchas
 
+- **Backend test discipline (enforced by hooks):** whenever you change anything under
+  `backend/`, you must **(1)** re-run the suite (`./gradlew test`), **(2)** add or update
+  tests covering the change, and **(3)** re-run until green. A `PostToolUse` hook
+  (`.claude/hooks/backend-mark.sh`) flags the turn when you edit a `backend/` file, and the
+  `Stop` hook (`.claude/hooks/backend-tests.sh`) auto-runs the suite at end of that turn and
+  wakes you on failure — but writing the *new* tests is on you, not the hook.
 - **All REST endpoints are under `/api/...`** (e.g. `/api/wallets`, `/api/auth`, `/api/transactions`).
 - **CI gates you must satisfy locally:** backend `check` enforces Spotless formatting +
   **90% line coverage** (`jacocoTestCoverageVerification`); frontend runs ESLint + Prettier.

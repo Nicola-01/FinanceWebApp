@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/backend-mark.sh\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/backend-tests.sh\"",
+            "asyncRewake": true,
+            "rewakeMessage": "I test del backend sono falliti dopo le tue modifiche:",
+            "rewakeSummary": "Backend test falliti",
+            "timeout": 600,
+            "statusMessage": "Eseguo i test del backend..."
+          }
+        ]
+      }
+    ]
+  }
+}

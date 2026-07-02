@@ -1,9 +1,11 @@
 package dev.busato.FinanceWebApp.backend.model;
 
+import dev.busato.FinanceWebApp.backend.persistence.UuidV7Generator;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.util.*;
 import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,7 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class User implements UserDetails {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID) // Automatically generates a UUID v4
+  @UuidGenerator(algorithm = UuidV7Generator.class) // Time-ordered UUID v7 (RFC 9562)
   private UUID id;
 
   @Column(unique = true, nullable = false)

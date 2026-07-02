@@ -50,3 +50,6 @@ OpenBanking/
 mcp-server/test/
 
 graphify-out/cache/
+
+# Claude Code: marker "backend toccato nel turno" (hook)
+.claude/.backend-dirty

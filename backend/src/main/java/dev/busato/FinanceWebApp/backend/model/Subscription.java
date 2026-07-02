@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.model;
 
+import dev.busato.FinanceWebApp.backend.persistence.UuidV7Generator;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UuidGenerator;
 
 @Data
 @Builder
@@ -20,7 +22,7 @@ import lombok.NoArgsConstructor;
 public class Subscription {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
+  @UuidGenerator(algorithm = UuidV7Generator.class)
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)

@@ -1,11 +1,13 @@
 package dev.busato.FinanceWebApp.backend.model;
 
+import dev.busato.FinanceWebApp.backend.persistence.UuidV7Generator;
 import jakarta.persistence.*;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UuidGenerator;
 
 @Data
 @Builder
@@ -22,7 +24,7 @@ import lombok.NoArgsConstructor;
 public class Tag {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
+  @UuidGenerator(algorithm = UuidV7Generator.class)
   private UUID id;
 
   @Column(nullable = false)
