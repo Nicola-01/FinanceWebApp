@@ -125,7 +125,7 @@ const UserDashboard: React.FC = () => {
           wallets={wallets}
           setWallets={setWallets}
           loading={loading}
-          selectedWalletId={walletId}
+          selectedWalletId={selectedWallet?.id}
           onSelectWallet={(id) => handleChangeWallet(id)}
           onRefreshAll={fetchData}
         />
