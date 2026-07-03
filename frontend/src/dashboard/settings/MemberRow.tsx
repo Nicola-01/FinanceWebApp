@@ -108,7 +108,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
                   className={`flex h-8 w-8 items-center justify-center rounded-lg bg-app-green/10 text-app-green hover:bg-app-green hover:theme-text-inverse transition-colors ${
                     hasRoleChanged ? "" : "opacity-20 cursor-not-allowed"
                   }`}
-                  disabled={hasRoleChanged}
+                  disabled={!hasRoleChanged}
                   title="Save Role"
                 >
                   <FontAwesomeIcon icon={faCheck} className="text-sm" />

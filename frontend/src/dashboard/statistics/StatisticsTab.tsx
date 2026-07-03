@@ -8,7 +8,7 @@ import { SwitchableCard } from "./SwitchableCard.tsx";
 import type { ZoomData } from "@mui/x-charts/internals";
 
 import { useTheme } from "../../utils/ThemeContext.tsx";
-import { buildMonthlyBuckets } from "./ChartRangeSelector.tsx";
+import { buildMonthlyBuckets } from "./chartData";
 
 const lightTheme = createTheme({
   palette: { mode: "light", background: { paper: "#ffffff" } },

@@ -11,7 +11,7 @@ export const useMobileMath = () => {
 
     const handleViewportChange = () => {
       const vv = window.visualViewport!;
-      // L'altezza della tastiera è la differenza tra il layout viewport e il visual viewport
+      // The keyboard height is the difference between the layout viewport and the visual viewport
       const kbHeight = window.innerHeight - vv.height - vv.offsetTop;
       setKeyboardHeight(Math.max(0, kbHeight));
     };

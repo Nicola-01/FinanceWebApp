@@ -1,7 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, act, cleanup } from "@testing-library/react";
+import {
+  render,
+  screen,
+  act,
+  cleanup,
+  fireEvent,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import type { Wallet, WalletDashboardData } from "../../utils/types";
+import type {
+  Wallet,
+  WalletDashboardData,
+  Transaction,
+} from "../../utils/types";
+import type { DateRangeValue } from "../../components/DataPicker/CustomDatePicker";
 
 vi.mock("../../api/walletDataCache", () => ({
   peek: vi.fn(),
@@ -98,5 +109,105 @@ describe("WalletProvider data loading", () => {
     });
     expect(mockedGet).toHaveBeenCalledTimes(1);
     expect(mockedGet).toHaveBeenCalledWith("w1", expect.anything());
+  });
+});
+
+const tx = (id: string, tagName: string, date: string): Transaction =>
+  ({
+    id,
+    tag: { name: tagName },
+    transactionDate: date,
+    name: `n-${id}`,
+  }) as unknown as Transaction;
+
+const richData = {
+  wallet,
+  transactions: [tx("1", "A", "2025-06-15"), tx("2", "B", "2025-01-15")],
+  subscriptions: [],
+  tags: [{ name: "A" }, { name: "B" }],
+} as unknown as WalletDashboardData;
+
+function FilterConsumer() {
+  const {
+    filteredTransactions,
+    setSelectedTags,
+    setSearchQuery,
+    setDateRange,
+  } = useWalletContext();
+  return (
+    <div>
+      <span data-testid="count">{filteredTransactions.length}</span>
+      <span data-testid="ids">
+        {filteredTransactions.map((t) => t.id).join(",")}
+      </span>
+      <button onClick={() => setSelectedTags(["A"])}>only-a</button>
+      <button onClick={() => setSearchQuery("n-1")}>search</button>
+      <button
+        onClick={() =>
+          setDateRange({
+            start: new Date("2025-06-01"),
+            end: new Date("2025-06-30"),
+          } as DateRangeValue)
+        }
+      >
+        june
+      </button>
+    </div>
+  );
+}
+
+function renderFilterProvider() {
+  return render(
+    <MemoryRouter>
+      <WalletProvider
+        _wallet={wallet}
+        onWalletDelete={() => {}}
+        onWalletUpdate={() => {}}
+      >
+        <FilterConsumer />
+      </WalletProvider>
+    </MemoryRouter>,
+  );
+}
+
+describe("WalletProvider filtering", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mockedPeek.mockReset();
+    mockedGet.mockReset();
+  });
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+
+  it("filters transactions by selected tags", () => {
+    mockedPeek.mockReturnValue(richData);
+    renderFilterProvider();
+    expect(screen.getByTestId("count").textContent).toBe("2");
+
+    fireEvent.click(screen.getByText("only-a"));
+    expect(screen.getByTestId("count").textContent).toBe("1");
+    expect(screen.getByTestId("ids").textContent).toBe("1");
+  });
+
+  it("filters transactions by date range", () => {
+    mockedPeek.mockReturnValue(richData);
+    renderFilterProvider();
+    expect(screen.getByTestId("count").textContent).toBe("2");
+
+    fireEvent.click(screen.getByText("june"));
+    expect(screen.getByTestId("count").textContent).toBe("1");
+    expect(screen.getByTestId("ids").textContent).toBe("1");
+  });
+
+  it("filters transactions by search query (name match)", () => {
+    mockedPeek.mockReturnValue(richData);
+    renderFilterProvider();
+    expect(screen.getByTestId("count").textContent).toBe("2");
+
+    fireEvent.click(screen.getByText("search"));
+    expect(screen.getByTestId("count").textContent).toBe("1");
+    expect(screen.getByTestId("ids").textContent).toBe("1");
   });
 });
