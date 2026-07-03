@@ -5,7 +5,7 @@ export const AnimateBackground: React.FC = () => {
   return (
     <>
       {/* Base Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#230b38] to-[#1a1a40] z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-[#241436] to-[#161232] z-0"></div>
 
       {/* Animated Background Spheres Container */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -14,7 +14,7 @@ export const AnimateBackground: React.FC = () => {
           style={{
             height: "400px",
             width: "400px",
-            background: "linear-gradient(#ff0055, #ff2299)",
+            background: "linear-gradient(#ff3d8f, #c026d3)",
             top: "-100px",
             left: "20%",
             opacity: 0.6,
@@ -37,7 +37,7 @@ export const AnimateBackground: React.FC = () => {
           style={{
             height: "450px",
             width: "450px",
-            background: "linear-gradient(#4d22ff, #22d3ff)",
+            background: "linear-gradient(#7c3aed, #ff5db1)",
             bottom: "-100px",
             right: "20%",
             opacity: 0.6,
@@ -60,7 +60,7 @@ export const AnimateBackground: React.FC = () => {
           style={{
             height: "300px",
             width: "300px",
-            background: "#7a00cc",
+            background: "#8b5cf6",
             top: "40%",
             left: "40%",
             opacity: "0.3",

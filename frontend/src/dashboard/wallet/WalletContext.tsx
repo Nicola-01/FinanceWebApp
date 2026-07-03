@@ -15,6 +15,8 @@ export interface WalletContextType {
   isLoading: boolean;
   selectedTags: string[] | null;
   setSelectedTags: (tags: string[] | null) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
   dateRange: DateRangeValue;
   setDateRange: (range: DateRangeValue) => void;
   datePreset: PresetType;

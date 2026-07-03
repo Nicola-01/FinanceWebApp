@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AnimateBackground } from "./AnimateBackground.tsx";
 import { LoginForm } from "./LoginForm.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFlask, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faFlask, faSpinner, faCheck } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../utils/apiError";
+import Button from "../components/ui/Button";
 
 const demoEnabled = import.meta.env.VITE_DEMO_ENABLED === "true";
+
+const DEMO_FEATURES = [
+  "Pre-populated with realistic sample data",
+  "Full access to all the features",
+  "Completely private, safe workspace",
+];
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -41,98 +47,88 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto bg-app-bg px-4 sm:px-0 pb-8 sm:pb-0">
-      {/* Renders the visual background and animations */}
-      <AnimateBackground />
-
-      <div
-        className={`relative z-10 flex flex-col items-center gap-6 w-full ${demoEnabled ? "max-w-[420px]" : "max-w-[380px]"}`}
-      >
-        {/* Conditionally Render Form vs Demo Card */}
-        {!demoEnabled ? (
-          <LoginForm />
-        ) : (
-          <div className="w-full flex flex-col items-center rounded-3xl border border-app-border bg-app-card p-8 sm:p-10 shadow-2xl backdrop-blur-xl">
-            {/* Demo Icon Header */}
-            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-tr from-app-purple to-app-blue shadow-[0_0_20px_rgba(77,109,255,0.4)]">
-              <FontAwesomeIcon
-                icon={faFlask}
-                className="text-3xl text-app-text"
-              />
-            </div>
-
-            <h2 className="mb-3 text-2xl font-bold tracking-wide text-app-text text-center">
-              Live Demo Access
-            </h2>
-
-            {/* Detailed Description */}
-            <div className="mb-8 flex flex-col items-center space-y-4 text-center text-sm text-app-muted">
-              <p className="leading-relaxed">
-                Experience the personal finance manager completely risk-free. No
-                sign-up required.
-              </p>
-
-              {/* Feature List */}
-              <div className="w-full rounded-xl border border-app-border bg-app-input p-5 mt-2 text-left shadow-inner">
-                <ul className="space-y-3.5">
-                  <li className="flex items-start">
-                    <span className="mr-3 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full theme-bg-success-light text-[10px] theme-text-success font-bold">
-                      ✓
-                    </span>
-                    <span className="text-app-text leading-tight">
-                      Pre-populated with realistic sample data
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-3 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full theme-bg-primary-light text-[10px] theme-text-primary font-bold">
-                      ✓
-                    </span>
-                    <span className="text-app-text leading-tight">
-                      Full access to all the features
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-3 mt-0.5 flex h-5 w-5 items-center justify-center rounded-full theme-bg-brand-light text-[10px] theme-text-brand font-bold">
-                      ✓
-                    </span>
-                    <span className="text-app-text leading-tight">
-                      Completely private, safe workspace
-                    </span>
-                  </li>
-                </ul>
-              </div>
-
-              <p className="text-xs text-app-muted opacity-80 italic pt-2">
-                Note: All demo data is ephemeral and will be securely erased
-                daily.
-              </p>
-            </div>
-
-            {/* CTA Button */}
-            <button
-              type="button"
-              disabled={demoLoading}
-              onClick={handleTryDemo}
-              className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3.5 text-sm font-bold tracking-wider theme-text-default shadow-[0_5px_15px_rgba(77,109,255,0.3)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_10px_25px_rgba(77,109,255,0.5)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {demoLoading ? (
-                <>
-                  <FontAwesomeIcon
-                    icon={faSpinner}
-                    className="mr-2 animate-spin"
-                  />
-                  GENERATING WORKSPACE...
-                </>
-              ) : (
-                <>
-                  <FontAwesomeIcon icon={faFlask} className="mr-2 text-lg" />
-                  START EXPLORING NOW
-                </>
-              )}
-            </button>
+    // The dark shell + animated background live in AuthLayout; this renders
+    // only the card so the background persists across auth navigation.
+    <div
+      className={`relative z-10 flex w-full flex-col items-center gap-6 ${
+        demoEnabled ? "max-w-[420px]" : "max-w-[400px]"
+      }`}
+    >
+      {/* Conditionally Render Form vs Demo Card */}
+      {!demoEnabled ? (
+        <LoginForm />
+      ) : (
+        <div className="flex w-full flex-col items-center rounded-[var(--r-card)] border border-white/10 bg-[rgba(23,18,38,0.55)] p-8 shadow-[0_24px_60px_-26px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-10">
+          {/* Brand lockup */}
+          <div className="mb-6 flex items-center gap-2.5 self-start">
+            <img
+              src="/icon.svg"
+              alt="Finance"
+              className="h-10 w-10 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
+            />
+            <span className="text-lg font-bold tracking-tight text-app-text">
+              Finance
+            </span>
           </div>
-        )}
-      </div>
+
+          {/* Demo Icon Header */}
+          <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-[var(--r-card)] bg-gradient-to-tr from-[var(--brand-1)] to-[var(--brand-2)] shadow-[0_12px_26px_-14px_rgba(0,0,0,0.7)]">
+            <FontAwesomeIcon icon={faFlask} className="text-2xl text-white" />
+          </div>
+
+          <h2 className="mb-2 text-center text-2xl font-bold tracking-tight text-app-text">
+            Live Demo Access
+          </h2>
+
+          {/* Detailed Description */}
+          <div className="mb-8 flex flex-col items-center space-y-4 text-center text-sm text-app-muted">
+            <p className="leading-relaxed">
+              Experience the personal finance manager completely risk-free. No
+              sign-up required.
+            </p>
+
+            {/* Feature List */}
+            <ul className="w-full space-y-3 rounded-[var(--r-input)] border border-white/10 bg-white/[0.03] p-5 text-left">
+              {DEMO_FEATURES.map((feature) => (
+                <li key={feature} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--brand-2)]/15 text-[10px] font-bold text-[var(--brand-2)]">
+                    <FontAwesomeIcon icon={faCheck} />
+                  </span>
+                  <span className="leading-tight text-app-text">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <p className="pt-1 text-xs italic text-app-muted opacity-80">
+              Note: All demo data is ephemeral and will be securely erased
+              daily.
+            </p>
+          </div>
+
+          {/* CTA Button */}
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            fullWidth
+            ripple
+            disabled={demoLoading}
+            onClick={handleTryDemo}
+          >
+            {demoLoading ? (
+              <>
+                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                GENERATING WORKSPACE…
+              </>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faFlask} />
+                START EXPLORING NOW
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

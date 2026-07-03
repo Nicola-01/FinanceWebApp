@@ -1,0 +1,63 @@
+/* =====================================================================
+   Design tokens + self-hosted fonts (offline-first PWA: no Google CDN).
+   Layered on top of theme-colors.css (generated — do not edit there).
+   ===================================================================== */
+
+/* ---- Plus Jakarta Sans (UI text + titles) ---- */
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./assets/fonts/jakarta-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./assets/fonts/jakarta-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("./assets/fonts/jakarta-600.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/jakarta-700.woff2") format("woff2");
+}
+
+/* ---- JetBrains Mono (numbers / tabular data) ---- */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("./assets/fonts/jbmono-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./assets/fonts/jbmono-700.woff2") format("woff2");
+}
+
+:root {
+  /* Brand accent (non-wallet screens). Inside a wallet, accent = wallet.color. */
+  --brand-1: #8b5cf6; /* violet */
+  --brand-2: #e0339a; /* magenta */
+  --grad-brand: linear-gradient(120deg, var(--brand-1), var(--brand-2));
+
+  /* Radius scale — sober / institutional */
+  --r-card: 16px;
+  --r-input: 10px;
+  --r-cta: 12px;
+  --r-sm: 8px;
+}

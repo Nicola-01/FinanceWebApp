@@ -14,8 +14,9 @@ import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { PasswordRequirements } from "../components/auth/PasswordRequirements.tsx";
 import { isPasswordValid } from "../components/auth/passwordRequirements.ts";
-import { AnimateBackground } from "../auth/AnimateBackground.tsx"; // Import del nuovo componente password
 import { getApiErrorTitle } from "../utils/apiError";
+import Button from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
 
 interface RegisterInviteResponse {
   email: string;
@@ -29,21 +30,21 @@ const Register: React.FC = () => {
   const token = searchParams.get("token");
   const navigate = useNavigate();
 
-  // Stati generali
+  // General states
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inviteData, setInviteData] = useState<RegisterInviteResponse | null>(
     null,
   );
 
-  // Stati del form
+  // Form states
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 1. Verifica il token al caricamento della pagina
+  // 1. Verify the token when the page loads
   useEffect(() => {
     if (!token) {
       setError("No registration token provided in the URL.");
@@ -57,7 +58,7 @@ const Register: React.FC = () => {
         const res = await api.get(`/auth/register/${token}`);
         setInviteData(res.data);
 
-        // Se lo stato non è PENDING, la registrazione non è valida
+        // If the status is not PENDING, the registration is not valid
         if (res.data.status !== "PENDING") {
           setError("This invitation has already been used or was revoked.");
         }
@@ -71,15 +72,15 @@ const Register: React.FC = () => {
     verifyToken();
   }, [token]);
 
-  // Variabile derivata per abilitare/disabilitare il tasto submit
+  // Derived flag to enable/disable the submit button
   const isFormValid =
     username.trim().length >= 3 && isPasswordValid(password, confirmPassword);
 
-  // 2. Gestisce l'invio della registrazione
+  // 2. Handle the registration submit
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validazioni Frontend (fallback)
+    // Frontend validation (fallback)
     if (username.trim().length < 3) {
       setError("shake");
       setTimeout(() => setError(""), 500);
@@ -114,150 +115,148 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden theme-bg-page">
-      {/* Utilizziamo l'esatto sfondo animato della pagina di Login */}
-      <AnimateBackground />
+    <div
+      className={`relative z-10 flex w-full max-w-[400px] flex-col rounded-[var(--r-card)] border border-white/10 bg-[rgba(23,18,38,0.55)] p-7 shadow-[0_24px_60px_-26px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-9 ${
+        error === "shake" ? "animate-[shake_0.5s_ease-in-out]" : ""
+      }`}
+    >
+      {/* Brand lockup */}
+      <div className="mb-6 flex items-center gap-2.5">
+        <img
+          src="/icon.svg"
+          alt="Finance"
+          className="h-11 w-11 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
+        />
+        <span className="text-xl font-bold tracking-tight text-app-text">
+          Finance
+        </span>
+      </div>
 
-      {/* Container Principale in stile Login */}
-      <div
-        className={`relative z-10 flex w-full max-w-[420px] mx-4 flex-col items-center rounded-3xl border border-app-border bg-app-input px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error === "shake" ? "animate-[shake_0.5s_ease-in-out]" : ""}`}
-      >
-        {/* Logo / Header (Stile Avatar del Login) */}
-        <div className="mb-6">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-app-input shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]">
-            <FontAwesomeIcon
-              icon={faUser}
-              className="text-3xl theme-text-muted"
-            />
-          </div>
+      {/* STATE 1: LOADING */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-10 text-app-muted">
+          <FontAwesomeIcon
+            icon={faSpinner}
+            spin
+            className="text-4xl text-app-blue"
+          />
+          <p>Verifying invitation…</p>
         </div>
-
-        {/* STATO 1: CARICAMENTO */}
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-10 text-app-muted gap-4">
-            <FontAwesomeIcon
-              icon={faSpinner}
-              spin
-              className="text-4xl text-app-blue"
-            />
-            <p>Verifying invitation link...</p>
+      ) : /* STATE 2: TOKEN ERROR */
+      error && error !== "shake" ? (
+        <div className="flex w-full flex-col items-center py-4 text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-[var(--r-card)] bg-app-red/15 text-app-red">
+            <FontAwesomeIcon icon={faCircleExclamation} className="text-2xl" />
           </div>
-        ) : /* STATO 2: ERRORE TOKEN */
-        error && error !== "shake" ? (
-          <div className="flex flex-col items-center text-center py-6 w-full">
-            <FontAwesomeIcon
-              icon={faCircleExclamation}
-              className="text-5xl theme-text-danger mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]"
-            />
-            <h3 className="text-xl font-bold mb-2 theme-text-default">
-              Registration Failed
-            </h3>
-            <p className="text-app-muted text-sm mb-6">{error}</p>
-            <button
-              onClick={() => navigate("/login")}
-              className="w-full rounded-full bg-app-surface py-3 font-semibold tracking-wider theme-text-default transition-colors hover:bg-white/20"
-            >
-              Back to Login
-            </button>
-          </div>
-        ) : (
-          /* STATO 3: FORM DI REGISTRAZIONE ESTETICA LOGIN */
-          <form
-            onSubmit={handleRegister}
-            className="flex flex-col w-full"
-            noValidate
+          <h2 className="mb-2 text-xl font-bold text-app-text">
+            Registration failed
+          </h2>
+          <p className="mb-6 text-sm text-app-muted">{error}</p>
+          <Button
+            variant="secondary"
+            size="lg"
+            fullWidth
+            onClick={() => navigate("/login")}
           >
-            {/* Email Sola Lettura */}
-            <div className="relative mb-6 w-full">
-              <div className="relative flex items-center border-b pb-1 theme-border-focus">
-                <span className="absolute left-0 text-lg text-app-muted">
-                  <FontAwesomeIcon icon={faEnvelope} />
-                </span>
-                <input
-                  type="email"
-                  value={inviteData?.email || ""}
-                  disabled
-                  className="w-full border-none theme-bg-transparent py-2 pl-8 text-app-muted outline-none cursor-not-allowed"
-                />
-              </div>
-            </div>
+            Back to login
+          </Button>
+        </div>
+      ) : (
+        /* STATE 3: REGISTRATION FORM */
+        <form onSubmit={handleRegister} className="flex flex-col" noValidate>
+          <h1 className="mb-1 text-2xl font-bold tracking-tight text-app-text">
+            Create your account
+          </h1>
+          <p className="mb-6 text-sm text-app-muted">
+            Complete your registration to get started.
+          </p>
 
-            {/* Username Input */}
-            <div className="relative mb-6 w-full">
-              <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:theme-border-active transition-colors duration-300">
-                <span className="absolute left-0 text-lg theme-text-muted">
-                  <FontAwesomeIcon icon={faUser} />
-                </span>
-                <input
-                  type="text"
-                  placeholder="Choose Username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full border-none theme-bg-transparent py-2 pl-8 theme-text-default placeholder-white/70 outline-none"
-                  autoFocus
-                />
-              </div>
-            </div>
+          {/* Email (read-only) */}
+          <div className="mb-4">
+            <Input
+              type="email"
+              value={inviteData?.email || ""}
+              disabled
+              aria-label="Email"
+              className="cursor-not-allowed text-app-muted"
+              leadingIcon={<FontAwesomeIcon icon={faEnvelope} />}
+            />
+          </div>
 
-            {/* Password Input */}
-            <div className="relative mb-6 w-full">
-              <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:theme-border-active transition-colors duration-300">
-                <span className="absolute left-0 text-lg theme-text-muted">
-                  <FontAwesomeIcon icon={faLock} />
-                </span>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Set Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border-none theme-bg-transparent py-2 pl-8 pr-8 theme-text-default placeholder-white/70 outline-none"
-                />
-                <span
-                  className="absolute right-0 z-20 cursor-pointer text-app-muted transition-colors hover:theme-text-default"
+          {/* Username */}
+          <div className="mb-4">
+            <Input
+              type="text"
+              placeholder="Choose a username"
+              aria-label="Username"
+              autoComplete="username"
+              autoFocus
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              leadingIcon={<FontAwesomeIcon icon={faUser} />}
+            />
+          </div>
+
+          {/* Password */}
+          <div className="mb-4">
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="Set a password"
+              aria-label="Password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              leadingIcon={<FontAwesomeIcon icon={faLock} />}
+              rightSlot={
+                <button
+                  type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  className="flex items-center rounded-md p-2 text-app-muted transition-colors hover:text-app-text"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
-                </span>
-              </div>
-            </div>
-
-            {/* Confirm Password Input */}
-            <div className="relative mb-4 w-full">
-              <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:theme-border-active transition-colors duration-300">
-                <span className="absolute left-0 text-lg theme-text-muted">
-                  <FontAwesomeIcon icon={faLock} />
-                </span>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full border-none theme-bg-transparent py-2 pl-8 pr-8 theme-text-default placeholder-white/70 outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Componente Requisiti Password Dinamico */}
-            <PasswordRequirements
-              password={password}
-              confirmPassword={confirmPassword}
+                </button>
+              }
             />
+          </div>
 
-            {/* Submit Button (Stile Login) */}
-            <button
-              type="submit"
-              disabled={isSubmitting || !isFormValid}
-              className="w-full mt-2 rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider theme-text-default shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
-            >
-              {isSubmitting ? (
-                <FontAwesomeIcon icon={faSpinner} spin />
-              ) : (
-                "CREATE ACCOUNT"
-              )}
-            </button>
-          </form>
-        )}
-      </div>
+          {/* Confirm Password */}
+          <div className="mb-4">
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="Confirm password"
+              aria-label="Confirm password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              leadingIcon={<FontAwesomeIcon icon={faLock} />}
+            />
+          </div>
+
+          {/* Password Requirements */}
+          <PasswordRequirements
+            password={password}
+            confirmPassword={confirmPassword}
+          />
+
+          {/* Submit */}
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            ripple
+            disabled={isSubmitting || !isFormValid}
+            className="mt-2"
+          >
+            {isSubmitting ? (
+              <FontAwesomeIcon icon={faSpinner} spin />
+            ) : (
+              "Create account"
+            )}
+          </Button>
+        </form>
+      )}
     </div>
   );
 };

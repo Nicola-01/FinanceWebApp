@@ -44,6 +44,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [selectedTags, setSelectedTags] = useState<string[] | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState<DateRangeValue>({
     start: null,
     end: null,
@@ -53,8 +54,12 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   const filteredTransactions = useMemo(() => {
     const currentActiveTags = selectedTags ?? tags.map((t) => t.name);
 
+    const query = searchQuery.trim().toLowerCase();
+
     return transactions.filter((tx) => {
       if (!currentActiveTags.includes(tx.tag.name)) return false;
+
+      if (query && !tx.name.toLowerCase().includes(query)) return false;
 
       const txDate = new Date(tx.transactionDate);
 
@@ -71,7 +76,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
       }
       return true;
     });
-  }, [transactions, tags, selectedTags, dateRange]);
+  }, [transactions, tags, selectedTags, searchQuery, dateRange]);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get("tab") as TabType;
@@ -253,6 +258,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
         fetchData,
         selectedTags,
         setSelectedTags,
+        searchQuery,
+        setSearchQuery,
         dateRange,
         setDateRange,
         datePreset,

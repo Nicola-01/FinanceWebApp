@@ -17,6 +17,10 @@ rm -f "$marker"                # consuma il marker: il prossimo turno riparte pu
 
 cd "$CLAUDE_PROJECT_DIR/frontend" 2>/dev/null || exit 0
 
+# Auto-format first so pure Prettier drift (e.g. from auto-generated test files)
+# never fails the lint step below. Formatting only — never changes logic.
+npx prettier --write "src/**/*.{ts,tsx,css}" >/dev/null 2>&1 || true
+
 fail() {
   step="$1"; out="$2"
   echo "I controlli del frontend sono FALLITI ($step) dopo le tue modifiche di questo turno."
