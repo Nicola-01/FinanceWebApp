@@ -21,6 +21,7 @@ import { PWAPrompt } from "./components/ui/PWAPrompt.tsx";
 import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import ToDoPage from "./components/ToDoPage/ToDoPage.tsx";
 import OAuthConsent from "./auth/OAuthConsent.tsx";
+import AuthLayout from "./auth/AuthLayout.tsx";
 
 const RootRedirect = () => {
   const user = getUserAuth();
@@ -53,10 +54,14 @@ const App: React.FC = () => {
         <DeleteModalProvider deleteModalRef={deleteModalRef}>
           <DeleteModal ref={deleteModalRef} />
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
+            {/* Auth screens share one shell so the animated background persists
+                across navigation (only the form swaps via <Outlet/>). */}
+            <Route element={<AuthLayout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+            </Route>
             <Route path="/about" element={<LandingPage />} />
             <Route path="/ToDo" element={<ToDoPage />} />
             <Route path="/oauth/authorize" element={<OAuthConsent />} />

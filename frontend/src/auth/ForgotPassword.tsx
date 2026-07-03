@@ -11,8 +11,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
-import { AnimateBackground } from "./AnimateBackground.tsx";
 import { getApiErrorTitle } from "../utils/apiError";
+import Button from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
 
 const COOLDOWN_SECONDS = 60;
 
@@ -96,138 +97,128 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div className="relative flex min-h-[100dvh] items-start pt-[8dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto theme-bg-page px-4 sm:px-0 pb-8 sm:pb-0">
-      <AnimateBackground />
+    <div
+      className={`relative z-10 flex w-full max-w-[400px] flex-col rounded-[var(--r-card)] border border-white/10 bg-[rgba(23,18,38,0.55)] p-7 shadow-[0_24px_60px_-26px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-9 ${
+        shake ? "animate-[shake_0.5s_ease-in-out]" : ""
+      }`}
+    >
+      {/* Brand lockup */}
+      <div className="mb-6 flex items-center gap-2.5">
+        <img
+          src="/icon.svg"
+          alt="Finance"
+          className="h-11 w-11 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
+        />
+        <span className="text-xl font-bold tracking-tight text-app-text">
+          Finance
+        </span>
+      </div>
 
-      <div
-        className={`relative z-10 flex w-full max-w-[420px] flex-col items-center rounded-3xl border border-app-border bg-app-input px-8 py-10 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${shake ? "animate-[shake_0.5s_ease-in-out]" : ""}`}
-      >
-        {/* Icon Header */}
-        <div className="mb-6">
-          <div
-            className={`flex h-20 w-20 items-center justify-center rounded-full shadow-[inset_0_0_10px_rgba(255,255,255,0.1)] transition-all duration-500 ${emailSent ? "bg-gradient-to-tr from-[#00c853]/20 to-[#00e676]/20 border border-[#00e676]/30" : "bg-app-input"}`}
-          >
-            <FontAwesomeIcon
-              icon={emailSent ? faCircleCheck : faEnvelope}
-              className={`text-3xl transition-all duration-500 ${emailSent ? "text-[#00e676]" : "theme-text-muted"}`}
-            />
-          </div>
-        </div>
+      {!emailSent ? (
+        /* ========== EMAIL INPUT STATE ========== */
+        <>
+          <h1 className="mb-1 text-2xl font-bold tracking-tight text-app-text">
+            Forgot password?
+          </h1>
+          <p className="mb-7 text-sm leading-relaxed text-app-muted">
+            Enter the email associated with your account and we'll send you a
+            link to reset your password.
+          </p>
 
-        {!emailSent ? (
-          /* ========== EMAIL INPUT STATE ========== */
-          <>
-            <h2 className="mb-2 text-xl font-bold tracking-wide theme-text-default text-center">
-              Forgot Password?
-            </h2>
-            <p className="mb-8 text-sm text-app-muted text-center leading-relaxed">
-              Enter the email address associated with your account and we'll
-              send you a link to reset your password.
-            </p>
-
-            <form
-              onSubmit={handleSubmit}
-              className="flex flex-col w-full"
-              noValidate
-            >
-              {/* Email Input */}
-              <div className="relative mb-8 w-full">
-                <div className="relative flex items-center border-b pb-1 border-app-border0 focus-within:theme-border-active transition-colors duration-300">
-                  <span className="absolute left-0 text-lg theme-text-muted">
-                    <FontAwesomeIcon icon={faEnvelope} />
-                  </span>
-                  <input
-                    type="email"
-                    placeholder="Email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border-none theme-bg-transparent py-2 pl-8 theme-text-default placeholder-white/70 outline-none"
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider theme-text-default shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {loading ? (
-                  <>
-                    <FontAwesomeIcon
-                      icon={faSpinner}
-                      className="mr-2 animate-spin"
-                    />
-                    SENDING...
-                  </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faPaperPlane} className="mr-2" />
-                    SEND RESET LINK
-                  </>
-                )}
-              </button>
-            </form>
-          </>
-        ) : (
-          /* ========== EMAIL SENT / CONFIRMATION STATE ========== */
-          <>
-            <h2 className="mb-2 text-xl font-bold tracking-wide theme-text-default text-center">
-              Check your email
-            </h2>
-            <p className="mb-2 text-sm text-app-muted text-center leading-relaxed">
-              We've sent a password reset link to
-            </p>
-            <p className="mb-6 text-sm font-semibold theme-text-default text-center break-all">
-              {email}
-            </p>
-
-            <div className="w-full rounded-xl border border-app-border theme-bg-overlay-light p-5 mb-6 shadow-inner">
-              <p className="text-xs text-app-muted text-center leading-relaxed">
-                Didn't receive the email? Check your spam folder, or click the
-                button below to resend. The link is valid for{" "}
-                <strong className="theme-text-muted">1 hour</strong>.
-              </p>
+          <form onSubmit={handleSubmit} className="flex flex-col" noValidate>
+            <div className="mb-6">
+              <Input
+                type="email"
+                placeholder="Email address"
+                aria-label="Email"
+                autoComplete="email"
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                leadingIcon={<FontAwesomeIcon icon={faEnvelope} />}
+              />
             </div>
 
-            {/* Resend Button with Cooldown */}
-            <button
-              type="button"
-              disabled={loading || cooldown > 0}
-              onClick={handleResend}
-              className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider theme-text-default shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              ripple
+              disabled={loading}
             >
               {loading ? (
                 <>
-                  <FontAwesomeIcon
-                    icon={faSpinner}
-                    className="mr-2 animate-spin"
-                  />
-                  SENDING...
+                  <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                  Sending…
                 </>
-              ) : cooldown > 0 ? (
-                <>RESEND IN {formatCooldown(cooldown)}</>
               ) : (
                 <>
-                  <FontAwesomeIcon icon={faRotateRight} className="mr-2" />
-                  RESEND EMAIL
+                  <FontAwesomeIcon icon={faPaperPlane} />
+                  Send reset link
                 </>
               )}
-            </button>
-          </>
-        )}
+            </Button>
+          </form>
+        </>
+      ) : (
+        /* ========== EMAIL SENT / CONFIRMATION STATE ========== */
+        <>
+          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-[var(--r-card)] bg-app-green/15 text-app-green">
+            <FontAwesomeIcon icon={faCircleCheck} className="text-2xl" />
+          </div>
+          <h1 className="mb-1 text-2xl font-bold tracking-tight text-app-text">
+            Check your email
+          </h1>
+          <p className="mb-1 text-sm text-app-muted">
+            We've sent a password reset link to
+          </p>
+          <p className="mb-5 break-all text-sm font-semibold text-app-text">
+            {email}
+          </p>
 
-        {/* Back to Login */}
-        <button
-          type="button"
-          onClick={() => navigate("/login")}
-          className="mt-6 flex items-center gap-2 text-sm text-app-muted transition-colors hover:theme-text-default theme-bg-transparent border-none cursor-pointer"
-        >
-          <FontAwesomeIcon icon={faArrowLeft} />
-          Back to Login
-        </button>
-      </div>
+          <div className="mb-6 rounded-[var(--r-input)] border border-white/10 bg-white/[0.03] p-4">
+            <p className="text-xs leading-relaxed text-app-muted">
+              Didn't get it? Check your spam folder, or resend below. The link
+              is valid for <strong className="text-app-text">1 hour</strong>.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            fullWidth
+            ripple
+            disabled={loading || cooldown > 0}
+            onClick={handleResend}
+          >
+            {loading ? (
+              <>
+                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                Sending…
+              </>
+            ) : cooldown > 0 ? (
+              <>Resend in {formatCooldown(cooldown)}</>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faRotateRight} />
+                Resend email
+              </>
+            )}
+          </Button>
+        </>
+      )}
+
+      {/* Back to Login */}
+      <button
+        type="button"
+        onClick={() => navigate("/login")}
+        className="mt-6 flex cursor-pointer items-center gap-2 self-center border-none bg-transparent text-sm text-app-muted transition-colors hover:text-app-text"
+      >
+        <FontAwesomeIcon icon={faArrowLeft} />
+        Back to login
+      </button>
     </div>
   );
 };

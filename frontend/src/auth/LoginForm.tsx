@@ -11,6 +11,9 @@ import {
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../utils/apiError";
+import Button from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import Toggle from "../components/ui/Toggle";
 
 interface Requirements {
   username?: string;
@@ -21,13 +24,13 @@ export const LoginForm: React.FC = () => {
   // Input references
   const username = useRef<HTMLInputElement>(null);
   const password = useRef<HTMLInputElement>(null);
-  const rememberMe = useRef<HTMLInputElement>(null);
 
   // Component states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [require, setRequire] = useState<Requirements>({});
   const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -72,7 +75,7 @@ export const LoginForm: React.FC = () => {
       const response = await api.post("/auth/login", {
         username: username.current?.value,
         password: password.current?.value,
-        rememberMe: rememberMe.current?.checked,
+        rememberMe: remember,
       });
 
       const { token, passwordMustChange } = response.data;
@@ -80,7 +83,7 @@ export const LoginForm: React.FC = () => {
       localStorage.setItem("mustChangePWD", JSON.stringify(passwordMustChange));
 
       // Store token based on 'Remember Me' preference
-      if (rememberMe.current?.checked) localStorage.setItem("jwtToken", token);
+      if (remember) localStorage.setItem("jwtToken", token);
       else sessionStorage.setItem("jwtToken", token);
 
       navigate(returnTo);
@@ -98,114 +101,112 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <form
-      className={`relative z-10 flex w-full max-w-[380px] flex-col items-center rounded-3xl border border-app-border bg-app-transparent p-6 sm:p-12 shadow-2xl backdrop-blur-xl transition-transform duration-300 ${error ? "animate-[shake_0.5s_ease-in-out]" : ""}`}
-      onSubmit={handleSubmit}
-      noValidate
-    >
-      {/* Avatar Header */}
-      <div className="mb-5 sm:mb-8">
-        <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-app-input border border-app-border">
-          <FontAwesomeIcon
-            icon={faUser}
-            className="text-2xl sm:text-3xl text-app-text"
+    <div className="relative z-10 flex w-full max-w-[400px] flex-col">
+      <form
+        className={`flex w-full flex-col rounded-[var(--r-card)] border border-white/10 bg-[rgba(23,18,38,0.55)] p-7 shadow-[0_24px_60px_-26px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-9 ${
+          error ? "animate-[shake_0.5s_ease-in-out]" : ""
+        }`}
+        onSubmit={handleSubmit}
+        noValidate
+      >
+        {/* Brand lockup */}
+        <div className="mb-6 flex items-center gap-2.5">
+          <img
+            src="/icon.svg"
+            alt="Finance"
+            className="h-11 w-11 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
           />
-        </div>
-      </div>
-
-      {/* Username Input */}
-      <div className="relative mb-5 sm:mb-8 w-full">
-        <div
-          className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.username ? "theme-border-danger" : "border-app-border focus-within:border-app-text"}`}
-        >
-          <span className="absolute left-0 text-lg text-app-text">
-            <FontAwesomeIcon icon={faUser} />
+          <span className="text-xl font-bold tracking-tight text-app-text">
+            Finance
           </span>
-          <input
+        </div>
+
+        <h1 className="mb-1 text-2xl font-bold tracking-tight text-app-text">
+          Welcome back
+        </h1>
+        <p className="mb-7 text-sm text-app-muted">
+          Sign in to your financial workspace
+        </p>
+
+        {/* Username Input */}
+        <div className="relative mb-6">
+          <Input
             ref={username}
             type="text"
             placeholder="Username"
-            className="w-full border-none theme-bg-transparent py-2 pl-8 text-app-text placeholder-app-muted outline-none"
+            aria-label="Username"
+            autoComplete="username"
+            invalid={!!require.username}
+            leadingIcon={<FontAwesomeIcon icon={faUser} />}
           />
+          {require.username && (
+            <span className="absolute -bottom-5 left-1 flex items-center gap-1.5 text-xs text-app-red">
+              <FontAwesomeIcon icon={faTriangleExclamation} />{" "}
+              {require.username}
+            </span>
+          )}
         </div>
-        {/* Username Error Tooltip */}
-        {require.username && (
-          <span className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm theme-text-danger">
-            <FontAwesomeIcon icon={faTriangleExclamation} /> {require.username}
-          </span>
-        )}
-      </div>
 
-      {/* Password Input */}
-      <div className="relative mb-5 sm:mb-8 w-full">
-        <div
-          className={`relative flex items-center border-b pb-1 transition-colors duration-300 ${require.password ? "theme-border-danger" : "border-app-border focus-within:border-app-text"}`}
-        >
-          <span className="absolute left-0 text-lg text-app-text">
-            <FontAwesomeIcon icon={faLock} />
-          </span>
-          <input
+        {/* Password Input */}
+        <div className="relative mb-6">
+          <Input
             ref={password}
             type={showPassword ? "text" : "password"}
             placeholder="Password"
-            className="w-full border-none theme-bg-transparent py-2 pl-8 pr-8 text-app-text placeholder-app-muted outline-none"
+            aria-label="Password"
+            autoComplete="current-password"
+            invalid={!!require.password}
+            leadingIcon={<FontAwesomeIcon icon={faLock} />}
+            rightSlot={
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="flex items-center rounded-md p-2 text-app-muted transition-colors hover:text-app-text"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+              </button>
+            }
           />
-          {/* Toggle Visibility Button */}
-          <span
-            className="absolute right-0 z-20 cursor-pointer text-app-muted transition-colors hover:text-app-text"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
-          </span>
+          {require.password && (
+            <span className="absolute -bottom-5 left-1 flex items-center gap-1.5 text-xs text-app-red">
+              <FontAwesomeIcon icon={faTriangleExclamation} />{" "}
+              {require.password}
+            </span>
+          )}
         </div>
-        {/* Password Error Tooltip */}
-        {require.password && (
-          <span className="absolute -bottom-6 left-0 flex animate-pulse items-center gap-2 text-sm theme-text-danger">
-            <FontAwesomeIcon icon={faTriangleExclamation} /> {require.password}
-          </span>
-        )}
-      </div>
 
-      {/* Options (Remember Me / Forgot Password) */}
-      <div className="mb-6 sm:mb-8 flex w-full items-center justify-between text-sm text-app-text">
-        <label className="group flex cursor-pointer select-none items-center">
-          <div className="relative">
-            <input
-              type="checkbox"
-              ref={rememberMe}
-              className="peer h-4 w-4 appearance-none rounded border border-app-border bg-app-hover transition-all checked:border-app-text checked:bg-app-text cursor-pointer"
-            />
-            <svg
-              className="pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 text-app-card opacity-0 transition-opacity peer-checked:opacity-100"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="4"
-            >
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-          <span className="ml-2 font-light transition-colors group-hover:text-app-text">
-            Remember me
-          </span>
-        </label>
-        <button
-          type="button"
-          onClick={() => navigate("/forgot-password")}
-          className="font-light italic transition-colors hover:text-app-text hover:underline theme-bg-transparent border-none text-app-text cursor-pointer text-sm p-0"
+        {/* Remember me */}
+        <div className="mb-6 text-sm">
+          <Toggle
+            checked={remember}
+            onChange={setRemember}
+            size="sm"
+            label="Remember me"
+          />
+        </div>
+
+        {/* Login Button */}
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          fullWidth
+          ripple
+          disabled={loading}
         >
-          Forgot Password?
-        </button>
-      </div>
+          {loading ? "Signing in…" : "Sign in"}
+        </Button>
+      </form>
 
-      {/* Login Button */}
+      {/* Forgot password — below the card, right-aligned */}
       <button
-        type="submit"
-        disabled={loading}
-        className="w-full rounded-full bg-gradient-to-r from-app-purple to-app-blue py-3 font-semibold tracking-wider theme-text-default shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-2xl active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70"
+        type="button"
+        onClick={() => navigate("/forgot-password")}
+        className="mt-4 cursor-pointer self-end border-none bg-transparent text-sm font-medium text-app-muted transition-colors hover:text-app-text hover:underline"
       >
-        {loading ? "LOADING..." : "LOGIN"}
+        Forgot password?
       </button>
-    </form>
+    </div>
   );
 };

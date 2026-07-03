@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");
 @import "tailwindcss";
 @import "./theme-colors.css";
+@import "./theme-tokens.css";
 @tailwind utilities;
 
 /* Resetta html, body e root per occupare tutto lo schermo */
@@ -14,12 +14,25 @@ body,
   display: block;
   background-color: rgb(var(--bg-main));
   color: rgb(var(--text-primary));
+  font-family:
+    "Plus Jakarta Sans",
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
   transition:
     background-color 0.3s ease,
     color 0.3s ease;
 }
 
 @theme {
+  --font-sans:
+    "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
   --color-app-bg: rgb(var(--bg-main));
   --color-app-surface: rgb(var(--bg-surface));
   --color-app-card: rgb(var(--bg-card));
