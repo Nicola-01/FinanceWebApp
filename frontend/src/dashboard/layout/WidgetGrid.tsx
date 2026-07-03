@@ -3,7 +3,10 @@ import {
   closestCenter,
   DndContext,
   DragOverlay,
+<<<<<<< HEAD
   KeyboardSensor,
+=======
+>>>>>>> c9d2ebe (Ui update)
   MeasuringStrategy,
   MouseSensor,
   pointerWithin,
@@ -14,11 +17,15 @@ import {
   type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+<<<<<<< HEAD
 import {
   rectSortingStrategy,
   SortableContext,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
+=======
+import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
+>>>>>>> c9d2ebe (Ui update)
 import { LayoutGroup } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { TabLayout } from "../../utils/tabLayout";
@@ -34,6 +41,7 @@ const MERGE_PREFIX = "merge:";
  * otherwise fall back to closest-center among the real slots (reorder).
  * Only valid targets render a merge zone, so span rules are enforced by
  * construction.
+<<<<<<< HEAD
  *
  * While the pointer is inside a valid merge target's card but outside its
  * central merge zone, report NO collision: closest-center would otherwise
@@ -58,6 +66,14 @@ export const mergeAwareCollision: CollisionDetection = (args) => {
   );
   if (within.some((c) => mergeTargetIds.has(String(c.id)))) return [];
 
+=======
+ */
+const mergeAwareCollision: CollisionDetection = (args) => {
+  const zones = pointerWithin(args).filter((c) =>
+    String(c.id).startsWith(MERGE_PREFIX),
+  );
+  if (zones.length > 0) return zones;
+>>>>>>> c9d2ebe (Ui update)
   return closestCenter({
     ...args,
     droppableContainers: args.droppableContainers.filter(
@@ -94,9 +110,12 @@ export function WidgetGrid<Ctx>({
     useSensor(TouchSensor, {
       activationConstraint: { delay: 250, tolerance: 8 },
     }),
+<<<<<<< HEAD
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
+=======
+>>>>>>> c9d2ebe (Ui update)
   );
 
   const [activeId, setActiveId] = useState<string | null>(null);

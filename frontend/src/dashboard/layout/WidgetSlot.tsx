@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import type { KeyboardEventHandler } from "react";
+=======
+>>>>>>> c9d2ebe (Ui update)
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -63,11 +66,18 @@ export function WidgetSlot<Ctx>({
       : slot.widgets[0];
   const activeDef = defs.get(activeWidgetId) ?? first;
 
+<<<<<<< HEAD
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } =
     useSortable({
       id: slot.id,
       disabled: !editing,
     });
+=======
+  const { attributes, listeners, setNodeRef, isDragging } = useSortable({
+    id: slot.id,
+    disabled: !editing,
+  });
+>>>>>>> c9d2ebe (Ui update)
   // Sortable transforms are unused on purpose: onDragOver live-reorders the
   // slots and the framer `layout` prop animates the resulting reflow, which
   // stays correct for mixed half/full spans where strategy math does not.
@@ -115,6 +125,7 @@ export function WidgetSlot<Ctx>({
       )}
 
       {editing && (
+<<<<<<< HEAD
         // No `touch-none` here: the whole card is the pointer drag surface, but
         // touch scrolling must keep working — the TouchSensor's 250ms delay
         // disambiguates scroll vs drag (same setup as the WalletsBar drag).
@@ -136,6 +147,14 @@ export function WidgetSlot<Ctx>({
             }
             className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm"
           >
+=======
+        <div
+          className="absolute inset-0 z-10 cursor-grab touch-none rounded-2xl outline-dashed outline-1 -outline-offset-1 outline-app-border active:cursor-grabbing"
+          {...attributes}
+          {...listeners}
+        >
+          <span className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm">
+>>>>>>> c9d2ebe (Ui update)
             <FontAwesomeIcon icon={faUpDownLeftRight} className="text-xs" />
           </span>
 

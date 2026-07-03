@@ -4,12 +4,19 @@ import { faTag } from "@fortawesome/free-solid-svg-icons";
 
 vi.mock("../wallet/WalletContext.tsx", () => ({ useWalletContext: vi.fn() }));
 
+<<<<<<< HEAD
 import { mergeAwareCollision, WidgetGrid } from "./WidgetGrid";
+=======
+import { WidgetGrid } from "./WidgetGrid";
+>>>>>>> c9d2ebe (Ui update)
 import { useTabLayout } from "./useTabLayout";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import type { WidgetDef } from "./widgetTypes";
 import type { TabLayout } from "../../utils/tabLayout";
+<<<<<<< HEAD
 import type { Active, ClientRect, DroppableContainer } from "@dnd-kit/core";
+=======
+>>>>>>> c9d2ebe (Ui update)
 
 const mockedCtx = useWalletContext as unknown as ReturnType<typeof vi.fn>;
 
@@ -177,6 +184,7 @@ describe("WidgetGrid", () => {
     expect(stored.slots.map((s) => s.id)).toEqual(["c", "group-1"]);
   });
 
+<<<<<<< HEAD
   describe("mergeAwareCollision", () => {
     const rect = (
       left: number,
@@ -242,6 +250,8 @@ describe("WidgetGrid", () => {
     });
   });
 
+=======
+>>>>>>> c9d2ebe (Ui update)
   it("reset restores the default layout and clears storage", () => {
     storedLayout({
       slots: [{ id: "c", widgets: ["c"] }],
