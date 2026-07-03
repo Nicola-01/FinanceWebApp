@@ -1,3 +1,4 @@
+import type { KeyboardEventHandler } from "react";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -62,10 +63,11 @@ export function WidgetSlot<Ctx>({
       : slot.widgets[0];
   const activeDef = defs.get(activeWidgetId) ?? first;
 
-  const { attributes, listeners, setNodeRef, isDragging } = useSortable({
-    id: slot.id,
-    disabled: !editing,
-  });
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, isDragging } =
+    useSortable({
+      id: slot.id,
+      disabled: !editing,
+    });
   // Sortable transforms are unused on purpose: onDragOver live-reorders the
   // slots and the framer `layout` prop animates the resulting reflow, which
   // stays correct for mixed half/full spans where strategy math does not.
@@ -113,12 +115,27 @@ export function WidgetSlot<Ctx>({
       )}
 
       {editing && (
+        // No `touch-none` here: the whole card is the pointer drag surface, but
+        // touch scrolling must keep working — the TouchSensor's 250ms delay
+        // disambiguates scroll vs drag (same setup as the WalletsBar drag).
         <div
-          className="absolute inset-0 z-10 cursor-grab touch-none rounded-2xl outline-dashed outline-1 -outline-offset-1 outline-app-border active:cursor-grabbing"
-          {...attributes}
+          className="absolute inset-0 z-10 cursor-grab rounded-2xl outline-dashed outline-1 -outline-offset-1 outline-app-border active:cursor-grabbing"
           {...listeners}
         >
-          <span className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm">
+          {/* Keyboard/AT drag affordance: the sortable role/tabindex live on
+              this small handle, not the overlay, so the Hide/pop buttons are
+              not nested inside an element with role="button". */}
+          <span
+            ref={setActivatorNodeRef}
+            {...attributes}
+            aria-label={`Move ${hideLabel}`}
+            onKeyDown={
+              listeners?.onKeyDown as
+                | KeyboardEventHandler<HTMLSpanElement>
+                | undefined
+            }
+            className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm"
+          >
             <FontAwesomeIcon icon={faUpDownLeftRight} className="text-xs" />
           </span>
 

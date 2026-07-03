@@ -207,6 +207,10 @@ describe("WalletProvider filtering", () => {
     expect(screen.getByTestId("count").textContent).toBe("2");
 
     fireEvent.click(screen.getByText("search"));
+    // Filtering runs on a 200ms-debounced copy of the query.
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
     expect(screen.getByTestId("count").textContent).toBe("1");
     expect(screen.getByTestId("ids").textContent).toBe("1");
   });

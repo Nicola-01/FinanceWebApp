@@ -4,11 +4,12 @@ import { faTag } from "@fortawesome/free-solid-svg-icons";
 
 vi.mock("../wallet/WalletContext.tsx", () => ({ useWalletContext: vi.fn() }));
 
-import { WidgetGrid } from "./WidgetGrid";
+import { mergeAwareCollision, WidgetGrid } from "./WidgetGrid";
 import { useTabLayout } from "./useTabLayout";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import type { WidgetDef } from "./widgetTypes";
 import type { TabLayout } from "../../utils/tabLayout";
+import type { Active, ClientRect, DroppableContainer } from "@dnd-kit/core";
 
 const mockedCtx = useWalletContext as unknown as ReturnType<typeof vi.fn>;
 
@@ -174,6 +175,71 @@ describe("WidgetGrid", () => {
 
     const stored = JSON.parse(localStorage.getItem(KEY)!) as TabLayout;
     expect(stored.slots.map((s) => s.id)).toEqual(["c", "group-1"]);
+  });
+
+  describe("mergeAwareCollision", () => {
+    const rect = (
+      left: number,
+      top: number,
+      width: number,
+      height: number,
+    ): ClientRect => ({
+      left,
+      top,
+      width,
+      height,
+      right: left + width,
+      bottom: top + height,
+    });
+
+    // Two adjacent half-span cards with a 20px gap; the merge zone is the
+    // target card's central inset-[18%] area (only present when spans match).
+    const SLOT_A = rect(0, 0, 500, 300);
+    const SLOT_B = rect(520, 0, 500, 300);
+    const MERGE_B = rect(520 + 90, 54, 320, 192);
+
+    const args = (
+      pointer: { x: number; y: number },
+      withMergeZone: boolean,
+    ) => {
+      const droppableRects = new Map<string, ClientRect>([
+        ["a", SLOT_A],
+        ["b", SLOT_B],
+        ...(withMergeZone ? [["merge:b", MERGE_B] as const] : []),
+      ]);
+      return {
+        active: { id: "a" } as Active,
+        // The dragged rect, centered on the pointer (closestCenter input).
+        collisionRect: rect(pointer.x - 250, pointer.y - 150, 500, 300),
+        droppableRects,
+        droppableContainers: [...droppableRects.keys()].map(
+          (id) => ({ id }) as DroppableContainer,
+        ),
+        pointerCoordinates: pointer,
+      };
+    };
+
+    it("returns the merge zone when the pointer is inside it", () => {
+      const hits = mergeAwareCollision(args({ x: 770, y: 150 }, true));
+      expect(hits.map((c) => c.id)).toEqual(["merge:b"]);
+    });
+
+    it("suppresses reorder while the pointer is inside a valid merge target but outside its zone", () => {
+      // x=540 is inside slot B's card but before its central merge zone: a
+      // closest-center reorder here would sweep B away before the pointer
+      // could ever reach the zone.
+      expect(mergeAwareCollision(args({ x: 540, y: 150 }, true))).toEqual([]);
+    });
+
+    it("still reorders past the gap midpoint when the pointer is not over the target card", () => {
+      const hits = mergeAwareCollision(args({ x: 515, y: 150 }, true));
+      expect(hits[0]?.id).toBe("b");
+    });
+
+    it("falls back to closest-center reorder over the card when no merge zone exists (span mismatch)", () => {
+      const hits = mergeAwareCollision(args({ x: 540, y: 150 }, false));
+      expect(hits[0]?.id).toBe("b");
+    });
   });
 
   it("reset restores the default layout and clears storage", () => {

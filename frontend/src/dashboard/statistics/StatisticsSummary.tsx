@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { TrendingUp, TrendingDown, Scale } from "lucide-react";
 import type { Transaction } from "../../utils/types.ts";
-import { buildMonthlyBuckets } from "./ChartRangeSelector.tsx";
+import { buildMonthlyBuckets } from "./chartData.ts";
 
 interface StatisticsSummaryProps {
   transactions: Transaction[];
