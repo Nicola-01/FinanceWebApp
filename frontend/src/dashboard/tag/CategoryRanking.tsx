@@ -107,6 +107,8 @@ interface CategoryRankingProps {
   title: string;
   /** Currency symbol shown next to each amount (e.g. "€"). */
   currency: string;
+  /** Render without the card shell + title (the parent group card provides them). */
+  bare?: boolean;
 }
 
 /**
@@ -119,6 +121,7 @@ export const CategoryRanking: React.FC<CategoryRankingProps> = ({
   type,
   title,
   currency,
+  bare = false,
 }) => {
   const { items, total } = useMemo(() => {
     const txs = transactions.filter((t) => t.type === type);
@@ -133,10 +136,18 @@ export const CategoryRanking: React.FC<CategoryRankingProps> = ({
   const hiddenPct = total > 0 ? (hiddenValue / total) * 100 : 0;
 
   return (
-    <div className="flex flex-col w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border p-4 md:p-6 text-app-text">
-      <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider">
-        {title}
-      </h3>
+    <div
+      className={
+        bare
+          ? "flex flex-col w-full h-full text-app-text"
+          : "flex flex-col w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border p-4 md:p-6 text-app-text"
+      }
+    >
+      {!bare && (
+        <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider">
+          {title}
+        </h3>
+      )}
 
       {total === 0 ? (
         <div className="w-full flex flex-col items-center justify-center flex-1 min-h-[200px] bg-app-input/30 rounded-xl border border-app-border border-dashed">

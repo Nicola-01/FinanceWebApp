@@ -120,65 +120,74 @@ export const ShareSettingsSection: React.FC = () => {
 
   return (
     <>
-      {isOwner && (
-        <InviteSection walletColor={wallet.color} onInvite={handleInvite} />
-      )}
-
+      {/* Invite + members merged into a single card */}
       <Card
-        title="Wallet Members"
-        subtitle="Manage roles and access for members."
+        title="Members"
+        subtitle="Invite people and manage roles & access."
         icon={faUsers}
         iconColor={wallet.color}
       >
-        {isLoading ? (
-          <div className="flex justify-center py-10 text-app-muted">
-            <FontAwesomeIcon icon={faSpinner} spin className="text-2xl" />
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <MemberCategory
-              title="Owner"
-              members={owners}
-              icon={faCrown}
-              iconColor="#ffd700"
-              canManage={isOwner}
-              onRemove={requestRemove}
-              onChangeRole={handleChangeRole}
-            />
-            <MemberCategory
-              title="Editors"
-              members={editors}
-              icon={faPen}
-              iconColor={wallet.color}
-              canManage={isOwner}
-              onRemove={requestRemove}
-              onChangeRole={handleChangeRole}
-            />
-            <MemberCategory
-              title="Viewers"
-              members={viewers}
-              icon={faEye}
-              iconColor="#a0aec0"
-              canManage={isOwner}
-              onRemove={requestRemove}
-              onChangeRole={handleChangeRole}
-            />
+        <div className="flex flex-col gap-5">
+          {isOwner && (
+            <>
+              <InviteSection
+                walletColor={wallet.color}
+                onInvite={handleInvite}
+              />
+              <div className="border-t border-app-border" />
+            </>
+          )}
 
-            {/* Pending invites are shown only to the owner, so they can revoke them. */}
-            {isOwner && (
+          {isLoading ? (
+            <div className="flex justify-center py-10 text-app-muted">
+              <FontAwesomeIcon icon={faSpinner} spin className="text-2xl" />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
               <MemberCategory
-                title="Pending Invites"
-                titleColor="text-app-yellow"
-                members={pending}
-                icon={faClock}
-                iconColor="#f59e0b"
+                title="Owner"
+                members={owners}
+                icon={faCrown}
+                iconColor="#ffd700"
                 canManage={isOwner}
                 onRemove={requestRemove}
                 onChangeRole={handleChangeRole}
               />
-            )}
-          </div>
-        )}
+              <MemberCategory
+                title="Editors"
+                members={editors}
+                icon={faPen}
+                iconColor={wallet.color}
+                canManage={isOwner}
+                onRemove={requestRemove}
+                onChangeRole={handleChangeRole}
+              />
+              <MemberCategory
+                title="Viewers"
+                members={viewers}
+                icon={faEye}
+                iconColor="#a0aec0"
+                canManage={isOwner}
+                onRemove={requestRemove}
+                onChangeRole={handleChangeRole}
+              />
+
+              {/* Pending invites are shown only to the owner, so they can revoke them. */}
+              {isOwner && (
+                <MemberCategory
+                  title="Pending Invites"
+                  titleColor="text-app-yellow"
+                  members={pending}
+                  icon={faClock}
+                  iconColor="#f59e0b"
+                  canManage={isOwner}
+                  onRemove={requestRemove}
+                  onChangeRole={handleChangeRole}
+                />
+              )}
+            </div>
+          )}
+        </div>
       </Card>
 
       <ConfirmModal

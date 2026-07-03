@@ -1,0 +1,195 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { faTag } from "@fortawesome/free-solid-svg-icons";
+
+vi.mock("../wallet/WalletContext.tsx", () => ({ useWalletContext: vi.fn() }));
+
+import { WidgetGrid } from "./WidgetGrid";
+import { useTabLayout } from "./useTabLayout";
+import { useWalletContext } from "../wallet/WalletContext.tsx";
+import type { WidgetDef } from "./widgetTypes";
+import type { TabLayout } from "../../utils/tabLayout";
+
+const mockedCtx = useWalletContext as unknown as ReturnType<typeof vi.fn>;
+
+type Ctx = Record<string, never>;
+
+const def = (
+  id: string,
+  span: "half" | "full",
+  hiddenByDefault = false,
+): WidgetDef<Ctx> => ({
+  id,
+  span,
+  hiddenByDefault,
+  title: `Title ${id.toUpperCase()}`,
+  subtitle: `Subtitle ${id}`,
+  label: id.toUpperCase(),
+  icon: faTag,
+  render: (_ctx, bare) => (
+    <div data-testid={`widget-${id}`} data-bare={String(bare)} />
+  ),
+});
+
+const DEFS: WidgetDef<Ctx>[] = [
+  def("a", "half"),
+  def("b", "half"),
+  def("c", "full"),
+  def("h", "full", true),
+];
+
+const KEY = "tab_layout_testtab_w1";
+
+function Harness({ editing }: { editing: boolean }) {
+  const api = useTabLayout("testtab", "w1", DEFS);
+  return (
+    <div>
+      <button type="button" onClick={api.reset}>
+        harness-reset
+      </button>
+      <WidgetGrid
+        defs={DEFS}
+        ctx={{}}
+        editing={editing}
+        api={api}
+        accentColor="#8b5cf6"
+      />
+    </div>
+  );
+}
+
+const storedLayout = (layout: TabLayout) =>
+  localStorage.setItem(KEY, JSON.stringify(layout));
+
+describe("WidgetGrid", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    mockedCtx.mockReturnValue({
+      wallet: { id: "w1", color: "#8b5cf6" },
+    });
+  });
+
+  it("renders visible widgets standalone (not bare); hidden ones stay out; no tray outside edit mode", () => {
+    render(<Harness editing={false} />);
+    expect(screen.getByTestId("widget-a")).toHaveAttribute(
+      "data-bare",
+      "false",
+    );
+    expect(screen.getByTestId("widget-b")).toBeInTheDocument();
+    expect(screen.getByTestId("widget-c")).toBeInTheDocument();
+    expect(screen.queryByTestId("widget-h")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hidden widgets")).not.toBeInTheDocument();
+  });
+
+  it("edit mode shows the tray; a chip restores the widget and persists it", () => {
+    render(<Harness editing />);
+    expect(screen.getByText("Hidden widgets")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Show H" }));
+    expect(screen.getByTestId("widget-h")).toBeInTheDocument();
+
+    const stored = JSON.parse(localStorage.getItem(KEY)!) as TabLayout;
+    expect(stored.slots.map((s) => s.id)).toEqual(["a", "b", "c", "h"]);
+    expect(stored.hiddenSlots).toEqual([]);
+  });
+
+  it("the eye button hides a widget into the tray and persists", () => {
+    render(<Harness editing />);
+    fireEvent.click(screen.getByRole("button", { name: "Hide Title A" }));
+
+    expect(screen.queryByTestId("widget-a")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Show A" })).toBeInTheDocument();
+
+    const stored = JSON.parse(localStorage.getItem(KEY)!) as TabLayout;
+    expect(stored.slots.map((s) => s.id)).toEqual(["b", "c"]);
+    expect(stored.hiddenSlots.map((s) => s.id)).toEqual(["h", "a"]);
+  });
+
+  it("renders a stored group as a SwitchableCard and switches tabs (bare members)", () => {
+    storedLayout({
+      slots: [
+        { id: "group-1", widgets: ["a", "b"], activeWidget: "a" },
+        { id: "c", widgets: ["c"] },
+      ],
+      hiddenSlots: [{ id: "h", widgets: ["h"] }],
+    });
+    render(<Harness editing={false} />);
+
+    // Group header shows the active member's title; member renders bare.
+    expect(screen.getByText("Title A")).toBeInTheDocument();
+    expect(screen.getByTestId("widget-a")).toHaveAttribute("data-bare", "true");
+    expect(screen.queryByTestId("widget-b")).not.toBeInTheDocument();
+
+    // Switch to the B tab (desktop Selector renders one button per tab).
+    fireEvent.click(screen.getByRole("button", { name: "B" }));
+    expect(screen.getByTestId("widget-b")).toHaveAttribute("data-bare", "true");
+    expect(screen.queryByTestId("widget-a")).not.toBeInTheDocument();
+
+    const stored = JSON.parse(localStorage.getItem(KEY)!) as TabLayout;
+    expect(stored.slots[0].activeWidget).toBe("b");
+  });
+
+  it("edit mode: popping a member out dissolves a 2-widget group", () => {
+    storedLayout({
+      slots: [
+        { id: "group-1", widgets: ["a", "b"], activeWidget: "a" },
+        { id: "c", widgets: ["c"] },
+      ],
+      hiddenSlots: [{ id: "h", widgets: ["h"] }],
+    });
+    render(<Harness editing />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove B from group" }),
+    );
+
+    // Both widgets are standalone (not bare) now.
+    expect(screen.getByTestId("widget-a")).toHaveAttribute(
+      "data-bare",
+      "false",
+    );
+    expect(screen.getByTestId("widget-b")).toHaveAttribute(
+      "data-bare",
+      "false",
+    );
+    const stored = JSON.parse(localStorage.getItem(KEY)!) as TabLayout;
+    expect(stored.slots.map((s) => s.id)).toEqual(["a", "b", "c"]);
+  });
+
+  it("hiding a group stores it as one unit and its chip restores it intact", () => {
+    storedLayout({
+      slots: [
+        { id: "group-1", widgets: ["a", "b"] },
+        { id: "c", widgets: ["c"] },
+      ],
+      hiddenSlots: [{ id: "h", widgets: ["h"] }],
+    });
+    render(<Harness editing />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide A + B" }));
+    expect(screen.queryByTestId("widget-a")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Show A + B" }));
+    expect(screen.getByTestId("widget-a")).toHaveAttribute("data-bare", "true");
+
+    const stored = JSON.parse(localStorage.getItem(KEY)!) as TabLayout;
+    expect(stored.slots.map((s) => s.id)).toEqual(["c", "group-1"]);
+  });
+
+  it("reset restores the default layout and clears storage", () => {
+    storedLayout({
+      slots: [{ id: "c", widgets: ["c"] }],
+      hiddenSlots: [
+        { id: "h", widgets: ["h"] },
+        { id: "a", widgets: ["a"] },
+        { id: "b", widgets: ["b"] },
+      ],
+    });
+    render(<Harness editing />);
+    expect(screen.queryByTestId("widget-a")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "harness-reset" }));
+    expect(screen.getByTestId("widget-a")).toBeInTheDocument();
+    expect(localStorage.getItem(KEY)).toBeNull();
+  });
+});

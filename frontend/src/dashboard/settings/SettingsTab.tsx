@@ -42,7 +42,7 @@ export const SettingsTab: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 pb-6 animate-[fadeIn_0.3s_ease-out]">
+    <div className="mx-auto flex w-full max-w-9xl flex-col gap-6 pb-6 animate-[fadeIn_0.3s_ease-out]">
       {/* GENERAL SETTINGS — identity (name / icon / colour); hidden for VIEWER */}
       {wallet.userRole !== "VIEWER" && (
         <Card
@@ -50,10 +50,12 @@ export const SettingsTab: React.FC = () => {
           subtitle="Change your wallet's name, icon and colour"
           icon={faGear}
           iconColor={wallet.color}
+          footerAlign="center"
           footer={
             <Button
               accentColor="var(--color-app-green)"
               ripple
+              className="w-full sm:w-48"
               onClick={handleSave}
               disabled={!hasChanges || isSaving || !editedWallet.name?.trim()}
             >
@@ -65,11 +67,11 @@ export const SettingsTab: React.FC = () => {
             </Button>
           }
         >
-          <div className="flex flex-row items-end gap-4 sm:gap-6">
+          <div className="flex flex-row items-end gap-3 sm:gap-4">
             {/* Icon & colour picker (behaviour preserved) */}
             <div className="flex shrink-0 flex-col gap-2">
               <label className="ml-1 text-xs font-bold uppercase tracking-wider text-app-muted">
-                Icon & Colour
+                Icon
               </label>
               <div className="self-start rounded-[var(--r-input)] border border-app-border bg-app-surface p-1">
                 <IconPickerButton
@@ -116,21 +118,14 @@ export const SettingsTab: React.FC = () => {
         <Card
           tone="danger"
           title="Danger Zone"
+          subtitle="Permanently delete this wallet and all its transactions, tags, and history. This cannot be undone."
           icon={faExclamationTriangle}
-          headerCentered
-          description={
-            <p className="mx-auto max-w-lg text-center">
-              Permanently delete this wallet. This action will destroy all
-              associated transactions, tags, and history.{" "}
-              <strong>This cannot be undone.</strong>
-            </p>
-          }
           footerAlign="center"
           footer={
             <Button
               variant="danger"
               ripple
-              className="w-full sm:w-60"
+              className="w-full sm:w-48"
               onClick={onWalletDelete}
             >
               <FontAwesomeIcon icon={faTrash} />
@@ -142,21 +137,13 @@ export const SettingsTab: React.FC = () => {
         <Card
           tone="danger"
           title="Danger Zone"
+          subtitle="Remove your access to this wallet. You'll need the owner to invite you again to return."
           icon={faSignOutAlt}
-          headerCentered
-          description={
-            <p className="mx-auto max-w-lg text-center">
-              Remove your access to this wallet. You will no longer be able to
-              view or edit anything. You will need to ask the owner to invite
-              you again to regain access.
-            </p>
-          }
-          footerAlign="center"
           footer={
             <Button
               variant="danger"
               ripple
-              className="w-full sm:w-60"
+              className="w-full sm:w-48"
               onClick={onWalletDelete}
             >
               <FontAwesomeIcon icon={faSignOutAlt} />

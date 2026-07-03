@@ -12,6 +12,8 @@ interface CashFlowSankeyProps {
   transactions: Transaction[];
   /** Currency code for formatting (defaults to EUR for the landing/demo usage). */
   currency?: string;
+  /** Render without the card shell + title (the parent group card provides them). */
+  bare?: boolean;
 }
 
 const SAVINGS_COLOR = "url(#savingsPattern)";
@@ -29,6 +31,7 @@ type LinkDef = {
 export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
   transactions,
   currency = "EUR",
+  bare = false,
 }) => {
   const { resolvedTheme } = useTheme();
   const muiTheme = useMuiTheme();
@@ -209,13 +212,23 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
     resolvedTheme === "dark" ? "#ffffff" : "var(--color-app-card)";
 
   return (
-    <div className="w-full p-1 sm:p-3 md:p-4 bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border">
-      <h2 className="text-center font-bold text-app-text text-lg md:text-2xl mb-1">
-        Cash Flow Overview
-      </h2>
-      <p className="text-center text-app-muted text-sm md:text-base mb-2 md:mb-4">
-        Flow from Income to Expenses
-      </p>
+    <div
+      className={
+        bare
+          ? "w-full"
+          : "w-full p-1 sm:p-3 md:p-4 bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border"
+      }
+    >
+      {!bare && (
+        <>
+          <h2 className="text-center font-bold text-app-text text-lg md:text-2xl mb-1">
+            Cash Flow Overview
+          </h2>
+          <p className="text-center text-app-muted text-sm md:text-base mb-2 md:mb-4">
+            Flow from Income to Expenses
+          </p>
+        </>
+      )}
 
       <div className="w-full flex justify-center">
         <div className="w-full" style={{ height: CHART_HEIGHT }}>

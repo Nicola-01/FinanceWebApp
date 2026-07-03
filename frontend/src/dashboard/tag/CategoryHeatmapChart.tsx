@@ -106,6 +106,8 @@ interface CategoryHeatmapChartProps {
   transactions: Transaction[];
   /** Currency symbol shown in the tooltip (e.g. "€"). */
   currency: string;
+  /** Render without the card shell + title (the parent group card provides them). */
+  bare?: boolean;
 }
 
 /**
@@ -115,6 +117,7 @@ interface CategoryHeatmapChartProps {
 export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
   transactions,
   currency,
+  bare = false,
 }) => {
   const [type, setType] = useState<FlowType>("EXPENSE");
 
@@ -127,16 +130,26 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
   const minWidth = Math.max(320, xLabels.length * 64 + 120);
 
   return (
-    <div className="flex flex-col w-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border p-4 md:p-6 text-app-text">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h3 className="text-xl font-bold text-app-text uppercase tracking-wider">
-            Category Heatmap
-          </h3>
-          <p className="text-sm text-app-muted">
-            Where the money concentrates, by category and month.
-          </p>
-        </div>
+    <div
+      className={
+        bare
+          ? "flex flex-col w-full text-app-text"
+          : "flex flex-col w-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border p-4 md:p-6 text-app-text"
+      }
+    >
+      <div
+        className={`mb-4 flex flex-wrap items-center gap-3 ${bare ? "justify-end" : "justify-between"}`}
+      >
+        {!bare && (
+          <div>
+            <h3 className="text-xl font-bold text-app-text uppercase tracking-wider">
+              Category Heatmap
+            </h3>
+            <p className="text-sm text-app-muted">
+              Where the money concentrates, by category and month.
+            </p>
+          </div>
+        )}
         <Selector
           value={type}
           onChange={setType}

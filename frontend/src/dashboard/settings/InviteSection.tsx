@@ -3,14 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEye,
   faPen,
-  faUserPlus,
   faPaperPlane,
   faUser,
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
-import { Card } from "../../components/ui/Card.tsx";
-import Button from "../../components/ui/Button.tsx";
-import { Input } from "../../components/ui/Input.tsx";
 import { Selector } from "../../components/ui/Selector.tsx";
 
 interface InviteSectionProps {
@@ -18,6 +14,11 @@ interface InviteSectionProps {
   onInvite: (identifier: string, role: "EDITOR" | "VIEWER") => Promise<boolean>;
 }
 
+/**
+ * Compact invite row shaped like a MemberRow: one `bg-app-surface` shell with a
+ * borderless username/email field on the left and the role selector + an
+ * icon-only send button (same height as the selector) grouped on the right.
+ */
 export const InviteSection: React.FC<InviteSectionProps> = ({
   walletColor,
   onInvite,
@@ -33,75 +34,70 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
     setIsInviting(false);
   };
 
+  const disabled = isInviting || identifier.trim().length < 3;
+
   return (
-    <Card
-      title="Invite People"
-      subtitle="Add people to collaborate on this wallet."
-      icon={faUserPlus}
-      iconColor={walletColor}
-      footer={
-        <Button
-          accentColor={walletColor}
-          ripple
+    <div className="flex flex-col gap-2 rounded-[var(--r-input)] border border-app-border bg-app-surface p-2 sm:flex-row sm:items-center">
+      {/* Username / email — borderless, sits on the row surface */}
+      <label className="flex min-w-0 flex-1 cursor-text items-center gap-2 px-2">
+        <FontAwesomeIcon icon={faUser} className="shrink-0 text-app-muted" />
+        <input
+          type="text"
+          aria-label="Username or email"
+          placeholder="Invite by username or email"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          // Not a credential field — keep password managers from autofilling it.
+          autoComplete="off"
+          data-bwignore="true"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-form-type="other"
+          className="min-w-0 flex-1 bg-transparent py-1 text-sm text-app-text outline-none placeholder:text-app-muted"
+        />
+      </label>
+
+      {/* Right controls — grouped, all at the selector's height */}
+      <div className="flex shrink-0 items-center gap-2">
+        <Selector
+          value={role}
+          onChange={setRole}
+          size="sm"
+          fullWidth={false}
+          className="flex-1 sm:w-36 sm:flex-none"
+          options={[
+            {
+              value: "VIEWER",
+              label: "Viewer",
+              icon: <FontAwesomeIcon icon={faEye} />,
+              activeBgClass: "bg-app-surface",
+              activeColorClass: "text-app-text",
+            },
+            {
+              value: "EDITOR",
+              label: "Editor",
+              icon: <FontAwesomeIcon icon={faPen} />,
+              activeBgClass: "bg-app-surface",
+              activeColorClass: "text-app-text",
+            },
+          ]}
+        />
+        <button
+          type="button"
           onClick={handleSubmit}
-          disabled={isInviting || identifier.trim().length < 3}
+          disabled={disabled}
+          aria-label="Send invite"
+          title="Send invite"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white transition-all hover:brightness-110 disabled:opacity-50"
+          style={{ backgroundColor: walletColor }}
         >
           <FontAwesomeIcon
             icon={isInviting ? faSpinner : faPaperPlane}
             spin={isInviting}
+            className="text-sm"
           />
-          {isInviting ? "Sending…" : "Send Invite"}
-        </Button>
-      }
-    >
-      <div className="flex flex-col gap-5">
-        {/* Username or email */}
-        <div className="flex flex-col gap-2">
-          <label className="ml-1 text-xs font-bold uppercase tracking-wider text-app-muted">
-            Username or Email
-          </label>
-          <Input
-            aria-label="Username or email"
-            leadingIcon={<FontAwesomeIcon icon={faUser} />}
-            placeholder="Username or email"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-          />
-        </div>
-
-        {/* Permission role */}
-        <div className="flex flex-col gap-2">
-          <label className="ml-1 text-xs font-bold uppercase tracking-wider text-app-muted">
-            Permission Role
-          </label>
-          <Selector
-            value={role}
-            onChange={setRole}
-            size="lg"
-            options={[
-              {
-                value: "VIEWER",
-                label: "Viewer",
-                icon: <FontAwesomeIcon icon={faEye} />,
-                activeBgClass: "bg-app-surface",
-                activeColorClass: "text-app-text",
-              },
-              {
-                value: "EDITOR",
-                label: "Editor",
-                icon: <FontAwesomeIcon icon={faPen} />,
-                activeBgClass: "bg-app-surface",
-                activeColorClass: "text-app-text",
-              },
-            ]}
-          />
-          <p className="text-center text-xs text-app-muted">
-            {role === "VIEWER"
-              ? "Viewers can only read transactions and statistics."
-              : "Editors can add, edit, and delete transactions."}
-          </p>
-        </div>
+        </button>
       </div>
-    </Card>
+    </div>
   );
 };

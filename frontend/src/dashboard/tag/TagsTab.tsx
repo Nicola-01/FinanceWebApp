@@ -1,18 +1,25 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLayerGroup } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheck,
+  faLayerGroup,
+  faRotateLeft,
+  faUpDownLeftRight,
+} from "@fortawesome/free-solid-svg-icons";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
-import { TransactionPieChart } from "./CategoryCharts.tsx";
-import { CategoryRanking } from "./CategoryRanking.tsx";
-import { CategoryTrendChart } from "./CategoryTrendChart.tsx";
-// import { CategoryHeatmapChart } from "./CategoryHeatmapChart.tsx";
-import { CashFlowSankey } from "../statistics/CashFlowSankey.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
 import { DateRangeBanner } from "../statistics/DateRangeBanner.tsx";
 import { useTheme } from "../../utils/ThemeContext.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { CategoryManagerDrawer } from "./CategoryManagerDrawer.tsx";
+import { useTabLayout } from "../layout/useTabLayout.ts";
+import { WidgetGrid } from "../layout/WidgetGrid.tsx";
+import {
+  CATEGORIES_TAB_ID,
+  CATEGORIES_WIDGETS,
+  type CategoriesWidgetCtx,
+} from "./categoriesWidgets.tsx";
 
 const lightTheme = createTheme({
   palette: { mode: "light", background: { paper: "#ffffff" } },
@@ -26,9 +33,22 @@ export const TagsTab: React.FC = () => {
   const { filteredTransactions, wallet } = useWalletContext();
   const { resolvedTheme } = useTheme();
   const [managerOpen, setManagerOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const currencySymbol =
     CURRENCY_META[wallet.currency as CurrencyCode]?.symbol ?? wallet.currency;
+
+  const layoutApi = useTabLayout(
+    CATEGORIES_TAB_ID,
+    wallet.id,
+    CATEGORIES_WIDGETS,
+  );
+
+  const ctx: CategoriesWidgetCtx = {
+    transactions: filteredTransactions,
+    currencyCode: wallet.currency,
+    currencySymbol,
+  };
 
   return (
     <ThemeProvider theme={resolvedTheme === "dark" ? darkTheme : lightTheme}>
@@ -45,66 +65,43 @@ export const TagsTab: React.FC = () => {
             </p>
           </div>
 
-          <Button variant="secondary" onClick={() => setManagerOpen(true)}>
-            <FontAwesomeIcon icon={faLayerGroup} />
-            Manage Categories
-          </Button>
+          <div className="flex items-center gap-2">
+            {editing ? (
+              <>
+                <Button variant="ghost" onClick={layoutApi.reset}>
+                  <FontAwesomeIcon icon={faRotateLeft} />
+                  Reset
+                </Button>
+                <Button variant="primary" onClick={() => setEditing(false)}>
+                  <FontAwesomeIcon icon={faCheck} />
+                  Done
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="secondary" onClick={() => setEditing(true)}>
+                  <FontAwesomeIcon icon={faUpDownLeftRight} />
+                  Edit Layout
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => setManagerOpen(true)}
+                >
+                  <FontAwesomeIcon icon={faLayerGroup} />
+                  Manage Categories
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
-        {/* Pie Charts */}
-        <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-          <TransactionPieChart
-            transactions={filteredTransactions}
-            type="INCOME"
-            title="Income Distribution"
-            currency={wallet.currency}
-          />
-          <TransactionPieChart
-            transactions={filteredTransactions}
-            type="EXPENSE"
-            title="Expense Distribution"
-            currency={wallet.currency}
-          />
-        </div>
-
-        {/* Top Categories ranking (bar-list), mirrors the two-donut layout */}
-        <div className="mt-8 grid grid-cols-1 gap-8 xl:grid-cols-2">
-          <CategoryRanking
-            transactions={filteredTransactions}
-            type="INCOME"
-            title="Top Income Categories"
-            currency={currencySymbol}
-          />
-          <CategoryRanking
-            transactions={filteredTransactions}
-            type="EXPENSE"
-            title="Top Expense Categories"
-            currency={currencySymbol}
-          />
-        </div>
-
-        {/* Category trend over time (stacked by month, income/expense toggle) */}
-        <div className="mt-8">
-          <CategoryTrendChart
-            transactions={filteredTransactions}
-            currency={currencySymbol}
-          />
-        </div>
-
-        {/* Category × month heatmap (intensity = amount, income/expense toggle) */}
-        {/* <div className="mt-8">
-          <CategoryHeatmapChart
-            transactions={filteredTransactions}
-            currency={currencySymbol}
-          />
-        </div> */}
-
-        <div className="mt-8">
-          <CashFlowSankey
-            transactions={filteredTransactions}
-            currency={wallet.currency}
-          />
-        </div>
+        <WidgetGrid
+          defs={CATEGORIES_WIDGETS}
+          ctx={ctx}
+          editing={editing}
+          api={layoutApi}
+          accentColor={wallet.color}
+        />
 
         <CategoryManagerDrawer
           open={managerOpen}

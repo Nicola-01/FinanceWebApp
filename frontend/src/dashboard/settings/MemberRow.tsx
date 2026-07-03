@@ -45,7 +45,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   const hasRoleChanged = selectedRole !== member.role;
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-3 transition-colors hover:bg-app-hover">
+    <div className="group flex items-center justify-between gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-3 transition-colors hover:bg-app-hover">
       <div className="flex min-w-0 items-center gap-3">
         <div
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-card text-lg shadow-sm"
@@ -118,7 +118,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
 
             <button
               onClick={() => onRemove(member.userId, member.username)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-red/10 hover:text-app-red"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-app-muted opacity-40 transition-all hover:bg-app-red/10 hover:text-app-red group-hover:opacity-100"
               title={
                 member.status === "PENDING" ? "Cancel invite" : "Remove user"
               }
