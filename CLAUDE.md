@@ -86,6 +86,16 @@ entities/DTOs.
 
 ## Frontend architecture
 
+- **UI style guide — read before building or restyling ANY frontend UI:**
+  [`frontend/style.md`](frontend/style.md). Defines the design tokens (`theme-tokens.css`:
+  brand gradient, radius scale, self-hosted fonts), and **mandates reusing the shared
+  primitives in `src/components/ui/` (`Button`, `Input`, `CustomSelect`, …) instead of
+  hand-rolling `<button>`/`<input>`.** Also codifies the per-wallet colour accent
+  (`wallet.color`) vs global brand gradient, the "de-vibecode" do/don't (gradient CTAs +
+  saturated palette OK; **no colored glow/halos, no animated wordmark**; sober squared radii),
+  and the always-dark auth screens (`dark` class on the root container). Prefer the
+  theme-aware `app-*` colour tokens; avoid the legacy `theme-*`/`--color-*` set (no `.dark`
+  override → light-mode white-on-white).
 - **State:** React Context, not Redux. `dashboard/wallet/WalletContext.tsx` is the hub
   (wallet, transactions, subscriptions, tags, filters); plus `ThemeContext`, `PWAContext`.
 - **API client:** `src/api/axiosConfig.ts`, baseURL = `VITE_API_URL + "/api"`. Request
@@ -108,6 +118,8 @@ every tool forwards the bearer token to the backend, which enforces per-wallet p
 
 ## Conventions & gotchas
 
+- **Language — English only:** all user-facing UI copy **and** all code comments are written
+  in **English** (the app ships in English). Don't introduce Italian strings/comments in code.
 - **Backend test discipline (enforced by hooks):** whenever you change anything under
   `backend/`, you must **(1)** re-run the suite (`./gradlew test`), **(2)** add or update
   tests covering the change, and **(3)** re-run until green. A `PostToolUse` hook
