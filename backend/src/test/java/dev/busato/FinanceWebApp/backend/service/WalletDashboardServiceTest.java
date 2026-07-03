@@ -2,7 +2,9 @@ package dev.busato.FinanceWebApp.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 @ExtendWith(MockitoExtension.class)
 class WalletDashboardServiceTest {
@@ -56,5 +59,20 @@ class WalletDashboardServiceTest {
     verify(transactionService).getTransactionsByWalletID(walletId, userId);
     verify(subscriptionService).getSubscriptionsByWalletID(walletId, userId);
     verify(tagService).getTags(walletId, userId);
+  }
+
+  @Test
+  void getDashboard_propagatesAccessDenied_andSkipsRemainingDelegates() {
+    UUID walletId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+
+    when(walletService.getWallet(userId, walletId))
+        .thenThrow(new AccessDeniedException("no read access"));
+
+    assertThrows(
+        AccessDeniedException.class, () -> walletDashboardService.getDashboard(walletId, userId));
+
+    // Short-circuit: once the first guarded delegate denies, we never touch the rest.
+    verifyNoInteractions(transactionService, subscriptionService, tagService);
   }
 }
