@@ -32,7 +32,7 @@ export const WalletTabs: React.FC = () => {
   };
 
   return (
-    <div className="flex shrink-0 w-full items-center gap-2 border-b border-app-border mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] sticky top-0 z-90 bg-app-bg/90 backdrop-blur-md px-4 lg:px-8 pt-4 pb-0">
+    <div className="flex shrink-0 w-full items-center gap-2 border-b border-app-border mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] sticky top-0 z-90 bg-app-bg/0 backdrop-blur-xl px-4 lg:px-8 pt-4 pb-0">
       {tabs.map((tab) => (
         <button
           key={tab.id}
@@ -53,7 +53,6 @@ export const WalletTabs: React.FC = () => {
               className="absolute -bottom-px left-0 w-full h-0.5 transition-all duration-300"
               style={{
                 backgroundColor: walletColor,
-                boxShadow: `0 0 10px ${walletColor}`,
               }}
             />
           )}

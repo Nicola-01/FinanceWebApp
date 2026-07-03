@@ -148,7 +148,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
               className={`flex flex-col p-1 sm:p-2 rounded-lg sm:rounded-xl border cursor-pointer transition-all min-w-0 overflow-hidden ${
                 isCurrentMonth
                   ? "bg-app-input/50 border-app-border hover:bg-app-input/80 hover:border-app-border"
-                  : "theme-bg-transparent theme-border-transparent opacity-40"
+                  : "bg-app-transparent border-transparent opacity-40"
               }`}
               style={isToday ? { boxShadow: `0 0 0 1px ${wallet.color}` } : {}}
             >

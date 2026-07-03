@@ -44,22 +44,43 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [selectedTags, setSelectedTags] = useState<string[] | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [dateRange, setDateRange] = useState<DateRangeValue>({
     start: null,
     end: null,
   });
   const [datePreset, setDatePreset] = useState<PresetType>("month");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  // The input stays bound to `searchQuery` (instant); filtering is driven by a
+  // debounced copy so typing stays smooth on large transaction lists.
+  const [debouncedQuery, setDebouncedQuery] = useState<string>("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery), 200);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get("tab") as TabType;
+  const activeTab: TabType = VALID_TABS.includes(urlTab)
+    ? urlTab
+    : "transactions";
 
   const filteredTransactions = useMemo(() => {
     const currentActiveTags = selectedTags ?? tags.map((t) => t.name);
-
-    const query = searchQuery.trim().toLowerCase();
+    // The text search only applies on the Transactions tab. Elsewhere (e.g.
+    // Categories) the query is preserved but NOT applied — the charts show all
+    // transactions — and it re-applies when the user returns to Transactions.
+    const q =
+      activeTab === "transactions" ? debouncedQuery.trim().toLowerCase() : "";
 
     return transactions.filter((tx) => {
       if (!currentActiveTags.includes(tx.tag.name)) return false;
 
-      if (query && !tx.name.toLowerCase().includes(query)) return false;
+      // Free-text search over the transaction name, its tag and notes.
+      if (q) {
+        const haystack =
+          `${tx.name ?? ""} ${tx.tag?.name ?? ""} ${tx.notes ?? ""}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
 
       const txDate = new Date(tx.transactionDate);
 
@@ -76,13 +97,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
       }
       return true;
     });
-  }, [transactions, tags, selectedTags, searchQuery, dateRange]);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const urlTab = searchParams.get("tab") as TabType;
-  const activeTab: TabType = VALID_TABS.includes(urlTab)
-    ? urlTab
-    : "transactions";
+  }, [transactions, tags, selectedTags, dateRange, debouncedQuery, activeTab]);
 
   useEffect(() => {
     if (!urlTab || !VALID_TABS.includes(urlTab)) {

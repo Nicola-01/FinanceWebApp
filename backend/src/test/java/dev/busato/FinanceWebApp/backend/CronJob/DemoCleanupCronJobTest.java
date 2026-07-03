@@ -1,6 +1,8 @@
 package dev.busato.FinanceWebApp.backend.CronJob;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class DemoCleanupCronJobTest {
@@ -42,44 +45,56 @@ class DemoCleanupCronJobTest {
   }
 
   @Test
-  void cleanupDemoUsers_NoDemoUsers_DoesNothing() {
+  void run_NoDemoUsers_DoesNothingAndReportsIt() {
     when(userRepository.findAllByDemoTrue()).thenReturn(Collections.emptyList());
 
-    demoCleanupCronJob.cleanupDemoUsers();
+    String message = demoCleanupCronJob.run();
 
+    assertEquals("No demo users to delete", message);
     verify(userRepository, never()).delete(any());
     verify(walletRepository, never()).deleteAllById(any());
   }
 
   @Test
-  void cleanupDemoUsers_DeletesUsersAndOwnedWallets() {
+  void run_DeletesUsersAndOwnedWallets() {
     when(userRepository.findAllByDemoTrue()).thenReturn(List.of(demoUser));
 
     WalletAccess access = new WalletAccess();
     access.setRole(WalletAccess.WalletRole.OWNER);
     access.setWallet(demoWallet);
-
     when(walletAccessRepository.findAllByUserId(demoUser.getId())).thenReturn(List.of(access));
 
-    assertDoesNotThrow(() -> demoCleanupCronJob.cleanupDemoUsers());
+    String message = demoCleanupCronJob.run();
 
+    assertEquals("Deleted 1 demo user(s)", message);
     verify(userRepository, times(1)).delete(demoUser);
     verify(walletRepository, times(1)).deleteAllById(List.of(demoWallet.getId()));
   }
 
   @Test
-  void cleanupDemoUsers_DoesNotDeleteWalletsWhereUserIsNotOwner() {
+  void run_DoesNotDeleteWalletsWhereUserIsNotOwner() {
     when(userRepository.findAllByDemoTrue()).thenReturn(List.of(demoUser));
 
     WalletAccess access = new WalletAccess();
     access.setRole(WalletAccess.WalletRole.VIEWER); // Not OWNER
     access.setWallet(demoWallet);
-
     when(walletAccessRepository.findAllByUserId(demoUser.getId())).thenReturn(List.of(access));
 
-    demoCleanupCronJob.cleanupDemoUsers();
+    demoCleanupCronJob.run();
 
     verify(userRepository, times(1)).delete(demoUser);
     verify(walletRepository, times(1)).deleteAllById(Collections.emptyList());
+  }
+
+  @Test
+  void available_ReflectsDemoEnabledFlag() {
+    ReflectionTestUtils.setField(demoCleanupCronJob, "demoEnabled", false);
+    assertFalse(demoCleanupCronJob.available());
+
+    ReflectionTestUtils.setField(demoCleanupCronJob, "demoEnabled", true);
+    assertTrue(demoCleanupCronJob.available());
+
+    assertEquals("demo-cleanup", demoCleanupCronJob.key());
+    assertEquals("Demo Cleanup", demoCleanupCronJob.displayName());
   }
 }

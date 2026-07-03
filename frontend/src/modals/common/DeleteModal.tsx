@@ -11,6 +11,7 @@ import type {
   User,
   Wallet,
   Subscription,
+  Tag,
 } from "../../utils/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
@@ -18,7 +19,7 @@ import { ModalDialog } from "./ModalDialog";
 
 export interface DeleteModalHandle {
   deleteObject: (
-    object: User | Wallet | Transaction | Subscription,
+    object: User | Wallet | Transaction | Subscription | Tag,
     typeName: string,
     handleConfirmClick: () => void | Promise<void>,
     requireTyping?: boolean,
@@ -33,7 +34,7 @@ export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
 
   // Stati interni del modale
   const [objToDelete, setObjToDelete] = useState<
-    User | Wallet | Transaction | Subscription | null
+    User | Wallet | Transaction | Subscription | Tag | null
   >(null);
   const [onConfirmCb, setOnConfirmCb] = useState<
     (() => void | Promise<void>) | null

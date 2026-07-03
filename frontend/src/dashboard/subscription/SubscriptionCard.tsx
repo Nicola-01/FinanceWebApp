@@ -50,8 +50,8 @@ const getDaysLeftColor = (days: number, isIncome: boolean) => {
   if (days < 0) return "text-app-muted opacity-60";
 
   if (!isIncome) {
-    if (days >= 4) return "theme-text-warning";
-    if (days >= 2) return "theme-text-warning";
+    if (days >= 4) return "text-app-yellow";
+    if (days >= 2) return "text-app-yellow";
     return "text-app-red";
   } else {
     if (days >= 4) return "text-app-green/40";
@@ -116,23 +116,23 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   );
   const daysLeft = getDaysLeft(date);
 
-  let cardBorder = "border theme-border-transparent hover:border-app-border";
+  let cardBorder = "border border-transparent hover:border-app-border";
   let statusBadge = null;
   let cardMargin = "";
 
   if (subscription.status === "PAUSED") {
-    cardBorder = "border theme-border-warning";
+    cardBorder = "border border-app-yellow/40";
     cardMargin = "";
     statusBadge = (
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-0.5 rounded-b-lg theme-bg-warning-transparent theme-text-warning text-[10px] font-bold uppercase tracking-wider border-b border-x theme-border-warning backdrop-blur-sm">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-0.5 rounded-b-lg bg-app-yellow/15 text-app-yellow text-[10px] font-bold uppercase tracking-wider border-b border-x border-app-yellow/40 backdrop-blur-sm">
         Paused
       </div>
     );
   } else if (subscription.status === "COMPLETED") {
-    cardBorder = "border theme-border-success";
+    cardBorder = "border border-app-green/40";
     cardMargin = "";
     statusBadge = (
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-0.5 rounded-b-lg theme-bg-success-transparent theme-text-success text-[10px] font-bold uppercase tracking-wider border-b border-x theme-border-success backdrop-blur-sm">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-0.5 rounded-b-lg bg-app-green/15 text-app-green text-[10px] font-bold uppercase tracking-wider border-b border-x border-app-green/40 backdrop-blur-sm">
         Completed
       </div>
     );

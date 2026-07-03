@@ -81,7 +81,7 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
                   >
                     <div className="flex flex-col min-w-0">
                       {title && (
-                        <h3 className="text-xl font-bold text-app-text uppercase tracking-wider truncate group-hover:theme-text-default transition-colors">
+                        <h3 className="text-xl font-bold text-app-text uppercase tracking-wider truncate group-hover:text-app-text transition-colors">
                           {title}
                         </h3>
                       )}
@@ -89,7 +89,7 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
                     {tabs.length > 1 && (
                       <FontAwesomeIcon
                         icon={faChevronDown}
-                        className={`text-app-muted text-sm transition-transform duration-300 ${isMenuOpen ? "rotate-180 theme-text-default" : ""}`}
+                        className={`text-app-muted text-sm transition-transform duration-300 ${isMenuOpen ? "rotate-180 text-app-text" : ""}`}
                       />
                     )}
                   </button>
@@ -131,7 +131,7 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
                         className={`w-full text-left px-4 py-3 text-sm transition-all ${
                           activeTab === tab.key
                             ? "bg-app-hover font-bold"
-                            : "text-app-muted hover:theme-text-default hover:bg-app-input"
+                            : "text-app-muted hover:text-app-text hover:bg-app-input"
                         }`}
                         style={{
                           color: activeTab === tab.key ? walletColor : "",

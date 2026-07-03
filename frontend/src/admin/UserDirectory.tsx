@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faSearch,
   faSort,
   faSortDown,
   faSortUp,
 } from "@fortawesome/free-solid-svg-icons";
 import UserRow from "./UserRow";
+import SearchInput from "../components/ui/SearchInput";
 import type { User } from "../utils/types.ts";
 
 type SortConfig = {
@@ -73,35 +73,32 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
         ? faSortUp
         : faSortDown;
 
+  const headerCellClass =
+    "sticky top-0 z-10 cursor-pointer border-b border-app-border bg-app-card p-[18px] font-semibold text-app-muted transition-colors hover:text-app-text";
+
   return (
-    <div>
+    <div className="rounded-[var(--r-card)] border border-app-border bg-app-card/50 p-5 backdrop-blur-sm">
       {/* Header & Search Bar */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-[15px]">
-        <h4 className="m-0 flex items-center gap-2.5 text-[1.1rem] font-semibold text-app-green">
+        <h4 className="m-0 text-[1.05rem] font-semibold text-app-text">
           User Directory
         </h4>
-        <div className="relative w-full sm:w-[300px]">
-          <FontAwesomeIcon
-            icon={faSearch}
-            className="absolute left-3.5 top-1/2 -translate-y-1/2 text-app-muted"
-          />
-          <input
-            type="text"
-            placeholder="Search by name..."
-            className="w-full rounded-lg border border-app-border theme-bg-overlay p-[12px] pl-10 theme-text-default outline-none focus:theme-border-focus"
+        <div className="w-full sm:w-[300px]">
+          <SearchInput
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={setSearchTerm}
+            placeholder="Search by name..."
           />
         </div>
       </div>
 
       {/* Scrollable Table */}
-      <div className="max-h-[600px] overflow-y-auto rounded-xl border border-app-border">
+      <div className="max-h-[600px] overflow-y-auto rounded-[var(--r-input)] border border-app-border">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr>
               <th
-                className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-app-card hover:theme-text-default"
+                className={headerCellClass}
                 onClick={() => requestSort("name")}
               >
                 User{" "}
@@ -111,7 +108,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
                 />
               </th>
               <th
-                className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-app-card hover:theme-text-default"
+                className={headerCellClass}
                 onClick={() => requestSort("createdAt")}
               >
                 Joined{" "}
@@ -121,7 +118,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
                 />
               </th>
               <th
-                className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-app-card hover:theme-text-default"
+                className={headerCellClass}
                 onClick={() => requestSort("wallets")}
               >
                 Wallets{" "}
@@ -131,7 +128,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
                 />
               </th>
               <th
-                className="sticky top-0 z-10 cursor-pointer border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted transition-colors hover:bg-app-card hover:theme-text-default"
+                className={headerCellClass}
                 onClick={() => requestSort("transactions")}
               >
                 Transactions{" "}
@@ -140,7 +137,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
                   className="ml-1 opacity-70"
                 />
               </th>
-              <th className="sticky top-0 z-10 border-b border-app-border bg-[#151515] p-[18px] font-semibold text-app-muted">
+              <th className="sticky top-0 z-10 border-b border-app-border bg-app-card p-[18px] font-semibold text-app-muted">
                 Action
               </th>
             </tr>
@@ -152,7 +149,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="p-5 text-center text-[#666]">
+                <td colSpan={5} className="p-5 text-center text-app-muted">
                   No users found.
                 </td>
               </tr>

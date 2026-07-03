@@ -40,10 +40,16 @@ export const TransactionPieChart = ({
   transactions,
   type,
   title,
+  currency = "EUR",
+  bare = false,
 }: {
   transactions: Transaction[];
   type: "INCOME" | "EXPENSE";
   title: string;
+  /** Currency code for the centre total (defaults to EUR for the landing/demo usage). */
+  currency?: string;
+  /** Render without the card shell + title (the parent group card provides them). */
+  bare?: boolean;
 }) => {
   const { resolvedTheme } = useTheme();
   const muiTheme = useMuiTheme();
@@ -51,12 +57,18 @@ export const TransactionPieChart = ({
   const txs = transactions.filter((t) => t.type === type);
   const totalAmount = txs.reduce((acc, t) => acc + t.amount, 0);
 
+  const shellClass = bare
+    ? "flex flex-col items-center w-full h-full text-app-text"
+    : "flex flex-col items-center w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text";
+
   if (totalAmount === 0) {
     return (
-      <div className="flex flex-col items-center w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
-        <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider opacity-50">
-          {title}
-        </h3>
+      <div className={shellClass}>
+        {!bare && (
+          <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider opacity-50">
+            {title}
+          </h3>
+        )}
 
         <div className="w-full flex flex-col items-center justify-center flex-1 min-h-[400px] bg-app-input/30 rounded-xl border border-app-border border-dashed">
           <p className="text-app-muted">
@@ -119,10 +131,12 @@ export const TransactionPieChart = ({
   const outerRadiusDelta = isMobile ? 20 : 20;
 
   return (
-    <div className="flex flex-col items-center w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text">
-      <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider">
-        {title}
-      </h3>
+    <div className={shellClass}>
+      {!bare && (
+        <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider">
+          {title}
+        </h3>
+      )}
 
       <div className="w-full flex justify-center h-[400px]">
         <PieChart
@@ -175,7 +189,7 @@ export const TransactionPieChart = ({
           <PieCenterLabel>
             {totalAmount.toLocaleString("it-IT", {
               style: "currency",
-              currency: "EUR",
+              currency,
               maximumFractionDigits: 0,
             })}
           </PieCenterLabel>

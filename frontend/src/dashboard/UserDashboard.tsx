@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { WalletsBar } from "./wallet/WalletsBar.tsx";
 import { WalletDashboard } from "./wallet/WalletDashboard.tsx";
+import { DashboardBackground } from "./DashboardBackground.tsx";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import type { Wallet } from "../utils/types";
 import { useDeleteModal } from "../modals/common/DeleteModalContext";
+import { ConfirmModal } from "../modals/common/ConfirmModal.tsx";
 import { AppHeader } from "../header/AppHeader.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPiggyBank } from "@fortawesome/free-solid-svg-icons";
@@ -96,15 +98,30 @@ const UserDashboard: React.FC = () => {
   const selectedWallet = resolveWallet(walletId);
 
   const deleteModalRef = useDeleteModal();
+  const [quitTarget, setQuitTarget] = useState<Wallet | null>(null);
+  const [isQuitting, setIsQuitting] = useState(false);
 
-  const handleConfirmDelete = async (idToDelete: string) => {
+  // Same DELETE endpoint backs both flows: for an OWNER it deletes the wallet,
+  // for a non-owner the backend treats it as leaving. Only the copy differs.
+  const handleConfirmDelete = async (
+    idToDelete: string,
+    successMsg = "Deleted!",
+  ) => {
     try {
       await api.delete(`/wallets/${idToDelete}`);
       setWallets((prev) => prev.filter((w) => w.id !== idToDelete));
-      triggerToast("Deleted!", true);
+      triggerToast(successMsg, true);
     } catch (err: unknown) {
       triggerToast(getApiErrorTitle(err, "Error deleting."), false);
     }
+  };
+
+  const confirmQuit = async () => {
+    if (!quitTarget) return;
+    setIsQuitting(true);
+    await handleConfirmDelete(quitTarget.id, "You left the wallet");
+    setIsQuitting(false);
+    setQuitTarget(null);
   };
 
   function handleChangeWallet(id: string) {
@@ -113,12 +130,16 @@ const UserDashboard: React.FC = () => {
   }
 
   return (
-    // 1. Mobile: min-h-screen (scorre tutto). Desktop: h-screen e overflow-hidden (layout fisso)
-    <div className="flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-app-bg text-app-text transition-colors">
-      {/* L'Header occupa il suo spazio fisso in alto */}
+    // Mobile: min-h-screen (whole page scrolls). Desktop: h-screen + overflow-hidden
+    // (fixed layout). `relative isolate` scopes the ambient sphere layer below.
+    <div className="relative isolate flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-app-bg text-app-text transition-colors">
+      {/* Ambient animated spheres (sits at -z-10, behind the content) */}
+      <DashboardBackground />
+
+      {/* The header takes its fixed slot at the top */}
       <AppHeader page={{ text: "My", accent: "Wallet" }} />
 
-      {/* 2. Desktop: Nascondiamo gli overflow che sbordano dal layout flessibile */}
+      {/* Desktop: clip the overflow spilling out of the flex layout */}
       <div className="flex flex-col xl:flex-row flex-1 xl:overflow-hidden">
         {/* La barra laterale prenderà xl:h-full e scorrerà da sola */}
         <WalletsBar
@@ -130,19 +151,25 @@ const UserDashboard: React.FC = () => {
           onRefreshAll={fetchData}
         />
 
-        {/* 3. Desktop: Permettiamo SOLO a quest'area destra di scorrere verticalmente */}
-        <div className="flex-1 flex flex-col bg-app-bg xl:overflow-y-auto custom-scrollbar">
+        {/* Desktop: only this right area scrolls vertically. Kept transparent so
+            the ambient spheres show through the gaps between content cards. */}
+        <div className="flex-1 flex flex-col xl:overflow-y-auto custom-scrollbar">
           {selectedWallet ? (
             <WalletDashboard
               _wallet={selectedWallet}
               key={selectedWallet.id}
               onWalletUpdate={fetchData}
               onWalletDelete={() => {
-                deleteModalRef.current?.deleteObject(
-                  selectedWallet,
-                  "wallet",
-                  async () => await handleConfirmDelete(selectedWallet.id),
-                );
+                if (selectedWallet.userRole === "OWNER") {
+                  deleteModalRef.current?.deleteObject(
+                    selectedWallet,
+                    "wallet",
+                    async () => await handleConfirmDelete(selectedWallet.id),
+                  );
+                } else {
+                  // Non-owners quit (leave) the wallet — not a destructive delete.
+                  setQuitTarget(selectedWallet);
+                }
               }}
             />
           ) : (
@@ -167,6 +194,22 @@ const UserDashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={!!quitTarget}
+        title="Quit wallet"
+        message={
+          <>
+            Remove your access to <strong>{quitTarget?.name}</strong>? You will
+            need the owner to invite you again to regain access.
+          </>
+        }
+        confirmLabel="Quit Wallet"
+        tone="danger"
+        busy={isQuitting}
+        onConfirm={confirmQuit}
+        onCancel={() => setQuitTarget(null)}
+      />
     </div>
   );
 };

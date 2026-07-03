@@ -9,12 +9,11 @@ interface UserRowProps {
 }
 
 const UserRow: React.FC<UserRowProps> = ({ user, onDelete }) => {
-  // Funzione helper per formattare la data
+  // Format the join date as "25 Oct 2023"
   const formatDate = (dateString?: string) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
-    // Formatta come "Oct 25, 2023" (o usa 'it-IT' per formato italiano)
-    return date.toLocaleDateString("en-GB", {
+    return date.toLocaleDateString("en-UK", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -22,17 +21,19 @@ const UserRow: React.FC<UserRowProps> = ({ user, onDelete }) => {
   };
 
   return (
-    <tr className="border-b border-app-border transition-colors duration-200 hover:bg-white/[0.02] animate-[fadeIn_0.3s_ease-out]">
-      <td className="p-4.5 font-bold theme-text-default"> {user.name} </td>
-      <td className="p-4.5 text-[0.9rem] text-[#aaa]">
-        {" "}
-        {formatDate(user.createdAt)}{" "}
+    <tr className="animate-[fadeIn_0.3s_ease-out] border-b border-app-border transition-colors duration-200 hover:bg-app-hover/50">
+      <td className="p-4.5 font-bold text-app-text"> {user.name} </td>
+      <td className="p-4.5 font-app-mono text-[0.9rem] text-app-muted">
+        {formatDate(user.createdAt)}
       </td>
-      <td className="p-4.5 theme-text-default"> {user.wallets} </td>
-      <td className="p-4.5 theme-text-default"> {user.transactions} </td>
+      <td className="p-4.5 font-app-mono text-app-text"> {user.wallets} </td>
+      <td className="p-4.5 font-app-mono text-app-text">
+        {" "}
+        {user.transactions}{" "}
+      </td>
       <td className="p-4.5">
         <button
-          className="flex h-9 w-9 items-center justify-center rounded-lg theme-bg-transparent text-app-muted transition-all duration-200 hover:bg-[#e74c3c]/10 hover:text-[#e74c3c]"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-all duration-200 hover:bg-app-red/10 hover:text-app-red"
           onClick={() => onDelete(user)}
           title="Delete User"
         >

@@ -38,6 +38,12 @@ const darkTheme = createTheme({
   palette: { mode: "dark", background: { paper: "transparent" } },
 });
 
+// Series colours (soft tints that read well as lines on the chart surface).
+// Shared by the plotted series and the legend swatches so the two always match.
+const INCOME_COLOR = "#34d399";
+const EXPENSE_COLOR = "#f87171";
+const BALANCE_COLOR = "#60a5fa";
+
 interface CumulativeChartProps {
   transactions: Transaction[];
   zoomData?: readonly ZoomData[];
@@ -104,7 +110,7 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({
             type: "line",
             dataKey: "income",
             label: "Cumulative Income",
-            color: "#34d399",
+            color: INCOME_COLOR,
             curve: "monotoneX",
             showMark: false,
             valueFormatter: (v) => (v == null ? "" : `+${v.toFixed(2)}`),
@@ -113,7 +119,7 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({
             type: "line",
             dataKey: "expense",
             label: "Cumulative Expenses",
-            color: "#f87171",
+            color: EXPENSE_COLOR,
             curve: "monotoneX",
             showMark: false,
             valueFormatter: (v) => (v == null ? "" : `-${v.toFixed(2)}`),
@@ -122,7 +128,7 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({
             type: "line",
             dataKey: "balance",
             label: "Net Balance",
-            color: "#60a5fa",
+            color: BALANCE_COLOR,
             curve: "monotoneX",
             showMark: false,
             valueFormatter: (v) =>
@@ -185,15 +191,24 @@ export const CumulativeChart: React.FC<CumulativeChartProps> = ({
       {/* Legend */}
       <div className="flex items-center justify-center gap-6 mt-3">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-1 rounded-full theme-bg-success" />
+          <div
+            className="w-3 h-1 rounded-full"
+            style={{ backgroundColor: INCOME_COLOR }}
+          />
           <span className="text-xs text-app-muted">Cum. Income</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-1 rounded-full theme-bg-danger" />
+          <div
+            className="w-3 h-1 rounded-full"
+            style={{ backgroundColor: EXPENSE_COLOR }}
+          />
           <span className="text-xs text-app-muted">Cum. Expenses</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-1 rounded-full theme-bg-primary" />
+          <div
+            className="w-3 h-1 rounded-full"
+            style={{ backgroundColor: BALANCE_COLOR }}
+          />
           <span className="text-xs text-app-muted">Net Balance</span>
         </div>
       </div>

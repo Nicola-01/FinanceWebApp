@@ -7,7 +7,46 @@ import {
   faFileCsv,
 } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
-import { SettingsCard } from "../../components/settings/SettingsCard.tsx";
+import { Card } from "../../components/ui/Card.tsx";
+import Button from "../../components/ui/Button.tsx";
+import type { Tag } from "../../utils/types";
+
+/**
+ * Export order: alphabetical, grouped by parent — each parent immediately
+ * followed by its own children (children alphabetical within the parent).
+ */
+const sortTagsForExport = (tags: Tag[]): Tag[] =>
+  [...tags].sort((a, b) => {
+    const groupA = a.parentName || a.name;
+    const groupB = b.parentName || b.name;
+    const byGroup = groupA.localeCompare(groupB, undefined, {
+      sensitivity: "base",
+    });
+    if (byGroup !== 0) return byGroup;
+    // Same group: the parent (no parentName) comes before its children.
+    const childA = a.parentName ? 1 : 0;
+    const childB = b.parentName ? 1 : 0;
+    if (childA !== childB) return childA - childB;
+    return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+  });
+
+const downloadCsv = (rows: (string | number)[][], filename: string) => {
+  const csvContent = rows
+    .map((row) =>
+      row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
+    )
+    .join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 export const DataTab: React.FC = () => {
   const { wallet, tags, transactions } = useWalletContext();
@@ -29,7 +68,13 @@ export const DataTab: React.FC = () => {
       "OriginalCurrency",
       "ExchangeValue",
     ];
-    const rows = transactions.map((tx) => [
+    // Chronological order (oldest first).
+    const ordered = [...transactions].sort(
+      (a, b) =>
+        new Date(a.transactionDate).getTime() -
+        new Date(b.transactionDate).getTime(),
+    );
+    const rows = ordered.map((tx) => [
       tx.transactionDate,
       tx.name,
       tx.tag.name,
@@ -41,22 +86,7 @@ export const DataTab: React.FC = () => {
       tx.exchangeValue || "",
     ]);
 
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
-      ),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `${wallet.name}_transactions.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsv([headers, ...rows], `${wallet.name}_transactions.csv`);
     triggerToast("Transactions exported successfully", true);
   };
 
@@ -67,111 +97,82 @@ export const DataTab: React.FC = () => {
     }
 
     const headers = ["Name", "Icon", "ColorHex", "ParentName"];
-    const rows = tags.map((tag) => [
+    const rows = sortTagsForExport(tags).map((tag) => [
       tag.name,
       tag.icon,
       tag.colorHex,
       tag.parentName || "",
     ]);
 
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
-      ),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `${wallet.name}_tags.csv`);
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    downloadCsv([headers, ...rows], `${wallet.name}_tags.csv`);
     triggerToast("Tags exported successfully", true);
   };
 
-  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Placeholder for future backend implementation
-    triggerToast(
-      `File ${file.name} ready for upload (Backend update needed)`,
-      true,
-    );
-    e.target.value = "";
-  };
-
   return (
-    <SettingsCard
+    <Card
       title="Data Management"
-      subtitle="Export your data to CSV or Import from file"
+      subtitle="Export your data to CSV, or import from a file"
       icon={faFileCsv}
+      iconColor={wallet.color}
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* EXPORT */}
-        <div className="flex flex-col gap-3 p-4 bg-app-input rounded-xl border border-app-border">
-          <div className="flex items-center gap-2 mb-1">
-            <FontAwesomeIcon
-              icon={faDownload}
-              className="text-app-green opacity-80"
-            />
-            <span className="text-sm font-bold text-app-text uppercase tracking-wider">
-              Export Data
+        <div className="flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4">
+          <div className="flex items-center gap-2">
+            <FontAwesomeIcon icon={faDownload} className="text-app-green" />
+            <span className="text-sm font-bold uppercase tracking-wider text-app-text">
+              Export
             </span>
           </div>
-          <p className="text-xs text-app-muted mb-2">
-            Download your data in CSV format for backups or external analysis.
+          <p className="text-xs text-app-muted">
+            Download your data as CSV for backups or external analysis.
           </p>
-
-          <div className="flex flex-col gap-2 mt-auto">
-            <button
+          <div className="mt-auto flex flex-col gap-2">
+            <Button
+              variant="secondary"
+              fullWidth
               onClick={handleExportTransactions}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-hover border border-app-border rounded-lg text-sm font-bold text-app-text transition-all active:scale-95"
             >
               <FontAwesomeIcon icon={faDownload} />
-              Download Transactions.csv
-            </button>
-            <button
-              onClick={handleExportTags}
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface/40 hover:bg-app-hover border border-app-border border-dashed rounded-lg text-[10px] font-bold text-app-muted transition-all active:scale-95"
-            >
+              Transactions (.csv)
+            </Button>
+            <Button variant="secondary" fullWidth onClick={handleExportTags}>
               <FontAwesomeIcon icon={faDownload} />
-              Download Tags.csv
-            </button>
+              Tags (.csv)
+            </Button>
           </div>
         </div>
 
-        {/* IMPORT */}
-        <div className="flex flex-col gap-3 p-4 bg-app-input rounded-xl border border-app-border">
-          <div className="flex items-center gap-2 mb-1">
-            <FontAwesomeIcon
-              icon={faUpload}
-              className="text-app-sky opacity-80"
-            />
-            <span className="text-sm font-bold text-app-text uppercase tracking-wider">
-              Import Data
+        {/* IMPORT — TODO: disabled on purpose.
+            The client-side implementation fired one HTTP request per row
+            (a 400-row CSV = 400+ POST/PUT requests), which floods the backend
+            like a self-inflicted DoS. Re-enable only once there is a single
+            bulk-import endpoint that ingests the whole file/array in one
+            request (server-side parse + batched upsert + the overwrite /
+            auto-create-main-tag merge rules). The preview/recap modal + merge
+            semantics are specced in .claude/TODO/settings-redesign.md. */}
+        <div className="flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4">
+          <div className="flex items-center gap-2">
+            <FontAwesomeIcon icon={faUpload} className="text-app-blue" />
+            <span className="text-sm font-bold uppercase tracking-wider text-app-text">
+              Import
             </span>
           </div>
-          <p className="text-xs text-app-muted mb-2">
-            Upload a CSV file to import new tags or bulk update existing ones.
+          <p className="text-xs text-app-muted">
+            Bulk CSV import is coming soon.
           </p>
-
-          <label className="flex items-center justify-center gap-2 px-4 py-2 bg-app-surface hover:bg-app-hover border border-app-border rounded-lg text-sm font-bold text-app-text transition-all cursor-pointer active:scale-95">
-            <FontAwesomeIcon icon={faUpload} />
-            Upload CSV
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleImportCSV}
-              className="hidden"
-            />
-          </label>
+          <div className="mt-auto flex flex-col gap-2">
+            <Button variant="secondary" fullWidth disabled title="Coming soon">
+              <FontAwesomeIcon icon={faUpload} />
+              Transactions (.csv)
+            </Button>
+            <Button variant="secondary" fullWidth disabled title="Coming soon">
+              <FontAwesomeIcon icon={faUpload} />
+              Tags (.csv)
+            </Button>
+          </div>
         </div>
       </div>
-    </SettingsCard>
+    </Card>
   );
 };

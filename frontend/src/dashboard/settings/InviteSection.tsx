@@ -3,10 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEye,
   faPen,
-  faUserPlus,
   faPaperPlane,
+  faUser,
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
-import { SettingsCard } from "../../components/settings/SettingsCard.tsx";
 import { Selector } from "../../components/ui/Selector.tsx";
 
 interface InviteSectionProps {
@@ -14,6 +14,11 @@ interface InviteSectionProps {
   onInvite: (identifier: string, role: "EDITOR" | "VIEWER") => Promise<boolean>;
 }
 
+/**
+ * Compact invite row shaped like a MemberRow: one `bg-app-surface` shell with a
+ * borderless username/email field on the left and the role selector + an
+ * icon-only send button (same height as the selector) grouped on the right.
+ */
 export const InviteSection: React.FC<InviteSectionProps> = ({
   walletColor,
   onInvite,
@@ -24,76 +29,75 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
 
   const handleSubmit = async () => {
     setIsInviting(true);
-
     const success = await onInvite(identifier, role);
-    if (success) {
-      setIdentifier("");
-    }
-
+    if (success) setIdentifier("");
     setIsInviting(false);
   };
 
-  return (
-    <SettingsCard
-      title="Invite People"
-      icon={faUserPlus}
-      iconColor={walletColor}
-      subtitle="Add users to collaborate on this wallet."
-      actionText="Send Invite"
-      actionIcon={faPaperPlane}
-      actionColor={walletColor}
-      onAction={handleSubmit}
-      actionDisabled={isInviting || identifier.trim().length < 3}
-      isActionLoading={isInviting}
-    >
-      {/* Layout a colonna (stacked) per rispecchiare il design dell'immagine */}
-      <div className="flex flex-col gap-5 mt-2">
-        {/* 1. Input Username/Email (Larghezza Piena) */}
-        <div className="w-full">
-          <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
-            Username or Email
-          </label>
-          <input
-            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-sm text-app-text outline-none transition-all focus:border-app-border shadow-inner"
-            type="search"
-            placeholder="Username or Email"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-          />
-        </div>
+  const disabled = isInviting || identifier.trim().length < 3;
 
-        <div className="w-full self-end">
-          <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
-            Permission Role
-          </label>
-          <Selector
-            value={role}
-            onChange={setRole}
-            size="lg"
-            options={[
-              {
-                value: "VIEWER",
-                label: "Viewer",
-                icon: <FontAwesomeIcon icon={faEye} />,
-                activeBgClass: "theme-bg-primary-light",
-                activeColorClass: "text-app-text",
-              },
-              {
-                value: "EDITOR",
-                label: "Editor",
-                icon: <FontAwesomeIcon icon={faPen} />,
-                activeBgClass: "theme-bg-warning-light",
-                activeColorClass: "theme-text-warning",
-              },
-            ]}
+  return (
+    <div className="flex flex-col gap-2 rounded-[var(--r-input)] border border-app-border bg-app-surface p-2 sm:flex-row sm:items-center">
+      {/* Username / email — borderless, sits on the row surface */}
+      <label className="flex min-w-0 flex-1 cursor-text items-center gap-2 px-2">
+        <FontAwesomeIcon icon={faUser} className="shrink-0 text-app-muted" />
+        <input
+          type="text"
+          aria-label="Username or email"
+          placeholder="Invite by username or email"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          // Not a credential field — keep password managers from autofilling it.
+          autoComplete="off"
+          data-bwignore="true"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-form-type="other"
+          className="min-w-0 flex-1 bg-transparent py-1 text-sm text-app-text outline-none placeholder:text-app-muted"
+        />
+      </label>
+
+      {/* Right controls — grouped, all at the selector's height */}
+      <div className="flex shrink-0 items-center gap-2">
+        <Selector
+          value={role}
+          onChange={setRole}
+          size="sm"
+          fullWidth={false}
+          className="flex-1 sm:w-36 sm:flex-none"
+          options={[
+            {
+              value: "VIEWER",
+              label: "Viewer",
+              icon: <FontAwesomeIcon icon={faEye} />,
+              activeBgClass: "bg-app-surface",
+              activeColorClass: "text-app-text",
+            },
+            {
+              value: "EDITOR",
+              label: "Editor",
+              icon: <FontAwesomeIcon icon={faPen} />,
+              activeBgClass: "bg-app-surface",
+              activeColorClass: "text-app-text",
+            },
+          ]}
+        />
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={disabled}
+          aria-label="Send invite"
+          title="Send invite"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white transition-all hover:brightness-110 disabled:opacity-50"
+          style={{ backgroundColor: walletColor }}
+        >
+          <FontAwesomeIcon
+            icon={isInviting ? faSpinner : faPaperPlane}
+            spin={isInviting}
+            className="text-sm"
           />
-          <p className="mt-2 text-xs text-app-muted text-center">
-            {role === "VIEWER"
-              ? "Viewers can only read transactions and statistics."
-              : "Editors can add, edit, and delete transactions."}
-          </p>
-        </div>
+        </button>
       </div>
-    </SettingsCard>
+    </div>
   );
 };

@@ -11,9 +11,9 @@ import {
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import type { WalletMember } from "../../utils/types";
-import { SettingsCard } from "../../components/settings/SettingsCard.tsx";
+import { Card } from "../../components/ui/Card.tsx";
+import { ConfirmModal } from "../../modals/common/ConfirmModal.tsx";
 
-// Importiamo i nuovi sotto-componenti
 import { InviteSection } from "./InviteSection";
 import { MemberCategory } from "./MemberCategory";
 
@@ -24,6 +24,12 @@ export const ShareSettingsSection: React.FC = () => {
   const { wallet } = useWalletContext();
   const [members, setMembers] = useState<WalletMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [removeTarget, setRemoveTarget] = useState<{
+    id: string;
+    name: string;
+    pending: boolean;
+  } | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const fetchMembers = useCallback(async () => {
     setIsLoading(true);
@@ -43,7 +49,7 @@ export const ShareSettingsSection: React.FC = () => {
 
   const isOwner = wallet.userRole === "OWNER";
 
-  // Handler per InviteSection (ritorna un booleano così il form sa se resettarsi)
+  // Returns a boolean so the invite form knows whether to reset itself.
   const handleInvite = async (
     identifier: string,
     role: "EDITOR" | "VIEWER",
@@ -63,16 +69,28 @@ export const ShareSettingsSection: React.FC = () => {
     }
   };
 
-  // Handler per MemberCategory/MemberRow
-  const handleRemoveMember = async (memberId: string, memberName: string) => {
-    if (!window.confirm(`Are you sure you want to remove ${memberName}?`))
-      return;
+  // Open the confirm modal instead of a native window.confirm.
+  const requestRemove = (memberId: string, memberName: string) => {
+    const member = members.find((m) => m.userId === memberId);
+    setRemoveTarget({
+      id: memberId,
+      name: memberName,
+      pending: member?.status === "PENDING",
+    });
+  };
+
+  const confirmRemove = async () => {
+    if (!removeTarget) return;
+    setIsRemoving(true);
     try {
-      await api.delete(`/invitations/${wallet.id}/${memberId}`);
-      setMembers((prev) => prev.filter((m) => m.userId !== memberId));
-      triggerToast(`${memberName} removed successfully.`, true);
+      await api.delete(`/invitations/${wallet.id}/${removeTarget.id}`);
+      setMembers((prev) => prev.filter((m) => m.userId !== removeTarget.id));
+      triggerToast(`${removeTarget.name} removed successfully.`, true);
+      setRemoveTarget(null);
     } catch {
       triggerToast("Error removing member.", false);
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -90,7 +108,7 @@ export const ShareSettingsSection: React.FC = () => {
     }
   };
 
-  // Raggruppamenti logici
+  // Logical groupings
   const owners = members.filter((m) => m.role === "OWNER");
   const editors = members.filter(
     (m) => m.role === "EDITOR" && m.status === "ACCEPTED",
@@ -101,66 +119,99 @@ export const ShareSettingsSection: React.FC = () => {
   const pending = members.filter((m) => m.status === "PENDING");
 
   return (
-    <div className="flex flex-col gap-6 w-full shrink-0 animate-[fadeIn_0.3s_ease-out]">
-      {isOwner && (
-        <InviteSection walletColor={wallet.color} onInvite={handleInvite} />
-      )}
-
-      <SettingsCard
-        title="Wallet Members"
+    <>
+      {/* Invite + members merged into a single card */}
+      <Card
+        title="Members"
+        subtitle="Invite people and manage roles & access."
         icon={faUsers}
-        subtitle="Manage roles and access for members."
+        iconColor={wallet.color}
       >
-        {isLoading ? (
-          <div className="flex justify-center py-10 theme-text-subtle">
-            <FontAwesomeIcon icon={faSpinner} spin className="text-2xl" />
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <MemberCategory
-              title="Owner"
-              members={owners}
-              icon={faCrown}
-              iconColor="#ffd700"
-              canManage={isOwner}
-              onRemove={handleRemoveMember}
-              onChangeRole={handleChangeRole}
-            />
-            <MemberCategory
-              title="Editors"
-              members={editors}
-              icon={faPen}
-              iconColor={wallet.color}
-              canManage={isOwner}
-              onRemove={handleRemoveMember}
-              onChangeRole={handleChangeRole}
-            />
-            <MemberCategory
-              title="Viewers"
-              members={viewers}
-              icon={faEye}
-              iconColor="#a0aec0"
-              canManage={isOwner}
-              onRemove={handleRemoveMember}
-              onChangeRole={handleChangeRole}
-            />
+        <div className="flex flex-col gap-5">
+          {isOwner && (
+            <>
+              <InviteSection
+                walletColor={wallet.color}
+                onInvite={handleInvite}
+              />
+              <div className="border-t border-app-border" />
+            </>
+          )}
 
-            {/* I pending sono visibili solo all'owner per permettergli di revocarli */}
-            {isOwner && (
+          {isLoading ? (
+            <div className="flex justify-center py-10 text-app-muted">
+              <FontAwesomeIcon icon={faSpinner} spin className="text-2xl" />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
               <MemberCategory
-                title="Pending Invites"
-                titleColor="theme-text-warning-muted"
-                members={pending}
-                icon={faClock}
-                iconColor="#f59e0b"
+                title="Owner"
+                members={owners}
+                icon={faCrown}
+                iconColor="#ffd700"
                 canManage={isOwner}
-                onRemove={handleRemoveMember}
+                onRemove={requestRemove}
                 onChangeRole={handleChangeRole}
               />
-            )}
-          </div>
-        )}
-      </SettingsCard>
-    </div>
+              <MemberCategory
+                title="Editors"
+                members={editors}
+                icon={faPen}
+                iconColor={wallet.color}
+                canManage={isOwner}
+                onRemove={requestRemove}
+                onChangeRole={handleChangeRole}
+              />
+              <MemberCategory
+                title="Viewers"
+                members={viewers}
+                icon={faEye}
+                iconColor="#a0aec0"
+                canManage={isOwner}
+                onRemove={requestRemove}
+                onChangeRole={handleChangeRole}
+              />
+
+              {/* Pending invites are shown only to the owner, so they can revoke them. */}
+              {isOwner && (
+                <MemberCategory
+                  title="Pending Invites"
+                  titleColor="text-app-yellow"
+                  members={pending}
+                  icon={faClock}
+                  iconColor="#f59e0b"
+                  canManage={isOwner}
+                  onRemove={requestRemove}
+                  onChangeRole={handleChangeRole}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      </Card>
+
+      <ConfirmModal
+        open={!!removeTarget}
+        title={removeTarget?.pending ? "Cancel invitation" : "Remove member"}
+        message={
+          removeTarget?.pending ? (
+            <>
+              Cancel the pending invitation for{" "}
+              <strong>{removeTarget?.name}</strong>?
+            </>
+          ) : (
+            <>
+              Remove <strong>{removeTarget?.name}</strong> from this wallet?
+              They will lose access until you invite them again.
+            </>
+          )
+        }
+        confirmLabel={removeTarget?.pending ? "Cancel Invite" : "Remove"}
+        tone="danger"
+        busy={isRemoving}
+        onConfirm={confirmRemove}
+        onCancel={() => setRemoveTarget(null)}
+      />
+    </>
   );
 };

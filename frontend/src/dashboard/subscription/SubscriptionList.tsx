@@ -16,6 +16,28 @@ interface SubscriptionListProps {
   onTransactionClick?: (tx: Transaction) => void;
 }
 
+/**
+ * Unified section header: title lives OUTSIDE any card (like the other tabs),
+ * white text with a subtle per-wallet accent bar + a hairline that echoes the
+ * Transactions date separators. Keeps the layout airy over the ambient spheres.
+ */
+const SectionHeader: React.FC<{ title: string; color?: string }> = ({
+  title,
+  color,
+}) => (
+  <div className="flex items-center gap-3">
+    <span
+      aria-hidden
+      className="h-5 w-1.5 shrink-0 rounded-full"
+      style={{ backgroundColor: color || "var(--color-app-green)" }}
+    />
+    <h3 className="text-lg font-bold text-app-text whitespace-nowrap">
+      {title}
+    </h3>
+    <div className="h-px flex-1 bg-app-border rounded-full" />
+  </div>
+);
+
 export const SubscriptionList: React.FC<SubscriptionListProps> = ({
   subscriptions,
   onEditSubscription,
@@ -127,21 +149,16 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
   const hasPast = pastTransactions.length > 0;
 
   return (
-    <div className="animate-[fadeIn_0.3s_ease-out] flex flex-col gap-6 pb-10">
-      {/* SEZIONE 1 - TO PAY */}
+    <div className="animate-[fadeIn_0.3s_ease-out] flex flex-col gap-10 pb-10">
+      {/* SECTION 1 — TO PAY */}
       {hasUpcoming && (
-        <div className="bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem] p-5 sm:p-7 flex flex-col gap-6">
-          <h3
-            className="text-xl font-bold text-app-text ml-1"
-            style={{ color: wallet.color }}
-          >
-            To Pay
-          </h3>
+        <section className="flex flex-col gap-5">
+          <SectionHeader title="To Pay" color={wallet.color} />
 
           {within7Days.length > 0 && (
             <div className="flex flex-col gap-3">
               <div>
-                <span className="inline-flex items-center px-3 py-1 rounded-full theme-bg-warning-transparent theme-text-warning text-[10px] font-bold uppercase tracking-widest border theme-border-warning">
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-app-yellow/15 text-app-yellow text-[10px] font-bold uppercase tracking-widest border border-app-yellow/40">
                   Within 7 Days
                 </span>
               </div>
@@ -181,18 +198,13 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
               </div>
             </div>
           )}
-        </div>
+        </section>
       )}
 
-      {/* SEZIONE 2 - PAID */}
+      {/* SECTION 2 — PAID */}
       {hasPast && (
-        <div className="bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem] p-5 sm:p-7 flex flex-col gap-8">
-          <h3
-            className="text-xl font-bold text-app-text ml-1"
-            style={{ color: wallet.color }}
-          >
-            Paid
-          </h3>
+        <section className="flex flex-col gap-6">
+          <SectionHeader title="Paid" color={wallet.color} />
 
           <AnimatePresence initial={false}>
             {sortedMonthKeys.slice(0, visibleMonthsCount).map((monthKey) => {
@@ -210,7 +222,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
                   transition={{ duration: 0.3 }}
                   className="flex flex-col gap-3"
                 >
-                  <h4 className="text-sm font-bold text-app-text capitalize ml-1">
+                  <h4 className="text-sm font-bold text-app-muted capitalize ml-1">
                     {formatMonthLabel(monthKey)}
                   </h4>
 
@@ -308,17 +320,13 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
               </button>
             </div>
           )}
-        </div>
+        </section>
       )}
-      {/* SEZIONE 3 - COMPLETED */}
+
+      {/* SECTION 3 — COMPLETED */}
       {completedSubs.length > 0 && (
-        <div className="bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem] p-5 sm:p-7 flex flex-col gap-6">
-          <h3
-            className="text-xl font-bold text-app-text ml-1"
-            style={{ color: wallet.color }}
-          >
-            Completed
-          </h3>
+        <section className="flex flex-col gap-5">
+          <SectionHeader title="Completed" color={wallet.color} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {completedSubs.map((sub) => (
@@ -334,7 +342,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
     </div>
   );

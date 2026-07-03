@@ -6,44 +6,26 @@ interface StatCardProps {
   title: string;
   value: string | number;
   icon: IconDefinition;
-  color: string;
 }
 
-export const StatCard: React.FC<StatCardProps> = ({
-  title,
-  value,
-  icon,
-  color,
-}) => {
+/**
+ * Compact stat cell for the admin stat strip. Sober glass surface, a small
+ * brand-tinted icon chip and the value in tabular mono — no saturated fills,
+ * no coloured glow (accent outside a wallet = brand gradient).
+ */
+export const StatCard: React.FC<StatCardProps> = ({ title, value, icon }) => {
   return (
-    <div
-      className="
-            flex items-center gap-5 p-6
-            theme-bg-page-transparent border border-app-border rounded-2xl
-            backdrop-blur-lg transition-all duration-300
-            {/*hover:-translate-y-1 hover:theme-border-default*/}
-        "
-    >
-      {/* Icon Wrapper */}
-      <div
-        className="
-                    flex justify-center items-center
-                    w-[60px] h-[60px] rounded-full
-                    bg-app-input text-2xl shrink-0
-                "
-        style={{ color: color }}
-      >
+    <div className="flex items-center gap-4 rounded-[var(--r-card)] border border-app-border bg-app-card/50 px-5 py-4 backdrop-blur-sm">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--r-input)] bg-gradient-to-br from-[var(--brand-1)]/20 to-[var(--brand-2)]/20 text-[var(--brand-1)]">
         <FontAwesomeIcon icon={icon} />
       </div>
-
-      {/* Info */}
-      <div className="flex flex-col">
-        <h4 className="text-sm font-medium text-app-muted m-0 uppercase tracking-wider">
+      <div className="flex min-w-0 flex-col">
+        <span className="text-[0.7rem] font-semibold uppercase tracking-wider text-app-muted">
           {title}
-        </h4>
-        <p className="text-2xl font-bold theme-text-default mt-1 m-0">
+        </span>
+        <span className="font-app-mono text-2xl font-bold leading-tight text-app-text">
           {value}
-        </p>
+        </span>
       </div>
     </div>
   );

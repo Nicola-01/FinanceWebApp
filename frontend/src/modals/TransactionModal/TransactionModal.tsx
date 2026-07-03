@@ -1,12 +1,8 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import api from "../../api/axiosConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faMoneyBillTransfer,
-  faEdit,
-  faCheck,
-} from "@fortawesome/free-solid-svg-icons";
-import { ModalDialog } from "../common/ModalDialog";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Transaction } from "../../utils/types.ts";
@@ -33,7 +29,7 @@ interface Props {
 
 export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
   ({ wallet, tags, baseCurrency, onSuccess }, ref) => {
-    const dialogRef = useRef<HTMLDialogElement>(null);
+    const [open, setOpen] = useState(false);
 
     // --- Form States ---
     const [editingTxId, setEditingTxId] = useState<number | string | null>(
@@ -88,7 +84,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
           setSelectedTagName("");
           setNotes("");
         }
-        dialogRef.current?.showModal();
+        setOpen(true);
       },
     }));
 
@@ -124,7 +120,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
         else await api.post(`/transactions/${wallet.id}`, payload);
 
         onSuccess();
-        if (dialogRef.current?.open) dialogRef.current.close();
+        setOpen(false);
       } catch (err: unknown) {
         const actionText = editingTxId ? "updating" : "creating";
         triggerToast(
@@ -141,32 +137,29 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
       amount !== "" && Number(amount) !== 0 && selectedTagName !== "";
     const isEditing = !!editingTxId;
 
-    const rightActions = [
-      {
-        icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
-        onClick: async () => {
-          if (canSave && !loading) await handleSave();
-        },
-        color: canSave ? wallet.color : undefined,
-        hoverColor: "hover:theme-text-default",
-        disabled: !canSave || loading,
-      },
-    ];
+    const headerActions = (
+      <button
+        type="button"
+        onClick={() => {
+          if (canSave && !loading) handleSave();
+        }}
+        disabled={!canSave || loading}
+        aria-label="Save transaction"
+        className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-app-input disabled:cursor-not-allowed disabled:opacity-40"
+        style={{ color: canSave ? wallet.color : undefined }}
+      >
+        <FontAwesomeIcon icon={faCheck} className="text-lg" />
+      </button>
+    );
 
     return (
-      <ModalDialog
-        ref={dialogRef}
-        className="max-w-160 p-6"
-        title={
-          <>
-            <FontAwesomeIcon
-              icon={isEditing ? faEdit : faMoneyBillTransfer}
-              color={wallet.color}
-            />{" "}
-            {isEditing ? "Edit" : "New"} Transaction
-          </>
-        }
-        rightActions={rightActions}
+      <ResponsiveOverlay
+        open={open}
+        onClose={() => setOpen(false)}
+        title={isEditing ? "Edit Transaction" : "New Transaction"}
+        accentColor={wallet.color}
+        width={480}
+        headerActions={headerActions}
       >
         <div
           id="transaction-form"
@@ -250,7 +243,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
           {/*    />*/}
           {/*)}*/}
         </div>
-      </ModalDialog>
+      </ResponsiveOverlay>
     );
   },
 );

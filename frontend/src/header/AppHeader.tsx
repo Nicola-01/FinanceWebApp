@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronDown,
@@ -40,11 +39,7 @@ import api from "../api/axiosConfig.ts";
 import type { Invitation } from "../utils/types.ts";
 import { ThemeSelector } from "../components/selectors/ThemeSelector";
 import { usePWA } from "../utils/PWAContext.tsx";
-
-export interface AppHeaderTab {
-  label: string;
-  to: string;
-}
+import { Menu } from "../components/ui/Menu.tsx";
 
 interface AppHeaderProps {
   page: {
@@ -52,17 +47,9 @@ interface AppHeaderProps {
     accent: string;
   };
   isAdmin?: boolean;
-  tabs?: AppHeaderTab[];
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({
-  page,
-  isAdmin,
-  tabs,
-}) => {
-  const [showMenu, setShowMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
+export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin }) => {
   const changePwModalRef = useRef<ChangePasswordModalHandle>(null);
   const profileModalRef = useRef<ProfileModalHandle>(null);
   const invitationsModalRef = useRef<InvitationsModalHandle>(null);
@@ -76,17 +63,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const { installPrompt, installApp } = usePWA();
 
   // const [invitations, setInvitations] = useState<Invitation>()
-
-  // Chiude il menu se si clicca fuori
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setShowMenu(false);
-      }
-    };
-    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showMenu]);
 
   const handleLogout = () => {
     logoutModalRef.current?.openModal();
@@ -133,187 +109,138 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           {/* Titolo */}
           <h2 className="m-0 text-2xl font-bold tracking-wide text-app-text capitalize">
             {page.text}
-            <span className="ml-1 animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="ml-1 bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)] bg-clip-text text-transparent">
               {page.accent}
             </span>
           </h2>
         </div>
 
-        {/* Tab Navigation (facoltativa) */}
-        {tabs && tabs.length > 0 && (
-          <nav className="flex items-center gap-1 rounded-xl border border-app-border bg-app-input/40 p-1">
-            {tabs.map((tab) => (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                className={({ isActive }) =>
-                  `relative px-4 py-1.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? "bg-app-card text-app-text shadow-sm"
-                      : "text-app-muted hover:text-app-text hover:bg-app-card/50"
-                  }`
-                }
-              >
-                {tab.label}
-              </NavLink>
-            ))}
-          </nav>
-        )}
-
-        {/* Menu Utente Dropdown */}
-        <div className="relative z-[120]" ref={menuRef}>
-          <button
-            onClick={() => setShowMenu(!showMenu)}
-            className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${
-              showMenu
-                ? "bg-app-input border-app-border shadow-sm"
-                : "theme-border-transparent hover:bg-app-input"
-            }`}
-          >
-            {/* Icona Profilo */}
-            <FontAwesomeIcon
-              icon={faUserCircle}
-              className={`text-2xl transition-colors ${showMenu ? "text-app-green" : "text-app-muted group-hover:text-app-text"}`}
-            />
-
-            {/* Nome Utente */}
-            <span
-              className={`text-sm font-semibold tracking-wide transition-colors ${
-                showMenu ? "text-app-text" : "text-app-muted"
-              }`}
-            >
-              {user?.username || "Profile"}
-            </span>
-
-            {/* Freccetta indicatore Dropdown */}
-            <FontAwesomeIcon
-              icon={faChevronDown}
-              className={`ml-1 text-[10px] transition-transform duration-300 ${
-                showMenu ? "rotate-180 text-app-text" : "text-app-muted"
-              }`}
-            />
-          </button>
-
-          {showMenu && (
-            <div className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-app-border bg-app-card p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out]">
-              <div className="px-3 py-2 border-b border-app-border mb-1 flex flex-col">
-                <div className="flex items-center justify-between gap-2">
-                  {/* Username */}
-                  <p className="text-sm font-bold text-app-text truncate">
-                    {user?.username || "User"}
-                  </p>
-
-                  {/* Badge ADMIN (visibile solo se il ruolo è ADMIN) */}
-                  {user?.role === "ADMIN" && (
-                    <span className="shrink-0 rounded theme-bg-warning-light px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider theme-text-warning">
-                      Admin
-                    </span>
-                  )}
-                </div>
-
-                {/* Email */}
-                {/* <p className="mt-0.5 text-xs text-app-muted truncate">
-                                    email@placeholder.com
-                                </p> */}
-              </div>
-
-              {installPrompt && (
-                <>
-                  <button
-                    onClick={() => {
-                      setShowMenu(false);
-                      installApp();
-                    }}
-                    className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-bold text-app-green transition-colors hover:bg-app-input"
-                  >
-                    <FontAwesomeIcon icon={faDownload} className="w-4" />
-                    Installa App (PWA)
-                  </button>
-                  <div className="my-1 h-px w-full bg-app-border" />
-                </>
-              )}
-
-              {!isAdmin && (
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    profileModalRef.current?.openModal();
-                  }}
-                  className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
-                >
-                  <FontAwesomeIcon icon={faUser} className="w-4" />
-                  Profile Settings
-                </button>
-              )}
-
+        {/* User dropdown */}
+        <Menu align="right" width={224} className="z-[120]">
+          <Menu.Trigger>
+            {({ open, toggle }) => (
               <button
-                onClick={() => changePwModalRef.current?.openModal()}
-                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
-                title="Change Password"
+                onClick={toggle}
+                aria-expanded={open}
+                aria-haspopup="menu"
+                className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${
+                  open
+                    ? "border-app-border bg-app-input shadow-sm"
+                    : "border-transparent hover:bg-app-input"
+                }`}
               >
-                <FontAwesomeIcon icon={faKey} className="w-/" />
-                Change Password
-              </button>
-
-              {!isAdmin && (
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    invitationsModalRef.current?.openModal(invitations);
-                  }}
-                  className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+                <FontAwesomeIcon
+                  icon={faUserCircle}
+                  className={`text-2xl transition-colors ${open ? "text-app-green" : "text-app-muted"}`}
+                />
+                <span
+                  className={`text-sm font-semibold tracking-wide transition-colors ${
+                    open ? "text-app-text" : "text-app-muted"
+                  }`}
                 >
-                  <FontAwesomeIcon icon={faEnvelope} className="w-4" />
-                  Invitations
-                  {invitations.filter((i) => i.status === "PENDING").length >
+                  {user?.username || "Profile"}
+                </span>
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`ml-1 text-[10px] transition-transform duration-300 ${
+                    open ? "rotate-180 text-app-text" : "text-app-muted"
+                  }`}
+                />
+              </button>
+            )}
+          </Menu.Trigger>
+
+          <Menu.Content>
+            {/* Identity header */}
+            <div className="mb-1 flex flex-col border-b border-app-border px-3 py-2">
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate text-sm font-bold text-app-text">
+                  {user?.username || "User"}
+                </p>
+                {user?.role === "ADMIN" && (
+                  <span className="shrink-0 rounded bg-app-yellow/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-yellow">
+                    Admin
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {installPrompt && (
+              <>
+                <Menu.Item
+                  icon={faDownload}
+                  tone="success"
+                  onClick={installApp}
+                >
+                  Install App (PWA)
+                </Menu.Item>
+                <Menu.Divider />
+              </>
+            )}
+
+            {!isAdmin && (
+              <Menu.Item
+                icon={faUser}
+                onClick={() => profileModalRef.current?.openModal()}
+              >
+                Profile Settings
+              </Menu.Item>
+            )}
+
+            <Menu.Item
+              icon={faKey}
+              title="Change Password"
+              onClick={() => changePwModalRef.current?.openModal()}
+            >
+              Change Password
+            </Menu.Item>
+
+            {!isAdmin && (
+              <Menu.Item
+                icon={faEnvelope}
+                onClick={() =>
+                  invitationsModalRef.current?.openModal(invitations)
+                }
+                trailing={
+                  invitations.filter((i) => i.status === "PENDING").length >
                     0 && (
-                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-app-sky)] text-[10px] font-bold theme-text-inverse">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-app-sky text-[10px] font-bold text-white">
                       {invitations.length}
                     </span>
-                  )}
-                </button>
-              )}
-
-              {!isAdmin && (
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    patModalRef.current?.openModal();
-                  }}
-                  className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
-                >
-                  <FontAwesomeIcon icon={faCode} className="w-4" />
-                  API Tokens
-                </button>
-              )}
-
-              <div className="my-1 h-px w-full bg-app-border" />
-
-              <button
-                onClick={() => {
-                  setShowMenu(false);
-                  aboutModalRef.current?.openModal();
-                }}
-                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+                  )
+                }
               >
-                <FontAwesomeIcon icon={faInfoCircle} className="w-4" />
-                About this app
-              </button>
+                Invitations
+              </Menu.Item>
+            )}
 
-              <ThemeSelector />
-
-              <div className="my-1 h-px w-full bg-app-border" />
-
-              <button
-                onClick={handleLogout}
-                className="flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold text-app-red/70 transition-colors hover:bg-app-red/20 hover:text-app-red"
+            {!isAdmin && (
+              <Menu.Item
+                icon={faCode}
+                onClick={() => patModalRef.current?.openModal()}
               >
-                <FontAwesomeIcon icon={faSignOutAlt} className="w-4" />
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
+                API Tokens
+              </Menu.Item>
+            )}
+
+            <Menu.Divider />
+
+            <Menu.Item
+              icon={faInfoCircle}
+              onClick={() => aboutModalRef.current?.openModal()}
+            >
+              About this app
+            </Menu.Item>
+
+            <ThemeSelector />
+
+            <Menu.Divider />
+
+            <Menu.Item icon={faSignOutAlt} tone="danger" onClick={handleLogout}>
+              Logout
+            </Menu.Item>
+          </Menu.Content>
+        </Menu>
       </header>
       {/* 2. I Modali sono stati spostati QUI, fuori dal tag <header> */}
       <ChangePasswordModal ref={changePwModalRef} />

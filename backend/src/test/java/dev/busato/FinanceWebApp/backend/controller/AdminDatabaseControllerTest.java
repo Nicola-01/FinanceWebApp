@@ -94,6 +94,18 @@ class AdminDatabaseControllerTest extends BaseWebMvcTest {
   }
 
   @Test
+  void deleteBackup_ShouldReturn200() throws Exception {
+    String key = "db_backup_2026-07-01.sql.gz.enc";
+
+    mockMvc
+        .perform(delete("/api/admin/backup/{key}", key))
+        .andExpect(status().isOk())
+        .andExpect(content().string("Backup '" + key + "' deleted."));
+
+    verify(backupService).deleteBackup(eq(key));
+  }
+
+  @Test
   void uploadBackup_WithFile_ShouldReturn200() throws Exception {
     MockMultipartFile file =
         new MockMultipartFile(

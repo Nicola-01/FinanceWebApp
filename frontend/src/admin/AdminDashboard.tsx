@@ -7,12 +7,15 @@ import type { User } from "../utils/types.ts";
 import { getApiErrorTitle } from "../utils/apiError.ts";
 
 import { AdminStats } from "./AdminStats";
+import { AdminPageHeader } from "./AdminPageHeader.tsx";
 import { CreateInviteForm } from "./CreateInviteForm";
 import { type AdminInvite, InvitesTable } from "./InvitesTable";
 import { UserDirectory } from "./UserDirectory";
 import { useDeleteModal } from "../modals/common/DeleteModalContext";
 import { AppHeader } from "../header/AppHeader.tsx";
+import { AdminTabs } from "./AdminTabs.tsx";
 import Backups from "./Backups.tsx";
+import SystemTab from "./SystemTab.tsx";
 
 // ── Users sub-page ─────────────────────────────────────────────────────────────
 
@@ -30,23 +33,24 @@ const UsersPage: React.FC<UsersPageProps> = ({
   onDeleteClick,
   onRevoke,
   onInviteCreated,
-}) => (
-  <>
-    <AdminStats users={users} />
-    <div className="rounded-2xl border border-app-border bg-[#141414]/60 p-[30px] shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md">
+}) => {
+  const pendingInvites = invites.filter((i) => i.status === "PENDING").length;
+
+  return (
+    <div className="flex flex-col gap-6 xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:pr-1">
+      <AdminPageHeader
+        title="Users"
+        description="Manage registered users and pending invitations."
+      />
+      <AdminStats users={users} pendingInvites={pendingInvites} />
       <CreateInviteForm onInviteCreated={onInviteCreated} />
       <InvitesTable invites={invites} onRevoke={onRevoke} />
       <UserDirectory users={users} onDeleteClick={onDeleteClick} />
     </div>
-  </>
-);
+  );
+};
 
 // ── Admin Dashboard ────────────────────────────────────────────────────────────
-
-const ADMIN_TABS = [
-  { label: "Users", to: "/admin/dashboard/users" },
-  { label: "Backups", to: "/admin/dashboard/backups" },
-];
 
 const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -121,13 +125,11 @@ const AdminDashboard: React.FC = () => {
         />
       </div>
 
-      <AppHeader
-        page={{ text: "Admin", accent: "Panel" }}
-        isAdmin={true}
-        tabs={ADMIN_TABS}
-      />
+      <AppHeader page={{ text: "Admin", accent: "Panel" }} isAdmin={true} />
 
-      <main className="relative z-10 mx-auto my-10 flex w-[95%] max-w-[1600px] flex-col gap-[30px]">
+      <AdminTabs />
+
+      <main className="relative z-10 mx-auto my-10 flex w-[95%] max-w-[1600px] flex-col gap-[30px] xl:min-h-0 xl:flex-1 xl:overflow-hidden">
         <Routes>
           <Route index element={<Navigate to="users" replace />} />
           <Route
@@ -149,6 +151,7 @@ const AdminDashboard: React.FC = () => {
             }
           />
           <Route path="backups" element={<Backups />} />
+          <Route path="system" element={<SystemTab />} />
         </Routes>
       </main>
     </div>
