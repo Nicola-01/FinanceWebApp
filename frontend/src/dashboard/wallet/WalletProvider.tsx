@@ -1,8 +1,13 @@
 import React, { useEffect, useState, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { Subscription, Tag, Transaction, Wallet } from "../../utils/types";
-import type { WalletDashboardData } from "../../utils/types";
+import type {
+  Subscription,
+  Tag,
+  Transaction,
+  Wallet,
+  WalletDashboardData,
+} from "../../utils/types";
 import type {
   DateRangeValue,
   PresetType,
@@ -91,8 +96,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
 
     const cached = peek(_wallet.id);
     if (cached) {
-      // Cache hit: render instantly, no spinner, zero requests.
+      // Cache hit: render instantly, no spinner, zero requests. Reset the flag
+      // explicitly: a prior aborted load may have left isLoading stuck true
+      // (runLoad's finally skips setIsLoading(false) when the signal aborted).
       applyData(cached);
+      setIsLoading(false);
       return () => controller.abort();
     }
 
