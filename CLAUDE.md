@@ -42,9 +42,10 @@ npm run lint       # ESLint (Prettier config)
 npm test           # Vitest (run once); npm run test:watch for watch mode
 ```
 Note: **Vitest + Testing Library** are configured (`vitest.config.ts`, jsdom, setup in
-`src/test/setup.ts`); `*.test.*` files live next to sources and are excluded from the
-production build (`tsconfig.app.json`). Coverage is sparse — **CI gates on lint/build only**,
-tests are not yet wired into the pipeline.
+`src/test/setup.ts`); `*.test.*` files live under **`src/__tests__/`** (mirroring the source
+tree; shared helpers in `src/test/`) and are excluded from the production build
+(`tsconfig.app.json`). Coverage is sparse — **CI gates on lint/build only**, tests are not
+yet wired into the pipeline.
 
 Full stack (from repo root):
 ```bash
