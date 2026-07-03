@@ -1,7 +1,13 @@
 import React, { useEffect, useState, useMemo } from "react";
 import type { ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { Subscription, Tag, Transaction, Wallet } from "../../utils/types";
+import type {
+  Subscription,
+  Tag,
+  Transaction,
+  Wallet,
+  WalletDashboardData,
+} from "../../utils/types";
 import type {
   DateRangeValue,
   PresetType,
@@ -9,6 +15,12 @@ import type {
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle, isAbortError } from "../../utils/apiError";
+import {
+  getWalletData,
+  refreshWalletData,
+  peek,
+  invalidate,
+} from "../../api/walletDataCache";
 import { WalletContext } from "./WalletContext.tsx";
 import { VALID_TABS, type TabType } from "./walletTabs";
 
@@ -81,38 +93,52 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     const controller = new AbortController();
 
     setWallet(_wallet);
+
+    const cached = peek(_wallet.id);
+    if (cached) {
+      // Cache hit: render instantly, no spinner, zero requests. Reset the flag
+      // explicitly: a prior aborted load may have left isLoading stuck true
+      // (runLoad's finally skips setIsLoading(false) when the signal aborted).
+      applyData(cached);
+      setIsLoading(false);
+      return () => controller.abort();
+    }
+
+    // Cache miss: clear stale view, then debounce the fetch so wallets the
+    // user quickly skips past never hit the network.
     setTransactions([]);
     setSubscriptions([]);
     setTags([]);
 
-    fetchData(controller.signal);
+    const timer = setTimeout(() => {
+      loadData(controller.signal);
+    }, 250);
 
     return () => {
+      clearTimeout(timer);
       controller.abort();
     };
-    // Reset + reload solo al cambio di wallet (_wallet.id). Intenzionalmente NON
-    // ri-eseguito su altri campi di _wallet né sull'identità di fetchData (che
-    // dipende solo da _wallet.id/name), per evitare refetch spurii.
+    // Reset + reload only on wallet change (_wallet.id). Intentionally not
+    // re-run on other _wallet fields nor on loadData identity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_wallet.id]);
 
-  const fetchData = async (signal?: AbortSignal) => {
+  const applyData = (data: WalletDashboardData) => {
+    setWallet(data.wallet);
+    setTransactions(data.transactions);
+    setSubscriptions(data.subscriptions);
+    setTags(data.tags);
+  };
+
+  const runLoad = async (
+    fetcher: () => Promise<WalletDashboardData>,
+    signal?: AbortSignal,
+  ) => {
     if (!_wallet?.id) return;
     try {
       setIsLoading(true);
-
-      const [walletRes, transactionRes, subscriptionRes, tagRes] =
-        await Promise.all([
-          api.get(`/wallets/${_wallet.id}`, { signal }),
-          api.get(`/transactions/${_wallet.id}`, { signal }),
-          api.get(`/subscription/${_wallet.id}`, { signal }),
-          api.get(`/tags/${_wallet.id}`, { signal }),
-        ]);
-
-      setWallet(walletRes.data);
-      setTransactions(transactionRes.data);
-      setSubscriptions(subscriptionRes.data);
-      setTags(tagRes.data);
+      const data = await fetcher();
+      applyData(data);
     } catch (err: unknown) {
       if (isAbortError(err)) {
         return;
@@ -125,10 +151,19 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     }
   };
 
+  // Cache-aware load (mount / wallet switch): serves fresh cache, else fetches.
+  const loadData = (signal?: AbortSignal) =>
+    runLoad(() => getWalletData(_wallet.id, signal), signal);
+
+  // Forced reload (exposed on context; used by children after a mutation).
+  const fetchData = (signal?: AbortSignal) =>
+    runLoad(() => refreshWalletData(_wallet.id, signal), signal);
+
   const handleAddTag = async (newTag: Partial<Tag>): Promise<boolean> => {
     try {
       const response = await api.post(`/tags/${wallet.id}`, newTag);
       setTags((prev) => [...prev, response.data]);
+      invalidate(wallet.id);
       triggerToast("Tag created successfully!", true);
       return true;
     } catch (err: unknown) {
@@ -162,6 +197,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
           return tag;
         }),
       );
+      invalidate(wallet.id);
 
       return true;
     } catch (err: unknown) {
@@ -178,6 +214,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
           (tag) => tag.name !== tagName && tag.parentName !== tagName,
         ),
       );
+      invalidate(wallet.id);
       triggerToast("Tag deleted!", true);
       return true;
     } catch (err: unknown) {
@@ -192,6 +229,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     try {
       const res = await api.put(`/wallets/${wallet.id}`, updatedInfo);
       setWallet(res.data);
+      invalidate(wallet.id);
       triggerToast("Wallet updated successfully!", true);
       onWalletUpdate();
       return true;

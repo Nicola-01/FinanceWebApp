@@ -7,6 +7,10 @@
           {
             "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/backend-mark.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/frontend-mark.sh\""
           }
         ]
       }
@@ -22,6 +26,19 @@
             "rewakeSummary": "Backend test falliti",
             "timeout": 600,
             "statusMessage": "Eseguo i test del backend..."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/frontend-checks.sh\"",
+            "asyncRewake": true,
+            "rewakeMessage": "I controlli del frontend (lint/test/build) sono falliti dopo le tue modifiche:",
+            "rewakeSummary": "Frontend checks falliti",
+            "timeout": 600,
+            "statusMessage": "Eseguo i controlli del frontend (lint, test, build)..."
           }
         ]
       }

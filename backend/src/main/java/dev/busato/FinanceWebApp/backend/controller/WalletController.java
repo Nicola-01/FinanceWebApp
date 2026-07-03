@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
+import dev.busato.FinanceWebApp.backend.dto.WalletDashboardResponse;
 import dev.busato.FinanceWebApp.backend.dto.WalletRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 public class WalletController {
 
   private final WalletService walletService;
+  private final dev.busato.FinanceWebApp.backend.service.WalletDashboardService
+      walletDashboardService;
 
   @GetMapping
   public ResponseEntity<List<WalletResponse>> getMyWallets(@AuthenticationPrincipal User user) {
@@ -28,6 +31,12 @@ public class WalletController {
   public ResponseEntity<WalletResponse> getWalletById(
       @PathVariable UUID walletID, @AuthenticationPrincipal User user) {
     return ResponseEntity.ok(walletService.getWallet(user.getId(), walletID));
+  }
+
+  @GetMapping("/{walletID}/dashboard")
+  public ResponseEntity<WalletDashboardResponse> getWalletDashboard(
+      @PathVariable UUID walletID, @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(walletDashboardService.getDashboard(walletID, user.getId()));
   }
 
   @PostMapping
