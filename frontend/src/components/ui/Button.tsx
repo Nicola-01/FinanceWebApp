@@ -10,6 +10,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   /** Material-style ripple on press (reused from WalletCard). */
   ripple?: boolean;
   rippleColor?: string;
+  /** Solid fill colour (e.g. `wallet.color` or a semantic token). Overrides the
+   *  variant background with a flat fill + neutral shadow (no coloured glow). */
+  accentColor?: string;
 }
 
 const BASE =
@@ -41,6 +44,12 @@ const VARIANTS: Record<ButtonVariant, string> = {
     "hover:shadow-[0_18px_38px_-16px_rgba(0,0,0,0.85)]",
 };
 
+// Flat accent fill (colour supplied inline via `accentColor`) — same neutral
+// depth/lift as `primary`, just no gradient. No coloured glow.
+const ACCENT =
+  "text-white shadow-[0_12px_26px_-14px_rgba(0,0,0,0.7)] hover:-translate-y-0.5 " +
+  "hover:brightness-[1.07] hover:shadow-[0_18px_38px_-16px_rgba(0,0,0,0.85)] active:translate-y-0";
+
 interface RippleItem {
   x: number;
   y: number;
@@ -53,15 +62,18 @@ const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   ripple = false,
   rippleColor,
+  accentColor,
   className = "",
+  style,
   children,
   onPointerDown,
   ...props
 }) => {
   const [ripples, setRipples] = useState<RippleItem[]>([]);
+  const useAccent = Boolean(accentColor);
   const color =
     rippleColor ??
-    (variant === "primary" || variant === "danger"
+    (useAccent || variant === "primary" || variant === "danger"
       ? "rgba(255,255,255,0.45)"
       : "rgba(139,92,246,0.35)");
 
@@ -86,7 +98,8 @@ const Button: React.FC<ButtonProps> = ({
     <button
       {...props}
       onPointerDown={handlePointerDown}
-      className={`${BASE} ${SIZES[size]} ${VARIANTS[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
+      style={useAccent ? { backgroundColor: accentColor, ...style } : style}
+      className={`${BASE} ${SIZES[size]} ${useAccent ? ACCENT : VARIANTS[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
     >
       {ripple &&
         ripples.map((r) => (

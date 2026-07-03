@@ -19,6 +19,8 @@ export interface WalletContextType {
   setDateRange: (range: DateRangeValue) => void;
   datePreset: PresetType;
   setDatePreset: (preset: PresetType) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   fetchData: (signal?: AbortSignal) => Promise<void>;

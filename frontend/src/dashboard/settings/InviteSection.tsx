@@ -5,8 +5,12 @@ import {
   faPen,
   faUserPlus,
   faPaperPlane,
+  faUser,
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
-import { SettingsCard } from "../../components/settings/SettingsCard.tsx";
+import { Card } from "../../components/ui/Card.tsx";
+import Button from "../../components/ui/Button.tsx";
+import { Input } from "../../components/ui/Input.tsx";
 import { Selector } from "../../components/ui/Selector.tsx";
 
 interface InviteSectionProps {
@@ -24,46 +28,50 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
 
   const handleSubmit = async () => {
     setIsInviting(true);
-
     const success = await onInvite(identifier, role);
-    if (success) {
-      setIdentifier("");
-    }
-
+    if (success) setIdentifier("");
     setIsInviting(false);
   };
 
   return (
-    <SettingsCard
+    <Card
       title="Invite People"
+      subtitle="Add people to collaborate on this wallet."
       icon={faUserPlus}
       iconColor={walletColor}
-      subtitle="Add users to collaborate on this wallet."
-      actionText="Send Invite"
-      actionIcon={faPaperPlane}
-      actionColor={walletColor}
-      onAction={handleSubmit}
-      actionDisabled={isInviting || identifier.trim().length < 3}
-      isActionLoading={isInviting}
+      footer={
+        <Button
+          accentColor={walletColor}
+          ripple
+          onClick={handleSubmit}
+          disabled={isInviting || identifier.trim().length < 3}
+        >
+          <FontAwesomeIcon
+            icon={isInviting ? faSpinner : faPaperPlane}
+            spin={isInviting}
+          />
+          {isInviting ? "Sending…" : "Send Invite"}
+        </Button>
+      }
     >
-      {/* Layout a colonna (stacked) per rispecchiare il design dell'immagine */}
-      <div className="flex flex-col gap-5 mt-2">
-        {/* 1. Input Username/Email (Larghezza Piena) */}
-        <div className="w-full">
-          <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
+      <div className="flex flex-col gap-5">
+        {/* Username or email */}
+        <div className="flex flex-col gap-2">
+          <label className="ml-1 text-xs font-bold uppercase tracking-wider text-app-muted">
             Username or Email
           </label>
-          <input
-            className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-sm text-app-text outline-none transition-all focus:border-app-border shadow-inner"
-            type="search"
-            placeholder="Username or Email"
+          <Input
+            aria-label="Username or email"
+            leadingIcon={<FontAwesomeIcon icon={faUser} />}
+            placeholder="Username or email"
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
           />
         </div>
 
-        <div className="w-full self-end">
-          <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
+        {/* Permission role */}
+        <div className="flex flex-col gap-2">
+          <label className="ml-1 text-xs font-bold uppercase tracking-wider text-app-muted">
             Permission Role
           </label>
           <Selector
@@ -75,25 +83,25 @@ export const InviteSection: React.FC<InviteSectionProps> = ({
                 value: "VIEWER",
                 label: "Viewer",
                 icon: <FontAwesomeIcon icon={faEye} />,
-                activeBgClass: "theme-bg-primary-light",
+                activeBgClass: "bg-app-surface",
                 activeColorClass: "text-app-text",
               },
               {
                 value: "EDITOR",
                 label: "Editor",
                 icon: <FontAwesomeIcon icon={faPen} />,
-                activeBgClass: "theme-bg-warning-light",
-                activeColorClass: "theme-text-warning",
+                activeBgClass: "bg-app-surface",
+                activeColorClass: "text-app-text",
               },
             ]}
           />
-          <p className="mt-2 text-xs text-app-muted text-center">
+          <p className="text-center text-xs text-app-muted">
             {role === "VIEWER"
               ? "Viewers can only read transactions and statistics."
               : "Editors can add, edit, and delete transactions."}
           </p>
         </div>
       </div>
-    </SettingsCard>
+    </Card>
   );
 };

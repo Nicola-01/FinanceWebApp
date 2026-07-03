@@ -1,13 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faFilter,
-  faCheckSquare,
-  faSquare,
-  faMinusSquare,
-} from "@fortawesome/free-solid-svg-icons";
+import { faFilter } from "@fortawesome/free-solid-svg-icons";
 import type { Tag } from "../../utils/types.ts";
-import { TagFilterRow } from "./TagFilterRow.tsx";
+import { Checkbox, type CheckboxState } from "../ui/Checkbox.tsx";
+import { SearchInput } from "../ui/SearchInput.tsx";
+import { TagRow } from "../TagSelector/TagRow.tsx";
+import { TagDropdownPanel } from "../TagSelector/TagDropdownPanel.tsx";
+import { useTagTree } from "../TagSelector/useTagTree.ts";
 
 interface TagFilterProps {
   tags: Tag[];
@@ -16,120 +15,213 @@ interface TagFilterProps {
   onChange: (selectedTags: string[]) => void;
 }
 
+/**
+ * Multi-select tag filter for the sticky transactions bar: a compact funnel
+ * trigger opening an accordion of checkbox rows (tri-state "All", parent ->
+ * children family selection, inline expand). Shares TagRow, the tree hook and
+ * the dropdown panel with TagPicker.
+ */
 export const TagFilter: React.FC<TagFilterProps> = ({
   tags,
   selectedTags,
   color = "var(--color-app-green)",
   onChange,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [expandedParents, setExpandedParents] = useState<string[]>([]);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const {
+    isOpen,
+    open,
+    close,
+    dropdownRef,
+    searchQuery,
+    setSearchQuery,
+    isSearching,
+    filteredGroups,
+    rootTags,
+    getChildren,
+    getFamily,
+  } = useTagTree(tags);
 
+  const [expandedNames, setExpandedNames] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus the search field when the panel opens (no state writes here).
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    if (!isOpen) return;
+    const id = window.setTimeout(() => searchInputRef.current?.focus(), 0);
+    return () => window.clearTimeout(id);
   }, [isOpen]);
 
-  // Group tags
-  const rootTags = tags.filter((t) => !t.parentName);
+  // Reset the accordion on each fresh open (avoids setState-in-effect on close).
+  const openFilter = () => {
+    if (isOpen) return;
+    setExpandedNames(new Set());
+    open();
+  };
 
-  const getChildren = (parentName: string) =>
-    tags.filter((t) => t.parentName === parentName);
+  const toggleExpand = (name: string) =>
+    setExpandedNames((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
 
-  const getFamily = (parentTag: Tag) => [
-    parentTag,
-    ...getChildren(parentTag.name),
-  ];
-
-  // "All" state
-  let allState: "checked" | "unchecked" | "indeterminate" = "unchecked";
-  if (selectedTags.length === tags.length && tags.length > 0) {
+  // --- Selection semantics ---
+  let allState: CheckboxState = "unchecked";
+  if (tags.length > 0 && selectedTags.length === tags.length) {
     allState = "checked";
   } else if (selectedTags.length > 0) {
     allState = "indeterminate";
   }
 
-  const toggleAll = () => {
-    if (allState === "checked") {
-      onChange([]);
-    } else {
-      onChange(tags.map((t) => t.name));
-    }
-  };
+  const toggleAll = () =>
+    onChange(allState === "checked" ? [] : tags.map((t) => t.name));
 
+  // Toggling a parent toggles its whole family (parent + direct children).
   const toggleParent = (parentTag: Tag) => {
-    const family = getFamily(parentTag);
-    const familyNames = family.map((t) => t.name);
-    const isFullyChecked = familyNames.every((name) =>
-      selectedTags.includes(name),
-    );
-
-    if (isFullyChecked) {
-      // Uncheck all in family
-      onChange(selectedTags.filter((name) => !familyNames.includes(name)));
-    } else {
-      // Check all in family
-      const newSelection = new Set([...selectedTags, ...familyNames]);
-      onChange(Array.from(newSelection));
-    }
-  };
-
-  const toggleSingle = (tagName: string) => {
-    if (selectedTags.includes(tagName)) {
-      onChange(selectedTags.filter((name) => name !== tagName));
-    } else {
-      onChange([...selectedTags, tagName]);
-    }
-  };
-
-  const toggleExpand = (parentName: string) => {
-    setExpandedParents((prev) =>
-      prev.includes(parentName)
-        ? prev.filter((name) => name !== parentName)
-        : [...prev, parentName],
-    );
-  };
-
-  const getParentState = (
-    parentTag: Tag,
-  ): "checked" | "unchecked" | "indeterminate" => {
     const familyNames = getFamily(parentTag).map((t) => t.name);
-    const checkedCount = familyNames.filter((name) =>
-      selectedTags.includes(name),
-    ).length;
+    const isFullyChecked = familyNames.every((n) => selectedTags.includes(n));
+    if (isFullyChecked) {
+      onChange(selectedTags.filter((n) => !familyNames.includes(n)));
+    } else {
+      onChange(Array.from(new Set([...selectedTags, ...familyNames])));
+    }
+  };
 
-    if (checkedCount === 0) return "unchecked";
-    if (checkedCount === familyNames.length) return "checked";
+  const toggleSingle = (tagName: string) =>
+    onChange(
+      selectedTags.includes(tagName)
+        ? selectedTags.filter((n) => n !== tagName)
+        : [...selectedTags, tagName],
+    );
+
+  const getParentState = (parentTag: Tag): CheckboxState => {
+    const familyNames = getFamily(parentTag).map((t) => t.name);
+    const checked = familyNames.filter((n) => selectedTags.includes(n)).length;
+    if (checked === 0) return "unchecked";
+    if (checked === familyNames.length) return "checked";
     return "indeterminate";
   };
 
-  let allIcon = faSquare;
-  let allColorClass = "text-app-muted";
-  if (allState === "checked") {
-    allIcon = faCheckSquare;
-    allColorClass = "";
-  } else if (allState === "indeterminate") {
-    allIcon = faMinusSquare;
-    allColorClass = "";
-  }
+  const childState = (childName: string): CheckboxState =>
+    selectedTags.includes(childName) ? "checked" : "unchecked";
 
   const isFilterActive = selectedTags.length !== tags.length;
 
+  const emptyState = (message: string) => (
+    <div className="rounded-lg border border-dashed border-app-border p-4 text-center text-sm italic text-app-muted">
+      {message}
+    </div>
+  );
+
+  // A checkbox row for the accordion / search list.
+  const filterRow = (
+    tag: Tag,
+    state: CheckboxState,
+    onToggle: () => void,
+    trailing?: { expanded: boolean; onToggle: () => void },
+    onBodyClick?: () => void,
+  ) => (
+    <TagRow
+      tag={tag}
+      color={color}
+      highlighted={state !== "unchecked"}
+      background={state !== "unchecked" ? "active" : "none"}
+      onClick={onBodyClick ?? onToggle}
+      checkbox={{ state, onChange: onToggle }}
+      trailing={
+        trailing
+          ? {
+              kind: "expand",
+              expanded: trailing.expanded,
+              onToggle: trailing.onToggle,
+            }
+          : undefined
+      }
+    />
+  );
+
+  // Recursive accordion node: a row plus, when expanded, its indented children.
+  const renderNode = (tag: Tag): React.ReactNode => {
+    const children = getChildren(tag.name);
+    const hasChildren = children.length > 0;
+    const isExpanded = expandedNames.has(tag.name);
+    const state = hasChildren ? getParentState(tag) : childState(tag.name);
+    const onToggle = () =>
+      hasChildren ? toggleParent(tag) : toggleSingle(tag.name);
+    return (
+      <div key={tag.name}>
+        {filterRow(
+          tag,
+          state,
+          onToggle,
+          hasChildren
+            ? { expanded: isExpanded, onToggle: () => toggleExpand(tag.name) }
+            : undefined,
+          hasChildren ? () => toggleExpand(tag.name) : undefined,
+        )}
+        {hasChildren && isExpanded && (
+          <div className="ml-4 mt-1 space-y-1 border-l-2 border-app-border/30 pl-2">
+            {children.map((child) => renderNode(child))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const list = () => {
+    if (isSearching) {
+      return filteredGroups.length > 0
+        ? filteredGroups.map((group) => (
+            <div key={group.main.name} className="mb-2">
+              <div className="rounded-lg bg-app-hover">
+                {filterRow(group.main, getParentState(group.main), () =>
+                  toggleParent(group.main),
+                )}
+              </div>
+              {group.children.length > 0 && (
+                <div className="ml-4 mt-1 space-y-1 border-l-2 border-app-border/30 pl-2">
+                  {group.children.map((child) => (
+                    <div key={child.name}>
+                      {filterRow(child, childState(child.name), () =>
+                        toggleSingle(child.name),
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))
+        : emptyState(`No tags found for "${searchQuery}".`);
+    }
+
+    return (
+      <>
+        <Checkbox
+          state={allState}
+          onChange={toggleAll}
+          label="All Tags"
+          color={color}
+          aria-label="Toggle all tags"
+          className="w-full rounded-lg p-3 hover:bg-app-input"
+        />
+        <hr className="my-1 border-app-border" />
+        {rootTags.length > 0
+          ? rootTags.map((rootTag) => renderNode(rootTag))
+          : emptyState("No tags available.")}
+      </>
+    );
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
+      {/* Trigger: compact funnel button with an active accent + dot. */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center justify-center w-[48px] h-[48px] rounded-xl border transition-all ${
+        onClick={() => (isOpen ? close() : openFilter())}
+        className={`flex h-[48px] w-[48px] items-center justify-center rounded-xl border transition-all ${
           isFilterActive || isOpen
             ? "shadow-lg"
             : "bg-app-input border-app-border text-app-muted hover:bg-app-surface hover:text-app-text"
@@ -152,7 +244,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({
           />
           {isFilterActive && (
             <div
-              className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full"
+              className="absolute -top-1 -right-1.5 h-2 w-2 rounded-full"
               style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
             ></div>
           )}
@@ -160,73 +252,21 @@ export const TagFilter: React.FC<TagFilterProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-4 w-64 rounded-xl border border-app-border bg-app-card p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] flex flex-col max-h-[350px]">
-          <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-1">
-            {/* All Option */}
-            <div
-              className="flex items-center gap-3 px-3 py-2 hover:bg-app-input rounded-lg cursor-pointer transition-colors group mb-1 border-b border-app-border pb-2"
-              onClick={toggleAll}
-            >
-              <FontAwesomeIcon
-                icon={allIcon}
-                className={`text-lg transition-colors ${allColorClass}`}
-                style={allState !== "unchecked" ? { color } : {}}
-              />
-              <span className="text-app-text text-sm font-medium">
-                All Tags
-              </span>
-            </div>
-
-            {/* Tag Tree */}
-            {rootTags.map((rootTag) => {
-              const children = getChildren(rootTag.name);
-              const isExpanded = expandedParents.includes(rootTag.name);
-              const pState = getParentState(rootTag);
-
-              return (
-                <div key={rootTag.name} className="flex flex-col space-y-0.5">
-                  <TagFilterRow
-                    tag={rootTag}
-                    childrenTags={children}
-                    isExpanded={isExpanded}
-                    onToggleExpand={() => toggleExpand(rootTag.name)}
-                    selectionState={pState}
-                    onToggleSelection={() => toggleParent(rootTag)}
-                    color={color}
-                  />
-
-                  {isExpanded && children.length > 0 && (
-                    <div className="pl-3 space-y-0.5 border-l border-app-border ml-5 my-1">
-                      {children.map((childTag) => {
-                        const cState = selectedTags.includes(childTag.name)
-                          ? "checked"
-                          : "unchecked";
-                        return (
-                          <TagFilterRow
-                            key={childTag.name}
-                            tag={childTag}
-                            isExpanded={false}
-                            onToggleExpand={() => {}}
-                            selectionState={cState}
-                            onToggleSelection={() =>
-                              toggleSingle(childTag.name)
-                            }
-                            color={color}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            {rootTags.length === 0 && (
-              <div className="p-4 text-sm text-app-muted text-center italic">
-                No tags available
-              </div>
-            )}
-          </div>
-        </div>
+        <TagDropdownPanel
+          className="right-0 mt-4 w-72"
+          searchSlot={
+            <SearchInput
+              ref={searchInputRef}
+              value={searchQuery}
+              onChange={setSearchQuery}
+              color={color}
+              placeholder="Search tags..."
+              aria-label="Search tags"
+            />
+          }
+        >
+          {list()}
+        </TagDropdownPanel>
       )}
     </div>
   );

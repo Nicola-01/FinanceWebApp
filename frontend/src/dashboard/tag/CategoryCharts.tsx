@@ -40,10 +40,13 @@ export const TransactionPieChart = ({
   transactions,
   type,
   title,
+  currency = "EUR",
 }: {
   transactions: Transaction[];
   type: "INCOME" | "EXPENSE";
   title: string;
+  /** Currency code for the centre total (defaults to EUR for the landing/demo usage). */
+  currency?: string;
 }) => {
   const { resolvedTheme } = useTheme();
   const muiTheme = useMuiTheme();
@@ -175,7 +178,7 @@ export const TransactionPieChart = ({
           <PieCenterLabel>
             {totalAmount.toLocaleString("it-IT", {
               style: "currency",
-              currency: "EUR",
+              currency,
               maximumFractionDigits: 0,
             })}
           </PieCenterLabel>

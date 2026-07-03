@@ -218,17 +218,19 @@ export default function CustomDatePicker({
 
     if (preset === "month") {
       return (
-        <div className="flex items-center justify-between w-full flex-1">
+        <div className="flex items-center justify-between w-full flex-1 min-w-0">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setCurrentDate((prev) => subMonths(prev, 1));
             }}
-            className={`p-1 rounded ${bgHover} ${textMuted}`}
+            className={`p-1 rounded shrink-0 ${bgHover} ${textMuted}`}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className={`${textMain} font-medium text-sm capitalize`}>
+          <span
+            className={`${textMain} font-medium text-sm capitalize flex-1 min-w-0 text-center truncate px-1`}
+          >
             {format(currentDate, "MMMM yyyy")}
           </span>
           <button
@@ -236,7 +238,7 @@ export default function CustomDatePicker({
               e.stopPropagation();
               setCurrentDate((prev) => addMonths(prev, 1));
             }}
-            className={`p-1 rounded ${bgHover} ${textMuted}`}
+            className={`p-1 rounded shrink-0 ${bgHover} ${textMuted}`}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -245,17 +247,19 @@ export default function CustomDatePicker({
     }
     if (preset === "year") {
       return (
-        <div className="flex items-center justify-between w-full flex-1">
+        <div className="flex items-center justify-between w-full flex-1 min-w-0">
           <button
             onClick={(e) => {
               e.stopPropagation();
               setCurrentDate((prev) => subYears(prev, 1));
             }}
-            className={`p-1 rounded ${bgHover} ${textMuted}`}
+            className={`p-1 rounded shrink-0 ${bgHover} ${textMuted}`}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className={`${textMain} font-medium text-sm`}>
+          <span
+            className={`${textMain} font-medium text-sm flex-1 min-w-0 text-center truncate px-1`}
+          >
             {format(currentDate, "yyyy")}
           </span>
           <button
@@ -263,7 +267,7 @@ export default function CustomDatePicker({
               e.stopPropagation();
               setCurrentDate((prev) => addYears(prev, 1));
             }}
-            className={`p-1 rounded ${bgHover} ${textMuted}`}
+            className={`p-1 rounded shrink-0 ${bgHover} ${textMuted}`}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -273,16 +277,16 @@ export default function CustomDatePicker({
 
     return (
       <div
-        className={`flex items-center gap-2 flex-1 font-medium text-sm w-full text-app-text`}
+        className={`flex items-center gap-2 flex-1 min-w-0 font-medium text-sm w-full text-app-text`}
       >
         <span
-          className={`flex-1 text-center rounded py-1 px-2 border ${bgInput} ${borderInput}`}
+          className={`flex-1 min-w-0 truncate text-center rounded py-1 px-2 border ${bgInput} ${borderInput}`}
         >
           {formatDateLabel(startDate)}
         </span>
-        <span className={textMuted}>→</span>
+        <span className={`${textMuted} shrink-0`}>→</span>
         <span
-          className={`flex-1 text-center rounded py-1 px-2 border ${bgInput} ${borderInput}`}
+          className={`flex-1 min-w-0 truncate text-center rounded py-1 px-2 border ${bgInput} ${borderInput}`}
         >
           {formatDateLabel(endDate)}
         </span>
@@ -293,7 +297,7 @@ export default function CustomDatePicker({
   return (
     // Contenitore principale flessibile per posizionare l'icona all'esterno
     <div
-      className="relative w-full sm:max-w-sm font-sans flex items-center gap-3"
+      className="relative w-full sm:max-w-sm min-w-0 font-sans flex items-center gap-3"
       ref={popoverRef}
     >
       {/* Icona del Calendario fissa a sinistra */}
@@ -304,11 +308,13 @@ export default function CustomDatePicker({
         onClick={() => setIsOpen(!isOpen)}
         className={
           triggerClassName
-            ? `flex-1 flex items-center justify-between cursor-pointer ${triggerClassName}`
-            : `flex-1 flex items-center justify-between p-3 border rounded-lg shadow-sm cursor-pointer transition-colors h-12 ${bgMain} ${borderMain} hover:border-opacity-70`
+            ? `flex-1 min-w-0 flex items-center justify-between cursor-pointer ${triggerClassName}`
+            : `flex-1 min-w-0 flex items-center justify-between p-3 border rounded-lg shadow-sm cursor-pointer transition-colors h-12 ${bgMain} ${borderMain} hover:border-opacity-70`
         }
       >
-        <div className="flex items-center w-full">{renderTriggerContent()}</div>
+        <div className="flex items-center w-full min-w-0">
+          {renderTriggerContent()}
+        </div>
       </div>
 
       {/* Popover del Calendario */}

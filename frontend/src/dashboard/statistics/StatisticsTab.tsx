@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { OverviewTable } from "./OverviewTable.tsx";
+import { StatisticsSummary } from "./StatisticsSummary.tsx";
 import { MonthlySnapshotChart } from "./MonthlySnapshotChart.tsx";
 import { CumulativeChart } from "./CumulativeChart.tsx";
 import { SwitchableCard } from "./SwitchableCard.tsx";
@@ -81,6 +82,9 @@ export const StatisticsTab: React.FC = () => {
   return (
     <ThemeProvider theme={resolvedTheme === "dark" ? darkTheme : lightTheme}>
       <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] pb-10 relative">
+        {/* At-a-glance summary: total income / expense / net + per-month averages */}
+        <StatisticsSummary transactions={transactions} />
+
         {/* Monthly/Yearly Overview Table */}
         <OverviewTable transactions={transactions} />
 

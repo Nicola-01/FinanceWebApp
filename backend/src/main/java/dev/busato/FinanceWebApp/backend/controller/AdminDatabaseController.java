@@ -102,7 +102,22 @@ public class AdminDatabaseController {
     return ResponseEntity.ok("Restore from '" + key + "' completed successfully.");
   }
 
-  // ── 5. Upload a backup file ───────────────────────────────────────────────
+  // ── 5. Delete a backup ────────────────────────────────────────────────────
+
+  /**
+   * Deletes the backup identified by {key}. Removes the R2 object when R2 is enabled, otherwise the
+   * local file.
+   *
+   * <p>DELETE /api/admin/backup/db_backup_2025-04-15_02-00.sql.gz.enc
+   */
+  @DeleteMapping("/backup/{key}")
+  public ResponseEntity<String> deleteBackup(@PathVariable String key) throws Exception {
+    log.warn("[AdminDatabaseController] DELETE backup requested – key={}", key);
+    backupService.deleteBackup(key);
+    return ResponseEntity.ok("Backup '" + key + "' deleted.");
+  }
+
+  // ── 6. Upload a backup file ───────────────────────────────────────────────
 
   /**
    * Accepts a multipart upload of an .sql or .sql.gz.enc file. Saves locally, then pushes to R2 if

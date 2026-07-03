@@ -13,7 +13,7 @@ import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../utils/apiError";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import Toggle from "../components/ui/Toggle";
+import { Checkbox } from "../components/ui/Checkbox";
 
 interface Requirements {
   username?: string;
@@ -178,11 +178,12 @@ export const LoginForm: React.FC = () => {
 
         {/* Remember me */}
         <div className="mb-6 text-sm">
-          <Toggle
-            checked={remember}
-            onChange={setRemember}
+          <Checkbox
+            state={remember}
+            onChange={() => setRemember(!remember)}
             size="sm"
             label="Remember me"
+            aria-label="Remember me"
           />
         </div>
 

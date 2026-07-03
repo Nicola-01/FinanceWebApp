@@ -21,6 +21,7 @@ Before writing markup, check whether a primitive already exists. Currently:
 |---|---|---|
 | `Button` | `Button.tsx` | **Every** button / CTA. |
 | `Input` | `Input.tsx` | **Every** text field (box with icon / slot). |
+| `SearchInput` | `SearchInput.tsx` | **Every** search field: magnifier + clear (×), `plain`/`boxed` variants, accent focus ring. |
 | `Toggle` | `Toggle.tsx` | **Every** on/off: sliding switch or a button that switches. |
 | `AmountInput` | `AmountInput.tsx` | Currency amount inputs. |
 | `CustomSelect` | `CustomSelect.tsx` | Dropdowns / selects. |

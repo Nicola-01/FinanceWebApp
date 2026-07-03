@@ -1,9 +1,7 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import api from "../../api/axiosConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faRepeat,
-  faEdit,
   faCheck,
   faPause,
   faPlay,
@@ -15,7 +13,7 @@ import type { Tag, Wallet, Subscription } from "../../utils/types";
 
 // Sub-components riutilizzati dalle transazioni!
 import CustomDatePicker from "../../components/DataPicker/CustomDatePicker";
-import { ModalDialog } from "../common/ModalDialog";
+import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { AmountInput } from "../../components/ui/AmountInput.tsx";
 import { TransactionTypeToggle } from "../TransactionModal/TransactionTypeToggle";
 import { TagPicker } from "../TransactionModal/TagPicker/TagPicker";
@@ -37,7 +35,7 @@ interface Props {
 
 export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
   ({ wallet, tags, baseCurrency, onSuccess }, ref) => {
-    const dialogRef = useRef<HTMLDialogElement>(null);
+    const [open, setOpen] = useState(false);
 
     // --- States per Dati Generici ---
     const [editingSubId, setEditingSubId] = useState<string | null>(null);
@@ -123,7 +121,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setDurationUntil(null);
           setStatus("ACTIVE");
         }
-        dialogRef.current?.showModal();
+        setOpen(true);
       },
     }));
 
@@ -175,7 +173,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         }
 
         onSuccess();
-        if (dialogRef.current?.open) dialogRef.current.close();
+        setOpen(false);
       } catch (err: unknown) {
         const actionText = editingSubId ? "updating" : "creating";
         triggerToast(
@@ -195,33 +193,30 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
       type !== "";
     const isEditing = !!editingSubId;
 
-    // Bottone di salvataggio in alto a destra nel modale
-    const rightActions = [
-      {
-        icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
-        onClick: async () => {
-          if (canSave && !loading) await handleSave();
-        },
-        color: canSave ? wallet.color : undefined,
-        hoverColor: "hover:theme-text-default",
-        disabled: !canSave || loading,
-      },
-    ];
+    // Save control shown in the overlay header.
+    const headerActions = (
+      <button
+        type="button"
+        onClick={() => {
+          if (canSave && !loading) handleSave();
+        }}
+        disabled={!canSave || loading}
+        aria-label="Save subscription"
+        className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-app-input disabled:cursor-not-allowed disabled:opacity-40"
+        style={{ color: canSave ? wallet.color : undefined }}
+      >
+        <FontAwesomeIcon icon={faCheck} className="text-lg" />
+      </button>
+    );
 
     return (
-      <ModalDialog
-        ref={dialogRef}
-        className="max-w-160 p-6"
-        title={
-          <>
-            <FontAwesomeIcon
-              icon={isEditing ? faEdit : faRepeat}
-              color={wallet.color}
-            />{" "}
-            {isEditing ? "Edit" : "New"} Subscription
-          </>
-        }
-        rightActions={rightActions}
+      <ResponsiveOverlay
+        open={open}
+        onClose={() => setOpen(false)}
+        title={isEditing ? "Edit Subscription" : "New Subscription"}
+        accentColor={wallet.color}
+        width={480}
+        headerActions={headerActions}
       >
         <div
           id="subscription-form"
@@ -422,7 +417,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             onConvertedAmountChange={setConvertedAmount}
           />
         </div>
-      </ModalDialog>
+      </ResponsiveOverlay>
     );
   },
 );

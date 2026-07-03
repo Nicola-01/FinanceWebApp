@@ -30,14 +30,14 @@ export const OverviewCell: React.FC<OverviewCellProps> = ({
 
   if (hasData) {
     if (type === "income") {
-      color = "theme-text-success";
+      color = "text-app-green";
       prefix = "+";
     } else if (type === "expense") {
-      color = "theme-text-danger";
+      color = "text-app-red";
       prefix = "-";
       displayValue = Math.abs(value);
     } else {
-      color = value >= 0 ? "theme-text-success" : "theme-text-danger";
+      color = value >= 0 ? "text-app-green" : "text-app-red";
       prefix = value >= 0 ? "+" : "-";
       displayValue = Math.abs(value);
     }

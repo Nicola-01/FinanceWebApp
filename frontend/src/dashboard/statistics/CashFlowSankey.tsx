@@ -10,6 +10,8 @@ import { useTheme } from "../../utils/ThemeContext";
 
 interface CashFlowSankeyProps {
   transactions: Transaction[];
+  /** Currency code for formatting (defaults to EUR for the landing/demo usage). */
+  currency?: string;
 }
 
 const SAVINGS_COLOR = "url(#savingsPattern)";
@@ -26,6 +28,7 @@ type LinkDef = {
 
 export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
   transactions,
+  currency = "EUR",
 }) => {
   const { resolvedTheme } = useTheme();
   const muiTheme = useMuiTheme();
@@ -194,10 +197,10 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
   ) => {
     const fmt = new Intl.NumberFormat("it-IT", {
       style: "currency",
-      currency: "EUR",
+      currency,
       maximumFractionDigits: 2,
     }).format(value);
-    return context.type === "node" ? `${fmt} totale` : fmt;
+    return context.type === "node" ? `${fmt} total` : fmt;
   };
 
   const sidePadding = isMobile ? 12 : 24;
@@ -206,7 +209,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
     resolvedTheme === "dark" ? "#ffffff" : "var(--color-app-card)";
 
   return (
-    <div className="w-full my-2 md:my-4 p-1 sm:p-3 md:p-4 bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border">
+    <div className="w-full p-1 sm:p-3 md:p-4 bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border">
       <h2 className="text-center font-bold text-app-text text-lg md:text-2xl mb-1">
         Cash Flow Overview
       </h2>

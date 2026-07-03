@@ -170,6 +170,27 @@ public class BackupService {
     log.info("[Restore] Completed for key={}", key);
   }
 
+  /**
+   * Delete the backup identified by the given key. Removes the R2 object when R2 is enabled,
+   * otherwise deletes the local .sql.gz.enc file. R2 deletion is idempotent; in local mode a
+   * missing file raises {@link FileNotFoundException}.
+   */
+  public void deleteBackup(String key) throws IOException {
+    // Guard against path traversal — backup keys are flat filenames.
+    if (key.contains("/") || key.contains("\\") || key.contains("..")) {
+      throw new IllegalArgumentException("Invalid backup key: " + key);
+    }
+
+    if (r2.isEnabled()) {
+      r2.delete(key);
+      log.info("[Delete] Removed from R2: {}", key);
+    } else {
+      Path local = resolveEncFile(key); // throws FileNotFoundException if missing
+      Files.delete(local);
+      log.info("[Delete] Removed local backup: {}", key);
+    }
+  }
+
   /** Accept a raw uploaded file, save locally, then push to R2 if enabled. */
   public String uploadBackup(String originalFilename, byte[] data) throws IOException {
     String safeName = originalFilename.replaceAll("[^a-zA-Z0-9._\\-]", "_");

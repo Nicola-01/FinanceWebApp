@@ -35,7 +35,7 @@ interface WalletsAreaProps {
 }
 
 const WalletSkeleton = () => (
-  <div className="flex items-center gap-4 p-4 rounded-2xl border border-app-border bg-app-input animate-pulse shrink-0 w-65 xl:w-full">
+  <div className="flex items-center gap-4 p-4 rounded-2xl border border-app-border bg-app-input animate-pulse shrink-0 w-[260px] xl:w-full">
     <div className="h-12 w-12 rounded-full bg-app-surface shrink-0"></div>
     <div className="flex flex-1 flex-col min-w-0 gap-2">
       <div className="h-4 w-3/4 rounded bg-app-surface"></div>
@@ -151,54 +151,74 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveId(null)}
     >
-      <div
+      <aside
         className="
-                flex flex-row overflow-x-auto overflow-y-hidden w-full p-4 gap-4
-                xl:flex-col xl:w-[320px] xl:shrink-0 xl:h-full xl:overflow-y-auto xl:overflow-x-hidden xl:border-r xl:border-app-border xl:p-6
-                bg-app-bg/5 backdrop-blur-md
-                [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
+                w-full shrink-0 backdrop-blur-md
+                xl:flex xl:flex-col xl:w-[320px] xl:h-full xl:min-h-0
+                xl:border-r xl:border-app-border xl:bg-app-surface/30 xl:backdrop-blur-xl
             "
       >
-        {loading && wallets.length === 0 ? (
-          <>
-            <WalletSkeleton />
-            <WalletSkeleton />
-            <WalletSkeleton />
-          </>
-        ) : (
-          <SortableContext
-            items={wallets.map((w) => w.id)}
-            strategy={rectSortingStrategy}
-          >
-            {wallets.map((wallet) => (
-              <WalletCard
-                key={wallet.id}
-                wallet={wallet}
-                isSelected={wallet.id === selectedWalletId}
-                onClick={() => onSelectWallet(wallet.id)}
-              />
-            ))}
-          </SortableContext>
-        )}
+        {/* Desktop section header — reads as a real 'wallet filter' panel */}
+        <div className="hidden xl:flex items-center justify-between gap-3 px-6 pt-6 pb-3">
+          <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-app-muted">
+            Wallets
+          </h3>
+          {!loading && wallets.length > 0 && (
+            <span className="rounded-full bg-app-input px-2 py-0.5 font-app-mono text-[11px] font-bold tabular-nums text-app-muted">
+              {wallets.length}
+            </span>
+          )}
+        </div>
 
-        {!loading && (
-          <button
-            onClick={() => walletModal.current?.openModal()}
-            className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input transition-all hover:bg-app-border hover:border-app-green/50 w-[260px] xl:w-[272px] shrink-0 text-left"
-          >
-            <div className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-app-green transition-colors shrink-0">
-              <FontAwesomeIcon icon={faPlus} />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <h4 className="m-0 text-sm font-bold text-app-muted group-hover:text-app-text transition-colors truncate">
-                Add New Wallet
-              </h4>
-            </div>
-          </button>
-        )}
+        {/* Scroller: horizontal on mobile, vertical list on desktop */}
+        <div
+          className="
+                  flex flex-row w-full gap-4 p-4 overflow-x-auto overflow-y-hidden
+                  xl:flex-1 xl:flex-col xl:gap-3 xl:min-h-0 xl:px-6 xl:pt-0 xl:pb-6 xl:overflow-y-auto xl:overflow-x-hidden
+                  [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
+              "
+        >
+          {loading && wallets.length === 0 ? (
+            <>
+              <WalletSkeleton />
+              <WalletSkeleton />
+              <WalletSkeleton />
+            </>
+          ) : (
+            <SortableContext
+              items={wallets.map((w) => w.id)}
+              strategy={rectSortingStrategy}
+            >
+              {wallets.map((wallet) => (
+                <WalletCard
+                  key={wallet.id}
+                  wallet={wallet}
+                  isSelected={wallet.id === selectedWalletId}
+                  onClick={() => onSelectWallet(wallet.id)}
+                />
+              ))}
+            </SortableContext>
+          )}
 
-        <CreateWalletModal ref={walletModal} onSuccess={handleCreate} />
-      </div>
+          {!loading && (
+            <button
+              onClick={() => walletModal.current?.openModal()}
+              className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input/60 transition-all hover:bg-app-input hover:border-app-green/50 w-[260px] xl:w-full shrink-0 text-left"
+            >
+              <div className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-app-green transition-colors shrink-0">
+                <FontAwesomeIcon icon={faPlus} />
+              </div>
+              <div className="flex flex-col min-w-0">
+                <h4 className="m-0 text-sm font-bold text-app-muted group-hover:text-app-text transition-colors truncate">
+                  Add New Wallet
+                </h4>
+              </div>
+            </button>
+          )}
+
+          <CreateWalletModal ref={walletModal} onSuccess={handleCreate} />
+        </div>
+      </aside>
 
       <DragOverlay dropAnimation={{ duration: 250, easing: "ease-out" }}>
         {activeWallet ? (

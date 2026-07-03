@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { NavLink } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronDown,
@@ -41,25 +40,15 @@ import type { Invitation } from "../utils/types.ts";
 import { ThemeSelector } from "../components/selectors/ThemeSelector";
 import { usePWA } from "../utils/PWAContext.tsx";
 
-export interface AppHeaderTab {
-  label: string;
-  to: string;
-}
-
 interface AppHeaderProps {
   page: {
     text: string;
     accent: string;
   };
   isAdmin?: boolean;
-  tabs?: AppHeaderTab[];
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({
-  page,
-  isAdmin,
-  tabs,
-}) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ page, isAdmin }) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -133,32 +122,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           {/* Titolo */}
           <h2 className="m-0 text-2xl font-bold tracking-wide text-app-text capitalize">
             {page.text}
-            <span className="ml-1 animate-gradient-x bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <span className="ml-1 bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)] bg-clip-text text-transparent">
               {page.accent}
             </span>
           </h2>
         </div>
-
-        {/* Tab Navigation (facoltativa) */}
-        {tabs && tabs.length > 0 && (
-          <nav className="flex items-center gap-1 rounded-xl border border-app-border bg-app-input/40 p-1">
-            {tabs.map((tab) => (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                className={({ isActive }) =>
-                  `relative px-4 py-1.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                    isActive
-                      ? "bg-app-card text-app-text shadow-sm"
-                      : "text-app-muted hover:text-app-text hover:bg-app-card/50"
-                  }`
-                }
-              >
-                {tab.label}
-              </NavLink>
-            ))}
-          </nav>
-        )}
 
         {/* Menu Utente Dropdown */}
         <div className="relative z-[120]" ref={menuRef}>
@@ -167,7 +135,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${
               showMenu
                 ? "bg-app-input border-app-border shadow-sm"
-                : "theme-border-transparent hover:bg-app-input"
+                : "border-transparent hover:bg-app-input"
             }`}
           >
             {/* Icona Profilo */}
@@ -205,7 +173,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
                   {/* Badge ADMIN (visibile solo se il ruolo è ADMIN) */}
                   {user?.role === "ADMIN" && (
-                    <span className="shrink-0 rounded theme-bg-warning-light px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider theme-text-warning">
+                    <span className="shrink-0 rounded bg-app-yellow/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-yellow">
                       Admin
                     </span>
                   )}
@@ -267,7 +235,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   Invitations
                   {invitations.filter((i) => i.status === "PENDING").length >
                     0 && (
-                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-app-sky)] text-[10px] font-bold theme-text-inverse">
+                    <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-app-sky text-[10px] font-bold text-white">
                       {invitations.length}
                     </span>
                   )}

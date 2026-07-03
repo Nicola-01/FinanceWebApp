@@ -1,7 +1,7 @@
 import React from "react";
 import { OverviewCell } from "./OverviewCell.tsx";
 
-// Definiamo il tipo dei dati che passi nell'array
+// Shape of the data items passed in the array
 type DataItem = { income: number; expense: number };
 
 interface OverviewRowProps {

@@ -40,9 +40,8 @@ export const SubscriptionTab = () => {
 
   return (
     <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out]">
-      {/* Header: Titolo, Toggle Viste, Bottone Aggiungi */}
+      {/* Header: view toggle (the add action lives in the FAB) */}
       <div className="flex items-center justify-end gap-4 mb-6">
-        {/* Toggle View */}
         {/* Toggle View */}
         <Selector
           value={viewMode}
@@ -66,15 +65,6 @@ export const SubscriptionTab = () => {
             },
           ]}
         />
-
-        {/* Pulsante Nuova Subscription */}
-        {/*<button*/}
-        {/*    onClick={() => modalRef.current?.openModal()}*/}
-        {/*    className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-app-sky to-[#00ff7f] theme-text-inverse font-bold text-sm hover:opacity-90 transition-opacity w-full sm:w-auto shadow-lg shadow-app-sky/20"*/}
-        {/*>*/}
-        {/*    <FontAwesomeIcon icon={faPlus} />*/}
-        {/*    New Subscription*/}
-        {/*</button>*/}
       </div>
 
       {/* Container Dinamico delle Viste */}

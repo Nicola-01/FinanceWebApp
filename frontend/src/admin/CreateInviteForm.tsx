@@ -8,6 +8,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../utils/apiError.ts";
+import { Input } from "../components/ui/Input";
+import Button from "../components/ui/Button";
 
 interface CreateInviteFormProps {
   onInviteCreated: () => void;
@@ -34,7 +36,6 @@ export const CreateInviteForm: React.FC<CreateInviteFormProps> = ({
 
     setIsLoading(true);
     try {
-      // L'endpoint è stato ricavato dal controller Java
       await api.post("/admin/management", {
         email: email.trim(),
         note: note.trim(),
@@ -51,60 +52,44 @@ export const CreateInviteForm: React.FC<CreateInviteFormProps> = ({
   };
 
   return (
-    <div className="mb-10 rounded-xl border border-app-border bg-white/[0.02] p-[25px]">
-      <h4 className="mb-[15px] flex items-center gap-2.5 text-[1.1rem] font-semibold text-app-green">
-        <FontAwesomeIcon icon={faEnvelope} /> Invite New User
-      </h4>
-
-      <form
-        className="grid grid-cols-1 items-center gap-[15px] lg:grid-cols-[minmax(200px,2fr)_minmax(200px,2fr)_auto]"
-        onSubmit={handleCreate}
+    // Slim single-line invite bar: email + optional note + send.
+    <form
+      className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+      onSubmit={handleCreate}
+    >
+      {/* type="search" avoids password-manager autofill on the email field */}
+      <Input
+        type="search"
+        leadingIcon={<FontAwesomeIcon icon={faEnvelope} />}
+        placeholder="Invite a user by email…"
+        aria-label="Invite email address"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        disabled={isLoading}
+        autoComplete="off"
+        className="[&::-webkit-search-cancel-button]:hidden"
+      />
+      <Input
+        leadingIcon={<FontAwesomeIcon icon={faStickyNote} />}
+        placeholder="Optional note…"
+        aria-label="Invite note"
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        disabled={isLoading}
+      />
+      <Button
+        type="submit"
+        variant="primary"
+        ripple
+        disabled={!email || isLoading}
+        className="sm:w-auto"
       >
-        {/* Email Input (type="search" per evitare Bitwarden) */}
-        <div className="w-full relative">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-subtle">
-            <FontAwesomeIcon icon={faEnvelope} />
-          </div>
-          <input
-            type="search"
-            className="h-[50px] w-full rounded-[10px] border border-app-border theme-bg-overlay pl-[40px] pr-[15px] py-3 text-[0.95rem] theme-text-default outline-none transition-colors focus:border-app-green [&::-webkit-search-cancel-button]:hidden"
-            placeholder="User email address..."
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={isLoading}
-            autoComplete="off"
-          />
-        </div>
-
-        {/* Note Input */}
-        <div className="w-full relative">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-subtle">
-            <FontAwesomeIcon icon={faStickyNote} />
-          </div>
-          <input
-            type="text"
-            className="h-[50px] w-full rounded-[10px] border border-app-border theme-bg-overlay pl-[40px] pr-[15px] py-3 text-[0.95rem] theme-text-default outline-none transition-colors focus:border-app-green"
-            placeholder="Optional note..."
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            disabled={isLoading}
-          />
-        </div>
-
-        {/* Action Button */}
-        <div className="w-full lg:w-auto">
-          <button
-            type="submit"
-            className="flex h-[50px] w-full items-center justify-center rounded-[10px] bg-app-green text-[1.2rem] theme-text-inverse transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#00e673] hover:shadow-[0_4px_15px_rgb(var(--app-green)/0.3)] disabled:translate-y-0 disabled:cursor-not-allowed disabled:bg-app-surface disabled:theme-text-subtle disabled:shadow-none lg:w-[60px]"
-            disabled={!email || isLoading}
-          >
-            <FontAwesomeIcon
-              icon={faPaperPlane}
-              className={isLoading ? "animate-pulse" : ""}
-            />
-          </button>
-        </div>
-      </form>
-    </div>
+        <FontAwesomeIcon
+          icon={faPaperPlane}
+          className={isLoading ? "animate-pulse" : ""}
+        />
+        Send
+      </Button>
+    </form>
   );
 };

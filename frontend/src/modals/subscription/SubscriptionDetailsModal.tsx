@@ -1,11 +1,11 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import { ModalDialog } from "../common/ModalDialog";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEdit,
   faTrash,
   faStopCircle,
 } from "@fortawesome/free-solid-svg-icons";
+import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { useDeleteModal } from "../common/DeleteModalContext";
 import type { Subscription, Wallet } from "../../utils/types";
 
@@ -14,7 +14,6 @@ import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import api from "../../api/axiosConfig";
 import { format } from "date-fns";
 import { getApiErrorTitle } from "../../utils/apiError";
-import type { ModalDialogRightActionProp } from "../common/ModalDialogRightAction";
 
 export interface SubscriptionDetailsModalHandle {
   openModal: (subscription: Subscription, date?: Date) => void;
@@ -30,9 +29,9 @@ export const SubscriptionDetailsModal = forwardRef<
   SubscriptionDetailsModalHandle,
   Props
 >(({ wallet, onEditRequest, onDeleteSuccess }, ref) => {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const deleteModalRef = useDeleteModal();
 
+  const [open, setOpen] = useState(false);
   const [sub, setSub] = useState<Subscription | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -40,13 +39,11 @@ export const SubscriptionDetailsModal = forwardRef<
     openModal: (subscription: Subscription, date) => {
       setSub(subscription);
       setSelectedDate(date || null);
-      dialogRef.current?.showModal();
+      setOpen(true);
     },
   }));
 
-  const handleClose = () => {
-    if (dialogRef.current?.open) dialogRef.current.close();
-  };
+  const handleClose = () => setOpen(false);
 
   const handleConfirmDelete = async (idToDelete: string) => {
     try {
@@ -101,58 +98,51 @@ export const SubscriptionDetailsModal = forwardRef<
     }
   };
 
-  const rightActions = () => {
-    let actions: ModalDialogRightActionProp[] = [];
-    if (sub && wallet.userRole !== "VIEWER") {
-      actions = [
-        {
-          icon: <FontAwesomeIcon icon={faEdit} className="w-4" />,
-          label: "Edit",
-          onClick: () => handleEditAndClose(sub),
-          color: "theme-text-muted",
-          hoverColor: "hover:theme-text-default",
-          hoverBg: "hover:bg-app-surface",
-        },
-        {
-          icon: <FontAwesomeIcon icon={faTrash} className="w-4" />,
-          label: "Delete",
-          onClick: () => {
-            deleteModalRef.current?.deleteObject(
-              sub,
-              "subscription",
-              async () => await handleConfirmDelete(sub.id),
-            );
-          },
-          color: "theme-text-danger",
-          hoverColor: "hover:theme-text-danger",
-          hoverBg: "hover:theme-bg-danger-transparent",
-        },
-      ];
-
-      if (selectedDate) {
-        actions.push({
-          icon: <FontAwesomeIcon icon={faStopCircle} className="w-4" />,
-          label: "Stop Here",
-          onClick: handleStopSubscriptionAtDate,
-          color: "theme-text-muted",
-          hoverColor: "hover:text-[#ff0055]",
-          hoverBg: "hover:bg-[#ff0055]/10",
-        });
-      }
-    }
-    return actions;
-  };
+  const canEdit = !!sub && wallet.userRole !== "VIEWER";
+  const headerActions = canEdit ? (
+    <>
+      <button
+        type="button"
+        aria-label="Edit"
+        onClick={() => handleEditAndClose(sub!)}
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+      >
+        <FontAwesomeIcon icon={faEdit} />
+      </button>
+      <button
+        type="button"
+        aria-label="Delete"
+        onClick={() =>
+          deleteModalRef.current?.deleteObject(sub!, "subscription", async () =>
+            handleConfirmDelete(sub!.id),
+          )
+        }
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-red/10 hover:text-app-red"
+      >
+        <FontAwesomeIcon icon={faTrash} />
+      </button>
+      {selectedDate && (
+        <button
+          type="button"
+          aria-label="Stop here"
+          onClick={handleStopSubscriptionAtDate}
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-yellow/10 hover:text-app-yellow"
+        >
+          <FontAwesomeIcon icon={faStopCircle} />
+        </button>
+      )}
+    </>
+  ) : undefined;
 
   return (
-    <ModalDialog
-      ref={dialogRef}
-      className="max-w-[550px]"
-      // rightActions() legge deleteModalRef.current solo dentro handler onClick
-      // (eseguiti fuori dal render): accesso sicuro, falso positivo del linter.
-      // eslint-disable-next-line react-hooks/refs
-      rightActions={rightActions()}
+    <ResponsiveOverlay
+      open={open}
+      onClose={handleClose}
+      title="Subscription"
+      accentColor={wallet.color}
+      headerActions={headerActions}
     >
       {sub && <SubscriptionView sub={sub} wallet={wallet} />}
-    </ModalDialog>
+    </ResponsiveOverlay>
   );
 });

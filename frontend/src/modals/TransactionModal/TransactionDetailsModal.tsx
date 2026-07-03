@@ -1,7 +1,7 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from "react";
-import { ModalDialog } from "../common/ModalDialog";
+import { forwardRef, useImperativeHandle, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { useDeleteModal } from "../common/DeleteModalContext";
 import type { Transaction, Wallet } from "../../utils/types.ts";
 
@@ -21,21 +21,19 @@ export const TransactionDetailsModal = forwardRef<
   TransactionDetailsModalHandle,
   Props
 >(({ wallet, handleDeleteSuccess, onEditRequest }, ref) => {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const deleteModalRef = useDeleteModal();
 
+  const [open, setOpen] = useState(false);
   const [tx, setTx] = useState<Transaction | null>(null);
 
   useImperativeHandle(ref, () => ({
     openModal: (transaction: Transaction) => {
       setTx(transaction);
-      dialogRef.current?.showModal();
+      setOpen(true);
     },
   }));
 
-  const handleClose = () => {
-    if (dialogRef.current?.open) dialogRef.current.close();
-  };
+  const handleClose = () => setOpen(false);
 
   const handleDeleteAndClose = () => {
     handleClose();
@@ -43,11 +41,11 @@ export const TransactionDetailsModal = forwardRef<
   };
 
   const handleEditAndClose = (transaction: Transaction) => {
-    handleClose(); // Chiudiamo questo modal di View
-    onEditRequest(transaction); // Lanciamo l'evento verso il componente padre
+    handleClose(); // close this view surface
+    onEditRequest(transaction); // let the parent open the edit form
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (tx) {
       deleteModalRef.current?.deleteObject(
         tx,
@@ -59,35 +57,37 @@ export const TransactionDetailsModal = forwardRef<
     }
   };
 
-  const rightActions =
-    tx && wallet.userRole !== "VIEWER"
-      ? [
-          {
-            icon: <FontAwesomeIcon icon={faEdit} className="w-4" />,
-            label: "Edit",
-            onClick: () => handleEditAndClose(tx),
-            color: "text-app-muted hover:text-app-text",
-            hoverColor: "",
-            hoverBg: "hover:bg-app-surface",
-          },
-          {
-            icon: <FontAwesomeIcon icon={faTrash} className="w-4" />,
-            label: "Delete",
-            onClick: handleDelete,
-            color: "theme-text-danger",
-            hoverColor: "hover:theme-text-danger",
-            hoverBg: "hover:theme-bg-danger-transparent",
-          },
-        ]
-      : undefined;
+  const canEdit = !!tx && wallet.userRole !== "VIEWER";
+  const headerActions = canEdit ? (
+    <>
+      <button
+        type="button"
+        aria-label="Edit"
+        onClick={() => handleEditAndClose(tx!)}
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+      >
+        <FontAwesomeIcon icon={faEdit} />
+      </button>
+      <button
+        type="button"
+        aria-label="Delete"
+        onClick={handleDelete}
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-red/10 hover:text-app-red"
+      >
+        <FontAwesomeIcon icon={faTrash} />
+      </button>
+    </>
+  ) : undefined;
 
   return (
-    <ModalDialog
-      ref={dialogRef}
-      className="max-w-[550px]"
-      rightActions={rightActions}
+    <ResponsiveOverlay
+      open={open}
+      onClose={handleClose}
+      title="Transaction"
+      accentColor={wallet.color}
+      headerActions={headerActions}
     >
       {tx && <TransactionView tx={tx} wallet={wallet} />}
-    </ModalDialog>
+    </ResponsiveOverlay>
   );
 });

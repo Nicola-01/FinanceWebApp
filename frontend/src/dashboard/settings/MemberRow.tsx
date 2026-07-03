@@ -35,7 +35,7 @@ export const MemberRow: React.FC<MemberRowProps> = ({
     member.role === "OWNER" ? "VIEWER" : member.role,
   );
 
-  // Risincronizza il ruolo selezionato quando cambia quello salvato (senza effetto)
+  // Re-sync the selected role when the saved role changes (no effect needed).
   const [prevRole, setPrevRole] = useState(member.role);
   if (prevRole !== member.role) {
     setPrevRole(member.role);
@@ -45,37 +45,37 @@ export const MemberRow: React.FC<MemberRowProps> = ({
   const hasRoleChanged = selectedRole !== member.role;
 
   return (
-    <div className="flex items-center justify-between p-4 bg-app-input border border-app-border rounded-2xl transition-all hover:bg-app-surface group">
-      <div className="flex items-center gap-4 min-w-0">
+    <div className="flex items-center justify-between gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-3 transition-colors hover:bg-app-hover">
+      <div className="flex min-w-0 items-center gap-3">
         <div
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-surface text-lg shadow-sm"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-app-card text-lg shadow-sm"
           style={{ color: iconColor }}
         >
           <FontAwesomeIcon icon={icon} />
         </div>
-        <div className="flex flex-col min-w-0">
+        <div className="flex min-w-0 flex-col">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-app-text truncate">
+            <span className="truncate text-sm font-bold text-app-text">
               {member.username}
             </span>
             {isCurrentUser && (
-              <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-app-text/10 text-app-text">
-                YOU
+              <span className="rounded bg-app-text/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-app-text">
+                You
               </span>
             )}
             {member.status === "PENDING" && (
-              <span className="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider theme-bg-warning-light theme-text-warning">
-                PENDING
+              <span className="rounded bg-app-yellow/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-app-yellow">
+                Pending
               </span>
             )}
           </div>
-          <span className="text-xs text-app-muted truncate">
+          <span className="truncate text-xs text-app-muted">
             {member.email}
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2">
         {canManage && !isCurrentUser && member.role !== "OWNER" && (
           <>
             {member.status === "ACCEPTED" && (
@@ -91,25 +91,25 @@ export const MemberRow: React.FC<MemberRowProps> = ({
                       value: "VIEWER",
                       label: "Viewer",
                       icon: <FontAwesomeIcon icon={faEye} />,
-                      activeBgClass: "theme-bg-primary-light",
+                      activeBgClass: "bg-app-surface",
                       activeColorClass: "text-app-text",
                     },
                     {
                       value: "EDITOR",
                       label: "Editor",
                       icon: <FontAwesomeIcon icon={faPen} />,
-                      activeBgClass: "theme-bg-warning-light",
-                      activeColorClass: "theme-text-warning",
+                      activeBgClass: "bg-app-surface",
+                      activeColorClass: "text-app-text",
                     },
                   ]}
                 />
                 <button
                   onClick={() => onChangeRole(member.userId, selectedRole)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-lg bg-app-green/10 text-app-green hover:bg-app-green hover:theme-text-inverse transition-colors ${
-                    hasRoleChanged ? "" : "opacity-20 cursor-not-allowed"
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg bg-app-green/10 text-app-green transition-colors hover:bg-app-green hover:text-white ${
+                    hasRoleChanged ? "" : "cursor-not-allowed opacity-20"
                   }`}
-                  disabled={hasRoleChanged}
-                  title="Save Role"
+                  disabled={!hasRoleChanged}
+                  title="Save role"
                 >
                   <FontAwesomeIcon icon={faCheck} className="text-sm" />
                 </button>
@@ -118,9 +118,9 @@ export const MemberRow: React.FC<MemberRowProps> = ({
 
             <button
               onClick={() => onRemove(member.userId, member.username)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg theme-bg-danger-transparent theme-text-danger hover:theme-bg-danger hover:theme-text-default transition-colors opacity-0 group-hover:opacity-100"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-red/10 hover:text-app-red"
               title={
-                member.status === "PENDING" ? "Cancel Invite" : "Remove User"
+                member.status === "PENDING" ? "Cancel invite" : "Remove user"
               }
             >
               <FontAwesomeIcon icon={faTrash} className="text-sm" />

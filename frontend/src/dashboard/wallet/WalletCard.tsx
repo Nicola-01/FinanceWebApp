@@ -65,8 +65,8 @@ export const WalletCardUI = forwardRef<
         className={`
                 group relative overflow-hidden flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md shrink-0 
                 
-                /* Larghezze bloccate per consistenza */
-                w-[260px] xl:w-[272px]
+                /* Fixed mobile width; fills the sidebar column on desktop */
+                w-[260px] xl:w-full
                 
                 ${isOverlay || isDragging ? "cursor-move ring-2 ring-app-border shadow-2xl scale-[1.02]" : "cursor-pointer hover:bg-app-input/50"}
                 

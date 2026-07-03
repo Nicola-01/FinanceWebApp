@@ -1,8 +1,11 @@
 package dev.busato.FinanceWebApp.backend.CronJob;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import dev.busato.FinanceWebApp.backend.scheduling.JobFrequency;
 import dev.busato.FinanceWebApp.backend.service.BackupService;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
@@ -19,21 +22,32 @@ class BackupCronJobTest {
   @InjectMocks private BackupCronJob backupCronJob;
 
   @Test
-  void scheduledBackup_Success_CallsBackupService() throws Exception {
+  void run_Success_CallsBackupServiceAndReturnsMessage() throws Exception {
     when(backupService.runBackup()).thenReturn("backup_2024.sql.gz.enc");
 
-    assertDoesNotThrow(() -> backupCronJob.scheduledBackup());
+    String message = backupCronJob.run();
+
+    assertEquals("Backup created: backup_2024.sql.gz.enc", message);
+    verify(backupService, times(1)).runBackup();
+  }
+
+  @Test
+  void run_ExceptionThrown_Propagates() throws Exception {
+    when(backupService.runBackup()).thenThrow(new IOException("Disk full"));
+
+    // The scheduler wrapper records the failure; the job itself propagates.
+    assertThrows(IOException.class, () -> backupCronJob.run());
 
     verify(backupService, times(1)).runBackup();
   }
 
   @Test
-  void scheduledBackup_ExceptionThrown_CaughtAndDoesNotCrash() throws Exception {
-    when(backupService.runBackup()).thenThrow(new IOException("Disk full"));
-
-    // Verify that the exception is swallowed by the cron job (as designed)
-    assertDoesNotThrow(() -> backupCronJob.scheduledBackup());
-
-    verify(backupService, times(1)).runBackup();
+  void metadata_IsStable() {
+    assertEquals("backup", backupCronJob.key());
+    assertEquals("Database Backup", backupCronJob.displayName());
+    assertTrue(backupCronJob.available());
+    assertEquals(JobFrequency.DAILY, backupCronJob.defaults().frequency());
+    assertEquals(3, backupCronJob.defaults().hour());
+    assertEquals(0, backupCronJob.defaults().minute());
   }
 }

@@ -219,6 +219,46 @@ class BackupServiceTest {
     verify(r2).download(eq("test.sql.gz.enc"), any(Path.class));
   }
 
+  // ==================== deleteBackup ====================
+
+  @Test
+  void deleteBackup_R2Enabled_DelegatesToR2() throws IOException {
+    when(r2.isEnabled()).thenReturn(true);
+
+    backupService.deleteBackup("remote.sql.gz.enc");
+
+    verify(r2).delete("remote.sql.gz.enc");
+  }
+
+  @Test
+  void deleteBackup_R2Disabled_DeletesLocalFile() throws IOException {
+    when(r2.isEnabled()).thenReturn(false);
+    Path file = Path.of(backupDir, "local.sql.gz.enc");
+    Files.write(file, "data".getBytes());
+
+    backupService.deleteBackup("local.sql.gz.enc");
+
+    assertFalse(Files.exists(file));
+    verify(r2, never()).delete(any());
+  }
+
+  @Test
+  void deleteBackup_R2Disabled_FileNotFound_ThrowsFileNotFoundException() {
+    when(r2.isEnabled()).thenReturn(false);
+
+    assertThrows(FileNotFoundException.class, () -> backupService.deleteBackup("ghost.sql.gz.enc"));
+  }
+
+  @Test
+  void deleteBackup_KeyWithPathTraversal_ThrowsIllegalArgument() {
+    var ex =
+        assertThrows(
+            IllegalArgumentException.class, () -> backupService.deleteBackup("../../etc/passwd"));
+    assertTrue(ex.getMessage().contains("Invalid backup key"));
+    // Never touches R2 or the filesystem for an invalid key.
+    verifyNoInteractions(r2);
+  }
+
   // ==================== resolveEncFile ====================
 
   @Test

@@ -171,14 +171,14 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({
 
     if (hasData) {
       if (type === "income") {
-        color = "theme-text-success";
+        color = "text-app-green";
         prefix = "+";
       } else if (type === "expense") {
-        color = "theme-text-danger";
+        color = "text-app-red";
         prefix = "-";
         value = Math.abs(value);
       } else {
-        color = value >= 0 ? "theme-text-success" : "theme-text-danger";
+        color = value >= 0 ? "text-app-green" : "text-app-red";
         prefix = value >= 0 ? "+" : "-";
         value = Math.abs(value);
       }
@@ -236,13 +236,13 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({
         >
           <div className="border-b border-app-border px-2 py-3 flex-none h-10.25"></div>
           <div className="border-b border-app-border px-2 py-3 flex items-center justify-center flex-1">
-            <TrendingUp size={16} className="theme-text-success" />
+            <TrendingUp size={16} className="text-app-green" />
           </div>
           <div className="border-b border-app-border px-2 py-3 flex items-center justify-center flex-1">
-            <TrendingDown size={16} className="theme-text-danger" />
+            <TrendingDown size={16} className="text-app-red" />
           </div>
           <div className="px-2 py-3 flex items-center justify-center flex-1">
-            <Scale size={16} className="theme-text-primary" />
+            <Scale size={16} className="text-app-blue" />
           </div>
         </div>
 

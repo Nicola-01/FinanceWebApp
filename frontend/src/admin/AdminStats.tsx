@@ -1,6 +1,7 @@
 import React from "react";
 import {
   faExchangeAlt,
+  faEnvelopeOpenText,
   faUsers,
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
@@ -9,9 +10,14 @@ import type { User } from "../utils/types.ts";
 
 interface AdminStatsProps {
   users: User[];
+  /** Number of still-pending invitations (shown as the 4th stat). */
+  pendingInvites: number;
 }
 
-export const AdminStats: React.FC<AdminStatsProps> = ({ users }) => {
+export const AdminStats: React.FC<AdminStatsProps> = ({
+  users,
+  pendingInvites,
+}) => {
   // Calculate totals from the user array
   const totalWallets = users.reduce(
     (acc, user) => acc + (user.wallets || 0),
@@ -23,24 +29,18 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ users }) => {
   );
 
   return (
-    <div className="mb-2.5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-      <StatCard
-        title="Total Users"
-        value={users.length}
-        icon={faUsers}
-        color="#3333ff"
-      />
-      <StatCard
-        title="Active Wallets"
-        value={totalWallets}
-        icon={faWallet}
-        color="#3333ff"
-      />
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <StatCard title="Total Users" value={users.length} icon={faUsers} />
+      <StatCard title="Active Wallets" value={totalWallets} icon={faWallet} />
       <StatCard
         title="Transactions"
         value={totalTransactions}
         icon={faExchangeAlt}
-        color="#ff00cc"
+      />
+      <StatCard
+        title="Pending Invites"
+        value={pendingInvites}
+        icon={faEnvelopeOpenText}
       />
     </div>
   );
