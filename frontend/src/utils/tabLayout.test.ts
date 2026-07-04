@@ -103,7 +103,6 @@ describe("reconcileLayout", () => {
     const l = reconcileLayout(stored, WIDGETS);
     expect(l.hiddenSlots.map((s) => s.id)).toEqual(["group-2", "h"]);
   });
-<<<<<<< HEAD
 
   it("deduplicates a widget repeated inside a single slot", () => {
     const l = reconcileLayout(
@@ -155,8 +154,6 @@ describe("reconcileLayout", () => {
     expect(l.slots[0].id).toMatch(/^group-\d+$/);
     expect(l.slots[0].widgets).toEqual(["c", "d"]);
   });
-=======
->>>>>>> c9d2ebe (Ui update)
 });
 
 describe("read/write/clear", () => {
@@ -294,7 +291,6 @@ describe("popWidget", () => {
     expect(popWidget(l, "a", "a")).toBe(l);
     expect(popWidget(l, "group-9", "a")).toBe(l);
   });
-<<<<<<< HEAD
 
   it("never commits an empty slot when a corrupt group repeats the popped widget", () => {
     const l: TabLayout = {
@@ -303,8 +299,6 @@ describe("popWidget", () => {
     };
     expect(popWidget(l, "group-1", "a")).toBe(l);
   });
-=======
->>>>>>> c9d2ebe (Ui update)
 });
 
 describe("hide/show", () => {
