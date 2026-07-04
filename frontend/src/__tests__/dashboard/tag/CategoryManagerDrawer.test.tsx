@@ -74,6 +74,28 @@ describe("CategoryManagerDrawer", () => {
     expect(await screen.findByText("Utilities")).toBeInTheDocument();
   });
 
+  it("pre-expands the deep-linked parent when it opens", async () => {
+    setCtx({ tags: [tag("Home"), tag("Utilities", "Home")] });
+    const { rerender } = render(
+      <CategoryManagerDrawer
+        open={false}
+        onClose={() => {}}
+        initialExpandedParent="Home"
+      />,
+    );
+    expect(screen.queryByText("Utilities")).not.toBeInTheDocument();
+
+    // Opening with the deep-link expands that parent without a manual click.
+    rerender(
+      <CategoryManagerDrawer
+        open
+        onClose={() => {}}
+        initialExpandedParent="Home"
+      />,
+    );
+    expect(await screen.findByText("Utilities")).toBeInTheDocument();
+  });
+
   it("routes deletion through the DeleteModal (not window.confirm)", () => {
     setCtx({ tags: [tag("Food")] });
     render(<CategoryManagerDrawer open onClose={() => {}} />);

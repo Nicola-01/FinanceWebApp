@@ -1,14 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faArrowRight,
+  faArrowRightLong,
+  faCalendarDay,
   faCoins,
-  faEdit,
-  faExchangeAlt,
+  faLock,
+  faRotateLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { CurrencySelector } from "../../components/selectors/CurrencySelector";
-import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
+import {
+  type CurrencyCode,
+  getPreferredForeignCurrency,
+  setPreferredForeignCurrency,
+} from "../../utils/currencies";
+import { getExchangeRate } from "../../utils/exchangeRates";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
+import Toggle from "../../components/ui/Toggle.tsx";
+import { Selector } from "../../components/ui/Selector.tsx";
 
 export interface UnifiedExchangeRateProps {
   mode: "view" | "edit" | "create";
@@ -24,7 +32,24 @@ export interface UnifiedExchangeRateProps {
 
   convertedAmount: number | string;
   onConvertedAmountChange?: (amount: string) => void;
+
+  /** Per-wallet accent for the toggle / converted value; falls back to the brand. */
+  accentColor?: string;
+
+  /**
+   * Recurring rate mode (subscriptions only). When these are provided, a
+   * "Fixed rate / Day's rate" control is shown: `true` = each future payment
+   * converts with the exchange rate of its own day; `false` = the fixed rate.
+   */
+  autoExchangeRate?: boolean;
+  onAutoExchangeRateChange?: (value: boolean) => void;
+
+  /** Wallet id — keys the per-wallet "default foreign currency" (star). */
+  walletId?: string;
 }
+
+const HIDE_SPINNERS =
+  "[-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
 
 export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
   mode,
@@ -37,35 +62,52 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
   onExchangeRateChange,
   convertedAmount,
   onConvertedAmountChange,
+  accentColor = "var(--brand-2)",
+  autoExchangeRate,
+  onAutoExchangeRateChange,
+  walletId,
 }) => {
   const isViewOnly = mode === "view";
 
-  // Inizializza il toggle aperto se siamo in edit con valuta diversa
+  // Open the toggle if we're editing something already in a foreign currency.
   const [isForeignCurrency, setIsForeignCurrency] = useState(
     mode === "create" ? false : selectedCurrency !== baseCurrency,
   );
   const [loadingRate, setLoadingRate] = useState(false);
+  // Last rate we auto-fetched (+ its "as of" date). Kept so the restore button
+  // can put it back after the user manually tweaks the rate — no new API call.
+  const [autoRate, setAutoRate] = useState<string | null>(null);
+  const [autoRateDate, setAutoRateDate] = useState<string | null>(null);
 
-  // Fetching del tasso di cambio automatico
+  // The wallet's starred default foreign currency (localStorage-backed). Read
+  // fresh each render (cheap, and reflects a wallet switch automatically); a
+  // dummy state bump re-renders after the user stars/un-stars from the selector.
+  const [, bumpStar] = useState(0);
+  const starredCurrency = getPreferredForeignCurrency(walletId);
+  const handleToggleStar = (code: string) => {
+    const next = starredCurrency === code ? null : code;
+    setPreferredForeignCurrency(walletId, next);
+    bumpStar((n) => n + 1);
+  };
+
+  // Fetch the rate on currency/toggle change. Cached once per day per pair
+  // (Frankfurter v2 — rates are daily); see utils/exchangeRates.
   useEffect(() => {
-    const fetchExchangeRate = async () => {
+    const loadRate = async () => {
       if (isViewOnly || selectedCurrency === baseCurrency || !isForeignCurrency)
         return;
 
       setLoadingRate(true);
       try {
-        const response = await fetch(
-          `https://api.frankfurter.dev/v1/latest?base=${selectedCurrency}&symbols=${baseCurrency}`,
-        );
-        const data = await response.json();
+        const fx = await getExchangeRate(selectedCurrency, baseCurrency);
+        if (fx) {
+          const rateStr = fx.rate.toString();
+          onExchangeRateChange?.(rateStr);
+          setAutoRate(rateStr);
+          setAutoRateDate(fx.date ?? null);
 
-        if (data?.rates?.[baseCurrency]) {
-          const rate = data.rates[baseCurrency];
-          onExchangeRateChange?.(rate.toString());
-
-          // Se c'è già un importo originale, ricalcola il convertito
           if (originalAmount) {
-            const newTotal = (Number(originalAmount) * rate).toFixed(2);
+            const newTotal = (Number(originalAmount) * fx.rate).toFixed(2);
             onConvertedAmountChange?.(newTotal);
           }
         } else {
@@ -79,25 +121,36 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
       }
     };
 
-    fetchExchangeRate();
+    loadRate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCurrency, isForeignCurrency, isViewOnly]);
 
-  // Gestione del Toggle "Foreign Currency"
   const handleToggle = () => {
     if (isViewOnly) return;
     const newValue = !isForeignCurrency;
     setIsForeignCurrency(newValue);
 
-    // Se spengo il toggle, resetto tutto alla valuta base
-    if (!newValue) {
+    if (newValue) {
+      // Switching on: preset the starred default currency (if set and not the
+      // base). The rate is then fetched by the effect that watches
+      // selectedCurrency / isForeignCurrency.
+      const preferred = getPreferredForeignCurrency(walletId);
+      const preset =
+        preferred && preferred !== baseCurrency ? preferred : baseCurrency;
+      if (preset !== selectedCurrency) {
+        onCurrencyChange?.(preset as CurrencyCode);
+      }
+    } else {
+      // Switching off resets everything back to the base currency.
       onCurrencyChange?.(baseCurrency);
       onExchangeRateChange?.("1");
       onOriginalAmountChange?.(convertedAmount.toString());
+      setAutoRate(null);
+      setAutoRateDate(null);
     }
   };
 
-  // --- FUNZIONI DI CALCOLO A 3 VIE ---
+  // --- 3-way binding: original ↔ rate ↔ converted ---
   const handleOriginalChange = (val: string) => {
     onOriginalAmountChange?.(val);
     if (val && exchangeRate) {
@@ -124,32 +177,49 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
     }
   };
 
-  // Se siamo in modalità view e non c'è cambio valuta, il componente scompare
+  // Restore the previously auto-fetched rate (does NOT hit the API).
+  const restoreAutoRate = () => {
+    if (autoRate == null) return;
+    onExchangeRateChange?.(autoRate);
+    if (originalAmount) {
+      onConvertedAmountChange?.(
+        (Number(originalAmount) * Number(autoRate)).toFixed(2),
+      );
+    }
+  };
+
+  // View mode with no currency difference → nothing to show.
   if (isViewOnly && selectedCurrency === baseCurrency) {
     return null;
   }
 
-  const hideArrowsClass =
-    "[-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none";
+  const rateStr = String(exchangeRate);
+  const hasAuto = autoRate !== null;
+  const isRateSynced = hasAuto && rateStr === autoRate;
+  const canReset = !isViewOnly && hasAuto && rateStr !== autoRate;
+  const rateDisplay = Number(exchangeRate)
+    .toFixed(6)
+    .replace(/\.?0+$/, "");
+  const autoDateFmt = autoRateDate
+    ? new Date(autoRateDate).toLocaleDateString(undefined, {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : null;
 
-  // Il cuore del componente: Il box a 3 colonne (AGGIORNATO - RESPONSIVE)
-  const exchangeBoxContent = (
-    <div className="flex flex-col gap-3 mt-2 animate-[fadeIn_0.2s_ease-out] w-full">
-      {isViewOnly && (
-        <span className="text-app-sky/70 text-xs font-bold uppercase tracking-wider">
-          <FontAwesomeIcon icon={faExchangeAlt} className="mr-2" />
-          Currency Exchange
-        </span>
-      )}
-      {/* Rimosso p-5 fisso, inserito p-3 responsive e gap per gestire meglio lo spazio */}
-      <div className="flex items-center justify-between rounded-xl bg-[var(--color-app-sky)]/5 p-3 sm:p-4 border border-[var(--color-app-sky)]/20 overflow-hidden w-full gap-1 sm:gap-2">
-        {/* SINISTRA: Importo Originale */}
-        <div className="flex justify-center flex-1 min-w-0 group">
-          <div
-            className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? "theme-border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1" : "theme-border-transparent"}`}
-          >
+  const hasFootnote =
+    loadingRate || canReset || (isRateSynced && autoDateFmt !== null);
+
+  // The card holds amounts + rate; the footnote lives OUTSIDE it, below-right.
+  const conversionBody = (
+    <div className="flex flex-col gap-1.5">
+      <div className="rounded-xl border border-app-border bg-app-surface/40 p-4">
+        <div className="flex items-center gap-2">
+          {/* Original amount + currency (pushed to the left) */}
+          <div className="flex min-w-0 flex-1 items-baseline justify-start gap-1.5">
             {isViewOnly ? (
-              <span className="text-lg sm:text-xl font-bold font-app-mono text-app-text truncate">
+              <span className="truncate font-app-mono text-xl font-bold text-app-text">
                 {Number(originalAmount).toFixed(2)}
               </span>
             ) : (
@@ -157,73 +227,64 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
                 type="number"
                 step="0.01"
                 min="0"
-                className={`w-full min-w-[40px] theme-bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-app-text outline-none placeholder-app-muted opacity-50 focus:opacity-100 ${hideArrowsClass}`}
-                placeholder="0.00"
+                aria-label="Original amount"
                 value={originalAmount}
                 onChange={(e) => handleOriginalChange(e.target.value)}
+                placeholder="0.00"
+                className={`min-w-[2ch] max-w-full bg-transparent font-app-mono text-xl font-bold text-app-text outline-none [field-sizing:content] placeholder:text-app-muted/40 ${HIDE_SPINNERS}`}
               />
             )}
-            <span className="text-sm sm:text-lg text-app-sky/70 font-bold uppercase tracking-wider shrink-0">
-              {CURRENCY_META[selectedCurrency as CurrencyCode]?.symbol ||
-                selectedCurrency}
+            <span className="shrink-0 text-sm font-bold uppercase tracking-wide text-app-muted">
+              {selectedCurrency}
             </span>
-            {!isViewOnly && (
-              <FontAwesomeIcon
-                icon={faEdit}
-                className="text-app-sky/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100"
-              />
-            )}
           </div>
-        </div>
 
-        {/* CENTRO: Tasso di Cambio */}
-        <div className="flex flex-col items-center justify-center flex-[1.4] min-w-0 group px-1">
-          <div
-            className={`flex items-center justify-center gap-1 text-[10px] sm:text-xs font-bold text-app-sky/70 whitespace-nowrap border-b w-full ${!isViewOnly ? "theme-border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1" : "theme-border-transparent"}`}
-          >
-            <span className="shrink-0">1 {selectedCurrency} = </span>
-            {isViewOnly ? (
-              <span className="text-app-text mx-1 tracking-tight">
-                {Number(exchangeRate)
-                  .toFixed(6)
-                  .replace(/\.?0+$/, "")}
-              </span>
-            ) : (
-              <input
-                type="number"
-                step="0.000001"
-                min="0"
-                className={`w-full min-w-[60px] max-w-[80px] theme-bg-transparent text-center outline-none text-app-text placeholder-app-muted opacity-50 focus:opacity-100 tracking-tight ${hideArrowsClass}`}
-                placeholder="1.00"
-                value={exchangeRate}
-                onChange={(e) => handleRateChange(e.target.value)}
-              />
-            )}
-            <span className="shrink-0">{baseCurrency}</span>
-            {!isViewOnly && (
-              <FontAwesomeIcon
-                icon={faEdit}
-                className="text-app-sky/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100"
-              />
-            )}
-          </div>
-          <div className="flex w-full items-center">
-            <div className="h-[2px] flex-1 bg-[var(--color-app-sky)]/30 rounded-full"></div>
+          {/* Center: long arrow with the rate + * underneath (auto-width, centred) */}
+          <div className="flex shrink-0 flex-col items-center gap-1 px-2">
             <FontAwesomeIcon
-              icon={faArrowRight}
-              className="text-app-sky/50 px-2 text-[10px] sm:text-sm shrink-0"
+              icon={faArrowRightLong}
+              className="text-base"
+              style={{ color: accentColor }}
             />
-            <div className="h-[2px] flex-1 bg-[var(--color-app-sky)]/30 rounded-full"></div>
+            <span className="inline-flex items-start">
+              {isViewOnly ? (
+                <span className="font-app-mono text-xs text-app-muted">
+                  {rateDisplay}
+                </span>
+              ) : (
+                <input
+                  type="number"
+                  step="0.000001"
+                  min="0"
+                  aria-label="Exchange rate"
+                  value={exchangeRate}
+                  onChange={(e) => handleRateChange(e.target.value)}
+                  placeholder="1.00"
+                  className={`min-w-[3ch] max-w-[9rem] bg-transparent text-center font-app-mono text-xs text-app-muted outline-none [field-sizing:content] focus:text-app-text ${HIDE_SPINNERS}`}
+                />
+              )}
+              {hasAuto && (
+                <span
+                  className="text-[10px] leading-none text-app-muted"
+                  title={
+                    autoDateFmt
+                      ? `Rate from the exchange on ${autoDateFmt}`
+                      : "Auto-fetched rate"
+                  }
+                >
+                  *
+                </span>
+              )}
+            </span>
           </div>
-        </div>
 
-        {/* DESTRA: Importo Convertito */}
-        <div className="flex justify-center flex-1 min-w-0 group">
-          <div
-            className={`flex items-center justify-center gap-1 sm:gap-2 border-b w-full max-w-[120px] ${!isViewOnly ? "theme-border-transparent focus-within:border-[var(--color-app-sky)]/50 transition-colors pb-1" : "theme-border-transparent"}`}
-          >
+          {/* Converted amount + base currency (pushed to the right) */}
+          <div className="flex min-w-0 flex-1 items-baseline justify-end gap-1.5">
             {isViewOnly ? (
-              <span className="text-lg sm:text-xl font-bold font-app-mono text-app-sky truncate">
+              <span
+                className="truncate font-app-mono text-xl font-bold"
+                style={{ color: accentColor }}
+              >
                 {Number(convertedAmount).toFixed(2)}
               </span>
             ) : (
@@ -231,83 +292,132 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
                 type="number"
                 step="0.01"
                 min="0"
-                className={`w-full min-w-[40px] theme-bg-transparent text-right text-lg sm:text-xl font-bold font-app-mono text-app-sky outline-none placeholder-[var(--color-app-sky)]/50 ${hideArrowsClass}`}
-                placeholder="0.00"
+                aria-label="Converted amount"
                 value={convertedAmount}
                 onChange={(e) => handleConvertedChange(e.target.value)}
+                placeholder="0.00"
+                style={{ color: accentColor }}
+                className={`min-w-[2ch] max-w-full bg-transparent text-right font-app-mono text-xl font-bold outline-none [field-sizing:content] ${HIDE_SPINNERS}`}
               />
             )}
-            <span className="text-sm sm:text-lg text-app-sky/70 font-bold uppercase tracking-wider shrink-0">
-              {CURRENCY_META[baseCurrency as CurrencyCode]?.symbol ||
-                baseCurrency}
+            <span className="shrink-0 text-sm font-bold uppercase tracking-wide text-app-muted">
+              {baseCurrency}
             </span>
-            {!isViewOnly && (
-              <FontAwesomeIcon
-                icon={faEdit}
-                className="text-app-sky/30 text-[10px] shrink-0 opacity-0 group-focus-within:opacity-100"
-              />
-            )}
           </div>
         </div>
       </div>
+
+      {/* Footnote (outside the card): grey "* Exchange on …", or a more
+          prominent "* Restore …" button once the rate is manually changed. */}
+      {hasFootnote && (
+        <div className="flex items-center justify-end gap-1 px-1 text-[11px]">
+          <span className="text-app-muted">*</span>
+          {loadingRate ? (
+            <span className="animate-pulse text-app-muted">Fetching…</span>
+          ) : canReset ? (
+            <button
+              type="button"
+              onClick={restoreAutoRate}
+              className="flex items-center gap-1.5 rounded px-1.5 py-0.5 text-app-text transition-colors hover:bg-app-input"
+              title="Restore the auto-fetched rate"
+            >
+              <FontAwesomeIcon icon={faRotateLeft} className="text-[10px]" />
+              Restore {autoRate}
+              {autoDateFmt ? ` of ${autoDateFmt}` : ""}
+            </button>
+          ) : (
+            <span className="text-app-muted">Exchange on {autoDateFmt}</span>
+          )}
+        </div>
+      )}
     </div>
   );
 
-  // Se è solo in View, stampa direttamente la riga a 3 colonne (senza l'involucro grande)
+  // View mode: just the read-only conversion card (no toggle wrapper).
   if (isViewOnly) {
-    return exchangeBoxContent;
+    return conversionBody;
   }
 
-  // Altrimenti stampa la versione Edit/Create con Toggle e Selettore
+  // Edit / create: collapsible card gated by the foreign-currency toggle.
   return (
     <div className="rounded-xl border border-app-border bg-app-input p-4 transition-all">
-      <div
-        className="flex items-center justify-between cursor-pointer"
-        onClick={handleToggle}
-      >
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div
-            className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${isForeignCurrency ? "bg-[var(--color-app-sky)]/20 text-app-sky" : "bg-app-input text-app-muted"}`}
+            className="flex h-9 w-9 items-center justify-center rounded-lg bg-app-surface text-app-muted transition-colors"
+            style={
+              isForeignCurrency
+                ? {
+                    color: accentColor,
+                    backgroundColor: `color-mix(in srgb, ${accentColor} 14%, transparent)`,
+                  }
+                : undefined
+            }
           >
             <FontAwesomeIcon icon={faCoins} />
           </div>
           <div>
             <h4 className="text-sm font-bold text-app-text">
-              Foreign Currency
+              Different currency?
             </h4>
             <p className="text-xs text-app-muted">
-              Transaction in a different currency?
+              Record this in another currency
             </p>
           </div>
         </div>
-        <div
-          className={`relative w-12 h-6 rounded-full transition-colors ${isForeignCurrency ? "bg-[var(--color-app-sky)]" : "bg-app-surface"}`}
-        >
-          <div
-            className={`absolute top-1 left-1 theme-bg-inverse w-4 h-4 rounded-full transition-transform ${isForeignCurrency ? "translate-x-6" : ""}`}
-          />
-        </div>
+
+        <Toggle
+          checked={isForeignCurrency}
+          onChange={() => handleToggle()}
+          accentColor={accentColor}
+          aria-label="Foreign currency"
+        />
       </div>
 
       {isForeignCurrency && (
-        <div className="mt-4 pt-4 border-t border-app-border animate-[fadeIn_0.2s_ease-out] space-y-4">
-          <div className="w-full">
-            <label className="mb-2 ml-1 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-app-sky">
-              Select Currency
-              {loadingRate && (
-                <span className="text-[10px] animate-pulse">
-                  Fetching rate...
-                </span>
-              )}
-            </label>
-            <CurrencySelector
-              value={selectedCurrency}
-              onChange={(val: CurrencyCode) => onCurrencyChange?.(val)}
-              excludeCurrency={baseCurrency}
-            />
-          </div>
-          {/* Inseriamo la costante aggiornata */}
-          {exchangeBoxContent}
+        <div className="mt-4 space-y-4 border-t border-app-border pt-4 animate-[fadeIn_0.2s_ease-out]">
+          <CurrencySelector
+            value={selectedCurrency}
+            onChange={(val: CurrencyCode) => onCurrencyChange?.(val)}
+            excludeCurrency={baseCurrency}
+            accentColor={accentColor}
+            starredCurrency={starredCurrency ?? undefined}
+            onToggleStar={handleToggleStar}
+          />
+          {conversionBody}
+
+          {/* Recurring rate mode — subscriptions only. */}
+          {onAutoExchangeRateChange && (
+            <div>
+              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
+                Rate for future payments
+              </label>
+              <Selector
+                size="sm"
+                value={autoExchangeRate ? "auto" : "fixed"}
+                onChange={(v) => onAutoExchangeRateChange(v === "auto")}
+                options={[
+                  {
+                    value: "fixed",
+                    label: "Fixed rate",
+                    icon: <FontAwesomeIcon icon={faLock} />,
+                    activeColorClass: "text-app-text",
+                  },
+                  {
+                    value: "auto",
+                    label: "Day's rate",
+                    icon: <FontAwesomeIcon icon={faCalendarDay} />,
+                    activeColorClass: "text-app-text",
+                  },
+                ]}
+              />
+              <p className="ml-1 mt-1.5 text-xs text-app-muted">
+                {autoExchangeRate
+                  ? "Each payment converts with the exchange rate of its own day."
+                  : "Every payment uses the fixed rate above."}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

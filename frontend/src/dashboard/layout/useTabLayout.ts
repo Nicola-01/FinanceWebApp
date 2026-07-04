@@ -6,7 +6,9 @@ import {
   mergeSlots,
   moveSlot,
   popWidget,
+  popWidgetTo,
   readLayout,
+  reorderMember,
   setActiveWidget,
   showSlot,
   writeLayout,
@@ -23,7 +25,15 @@ export interface TabLayoutApi {
   /** Revert to a snapshot without persisting (drag cancel). */
   restore: (snapshot: TabLayout) => void;
   merge: (sourceId: string, targetId: string) => void;
+  /** Commit a slot reorder (active slot → over slot's index) on drop. */
+  reorderSlot: (activeId: string, overId: string) => void;
   pop: (slotId: string, widgetId: string) => void;
+  reorderMember: (
+    slotId: string,
+    fromWidgetId: string,
+    toWidgetId: string,
+  ) => void;
+  popTo: (slotId: string, widgetId: string, atIndex: number) => void;
   hide: (slotId: string) => void;
   show: (slotId: string) => void;
   setActive: (slotId: string, widgetId: string) => void;
@@ -65,7 +75,13 @@ export function useTabLayout(
     restore: (snapshot) => setLayout(snapshot),
     merge: (sourceId, targetId) =>
       commit(mergeSlots(layout, sourceId, targetId, widgets)),
+    reorderSlot: (activeId, overId) =>
+      commit(moveSlot(layout, activeId, overId)),
     pop: (slotId, widgetId) => commit(popWidget(layout, slotId, widgetId)),
+    reorderMember: (slotId, fromWidgetId, toWidgetId) =>
+      commit(reorderMember(layout, slotId, fromWidgetId, toWidgetId)),
+    popTo: (slotId, widgetId, atIndex) =>
+      commit(popWidgetTo(layout, slotId, widgetId, atIndex)),
     hide: (slotId) => commit(hideSlot(layout, slotId)),
     show: (slotId) => commit(showSlot(layout, slotId)),
     setActive: (slotId, widgetId) =>

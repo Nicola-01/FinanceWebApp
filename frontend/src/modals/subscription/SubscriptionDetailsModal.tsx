@@ -6,6 +6,7 @@ import {
   faStopCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
+import Button from "../../components/ui/Button.tsx";
 import { useDeleteModal } from "../common/DeleteModalContext";
 import type { Subscription, Wallet } from "../../utils/types";
 
@@ -99,39 +100,52 @@ export const SubscriptionDetailsModal = forwardRef<
   };
 
   const canEdit = !!sub && wallet.userRole !== "VIEWER";
-  const headerActions = canEdit ? (
-    <>
-      <button
-        type="button"
-        aria-label="Edit"
-        onClick={() => handleEditAndClose(sub!)}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
-      >
-        <FontAwesomeIcon icon={faEdit} />
-      </button>
-      <button
-        type="button"
-        aria-label="Delete"
-        onClick={() =>
-          deleteModalRef.current?.deleteObject(sub!, "subscription", async () =>
-            handleConfirmDelete(sub!.id),
-          )
-        }
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-red/10 hover:text-app-red"
-      >
-        <FontAwesomeIcon icon={faTrash} />
-      </button>
+  const footer = canEdit ? (
+    <div className="flex flex-col gap-3">
       {selectedDate && (
-        <button
+        <Button
           type="button"
-          aria-label="Stop here"
+          variant="secondary"
           onClick={handleStopSubscriptionAtDate}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-yellow/10 hover:text-app-yellow"
+          ripple
+          fullWidth
+          style={{ color: "var(--color-app-yellow)" }}
+          aria-label="Stop here"
         >
           <FontAwesomeIcon icon={faStopCircle} />
-        </button>
+          Stop on {format(selectedDate, "d MMM yyyy")}
+        </Button>
       )}
-    </>
+      <div className="flex items-center gap-3">
+        <Button
+          type="button"
+          onClick={() => handleEditAndClose(sub!)}
+          accentColor={wallet.color}
+          ripple
+          className="flex-1"
+          aria-label="Edit"
+        >
+          <FontAwesomeIcon icon={faEdit} />
+          Edit
+        </Button>
+        <Button
+          type="button"
+          variant="danger"
+          onClick={() =>
+            deleteModalRef.current?.deleteObject(
+              sub!,
+              "subscription",
+              async () => handleConfirmDelete(sub!.id),
+            )
+          }
+          ripple
+          aria-label="Delete"
+        >
+          <FontAwesomeIcon icon={faTrash} />
+          Delete
+        </Button>
+      </div>
+    </div>
   ) : undefined;
 
   return (
@@ -140,7 +154,7 @@ export const SubscriptionDetailsModal = forwardRef<
       onClose={handleClose}
       title="Subscription"
       accentColor={wallet.color}
-      headerActions={headerActions}
+      footer={footer}
     >
       {sub && <SubscriptionView sub={sub} wallet={wallet} />}
     </ResponsiveOverlay>

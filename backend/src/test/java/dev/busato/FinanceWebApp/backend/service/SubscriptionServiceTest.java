@@ -11,6 +11,7 @@ import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
+import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
@@ -40,6 +41,7 @@ class SubscriptionServiceTest {
   @Mock private TagRepository tagRepository;
   @Mock private TransactionRepository transactionRepository;
   @Mock private SubscriptionMapper subscriptionMapper;
+  @Mock private ExchangeRateService exchangeRateService;
 
   @Mock private Clock clock;
 
@@ -209,6 +211,87 @@ class SubscriptionServiceTest {
     assertEquals(1, sub.getExecutedTimes());
     assertEquals(LocalDate.of(2024, 2, 15), sub.getLastExecutionDate());
     assertEquals(LocalDate.of(2024, 3, 15), sub.getNextExecutionDate());
+  }
+
+  private Subscription foreignSub(Wallet w) {
+    Subscription sub = new Subscription();
+    sub.setId(UUID.randomUUID());
+    sub.setName("Foreign");
+    sub.setWallet(w);
+    sub.setType(Subscription.Type.EXPENSE);
+    sub.setStatus(Subscription.Status.ACTIVE);
+    sub.setFrequencyType(Subscription.Frequency.MONTHLY);
+    sub.setFrequencyInterval(1);
+    sub.setStartDate(LocalDate.of(2024, 1, 15));
+    sub.setNextExecutionDate(LocalDate.of(2024, 2, 15));
+    sub.setDuration(Subscription.Duration.FOREVER);
+    sub.setOriginalCurrency("USD");
+    sub.setOriginalAmount(new BigDecimal("100"));
+    sub.setAmount(new BigDecimal("90.00"));
+    sub.setExchangeValue(new BigDecimal("0.90"));
+    return sub;
+  }
+
+  private Wallet eurWallet() {
+    Wallet w = new Wallet();
+    w.setId(walletId);
+    w.setCurrency("EUR");
+    return w;
+  }
+
+  @Test
+  void processDueSubscriptions_ForeignAutoRate_RecomputesAmountWithLiveRate() {
+    Subscription sub = foreignSub(eurWallet());
+    sub.setAutoExchangeRate(true);
+
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(
+            anyList(), eq(LocalDate.of(2024, 2, 15))))
+        .thenReturn(List.of(sub));
+    when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.of(new BigDecimal("0.85")));
+
+    subscriptionService.processDueSubscriptions();
+
+    ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(txCaptor.capture());
+    Transaction tx = txCaptor.getValue();
+    assertEquals(new BigDecimal("85.00"), tx.getAmount()); // 100 * 0.85
+    assertEquals(new BigDecimal("0.85"), tx.getExchangeValue());
+  }
+
+  @Test
+  void processDueSubscriptions_ForeignAutoRate_FetchFails_FallsBackToStored() {
+    Subscription sub = foreignSub(eurWallet());
+    sub.setAutoExchangeRate(true);
+
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(
+            anyList(), eq(LocalDate.of(2024, 2, 15))))
+        .thenReturn(List.of(sub));
+    when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.empty());
+
+    subscriptionService.processDueSubscriptions();
+
+    ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(txCaptor.capture());
+    Transaction tx = txCaptor.getValue();
+    assertEquals(new BigDecimal("90.00"), tx.getAmount()); // stored fallback
+    assertEquals(new BigDecimal("0.90"), tx.getExchangeValue());
+  }
+
+  @Test
+  void processDueSubscriptions_ForeignFixedRate_UsesStoredWithoutFetching() {
+    Subscription sub = foreignSub(eurWallet());
+    sub.setAutoExchangeRate(false);
+
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(
+            anyList(), eq(LocalDate.of(2024, 2, 15))))
+        .thenReturn(List.of(sub));
+
+    subscriptionService.processDueSubscriptions();
+
+    verify(exchangeRateService, never()).getRate(any(), any());
+    ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(txCaptor.capture());
+    assertEquals(new BigDecimal("90.00"), txCaptor.getValue().getAmount());
   }
 
   @Test

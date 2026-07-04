@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { Heatmap } from "@mui/x-charts-pro/Heatmap";
+import { ChartZoomSlider } from "@mui/x-charts-pro/ChartZoomSlider";
 import type { Transaction } from "../../utils/types.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { mainCategoryName } from "./categoryAgg.ts";
+import { useRecentMonthsZoom } from "./useRecentMonthsZoom.ts";
 
 const MONTH_LABELS = [
   "Jan",
@@ -126,8 +128,10 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
     [transactions, type],
   );
 
-  const height = Math.max(240, yLabels.length * 44 + 96);
-  const minWidth = Math.max(320, xLabels.length * 64 + 120);
+  const [zoomData, setZoomData] = useRecentMonthsZoom(xLabels);
+
+  // Extra bottom room reserves space for the x-axis labels + zoom slider.
+  const height = Math.max(280, yLabels.length * 44 + 130);
 
   return (
     <div
@@ -176,48 +180,52 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
           <p className="text-app-muted">No data available.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <div style={{ minWidth }}>
-            <Heatmap
-              height={height}
-              xAxis={[
-                {
-                  data: xLabels,
-                  tickLabelStyle: {
-                    fill: "var(--color-app-muted)",
-                    fontSize: 11,
-                  },
+        <div className="w-full">
+          <Heatmap
+            height={height}
+            zoomData={zoomData}
+            onZoomChange={setZoomData}
+            xAxis={[
+              {
+                id: "x-axis",
+                data: xLabels,
+                zoom: { slider: { enabled: true }, minSpan: 5, panning: true },
+                tickLabelStyle: {
+                  fill: "var(--color-app-muted)",
+                  fontSize: 11,
                 },
-              ]}
-              yAxis={[
-                {
-                  data: yLabels,
-                  tickLabelStyle: {
-                    fill: "var(--color-app-muted)",
-                    fontSize: 11,
-                  },
+              },
+            ]}
+            yAxis={[
+              {
+                data: yLabels,
+                tickLabelStyle: {
+                  fill: "var(--color-app-muted)",
+                  fontSize: 11,
                 },
-              ]}
-              zAxis={[
-                {
+              },
+            ]}
+            zAxis={[
+              {
+                min: 0,
+                max: maxValue,
+                colorMap: {
+                  type: "continuous",
                   min: 0,
                   max: maxValue,
-                  colorMap: {
-                    type: "continuous",
-                    min: 0,
-                    max: maxValue,
-                    color: COLOR_SCALE[type],
-                  },
+                  color: COLOR_SCALE[type],
                 },
-              ]}
-              series={[
-                {
-                  data: cells,
-                  valueFormatter: (v) => `${formatAmount(v[2])} ${currency}`,
-                },
-              ]}
-            />
-          </div>
+              },
+            ]}
+            series={[
+              {
+                data: cells,
+                valueFormatter: (v) => `${formatAmount(v[2])} ${currency}`,
+              },
+            ]}
+          >
+            <ChartZoomSlider />
+          </Heatmap>
         </div>
       )}
     </div>

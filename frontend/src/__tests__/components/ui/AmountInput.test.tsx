@@ -97,4 +97,79 @@ describe("AmountInput", () => {
     expect(fireEvent.keyDown(input, { key: "a" })).toBe(false);
     expect(fireEvent.keyDown(input, { key: "5" })).toBe(true);
   });
+
+  it("deselects the type when the amount is fully deleted", () => {
+    const { input, setType } = setup("EXPENSE");
+    fireEvent.change(input, { target: { value: "5" } });
+    fireEvent.change(input, { target: { value: "" } });
+    expect(setType).toHaveBeenLastCalledWith("");
+  });
+
+  it("deselects the type once the digits are gone even if a sign lingers", () => {
+    const { input, setType } = setup("EXPENSE");
+    fireEvent.change(input, { target: { value: "5" } });
+    // Digits deleted, only the sign char is left — the toggle must clear too.
+    fireEvent.change(input, { target: { value: "-" } });
+    expect(setType).toHaveBeenLastCalledWith("");
+  });
+
+  it("reflects an external value change (e.g. the exchange-rate section editing the amount)", () => {
+    const onAmountChange = vi.fn();
+    const { rerender } = render(
+      <AmountInput
+        value="50"
+        currencySymbol="€"
+        type="EXPENSE"
+        setType={vi.fn()}
+        onAmountChange={onAmountChange}
+        autoFocus={false}
+      />,
+    );
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    expect(input.value).toBe("-50");
+
+    // The amount is edited from OUTSIDE the component (converted card / rate).
+    rerender(
+      <AmountInput
+        value="60"
+        currencySymbol="€"
+        type="EXPENSE"
+        setType={vi.fn()}
+        onAmountChange={onAmountChange}
+        autoFocus={false}
+      />,
+    );
+    expect(input.value).toBe("-60");
+  });
+
+  it("keeps the user's own sign and caret when the parent echoes the magnitude back", () => {
+    const onAmountChange = vi.fn();
+    const { rerender } = render(
+      <AmountInput
+        value=""
+        currencySymbol="€"
+        type="EXPENSE"
+        setType={vi.fn()}
+        onAmountChange={onAmountChange}
+        autoFocus={false}
+      />,
+    );
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "50" } });
+    expect(input.value).toBe("-50");
+
+    // Parent stores the reported magnitude ("50") and feeds it back as `value`.
+    // The signed field must NOT be rewritten to the bare magnitude.
+    rerender(
+      <AmountInput
+        value="50"
+        currencySymbol="€"
+        type="EXPENSE"
+        setType={vi.fn()}
+        onAmountChange={onAmountChange}
+        autoFocus={false}
+      />,
+    );
+    expect(input.value).toBe("-50");
+  });
 });

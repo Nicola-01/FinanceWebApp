@@ -14,6 +14,8 @@ export interface ToggleProps {
    */
   variant?: ToggleVariant;
   size?: ToggleSize;
+  /** Flat accent fill for the checked state (e.g. `wallet.color`). Overrides the brand gradient. */
+  accentColor?: string;
   disabled?: boolean;
   /** switch → text beside the pill · button → the button content. */
   label?: React.ReactNode;
@@ -30,6 +32,7 @@ const Toggle: React.FC<ToggleProps> = ({
   onChange,
   variant = "switch",
   size = "md",
+  accentColor,
   disabled = false,
   label,
   className = "",
@@ -49,9 +52,12 @@ const Toggle: React.FC<ToggleProps> = ({
         aria-label={ariaLabel}
         disabled={disabled}
         onClick={toggle}
+        style={
+          checked && accentColor ? { backgroundColor: accentColor } : undefined
+        }
         className={`inline-flex cursor-pointer select-none items-center gap-2 rounded-[var(--r-cta)] border px-4 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS} ${
           checked
-            ? "border-transparent bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)] text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.7)] hover:shadow-[0_16px_34px_-16px_rgba(0,0,0,0.85)]"
+            ? `border-transparent text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.7)] hover:shadow-[0_16px_34px_-16px_rgba(0,0,0,0.85)] ${accentColor ? "" : "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)]"}`
             : "border-app-border bg-app-input text-app-muted hover:bg-app-hover hover:text-app-text"
         } ${className}`}
       >
@@ -89,9 +95,14 @@ const Toggle: React.FC<ToggleProps> = ({
       } select-none ${FOCUS} ${className}`}
     >
       <span
+        style={
+          checked && accentColor ? { backgroundColor: accentColor } : undefined
+        }
         className={`relative inline-flex ${dims.track} shrink-0 items-center rounded-full border border-white/10 transition-colors duration-200 ${
           checked
-            ? "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)]"
+            ? accentColor
+              ? ""
+              : "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)]"
             : "bg-app-hover"
         }`}
       >

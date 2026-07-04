@@ -2,11 +2,11 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import api from "../../api/axiosConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faCheck,
   faPause,
   faPlay,
   faCheckDouble,
 } from "@fortawesome/free-solid-svg-icons";
+import Button from "../../components/ui/Button.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Subscription } from "../../utils/types";
@@ -48,6 +48,8 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
     const [startDate, setStartDate] = useState<Date>(new Date());
     const [notes, setNotes] = useState("");
     const [selectedTagName, setSelectedTagName] = useState<string>("");
+    // Foreign-currency rate mode: true = use each day's live rate at execution.
+    const [autoExchangeRate, setAutoExchangeRate] = useState(true);
 
     // --- States per Scheduling e Durata (Specifici per Subscription) ---
     const [frequencyInterval, setFrequencyInterval] = useState<number>(1);
@@ -90,6 +92,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setStartDate(new Date(sub.startDate));
           setSelectedTagName(sub.tag?.name || "");
           setNotes(sub.notes || "");
+          setAutoExchangeRate(sub.autoExchangeRate ?? true);
 
           // Campi Subscription
           setFrequencyInterval(sub.frequencyInterval || 1);
@@ -103,7 +106,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         } else {
           // --- CREATE MODE ---
           setEditingSubId(null);
-          setType("EXPENSE");
+          // Open neutral (no type preselected) — matches New Transaction; the
+          // type is set as soon as the user enters an amount (sign-driven).
+          setType("");
           setName("");
           setAmount("");
           setConvertedAmount("0");
@@ -112,6 +117,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setStartDate(initialDate || new Date());
           setSelectedTagName("");
           setNotes("");
+          setAutoExchangeRate(true);
 
           // Reset Campi Subscription
           setFrequencyInterval(1);
@@ -145,7 +151,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           type,
           originalCurrency: currency,
           exchangeValue: Number(exchangeRate) || 1,
-          autoExchangeRate: true,
+          autoExchangeRate,
           tag: selectedTagName,
           notes,
           status,
@@ -193,20 +199,20 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
       type !== "";
     const isEditing = !!editingSubId;
 
-    // Save control shown in the overlay header.
-    const headerActions = (
-      <button
+    // Primary save control lives in the sticky footer.
+    const footer = (
+      <Button
         type="button"
-        onClick={() => {
-          if (canSave && !loading) handleSave();
-        }}
+        onClick={handleSave}
         disabled={!canSave || loading}
+        accentColor={wallet.color}
+        ripple
+        fullWidth
+        size="lg"
         aria-label="Save subscription"
-        className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-app-input disabled:cursor-not-allowed disabled:opacity-40"
-        style={{ color: canSave ? wallet.color : undefined }}
       >
-        <FontAwesomeIcon icon={faCheck} className="text-lg" />
-      </button>
+        {loading ? "Saving…" : isEditing ? "Save changes" : "Add subscription"}
+      </Button>
     );
 
     return (
@@ -215,8 +221,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         onClose={() => setOpen(false)}
         title={isEditing ? "Edit Subscription" : "New Subscription"}
         accentColor={wallet.color}
-        width={480}
-        headerActions={headerActions}
+        footer={footer}
       >
         <div
           id="subscription-form"
@@ -406,6 +411,10 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           {/* 5. EXCHANGE RATE */}
           <ExchangeRateSection
             mode={isEditing ? "edit" : "create"}
+            accentColor={wallet.color}
+            walletId={wallet.id}
+            autoExchangeRate={autoExchangeRate}
+            onAutoExchangeRateChange={setAutoExchangeRate}
             baseCurrency={baseCurrency}
             selectedCurrency={currency}
             onCurrencyChange={setCurrency}

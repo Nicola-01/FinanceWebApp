@@ -168,6 +168,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
           <div className="p-4 sm:p-5">
             <ExchangeRateSection
               mode="view"
+              accentColor={wallet.color}
               baseCurrency={wallet.currency as CurrencyCode}
               selectedCurrency={sub.originalCurrency as CurrencyCode}
               originalAmount={sub.originalAmount || 0}

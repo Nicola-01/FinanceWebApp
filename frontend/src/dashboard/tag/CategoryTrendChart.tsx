@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { BarChart } from "@mui/x-charts/BarChart";
+import { BarChartPro } from "@mui/x-charts-pro/BarChartPro";
 import type { Transaction } from "../../utils/types.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 import {
@@ -7,6 +7,7 @@ import {
   buildMainCategoryMeta,
   mainCategoryName,
 } from "./categoryAgg.ts";
+import { useRecentMonthsZoom } from "./useRecentMonthsZoom.ts";
 
 const MONTH_LABELS = [
   "Jan",
@@ -130,6 +131,12 @@ export const CategoryTrendChart: React.FC<CategoryTrendChartProps> = ({
     [transactions, type],
   );
 
+  const periods = useMemo(
+    () => dataset.map((row) => String(row.period)),
+    [dataset],
+  );
+  const [zoomData, setZoomData] = useRecentMonthsZoom(periods);
+
   return (
     <div
       className={
@@ -178,14 +185,18 @@ export const CategoryTrendChart: React.FC<CategoryTrendChartProps> = ({
         </div>
       ) : (
         <>
-          <BarChart
+          <BarChartPro
             dataset={dataset}
             height={360}
             margin={{ top: 10, right: 10, bottom: 24, left: 10 }}
+            zoomData={zoomData}
+            onZoomChange={setZoomData}
             xAxis={[
               {
+                id: "x-axis",
                 scaleType: "band",
                 dataKey: "period",
+                zoom: { slider: { enabled: true }, minSpan: 5, panning: true },
                 tickLabelStyle: {
                   fill: "var(--color-app-muted)",
                   fontSize: 11,

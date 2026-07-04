@@ -44,15 +44,21 @@ const DEFS: WidgetDef<Ctx>[] = [
 
 const KEY = "tab_layout_testtab_w1";
 
-function Harness({ editing }: { editing: boolean }) {
-  const api = useTabLayout("testtab", "w1", DEFS);
+function Harness({
+  editing,
+  defs = DEFS,
+}: {
+  editing: boolean;
+  defs?: WidgetDef<Ctx>[];
+}) {
+  const api = useTabLayout("testtab", "w1", defs);
   return (
     <div>
       <button type="button" onClick={api.reset}>
         harness-reset
       </button>
       <WidgetGrid
-        defs={DEFS}
+        defs={defs}
         ctx={{}}
         editing={editing}
         api={api}
@@ -133,31 +139,56 @@ describe("WidgetGrid", () => {
     expect(stored.slots[0].activeWidget).toBe("b");
   });
 
-  it("edit mode: popping a member out dissolves a 2-widget group", () => {
+  it("edit mode renders a group as sortable mini-tiles (bare) with no remove chips", () => {
+    // Three same-span members so the adaptive tile grid has something to show.
+    const DEFS3: WidgetDef<Ctx>[] = [
+      def("a", "half"),
+      def("b", "half"),
+      def("e", "half"),
+    ];
     storedLayout({
-      slots: [
-        { id: "group-1", widgets: ["a", "b"], activeWidget: "a" },
-        { id: "c", widgets: ["c"] },
-      ],
+      slots: [{ id: "group-1", widgets: ["a", "b", "e"], activeWidget: "a" }],
+      hiddenSlots: [],
+    });
+    render(<Harness editing defs={DEFS3} />);
+
+    // One mini-tile per member, each showing its label and a bare mini chart.
+    for (const label of ["A", "B", "E"]) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    for (const id of ["a", "b", "e"]) {
+      expect(screen.getByTestId(`widget-${id}`)).toHaveAttribute(
+        "data-bare",
+        "true",
+      );
+    }
+
+    // The old ×-chip "Remove … from group" affordance is gone (drag-only now).
+    expect(
+      screen.queryByRole("button", { name: /Remove .* from group/ }),
+    ).not.toBeInTheDocument();
+
+    // The whole-group header controls (move handle + hide) are still present.
+    expect(
+      screen.getByRole("button", { name: "Move A + B + E" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Hide A + B + E" }),
+    ).toBeInTheDocument();
+  });
+
+  it("non-edit group still renders the SwitchableCard (no mini-tiles)", () => {
+    storedLayout({
+      slots: [{ id: "group-1", widgets: ["a", "b"], activeWidget: "a" }],
       hiddenSlots: [{ id: "h", widgets: ["h"] }],
     });
-    render(<Harness editing />);
+    render(<Harness editing={false} />);
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Remove B from group" }),
-    );
-
-    // Both widgets are standalone (not bare) now.
-    expect(screen.getByTestId("widget-a")).toHaveAttribute(
-      "data-bare",
-      "false",
-    );
-    expect(screen.getByTestId("widget-b")).toHaveAttribute(
-      "data-bare",
-      "false",
-    );
-    const stored = JSON.parse(localStorage.getItem(KEY)!) as TabLayout;
-    expect(stored.slots.map((s) => s.id)).toEqual(["a", "b", "c"]);
+    // SwitchableCard header shows the active member's title; no move handle.
+    expect(screen.getByText("Title A")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Move A + B" }),
+    ).not.toBeInTheDocument();
   });
 
   it("hiding a group stores it as one unit and its chip restores it intact", () => {
