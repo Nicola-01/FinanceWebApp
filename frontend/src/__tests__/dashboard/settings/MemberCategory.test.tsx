@@ -54,13 +54,13 @@ describe("MemberCategory", () => {
 
   it("RBAC: propagates canManage=false so no management controls appear", () => {
     renderCategory({ canManage: false });
-    expect(screen.queryAllByTitle("Remove User")).toHaveLength(0);
-    expect(screen.queryAllByTitle("Save Role")).toHaveLength(0);
+    expect(screen.queryAllByTitle("Remove user")).toHaveLength(0);
+    expect(screen.queryAllByTitle("Save role")).toHaveLength(0);
   });
 
   it("RBAC: propagates canManage=true so each row exposes its controls", () => {
     renderCategory({ canManage: true });
-    expect(screen.getAllByTitle("Remove User")).toHaveLength(members.length);
-    expect(screen.getAllByTitle("Save Role")).toHaveLength(members.length);
+    expect(screen.getAllByTitle("Remove user")).toHaveLength(members.length);
+    expect(screen.getAllByTitle("Save role")).toHaveLength(members.length);
   });
 });

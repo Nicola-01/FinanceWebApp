@@ -74,6 +74,9 @@ const members: WalletMember[] = [
   },
 ];
 
+// ConfirmModal renders via createPortal into #modal-root.
+let modalRoot: HTMLDivElement;
+
 const renderAs = (role: Wallet["userRole"]) => {
   walletRef.current = { ...baseWallet, userRole: role };
   return render(<ShareSettingsSection />);
@@ -81,6 +84,18 @@ const renderAs = (role: Wallet["userRole"]) => {
 
 describe("ShareSettingsSection", () => {
   beforeEach(() => {
+    modalRoot = document.createElement("div");
+    modalRoot.id = "modal-root";
+    document.body.appendChild(modalRoot);
+
+    // jsdom doesn't implement the <dialog> API; stub showModal/close.
+    HTMLDialogElement.prototype.showModal ??= function () {
+      this.setAttribute("open", "");
+    };
+    HTMLDialogElement.prototype.close ??= function () {
+      this.removeAttribute("open");
+    };
+
     apiGet.mockReset().mockResolvedValue({ data: members });
     apiPost.mockReset().mockResolvedValue({});
     apiPut.mockReset().mockResolvedValue({});
@@ -89,6 +104,7 @@ describe("ShareSettingsSection", () => {
   });
 
   afterEach(() => {
+    modalRoot.remove();
     vi.restoreAllMocks();
   });
 
@@ -103,7 +119,9 @@ describe("ShareSettingsSection", () => {
     await screen.findByText("Ed Editor");
 
     // Invite section (owner-only)
-    expect(screen.getByText("Invite People")).toBeInTheDocument();
+    expect(
+      screen.getByRole("textbox", { name: /username or email/i }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /send invite/i }),
     ).toBeInTheDocument();
@@ -113,8 +131,12 @@ describe("ShareSettingsSection", () => {
     expect(screen.getByText("Pat Pending")).toBeInTheDocument();
 
     // Management controls exist for accepted, non-owner members.
-    expect(screen.getAllByTitle("Remove User").length).toBeGreaterThan(0);
+    expect(screen.getAllByTitle("Remove user").length).toBeGreaterThan(0);
   });
+
+  // Helper: the invite input is only rendered when isOwner is true.
+  const inviteInput = () =>
+    screen.queryByRole("textbox", { name: /username or email/i });
 
   it("RBAC: VIEWER cannot see invite, pending list, or any management control", async () => {
     renderAs("VIEWER");
@@ -125,40 +147,42 @@ describe("ShareSettingsSection", () => {
     expect(screen.getByText("Vera Viewer")).toBeInTheDocument();
 
     // ...but every owner-only affordance is gone.
-    expect(screen.queryByText("Invite People")).not.toBeInTheDocument();
+    expect(inviteInput()).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /send invite/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("Pending Invites")).not.toBeInTheDocument();
     expect(screen.queryByText("Pat Pending")).not.toBeInTheDocument();
-    expect(screen.queryAllByTitle("Remove User")).toHaveLength(0);
-    expect(screen.queryAllByTitle("Cancel Invite")).toHaveLength(0);
-    expect(screen.queryAllByTitle("Save Role")).toHaveLength(0);
+    expect(screen.queryAllByTitle("Remove user")).toHaveLength(0);
+    expect(screen.queryAllByTitle("Cancel invite")).toHaveLength(0);
+    expect(screen.queryAllByTitle("Save role")).toHaveLength(0);
   });
 
   it("RBAC: EDITOR is denied invite, pending list, and management controls", async () => {
     renderAs("EDITOR");
     await screen.findByText("Ed Editor");
 
-    expect(screen.queryByText("Invite People")).not.toBeInTheDocument();
+    expect(inviteInput()).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /send invite/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("Pending Invites")).not.toBeInTheDocument();
-    expect(screen.queryAllByTitle("Remove User")).toHaveLength(0);
-    expect(screen.queryAllByTitle("Save Role")).toHaveLength(0);
+    expect(screen.queryAllByTitle("Remove user")).toHaveLength(0);
+    expect(screen.queryAllByTitle("Save role")).toHaveLength(0);
   });
 
   it("OWNER removes a member after confirming, calling the delete endpoint", async () => {
     const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     renderAs("OWNER");
     await screen.findByText("Ed Editor");
 
-    // First "Remove User" belongs to the first accepted, non-owner member (Ed).
-    await user.click(screen.getAllByTitle("Remove User")[0]);
+    // Click the first "Remove user" button — opens the ConfirmModal.
+    await user.click(screen.getAllByTitle("Remove user")[0]);
 
-    expect(confirmSpy).toHaveBeenCalled();
+    // The ConfirmModal shows a "Remove" confirm button.
+    const confirmBtn = await screen.findByRole("button", { name: "Remove" });
+    await user.click(confirmBtn);
+
     expect(apiDelete).toHaveBeenCalledWith("/invitations/w1/u-editor");
     await waitFor(() =>
       expect(screen.queryByText("Ed Editor")).not.toBeInTheDocument(),
@@ -168,11 +192,15 @@ describe("ShareSettingsSection", () => {
 
   it("OWNER remove is aborted when the confirmation is declined", async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, "confirm").mockReturnValue(false);
     renderAs("OWNER");
     await screen.findByText("Ed Editor");
 
-    await user.click(screen.getAllByTitle("Remove User")[0]);
+    // Open the confirm modal.
+    await user.click(screen.getAllByTitle("Remove user")[0]);
+
+    // Click the "Cancel" button in the ConfirmModal.
+    const cancelBtn = await screen.findByRole("button", { name: "Cancel" });
+    await user.click(cancelBtn);
 
     expect(apiDelete).not.toHaveBeenCalled();
     expect(screen.getByText("Ed Editor")).toBeInTheDocument();
@@ -184,7 +212,7 @@ describe("ShareSettingsSection", () => {
     await screen.findByText("Ed Editor");
 
     await user.type(
-      screen.getByPlaceholderText("Username or Email"),
+      screen.getByRole("textbox", { name: /username or email/i }),
       "newuser@example.com",
     );
     await user.click(screen.getByRole("button", { name: /send invite/i }));

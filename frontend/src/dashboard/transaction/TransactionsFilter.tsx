@@ -47,7 +47,6 @@ export const TransactionsFilter: React.FC = () => {
               color={wallet.color}
             />
           )}
-
         </div>
 
         {/* Centre: date range. Fixed max basis but `min-w-0` + `shrink` so it

@@ -33,26 +33,26 @@ describe("OverviewCell", () => {
     renderCell({ value: 1234.5, type: "income" });
     const span = screen.getByText(`+${fmt(1234.5)}`);
     expect(span).toBeInTheDocument();
-    expect(span.className).toContain("theme-text-success");
+    expect(span.className).toContain("text-app-green");
   });
 
   it("renders expense with a minus prefix, absolute value and danger colour", () => {
     renderCell({ value: 80, type: "expense" });
     const span = screen.getByText(`-${fmt(80)}`);
     expect(span).toBeInTheDocument();
-    expect(span.className).toContain("theme-text-danger");
+    expect(span.className).toContain("text-app-red");
   });
 
   it("renders a positive balance as success with a plus prefix", () => {
     renderCell({ value: 500, type: "balance" });
     const span = screen.getByText(`+${fmt(500)}`);
-    expect(span.className).toContain("theme-text-success");
+    expect(span.className).toContain("text-app-green");
   });
 
   it("renders a negative balance as danger with an absolute value", () => {
     renderCell({ value: -250, type: "balance" });
     const span = screen.getByText(`-${fmt(250)}`);
-    expect(span.className).toContain("theme-text-danger");
+    expect(span.className).toContain("text-app-red");
   });
 
   it("applies bold styling when isBold is set", () => {

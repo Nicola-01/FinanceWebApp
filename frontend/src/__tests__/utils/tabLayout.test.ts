@@ -14,7 +14,7 @@ import {
   writeLayout,
   type LayoutWidgetMeta,
   type TabLayout,
-} from "./tabLayout";
+} from "../../utils/tabLayout";
 
 const WIDGETS: LayoutWidgetMeta[] = [
   { id: "a", span: "half" },
@@ -102,6 +102,57 @@ describe("reconcileLayout", () => {
     };
     const l = reconcileLayout(stored, WIDGETS);
     expect(l.hiddenSlots.map((s) => s.id)).toEqual(["group-2", "h"]);
+  });
+
+  it("deduplicates a widget repeated inside a single slot", () => {
+    const l = reconcileLayout(
+      {
+        slots: [
+          { id: "group-1", widgets: ["a", "a", "b"] },
+          single("c"),
+          single("d"),
+        ],
+        hiddenSlots: [],
+      },
+      WIDGETS,
+    );
+    expect(l.slots[0]).toEqual({ id: "group-1", widgets: ["a", "b"] });
+
+    // A slot reduced to a single member by the dedupe dissolves to standalone.
+    const dissolved = reconcileLayout(
+      { slots: [{ id: "a", widgets: ["a", "a"] }], hiddenSlots: [] },
+      WIDGETS,
+    );
+    expect(dissolved.slots[0]).toEqual(single("a"));
+  });
+
+  it("renames a duplicated group id so slot ids stay unique", () => {
+    const l = reconcileLayout(
+      {
+        slots: [
+          { id: "group-1", widgets: ["a", "b"] },
+          { id: "group-1", widgets: ["c", "d"] },
+        ],
+        hiddenSlots: [],
+      },
+      WIDGETS,
+    );
+    const ids = l.slots.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(l.slots[0]).toEqual({ id: "group-1", widgets: ["a", "b"] });
+    expect(l.slots[1].widgets).toEqual(["c", "d"]);
+    expect(l.slots[1].id).toMatch(/^group-\d+$/);
+    expect(l.slots[1].id).not.toBe("group-1");
+  });
+
+  it("renames group ids that do not follow the group-<n> pattern", () => {
+    // A group id colliding with a widget id would break keys/dnd ids.
+    const l = reconcileLayout(
+      { slots: [{ id: "a", widgets: ["c", "d"] }], hiddenSlots: [] },
+      WIDGETS,
+    );
+    expect(l.slots[0].id).toMatch(/^group-\d+$/);
+    expect(l.slots[0].widgets).toEqual(["c", "d"]);
   });
 });
 
@@ -239,6 +290,14 @@ describe("popWidget", () => {
     const l = defaultLayout(WIDGETS);
     expect(popWidget(l, "a", "a")).toBe(l);
     expect(popWidget(l, "group-9", "a")).toBe(l);
+  });
+
+  it("never commits an empty slot when a corrupt group repeats the popped widget", () => {
+    const l: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "a"] }],
+      hiddenSlots: [],
+    };
+    expect(popWidget(l, "group-1", "a")).toBe(l);
   });
 });
 

@@ -19,6 +19,8 @@ vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
     dateRange: { start: null, end: null },
     datePreset: "all",
     setDatePreset: vi.fn(),
+    // The search box only renders on the Transactions tab.
+    activeTab: "transactions",
   }),
 }));
 vi.mock("../../../utils/ThemeContext.tsx", () => ({

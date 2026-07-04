@@ -1,19 +1,21 @@
 import { useMemo, useRef, useState } from "react";
 import {
-  closestCenter,
   DndContext,
   DragOverlay,
+  KeyboardSensor,
   MeasuringStrategy,
   MouseSensor,
-  pointerWithin,
   TouchSensor,
   useSensor,
   useSensors,
-  type CollisionDetection,
   type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { rectSortingStrategy, SortableContext } from "@dnd-kit/sortable";
+import {
+  rectSortingStrategy,
+  SortableContext,
+  sortableKeyboardCoordinates,
+} from "@dnd-kit/sortable";
 import { LayoutGroup } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { TabLayout } from "../../utils/tabLayout";
@@ -21,27 +23,7 @@ import type { TabLayoutApi } from "./useTabLayout.ts";
 import type { WidgetDef } from "./widgetTypes.ts";
 import { HiddenTray } from "./HiddenTray.tsx";
 import { WidgetSlot } from "./WidgetSlot.tsx";
-
-const MERGE_PREFIX = "merge:";
-
-/**
- * Merge zones win when the pointer is inside one (drop-on-center = group);
- * otherwise fall back to closest-center among the real slots (reorder).
- * Only valid targets render a merge zone, so span rules are enforced by
- * construction.
- */
-const mergeAwareCollision: CollisionDetection = (args) => {
-  const zones = pointerWithin(args).filter((c) =>
-    String(c.id).startsWith(MERGE_PREFIX),
-  );
-  if (zones.length > 0) return zones;
-  return closestCenter({
-    ...args,
-    droppableContainers: args.droppableContainers.filter(
-      (c) => !String(c.id).startsWith(MERGE_PREFIX),
-    ),
-  });
-};
+import { MERGE_PREFIX, mergeAwareCollision } from "./mergeAwareCollision.ts";
 
 interface WidgetGridProps<Ctx> {
   defs: WidgetDef<Ctx>[];
@@ -70,6 +52,9 @@ export function WidgetGrid<Ctx>({
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, {
       activationConstraint: { delay: 250, tolerance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
 

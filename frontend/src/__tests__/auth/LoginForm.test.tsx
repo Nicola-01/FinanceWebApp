@@ -79,7 +79,7 @@ describe("LoginForm", () => {
     });
     renderForm();
     await fillCredentials(user);
-    await user.click(screen.getByRole("switch")); // Remember me
+    await user.click(screen.getByRole("checkbox", { name: "Remember me" }));
     await user.click(screen.getByRole("button", { name: /sign in/i }));
 
     await waitFor(() => expect(localStorage.getItem("jwtToken")).toBe("T"));

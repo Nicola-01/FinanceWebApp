@@ -62,8 +62,8 @@ describe("MemberRow", () => {
     expect(screen.getByText("bob@example.com")).toBeInTheDocument();
 
     // ...but none of the owner-only controls are rendered.
-    expect(screen.queryByTitle("Remove User")).not.toBeInTheDocument();
-    expect(screen.queryByTitle("Save Role")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Remove user")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Save role")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /viewer/i }),
     ).not.toBeInTheDocument();
@@ -77,8 +77,8 @@ describe("MemberRow", () => {
 
     expect(screen.getByRole("button", { name: /viewer/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /editor/i })).toBeInTheDocument();
-    expect(screen.getByTitle("Save Role")).toBeInTheDocument();
-    expect(screen.getByTitle("Remove User")).toBeInTheDocument();
+    expect(screen.getByTitle("Save role")).toBeInTheDocument();
+    expect(screen.getByTitle("Remove user")).toBeInTheDocument();
   });
 
   it("remove button invokes onRemove with the member id and username", async () => {
@@ -86,7 +86,7 @@ describe("MemberRow", () => {
     const onRemove = vi.fn();
     renderRow({ canManage: true, onRemove });
 
-    await user.click(screen.getByTitle("Remove User"));
+    await user.click(screen.getByTitle("Remove user"));
 
     expect(onRemove).toHaveBeenCalledTimes(1);
     expect(onRemove).toHaveBeenCalledWith("m1", "Bob Editor");
@@ -95,8 +95,8 @@ describe("MemberRow", () => {
   it("RBAC: never renders controls for an OWNER member, even when canManage", () => {
     renderRow({ canManage: true, member: { role: "OWNER" } });
 
-    expect(screen.queryByTitle("Remove User")).not.toBeInTheDocument();
-    expect(screen.queryByTitle("Save Role")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Remove user")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Save role")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /viewer/i }),
     ).not.toBeInTheDocument();
@@ -106,17 +106,17 @@ describe("MemberRow", () => {
     authMock.current = { userId: "m1" }; // this row IS the logged-in user
     renderRow({ canManage: true });
 
-    expect(screen.queryByTitle("Remove User")).not.toBeInTheDocument();
-    expect(screen.queryByTitle("Save Role")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Remove user")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Save role")).not.toBeInTheDocument();
   });
 
   it("PENDING member shows only a cancel-invite control (no role editor)", () => {
     renderRow({ canManage: true, member: { status: "PENDING" } });
 
     // Remove control is repurposed as "Cancel Invite" for pending rows.
-    expect(screen.getByTitle("Cancel Invite")).toBeInTheDocument();
+    expect(screen.getByTitle("Cancel invite")).toBeInTheDocument();
     // No role selector / save because the invite is not yet ACCEPTED.
-    expect(screen.queryByTitle("Save Role")).not.toBeInTheDocument();
+    expect(screen.queryByTitle("Save role")).not.toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /viewer/i }),
     ).not.toBeInTheDocument();
@@ -129,7 +129,7 @@ describe("MemberRow", () => {
   // ---------------------------------------------------------------------------
   it("keeps Save disabled while no role change is pending", () => {
     renderRow({ canManage: true });
-    expect(screen.getByTitle("Save Role")).toBeDisabled();
+    expect(screen.getByTitle("Save role")).toBeDisabled();
   });
 
   it("enables Save after picking a different role and persists the new role", async () => {
@@ -139,7 +139,7 @@ describe("MemberRow", () => {
 
     await user.click(screen.getByRole("button", { name: /viewer/i }));
 
-    const save = screen.getByTitle("Save Role");
+    const save = screen.getByTitle("Save role");
     expect(save).toBeEnabled();
     await user.click(save);
     expect(onChangeRole).toHaveBeenCalledWith("m1", "VIEWER");

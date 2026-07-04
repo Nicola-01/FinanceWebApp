@@ -60,17 +60,29 @@ export function reconcileLayout(
 ): TabLayout {
   const spanOf = new Map(widgets.map((w) => [w.id, w.span]));
   const seen = new Set<string>();
+  // Group ids must be unique across visible + hidden slots (they are React
+  // keys and dnd ids); corrupt stores may repeat one, so collisions rename.
+  const usedGroupIds = new Set<string>();
+  const freshGroupId = (): string => {
+    let n = 1;
+    while (usedGroupIds.has(`group-${n}`)) n += 1;
+    return `group-${n}`;
+  };
 
   const cleanList = (raw: unknown): LayoutSlot[] => {
     if (!Array.isArray(raw)) return [];
     const out: LayoutSlot[] = [];
     for (const s of raw as Partial<LayoutSlot>[]) {
       if (!s || typeof s.id !== "string" || !Array.isArray(s.widgets)) continue;
-      const members = s.widgets.filter(
-        (w): w is string =>
-          typeof w === "string" && spanOf.has(w) && !seen.has(w),
-      );
-      members.forEach((w) => seen.add(w));
+      // Dedupe as we filter so a widget repeated INSIDE one slot is dropped
+      // too (not just repeats across slots).
+      const members: string[] = [];
+      for (const w of s.widgets) {
+        if (typeof w === "string" && spanOf.has(w) && !seen.has(w)) {
+          seen.add(w);
+          members.push(w);
+        }
+      }
       if (members.length === 0) continue;
 
       // Same-span groups only: the first member's span wins, the rest pop out.
@@ -78,8 +90,21 @@ export function reconcileLayout(
       const kept = members.filter((w) => spanOf.get(w) === span);
       const popped = members.filter((w) => spanOf.get(w) !== span);
 
+      // Standalone slot ids equal the widget id (unique by the dedupe above);
+      // group ids must match `group-<n>` and be unused, else they are renamed.
+      let slotId: string;
+      if (kept.length > 1) {
+        slotId =
+          /^group-\d+$/.test(s.id) && !usedGroupIds.has(s.id)
+            ? s.id
+            : freshGroupId();
+        usedGroupIds.add(slotId);
+      } else {
+        slotId = kept[0];
+      }
+
       out.push({
-        id: kept.length > 1 ? s.id : kept[0],
+        id: slotId,
         widgets: kept,
         ...(kept.length > 1 &&
         typeof s.activeWidget === "string" &&
@@ -222,6 +247,9 @@ export function popWidget(
   }
 
   const remaining = slot.widgets.filter((w) => w !== widgetId);
+  // Defensive: a corrupt slot repeating `widgetId` could empty out entirely;
+  // never commit an empty slot (reconcileLayout heals the store on next read).
+  if (remaining.length === 0) return layout;
   const reduced: LayoutSlot =
     remaining.length === 1
       ? { id: remaining[0], widgets: remaining }

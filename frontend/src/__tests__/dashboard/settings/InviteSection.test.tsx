@@ -8,7 +8,8 @@ const renderInvite = (
 ) => render(<InviteSection walletColor="#8b5cf6" onInvite={onInvite} />);
 
 const sendButton = () => screen.getByRole("button", { name: /send invite/i });
-const identifierInput = () => screen.getByPlaceholderText("Username or Email");
+const identifierInput = () =>
+  screen.getByRole("textbox", { name: /username or email/i });
 
 describe("InviteSection", () => {
   it("keeps the Send button disabled until a 3+ char identifier is entered", async () => {
