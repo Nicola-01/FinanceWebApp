@@ -17,9 +17,12 @@ vi.mock("../../../modals/TransactionModal/ExchangeRateSection.tsx", () => ({
 vi.mock("../../../modals/TransactionModal/TransactionTypeToggle.tsx", () => ({
   TransactionTypeToggle: () => <div />,
 }));
-vi.mock("../../../modals/TransactionModal/TransactionMetadataInputs.tsx", () => ({
-  TransactionMetadataInputs: () => <div />,
-}));
+vi.mock(
+  "../../../modals/TransactionModal/TransactionMetadataInputs.tsx",
+  () => ({
+    TransactionMetadataInputs: () => <div />,
+  }),
+);
 vi.mock("../../../components/DataPicker/CustomDatePicker.tsx", () => ({
   default: () => <div />,
 }));

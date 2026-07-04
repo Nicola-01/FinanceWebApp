@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { faTag } from "@fortawesome/free-solid-svg-icons";
 
-vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({ useWalletContext: vi.fn() }));
+vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
+  useWalletContext: vi.fn(),
+}));
 
 import { mergeAwareCollision } from "../../../dashboard/layout/mergeAwareCollision";
 import { WidgetGrid } from "../../../dashboard/layout/WidgetGrid";

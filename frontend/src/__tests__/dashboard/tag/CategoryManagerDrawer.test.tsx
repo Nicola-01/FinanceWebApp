@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import type { Tag, Wallet } from "../../../utils/types";
 
-vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({ useWalletContext: vi.fn() }));
+vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
+  useWalletContext: vi.fn(),
+}));
 vi.mock("../../../modals/common/DeleteModalContext.tsx", () => ({
   useDeleteModal: vi.fn(),
 }));
