@@ -143,6 +143,7 @@ const AdminDashboard: React.FC = () => {
                     u,
                     "user",
                     async () => await handleConfirmDelete(u.id),
+                    2,
                   )
                 }
                 onRevoke={handleRevokeInvite}

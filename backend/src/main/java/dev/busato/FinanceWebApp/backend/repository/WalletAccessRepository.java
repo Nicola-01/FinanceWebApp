@@ -40,4 +40,7 @@ public interface WalletAccessRepository
       LocalDate date);
 
   Optional<WalletAccess> findByWalletIdAndRole(UUID walletId, WalletAccess.WalletRole role);
+
+  /** Removes every access row belonging to a user (used when the account itself is deleted). */
+  void deleteAllByUserId(UUID userId);
 }

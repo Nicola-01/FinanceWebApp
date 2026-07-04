@@ -279,8 +279,7 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
       async () => {
         await handleDeleteTag(tag.name);
       },
-      false,
-      0,
+      1,
     );
   };
 

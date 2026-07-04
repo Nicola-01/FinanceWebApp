@@ -3,11 +3,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCode,
   faPlus,
-  faCheck,
   faShieldAlt,
   faPen,
 } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "../common/ModalDialog";
+import Button from "../../components/ui/Button";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import api from "../../api/axiosConfig";
 import type {
@@ -231,7 +231,7 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
     if (view === "list")
       return (
         <>
-          <FontAwesomeIcon icon={faCode} className="text-[#a78bfa]" /> API
+          <FontAwesomeIcon icon={faCode} className="text-app-purple" /> API
           Tokens
         </>
       );
@@ -244,18 +244,20 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
     if (view === "edit")
       return (
         <>
-          <FontAwesomeIcon icon={faPen} className="theme-text-warning" /> Edit
+          <FontAwesomeIcon icon={faPen} className="text-app-yellow" /> Edit
           Permissions
         </>
       );
     return (
       <>
-        <FontAwesomeIcon icon={faShieldAlt} className="theme-text-warning" />{" "}
-        Token Created
+        <FontAwesomeIcon icon={faShieldAlt} className="text-app-yellow" /> Token
+        Created
       </>
     );
   };
 
+  // Only the list view keeps a header action (＋ New token); create/edit use the
+  // footer CTA below instead of a tiny header checkmark.
   const renderRightActions = () => {
     if (view === "list") {
       return [
@@ -266,17 +268,32 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
         },
       ];
     }
-    if (view === "create" || view === "edit") {
-      return [
-        {
-          icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
-          onClick: handleSubmit,
-          hoverColor: "hover:text-app-green",
-          disabled: isSubmitting,
-        },
-      ];
-    }
     return undefined;
+  };
+
+  const renderFooter = () => {
+    if (view !== "create" && view !== "edit") return undefined;
+    const disabled =
+      isSubmitting ||
+      !tokenName.trim() ||
+      walletPerms.filter((w) => w.enabled).length === 0;
+    return (
+      <Button
+        variant="primary"
+        fullWidth
+        ripple
+        onClick={handleSubmit}
+        disabled={disabled}
+      >
+        {isSubmitting
+          ? view === "edit"
+            ? "Saving…"
+            : "Generating…"
+          : view === "edit"
+            ? "Save Changes"
+            : "Generate Token"}
+      </Button>
+    );
   };
 
   const handleCloseClick = () => {
@@ -296,6 +313,7 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
       className="max-w-[560px]"
       title={renderTitle()}
       rightActions={renderRightActions()}
+      footer={renderFooter()}
       onCloseClick={handleCloseClick}
       showClose={true}
     >
@@ -320,6 +338,7 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
           setPermission={setPermission}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          hideSubmit
         />
       )}
 

@@ -254,17 +254,19 @@ export const TagPicker: React.FC<TagPickerProps> = ({
                 openPicker();
               }}
               placeholder="Tap to search..."
-              className="theme-bg-transparent h-full w-full font-medium text-app-text outline-none placeholder:text-app-muted"
+              className="h-full w-full bg-transparent font-medium text-app-text outline-none placeholder:text-app-muted"
             />
           ) : selectedTag ? (
             <div className="pointer-events-none flex w-full cursor-pointer items-center gap-3">
               <div
                 className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-app-input text-xs"
-                style={{ color: selectedTag.colorHex || "#ffffff" }}
+                style={{
+                  color: selectedTag.colorHex || "var(--color-app-text)",
+                }}
               >
                 <Icon
                   icon={selectedTag.icon}
-                  color={selectedTag.colorHex || "#ffffff"}
+                  color={selectedTag.colorHex || "var(--color-app-text)"}
                 />
               </div>
               <span className="truncate font-medium text-app-text">

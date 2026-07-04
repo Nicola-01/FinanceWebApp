@@ -55,7 +55,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
     if (sub.status === "ACTIVE")
       return <FontAwesomeIcon icon={faPlay} className="text-app-green" />;
     if (sub.status === "PAUSED")
-      return <FontAwesomeIcon icon={faPause} className="theme-text-warning" />;
+      return <FontAwesomeIcon icon={faPause} className="text-app-yellow" />;
     return <FontAwesomeIcon icon={faCheckDouble} className="text-app-muted" />;
   };
 
@@ -74,7 +74,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
         </p>
         <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-app-input border border-app-border text-xs font-bold tracking-wider uppercase">
           {getStatusIcon()}
-          <span className="theme-text-muted">{sub.status}</span>
+          <span className="text-app-muted">{sub.status}</span>
         </div>
       </div>
 
@@ -84,14 +84,14 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
       </div>
 
       {/* DETAILS */}
-      <div className="w-full theme-bg-overlay-light border border-app-border rounded-2xl text-left flex flex-col divide-y theme-divide-default">
+      <div className="w-full bg-app-input/40 border border-app-border rounded-2xl text-left flex flex-col divide-y divide-app-border">
         {/* Name */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
           <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
             <FontAwesomeIcon icon={faTag} className="w-5 text-center mr-2" />
             Name
           </span>
-          <span className="theme-text-default font-medium sm:text-right truncate">
+          <span className="text-app-text font-medium sm:text-right truncate">
             {sub.name}
           </span>
         </div>
@@ -103,7 +103,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
             Frequency
           </span>
           <div className="flex flex-col sm:items-end">
-            <span className="theme-text-default font-medium">
+            <span className="text-app-text font-medium">
               {getFrequencyText()}
             </span>
             {sub.duration === "TIMES" && (
@@ -128,7 +128,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
             <FontAwesomeIcon icon={faClock} className="w-5 text-center mr-2" />
             Next Run
           </span>
-          <span className="theme-text-default font-medium">
+          <span className="text-app-text font-medium">
             {formatDate(sub.nextExecutionDate)}
           </span>
         </div>
@@ -142,7 +142,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
             />
             Started On
           </span>
-          <span className="theme-text-default font-medium">
+          <span className="text-app-text font-medium">
             {formatDate(sub.startDate)}
           </span>
         </div>
@@ -157,7 +157,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
               />
               Notes
             </span>
-            <span className="theme-text-muted text-sm bg-app-input p-3 rounded-lg border border-app-border">
+            <span className="text-app-muted text-sm bg-app-input p-3 rounded-lg border border-app-border">
               {sub.notes}
             </span>
           </div>

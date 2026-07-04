@@ -171,6 +171,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
               type={type}
               setType={setType}
               currencySymbol={currencySymbol}
+              autoFocus={!isEditing}
               onAmountChange={(val) => {
                 setAmount(val);
                 if (currency !== baseCurrency && exchangeRate)

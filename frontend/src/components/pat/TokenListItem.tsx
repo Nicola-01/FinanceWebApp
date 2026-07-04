@@ -17,6 +17,8 @@ interface TokenListItemProps {
   showCopy?: boolean;
   onCopy?: (prefix: string) => void;
   revokingId?: string | null;
+  /** Optional inline tag shown next to the token name (e.g. Manual / MCP). */
+  badge?: React.ReactNode;
 }
 
 export const TokenListItem: React.FC<TokenListItemProps> = ({
@@ -30,6 +32,7 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
   showCopy = false,
   onCopy,
   revokingId,
+  badge,
 }) => {
   const Wrapper = onClick ? "button" : "div";
   const wrapperProps = onClick
@@ -53,9 +56,12 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
             <FontAwesomeIcon icon={faKey} className="text-lg text-app-muted" />
           </div>
           <div className="min-w-0">
-            <p className={`text-sm font-semibold truncate text-app-text`}>
-              {token.name}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className={`text-sm font-semibold truncate text-app-text`}>
+                {token.name}
+              </p>
+              {badge}
+            </div>
             <div className="flex items-center gap-2">
               <p className={`text-[11px] font-mono truncate text-app-muted`}>
                 {token.tokenPrefix}...

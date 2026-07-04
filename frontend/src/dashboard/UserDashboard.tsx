@@ -165,6 +165,7 @@ const UserDashboard: React.FC = () => {
                     selectedWallet,
                     "wallet",
                     async () => await handleConfirmDelete(selectedWallet.id),
+                    2,
                   );
                 } else {
                   // Non-owners quit (leave) the wallet — not a destructive delete.

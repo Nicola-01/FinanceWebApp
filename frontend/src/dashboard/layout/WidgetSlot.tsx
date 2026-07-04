@@ -7,13 +7,26 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useSortable } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
+import { type Transform } from "@dnd-kit/utilities";
 import { SwitchableCard } from "../statistics/SwitchableCard.tsx";
 import { GroupEditGrid } from "./GroupEditGrid.tsx";
 import type { WidgetDef } from "./widgetTypes.ts";
 import type { LayoutSlot, WidgetSpan } from "../../utils/tabLayout";
 
 const mergeZoneId = (slotId: string) => `merge:${slotId}`;
+
+/**
+ * Sortable transform as translation ONLY, dropping dnd-kit's scaleX/scaleY.
+ * When neighbouring cards differ in size (a half-span next to a full-span) the
+ * strategy sets scale = newRect / oldRect to squeeze each card into the other's
+ * slot, which visibly stretches/shrinks them mid-drag. Cards must keep their
+ * size and only slide, so we ignore the scale entirely.
+ */
+function translateOnly(transform: Transform | null): string | undefined {
+  return transform
+    ? `translate3d(${Math.round(transform.x)}px, ${Math.round(transform.y)}px, 0)`
+    : undefined;
+}
 
 interface WidgetSlotProps<Ctx> {
   slot: LayoutSlot;
@@ -86,6 +99,9 @@ export function WidgetSlot<Ctx>({
   } = useSortable({
     id: slot.id,
     disabled: !editing,
+    // Span rides on the sortable so the collision can keep reorder targets
+    // same-span only (a full card must not land in a half slot, or vice versa).
+    data: { span: first.span },
   });
   // During a drag the sortable transform drives the reorder preview — dnd-kit
   // measures its OWN transforms, so merge hitboxes stay truthful as cards shift.
@@ -119,7 +135,7 @@ export function WidgetSlot<Ctx>({
       transition={{ layout: { duration: 0.25, ease: "easeOut" } }}
       className={`relative h-full min-w-0 ${first.span === "full" ? "xl:col-span-2" : ""}`}
       style={{
-        transform: CSS.Transform.toString(transform),
+        transform: translateOnly(transform),
         transition: suspendLayout ? transition : undefined,
         opacity: isDragging ? 0.35 : 1,
       }}

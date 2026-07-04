@@ -52,7 +52,6 @@ export const TransactionDetailsModal = forwardRef<
         tx,
         "transaction",
         async () => handleDeleteAndClose(),
-        false,
         0,
       );
     }

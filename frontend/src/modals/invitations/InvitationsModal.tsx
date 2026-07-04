@@ -8,9 +8,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "../common/ModalDialog";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
+import Button from "../../components/ui/Button";
 import api from "../../api/axiosConfig";
 import type { Invitation } from "../../utils/types";
-import { type IconKey, ICONS } from "../../utils/icons"; // Importiamo le icone
+import { type IconKey, ICONS } from "../../utils/icons";
 
 export interface InvitationsModalHandle {
   openModal: (invites: Invitation[]) => void;
@@ -64,23 +65,25 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>(
       >
         <div className="text-center pb-2">
           {/* Tabs */}
-          <div className="flex rounded-xl theme-bg-overlay-dark p-1 border border-app-border mb-4">
+          <div className="mb-4 flex rounded-[var(--r-input)] border border-app-border bg-app-input p-1">
             <button
+              type="button"
               onClick={() => setActiveTab("PENDING")}
-              className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all ${activeTab === "PENDING" ? "bg-app-surface theme-text-default shadow-sm" : "text-app-muted hover:theme-text-default"}`}
+              className={`flex-1 rounded-[var(--r-sm)] py-2 text-sm font-bold transition-all ${activeTab === "PENDING" ? "bg-app-surface text-app-text shadow-sm" : "text-app-muted hover:text-app-text"}`}
             >
               Pending ({pendingInvites.length})
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("HISTORY")}
-              className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === "HISTORY" ? "bg-app-surface theme-text-default shadow-sm" : "text-app-muted hover:theme-text-default"}`}
+              className={`flex flex-1 items-center justify-center gap-2 rounded-[var(--r-sm)] py-2 text-sm font-bold transition-all ${activeTab === "HISTORY" ? "bg-app-surface text-app-text shadow-sm" : "text-app-muted hover:text-app-text"}`}
             >
               <FontAwesomeIcon icon={faHistory} />
               History
             </button>
           </div>
 
-          {/* Contenuto delle Tab */}
+          {/* Tab content */}
           <div className="max-h-[350px] overflow-y-auto space-y-3 custom-scrollbar text-left pr-1">
             {activeTab === "PENDING" &&
               (pendingInvites.length > 0 ? (
@@ -109,16 +112,16 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>(
                       </div>
 
                       <div>
-                        <p className="theme-text-default font-bold text-lg leading-tight">
+                        <p className="text-lg font-bold leading-tight text-app-text">
                           {inv.wallet.name}
                         </p>
-                        <p className="text-app-muted text-xs mt-1">
+                        <p className="mt-1 text-xs text-app-muted">
                           Invited by{" "}
-                          <span className="theme-text-default font-medium">
+                          <span className="font-medium text-app-text">
                             {inv.walletOwner}
                           </span>{" "}
                           as{" "}
-                          <span className="font-bold uppercase tracking-wider text-[10px] px-1.5 py-0.5 rounded bg-app-surface ml-1">
+                          <span className="ml-1 rounded bg-app-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">
                             {inv.role}
                           </span>
                         </p>
@@ -126,23 +129,27 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>(
                     </div>
 
                     <div className="flex gap-2">
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        fullWidth
                         onClick={() => handleAction(inv.wallet.id, "REJECT")}
                         disabled={loading}
-                        className="flex-1 rounded-lg bg-app-input text-app-muted py-2.5 text-xs font-bold hover:bg-app-red/20 hover:text-app-red transition-all border theme-border-transparent hover:border-app-red/30"
                       >
-                        <FontAwesomeIcon icon={faXmark} className="mr-2" />{" "}
+                        <FontAwesomeIcon icon={faXmark} />
                         Reject
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        accentColor={inv.wallet.color}
+                        size="sm"
+                        fullWidth
+                        ripple
                         onClick={() => handleAction(inv.wallet.id, "ACCEPT")}
                         disabled={loading}
-                        className="flex-1 rounded-lg py-2.5 text-xs font-bold theme-text-inverse transition-all hover:scale-[1.02] active:scale-95"
-                        style={{ backgroundColor: inv.wallet.color }}
                       >
-                        <FontAwesomeIcon icon={faCheck} className="mr-2" />{" "}
+                        <FontAwesomeIcon icon={faCheck} />
                         Accept
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))
@@ -173,10 +180,10 @@ export const InvitationsModal = forwardRef<InvitationsModalHandle>(
                         />
                       </div>
                       <div>
-                        <p className="theme-text-default font-bold text-sm leading-tight">
+                        <p className="text-sm font-bold leading-tight text-app-text">
                           {inv.wallet.name}
                         </p>
-                        <p className="text-app-muted text-[11px]">
+                        <p className="text-[11px] text-app-muted">
                           From: {inv.walletOwner}
                         </p>
                       </div>

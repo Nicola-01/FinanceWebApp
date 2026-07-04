@@ -44,10 +44,11 @@
 - [ ] Mobile: `SettingsNav` = riga di chip sticky in alto.
 - [ ] `frontend/src/settings/SettingsNav.tsx` ✨ + `frontend/src/settings/useScrollSpy.ts` ✨. Anchor: `#account #security #tokens #about`.
 
-## 4. Sezione **Account** — `frontend/src/settings/sections/AccountSection.tsx`  ✨ nuovo · ⛔
-- [ ] Card "Current account": username (da JWT, ok) · email + member-since + role → richiedono `GET /users/me` (Fase-2) → placeholder disabilitato.
-- [ ] Cambio **username**: `Input` + Save → disabilitato "Coming soon" (serve `PUT` username).
-- [ ] Cambio **email**: email attuale + nuova email → **doppia verifica OTP** (2 campi codice: vecchia + nuova) → disabilitato "Coming soon".
+## 4. Sezione **Account** — `frontend/src/settings/sections/AccountSection.tsx`  ✅ FATTA (2026-07-05, backend incluso)
+- [x] Tabella con `GET /api/users/me` (email **mascherata server-side**); role mostrato **solo se ADMIN**; member-since.
+- [x] Cambio **username** inline nella tabella → `PUT /api/users/me/username`. Backend ri-emette i token (username = subject JWT); il frontend salva il nuovo access token.
+- [x] Cambio **email** inline (mascherata, input vuoto in edit) → `PUT /api/users/me/email` (**senza OTP** per ora).
+- [ ] Rimane: verifica OTP doppia sull'email (Fase-2).
 
 ## 5. Sezione **Security** — `frontend/src/settings/sections/SecuritySection.tsx`  ✨ nuovo
 - [ ] **Cambio password** ✅ — form inline (current/new/confirm) che riusa `PasswordInput` + `PasswordRequirements` + `isPasswordValid`; `POST /auth/change-password`. Serve anche al caso forzato (§ 7).
@@ -63,6 +64,11 @@
 ## 7. Sezione **About** — `frontend/src/settings/sections/AboutSection.tsx`  ✨ nuovo · ✅
 - [ ] Porta il contenuto statico di `AboutAppModal` (versione/data da `window.__ENV__`) in una `Card`.
 
+## 7b. Sezione **Delete account** — `frontend/src/settings/sections/DeleteAccountSection.tsx`  ✨ nuovo · BE ✅ / FE ✅ (2026-07-05)
+- [x] Sezione danger (ultima, header rosso) con `Card tone="danger"`.
+- [x] Backend: **FATTO 2026-07-05** (subagente) — `DELETE /api/users/me` {password} in `AccountDeletionService` (transfer/cancella wallet, drop membership, GDPR). Check verde 92.26%.
+- [x] **FE collegato**: bottone "Delete account" → reveal inline con **conferma password** → apre lo `DeleteModal` condiviso a **livello 2** (digita username + press-and-hold) il cui confirm chiama `DELETE /api/users/me` {password} → pulizia token (local+session) + redirect `/login`. Riusa `useDeleteModal()`; passa un `User` con `name=username`.
+
 ## 8. Cambio password forzato (`mustChangePWD`) — `frontend/src/utils/ProtectedRoute.tsx`  🔧 modifica
 - [ ] Sposta il trigger qui: se `localStorage.mustChangePWD` → **redirect `/settings#security`**.
 - [ ] `SecuritySection` in modalità forzata: banner bloccante + navigazione impedita finché la password non cambia; poi pulisce il flag. Un solo form password per volontario e forzato.
@@ -77,10 +83,11 @@
 
 ---
 
-## Fase-2 — BACKEND (documentato, NON implementare ora)  ⛔
-- [ ] `GET /users/me` (username, email, createdAt, role, stato MFA) — per mostrare l'email/account.
-- [ ] `PUT` username (check unicità).
-- [ ] Cambio email doppia-verifica: request (OTP a vecchia + nuova) + confirm (valida entrambi) + update; entità/store OTP con scadenza (riusa infra mail esistente).
+## Fase-2 — BACKEND  ⛔ (parziale: account FATTO)
+- [x] `GET /api/users/me` (username, email mascherata, role, createdAt) — `UserController` + `UserMapper.maskEmail`.
+- [x] `PUT /api/users/me/username` (check unicità + ri-emissione token) e `PUT /api/users/me/email` (check unicità, **senza OTP**). Con test + coverage ≥90%.
+- [x] Cambio email doppia-verifica OTP — FATTO 2026-07-05 (subagenti BE+FE): `POST /api/users/me/email/change-request` + `change-confirm` + `DELETE .../email/change`; entità `EmailChangeRequest` (codici hashati, 10 min, max 5 tentativi); FE `AccountSection` a step. BE check 92.11%.
+- [x] **DELETE account**: `DELETE /api/users/me` {password} — **FATTO 2026-07-05**. `AccountDeletionService`: verifica password (→401), per ogni wallet posseduto transfer all'erede (`invitedAt`→`createdAt`→username case-insensitive, solo membri ACCEPTED) o cancellazione a cascata (sub rimossi a mano); drop membership non-owner; poi PAT + email-change + access + user; pulisce cookie refresh. Test 7 service + 7 controller, coverage 92.26%. **Resta il wiring FE del bottone.**
 - [ ] MFA: **Passkey/WebAuthn** (register/authenticate, storage credenziali) → **TOTP** (secret + QR + backup codes) → **Email OTP**; campi su `User` + modifica login per 2° fattore.
 - [ ] PAT: campi `source`(MANUAL|OAUTH)/`clientId`/`clientName`/`scope` persistiti al consent + filtro server-side.
 
@@ -89,14 +96,16 @@
 
 ---
 
-## Ordine di build (quando l'utente dice "vai")
-1. [ ] Shell + route + nav scroll-spy (sezioni vuote).
-2. [ ] Security: cambio password ✅ + Sign out everywhere ✅ + redirect forzato (§ 7).
-3. [ ] Tokens & Connections ✅ (riuso `Pat*View`).
-4. [ ] Account + MFA (UI disabilitata ⛔).
-5. [ ] About ✅.
-6. [ ] Svuota `AppHeader` + ritira i modal (§ 1, § 9).
-7. [ ] Pass visivo concordato con l'utente.
+## Ordine di build — STATO (branch `feat/settings-page`, 2026-07-04)
+1. [x] Shell + route + nav scroll-spy → `settings/SettingsPage.tsx`, `SettingsNav.tsx`, `useScrollSpy.ts`; route in `App.tsx`.
+2. [x] Security: cambio password ✅ + Sign out everywhere ✅ (conferma inline) + redirect forzato in `ProtectedRoute.tsx` (§ 7).
+3. [x] Tokens & Connections ✅ — lista unica + badge Manual/MCP + filtro, riuso `PatFormView`/`PatShowTokenView`/`TokenListItem` (nuovo prop `badge`).
+4. [x] Account + MFA (UI ⛔ disabilitata "Coming soon").
+5. [x] About ✅ (migrato da AboutAppModal in `AboutSection`).
+6. [x] Svuotato `AppHeader` (Settings link + logout immediato) + eliminati ProfileModal/ChangePasswordModal/LogoutModal/AboutAppModal. `InvitationsModal` e `PatModal` tenuti (§ 9).
+7. [ ] **Pass visivo da concordare con l'utente** (unico step rimasto).
+
+Verifica: `tsc -b` ✅, `eslint` ✅, `npm run build` ✅, test `PatModal` ✅.
 
 ## File toccati / creati
 - 🔧 `header/AppHeader.tsx`, `App.tsx`, `utils/ProtectedRoute.tsx`

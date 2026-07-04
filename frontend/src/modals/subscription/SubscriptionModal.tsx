@@ -11,7 +11,7 @@ import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Subscription } from "../../utils/types";
 
-// Sub-components riutilizzati dalle transazioni!
+// Sub-components reused from the transaction modal.
 import CustomDatePicker from "../../components/DataPicker/CustomDatePicker";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { AmountInput } from "../../components/ui/AmountInput.tsx";
@@ -37,7 +37,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
   ({ wallet, tags, baseCurrency, onSuccess }, ref) => {
     const [open, setOpen] = useState(false);
 
-    // --- States per Dati Generici ---
+    // --- General data state ---
     const [editingSubId, setEditingSubId] = useState<string | null>(null);
     const [type, setType] = useState<"EXPENSE" | "INCOME" | "">("");
     const [name, setName] = useState("");
@@ -51,7 +51,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
     // Foreign-currency rate mode: true = use each day's live rate at execution.
     const [autoExchangeRate, setAutoExchangeRate] = useState(true);
 
-    // --- States per Scheduling e Durata (Specifici per Subscription) ---
+    // --- Scheduling & duration state (subscription-specific) ---
     const [frequencyInterval, setFrequencyInterval] = useState<number>(1);
     const [frequencyType, setFrequencyType] = useState<
       "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY"
@@ -94,7 +94,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setNotes(sub.notes || "");
           setAutoExchangeRate(sub.autoExchangeRate ?? true);
 
-          // Campi Subscription
+          // Subscription-specific fields
           setFrequencyInterval(sub.frequencyInterval || 1);
           setFrequencyType(sub.frequencyType || "MONTHLY");
           setDuration(sub.duration || "FOREVER");
@@ -119,7 +119,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setNotes("");
           setAutoExchangeRate(true);
 
-          // Reset Campi Subscription
+          // Reset subscription-specific fields
           setFrequencyInterval(1);
           setFrequencyType("MONTHLY");
           setDuration("FOREVER");
@@ -143,7 +143,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         const finalName =
           name.trim().length > 0 ? name.trim() : selectedTagName;
 
-        // Payload mappato su SubscriptionRequest.java
+        // Payload mapped to SubscriptionRequest.java
         const payload = {
           name: finalName,
           amount: Math.abs(Number(convertedAmount)),
@@ -235,6 +235,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
               type={type}
               setType={setType}
               currencySymbol={currencySymbol}
+              autoFocus={!isEditing}
               onAmountChange={(val) => {
                 setAmount(val);
                 if (currency !== baseCurrency && exchangeRate)
@@ -274,7 +275,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
 
           {/* 3. SCHEDULING RULES (Frequenza e Durata) */}
           <div className="bg-app-input/50 border border-app-border rounded-xl p-4 flex flex-col gap-4">
-            <h4 className="text-sm font-bold theme-text-default">
+            <h4 className="text-sm font-bold text-app-text">
               Scheduling Rules
             </h4>
 
@@ -284,7 +285,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                 <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
                   Repeat Every
                 </label>
-                <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:theme-border-focus transition-colors h-12">
+                <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:border-[var(--brand-1)] transition-colors h-12">
                   <input
                     type="number"
                     min="1"
@@ -318,7 +319,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                 <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
                   Ends
                 </label>
-                <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:theme-border-focus transition-colors h-12">
+                <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:border-[var(--brand-1)] transition-colors h-12">
                   <CustomSelect
                     value={duration}
                     onChange={(val) =>
@@ -378,7 +379,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                     value: "PAUSED",
                     label: "Paused",
                     icon: <FontAwesomeIcon icon={faPause} />,
-                    activeColorClass: "theme-text-warning",
+                    activeColorClass: "text-app-yellow",
                   },
                   {
                     value: "ACTIVE",
@@ -390,7 +391,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                     value: "COMPLETED",
                     label: "Completed",
                     icon: <FontAwesomeIcon icon={faCheckDouble} />,
-                    activeColorClass: "theme-text-success",
+                    activeColorClass: "text-app-green",
                   },
                 ]}
               />

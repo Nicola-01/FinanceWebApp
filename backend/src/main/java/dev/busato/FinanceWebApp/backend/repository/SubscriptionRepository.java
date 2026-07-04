@@ -19,4 +19,10 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
   List<Subscription> findAllByStatusInAndNextExecutionDateLessThanEqual(
       List<Subscription.Status> statuses, LocalDate date);
+
+  /**
+   * Deletes every subscription of a wallet (subscriptions are not part of the {@code Wallet} entity
+   * cascade, so they must be removed explicitly before the wallet is deleted).
+   */
+  void deleteAllByWalletId(UUID walletId);
 }

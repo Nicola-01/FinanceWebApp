@@ -136,6 +136,7 @@ export const SubscriptionDetailsModal = forwardRef<
               sub!,
               "subscription",
               async () => handleConfirmDelete(sub!.id),
+              1,
             )
           }
           ripple

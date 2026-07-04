@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceWebApp - Email change code</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        a { text-decoration: none; }
+
+        @media (prefers-color-scheme: dark) {
+            .card { border-color: #2a2a35 !important; }
+            .text-muted { color: #a0aec0 !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; width: 100%; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="padding: 40px 20px;">
+    <tr>
+        <td align="center">
+
+            <table class="card" width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; border: 1px solid #e2e8f0; border-top: 4px solid #b829ff; border-radius: 16px; overflow: hidden; margin: 0 auto;">
+
+                <tr>
+                    <td align="center" style="padding: 40px 30px 20px 30px;">
+                        <div style="display: inline-block; background-color: rgba(184, 41, 255, 0.1); padding: 15px; border-radius: 50%; margin-bottom: 20px; border: 1px solid rgba(184, 41, 255, 0.3);">
+                            <span style="font-size: 24px; line-height: 1;">✉️</span>
+                        </div>
+
+                        <h1 style="font-size: 26px; margin: 0 0 10px 0; font-weight: 700; letter-spacing: -0.5px;">
+                            Confirm your email change
+                        </h1>
+                        <p class="text-muted" style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 0;">
+                            {{context}}
+                        </p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center" style="padding: 10px 30px 20px 30px;">
+                        <div style="display: inline-block; background-color: rgba(184, 41, 255, 0.08); border: 1px solid rgba(184, 41, 255, 0.3); border-radius: 12px; padding: 18px 36px;">
+                            <span style="font-size: 34px; font-weight: 700; letter-spacing: 10px; color: #b829ff; font-family: 'Courier New', Courier, monospace;">
+                                {{code}}
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center" style="padding: 0 40px 30px 40px;">
+                        <p class="text-muted" style="color: #718096; font-size: 13px; line-height: 1.5; margin: 0;">
+                            This code expires in 10 minutes. If you didn't request an email change, you can
+                            safely ignore this message — your address will not be changed.
+                        </p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center" style="background-color: rgba(0, 0, 0, 0.03); padding: 24px;">
+                        <p class="text-muted" style="color: #718096; font-size: 12px; margin: 0; font-weight: 500;">
+                            This is an open-source project on
+                            <a href="https://github.com/Nicola-01/FinanceWebApp" target="_blank" style="color: inherit; text-decoration: underline;">GitHub</a>.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

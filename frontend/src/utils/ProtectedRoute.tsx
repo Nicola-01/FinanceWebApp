@@ -11,6 +11,19 @@ const ProtectedRoute = () => {
     localStorage.removeItem("mustChangePWD");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
+  // Forced password change: pin the user to the Security settings until done.
+  let mustChange = false;
+  try {
+    mustChange =
+      JSON.parse(localStorage.getItem("mustChangePWD") || "false") === true;
+  } catch {
+    mustChange = false;
+  }
+  if (mustChange && location.pathname !== "/settings") {
+    return <Navigate to="/settings#security" replace />;
+  }
+
   return <Outlet />;
 };
 

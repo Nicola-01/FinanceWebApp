@@ -8,6 +8,7 @@ import {
   faCircleCheck,
   faPaperPlane,
   faRotateRight,
+  faPenToSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
@@ -180,7 +181,8 @@ const ForgotPassword: React.FC = () => {
           <div className="mb-6 rounded-[var(--r-input)] border border-white/10 bg-white/[0.03] p-4">
             <p className="text-xs leading-relaxed text-app-muted">
               Didn't get it? Check your spam folder, or resend below. The link
-              is valid for <strong className="text-app-text">1 hour</strong>.
+              is valid for <strong className="text-app-text">15 minutes</strong>
+              .
             </p>
           </div>
 
@@ -207,6 +209,16 @@ const ForgotPassword: React.FC = () => {
               </>
             )}
           </Button>
+
+          {/* Let the user go back and fix a mistyped email */}
+          <button
+            type="button"
+            onClick={() => setEmailSent(false)}
+            className="mt-4 flex cursor-pointer items-center justify-center gap-2 self-center border-none bg-transparent text-sm text-app-muted transition-colors hover:text-app-text"
+          >
+            <FontAwesomeIcon icon={faPenToSquare} />
+            Use a different email
+          </button>
         </>
       )}
 

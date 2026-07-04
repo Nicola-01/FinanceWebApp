@@ -73,6 +73,34 @@ public class SendEmailService {
     mailSender.send(message);
   }
 
+  /**
+   * Sends a 6-digit email-change verification code. The same template is reused for both
+   * recipients; {@code toNewAddress} only tailors the intro copy (confirming the new address vs.
+   * authorising the change from the current one). The code itself is never logged or stored in
+   * plaintext.
+   */
+  public void sendEmailChangeCode(String to, String code, boolean toNewAddress)
+      throws MessagingException, UnsupportedEncodingException {
+    String htmlTemplate = getHtmlTemplate("templates/email/emailChangeCodeEmail.html");
+
+    String context =
+        toNewAddress
+            ? "Enter this code to confirm this new address for your FinanceWebApp account."
+            : "Enter this code to authorise the email change on your FinanceWebApp account.";
+
+    String finalHtml = htmlTemplate.replace("{{code}}", code).replace("{{context}}", context);
+
+    MimeMessage message = mailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+    helper.setFrom("noreply@busato.dev", "FinanceWebApp");
+    helper.setTo(to);
+    helper.setSubject("Your FinanceWebApp email change code");
+    helper.setText(finalHtml, true);
+
+    mailSender.send(message);
+  }
+
   private String getHtmlTemplate(String path) {
     try {
       ClassPathResource resource = new ClassPathResource(path);

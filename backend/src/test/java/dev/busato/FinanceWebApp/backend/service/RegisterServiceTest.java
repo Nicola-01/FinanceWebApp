@@ -106,13 +106,12 @@ class RegisterServiceTest {
   }
 
   @Test
-  void requestPasswordReset_ValidEmail_SendsEmail() throws Exception {
+  void requestPasswordReset_ValidEmail_NoExistingRow_CreatesAndSends() throws Exception {
     User user = new User();
     user.setEmail("test@example.com");
 
     when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
-    when(userInvitationRepository.findByEmailIgnoreCaseAndStatus(
-            "test@example.com", Registrations.InvitationStatus.FORGOTPASSWORD))
+    when(userInvitationRepository.findByEmailIgnoreCase("test@example.com"))
         .thenReturn(Optional.empty());
 
     registerService.requestPasswordReset("test@example.com");
@@ -122,21 +121,47 @@ class RegisterServiceTest {
   }
 
   @Test
-  void requestPasswordReset_CooldownActive_ThrowsException() {
+  void requestPasswordReset_ExistingRegistrationRow_ReusesItInsteadOfInserting() throws Exception {
+    // Regression: invite-registered users already have an ACCEPTED registrations row.
+    // The reset must reuse it, not insert a duplicate (UNIQUE email → constraint violation).
     User user = new User();
     user.setEmail("test@example.com");
 
     Registrations existing = new Registrations();
-    existing.setCreatedAt(LocalDateTime.now().minusSeconds(30)); // 30 seconds ago
+    existing.setEmail("test@example.com");
+    existing.setStatus(Registrations.InvitationStatus.ACCEPTED);
 
     when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
-    when(userInvitationRepository.findByEmailIgnoreCaseAndStatus(
-            "test@example.com", Registrations.InvitationStatus.FORGOTPASSWORD))
+    when(userInvitationRepository.findByEmailIgnoreCase("test@example.com"))
         .thenReturn(Optional.of(existing));
 
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> registerService.requestPasswordReset("test@example.com"));
+    registerService.requestPasswordReset("test@example.com");
+
+    // Same row is repurposed as a FORGOTPASSWORD request.
+    verify(userInvitationRepository).save(existing);
+    assertEquals(Registrations.InvitationStatus.FORGOTPASSWORD, existing.getStatus());
+    assertNotNull(existing.getToken());
+    verify(sendEmailService).sendForgotPasswordEmail(eq("test@example.com"), anyString(), any());
+  }
+
+  @Test
+  void requestPasswordReset_CooldownActive_SilentlyIgnored() throws Exception {
+    User user = new User();
+    user.setEmail("test@example.com");
+
+    // A reset requested 30s ago: expiresAt = now + validity (15 min) - 30s.
+    Registrations existing = new Registrations();
+    existing.setStatus(Registrations.InvitationStatus.FORGOTPASSWORD);
+    existing.setExpiresAt(LocalDateTime.now().plusMinutes(15).minusSeconds(30));
+
+    when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
+    when(userInvitationRepository.findByEmailIgnoreCase("test@example.com"))
+        .thenReturn(Optional.of(existing));
+
+    // No exception, and neither a new save nor a second email is issued.
+    assertDoesNotThrow(() -> registerService.requestPasswordReset("test@example.com"));
+    verify(userInvitationRepository, never()).save(any(Registrations.class));
+    verify(sendEmailService, never()).sendForgotPasswordEmail(any(), any(), any());
   }
 
   @Test
@@ -222,32 +247,33 @@ class RegisterServiceTest {
   // ==================== requestPasswordReset — edge cases ====================
 
   @Test
-  void requestPasswordReset_EmailNotFound_ThrowsException() {
+  void requestPasswordReset_EmailNotFound_SilentlySucceeds() throws Exception {
+    // Anti-enumeration: unknown email must NOT reveal the account is missing.
     when(userRepository.findByEmailIgnoreCase("unknown@x.com")).thenReturn(Optional.empty());
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> registerService.requestPasswordReset("unknown@x.com"));
+
+    assertDoesNotThrow(() -> registerService.requestPasswordReset("unknown@x.com"));
+    verify(userInvitationRepository, never()).save(any(Registrations.class));
+    verify(sendEmailService, never()).sendForgotPasswordEmail(any(), any(), any());
   }
 
   @Test
-  void requestPasswordReset_CooldownExpired_DeletesOldAndCreatesNew() throws Exception {
+  void requestPasswordReset_CooldownExpired_ReusesRowAndResends() throws Exception {
     User user = new User();
     user.setEmail("test@example.com");
 
+    // A reset requested 2 min ago (cooldown passed): expiresAt = now + validity (15 min) - 2min.
     Registrations existing = new Registrations();
-    existing.setCreatedAt(LocalDateTime.now().minusSeconds(120)); // 2 min ago → cooldown passed
+    existing.setStatus(Registrations.InvitationStatus.FORGOTPASSWORD);
+    existing.setExpiresAt(LocalDateTime.now().plusMinutes(15).minusSeconds(120));
 
     when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
-    when(userInvitationRepository.findByEmailIgnoreCaseAndStatus(
-            "test@example.com", Registrations.InvitationStatus.FORGOTPASSWORD))
+    when(userInvitationRepository.findByEmailIgnoreCase("test@example.com"))
         .thenReturn(Optional.of(existing));
 
     registerService.requestPasswordReset("test@example.com");
 
-    verify(userInvitationRepository)
-        .deleteByEmailIgnoreCaseAndStatus(
-            "test@example.com", Registrations.InvitationStatus.FORGOTPASSWORD);
-    verify(userInvitationRepository).save(any(Registrations.class));
+    verify(userInvitationRepository).save(existing);
+    verify(sendEmailService).sendForgotPasswordEmail(eq("test@example.com"), anyString(), any());
   }
 
   @Test
@@ -256,7 +282,7 @@ class RegisterServiceTest {
     user.setEmail("test@example.com");
 
     when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
-    when(userInvitationRepository.findByEmailIgnoreCaseAndStatus(any(), any()))
+    when(userInvitationRepository.findByEmailIgnoreCase("test@example.com"))
         .thenReturn(Optional.empty());
 
     doThrow(new RuntimeException("SMTP down"))

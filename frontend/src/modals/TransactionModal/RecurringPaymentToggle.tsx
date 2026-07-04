@@ -34,7 +34,7 @@ export const RecurringPaymentToggle: React.FC<Props> = ({
           className={`relative w-12 h-6 rounded-full transition-colors ${isRecurring ? "bg-app-green" : "bg-app-surface"}`}
         >
           <div
-            className={`absolute top-1 left-1 theme-bg-inverse w-4 h-4 rounded-full transition-transform ${isRecurring ? "translate-x-6" : ""}`}
+            className={`absolute top-1 left-1 h-4 w-4 rounded-full bg-white transition-transform ${isRecurring ? "translate-x-6" : ""}`}
           />
         </div>
       </div>

@@ -1,6 +1,8 @@
 import React from "react";
 import type { WalletPermState } from "../../utils/types";
 import { WalletPermissionSelector } from "../../components/pat/WalletPermissionSelector";
+import { Input } from "../../components/ui/Input";
+import Button from "../../components/ui/Button";
 
 interface PatFormViewProps {
   isEdit: boolean;
@@ -13,6 +15,8 @@ interface PatFormViewProps {
   submitText?: string;
   submittingText?: string;
   showDesktopButton?: boolean;
+  /** Hide the built-in submit button entirely (host renders its own, e.g. a modal footer). */
+  hideSubmit?: boolean;
 }
 
 export const PatFormView: React.FC<PatFormViewProps> = ({
@@ -26,7 +30,13 @@ export const PatFormView: React.FC<PatFormViewProps> = ({
   submitText,
   submittingText,
   showDesktopButton = false,
+  hideSubmit = false,
 }) => {
+  const submitDisabled =
+    isSubmitting ||
+    !tokenName.trim() ||
+    walletPerms.filter((w) => w.enabled).length === 0;
+
   return (
     <div className="space-y-5">
       {/* Token name */}
@@ -34,7 +44,7 @@ export const PatFormView: React.FC<PatFormViewProps> = ({
         <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
           Token Name
         </label>
-        <input
+        <Input
           id="pat-token-name"
           type="text"
           value={tokenName}
@@ -42,7 +52,7 @@ export const PatFormView: React.FC<PatFormViewProps> = ({
           placeholder="e.g., CI/CD Bot, Budget Tracker"
           maxLength={50}
           disabled={isEdit}
-          className={`h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-[#a78bfa] focus:ring-2 focus:ring-[#a78bfa]/20 ${isEdit ? "opacity-60 cursor-not-allowed" : ""}`}
+          className={isEdit ? "cursor-not-allowed opacity-60" : ""}
         />
       </div>
 
@@ -54,7 +64,7 @@ export const PatFormView: React.FC<PatFormViewProps> = ({
 
         {walletPerms.length === 0 ? (
           <div className="flex items-center justify-center py-6">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-app-border border-t-[#a78bfa]" />
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-app-border border-t-app-purple" />
           </div>
         ) : (
           <WalletPermissionSelector
@@ -64,21 +74,23 @@ export const PatFormView: React.FC<PatFormViewProps> = ({
         )}
       </div>
 
-      {/* Create button (mobile fallback, desktop uses the header action) */}
-      <button
-        id="pat-create-btn"
-        onClick={onSubmit}
-        disabled={
-          isSubmitting ||
-          !tokenName.trim() ||
-          walletPerms.filter((w) => w.enabled).length === 0
-        }
-        className={`w-full rounded-xl bg-[#a78bfa] py-3 text-sm font-bold theme-text-default transition-all hover:bg-[#8b5cf6] disabled:opacity-40 disabled:cursor-not-allowed ${showDesktopButton ? "" : "sm:hidden"}`}
-      >
-        {isSubmitting
-          ? submittingText || (isEdit ? "Saving..." : "Generating...")
-          : submitText || (isEdit ? "Save Changes" : "Generate Token")}
-      </button>
+      {/* Built-in submit (mobile fallback by default; the modal hides it and uses its footer). */}
+      {!hideSubmit && (
+        <Button
+          id="pat-create-btn"
+          type="button"
+          variant="primary"
+          fullWidth
+          ripple
+          onClick={onSubmit}
+          disabled={submitDisabled}
+          className={showDesktopButton ? "" : "sm:hidden"}
+        >
+          {isSubmitting
+            ? submittingText || (isEdit ? "Saving..." : "Generating...")
+            : submitText || (isEdit ? "Save Changes" : "Generate Token")}
+        </Button>
+      )}
     </div>
   );
 };

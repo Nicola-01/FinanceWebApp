@@ -15,7 +15,10 @@ interface ModalDialogProps {
   onCloseClick?: () => void;
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
+  /** Secondary header actions (icon buttons), rendered left of the close X. */
   rightActions?: ModalDialogRightActionProp[];
+  /** Bottom CTA row — put the primary/secondary <Button>s here, not in the header. */
+  footer?: React.ReactNode;
 }
 
 export const ModalDialog = ({
@@ -29,6 +32,7 @@ export const ModalDialog = ({
   rightActions,
   title,
   subtitle,
+  footer,
 }: ModalDialogProps) => {
   const modalRoot = document.getElementById("modal-root");
 
@@ -68,71 +72,65 @@ export const ModalDialog = ({
     else if (ref && "current" in ref && ref.current) ref.current.close();
   };
 
+  const hasHeader =
+    showClose || (rightActions && rightActions.length > 0) || title;
+
   return createPortal(
     <dialog
       ref={ref}
       onClose={onClose}
       onCancel={onCancel}
       className={`
-                    m-auto w-screen md:w-[90vw] max-w-112.5 
-                    rounded-[32px] border border-app-border bg-app-transparent p-8.75 text-app-text 
-                    shadow-2xl backdrop-blur-[20px] 
-                    backdrop:theme-bg-overlay-light dark:backdrop:theme-bg-backdrop-dark backdrop:backdrop-blur-md
+                    m-auto w-screen md:w-[90vw] max-w-112.5
+                    rounded-[var(--r-card)] border border-app-border bg-app-surface/85 p-6 text-app-text
+                    shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)] backdrop-blur-[20px]
+                    backdrop:bg-black/45 backdrop:backdrop-blur-sm
                     open:animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)]
-                    focus:outline-none 
+                    focus:outline-none
                     ${className}
                 `}
     >
-      {/* INTESTAZIONE (Pulsante X - Titolo - Custom Actions) */}
-      {(showClose || rightActions || title) && (
-        // 1. Aggiunto 'relative' e 'min-h-[40px]' per fare da ancoraggio al titolo
-        <div className="relative flex w-full items-center justify-between mb-2 min-h-[40px]">
-          {/* Sinistra: Pulsante X */}
-          <div className="relative z-10 flex shrink-0">
+      {/* Header: title (left) + subtitle · secondary actions + close X (right) */}
+      {hasHeader && (
+        <div className="mb-5 flex items-start justify-between gap-4">
+          {/* Left: title + subtitle */}
+          <div className="min-w-0 flex-1">
+            {title && (
+              <h3 className="m-0 truncate text-lg font-bold tracking-tight text-app-text [&>svg]:mr-2 [&>svg]:align-[-1px]">
+                {title}
+              </h3>
+            )}
+            {subtitle && (
+              <p className="mt-1 text-sm font-medium text-app-muted">
+                {subtitle}
+              </p>
+            )}
+          </div>
+
+          {/* Right: secondary actions, then the close button */}
+          <div className="flex shrink-0 items-center gap-1">
+            {rightActions && rightActions.length > 0 && (
+              <ModalDialogRightAction actions={rightActions} />
+            )}
             {showClose && (
               <button
                 type="button"
                 onClick={handleCloseClick}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-app-input text-app-muted transition-all hover:bg-app-border hover:text-app-text"
+                aria-label="Close"
+                className="flex h-9 w-9 items-center justify-center rounded-[var(--r-sm)] bg-app-input text-app-muted transition-colors hover:bg-app-hover hover:text-app-text"
               >
-                <FontAwesomeIcon icon={faTimes} className="text-xl" />
+                <FontAwesomeIcon icon={faTimes} className="text-lg" />
               </button>
             )}
           </div>
-
-          {/* Centro: Titolo */}
-          {title && (
-            // 2. Posizionamento ASSOLUTO. px-12 (o px-16) crea una "zona sicura" vuota ai lati
-            // per forzare il taglio (truncate) PRIMA che il testo tocchi i pulsanti!
-            <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none px-14 sm:px-24">
-              <h3 className="m-0 text-xl sm:text-2xl font-bold tracking-tight text-app-text truncate pointer-events-auto [&>svg]:mr-2 [&>svg]:align-middle">
-                {title}
-              </h3>
-            </div>
-          )}
-
-          {/* Destra: Pulsanti aggiuntivi */}
-          <div className="relative z-10 flex shrink-0">
-            {rightActions && rightActions.length > 0 && (
-              <ModalDialogRightAction actions={rightActions} />
-            )}
-          </div>
         </div>
       )}
 
-      {/* SOTTOTITOLO (Subito sotto la riga del titolo) */}
-      {subtitle && (
-        <div className="text-center mb-6">
-          <p className="text-sm font-medium text-app-muted">{subtitle}</p>
-        </div>
-      )}
+      {/* Content */}
+      <div>{children}</div>
 
-      {/* CONTENUTO */}
-      <div
-        className={showClose || rightActions || title || subtitle ? "mt-4" : ""}
-      >
-        {children}
-      </div>
+      {/* Footer CTA row */}
+      {footer && <div className="mt-7">{footer}</div>}
     </dialog>,
     modalRoot,
   );
