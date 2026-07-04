@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import {
   rectSortingStrategy,
@@ -101,7 +102,14 @@ export function GroupEditGrid<Ctx>({
   span,
 }: GroupEditGridProps<Ctx>) {
   const { setNodeRef } = useDroppable({ id: groupBodyId(groupId) });
-  const memberIds = members.map((m) => memberId(groupId, m.id));
+  // dnd-kit compares SortableContext `items` by reference: a fresh array each
+  // render reads as "the list changed", which kills the reorder transition on a
+  // tile's first displacement (it snaps instead of sliding). Keep it stable so
+  // the animation survives — `members` is itself memoised upstream in WidgetSlot.
+  const memberIds = useMemo(
+    () => members.map((m) => memberId(groupId, m.id)),
+    [members, groupId],
+  );
   const cols =
     span === "full"
       ? "grid-cols-2 sm:grid-cols-3 xl:grid-cols-4"

@@ -1,4 +1,4 @@
-import type { KeyboardEventHandler } from "react";
+import { useMemo, type KeyboardEventHandler } from "react";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -57,9 +57,16 @@ export function WidgetSlot<Ctx>({
   onHide,
   onSetActive,
 }: WidgetSlotProps<Ctx>) {
-  const members = slot.widgets
-    .map((id) => defs.get(id))
-    .filter((d): d is WidgetDef<Ctx> => d !== undefined);
+  // Stable across renders while the slot's widgets don't change, so the nested
+  // SortableContext `items` stay referentially stable (see GroupEditGrid) and
+  // the tile reorder animation survives.
+  const members = useMemo(
+    () =>
+      slot.widgets
+        .map((id) => defs.get(id))
+        .filter((d): d is WidgetDef<Ctx> => d !== undefined),
+    [slot.widgets, defs],
+  );
   const first = members[0];
   const isGroup = members.length > 1;
   const activeWidgetId =
