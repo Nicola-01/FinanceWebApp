@@ -8,7 +8,6 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
-  type Active,
   type DragEndEvent,
   type DragMoveEvent,
   type DragOverEvent,
@@ -28,12 +27,12 @@ import type { WidgetDef } from "./widgetTypes.ts";
 import { HiddenTray } from "./HiddenTray.tsx";
 import { WidgetSlot } from "./WidgetSlot.tsx";
 import {
-  groupBodyId,
   isSlotId,
   MERGE_PREFIX,
   mergeAwareCollision,
   parseMemberId,
 } from "./mergeAwareCollision.ts";
+import { boxContains, popInsertionIndex, type Box } from "./popPlacement.ts";
 
 interface WidgetGridProps<Ctx> {
   defs: WidgetDef<Ctx>[];
@@ -42,23 +41,6 @@ interface WidgetGridProps<Ctx> {
   api: TabLayoutApi;
   /** Wallet colour — accents merge highlights and tray chips. */
   accentColor: string;
-}
-
-/** Pointer travel (px) required to switch the pop-out target — kills boundary flicker. */
-const POP_HYSTERESIS_PX = 28;
-
-/** True when the dragged tile's centre sits past the `over` slot's centre. */
-function insertAfterOver(active: Active, over: Over): boolean {
-  const dragged = active.rect.current.translated ?? active.rect.current.initial;
-  const target = over.rect;
-  if (!dragged) return false;
-  const dx = dragged.left + dragged.width / 2;
-  const dy = dragged.top + dragged.height / 2;
-  const tx = target.left + target.width / 2;
-  // Below the target's row → after; above it → before; same row → past its x-centre.
-  if (dy > target.bottom) return true;
-  if (dy < target.top) return false;
-  return dx > tx;
 }
 
 /**
@@ -101,13 +83,14 @@ export function WidgetGrid<Ctx>({
   const memberDragOrigin = useRef<{ groupId: string; widgetId: string } | null>(
     null,
   );
-  // Anchor for pop-out hysteresis: the pointer position + index last committed,
-  // so a switch only happens after the pointer travels past the threshold.
-  const memberPopAnchor = useRef<{
-    x: number;
-    y: number;
-    index: number;
-  } | null>(null);
+  // The grid container, read once at drag start to freeze slot geometry.
+  const gridRef = useRef<HTMLDivElement>(null);
+  // Resting slot rects (document coords) + the dragged member's group index,
+  // captured at drag start. The pop-out index is computed against THIS, never
+  // the live grid — so the placeholder can't feed back on its own reflow.
+  const popSnapshot = useRef<{ boxes: Box[]; groupIndex: number } | null>(null);
+  // Mirror of memberPopIndex, read synchronously on drop (state may lag).
+  const memberPopIndexRef = useRef<number | null>(null);
 
   const activeSlot = activeId
     ? (api.layout.slots.find((s) => s.id === activeId) ?? null)
@@ -135,56 +118,59 @@ export function WidgetGrid<Ctx>({
     const id = String(active.id);
     setActiveId(id);
     setDragActive(true);
-    memberDragOrigin.current = parseMemberId(id);
-    memberPopAnchor.current = null;
+    const origin = parseMemberId(id);
+    memberDragOrigin.current = origin;
+    memberPopIndexRef.current = null;
+
+    // Freeze the resting slot geometry for a member drag (document coords, so it
+    // survives a mid-drag scroll). The pop-out index reads ONLY this snapshot.
+    if (origin && gridRef.current) {
+      const sx = window.scrollX;
+      const sy = window.scrollY;
+      const boxes: Box[] = Array.from(gridRef.current.children).map((el) => {
+        const rect = el.getBoundingClientRect();
+        return {
+          left: rect.left + sx,
+          top: rect.top + sy,
+          right: rect.right + sx,
+          bottom: rect.bottom + sy,
+        };
+      });
+      popSnapshot.current = {
+        boxes,
+        groupIndex: api.layout.slots.findIndex((s) => s.id === origin.groupId),
+      };
+    } else {
+      popSnapshot.current = null;
+    }
   };
 
-  // The pop-out placeholder index is computed HERE (onDragMove), not in
-  // onDragOver: onDragOver also fires when re-measurement changes the collision
-  // while the pointer is still, and — because inserting the placeholder reflows
-  // the grid, which triggers re-measurement — that made a standing oscillation.
-  // onDragMove only fires on real pointer movement, so the loop can't run.
-  const handleDragMove = ({ active, over }: DragMoveEvent) => {
-    const memberOrigin = memberDragOrigin.current;
-    if (!memberOrigin) return;
-    const overId = over ? String(over.id) : null;
-    const overMember = overId ? parseMemberId(overId) : null;
-    const stillInGroup =
-      !overId ||
-      overMember?.groupId === memberOrigin.groupId ||
-      overId === groupBodyId(memberOrigin.groupId) ||
-      overId === memberOrigin.groupId;
-    if (stillInGroup) {
-      if (memberPopAnchor.current !== null) {
-        memberPopAnchor.current = null;
-        setMemberPopIndex(null);
-      }
-      return;
-    }
-    const slots = api.layout.slots;
-    const overIdx = slots.findIndex((s) => s.id === overId);
-    const candidate =
-      overIdx === -1
-        ? slots.length
-        : overIdx + (over && insertAfterOver(active, over) ? 1 : 0);
-
-    // Hysteresis: keep the current target unless the pointer has travelled past
-    // the threshold since it was set. Without this, re-measurement shifts the
-    // reflowed cards under a slowly-moving cursor and the placeholder flips
-    // between two indices at the boundary (scatta).
+  // The pop-out index is a PURE function of the dragged tile's centre against
+  // the frozen snapshot (see popPlacement.ts). Reading the live grid here is
+  // exactly what caused the flicker: inserting the placeholder reflows the
+  // cards, re-measurement then moved `over`, which moved the placeholder — a
+  // self-sustaining loop even with the pointer still. The snapshot cuts that
+  // edge, so the index only changes when the pointer really crosses a slot
+  // boundary. Computed in onDragMove (fires on movement) and mirrored to a ref
+  // so the drop lands on exactly the previewed index.
+  const handleDragMove = ({ active }: DragMoveEvent) => {
+    const origin = memberDragOrigin.current;
+    const snap = popSnapshot.current;
+    if (!origin || !snap) return;
     const r = active.rect.current.translated ?? active.rect.current.initial;
-    const cx = r ? r.left + r.width / 2 : 0;
-    const cy = r ? r.top + r.height / 2 : 0;
-    const anchor = memberPopAnchor.current;
-    if (anchor && candidate === anchor.index) return;
-    if (
-      anchor &&
-      Math.hypot(cx - anchor.x, cy - anchor.y) < POP_HYSTERESIS_PX
-    ) {
-      return;
+    if (!r) return;
+    const x = r.left + r.width / 2 + window.scrollX;
+    const y = r.top + r.height / 2 + window.scrollY;
+    const groupBox = snap.boxes[snap.groupIndex];
+    // Inside the group's resting area → keep it in the group (no placeholder).
+    const next =
+      groupBox && boxContains(groupBox, x, y)
+        ? null
+        : popInsertionIndex(snap.boxes, x, y);
+    if (next !== memberPopIndexRef.current) {
+      memberPopIndexRef.current = next;
+      setMemberPopIndex(next);
     }
-    memberPopAnchor.current = { x: cx, y: cy, index: candidate };
-    setMemberPopIndex(candidate);
   };
 
   const handleDragOver = ({ over }: DragOverEvent) => {
@@ -209,50 +195,48 @@ export function WidgetGrid<Ctx>({
     // is committed once on drop in handleDragEnd.
   };
 
-  /** Apply a member-tile drop: reorder within the group, or pop it out. */
-  const handleMemberDrop = (
+  /** Member released inside its own group: reorder onto a sibling, else move to the end. */
+  const handleInGroupMemberDrop = (
     origin: { groupId: string; widgetId: string },
-    active: Active,
     over: Over | null,
   ) => {
     const { groupId: g, widgetId: w } = origin;
-    const overId = over ? String(over.id) : null;
-
-    if (overId) {
-      const overMember = parseMemberId(overId);
-      if (overMember && overMember.groupId === g) {
-        // Dropped onto a sibling tile → reorder within the group.
-        api.reorderMember(g, w, overMember.widgetId);
-        return;
-      }
-      if (overId === groupBodyId(g) || overId === g) {
-        // Still inside the same group → move to the end (no-op if already last).
-        const group = api.layout.slots.find((s) => s.id === g);
-        const last = group?.widgets[group.widgets.length - 1];
-        if (last) api.reorderMember(g, w, last);
-        return;
-      }
+    const overMember = over ? parseMemberId(String(over.id)) : null;
+    if (overMember && overMember.groupId === g) {
+      // Dropped onto a sibling tile → reorder within the group.
+      api.reorderMember(g, w, overMember.widgetId);
+      return;
     }
-
-    // Otherwise pop the member out to a standalone slot at the drop position.
-    const slots = api.layout.slots;
-    let atIndex: number;
-    if (!over || !overId) {
-      atIndex = slots.length;
-    } else {
-      const overIdx = slots.findIndex((s) => s.id === overId);
-      atIndex =
-        overIdx === -1
-          ? slots.length
-          : overIdx + (insertAfterOver(active, over) ? 1 : 0);
-    }
-    api.popTo(g, w, atIndex);
+    // Elsewhere inside the group → move to the end (no-op if already last).
+    const group = api.layout.slots.find((s) => s.id === g);
+    const last = group?.widgets[group.widgets.length - 1];
+    if (last && last !== w) api.reorderMember(g, w, last);
+    else api.persist();
   };
 
-  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+  const resetDragState = () => {
+    setActiveId(null);
+    setMergeTarget(null);
+    setDragActive(false);
+    setMemberPopIndex(null);
+    memberPopIndexRef.current = null;
+    popSnapshot.current = null;
+    preDragLayout.current = null;
+    memberDragOrigin.current = null;
+  };
+
+  const handleDragEnd = ({ over }: DragEndEvent) => {
     const origin = memberDragOrigin.current;
     if (origin) {
-      handleMemberDrop(origin, active, over);
+      const popIndex = memberPopIndexRef.current;
+      if (popIndex !== null) {
+        // Pop out to the previewed index — preview and drop share it, so the
+        // card lands exactly where the dashed placeholder showed.
+        api.popTo(origin.groupId, origin.widgetId, popIndex);
+      } else {
+        // Released inside the group → reorder among siblings / move to the end.
+        handleInGroupMemberDrop(origin, over);
+      }
     } else if (activeId && mergeTarget) {
       api.merge(activeId, mergeTarget);
     } else if (
@@ -266,24 +250,12 @@ export function WidgetGrid<Ctx>({
     } else {
       api.persist();
     }
-    setActiveId(null);
-    setMergeTarget(null);
-    setDragActive(false);
-    setMemberPopIndex(null);
-    preDragLayout.current = null;
-    memberDragOrigin.current = null;
-    memberPopAnchor.current = null;
+    resetDragState();
   };
 
   const handleDragCancel = () => {
     if (preDragLayout.current) api.restore(preDragLayout.current);
-    setActiveId(null);
-    setMergeTarget(null);
-    setDragActive(false);
-    setMemberPopIndex(null);
-    preDragLayout.current = null;
-    memberDragOrigin.current = null;
-    memberPopAnchor.current = null;
+    resetDragState();
   };
 
   // Live pop-out target: a dashed slot the size of the dragged member's span,
@@ -310,7 +282,7 @@ export function WidgetGrid<Ctx>({
         strategy={rectSortingStrategy}
       >
         <LayoutGroup>
-          <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
+          <div ref={gridRef} className="grid grid-cols-1 gap-8 xl:grid-cols-2">
             {api.layout.slots.map((slot, i) => (
               <Fragment key={slot.id}>
                 {memberPopIndex === i && popPlaceholder}
