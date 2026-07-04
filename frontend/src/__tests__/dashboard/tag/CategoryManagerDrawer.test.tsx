@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import type { Tag, Wallet } from "../../utils/types";
+import type { Tag, Wallet } from "../../../utils/types";
 
-vi.mock("../wallet/WalletContext.tsx", () => ({ useWalletContext: vi.fn() }));
-vi.mock("../../modals/common/DeleteModalContext.tsx", () => ({
+vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({ useWalletContext: vi.fn() }));
+vi.mock("../../../modals/common/DeleteModalContext.tsx", () => ({
   useDeleteModal: vi.fn(),
 }));
 
-import { CategoryManagerDrawer } from "./CategoryManagerDrawer";
-import { useWalletContext } from "../wallet/WalletContext.tsx";
-import { useDeleteModal } from "../../modals/common/DeleteModalContext.tsx";
+import { CategoryManagerDrawer } from "../../../dashboard/tag/CategoryManagerDrawer";
+import { useWalletContext } from "../../../dashboard/wallet/WalletContext.tsx";
+import { useDeleteModal } from "../../../modals/common/DeleteModalContext.tsx";
 
 const mockedCtx = useWalletContext as unknown as ReturnType<typeof vi.fn>;
 const mockedDelete = useDeleteModal as unknown as ReturnType<typeof vi.fn>;

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { ResponsiveOverlay } from "./ResponsiveOverlay";
+import { ResponsiveOverlay } from "../../../components/ui/ResponsiveOverlay";
 
 /** Force the desktop/mobile breakpoint by stubbing matchMedia (single query). */
 function setDesktop(isDesktop: boolean) {

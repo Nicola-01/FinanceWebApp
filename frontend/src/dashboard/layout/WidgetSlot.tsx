@@ -131,8 +131,7 @@ export function WidgetSlot<Ctx>({
             aria-label={`Move ${hideLabel}`}
             onKeyDown={
               listeners?.onKeyDown as
-                | KeyboardEventHandler<HTMLSpanElement>
-                | undefined
+                KeyboardEventHandler<HTMLSpanElement> | undefined
             }
             className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm"
           >
@@ -176,8 +175,6 @@ export function WidgetSlot<Ctx>({
       )}
 
       {isMergeTarget && (
-
-        
         <div
           className="pointer-events-none absolute inset-0 z-30 rounded-2xl"
           style={{

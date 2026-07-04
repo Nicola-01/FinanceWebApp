@@ -2,13 +2,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { faTag } from "@fortawesome/free-solid-svg-icons";
 
-vi.mock("../wallet/WalletContext.tsx", () => ({ useWalletContext: vi.fn() }));
+vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({ useWalletContext: vi.fn() }));
 
-import { mergeAwareCollision, WidgetGrid } from "./WidgetGrid";
-import { useTabLayout } from "./useTabLayout";
-import { useWalletContext } from "../wallet/WalletContext.tsx";
-import type { WidgetDef } from "./widgetTypes";
-import type { TabLayout } from "../../utils/tabLayout";
+import { mergeAwareCollision } from "../../../dashboard/layout/mergeAwareCollision";
+import { WidgetGrid } from "../../../dashboard/layout/WidgetGrid";
+import { useTabLayout } from "../../../dashboard/layout/useTabLayout";
+import { useWalletContext } from "../../../dashboard/wallet/WalletContext.tsx";
+import type { WidgetDef } from "../../../dashboard/layout/widgetTypes";
+import type { TabLayout } from "../../../utils/tabLayout";
 import type { Active, ClientRect, DroppableContainer } from "@dnd-kit/core";
 
 const mockedCtx = useWalletContext as unknown as ReturnType<typeof vi.fn>;

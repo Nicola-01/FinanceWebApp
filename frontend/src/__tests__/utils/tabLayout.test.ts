@@ -14,7 +14,7 @@ import {
   writeLayout,
   type LayoutWidgetMeta,
   type TabLayout,
-} from "./tabLayout";
+} from "../../utils/tabLayout";
 
 const WIDGETS: LayoutWidgetMeta[] = [
   { id: "a", span: "half" },

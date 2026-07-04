@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import type { Tag } from "./types";
-import { applyTagOrder, persistTree } from "./tagOrder";
+import type { Tag } from "../../utils/types";
+import { applyTagOrder, persistTree } from "../../utils/tagOrder";
 
 const t = (name: string, parentName: string | null = null): Tag => ({
   name,

@@ -1,27 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act, fireEvent } from "@testing-library/react";
 import { createRef } from "react";
-import type { Subscription, Wallet } from "../../utils/types";
+import type { Subscription, Wallet } from "../../../utils/types";
 
 const { deleteObject } = vi.hoisted(() => ({ deleteObject: vi.fn() }));
 
-vi.mock("./SubscriptionView", () => ({
+vi.mock("../../../modals/subscription/SubscriptionView", () => ({
   SubscriptionView: () => <div data-testid="sub-view" />,
 }));
-vi.mock("../common/DeleteModalContext", () => ({
+vi.mock("../../../modals/common/DeleteModalContext", () => ({
   useDeleteModal: () => ({ current: { deleteObject } }),
 }));
-vi.mock("../../api/axiosConfig", () => ({
+vi.mock("../../../api/axiosConfig", () => ({
   default: { delete: vi.fn(), put: vi.fn() },
 }));
-vi.mock("../../components/ui/ToastNotification.tsx", () => ({
+vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));
 
 import {
   SubscriptionDetailsModal,
   type SubscriptionDetailsModalHandle,
-} from "./SubscriptionDetailsModal";
+} from "../../../modals/subscription/SubscriptionDetailsModal";
 
 const wallet = (role: Wallet["userRole"] = "OWNER"): Wallet => ({
   id: "w1",

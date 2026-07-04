@@ -1,39 +1,39 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { createRef } from "react";
-import type { CurrencyCode } from "../../utils/currencies";
-import type { Transaction, Wallet } from "../../utils/types";
+import type { CurrencyCode } from "../../../utils/currencies";
+import type { Transaction, Wallet } from "../../../utils/types";
 
 // Isolate from the heavy form children (some are being refactored concurrently).
-vi.mock("./TagPicker/TagPicker.tsx", () => ({
+vi.mock("../../../modals/TransactionModal/TagPicker/TagPicker.tsx", () => ({
   TagPicker: () => <div data-testid="tagpicker" />,
 }));
-vi.mock("../../components/ui/AmountInput.tsx", () => ({
+vi.mock("../../../components/ui/AmountInput.tsx", () => ({
   AmountInput: () => <div />,
 }));
-vi.mock("./ExchangeRateSection.tsx", () => ({
+vi.mock("../../../modals/TransactionModal/ExchangeRateSection.tsx", () => ({
   ExchangeRateSection: () => <div />,
 }));
-vi.mock("./TransactionTypeToggle.tsx", () => ({
+vi.mock("../../../modals/TransactionModal/TransactionTypeToggle.tsx", () => ({
   TransactionTypeToggle: () => <div />,
 }));
-vi.mock("./TransactionMetadataInputs.tsx", () => ({
+vi.mock("../../../modals/TransactionModal/TransactionMetadataInputs.tsx", () => ({
   TransactionMetadataInputs: () => <div />,
 }));
-vi.mock("../../components/DataPicker/CustomDatePicker.tsx", () => ({
+vi.mock("../../../components/DataPicker/CustomDatePicker.tsx", () => ({
   default: () => <div />,
 }));
-vi.mock("../../api/axiosConfig", () => ({
+vi.mock("../../../api/axiosConfig", () => ({
   default: { post: vi.fn(), put: vi.fn() },
 }));
-vi.mock("../../components/ui/ToastNotification.tsx", () => ({
+vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));
 
 import {
   TransactionModal,
   type TransactionModalHandle,
-} from "./TransactionModal";
+} from "../../../modals/TransactionModal/TransactionModal";
 
 const wallet: Wallet = {
   id: "w1",

@@ -1,21 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act, fireEvent } from "@testing-library/react";
 import { createRef } from "react";
-import type { Transaction, Wallet } from "../../utils/types";
+import type { Transaction, Wallet } from "../../../utils/types";
 
 const { deleteObject } = vi.hoisted(() => ({ deleteObject: vi.fn() }));
 
-vi.mock("./TransactionView", () => ({
+vi.mock("../../../modals/TransactionModal/TransactionView", () => ({
   TransactionView: () => <div data-testid="tx-view" />,
 }));
-vi.mock("../common/DeleteModalContext", () => ({
+vi.mock("../../../modals/common/DeleteModalContext", () => ({
   useDeleteModal: () => ({ current: { deleteObject } }),
 }));
 
 import {
   TransactionDetailsModal,
   type TransactionDetailsModalHandle,
-} from "./TransactionDetailsModal";
+} from "../../../modals/TransactionModal/TransactionDetailsModal";
 
 const wallet = (role: Wallet["userRole"] = "OWNER"): Wallet => ({
   id: "w1",

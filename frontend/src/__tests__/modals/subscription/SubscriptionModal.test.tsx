@@ -1,42 +1,42 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import { createRef } from "react";
-import type { CurrencyCode } from "../../utils/currencies";
-import type { Subscription, Wallet } from "../../utils/types";
+import type { CurrencyCode } from "../../../utils/currencies";
+import type { Subscription, Wallet } from "../../../utils/types";
 
 // Isolate from the heavy form children (shared with the transaction form).
-vi.mock("../TransactionModal/TagPicker/TagPicker", () => ({
+vi.mock("../../../modals/TransactionModal/TagPicker/TagPicker", () => ({
   TagPicker: () => <div />,
 }));
-vi.mock("../../components/ui/AmountInput.tsx", () => ({
+vi.mock("../../../components/ui/AmountInput.tsx", () => ({
   AmountInput: () => <div />,
 }));
-vi.mock("../TransactionModal/TransactionTypeToggle", () => ({
+vi.mock("../../../modals/TransactionModal/TransactionTypeToggle", () => ({
   TransactionTypeToggle: () => <div />,
 }));
-vi.mock("../TransactionModal/ExchangeRateSection", () => ({
+vi.mock("../../../modals/TransactionModal/ExchangeRateSection", () => ({
   ExchangeRateSection: () => <div />,
 }));
-vi.mock("../../components/DataPicker/CustomDatePicker", () => ({
+vi.mock("../../../components/DataPicker/CustomDatePicker", () => ({
   default: () => <div />,
 }));
-vi.mock("../../components/ui/Selector.tsx", () => ({
+vi.mock("../../../components/ui/Selector.tsx", () => ({
   Selector: () => <div />,
 }));
-vi.mock("../../components/ui/CustomSelect.tsx", () => ({
+vi.mock("../../../components/ui/CustomSelect.tsx", () => ({
   CustomSelect: () => <div />,
 }));
-vi.mock("../../api/axiosConfig", () => ({
+vi.mock("../../../api/axiosConfig", () => ({
   default: { post: vi.fn(), put: vi.fn() },
 }));
-vi.mock("../../components/ui/ToastNotification.tsx", () => ({
+vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));
 
 import {
   SubscriptionModal,
   type SubscriptionModalHandle,
-} from "./SubscriptionModal";
+} from "../../../modals/subscription/SubscriptionModal";
 
 const wallet: Wallet = {
   id: "w1",
