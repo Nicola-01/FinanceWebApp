@@ -75,7 +75,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
 
-    const formatedDate = date.toLocaleDateString("en-UK", {
+    const formatedDate = date.toLocaleDateString("en-GB", {
       weekday: "short",
       day: "numeric",
       month: "short",

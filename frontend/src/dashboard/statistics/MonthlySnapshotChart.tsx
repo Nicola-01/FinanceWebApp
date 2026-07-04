@@ -13,7 +13,7 @@ import { ChartsAxisHighlight } from "@mui/x-charts/ChartsAxisHighlight";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import type { Transaction } from "../../utils/types.ts";
 import { useTheme } from "../../utils/ThemeContext.tsx";
-import { buildMonthlyBuckets } from "./ChartRangeSelector.tsx";
+import { buildMonthlyBuckets } from "./chartData";
 import type { ZoomData } from "@mui/x-charts/internals";
 
 const MONTH_LABELS = [

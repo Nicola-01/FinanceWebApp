@@ -35,7 +35,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "N/A";
     const date = new Date(dateStr);
-    return date.toLocaleDateString("en-UK", {
+    return date.toLocaleDateString("en-GB", {
       weekday: "short",
       day: "numeric",
       month: "short",

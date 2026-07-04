@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-vi.mock("./axiosConfig", () => ({
+vi.mock("../../api/axiosConfig", () => ({
   default: { get: vi.fn() },
 }));
 
-import api from "./axiosConfig";
+import api from "../../api/axiosConfig";
 import {
   getWalletData,
   refreshWalletData,
   peek,
   invalidate,
-} from "./walletDataCache";
-import type { WalletDashboardData } from "../utils/types";
+} from "../../api/walletDataCache";
+import type { WalletDashboardData } from "../../utils/types";
 
 const mockedGet = api.get as unknown as ReturnType<typeof vi.fn>;
 
@@ -103,5 +103,44 @@ describe("walletDataCache", () => {
     mockedGet.mockRejectedValue(new Error("boom"));
     await expect(getWalletData("w1")).rejects.toThrow("boom");
     expect(peek("w1")).toBeNull();
+  });
+
+  it("isolates cache entries per wallet", async () => {
+    const d1 = { ...sampleData, wallet: { id: "w1", name: "W1" } };
+    const d2 = { ...sampleData, wallet: { id: "w2", name: "W2" } };
+    mockedGet.mockImplementation((url: string) =>
+      Promise.resolve({ data: url.includes("/w1/") ? d1 : d2 }),
+    );
+
+    await getWalletData("w1");
+    await getWalletData("w2");
+
+    expect(peek("w1")).toEqual(d1);
+    expect(peek("w2")).toEqual(d2);
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+    invalidate("w2");
+  });
+
+  it("propagates the abort signal to the underlying request", async () => {
+    mockedGet.mockResolvedValue({ data: sampleData });
+    const controller = new AbortController();
+    await getWalletData("w1", controller.signal);
+    expect(mockedGet).toHaveBeenCalledWith("/wallets/w1/dashboard", {
+      signal: controller.signal,
+    });
+  });
+
+  it("invalidate clears an in-flight request so the next read refetches", async () => {
+    let resolve!: (v: unknown) => void;
+    mockedGet.mockReturnValueOnce(new Promise((r) => (resolve = r)));
+    const p1 = getWalletData("w1"); // in-flight
+
+    invalidate("w1");
+    mockedGet.mockResolvedValueOnce({ data: sampleData });
+    const p2 = getWalletData("w1"); // must start a fresh fetch, not dedupe
+
+    resolve({ data: sampleData });
+    await Promise.all([p1, p2]);
+    expect(mockedGet).toHaveBeenCalledTimes(2);
   });
 });

@@ -46,7 +46,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
     : "1";
 
   const date = new Date(tx.transactionDate);
-  const formatedDate = date.toLocaleDateString("en-UK", {
+  const formatedDate = date.toLocaleDateString("en-GB", {
     weekday: "long",
     day: "numeric",
     month: "long",
