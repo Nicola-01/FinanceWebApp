@@ -38,7 +38,6 @@ public class DemoService {
             .icon("wallet")
             .currency("EUR")
             .createdAt(LocalDate.now())
-            .encryptedWallet(false)
             .build();
 
     walletRepository.save(demoWallet);
