@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faWallet } from "@fortawesome/free-solid-svg-icons";
 import { Input } from "../../../components/ui/Input";
 import { IconColorSelector } from "../../../components/icon/IconColorSelector";
 import { CurrencySelector } from "../../../components/selectors/CurrencySelector";
 import { ICONS, type IconKey } from "../../../utils/icons";
+import { WizardStepHeader } from "./WizardStepHeader";
 
 export interface WalletBasicsValue {
   name: string;
@@ -48,6 +50,12 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
 
   return (
     <div className="space-y-5 text-left">
+      <WizardStepHeader
+        icon={faWallet}
+        title="Wallet basics"
+        subtitle="Name it and pick an icon, colour and currency."
+      />
+
       {/* Live icon preview + icon/colour popover */}
       <div className="relative mb-6 flex flex-col items-center">
         <button

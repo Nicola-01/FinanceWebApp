@@ -10,6 +10,7 @@ import {
 import { Input } from "../../../components/ui/Input";
 import Button from "../../../components/ui/Button";
 import { Selector } from "../../../components/ui/Selector";
+import { WizardStepHeader } from "./WizardStepHeader";
 
 /** A single staged invitation for the wallet being created. */
 export interface WalletInvite {
@@ -58,16 +59,11 @@ export function InvitesStep({
 
   return (
     <div className="flex flex-col gap-5 text-left">
-      <div>
-        <h3 className="text-sm font-bold text-app-text">
-          <FontAwesomeIcon icon={faUserPlus} className="mr-2 text-app-muted" />
-          Invite people to this wallet
-        </h3>
-        <p className="mt-1 text-xs text-app-muted">
-          Share this wallet with others as viewers or editors. You can always
-          invite more people later.
-        </p>
-      </div>
+      <WizardStepHeader
+        icon={faUserPlus}
+        title="Invite people"
+        subtitle="Share this wallet as a viewer or editor — you can add more later."
+      />
 
       {/* Identifier + role + add */}
       <div className="flex flex-col gap-3">

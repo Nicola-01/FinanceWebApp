@@ -6,8 +6,10 @@ import {
   faTrashCan,
   faTriangleExclamation,
   faCircleCheck,
+  faReceipt,
 } from "@fortawesome/free-solid-svg-icons";
 import Button from "../../../components/ui/Button";
+import { WizardStepHeader } from "./WizardStepHeader";
 import {
   parseAndValidateCsv,
   type RowError,
@@ -85,6 +87,12 @@ export function TransactionsStep({
 
   return (
     <div className="flex flex-col gap-5">
+      <WizardStepHeader
+        icon={faReceipt}
+        title="Add transactions"
+        subtitle="Import your existing transactions from a CSV file."
+      />
+
       {/* Upload well — the only entry point (no manual entry). */}
       <div className="flex flex-col items-center gap-3 rounded-[var(--r-card)] border border-dashed border-app-border bg-app-surface px-6 py-8 text-center">
         <FontAwesomeIcon icon={faFileCsv} className="text-2xl text-app-muted" />
