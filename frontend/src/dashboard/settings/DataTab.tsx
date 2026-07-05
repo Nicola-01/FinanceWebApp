@@ -34,6 +34,12 @@ import {
   detectSubscriptionOverwrites,
   type DedupOverwrite,
 } from "./csvDedup.ts";
+import {
+  validateTransactions,
+  validateTags,
+  validateSubscriptions,
+  type RowError,
+} from "./csvValidation.ts";
 import type { Tag } from "../../utils/types";
 
 /** Which resource an export/import action targets. */
@@ -49,6 +55,8 @@ interface ImportJob {
   dtos: ImportDtos;
   newCount: number;
   overwrites: DedupOverwrite[];
+  /** Client-side validation problems; a non-empty list blocks the import. */
+  rowErrors: RowError[];
 }
 
 /** Live state of the review modal (null = closed). */
@@ -212,6 +220,7 @@ export const DataTab: React.FC = () => {
   const buildJob = (target: Resource, text: string): ImportJob => {
     if (target === "transactions") {
       const dtos = parseTransactionsCsv(text);
+      const rowErrors = validateTransactions(dtos);
       const { overwrites, newCount } = detectTransactionOverwrites(
         dtos,
         transactions,
@@ -222,10 +231,16 @@ export const DataTab: React.FC = () => {
         dtos,
         overwrites,
         newCount,
+        rowErrors,
       };
     }
     if (target === "tags") {
       const dtos = parseTagsCsv(text);
+      // Existing wallet tags count as resolvable parents for the batch.
+      const rowErrors = validateTags(
+        dtos,
+        tags.map((t) => t.name),
+      );
       const { overwrites, newCount } = detectTagOverwrites(dtos, tags);
       return {
         resource: target,
@@ -233,9 +248,11 @@ export const DataTab: React.FC = () => {
         dtos,
         overwrites,
         newCount,
+        rowErrors,
       };
     }
     const dtos = parseSubscriptionsCsv(text);
+    const rowErrors = validateSubscriptions(dtos);
     const { overwrites, newCount } = detectSubscriptionOverwrites(
       dtos,
       subscriptions,
@@ -246,6 +263,7 @@ export const DataTab: React.FC = () => {
       dtos,
       overwrites,
       newCount,
+      rowErrors,
     };
   };
 
@@ -284,6 +302,15 @@ export const DataTab: React.FC = () => {
       job = buildJob(target, await file.text());
     } catch (err: unknown) {
       triggerToast(getApiErrorDetail(err, "Import failed"), false);
+      return;
+    }
+
+    // Client-side validation gate: never POST a file the backend would 409 on.
+    if (job.rowErrors.length > 0) {
+      const first = job.rowErrors[0];
+      const more =
+        job.rowErrors.length > 1 ? ` (+${job.rowErrors.length - 1} more)` : "";
+      triggerToast(`Row ${first.row}: ${first.message}${more}`, false);
       return;
     }
 

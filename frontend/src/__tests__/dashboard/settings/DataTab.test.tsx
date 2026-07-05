@@ -206,6 +206,27 @@ describe("DataTab — CSV import", () => {
     expect(toast).not.toHaveBeenCalled();
   });
 
+  it("blocks the import and reports a row error when a row is invalid", async () => {
+    render(<DataTab />);
+    pickTransactionsImport();
+    // Non-numeric amount -> client validation fails before any POST.
+    const badCsv =
+      "Date,Name,Tag,Amount,Type,Notes,OriginalAmount,OriginalCurrency,ExchangeValue\n" +
+      "2026-06-01,Salary,Income,notanumber,INCOME,,,,";
+    const file = new File([badCsv], "tx.csv", { type: "text/csv" });
+    fireEvent.change(fileInput(), { target: { files: [file] } });
+
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        expect.stringMatching(/^Row 1: .*amount/i),
+        false,
+      ),
+    );
+    expect(apiPost).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("review")).not.toBeInTheDocument();
+    expect(ctxRef.current.fetchData).not.toHaveBeenCalled();
+  });
+
   it("gates overwrites behind the confirm phase before POSTing", async () => {
     // A pre-existing transaction with the same name + tag + date as the CSV row.
     ctxRef.current.transactions = [

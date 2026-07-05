@@ -169,15 +169,24 @@ describe("detectSubscriptionOverwrites", () => {
     autoExchangeRate: false,
   });
 
-  it("flags a match on tag + startDate (name is ignored)", () => {
+  it("flags a match on name + tag + startDate", () => {
     const { overwrites, newCount } = detectSubscriptionOverwrites(
-      [req("Netflix renamed", "Entertainment", "2026-01-01")],
+      [req("Netflix", "Entertainment", "2026-01-01")],
       [sub("Netflix", "Entertainment", "2026-01-01")],
     );
     expect(newCount).toBe(0);
     expect(overwrites).toEqual([
-      { label: "Netflix renamed", detail: "Entertainment · 2026-01-01" },
+      { label: "Netflix", detail: "Entertainment · 2026-01-01" },
     ]);
+  });
+
+  it("is new when the name differs (name is part of the key)", () => {
+    const { overwrites, newCount } = detectSubscriptionOverwrites(
+      [req("Netflix renamed", "Entertainment", "2026-01-01")],
+      [sub("Netflix", "Entertainment", "2026-01-01")],
+    );
+    expect(newCount).toBe(1);
+    expect(overwrites).toEqual([]);
   });
 
   it("is new when the startDate differs", () => {
@@ -189,9 +198,9 @@ describe("detectSubscriptionOverwrites", () => {
     expect(overwrites).toEqual([]);
   });
 
-  it("matches the tag case-insensitively / trimmed", () => {
+  it("matches name and tag case-insensitively / trimmed", () => {
     const { overwrites, newCount } = detectSubscriptionOverwrites(
-      [req("Netflix", "  entertainment ", "2026-01-01")],
+      [req("  netflix ", "  entertainment ", "2026-01-01")],
       [sub("Netflix", "Entertainment", "2026-01-01")],
     );
     expect(newCount).toBe(0);
