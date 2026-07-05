@@ -1,4 +1,4 @@
-import { useCallback, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useState, type ReactNode } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import Button from "./Button";
@@ -109,8 +109,14 @@ export function Wizard<TResult = unknown>({
 
   return (
     <div className="flex w-full flex-col">
-      {/* Stepper */}
-      <ol className="mb-8 flex items-center">
+      {/* Stepper — equidistant circles with short end caps:
+          [lead·½] (o)─[conn·1]─(o)─[conn·1]─(o) [trail·½]. Labels are absolutely
+          positioned under each circle so they don't skew the rail's spacing. */}
+      <div
+        role="list"
+        aria-label="Progress"
+        className="mb-11 flex items-center pb-7"
+      >
         {steps.map((s, i) => {
           const done = i < current && inSteps;
           const active = i === current && inSteps;
@@ -118,11 +124,13 @@ export function Wizard<TResult = unknown>({
           const filled = done || active;
           const useAccent = filled && !!accentColor;
           return (
-            <li
-              key={s.name}
-              className="flex flex-1 items-center last:flex-none"
-            >
-              <div className="flex flex-col items-center gap-2">
+            <Fragment key={s.name}>
+              {/* short lead before the first node, equal connectors between */}
+              <span
+                aria-hidden="true"
+                className={`h-0.5 bg-app-border ${i === 0 ? "flex-[0.5]" : "flex-1"}`}
+              />
+              <div role="listitem" className="relative flex-none">
                 <button
                   type="button"
                   data-testid={`wizard-step-${i}`}
@@ -144,20 +152,24 @@ export function Wizard<TResult = unknown>({
                   {done ? <FontAwesomeIcon icon={faCheck} /> : i + 1}
                 </button>
                 <span
-                  className={`text-xs font-medium ${
+                  className={`absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap text-xs font-medium ${
                     active ? "text-app-text" : "text-app-muted"
                   }`}
                 >
                   {s.name}
                 </span>
               </div>
-              {i < steps.length - 1 && (
-                <span className="mx-2 h-px flex-1 bg-app-border" />
+              {/* short trail after the last node */}
+              {i === steps.length - 1 && (
+                <span
+                  aria-hidden="true"
+                  className="h-0.5 flex-[0.5] bg-app-border"
+                />
               )}
-            </li>
+            </Fragment>
           );
         })}
-      </ol>
+      </div>
 
       {/* Content */}
       <div className="min-h-0 flex-1">
