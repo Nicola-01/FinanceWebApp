@@ -4,48 +4,36 @@ import {
   faDownload,
   faReceipt,
   faTag,
+  faRepeat,
 } from "@fortawesome/free-solid-svg-icons";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { Selector } from "../../components/ui/Selector.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { ICONS, type IconKey } from "../../utils/icons.ts";
+import {
+  TRANSACTION_COLUMNS,
+  TAG_COLUMNS,
+  SUBSCRIPTION_COLUMNS,
+  type CsvColumn,
+} from "./csvImport.ts";
 
-type Mode = "transactions" | "tags";
-
-interface Column {
-  /** Header exactly as it must appear in the CSV. */
-  key: string;
-  /** Short human meaning shown in the legend. */
-  hint: string;
-  /** Whether the column may be left empty. */
-  optional?: boolean;
-}
+type Mode = "transactions" | "tags" | "subscriptions";
 
 interface SampleSpec {
   filename: string;
-  columns: Column[];
+  columns: CsvColumn[];
   rows: string[][];
 }
 
 /**
- * Column definitions + example rows for both exportable CSVs. Kept byte-for-byte
- * aligned with the export headers in DataTab (`Date,Name,Tag,…` / `Name,Icon,…`)
- * so a downloaded sample round-trips with a real export.
+ * Example rows for each exportable CSV. The column definitions are imported
+ * from `csvImport` — the single source of truth shared with the export/import
+ * code — so a downloaded sample round-trips with a real export.
  */
 const SAMPLES: Record<Mode, SampleSpec> = {
   transactions: {
     filename: "transactions_sample.csv",
-    columns: [
-      { key: "Date", hint: "ISO date — YYYY-MM-DD" },
-      { key: "Name", hint: "Transaction label" },
-      { key: "Tag", hint: "Name of an existing tag" },
-      { key: "Amount", hint: "Positive number" },
-      { key: "Type", hint: "INCOME or EXPENSE" },
-      { key: "Notes", hint: "Free text", optional: true },
-      { key: "OriginalAmount", hint: "Multi-currency amount", optional: true },
-      { key: "OriginalCurrency", hint: "ISO code (e.g. JPY)", optional: true },
-      { key: "ExchangeValue", hint: "Rate to wallet currency", optional: true },
-    ],
+    columns: TRANSACTION_COLUMNS,
     rows: [
       [
         "2026-06-01",
@@ -84,21 +72,78 @@ const SAMPLES: Record<Mode, SampleSpec> = {
   },
   tags: {
     filename: "tags_sample.csv",
-    columns: [
-      { key: "Name", hint: "Unique per wallet" },
-      { key: "Icon", hint: "Icon key (see icons list)" },
-      { key: "ColorHex", hint: "#RRGGBB" },
-      {
-        key: "ParentName",
-        hint: 'Parent tag name, or "" for a top-level tag',
-        optional: true,
-      },
-    ],
+    columns: TAG_COLUMNS,
     rows: [
       ["Salary", "sack", "#34d399", ""],
       ["Food", "dining", "#f87171", ""],
       ["Groceries", "cart", "#fb923c", "Food"],
       ["Travel", "plane", "#60a5fa", ""],
+    ],
+  },
+  subscriptions: {
+    filename: "subscriptions_sample.csv",
+    columns: SUBSCRIPTION_COLUMNS,
+    rows: [
+      [
+        "Netflix",
+        "Entertainment",
+        "12.99",
+        "EXPENSE",
+        "ACTIVE",
+        "2026-01-01",
+        "MONTHLY",
+        "1",
+        "1",
+        "false",
+        "FOREVER",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "false",
+        "Streaming plan",
+      ],
+      [
+        "Salary",
+        "Salary",
+        "2500",
+        "INCOME",
+        "ACTIVE",
+        "2026-01-31",
+        "MONTHLY",
+        "1",
+        "",
+        "true",
+        "FOREVER",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "false",
+        "Payday",
+      ],
+      [
+        "Gym",
+        "Health",
+        "30",
+        "EXPENSE",
+        "PAUSED",
+        "2026-02-01",
+        "MONTHLY",
+        "1",
+        "5",
+        "false",
+        "UNTIL",
+        "",
+        "2026-12-31",
+        "35",
+        "USD",
+        "0.92",
+        "true",
+        "",
+      ],
     ],
   },
 };
@@ -168,7 +213,7 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
       }
     >
       <div className="flex flex-col gap-5">
-        {/* Toggle: transactions vs tags */}
+        {/* Toggle: transactions vs subscriptions vs tags */}
         <Selector<Mode>
           value={mode}
           onChange={setMode}
@@ -177,6 +222,12 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
               value: "transactions",
               label: "Transactions",
               icon: <FontAwesomeIcon icon={faReceipt} />,
+              activeColorClass: "text-app-text",
+            },
+            {
+              value: "subscriptions",
+              label: "Subscriptions",
+              icon: <FontAwesomeIcon icon={faRepeat} />,
               activeColorClass: "text-app-text",
             },
             {

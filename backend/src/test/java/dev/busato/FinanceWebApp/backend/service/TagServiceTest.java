@@ -3,10 +3,14 @@ package dev.busato.FinanceWebApp.backend.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import dev.busato.FinanceWebApp.backend.dto.TagBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.TagRequest;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.TagHasChildrenException;
@@ -23,6 +27,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -99,6 +104,186 @@ class TagServiceTest {
 
     assertThrows(
         IllegalArgumentException.class, () -> tagService.createTag(request, walletId, userId));
+  }
+
+  // ==================== createTagsBulk (upsert) ====================
+
+  @Test
+  void createTagsBulk_ValidRows_CreatesAllAndReturnsResponses() {
+    TagRequest r1 = TagRequest.builder().build();
+    r1.setName("Food");
+    TagRequest r2 = TagRequest.builder().build();
+    r2.setName("Rent");
+
+    when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+
+    TagBulkResponse result = tagService.createTagsBulk(List.of(r1, r2), walletId, userId);
+
+    assertEquals(2, result.getCreated().size());
+    assertEquals(0, result.getUpdated().size());
+    verify(tagRepository, times(2)).save(any(Tag.class));
+  }
+
+  @Test
+  void createTagsBulk_EmptyList_ReturnsEmptyLists() {
+    TagBulkResponse result = tagService.createTagsBulk(List.of(), walletId, userId);
+
+    assertEquals(0, result.getCreated().size());
+    assertEquals(0, result.getUpdated().size());
+    verify(tagRepository, never()).save(any());
+  }
+
+  @Test
+  void createTagsBulk_ExistingName_UpdatesIconColorAndParent() {
+    // A pre-existing "Food" tag plus a pre-existing "Bills" tag used as the new parent.
+    Tag existingFood = new Tag();
+    existingFood.setId(UUID.randomUUID());
+    existingFood.setName("Food");
+    existingFood.setIcon("old-icon");
+    existingFood.setColorHex("#000000");
+    Tag existingBills = new Tag();
+    existingBills.setId(UUID.randomUUID());
+    existingBills.setName("Bills");
+
+    when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+    when(tagRepository.getTagsByWalletId(walletId))
+        .thenReturn(List.of(existingFood, existingBills));
+
+    // Row matches "Food" by name (case-insensitive) and refreshes icon/color/parent.
+    TagRequest update = TagRequest.builder().build();
+    update.setName("food");
+    update.setIcon("burger");
+    update.setColorHex("#ff0000");
+    update.setParentName("Bills");
+    // A brand-new tag to prove created/updated are split correctly.
+    TagRequest fresh = TagRequest.builder().build();
+    fresh.setName("Salary");
+
+    TagBulkResponse result = tagService.createTagsBulk(List.of(update, fresh), walletId, userId);
+
+    assertEquals(1, result.getUpdated().size());
+    assertEquals(1, result.getCreated().size());
+    // Existing entity mutated in place.
+    assertEquals("burger", existingFood.getIcon());
+    assertEquals("#ff0000", existingFood.getColorHex());
+    assertEquals(existingBills, existingFood.getParent());
+  }
+
+  @Test
+  void createTagsBulk_InvalidRow_ThrowsRowPrefixedException() {
+    TagRequest r1 = TagRequest.builder().build();
+    r1.setName("Food");
+    TagRequest r2 = TagRequest.builder().build();
+    r2.setName("A"); // Too short → rolls back the whole batch
+
+    when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> tagService.createTagsBulk(List.of(r1, r2), walletId, userId));
+
+    assertTrue(ex.getMessage().startsWith("Row 1:"), ex.getMessage());
+  }
+
+  @Test
+  void createTagsBulk_ChildBeforeParent_ResolvesInBatchParent() {
+    // The child references a parent that appears LATER in the input list and is itself new. The
+    // topological sweep must create the parentless row first so the child can resolve it in-batch.
+    TagRequest child = TagRequest.builder().build();
+    child.setName("SubFood");
+    child.setParentName("Food");
+    TagRequest parent = TagRequest.builder().build();
+    parent.setName("Food");
+
+    when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+
+    TagBulkResponse result = tagService.createTagsBulk(List.of(child, parent), walletId, userId);
+
+    assertEquals(2, result.getCreated().size());
+
+    // Verify insertion order: the parentless "Food" is saved before the child "SubFood", and the
+    // child's parent is the exact in-batch entity that was created first.
+    ArgumentCaptor<Tag> captor = ArgumentCaptor.forClass(Tag.class);
+    verify(tagRepository, times(2)).save(captor.capture());
+    List<Tag> savedInOrder = captor.getAllValues();
+    assertEquals("Food", savedInOrder.get(0).getName());
+    assertEquals("SubFood", savedInOrder.get(1).getName());
+    assertEquals(savedInOrder.get(0), savedInOrder.get(1).getParent());
+  }
+
+  @Test
+  void createTagsBulk_MultiLevelNesting_ResolvesAcrossPasses() {
+    // Deep chain Cat -> Bird -> Ant, all new, supplied deepest-first. The iterative resolve must
+    // create Ant, then Bird, then Cat.
+    TagRequest cat = TagRequest.builder().build();
+    cat.setName("Cat");
+    cat.setParentName("Bird");
+    TagRequest bird = TagRequest.builder().build();
+    bird.setName("Bird");
+    bird.setParentName("Ant");
+    TagRequest ant = TagRequest.builder().build();
+    ant.setName("Ant");
+
+    when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+
+    TagBulkResponse result = tagService.createTagsBulk(List.of(cat, bird, ant), walletId, userId);
+
+    assertEquals(3, result.getCreated().size());
+
+    ArgumentCaptor<Tag> captor = ArgumentCaptor.forClass(Tag.class);
+    verify(tagRepository, times(3)).save(captor.capture());
+    List<Tag> savedInOrder = captor.getAllValues();
+    assertEquals("Ant", savedInOrder.get(0).getName());
+    assertEquals("Bird", savedInOrder.get(1).getName());
+    assertEquals("Cat", savedInOrder.get(2).getName());
+    assertEquals(savedInOrder.get(0), savedInOrder.get(1).getParent());
+    assertEquals(savedInOrder.get(1), savedInOrder.get(2).getParent());
+  }
+
+  @Test
+  void createTagsBulk_UnresolvableParent_ThrowsRowPrefixedException() {
+    // A child whose parent is neither pre-existing nor present in the batch can never resolve.
+    TagRequest child = TagRequest.builder().build();
+    child.setName("Orphan");
+    child.setParentName("Ghost");
+
+    when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> tagService.createTagsBulk(List.of(child), walletId, userId));
+
+    assertTrue(ex.getMessage().startsWith("Row 0:"), ex.getMessage());
+    assertTrue(ex.getMessage().contains("Ghost"), ex.getMessage());
+  }
+
+  @Test
+  void createTagsBulk_IntraBatchDuplicateName_LastRowWins() {
+    // Two rows named "Food" collapse to one tag; the last row's attributes win.
+    TagRequest first = TagRequest.builder().build();
+    first.setName("Food");
+    first.setIcon("first");
+    TagRequest second = TagRequest.builder().build();
+    second.setName("Food");
+    second.setIcon("second");
+
+    when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+
+    TagBulkResponse result = tagService.createTagsBulk(List.of(first, second), walletId, userId);
+
+    // Only one tag is created for the duplicated name.
+    assertEquals(1, result.getCreated().size());
+    ArgumentCaptor<Tag> captor = ArgumentCaptor.forClass(Tag.class);
+    verify(tagRepository).save(captor.capture());
+    assertEquals("second", captor.getValue().getIcon());
   }
 
   @Test

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -70,6 +70,16 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const [ripples, setRipples] = useState<RippleItem[]>([]);
+  // Track pending ripple-cleanup timers so they can be cancelled on unmount —
+  // otherwise a late setState fires after teardown ("window is not defined").
+  const rippleTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(
+    () => () => {
+      rippleTimers.current.forEach(clearTimeout);
+      rippleTimers.current = [];
+    },
+    [],
+  );
   const useAccent = Boolean(accentColor);
   const color =
     rippleColor ??
@@ -86,10 +96,11 @@ const Button: React.FC<ButtonProps> = ({
         id: Date.now(),
       };
       setRipples((prev) => [...prev, item]);
-      setTimeout(
-        () => setRipples((prev) => prev.filter((r) => r.id !== item.id)),
-        600,
-      );
+      const timer = setTimeout(() => {
+        setRipples((prev) => prev.filter((r) => r.id !== item.id));
+        rippleTimers.current = rippleTimers.current.filter((t) => t !== timer);
+      }, 600);
+      rippleTimers.current.push(timer);
     }
     onPointerDown?.(e);
   };

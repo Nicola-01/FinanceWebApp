@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -8,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import dev.busato.FinanceWebApp.backend.dto.SubscriptionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.service.SubscriptionService;
@@ -72,6 +74,43 @@ public class SubscriptionControllerTest extends BaseWebMvcTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Netflix"));
+  }
+
+  @Test
+  void createSubscriptionsBulk_ShouldReturn200() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    SubscriptionRequest r1 =
+        SubscriptionRequest.builder()
+            .name("Netflix")
+            .amount(new BigDecimal("15.99"))
+            .type("EXPENSE")
+            .build();
+    SubscriptionRequest r2 =
+        SubscriptionRequest.builder()
+            .name("Spotify")
+            .amount(new BigDecimal("9.99"))
+            .type("EXPENSE")
+            .build();
+
+    when(subscriptionService.createSubscriptionsBulk(anyList(), eq(walletId), any(UUID.class)))
+        .thenReturn(
+            SubscriptionBulkResponse.builder()
+                .created(List.of(SubscriptionResponse.builder().name("Netflix").build()))
+                .updated(List.of(SubscriptionResponse.builder().name("Spotify").build()))
+                .autoCreatedTags(List.of())
+                .build());
+
+    mockMvc
+        .perform(
+            post("/api/subscription/{walletID}/bulk", walletId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(List.of(r1, r2))))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.created[0].name").value("Netflix"))
+        .andExpect(jsonPath("$.updated[0].name").value("Spotify"));
+
+    verify(subscriptionService).createSubscriptionsBulk(anyList(), eq(walletId), any(UUID.class));
   }
 
   @Test

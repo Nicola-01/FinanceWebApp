@@ -131,6 +131,8 @@ export interface PatToken {
   createdAt: string;
   expiresAt: string | null;
   lastUsedAt: string | null;
+  /** When true the token is temporarily disabled — kept, but rejected on the API. */
+  paused: boolean;
 }
 
 export type ModalView = "list" | "create" | "edit" | "showToken";

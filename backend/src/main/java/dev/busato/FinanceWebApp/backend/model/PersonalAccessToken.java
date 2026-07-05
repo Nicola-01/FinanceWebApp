@@ -66,4 +66,13 @@ public class PersonalAccessToken {
 
   /** Tracks when this token was last used for authentication */
   private LocalDateTime lastUsedAt;
+
+  /**
+   * When true, the token is paused: it is rejected during API authentication but not deleted. The
+   * SQL {@code default false} lets {@code ddl-auto=update} add this non-null column to a
+   * pre-populated table.
+   */
+  @Builder.Default
+  @Column(nullable = false, columnDefinition = "boolean not null default false")
+  private boolean paused = false;
 }

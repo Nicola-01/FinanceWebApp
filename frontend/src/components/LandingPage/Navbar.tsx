@@ -29,15 +29,6 @@ const Navbar: React.FC<NavbarProps> = ({
     setIsMenuOpen(false);
   };
 
-  // const handleDemoClick = () => {
-  //     if (window.location.pathname === '/about') {
-  //         document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
-  //     } else {
-  //         navigate('/about');
-  //     }
-  //     setIsMenuOpen(false);
-  // };
-
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -69,8 +60,8 @@ const Navbar: React.FC<NavbarProps> = ({
               onClick={() => handleNav(link.path)}
               className={`text-sm transition-colors ${
                 isActive(link.path)
-                  ? "theme-text-brand font-bold" // Stile per il link attivo
-                  : "theme-text-muted font-medium hover:theme-text-default" // Stile normale
+                  ? "text-app-pink font-bold" // active link
+                  : "text-app-muted font-medium hover:text-app-text" // default
               }`}
             >
               {link.label}
@@ -84,14 +75,14 @@ const Navbar: React.FC<NavbarProps> = ({
             {isLoggedIn ? (
               <button
                 onClick={onDashboardClick}
-                className="text-sm font-medium hover:theme-text-primary transition-colors"
+                className="text-sm font-medium hover:text-app-purple transition-colors"
               >
                 Dashboard
               </button>
             ) : (
               <button
                 onClick={onLoginClick}
-                className="bg-app-hover hover:bg-white/20 px-4 py-2 rounded-full text-sm font-medium transition-all border border-app-border hover:theme-border-default"
+                className="bg-app-hover hover:bg-white/20 px-4 py-2 rounded-full text-sm font-medium transition-all border border-app-border hover:border-app-muted"
               >
                 Login
               </button>
@@ -101,7 +92,7 @@ const Navbar: React.FC<NavbarProps> = ({
           {/* Mobile Hamburger Icon */}
           <button
             onClick={toggleMenu}
-            className="md:hidden theme-text-default hover:theme-text-primary transition-colors p-1"
+            className="md:hidden text-app-text hover:text-app-purple transition-colors p-1"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -116,7 +107,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <button
                 key={link.path}
                 onClick={() => handleNav(link.path)}
-                className="text-lg font-medium theme-text-muted hover:theme-text-default text-left"
+                className="text-lg font-medium text-app-muted hover:text-app-text text-left"
               >
                 {link.label}
               </button>
@@ -128,7 +119,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     onDashboardClick();
                     setIsMenuOpen(false);
                   }}
-                  className="text-lg font-medium theme-text-primary"
+                  className="text-lg font-medium text-app-purple"
                 >
                   Dashboard
                 </button>
@@ -138,7 +129,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     onLoginClick();
                     setIsMenuOpen(false);
                   }}
-                  className="w-full bg-app-green theme-text-inverse font-bold py-3 rounded-xl transition-all"
+                  className="w-full bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)] text-white font-bold py-3 rounded-xl transition-all hover:brightness-[1.07]"
                 >
                   Login
                 </button>

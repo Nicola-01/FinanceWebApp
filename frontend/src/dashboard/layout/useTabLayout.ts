@@ -5,6 +5,7 @@ import {
   hideSlot,
   mergeSlots,
   moveSlot,
+  moveSlotToIndex,
   popWidget,
   popWidgetTo,
   readLayout,
@@ -27,6 +28,8 @@ export interface TabLayoutApi {
   merge: (sourceId: string, targetId: string) => void;
   /** Commit a slot reorder (active slot → over slot's index) on drop. */
   reorderSlot: (activeId: string, overId: string) => void;
+  /** Commit a slot reorder to a geometric index (list without the active slot). */
+  reorderSlotToIndex: (activeId: string, index: number) => void;
   pop: (slotId: string, widgetId: string) => void;
   reorderMember: (
     slotId: string,
@@ -77,6 +80,8 @@ export function useTabLayout(
       commit(mergeSlots(layout, sourceId, targetId, widgets)),
     reorderSlot: (activeId, overId) =>
       commit(moveSlot(layout, activeId, overId)),
+    reorderSlotToIndex: (activeId, index) =>
+      commit(moveSlotToIndex(layout, activeId, index)),
     pop: (slotId, widgetId) => commit(popWidget(layout, slotId, widgetId)),
     reorderMember: (slotId, fromWidgetId, toWidgetId) =>
       commit(reorderMember(layout, slotId, fromWidgetId, toWidgetId)),

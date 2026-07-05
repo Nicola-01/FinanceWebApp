@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useLayoutEffect } from "react";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -6,7 +6,10 @@ import {
   type CreateWalletModalHandle,
 } from "../../modals/wallet/CreateWalletModal.tsx";
 import WalletCard, { WalletCardUI } from "./WalletCard.tsx";
-import type { Wallet } from "../../utils/types.ts";
+import type { Wallet, Invitation } from "../../utils/types.ts";
+import { useDeleteModal } from "../../modals/common/DeleteModalContext";
+import { useInvitations } from "./useInvitations";
+import { InvitesMobileInline, InvitesDesktopSection } from "./WalletInvites";
 
 import {
   DndContext,
@@ -44,6 +47,26 @@ const WalletSkeleton = () => (
   </div>
 );
 
+/** Dashed "Add New Wallet" tile — reused for the mobile row and the desktop footer. */
+const AddWalletTile: React.FC<{ onClick: () => void; className?: string }> = ({
+  onClick,
+  className = "",
+}) => (
+  <button
+    onClick={onClick}
+    className={`cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input/60 transition-all hover:bg-app-input hover:border-app-green/50 shrink-0 text-left ${className}`}
+  >
+    <div className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-app-green transition-colors shrink-0">
+      <FontAwesomeIcon icon={faPlus} />
+    </div>
+    <div className="flex flex-col min-w-0">
+      <h4 className="m-0 text-sm font-bold text-app-muted group-hover:text-app-text transition-colors truncate">
+        Add New Wallet
+      </h4>
+    </div>
+  </button>
+);
+
 export const WalletsBar: React.FC<WalletsAreaProps> = ({
   wallets,
   setWallets,
@@ -54,6 +77,44 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
 }) => {
   const walletModal = useRef<CreateWalletModalHandle>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const didInitScroll = useRef(false);
+
+  const deleteModalRef = useDeleteModal();
+  const {
+    invites,
+    loading: invitesLoading,
+    accept,
+    reject,
+  } = useInvitations(onRefreshAll);
+  const [invitesOpen, setInvitesOpen] = useState(false);
+
+  // Reject reuses the shared DeleteModal at level 0 (single-click confirm).
+  const handleReject = (invite: Invitation) => {
+    deleteModalRef.current?.deleteObject(
+      invite.wallet,
+      "invitation",
+      () => reject(invite.wallet.id),
+      0,
+    );
+  };
+
+  // On first load with NO invitations, start the mobile row scrolled past the
+  // (small, left-most) invites badge so the first wallet sits flush-left; the
+  // user swipes right to reveal the badge. Desktop is a vertical column, where
+  // horizontal scrollLeft is a no-op (and the invites zone is display:none → 0).
+  useLayoutEffect(() => {
+    if (loading || invitesLoading || didInitScroll.current) return;
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    if (invites.length === 0) {
+      const inviteZone = scroller.firstElementChild as HTMLElement | null;
+      if (inviteZone && inviteZone.offsetWidth > 0) {
+        scroller.scrollLeft = inviteZone.offsetWidth + 16; // + the gap-4 spacing
+      }
+    }
+    didInitScroll.current = true;
+  }, [loading, invitesLoading, invites.length]);
 
   // --- 1. SINCRONIZZAZIONE ORDINE INIZIALE DA LOCAL STORAGE ---
   useEffect(() => {
@@ -172,12 +233,23 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
 
         {/* Scroller: horizontal on mobile, vertical list on desktop */}
         <div
+          ref={scrollerRef}
           className="
                   flex flex-row w-full gap-4 p-4 overflow-x-auto overflow-y-hidden
                   xl:flex-1 xl:flex-col xl:gap-3 xl:min-h-0 xl:px-6 xl:pt-0 xl:pb-6 xl:overflow-y-auto xl:overflow-x-hidden
                   [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]
               "
         >
+          {/* Mobile-only: invites inline (badge + cards + divider) before wallets */}
+          <InvitesMobileInline
+            count={invites.length}
+            open={invitesOpen}
+            onToggle={() => setInvitesOpen((o) => !o)}
+            invites={invites}
+            onAccept={accept}
+            onReject={handleReject}
+          />
+
           {loading && wallets.length === 0 ? (
             <>
               <WalletSkeleton />
@@ -200,23 +272,31 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
             </SortableContext>
           )}
 
+          {/* Mobile-only Add button — last item in the horizontal row. */}
           {!loading && (
-            <button
+            <AddWalletTile
               onClick={() => walletModal.current?.openModal()}
-              className="cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input/60 transition-all hover:bg-app-input hover:border-app-green/50 w-[260px] xl:w-full shrink-0 text-left"
-            >
-              <div className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-app-green transition-colors shrink-0">
-                <FontAwesomeIcon icon={faPlus} />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <h4 className="m-0 text-sm font-bold text-app-muted group-hover:text-app-text transition-colors truncate">
-                  Add New Wallet
-                </h4>
-              </div>
-            </button>
+              className="w-[260px] xl:hidden"
+            />
           )}
 
           <CreateWalletModal ref={walletModal} onSuccess={handleCreate} />
+        </div>
+
+        {/* Desktop-only footer, pinned below the scrolling wallet list:
+            invitations section above the aligned "Add New Wallet" button. */}
+        <div className="hidden xl:flex xl:flex-col xl:gap-3 xl:border-t xl:border-app-border xl:px-6 xl:py-4">
+          <InvitesDesktopSection
+            invites={invites}
+            onAccept={accept}
+            onReject={handleReject}
+          />
+          {!loading && (
+            <AddWalletTile
+              onClick={() => walletModal.current?.openModal()}
+              className="w-full"
+            />
+          )}
         </div>
       </aside>
 

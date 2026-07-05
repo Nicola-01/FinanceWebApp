@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
+import dev.busato.FinanceWebApp.backend.dto.SubscriptionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -32,6 +33,15 @@ public class SubscriptionController {
       @AuthenticationPrincipal User user) {
     return ResponseEntity.ok(
         subscriptionService.createSubscription(request, walletID, user.getId()));
+  }
+
+  @PostMapping("/{walletID}/bulk")
+  public ResponseEntity<SubscriptionBulkResponse> createSubscriptionsBulk(
+      @RequestBody List<SubscriptionRequest> requests,
+      @PathVariable UUID walletID,
+      @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(
+        subscriptionService.createSubscriptionsBulk(requests, walletID, user.getId()));
   }
 
   @PutMapping("/{walletID}/{subscriptionID}")

@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
+import dev.busato.FinanceWebApp.backend.dto.TagBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.TagRequest;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -31,6 +32,14 @@ public class TagController {
       @AuthenticationPrincipal User user,
       @Valid @RequestBody TagRequest tagRequest) {
     return ResponseEntity.ok(tagService.createTag(tagRequest, walletID, user.getId()));
+  }
+
+  @PostMapping("/{walletID}/bulk")
+  public ResponseEntity<TagBulkResponse> createTagsBulk(
+      @PathVariable UUID walletID,
+      @AuthenticationPrincipal User user,
+      @Valid @RequestBody List<TagRequest> tagRequests) {
+    return ResponseEntity.ok(tagService.createTagsBulk(tagRequests, walletID, user.getId()));
   }
 
   @DeleteMapping("/{walletID}/{tagName}")

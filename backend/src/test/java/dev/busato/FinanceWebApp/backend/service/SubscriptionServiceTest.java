@@ -4,13 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import dev.busato.FinanceWebApp.backend.dto.SubscriptionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
+import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
+import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
+import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
@@ -41,6 +46,8 @@ class SubscriptionServiceTest {
   @Mock private TagRepository tagRepository;
   @Mock private TransactionRepository transactionRepository;
   @Mock private SubscriptionMapper subscriptionMapper;
+  @Mock private TagMapper tagMapper;
+  @Mock private TagService tagService;
   @Mock private ExchangeRateService exchangeRateService;
 
   @Mock private Clock clock;
@@ -450,6 +457,169 @@ class SubscriptionServiceTest {
     assertThrows(
         dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException.class,
         () -> subscriptionService.createSubscription(request, walletId, userId));
+  }
+
+  // ==================== createSubscriptionsBulk (upsert) ====================
+
+  @Test
+  void createSubscriptionsBulk_ValidRows_CreatesAllAndReturnsResponses() {
+    SubscriptionRequest r1 = SubscriptionRequest.builder().build();
+    r1.setName("Netflix");
+    r1.setAmount(new BigDecimal("15.99"));
+    r1.setType("EXPENSE");
+    r1.setFrequencyType("MONTHLY");
+    r1.setFrequencyInterval(1);
+    r1.setStartDate(LocalDate.of(2024, 3, 15)); // Future date → no immediate execution
+    r1.setDuration("FOREVER");
+
+    SubscriptionRequest r2 = SubscriptionRequest.builder().build();
+    r2.setName("Spotify");
+    r2.setAmount(new BigDecimal("9.99"));
+    r2.setType("EXPENSE");
+    r2.setFrequencyType("MONTHLY");
+    r2.setFrequencyInterval(1);
+    // Different start date so the (tag|startDate) dedup key does not collapse the two rows.
+    r2.setStartDate(LocalDate.of(2024, 4, 15));
+    r2.setDuration("FOREVER");
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+    when(subscriptionRepository.findAllByWalletId(walletId)).thenReturn(List.of());
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    SubscriptionBulkResponse result =
+        subscriptionService.createSubscriptionsBulk(List.of(r1, r2), walletId, userId);
+
+    assertEquals(2, result.getCreated().size());
+    assertEquals(0, result.getUpdated().size());
+    assertEquals(0, result.getAutoCreatedTags().size());
+    verify(subscriptionRepository, times(2)).save(any(Subscription.class));
+  }
+
+  @Test
+  void createSubscriptionsBulk_EmptyList_ReturnsEmptyLists() {
+    SubscriptionBulkResponse result =
+        subscriptionService.createSubscriptionsBulk(List.of(), walletId, userId);
+
+    assertEquals(0, result.getCreated().size());
+    assertEquals(0, result.getUpdated().size());
+    assertEquals(0, result.getAutoCreatedTags().size());
+    verify(subscriptionRepository, never()).save(any());
+  }
+
+  @Test
+  void createSubscriptionsBulk_InvalidRow_ThrowsRowPrefixedException() {
+    SubscriptionRequest valid = SubscriptionRequest.builder().build();
+    valid.setName("Netflix");
+    valid.setAmount(new BigDecimal("15.99"));
+    valid.setType("EXPENSE");
+    valid.setFrequencyType("MONTHLY");
+    valid.setFrequencyInterval(1);
+    valid.setStartDate(LocalDate.of(2024, 3, 15));
+    valid.setDuration("FOREVER");
+
+    SubscriptionRequest invalid = SubscriptionRequest.builder().build();
+    invalid.setName("Spotify");
+    invalid.setAmount(new BigDecimal("-9.99")); // Invalid → rolls back the whole batch
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+    when(subscriptionRepository.findAllByWalletId(walletId)).thenReturn(List.of());
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                subscriptionService.createSubscriptionsBulk(
+                    List.of(valid, invalid), walletId, userId));
+
+    assertTrue(ex.getMessage().startsWith("Row 1:"), ex.getMessage());
+    assertTrue(ex.getMessage().contains("The amount cannot be negative."));
+  }
+
+  @Test
+  void createSubscriptionsBulk_MissingTag_AutoCreatesTag() {
+    SubscriptionRequest r = SubscriptionRequest.builder().build();
+    r.setName("Netflix");
+    r.setAmount(new BigDecimal("15.99"));
+    r.setType("EXPENSE");
+    r.setFrequencyType("MONTHLY");
+    r.setFrequencyInterval(1);
+    r.setStartDate(LocalDate.of(2024, 3, 15));
+    r.setDuration("FOREVER");
+    r.setTag("Streaming");
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+    when(subscriptionRepository.findAllByWalletId(walletId)).thenReturn(List.of());
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    Tag streaming = new Tag();
+    streaming.setName("Streaming");
+    when(tagService.createTagFromImport("Streaming", "tag", "var(--color-app-green)", walletId))
+        .thenReturn(streaming);
+    when(tagMapper.mapToResponse(streaming))
+        .thenReturn(TagResponse.builder().name("Streaming").build());
+
+    SubscriptionBulkResponse result =
+        subscriptionService.createSubscriptionsBulk(List.of(r), walletId, userId);
+
+    assertEquals(1, result.getCreated().size());
+    assertEquals(1, result.getAutoCreatedTags().size());
+    verify(tagService).createTagFromImport("Streaming", "tag", "var(--color-app-green)", walletId);
+  }
+
+  @Test
+  void createSubscriptionsBulk_DuplicateTagAndStartDate_UpdatesExisting() {
+    Tag tag = new Tag();
+    tag.setId(UUID.randomUUID());
+    tag.setName("Rent");
+
+    Subscription existing = new Subscription();
+    existing.setId(UUID.randomUUID());
+    existing.setName("Old Rent");
+    existing.setAmount(new BigDecimal("500.00"));
+    existing.setType(Subscription.Type.EXPENSE);
+    existing.setTag(tag);
+    existing.setStartDate(LocalDate.of(2024, 1, 1));
+    existing.setFrequencyType(Subscription.Frequency.MONTHLY);
+    existing.setFrequencyInterval(1);
+    existing.setDuration(Subscription.Duration.FOREVER);
+    existing.setStatus(Subscription.Status.ACTIVE);
+    existing.setNextExecutionDate(LocalDate.of(2024, 2, 1));
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(tag));
+    when(subscriptionRepository.findAllByWalletId(walletId)).thenReturn(List.of(existing));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    // Same tag + start date as the existing subscription (name differs, but name is NOT part of the
+    // dedup key) → overwrites the existing subscription's mutable fields.
+    SubscriptionRequest row = SubscriptionRequest.builder().build();
+    row.setName("New Rent");
+    row.setAmount(new BigDecimal("650.00"));
+    row.setType("EXPENSE");
+    row.setTag("Rent");
+    row.setStartDate(LocalDate.of(2024, 1, 1));
+    row.setFrequencyType("MONTHLY");
+    row.setFrequencyInterval(1);
+    row.setDuration("FOREVER");
+
+    SubscriptionBulkResponse result =
+        subscriptionService.createSubscriptionsBulk(List.of(row), walletId, userId);
+
+    assertEquals(0, result.getCreated().size());
+    assertEquals(1, result.getUpdated().size());
+    assertEquals(0, result.getAutoCreatedTags().size());
+    assertEquals("New Rent", existing.getName());
+    assertEquals(new BigDecimal("650.00"), existing.getAmount());
   }
 
   // ==================== updateSubscription ====================

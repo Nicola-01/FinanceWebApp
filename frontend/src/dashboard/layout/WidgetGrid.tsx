@@ -21,18 +21,18 @@ import {
 } from "@dnd-kit/sortable";
 import { LayoutGroup } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { TabLayout } from "../../utils/tabLayout";
+import { moveSlotToIndex, type TabLayout } from "../../utils/tabLayout";
 import type { TabLayoutApi } from "./useTabLayout.ts";
 import type { WidgetDef } from "./widgetTypes.ts";
 import { HiddenTray } from "./HiddenTray.tsx";
 import { WidgetSlot } from "./WidgetSlot.tsx";
 import {
-  isSlotId,
   MERGE_PREFIX,
   mergeAwareCollision,
   parseMemberId,
 } from "./mergeAwareCollision.ts";
 import { boxContains, popInsertionIndex, type Box } from "./popPlacement.ts";
+import { slotInsertionIndex } from "./slotPlacement.ts";
 
 interface WidgetGridProps<Ctx> {
   defs: WidgetDef<Ctx>[];
@@ -41,6 +41,15 @@ interface WidgetGridProps<Ctx> {
   api: TabLayoutApi;
   /** Wallet colour — accents merge highlights and tray chips. */
   accentColor: string;
+}
+
+/** Client pointer coords from a drag's activator event (mouse/touch), or null (keyboard). */
+function eventPointer(e: Event): { x: number; y: number } | null {
+  if ("clientX" in e && typeof (e as MouseEvent).clientX === "number") {
+    return { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
+  }
+  const touch = (e as TouchEvent).touches?.[0];
+  return touch ? { x: touch.clientX, y: touch.clientY } : null;
 }
 
 /**
@@ -91,6 +100,27 @@ export function WidgetGrid<Ctx>({
   const popSnapshot = useRef<{ boxes: Box[]; groupIndex: number } | null>(null);
   // Mirror of memberPopIndex, read synchronously on drop (state may lag).
   const memberPopIndexRef = useRef<number | null>(null);
+  // Geometric insertion index for a whole-card (slot) drag: the position, in the
+  // list WITHOUT the dragged card, where it will land. null = no reorder preview
+  // (merge/dead-band, or not a slot drag). Drives the derived render + the drop.
+  const [slotDropIndex, setSlotDropIndex] = useState<number | null>(null);
+  const slotDropIndexRef = useRef<number | null>(null);
+  // Frozen slot geometry for the reorder index (document coords), captured at
+  // drag start with the dragged card's index + span + resting height.
+  const slotSnapshot = useRef<{
+    boxes: Box[];
+    activeIndex: number;
+    activeIsFull: boolean;
+  } | null>(null);
+  // Resting height (px) of the dragged card, for its placeholder — state (not a
+  // ref) so it's read during render without tripping react-hooks/refs.
+  const [slotDragHeight, setSlotDragHeight] = useState<number | undefined>(
+    undefined,
+  );
+  // Document-coords pointer at drag start; + delta gives the live pointer used to
+  // place a whole-card drag. A full card is too tall to key off its own lagging
+  // centre, so we track where the cursor actually points. null on keyboard drags.
+  const dragStartPointer = useRef<{ x: number; y: number } | null>(null);
 
   const activeSlot = activeId
     ? (api.layout.slots.find((s) => s.id === activeId) ?? null)
@@ -108,12 +138,21 @@ export function WidgetGrid<Ctx>({
     ? (defMap.get(activeMemberParsed.widgetId) ?? null)
     : null;
 
-  // Slot drags suspend framer layout (native sortable transforms drive the
-  // reorder preview and keep merge hitboxes truthful); member drags keep framer
-  // layout ON so the grid reflows smoothly around the pop-out placeholder.
+  // A whole-card (slot) drag is active (vs a member-tile drag).
   const slotDragActive = dragActive && activeMemberParsed === null;
 
-  const handleDragStart = ({ active }: DragStartEvent) => {
+  // During a slot drag the grid renders in a DERIVED order — the dragged card
+  // moved to its geometric insertion index — while the dragged card itself
+  // renders as a dashed placeholder (its content rides the DragOverlay). CSS
+  // grid flows the result (a full card always takes a whole row) and framer
+  // `layout` animates the reflow. Nothing here reads the live grid, so the
+  // placeholder can't feed back on its own reflow.
+  const displaySlots =
+    slotDragActive && slotDropIndex !== null && activeId
+      ? moveSlotToIndex(api.layout, activeId, slotDropIndex).slots
+      : api.layout.slots;
+
+  const handleDragStart = ({ active, activatorEvent }: DragStartEvent) => {
     preDragLayout.current = api.layout;
     const id = String(active.id);
     setActiveId(id);
@@ -121,27 +160,47 @@ export function WidgetGrid<Ctx>({
     const origin = parseMemberId(id);
     memberDragOrigin.current = origin;
     memberPopIndexRef.current = null;
+    slotDropIndexRef.current = null;
+    setSlotDropIndex(null);
+    popSnapshot.current = null;
+    slotSnapshot.current = null;
+    const p = eventPointer(activatorEvent);
+    dragStartPointer.current = p
+      ? { x: p.x + window.scrollX, y: p.y + window.scrollY }
+      : null;
 
-    // Freeze the resting slot geometry for a member drag (document coords, so it
-    // survives a mid-drag scroll). The pop-out index reads ONLY this snapshot.
-    if (origin && gridRef.current) {
-      const sx = window.scrollX;
-      const sy = window.scrollY;
-      const boxes: Box[] = Array.from(gridRef.current.children).map((el) => {
-        const rect = el.getBoundingClientRect();
-        return {
-          left: rect.left + sx,
-          top: rect.top + sy,
-          right: rect.right + sx,
-          bottom: rect.bottom + sy,
-        };
-      });
+    // Freeze the resting slot geometry (document coords, so it survives a
+    // mid-drag scroll). Both the member pop-out and the slot reorder read ONLY
+    // this snapshot — never the live grid — so the placeholder can't feed back.
+    if (!gridRef.current) return;
+    const sx = window.scrollX;
+    const sy = window.scrollY;
+    const boxes: Box[] = Array.from(gridRef.current.children).map((el) => {
+      const rect = el.getBoundingClientRect();
+      return {
+        left: rect.left + sx,
+        top: rect.top + sy,
+        right: rect.right + sx,
+        bottom: rect.bottom + sy,
+      };
+    });
+    if (origin) {
       popSnapshot.current = {
         boxes,
         groupIndex: api.layout.slots.findIndex((s) => s.id === origin.groupId),
       };
     } else {
-      popSnapshot.current = null;
+      const activeIndex = api.layout.slots.findIndex((s) => s.id === id);
+      const firstWidget = api.layout.slots[activeIndex]?.widgets[0];
+      const box = boxes[activeIndex];
+      slotSnapshot.current = {
+        boxes,
+        activeIndex,
+        activeIsFull: firstWidget
+          ? defMap.get(firstWidget)?.span === "full"
+          : false,
+      };
+      setSlotDragHeight(box ? box.bottom - box.top : undefined);
     }
   };
 
@@ -153,23 +212,56 @@ export function WidgetGrid<Ctx>({
   // edge, so the index only changes when the pointer really crosses a slot
   // boundary. Computed in onDragMove (fires on movement) and mirrored to a ref
   // so the drop lands on exactly the previewed index.
-  const handleDragMove = ({ active }: DragMoveEvent) => {
-    const origin = memberDragOrigin.current;
-    const snap = popSnapshot.current;
-    if (!origin || !snap) return;
+  const handleDragMove = ({ active, over, delta }: DragMoveEvent) => {
     const r = active.rect.current.translated ?? active.rect.current.initial;
     if (!r) return;
     const x = r.left + r.width / 2 + window.scrollX;
     const y = r.top + r.height / 2 + window.scrollY;
-    const groupBox = snap.boxes[snap.groupIndex];
-    // Inside the group's resting area → keep it in the group (no placeholder).
-    const next =
-      groupBox && boxContains(groupBox, x, y)
-        ? null
-        : popInsertionIndex(snap.boxes, x, y);
-    if (next !== memberPopIndexRef.current) {
-      memberPopIndexRef.current = next;
-      setMemberPopIndex(next);
+
+    const origin = memberDragOrigin.current;
+    if (origin) {
+      const snap = popSnapshot.current;
+      if (!snap) return;
+      const groupBox = snap.boxes[snap.groupIndex];
+      // Inside the group's resting area → keep it in the group (no placeholder).
+      const next =
+        groupBox && boxContains(groupBox, x, y)
+          ? null
+          : popInsertionIndex(snap.boxes, x, y);
+      if (next !== memberPopIndexRef.current) {
+        memberPopIndexRef.current = next;
+        setMemberPopIndex(next);
+      }
+      return;
+    }
+
+    // --- Whole-card (slot) reorder: span-aware index vs the frozen snapshot,
+    // keyed off the POINTER (start + delta) — a full card is too tall to place
+    // by its own lagging centre. Falls back to the card centre for keyboard. ---
+    const slotSnap = slotSnapshot.current;
+    if (!slotSnap) return;
+    const overId = over ? String(over.id) : null;
+    // Merge mode → no reorder placeholder (the card stays, the target
+    // highlights). Dead-band (over == null: inside a valid merge target but
+    // off-centre) → freeze the reflow so the pointer can reach the centre.
+    if (overId?.startsWith(MERGE_PREFIX)) {
+      if (slotDropIndexRef.current !== null) {
+        slotDropIndexRef.current = null;
+        setSlotDropIndex(null);
+      }
+      return;
+    }
+    if (!overId) return;
+    const start = dragStartPointer.current;
+    const px = start ? start.x + delta.x : x;
+    const py = start ? start.y + delta.y : y;
+    const otherBoxes = slotSnap.boxes.filter(
+      (_, i) => i !== slotSnap.activeIndex,
+    );
+    const next = slotInsertionIndex(otherBoxes, px, py, slotSnap.activeIsFull);
+    if (next !== slotDropIndexRef.current) {
+      slotDropIndexRef.current = next;
+      setSlotDropIndex(next);
     }
   };
 
@@ -180,19 +272,18 @@ export function WidgetGrid<Ctx>({
       setMergeTarget(null);
       return;
     }
-    if (!over) {
-      setMergeTarget(null);
-      return;
-    }
-    const overId = String(over.id);
-    if (overId.startsWith(MERGE_PREFIX)) {
+    const overId = over ? String(over.id) : null;
+    if (overId?.startsWith(MERGE_PREFIX)) {
       setMergeTarget(overId.slice(MERGE_PREFIX.length));
+      // Merge mode wins over reorder: drop the placeholder immediately (even if
+      // the pointer is momentarily still), so the two previews never co-exist.
+      if (slotDropIndexRef.current !== null) {
+        slotDropIndexRef.current = null;
+        setSlotDropIndex(null);
+      }
       return;
     }
     setMergeTarget(null);
-    // No live model reorder: dnd-kit's own sortable transforms preview the
-    // reorder (so it animates and merge hitboxes stay truthful), and the move
-    // is committed once on drop in handleDragEnd.
   };
 
   /** Member released inside its own group: reorder onto a sibling, else move to the end. */
@@ -221,6 +312,11 @@ export function WidgetGrid<Ctx>({
     setMemberPopIndex(null);
     memberPopIndexRef.current = null;
     popSnapshot.current = null;
+    setSlotDropIndex(null);
+    slotDropIndexRef.current = null;
+    slotSnapshot.current = null;
+    setSlotDragHeight(undefined);
+    dragStartPointer.current = null;
     preDragLayout.current = null;
     memberDragOrigin.current = null;
   };
@@ -239,14 +335,9 @@ export function WidgetGrid<Ctx>({
       }
     } else if (activeId && mergeTarget) {
       api.merge(activeId, mergeTarget);
-    } else if (
-      activeId &&
-      over &&
-      isSlotId(String(over.id)) &&
-      String(over.id) !== activeId
-    ) {
-      // Slot reorder: commit the move to the drop target's position.
-      api.reorderSlot(activeId, String(over.id));
+    } else if (activeId && slotDropIndexRef.current !== null) {
+      // Slot reorder → commit the previewed geometric index (preview == drop).
+      api.reorderSlotToIndex(activeId, slotDropIndexRef.current);
     } else {
       api.persist();
     }
@@ -278,12 +369,12 @@ export function WidgetGrid<Ctx>({
       onDragCancel={handleDragCancel}
     >
       <SortableContext
-        items={api.layout.slots.map((s) => s.id)}
+        items={displaySlots.map((s) => s.id)}
         strategy={rectSortingStrategy}
       >
         <LayoutGroup>
           <div ref={gridRef} className="grid grid-cols-1 gap-8 xl:grid-cols-2">
-            {api.layout.slots.map((slot, i) => (
+            {displaySlots.map((slot, i) => (
               <Fragment key={slot.id}>
                 {memberPopIndex === i && popPlaceholder}
                 <WidgetSlot
@@ -294,14 +385,14 @@ export function WidgetGrid<Ctx>({
                   accentColor={accentColor}
                   activeSpan={activeSpan}
                   activeId={activeId}
-                  suspendLayout={slotDragActive}
+                  placeholderHeight={slotDragHeight}
                   isMergeTarget={mergeTarget === slot.id}
                   onHide={api.hide}
                   onSetActive={api.setActive}
                 />
               </Fragment>
             ))}
-            {memberPopIndex === api.layout.slots.length && popPlaceholder}
+            {memberPopIndex === displaySlots.length && popPlaceholder}
           </div>
         </LayoutGroup>
       </SortableContext>

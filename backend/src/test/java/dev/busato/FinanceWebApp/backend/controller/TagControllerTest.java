@@ -1,12 +1,14 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import dev.busato.FinanceWebApp.backend.dto.TagBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.TagRequest;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.service.TagService;
@@ -54,6 +56,31 @@ class TagControllerTest extends BaseWebMvcTest {
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Groceries"));
+  }
+
+  @Test
+  void createTagsBulk_ShouldReturn200() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    TagRequest r1 = TagRequest.builder().name("Groceries").build();
+    TagRequest r2 = TagRequest.builder().name("Rent").build();
+
+    when(tagService.createTagsBulk(anyList(), eq(walletId), any(UUID.class)))
+        .thenReturn(
+            TagBulkResponse.builder()
+                .created(List.of(TagResponse.builder().name("Groceries").build()))
+                .updated(List.of(TagResponse.builder().name("Rent").build()))
+                .build());
+
+    mockMvc
+        .perform(
+            post("/api/tags/{walletID}/bulk", walletId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(List.of(r1, r2))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.created[0].name").value("Groceries"))
+        .andExpect(jsonPath("$.updated[0].name").value("Rent"));
+
+    verify(tagService).createTagsBulk(anyList(), eq(walletId), any(UUID.class));
   }
 
   @Test

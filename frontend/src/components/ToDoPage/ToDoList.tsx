@@ -7,10 +7,10 @@ const StatusIcon = ({ status }: { status: ToDoStatus }) => {
     case "FINISHED":
       return <CheckCircle2 className="w-6 h-6 text-app-green" />;
     case "STARTED":
-      return <ArrowRightCircle className="w-6 h-6 theme-text-primary" />;
+      return <ArrowRightCircle className="w-6 h-6 text-app-purple" />;
     case "PLANNED":
     default:
-      return <Circle className="w-6 h-6 theme-text-subtle" />;
+      return <Circle className="w-6 h-6 text-app-muted" />;
   }
 };
 
@@ -24,14 +24,14 @@ const StatusBadge = ({ status }: { status: ToDoStatus }) => {
       );
     case "STARTED":
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-primary-transparent theme-text-primary-light border theme-border-primary text-xs font-semibold">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-purple/10 text-app-purple border border-app-purple/30 text-xs font-semibold">
           Started
         </span>
       );
     case "PLANNED":
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-input theme-text-muted border border-app-border text-xs font-semibold">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-input text-app-muted border border-app-border text-xs font-semibold">
           Planned
         </span>
       );
@@ -51,13 +51,13 @@ const ToDoCard: React.FC<{ item: ToDoItem }> = ({ item }) => {
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <StatusIcon status={item.status} />
-          <h3 className="text-xl font-bold theme-text-default">{item.title}</h3>
+          <h3 className="text-xl font-bold text-app-text">{item.title}</h3>
         </div>
         <StatusBadge status={item.status} />
       </div>
 
       {item.description && (
-        <p className="theme-text-muted text-sm leading-relaxed pl-9">
+        <p className="text-app-muted text-sm leading-relaxed pl-9">
           {item.description}
         </p>
       )}
@@ -68,7 +68,7 @@ const ToDoCard: React.FC<{ item: ToDoItem }> = ({ item }) => {
             {displayedSubtasks?.map((task, idx) => (
               <li
                 key={idx}
-                className="flex items-start gap-2 text-sm theme-text-muted"
+                className="flex items-start gap-2 text-sm text-app-muted"
               >
                 <div className="mt-1 w-1.5 h-1.5 rounded-full bg-white/20 shrink-0" />
                 {task}
@@ -82,7 +82,7 @@ const ToDoCard: React.FC<{ item: ToDoItem }> = ({ item }) => {
                 e.stopPropagation();
                 setIsExpanded(!isExpanded);
               }}
-              className="mt-3 text-xs font-medium theme-text-primary hover:theme-text-primary-light flex items-center gap-1 transition-colors"
+              className="mt-3 text-xs font-medium text-app-purple hover:text-app-pink flex items-center gap-1 transition-colors"
             >
               {isExpanded
                 ? "Show less"
@@ -105,7 +105,7 @@ const ToDoList: React.FC = () => {
       {started.length > 0 && (
         <section>
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full theme-bg-primary animate-pulse"></span>
+            <span className="w-3 h-3 rounded-full bg-app-purple animate-pulse"></span>
             Currently In Progress
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
@@ -118,8 +118,8 @@ const ToDoList: React.FC = () => {
 
       {planned.length > 0 && (
         <section>
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 theme-text-muted">
-            <span className="w-3 h-3 rounded-full theme-bg-neutral"></span>
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-app-muted">
+            <span className="w-3 h-3 rounded-full bg-app-muted"></span>
             Future Roadmap
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
@@ -132,7 +132,7 @@ const ToDoList: React.FC = () => {
 
       {finished.length > 0 && (
         <section>
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 theme-text-muted">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-app-muted">
             <span className="w-3 h-3 rounded-full bg-app-green"></span>
             Recently Shipped
           </h2>

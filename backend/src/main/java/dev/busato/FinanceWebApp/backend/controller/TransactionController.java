@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
+import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -30,6 +31,15 @@ public class TransactionController {
       @PathVariable UUID walletID,
       @AuthenticationPrincipal User user) {
     return ResponseEntity.ok(transactionService.createTransaction(request, walletID, user.getId()));
+  }
+
+  @PostMapping("/{walletID}/bulk")
+  public ResponseEntity<TransactionBulkResponse> createTransactionsBulk(
+      @Valid @RequestBody List<TransactionRequest> requests,
+      @PathVariable UUID walletID,
+      @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(
+        transactionService.createTransactionsBulk(requests, walletID, user.getId()));
   }
 
   @PutMapping("/{walletID}/{transactionID}")

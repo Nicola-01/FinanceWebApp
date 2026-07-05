@@ -97,15 +97,10 @@ export const mergeAwareCollision: CollisionDetection = (args) => {
   );
   if (within.some((c) => mergeTargetIds.has(String(c.id)))) return [];
 
-  // Reorder only among SAME-SPAN slots: a full-span card must never take a
-  // half-span slot's place (it would have to resize) and vice versa. Span rides
-  // on each slot's sortable `data` (see WidgetSlot); when absent (e.g. unit
-  // tests) every slot matches, preserving the plain closest-center reorder.
-  const activeSpan = args.active.data?.current?.span;
   return closestCenter({
     ...args,
-    droppableContainers: args.droppableContainers.filter(
-      (c) => isSlotId(String(c.id)) && c.data?.current?.span === activeSpan,
+    droppableContainers: args.droppableContainers.filter((c) =>
+      isSlotId(String(c.id)),
     ),
   });
 };

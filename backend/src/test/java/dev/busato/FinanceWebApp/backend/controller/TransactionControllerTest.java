@@ -1,12 +1,14 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.service.TransactionService;
@@ -72,6 +74,32 @@ class TransactionControllerTest extends BaseWebMvcTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.title").value("Validation Error"))
         .andExpect(jsonPath("$.detail").value("Invalid input data"));
+  }
+
+  @Test
+  void createTransactionsBulk_ShouldReturn200() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    TransactionRequest r1 = TransactionRequest.builder().name("Lunch").build();
+    TransactionRequest r2 = TransactionRequest.builder().name("Dinner").build();
+
+    when(transactionService.createTransactionsBulk(anyList(), eq(walletId), any(UUID.class)))
+        .thenReturn(
+            TransactionBulkResponse.builder()
+                .created(List.of(TransactionResponse.builder().name("Lunch").build()))
+                .updated(List.of(TransactionResponse.builder().name("Dinner").build()))
+                .autoCreatedTags(List.of())
+                .build());
+
+    mockMvc
+        .perform(
+            post("/api/transactions/{walletID}/bulk", walletId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(List.of(r1, r2))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.created[0].name").value("Lunch"))
+        .andExpect(jsonPath("$.updated[0].name").value("Dinner"));
+
+    verify(transactionService).createTransactionsBulk(anyList(), eq(walletId), any(UUID.class));
   }
 
   @Test

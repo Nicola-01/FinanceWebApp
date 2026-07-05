@@ -33,6 +33,8 @@ public class PatIntegrationTest extends BaseIntegrationTest {
 
   @Autowired private PersonalAccessTokenRepository patRepository;
 
+  @Autowired private PatService patService;
+
   private User testUser;
   private Wallet testWallet;
   private String readOnlyPatPlain;
@@ -99,6 +101,177 @@ public class PatIntegrationTest extends BaseIntegrationTest {
             get("/api/transactions/" + testWallet.getId())
                 .header("Authorization", "Bearer " + readOnlyPatPlain))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void getTransactions_WithPausedPat_Returns401() throws Exception {
+    // Create a paused PAT that otherwise grants READ access to the wallet
+    String pausedPatPlain = "fin_pat_paus_" + UUID.randomUUID();
+    PersonalAccessToken pausedPat = new PersonalAccessToken();
+    pausedPat.setName("Paused Token");
+    pausedPat.setTokenHash(PatService.hashToken(pausedPatPlain));
+    pausedPat.setTokenPrefix("fin_pat_paus");
+    pausedPat.setUser(testUser);
+    pausedPat.setWalletPermissions(
+        "[{\"walletId\":\"" + testWallet.getId() + "\",\"permissions\":[\"READ\"]}]");
+    pausedPat.setPaused(true);
+    patRepository.save(pausedPat);
+
+    mockMvc
+        .perform(
+            get("/api/transactions/" + testWallet.getId())
+                .header("Authorization", "Bearer " + pausedPatPlain))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void bulkDelete_RemovesOnlyCallerOwnedTokens() {
+    // Create a second user who owns a token
+    User user2 = new User();
+    user2.setUsername("patuser2@example.com");
+    user2.setEmail("patuser2@example.com");
+    user2.setPassword("password");
+    user2.setRole(User.Role.USER);
+    user2.setTokenVersion(1);
+    user2 = userRepository.save(user2);
+
+    PersonalAccessToken otherUsersToken = new PersonalAccessToken();
+    otherUsersToken.setName("Other User Token");
+    otherUsersToken.setTokenHash(PatService.hashToken("fin_pat_other_" + UUID.randomUUID()));
+    otherUsersToken.setTokenPrefix("fin_pat_othe");
+    otherUsersToken.setUser(user2);
+    otherUsersToken.setWalletPermissions("[]");
+    otherUsersToken = patRepository.save(otherUsersToken);
+
+    // testUser owns readOnlyPat + readWritePat (from setUp)
+    java.util.List<PersonalAccessToken> testUserTokens =
+        patRepository.findAllByUserId(testUser.getId());
+    java.util.List<UUID> idsToDelete = new java.util.ArrayList<>();
+    for (PersonalAccessToken t : testUserTokens) {
+      idsToDelete.add(t.getId());
+    }
+    // Also ask to delete the other user's token — must be ignored (not owned by testUser)
+    idsToDelete.add(otherUsersToken.getId());
+
+    patService.bulkDeleteTokens(idsToDelete, testUser.getId());
+
+    // testUser's tokens are gone
+    org.junit.jupiter.api.Assertions.assertTrue(
+        patRepository.findAllByUserId(testUser.getId()).isEmpty());
+    // The other user's token survives despite being in the id list
+    org.junit.jupiter.api.Assertions.assertTrue(
+        patRepository.findById(otherUsersToken.getId()).isPresent());
+  }
+
+  @Test
+  void bulkSetPaused_PausesOnlyCallerOwnedTokensAndReturnsThem() {
+    // Create a second user who owns a token
+    User user2 = new User();
+    user2.setUsername("patuser2@example.com");
+    user2.setEmail("patuser2@example.com");
+    user2.setPassword("password");
+    user2.setRole(User.Role.USER);
+    user2.setTokenVersion(1);
+    user2 = userRepository.save(user2);
+
+    PersonalAccessToken otherUsersToken = new PersonalAccessToken();
+    otherUsersToken.setName("Other User Token");
+    otherUsersToken.setTokenHash(PatService.hashToken("fin_pat_other_" + UUID.randomUUID()));
+    otherUsersToken.setTokenPrefix("fin_pat_othe");
+    otherUsersToken.setUser(user2);
+    otherUsersToken.setWalletPermissions("[]");
+    otherUsersToken = patRepository.save(otherUsersToken);
+
+    // testUser owns readOnlyPat + readWritePat (from setUp)
+    java.util.List<PersonalAccessToken> testUserTokens =
+        patRepository.findAllByUserId(testUser.getId());
+    java.util.List<UUID> idsToPause = new java.util.ArrayList<>();
+    for (PersonalAccessToken t : testUserTokens) {
+      idsToPause.add(t.getId());
+    }
+    // Also ask to pause the other user's token — must be ignored (not owned by testUser)
+    idsToPause.add(otherUsersToken.getId());
+
+    java.util.List<dev.busato.FinanceWebApp.backend.dto.PatResponse> updated =
+        patService.bulkSetPaused(idsToPause, testUser.getId(), true);
+
+    // Only the caller-owned tokens are returned (foreign id silently ignored)
+    org.junit.jupiter.api.Assertions.assertEquals(testUserTokens.size(), updated.size());
+    for (dev.busato.FinanceWebApp.backend.dto.PatResponse r : updated) {
+      org.junit.jupiter.api.Assertions.assertTrue(r.isPaused());
+    }
+
+    // testUser's tokens are paused in the DB
+    for (PersonalAccessToken t : testUserTokens) {
+      org.junit.jupiter.api.Assertions.assertTrue(
+          patRepository.findById(t.getId()).orElseThrow().isPaused());
+    }
+    // The other user's token is untouched (not paused)
+    org.junit.jupiter.api.Assertions.assertFalse(
+        patRepository.findById(otherUsersToken.getId()).orElseThrow().isPaused());
+  }
+
+  @Test
+  void bulkSetPaused_Resume_ClearsPausedFlagOnCallerTokens() {
+    java.util.List<PersonalAccessToken> testUserTokens =
+        patRepository.findAllByUserId(testUser.getId());
+    java.util.List<UUID> ids = new java.util.ArrayList<>();
+    for (PersonalAccessToken t : testUserTokens) {
+      ids.add(t.getId());
+    }
+
+    // Pause them all, then resume via bulk
+    patService.bulkSetPaused(ids, testUser.getId(), true);
+    java.util.List<dev.busato.FinanceWebApp.backend.dto.PatResponse> resumed =
+        patService.bulkSetPaused(ids, testUser.getId(), false);
+
+    org.junit.jupiter.api.Assertions.assertEquals(testUserTokens.size(), resumed.size());
+    for (PersonalAccessToken t : testUserTokens) {
+      org.junit.jupiter.api.Assertions.assertFalse(
+          patRepository.findById(t.getId()).orElseThrow().isPaused());
+    }
+  }
+
+  @Test
+  void bulkPause_ViaHttp_Returns200AndPausesTokens() throws Exception {
+    java.util.List<PersonalAccessToken> testUserTokens =
+        patRepository.findAllByUserId(testUser.getId());
+    java.util.List<UUID> ids = new java.util.ArrayList<>();
+    for (PersonalAccessToken t : testUserTokens) {
+      ids.add(t.getId());
+    }
+
+    dev.busato.FinanceWebApp.backend.dto.PatBulkPauseRequest request =
+        new dev.busato.FinanceWebApp.backend.dto.PatBulkPauseRequest();
+    request.setIds(ids);
+    request.setPaused(true);
+
+    mockMvc
+        .perform(
+            post("/api/tokens/bulk-pause")
+                .header("Authorization", "Bearer " + readWritePatPlain)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+
+    for (PersonalAccessToken t : testUserTokens) {
+      org.junit.jupiter.api.Assertions.assertTrue(
+          patRepository.findById(t.getId()).orElseThrow().isPaused());
+    }
+  }
+
+  @Test
+  void setPaused_PauseThenResume_PersistsFlag() {
+    java.util.List<PersonalAccessToken> tokens = patRepository.findAllByUserId(testUser.getId());
+    UUID id = tokens.get(0).getId();
+
+    patService.setPaused(id, testUser.getId(), true);
+    org.junit.jupiter.api.Assertions.assertTrue(
+        patRepository.findById(id).orElseThrow().isPaused());
+
+    patService.setPaused(id, testUser.getId(), false);
+    org.junit.jupiter.api.Assertions.assertFalse(
+        patRepository.findById(id).orElseThrow().isPaused());
   }
 
   @Test

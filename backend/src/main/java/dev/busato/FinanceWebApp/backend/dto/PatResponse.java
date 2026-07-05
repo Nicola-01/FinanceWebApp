@@ -23,4 +23,7 @@ public class PatResponse {
   private LocalDateTime createdAt;
   private LocalDateTime expiresAt;
   private LocalDateTime lastUsedAt;
+
+  /** When true, the token is paused and rejected during API authentication. */
+  private boolean paused;
 }

@@ -7,6 +7,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import dev.busato.FinanceWebApp.backend.dto.PatBulkDeleteRequest;
+import dev.busato.FinanceWebApp.backend.dto.PatBulkPauseRequest;
 import dev.busato.FinanceWebApp.backend.dto.PatCreateRequest;
 import dev.busato.FinanceWebApp.backend.dto.PatCreateResponse;
 import dev.busato.FinanceWebApp.backend.dto.PatResponse;
@@ -110,5 +112,150 @@ class PatControllerTest extends BaseWebMvcTest {
         .andExpect(jsonPath("$.tokenPrefix").value("fin_pat_wxyz"));
 
     verify(patService).updateToken(eq(tokenId), eq(mockUser.getId()), any(PatUpdateRequest.class));
+  }
+
+  @Test
+  void pauseToken_ShouldReturn200WithPausedTrue() throws Exception {
+    UUID tokenId = UUID.randomUUID();
+    PatResponse mockResponse =
+        PatResponse.builder().id(tokenId).name("My Token").paused(true).build();
+
+    when(patService.setPaused(eq(tokenId), eq(mockUser.getId()), eq(true)))
+        .thenReturn(mockResponse);
+
+    mockMvc
+        .perform(post("/api/tokens/{tokenId}/pause", tokenId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.paused").value(true));
+
+    verify(patService).setPaused(eq(tokenId), eq(mockUser.getId()), eq(true));
+  }
+
+  @Test
+  void resumeToken_ShouldReturn200WithPausedFalse() throws Exception {
+    UUID tokenId = UUID.randomUUID();
+    PatResponse mockResponse =
+        PatResponse.builder().id(tokenId).name("My Token").paused(false).build();
+
+    when(patService.setPaused(eq(tokenId), eq(mockUser.getId()), eq(false)))
+        .thenReturn(mockResponse);
+
+    mockMvc
+        .perform(post("/api/tokens/{tokenId}/resume", tokenId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.paused").value(false));
+
+    verify(patService).setPaused(eq(tokenId), eq(mockUser.getId()), eq(false));
+  }
+
+  @Test
+  void bulkDeleteTokens_ShouldReturn204() throws Exception {
+    PatBulkDeleteRequest request = new PatBulkDeleteRequest();
+    List<UUID> ids = List.of(UUID.randomUUID(), UUID.randomUUID());
+    request.setIds(ids);
+
+    mockMvc
+        .perform(
+            post("/api/tokens/bulk-delete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isNoContent());
+
+    verify(patService).bulkDeleteTokens(eq(ids), eq(mockUser.getId()));
+  }
+
+  @Test
+  void bulkDeleteTokens_EmptyIds_ShouldReturn400() throws Exception {
+    PatBulkDeleteRequest request = new PatBulkDeleteRequest();
+    request.setIds(List.of());
+
+    mockMvc
+        .perform(
+            post("/api/tokens/bulk-delete")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void bulkPauseTokens_Pause_ShouldReturn200WithUpdatedResponses() throws Exception {
+    UUID id1 = UUID.randomUUID();
+    UUID id2 = UUID.randomUUID();
+    PatBulkPauseRequest request = new PatBulkPauseRequest();
+    List<UUID> ids = List.of(id1, id2);
+    request.setIds(ids);
+    request.setPaused(true);
+
+    List<PatResponse> mockResponse =
+        List.of(
+            PatResponse.builder().id(id1).name("Token A").paused(true).build(),
+            PatResponse.builder().id(id2).name("Token B").paused(true).build());
+
+    when(patService.bulkSetPaused(eq(ids), eq(mockUser.getId()), eq(true)))
+        .thenReturn(mockResponse);
+
+    mockMvc
+        .perform(
+            post("/api/tokens/bulk-pause")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].paused").value(true))
+        .andExpect(jsonPath("$[1].paused").value(true));
+
+    verify(patService).bulkSetPaused(eq(ids), eq(mockUser.getId()), eq(true));
+  }
+
+  @Test
+  void bulkPauseTokens_Resume_ShouldReturn200WithUpdatedResponses() throws Exception {
+    UUID id1 = UUID.randomUUID();
+    PatBulkPauseRequest request = new PatBulkPauseRequest();
+    List<UUID> ids = List.of(id1);
+    request.setIds(ids);
+    request.setPaused(false);
+
+    List<PatResponse> mockResponse =
+        List.of(PatResponse.builder().id(id1).name("Token A").paused(false).build());
+
+    when(patService.bulkSetPaused(eq(ids), eq(mockUser.getId()), eq(false)))
+        .thenReturn(mockResponse);
+
+    mockMvc
+        .perform(
+            post("/api/tokens/bulk-pause")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].paused").value(false));
+
+    verify(patService).bulkSetPaused(eq(ids), eq(mockUser.getId()), eq(false));
+  }
+
+  @Test
+  void bulkPauseTokens_EmptyIds_ShouldReturn400() throws Exception {
+    PatBulkPauseRequest request = new PatBulkPauseRequest();
+    request.setIds(List.of());
+    request.setPaused(true);
+
+    mockMvc
+        .perform(
+            post("/api/tokens/bulk-pause")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void bulkPauseTokens_MissingPaused_ShouldReturn400() throws Exception {
+    PatBulkPauseRequest request = new PatBulkPauseRequest();
+    request.setIds(List.of(UUID.randomUUID()));
+    // paused left null
+
+    mockMvc
+        .perform(
+            post("/api/tokens/bulk-pause")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
   }
 }

@@ -4,12 +4,12 @@ import Sphere from "../../assets/Sphere";
 const BackgroundBlobs: React.FC = () => {
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-      {/* Cyan Blob */}
+      {/* Violet Blob */}
       <Sphere
         style={{
           height: "500px",
           width: "500px",
-          background: "rgba(8, 145, 178, 0.2)", // cyan-600/20
+          background: "rgba(139, 92, 246, 0.2)", // brand violet (#8b5cf6)
           top: "-10%",
           left: "-10%",
           mixBlendMode: "screen",
@@ -27,12 +27,12 @@ const BackgroundBlobs: React.FC = () => {
         }}
       />
 
-      {/* Purple Blob */}
+      {/* Magenta Blob */}
       <Sphere
         style={{
           height: "600px",
           width: "600px",
-          background: "rgba(147, 51, 234, 0.2)", // purple-600/20
+          background: "rgba(224, 51, 154, 0.2)", // brand magenta (#e0339a)
           top: "20%",
           right: "-10%",
           mixBlendMode: "screen",

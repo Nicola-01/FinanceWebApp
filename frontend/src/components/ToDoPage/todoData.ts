@@ -118,8 +118,40 @@ const rawToDoData: ToDoItemInput[] = [
     subtasks: [
       "MCP Server integration (with OAuth2)",
       "Spending anomaly detection",
-      "Monthly summarized reports via Email/Push",
       "AI-powered insights",
+    ],
+  },
+  {
+    title: "Monthly Summarized",
+    description: "Monthly summarized reports via Email/Push.",
+    status: "PLANNED",
+    subtasks: [
+      "Generate monthly/weekly summarized reports",
+      "Yearly wrap-up report",
+      "Send reports via Email",
+      "Send reports via Push notifications",
+    ],
+  },
+  {
+    title: "Notifications",
+    description: "Notifications system for the application.",
+    status: "PLANNED",
+    subtasks: [
+      "Push notifications",
+      "PWA notifications",
+      "Wallet invitation",
+      "New transactions"
+    ],
+  },
+  {
+    title: "Remainders (Notifications)",
+    description: "",
+    status: "PLANNED",
+    subtasks: [
+      "Daily reminders",
+      "For subscription payments",
+      "subscription without amount, ask the user to insert the amount when due -> e.g. salary is not fixed, so notify to the user to insert it ",
+      "For transaction reminders (save for later (remidner 1h 6h 24h)",
     ],
   },
   {

@@ -274,29 +274,6 @@ describe("WidgetGrid", () => {
       const hits = mergeAwareCollision(args({ x: 540, y: 150 }, false));
       expect(hits[0]?.id).toBe("b");
     });
-
-    it("reorder targets exclude a different-span slot (a full card never targets a half)", () => {
-      const pointer = { x: 540, y: 150 };
-      const spanArgs = {
-        active: {
-          id: "a",
-          data: { current: { span: "full" } },
-        } as unknown as Active,
-        collisionRect: rect(pointer.x - 250, pointer.y - 150, 500, 300),
-        droppableRects: new Map<string, ClientRect>([
-          ["a", SLOT_A],
-          ["b", SLOT_B],
-        ]),
-        droppableContainers: [
-          { id: "a", data: { current: { span: "full" } } },
-          { id: "b", data: { current: { span: "half" } } },
-        ] as unknown as DroppableContainer[],
-        pointerCoordinates: pointer,
-      };
-      // b is half-span while the dragged card is full-span → b is not a target.
-      const hits = mergeAwareCollision(spanArgs);
-      expect(hits.map((c) => c.id)).not.toContain("b");
-    });
   });
 
   it("reset restores the default layout and clears storage", () => {

@@ -2,10 +2,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
-  faCheck,
   faShieldAlt,
   faPen,
   faPlug,
+  faTrash,
+  faPause,
+  faPlay,
+  faHandPointer,
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../../api/axiosConfig";
 import type { Wallet, PatToken, WalletPermState } from "../../utils/types";
@@ -14,6 +17,8 @@ import Button from "../../components/ui/Button";
 import { ModalDialog } from "../../modals/common/ModalDialog";
 import { PatFormView } from "../../modals/pat/PatFormView";
 import { PatShowTokenView } from "../../modals/pat/PatShowTokenView";
+import { ConfirmModal } from "../../modals/common/ConfirmModal";
+import { useDeleteModal } from "../../modals/common/DeleteModalContext";
 import { TokenListItem } from "../../components/pat/TokenListItem";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { getApiErrorDetail } from "../../utils/apiError";
@@ -30,7 +35,7 @@ const isMcpToken = (t: PatToken) =>
 
 const Badge: React.FC<{ mcp: boolean }> = ({ mcp }) =>
   mcp ? (
-    <span className="shrink-0 rounded-full bg-[#a78bfa]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#a78bfa]">
+    <span className="shrink-0 rounded-full bg-app-purple/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-purple">
       MCP
     </span>
   ) : (
@@ -41,12 +46,20 @@ const Badge: React.FC<{ mcp: boolean }> = ({ mcp }) =>
 
 export const TokensSection: React.FC = () => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const deleteModalRef = useDeleteModal();
 
   const [tokens, setTokens] = useState<PatToken[]>([]);
   const [loading, setLoading] = useState(true);
   const [walletsMap, setWalletsMap] = useState<Record<string, Wallet>>({});
   const [filter, setFilter] = useState<FilterKey>("all");
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [pausingId, setPausingId] = useState<string | null>(null);
+
+  // Multi-select for bulk actions (long-press to select).
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkConfirm, setBulkConfirm] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkPausing, setBulkPausing] = useState(false);
 
   // Dialog (create / edit / show-once) state.
   const [view, setView] = useState<DialogView>("create");
@@ -63,7 +76,13 @@ export const TokensSection: React.FC = () => {
     setLoading(true);
     try {
       const res = await api.get("/tokens");
-      setTokens(res.data);
+      const list: PatToken[] = res.data;
+      setTokens(list);
+      // Drop any selected ids that no longer exist.
+      setSelected(
+        (prev) =>
+          new Set([...prev].filter((id) => list.some((t) => t.id === id))),
+      );
     } catch (err: unknown) {
       triggerToast(getApiErrorDetail(err, "Failed to load tokens"), false);
     } finally {
@@ -208,6 +227,77 @@ export const TokensSection: React.FC = () => {
     }
   };
 
+  const handlePauseToggle = async (token: PatToken) => {
+    setPausingId(token.id);
+    const action = token.paused ? "resume" : "pause";
+    try {
+      const res = await api.post(`/tokens/${token.id}/${action}`);
+      const updated: PatToken = res.data;
+      setTokens((prev) => prev.map((t) => (t.id === token.id ? updated : t)));
+      triggerToast(updated.paused ? "Token paused" : "Token resumed", true);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorDetail(err, "Failed to update token"), false);
+    } finally {
+      setPausingId(null);
+    }
+  };
+
+  const toggleSelect = (token: PatToken) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(token.id)) next.delete(token.id);
+      else next.add(token.id);
+      return next;
+    });
+  };
+
+  const selectAllFiltered = () =>
+    setSelected(new Set(filtered.map((t) => t.id)));
+
+  const clearSelection = () => setSelected(new Set());
+
+  const handleBulkDelete = async () => {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    setBulkDeleting(true);
+    try {
+      await api.post("/tokens/bulk-delete", { ids });
+      setTokens((prev) => prev.filter((t) => !selected.has(t.id)));
+      triggerToast(
+        ids.length === 1 ? "Token deleted" : `${ids.length} tokens deleted`,
+        true,
+      );
+      clearSelection();
+      setBulkConfirm(false);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorDetail(err, "Failed to delete tokens"), false);
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
+
+  const handleBulkPause = async (paused: boolean) => {
+    const ids = [...selected];
+    if (!ids.length) return;
+    setBulkPausing(true);
+    try {
+      const res = await api.post("/tokens/bulk-pause", { ids, paused });
+      const map = new Map((res.data as PatToken[]).map((t) => [t.id, t]));
+      setTokens((prev) => prev.map((t) => map.get(t.id) ?? t));
+      // Keep the selection so the user can chain another bulk action.
+      triggerToast(
+        `${ids.length} ${ids.length === 1 ? "token" : "tokens"} ${
+          paused ? "paused" : "resumed"
+        }`,
+        true,
+      );
+    } catch (err: unknown) {
+      triggerToast(getApiErrorDetail(err, "Failed to update tokens"), false);
+    } finally {
+      setBulkPausing(false);
+    }
+  };
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(generatedToken);
@@ -225,6 +315,8 @@ export const TokensSection: React.FC = () => {
   };
 
   // ─── Derived ──────────────────────────────────────────────────────────────
+
+  const selectionMode = selected.size > 0;
 
   const mcpCount = tokens.filter(isMcpToken).length;
   const manualCount = tokens.length - mcpCount;
@@ -245,33 +337,45 @@ export const TokensSection: React.FC = () => {
       </>
     ) : view === "edit" ? (
       <>
-        <FontAwesomeIcon icon={faPen} className="theme-text-warning" /> Edit
+        <FontAwesomeIcon icon={faPen} className="text-app-yellow" /> Edit
         permissions
       </>
     ) : (
       <>
-        <FontAwesomeIcon icon={faShieldAlt} className="theme-text-warning" />{" "}
-        Token created
+        <FontAwesomeIcon icon={faShieldAlt} className="text-app-yellow" /> Token
+        created
       </>
     );
 
-  const dialogRightActions =
-    view === "showToken"
-      ? undefined
-      : [
-          {
-            icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
-            onClick: handleSubmit,
-            hoverColor: "hover:text-app-green",
-            disabled: isSubmitting,
-          },
-        ];
+  const submitDisabled =
+    isSubmitting ||
+    !tokenName.trim() ||
+    walletPerms.filter((w) => w.enabled).length === 0;
+
+  const dialogFooter =
+    view === "create" || view === "edit" ? (
+      <Button
+        variant="primary"
+        fullWidth
+        ripple
+        onClick={handleSubmit}
+        disabled={submitDisabled}
+      >
+        {isSubmitting
+          ? view === "edit"
+            ? "Saving…"
+            : "Generating…"
+          : view === "edit"
+            ? "Save changes"
+            : "Generate token"}
+      </Button>
+    ) : undefined;
 
   return (
     <>
       <Card>
-        {/* Toolbar: filter + create */}
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        {/* Toolbar: filter pills */}
+        <div className="mb-4 flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-1 rounded-[var(--r-input)] border border-app-border bg-app-input p-1">
             {FILTERS.map((f) => (
               <button
@@ -289,16 +393,78 @@ export const TokensSection: React.FC = () => {
               </button>
             ))}
           </div>
-          <Button size="sm" onClick={openCreate}>
-            <FontAwesomeIcon icon={faPlus} />
-            New token
-          </Button>
         </div>
+
+        {/* Bulk action bar — always visible while there are tokens; actions
+            stay disabled until at least one row is long-press-selected. */}
+        {tokens.length > 0 && (
+          <div
+            className={`mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-input)] border px-3 py-2 ${
+              selectionMode
+                ? "border-app-purple/30 bg-app-purple/5"
+                : "border-app-border bg-app-input"
+            }`}
+          >
+            {selectionMode ? (
+              <span className="text-sm font-semibold text-app-text">
+                {selected.size} selected
+              </span>
+            ) : (
+              <span className="flex items-center gap-2 text-sm text-app-muted">
+                <FontAwesomeIcon icon={faHandPointer} className="text-xs" />
+                Hold a token to select
+              </span>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {selectionMode && selected.size < filtered.length && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={selectAllFiltered}
+                >
+                  Select all ({filtered.length})
+                </Button>
+              )}
+              {selectionMode && (
+                <Button variant="secondary" size="sm" onClick={clearSelection}>
+                  Clear
+                </Button>
+              )}
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => handleBulkPause(true)}
+                disabled={!selectionMode || bulkPausing}
+              >
+                <FontAwesomeIcon icon={faPause} />
+                Pause
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => handleBulkPause(false)}
+                disabled={!selectionMode || bulkPausing}
+              >
+                <FontAwesomeIcon icon={faPlay} />
+                Resume
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={() => setBulkConfirm(true)}
+                disabled={!selectionMode}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+                Delete
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* List */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-app-border border-t-[#a78bfa]" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-app-border border-t-app-purple" />
           </div>
         ) : tokens.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -328,10 +494,35 @@ export const TokensSection: React.FC = () => {
                 walletsMap={walletsMap}
                 badge={<Badge mcp={isMcpToken(token)} />}
                 onEdit={openEdit}
-                onDelete={(t) => handleRevoke(t.id)}
+                onDelete={(t) =>
+                  deleteModalRef.current?.deleteObject(
+                    t,
+                    "token",
+                    async () => {
+                      await handleRevoke(t.id);
+                    },
+                    1,
+                  )
+                }
+                onPauseToggle={handlePauseToggle}
                 revokingId={revokingId}
+                pausingId={pausingId}
+                selectionMode={selectionMode}
+                selected={selected.has(token.id)}
+                onLongPressSelect={toggleSelect}
+                onToggleSelect={toggleSelect}
               />
             ))}
+          </div>
+        )}
+
+        {/* Primary create action lives at the bottom, always available. */}
+        {!loading && (
+          <div className="mt-4">
+            <Button variant="primary" fullWidth ripple onClick={openCreate}>
+              <FontAwesomeIcon icon={faPlus} />
+              New token
+            </Button>
           </div>
         )}
       </Card>
@@ -341,7 +532,7 @@ export const TokensSection: React.FC = () => {
         ref={dialogRef}
         className="max-w-[560px]"
         title={dialogTitle}
-        rightActions={dialogRightActions}
+        footer={dialogFooter}
         onCloseClick={handleCloseClick}
         showClose={true}
       >
@@ -354,6 +545,7 @@ export const TokensSection: React.FC = () => {
             setPermission={setPermission}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
+            hideSubmit
           />
         )}
         {view === "showToken" && (
@@ -365,6 +557,22 @@ export const TokensSection: React.FC = () => {
           />
         )}
       </ModalDialog>
+
+      {/* Bulk-delete confirmation */}
+      <ConfirmModal
+        open={bulkConfirm}
+        tone="danger"
+        title={`Delete ${selected.size} ${
+          selected.size === 1 ? "token" : "tokens"
+        }?`}
+        message="Any app or MCP client using these tokens will immediately lose access. This can't be undone."
+        confirmLabel={`Delete ${selected.size} ${
+          selected.size === 1 ? "token" : "tokens"
+        }`}
+        busy={bulkDeleting}
+        onConfirm={handleBulkDelete}
+        onCancel={() => setBulkConfirm(false)}
+      />
     </>
   );
 };

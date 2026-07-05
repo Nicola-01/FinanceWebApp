@@ -76,6 +76,7 @@ mcp = FastMCP(
         "CRITICAL PERMISSIONS INFO: Permissions are strictly PER-WALLET, NOT generic for the entire application. "
         "The token controls which specific wallets are accessible and whether write operations are allowed for each individual wallet. "
         "If the backend returns 403, the token lacks permission for that specific operation on that specific wallet. "
+        "If the backend returns 401 saying the token is paused, the owner has temporarily disabled it — ask the user to resume it in the app under Settings → Tokens & Connections before retrying. "
         "If the user asks what permissions you have, you MUST use the get_wallets tool, look at the 'tokenAccess' field for each wallet, and list the accessible wallets along with their specific permission levels. "
         "You will often see 'userRole' and 'tokenAccess' fields for wallets. "
         "userRole is the role of the user, tokenAccess is the role of the token. "
@@ -170,6 +171,26 @@ async def _backend_request(
         ) from exc
 
     if response.status_code == 401:
+        # Distinguish a deliberately PAUSED token from a genuinely invalid/expired one.
+        # The backend's PAT auth filter returns 401 with body {"error": "API token is paused"}
+        # when the owner has temporarily paused the token in the web app.
+        reason = ""
+        try:
+            payload = response.json()
+            if isinstance(payload, dict):
+                reason = str(payload.get("error") or "")
+        except (json.JSONDecodeError, ValueError):
+            reason = ""
+        if not reason:
+            reason = response.text or ""
+
+        if "paused" in reason.lower():
+            raise RuntimeError(
+                "This access token is currently PAUSED by its owner and cannot be used. "
+                "Resume it in the web app under Settings → Tokens & Connections to restore access. "
+                "(The token was not deleted — pausing is reversible.)"
+            )
+
         raise RuntimeError(
             "Authentication failed (401). The token is invalid or expired. "
             "Ask the user to generate a new token from the app's API Tokens section."

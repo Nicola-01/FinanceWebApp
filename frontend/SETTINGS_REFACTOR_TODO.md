@@ -92,7 +92,7 @@
 - [ ] PAT: campi `source`(MANUAL|OAUTH)/`clientId`/`clientName`/`scope` persistiti al consent + filtro server-side.
 
 ## Rinviato (non in questo piano)
-- [ ] **Inviti** → spostare nell'area **wallets** (con badge "pending"). Da progettare a parte. `InvitationsModal` resta in codebase.
+- [x] **Inviti** → spostati nell'area **wallets** — FATTO 2026-07-05 (brainstorming→spec→plan→build). `dashboard/wallet/{useInvitations.ts,InviteCard.tsx,WalletInvites.tsx}` montati in `WalletsBar` (badge mobile + pannello inline + sezione desktop collassabile; badge giallo ≥1 / grigio 0). Accept diretto, Reject = `DeleteModal` lv0. Vecchio `InvitationsModal` **ritirato**. 16 test verdi, lint pulito. Spec+piano in `docs/superpowers/`. **Non committato** (workflow manuale).
 
 ---
 

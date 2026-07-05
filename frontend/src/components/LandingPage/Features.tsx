@@ -166,7 +166,7 @@ const Features: React.FC = () => {
       {/* Feature A — Wallets & Currencies */}
       <div className="flex flex-col md:flex-row items-center gap-24 md:gap-24">
         <div className="flex-1 space-y-6">
-          <div className="theme-text-brand font-semibold tracking-wide uppercase text-sm">
+          <div className="text-app-pink font-semibold tracking-wide uppercase text-sm">
             Multi-Currency
           </div>
           <h2 className="text-4xl md:text-5xl font-bold leading-tight">
@@ -174,7 +174,7 @@ const Features: React.FC = () => {
             <br />
             Automatic Conversions.
           </h2>
-          <p className="theme-text-muted text-lg leading-relaxed">
+          <p className="text-app-muted text-lg leading-relaxed">
             Create as many wallets as you need — one for daily spending, one for
             travel, one shared with your partner. Each wallet can have its own
             base currency. Exchange rates are fetched automatically from the{" "}
@@ -182,7 +182,7 @@ const Features: React.FC = () => {
               href="https://frankfurter.dev/"
               target="_blank"
               rel="noopener noreferrer"
-              className="theme-text-primary hover:underline"
+              className="text-app-purple hover:underline"
             >
               Frankfurter API
             </a>{" "}
@@ -191,28 +191,20 @@ const Features: React.FC = () => {
           </p>
         </div>
         <div className="flex-1 relative perspective-1000 h-80 w-full flex justify-center items-center">
-          <div className="absolute transform translate-x-4 translate-y-4 rotate-12 bg-gradient-to-br theme-gradient-brand-from-transparent theme-gradient-brand-to-transparent border border-app-border backdrop-blur-md shadow-2xl p-6 rounded-2xl w-64 h-40 transition-transform hover:rotate-6 hover:translate-y-2 duration-500 cursor-default">
+          <div className="absolute transform translate-x-4 translate-y-4 rotate-12 bg-gradient-to-br from-[var(--brand-1)]/10 to-[var(--brand-2)]/10 border border-app-border backdrop-blur-md shadow-2xl p-6 rounded-2xl w-64 h-40 transition-transform hover:rotate-6 hover:translate-y-2 duration-500 cursor-default">
             <div className="flex items-center gap-3 mb-4">
-              <Wallet className="theme-text-brand" />
-              <span className="font-semibold theme-text-muted">
-                Travel Fund
-              </span>
+              <Wallet className="text-app-pink" />
+              <span className="font-semibold text-app-muted">Travel Fund</span>
             </div>
-            <div className="text-2xl font-bold theme-text-default">
-              ¥ 124,500
-            </div>
-            <div className="text-sm theme-text-subtle mt-2">Base: JPY</div>
+            <div className="text-2xl font-bold text-app-text">¥ 124,500</div>
+            <div className="text-sm text-app-muted mt-2">Base: JPY</div>
           </div>
-          <div className="absolute transform -translate-x-4 -rotate-6 bg-gradient-to-br theme-gradient-primary-from-transparent theme-gradient-primary-to-transparent border border-app-border backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(0,255,255,0.2)] p-6 rounded-2xl w-72 h-44 z-10 transition-transform hover:rotate-0 hover:-translate-y-2 duration-500 cursor-default">
+          <div className="absolute transform -translate-x-4 -rotate-6 bg-gradient-to-br from-[var(--brand-1)]/10 to-[var(--brand-2)]/10 border border-app-border backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.35)] p-6 rounded-2xl w-72 h-44 z-10 transition-transform hover:rotate-0 hover:-translate-y-2 duration-500 cursor-default">
             <div className="flex items-center gap-3 mb-4">
-              <Wallet className="theme-text-primary" />
-              <span className="font-semibold theme-text-default">
-                Main Account
-              </span>
+              <Wallet className="text-app-purple" />
+              <span className="font-semibold text-app-text">Main Account</span>
             </div>
-            <div className="text-3xl font-bold theme-text-default">
-              $ 12,450.00
-            </div>
+            <div className="text-3xl font-bold text-app-text">$ 12,450.00</div>
             <div className="text-sm text-app-green mt-2">
               + $ 2,400 this month
             </div>
@@ -225,15 +217,15 @@ const Features: React.FC = () => {
         {/* Left on desktop, below on mobile */}
         <div className="flex-1 w-full order-2 md:order-1">
           <div className="bg-app-input border border-app-border rounded-3xl p-6 backdrop-blur-sm shadow-xl w-full space-y-4">
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 theme-bg-overlay-light p-4 rounded-2xl border border-app-border hover:border-app-border transition-colors">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 bg-app-surface/40 p-4 rounded-2xl border border-app-border hover:border-app-border transition-colors">
               <div className="w-12 h-12 rounded-full bg-app-green/20 flex items-center justify-center shrink-0">
                 <BarChart3 className="text-app-green w-6 h-6" />
               </div>
               <div className="flex-1 min-w-[120px]">
-                <div className="font-semibold theme-text-default text-lg">
+                <div className="font-semibold text-app-text text-lg">
                   Salary
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-primary-transparent theme-text-primary-light border theme-border-primary text-xs mt-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-purple/10 text-app-purple border border-app-purple/30 text-xs mt-1.5">
                   Main Job
                 </div>
               </div>
@@ -241,15 +233,15 @@ const Features: React.FC = () => {
                 +€2,100.00
               </div>
             </div>
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 theme-bg-overlay-light p-4 rounded-2xl border border-app-border hover:border-app-border transition-colors">
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 bg-app-surface/40 p-4 rounded-2xl border border-app-border hover:border-app-border transition-colors">
               <div className="w-12 h-12 rounded-full bg-app-red/20 flex items-center justify-center shrink-0">
                 <Tags className="text-app-red w-6 h-6" />
               </div>
               <div className="flex-1 min-w-[120px]">
-                <div className="font-semibold theme-text-default text-lg">
+                <div className="font-semibold text-app-text text-lg">
                   Groceries
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-bg-warning-transparent theme-text-warning-light border theme-border-warning text-xs mt-1.5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-yellow/10 text-app-yellow border border-app-yellow/30 text-xs mt-1.5">
                   Food & Dining
                 </div>
               </div>
@@ -261,7 +253,7 @@ const Features: React.FC = () => {
         </div>
         {/* Right on desktop, above on mobile */}
         <div className="flex-1 space-y-6 order-1 md:order-2">
-          <div className="theme-text-primary font-semibold tracking-wide uppercase text-sm">
+          <div className="text-app-purple font-semibold tracking-wide uppercase text-sm">
             Deep Analytics
           </div>
           <h2 className="text-4xl md:text-5xl font-bold leading-tight">
@@ -269,7 +261,7 @@ const Features: React.FC = () => {
             <br />
             Rich Visualizations.
           </h2>
-          <p className="theme-text-muted text-lg leading-relaxed">
+          <p className="text-app-muted text-lg leading-relaxed">
             Every transaction is categorized with a full tag hierarchy — parent
             categories with sub-tags, each with its own color and icon.{" "}
             <span className="text-app-green">Income is always green</span>,{" "}
@@ -283,16 +275,16 @@ const Features: React.FC = () => {
       <div className="flex flex-col md:flex-row items-center gap-12 md:gap-24">
         {/* Left: explanation */}
         <div className="flex-1 space-y-6">
-          <div className="theme-text-brand font-semibold tracking-wide uppercase text-sm">
+          <div className="text-app-pink font-semibold tracking-wide uppercase text-sm">
             Category Breakdown
           </div>
           <h2 className="text-4xl md:text-5xl font-bold leading-tight">
             Nested Pie Charts.
           </h2>
-          <p className="theme-text-muted text-lg leading-relaxed">
+          <p className="text-app-muted text-lg leading-relaxed">
             Spending is visualized as an interactive{" "}
-            <strong className="theme-text-default">nested donut chart</strong> —
-            the inner ring groups by parent category, the outer ring breaks into
+            <strong className="text-app-text">nested donut chart</strong> — the
+            inner ring groups by parent category, the outer ring breaks into
             sub-tags. Hover any slice to see the exact amount and percentage.
             It's the fastest way to spot where your money goes.
           </p>
@@ -319,20 +311,19 @@ const Features: React.FC = () => {
         </div>
         {/* Right on desktop, above on mobile */}
         <div className="flex-1 space-y-6 order-1 md:order-2">
-          <div className="theme-text-primary font-semibold tracking-wide uppercase text-sm">
+          <div className="text-app-purple font-semibold tracking-wide uppercase text-sm">
             Cash Flow
           </div>
           <h2 className="text-4xl md:text-5xl font-bold leading-tight">
             Sankey Diagram.
           </h2>
-          <p className="theme-text-muted text-lg leading-relaxed">
-            A full{" "}
-            <strong className="theme-text-default">Sankey diagram</strong> maps
-            every euro from its income source — salary, freelance, investments —
-            through a central node and out to each expense category. The width
-            of each flow is proportional to the amount, so you instantly see the
-            balance between earning and spending. Savings (or deficit) appear as
-            a distinct node at the end.
+          <p className="text-app-muted text-lg leading-relaxed">
+            A full <strong className="text-app-text">Sankey diagram</strong>{" "}
+            maps every euro from its income source — salary, freelance,
+            investments — through a central node and out to each expense
+            category. The width of each flow is proportional to the amount, so
+            you instantly see the balance between earning and spending. Savings
+            (or deficit) appear as a distinct node at the end.
           </p>
         </div>
       </div>
@@ -340,9 +331,9 @@ const Features: React.FC = () => {
       {/* Feature C & D Grid */}
       <div className="grid md:grid-cols-2 gap-8">
         <div className="bg-app-input border border-app-border rounded-3xl p-8 backdrop-blur-sm hover:bg-app-hover transition-all hover:-translate-y-1 duration-300 cursor-default">
-          <Calendar className="theme-text-warning w-10 h-10 mb-6" />
+          <Calendar className="text-app-yellow w-10 h-10 mb-6" />
           <h3 className="text-2xl font-bold mb-3">The Subscription Engine</h3>
-          <p className="theme-text-muted leading-relaxed">
+          <p className="text-app-muted leading-relaxed">
             Go beyond basic "monthly" repeats. I built a cron-based engine that
             supports complex recurrence rules — like "every last working day of
             the month" or "every 2 weeks on Friday." Each subscription renders
@@ -351,24 +342,24 @@ const Features: React.FC = () => {
           </p>
         </div>
         <div className="bg-app-input border border-app-border rounded-3xl p-8 backdrop-blur-sm hover:bg-app-hover transition-all hover:-translate-y-1 duration-300 relative overflow-hidden cursor-default">
-          <Users className="theme-text-brand w-10 h-10 mb-6 relative z-10" />
+          <Users className="text-app-pink w-10 h-10 mb-6 relative z-10" />
           <h3 className="text-2xl font-bold mb-3 relative z-10">
             Wallet Collaboration
           </h3>
-          <p className="theme-text-muted leading-relaxed relative z-10">
+          <p className="text-app-muted leading-relaxed relative z-10">
             Share any wallet with other people. I implemented an invitation
             system where you can assign roles —{" "}
-            <strong className="theme-text-default">Owner</strong>,{" "}
-            <strong className="theme-text-default">Editor</strong>, or{" "}
-            <strong className="theme-text-default">Viewer</strong> — so couples,
+            <strong className="text-app-text">Owner</strong>,{" "}
+            <strong className="text-app-text">Editor</strong>, or{" "}
+            <strong className="text-app-text">Viewer</strong> — so couples,
             roommates, or families can manage shared finances together with the
             right level of control.
           </p>
           {/* Decorative floating avatars */}
           <div className="absolute -bottom-6 -right-6 flex -space-x-4 opacity-40 filter blur-[1px]">
-            <div className="w-16 h-16 rounded-full border-4 border-app-bg theme-bg-primary"></div>
-            <div className="w-16 h-16 rounded-full border-4 border-app-bg theme-bg-brand"></div>
-            <div className="w-16 h-16 rounded-full border-4 border-app-bg theme-bg-brand"></div>
+            <div className="w-16 h-16 rounded-full border-4 border-app-bg bg-app-purple"></div>
+            <div className="w-16 h-16 rounded-full border-4 border-app-bg bg-app-pink"></div>
+            <div className="w-16 h-16 rounded-full border-4 border-app-bg bg-app-pink"></div>
           </div>
         </div>
       </div>

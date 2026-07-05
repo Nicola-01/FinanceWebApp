@@ -33,8 +33,8 @@ describe("ToastHost", () => {
     const toast = getToast("Wallet created");
     expect(toast.className).toContain("opacity-100");
     expect(toast.className).toContain("visible");
-    // Success styling variant.
-    expect(toast.className).toContain("theme-text-success");
+    // Success styling variant (green accent border, no coloured glow).
+    expect(toast.className).toContain("border-app-green/30");
   });
 
   it("uses the error variant when success is false", () => {
@@ -45,8 +45,8 @@ describe("ToastHost", () => {
     });
 
     const toast = getToast("Delete failed");
-    expect(toast.className).toContain("theme-text-danger");
-    expect(toast.className).not.toContain("theme-text-success");
+    expect(toast.className).toContain("border-app-red/30");
+    expect(toast.className).not.toContain("border-app-green/30");
   });
 
   it("auto-dismisses after the timeout elapses", () => {

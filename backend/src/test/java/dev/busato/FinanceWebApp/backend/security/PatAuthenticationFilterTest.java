@@ -132,6 +132,26 @@ class PatAuthenticationFilterTest {
   }
 
   @Test
+  void doFilterInternal_PausedToken_Returns401() throws ServletException, IOException {
+    String token = "fin_pat_paused";
+    when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
+    when(patService.validateToken(token))
+        .thenThrow(new InvalidTokenException("API token is paused"));
+
+    StringWriter stringWriter = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(stringWriter);
+    when(response.getWriter()).thenReturn(printWriter);
+
+    patAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+    verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    verify(filterChain, never()).doFilter(any(), any());
+    assertTrue(stringWriter.toString().contains("API token is paused"));
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  @Test
   void doFilterInternal_EmptyPatToken_Returns401() throws ServletException, IOException {
     // Token con solo prefix, senza valore effettivo
     when(request.getHeader("Authorization")).thenReturn("Bearer fin_pat_");
