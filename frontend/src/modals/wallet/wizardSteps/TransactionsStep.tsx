@@ -1,19 +1,9 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faUpload,
-  faFileCsv,
-  faTrashCan,
-  faTriangleExclamation,
-  faCircleCheck,
-  faReceipt,
-} from "@fortawesome/free-solid-svg-icons";
+import { faTrashCan, faReceipt } from "@fortawesome/free-solid-svg-icons";
 import Button from "../../../components/ui/Button";
+import { CsvUploadField } from "../../../components/ui/CsvUploadField";
 import { WizardStepHeader } from "./WizardStepHeader";
-import {
-  parseAndValidateCsv,
-  type RowError,
-} from "../../../dashboard/settings/csvValidation";
 import type { TransactionRequest } from "../../../dashboard/settings/csvImport";
 
 export interface TransactionsStepProps {
@@ -31,12 +21,10 @@ export interface TransactionsStepProps {
 const PREVIEW_LIMIT = 5;
 
 /**
- * Wizard step (body only — no stepper, no Back/Continue) that stages
- * transactions for a new wallet from a single CSV upload. It reuses the shared
- * client-side parse+validate pass (`parseAndValidateCsv`), so a file that would
- * be rejected by the all-or-nothing bulk endpoint is caught here first: any row
- * error blocks the whole file and is listed inline; a clean file appends its
- * rows to the staged list. Controlled — the wizard owns `value`.
+ * Wizard step (body only) that stages transactions for a new wallet from a CSV
+ * upload — the only entry point. Optional: the wizard lets the user continue
+ * without any. The shared {@link CsvUploadField} handles parse/validate/errors;
+ * this step just appends clean rows and previews the staged list.
  */
 export function TransactionsStep({
   value,
@@ -44,44 +32,6 @@ export function TransactionsStep({
   currency,
   accentColor,
 }: TransactionsStepProps): React.JSX.Element {
-  const inputRef = useRef<HTMLInputElement>(null);
-  // Row-level problems from the last upload; a non-empty list blocks the append.
-  const [errors, setErrors] = useState<RowError[]>([]);
-  // Count from the last successful upload (null = no upload yet / after clear).
-  const [addedCount, setAddedCount] = useState<number | null>(null);
-
-  const openPicker = () => inputRef.current?.click();
-
-  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target;
-    const file = input.files?.[0];
-    // Reset immediately so re-selecting the same file fires `change` again.
-    input.value = "";
-    if (!file) return;
-
-    const { dtos, rowErrors } = parseAndValidateCsv(
-      "transactions",
-      await file.text(),
-    );
-
-    if (rowErrors.length > 0) {
-      // Surface every problem inline; nothing is staged.
-      setErrors(rowErrors);
-      setAddedCount(null);
-      return;
-    }
-
-    setErrors([]);
-    setAddedCount(dtos.length);
-    onChange([...value, ...dtos]);
-  };
-
-  const clearAll = () => {
-    setErrors([]);
-    setAddedCount(null);
-    onChange([]);
-  };
-
   const preview = value.slice(0, PREVIEW_LIMIT);
   const overflow = value.length - preview.length;
 
@@ -90,85 +40,31 @@ export function TransactionsStep({
       <WizardStepHeader
         icon={faReceipt}
         title="Add transactions"
-        subtitle="Import your existing transactions from a CSV file."
+        subtitle="Optional — continue without transactions, or import them from a CSV."
       />
 
-      {/* Upload well — the only entry point (no manual entry). */}
-      <div className="flex flex-col items-center gap-3 rounded-[var(--r-card)] border border-dashed border-app-border bg-app-surface px-6 py-8 text-center">
-        <FontAwesomeIcon icon={faFileCsv} className="text-2xl text-app-muted" />
-        <div>
-          <p className="text-sm font-semibold text-app-text">
-            Import transactions from a CSV
-          </p>
-          <p className="mt-1 text-xs text-app-muted">
-            The file must match the transactions export format.
-          </p>
-        </div>
-        <Button
-          type="button"
-          accentColor={accentColor}
-          ripple
-          onClick={openPicker}
-        >
-          <FontAwesomeIcon icon={faUpload} />
-          Upload CSV
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".csv"
-          className="hidden"
-          aria-label="Transactions CSV file"
-          onChange={handleFile}
-        />
-        {/* Format hint — link-styled text only, no modal. */}
-        <p className="text-[11px] text-app-muted">
-          Columns:{" "}
-          <span className="font-app-mono">
-            Date, Name, Tag, Amount, Type, …
-          </span>{" "}
-          —{" "}
-          <span className="font-semibold text-app-text underline decoration-app-border underline-offset-2">
-            match the export format
-          </span>
-          .
-        </p>
-      </div>
+      <CsvUploadField<TransactionRequest>
+        resource="transactions"
+        title="Import transactions from a CSV"
+        subtitle="You can continue without adding any."
+        columnsHint="Date, Name, Tag, Amount, Type, …"
+        noun="transaction"
+        accentColor={accentColor}
+        onDtos={(dtos) => onChange([...value, ...dtos])}
+      />
 
-      {/* Validation errors from the last upload (blocks the append). */}
-      {errors.length > 0 && (
-        <div className="rounded-[var(--r-input)] border border-app-red/40 bg-app-red/10 p-3">
-          <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-app-red">
-            <FontAwesomeIcon icon={faTriangleExclamation} />
-            This file has {errors.length} problem
-            {errors.length === 1 ? "" : "s"} — nothing was imported.
-          </p>
-          <ul className="custom-scrollbar max-h-40 space-y-1 overflow-y-auto">
-            {errors.map((err, i) => (
-              <li key={`${err.row}-${i}`} className="text-xs text-app-text">
-                Row {err.row}: {err.message}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Success summary from the last upload. */}
-      {addedCount !== null && errors.length === 0 && (
-        <p className="flex items-center gap-2 text-sm text-app-green">
-          <FontAwesomeIcon icon={faCircleCheck} />
-          {addedCount} transaction{addedCount === 1 ? "" : "s"} ready to import.
-        </p>
-      )}
-
-      {/* Staged list: count + a few rows + Clear. */}
       {value.length > 0 && (
         <div className="rounded-[var(--r-input)] border border-app-border bg-app-input">
           <div className="flex items-center justify-between border-b border-app-border px-3 py-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-app-muted">
               {value.length} staged
             </span>
-            <Button variant="ghost" size="sm" type="button" onClick={clearAll}>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={() => onChange([])}
+            >
               <FontAwesomeIcon icon={faTrashCan} />
               Clear
             </Button>

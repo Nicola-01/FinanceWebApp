@@ -89,7 +89,7 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
 
       <div>
         <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-          Wallet Name
+          Wallet Name <span className="text-app-red">*</span>
         </label>
         <Input
           type="text"
@@ -97,6 +97,9 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
           value={value.name}
           onChange={(e) => set({ name: e.target.value })}
         />
+        <p className="ml-1 mt-1 text-[11px] text-app-muted">
+          Required · 3–25 characters
+        </p>
       </div>
 
       <CurrencySelector

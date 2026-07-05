@@ -57,6 +57,14 @@ export function InvitesStep({
     onChange(value.filter((invite) => invite.user !== user));
   };
 
+  const changeRole = (user: string, nextRole: WalletInvite["role"]) => {
+    onChange(
+      value.map((invite) =>
+        invite.user === user ? { ...invite, role: nextRole } : invite,
+      ),
+    );
+  };
+
   return (
     <div className="flex flex-col gap-5 text-left">
       <WizardStepHeader
@@ -119,27 +127,35 @@ export function InvitesStep({
           {value.map((invite) => (
             <li
               key={invite.user}
-              className="flex items-center gap-3 rounded-[var(--r-input)] border border-app-border bg-app-input px-3 py-2.5"
+              className="flex items-center gap-3 rounded-[var(--r-input)] border border-app-border bg-app-input px-3 py-2"
             >
-              <FontAwesomeIcon
-                icon={invite.role === "EDITOR" ? faPen : faEye}
-                className={
-                  invite.role === "EDITOR"
-                    ? "text-app-yellow"
-                    : "text-app-muted"
-                }
-              />
               <span className="min-w-0 flex-1 truncate text-sm text-app-text">
                 {invite.user}
               </span>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-app-muted">
-                {invite.role === "EDITOR" ? "Editor" : "Viewer"}
-              </span>
+              {/* Switch the role of an already-added invite. */}
+              <Selector<WalletInvite["role"]>
+                size="sm"
+                value={invite.role}
+                onChange={(nextRole) => changeRole(invite.user, nextRole)}
+                options={[
+                  {
+                    value: "VIEWER",
+                    label: "Viewer",
+                    icon: <FontAwesomeIcon icon={faEye} />,
+                  },
+                  {
+                    value: "EDITOR",
+                    label: "Editor",
+                    icon: <FontAwesomeIcon icon={faPen} />,
+                    activeColorClass: "text-app-yellow",
+                  },
+                ]}
+              />
               <button
                 type="button"
                 onClick={() => handleRemove(invite.user)}
                 aria-label={`Remove ${invite.user}`}
-                className="flex h-7 w-7 items-center justify-center rounded-[var(--r-sm)] text-app-muted transition-colors hover:bg-app-hover hover:text-app-red"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--r-sm)] text-app-muted transition-colors hover:bg-app-hover hover:text-app-red"
               >
                 <FontAwesomeIcon icon={faXmark} />
               </button>

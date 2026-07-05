@@ -146,6 +146,12 @@ export function parseAndValidateCsv(
   resource: "subscriptions",
   text: string,
 ): ParsedCsv<SubscriptionRequest>;
+// General overload so callers holding a `CsvResource` union (e.g. CsvUploadField)
+// can call it too; literal callers still resolve to the specific overloads above.
+export function parseAndValidateCsv(
+  resource: CsvResource,
+  text: string,
+): ParsedCsv<TransactionRequest | TagRequest | SubscriptionRequest>;
 export function parseAndValidateCsv(
   resource: CsvResource,
   text: string,

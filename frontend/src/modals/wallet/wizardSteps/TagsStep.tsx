@@ -1,9 +1,8 @@
-import { useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUpload, faXmark } from "@fortawesome/free-solid-svg-icons";
-import Button from "../../../components/ui/Button";
+import { faXmark, faTag } from "@fortawesome/free-solid-svg-icons";
 import { Checkbox } from "../../../components/ui/Checkbox";
-import { parseAndValidateCsv } from "../../../dashboard/settings/csvValidation";
+import { CsvUploadField } from "../../../components/ui/CsvUploadField";
+import { WizardStepHeader } from "./WizardStepHeader";
 import type { TagRequest } from "../../../dashboard/settings/csvImport";
 
 export interface TagsStepProps {
@@ -32,11 +31,6 @@ const RECOMMENDED_TAGS: { name: string; colorHex: string }[] = [
 const keyOf = (name: string) => name.trim().toLowerCase();
 
 export function TagsStep({ value, onChange, accentColor }: TagsStepProps) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [rowErrors, setRowErrors] = useState<
-    { row: number; message: string }[]
-  >([]);
-
   const staged = new Set(value.map((t) => keyOf(t.name)));
 
   const toggleRecommended = (name: string, colorHex: string) => {
@@ -48,20 +42,8 @@ export function TagsStep({ value, onChange, accentColor }: TagsStepProps) {
   const removeTag = (name: string) =>
     onChange(value.filter((t) => keyOf(t.name) !== keyOf(name)));
 
-  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    const { dtos, rowErrors: errs } = parseAndValidateCsv(
-      "tags",
-      await file.text(),
-    );
-    if (errs.length) {
-      setRowErrors(errs);
-      return;
-    }
-    setRowErrors([]);
-    // Merge, de-duplicating by name (last wins).
+  // Merge uploaded tags into the staged list, de-duplicating by name (last wins).
+  const mergeDtos = (dtos: TagRequest[]) => {
     const merged = new Map(value.map((t) => [keyOf(t.name), t]));
     dtos.forEach((t) => merged.set(keyOf(t.name), t));
     onChange([...merged.values()]);
@@ -69,6 +51,12 @@ export function TagsStep({ value, onChange, accentColor }: TagsStepProps) {
 
   return (
     <div className="space-y-6 text-left">
+      <WizardStepHeader
+        icon={faTag}
+        title="Tags"
+        subtitle="Optional — sort spending into categories from presets or a CSV."
+      />
+
       <section>
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-app-muted">
           Recommended
@@ -102,36 +90,14 @@ export function TagsStep({ value, onChange, accentColor }: TagsStepProps) {
         </div>
       </section>
 
-      <section>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-app-muted">
-          Or import from CSV
-        </p>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".csv"
-          className="hidden"
-          onChange={onFile}
-        />
-        <Button
-          variant="secondary"
-          accentColor={accentColor}
-          onClick={() => fileRef.current?.click()}
-        >
-          <FontAwesomeIcon icon={faUpload} />
-          Upload tags (.csv)
-        </Button>
-        {rowErrors.length > 0 && (
-          <ul className="mt-3 space-y-1 rounded-[var(--r-input)] border border-app-red/40 bg-app-red/10 p-3 text-sm text-app-red">
-            {rowErrors.slice(0, 6).map((e, i) => (
-              <li key={i}>
-                Row {e.row}: {e.message}
-              </li>
-            ))}
-            {rowErrors.length > 6 && <li>+{rowErrors.length - 6} more</li>}
-          </ul>
-        )}
-      </section>
+      <CsvUploadField<TagRequest>
+        resource="tags"
+        title="Import tags from a CSV"
+        columnsHint="Name, Icon, ColorHex, ParentName"
+        noun="tag"
+        accentColor={accentColor}
+        onDtos={mergeDtos}
+      />
 
       {value.length > 0 && (
         <section>

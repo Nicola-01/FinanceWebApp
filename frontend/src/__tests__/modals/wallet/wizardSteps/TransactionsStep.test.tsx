@@ -65,9 +65,7 @@ describe("TransactionsStep", () => {
     );
 
     // Success summary + staged row surface after the append.
-    expect(
-      await screen.findByText(/1 transaction ready to import/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/1 transaction added/i)).toBeInTheDocument();
     expect(screen.getByText("Salary")).toBeInTheDocument();
     expect(screen.getByText("1 staged")).toBeInTheDocument();
   });
