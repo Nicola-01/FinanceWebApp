@@ -3,7 +3,8 @@ import { ChevronDown } from "lucide-react";
 
 export interface CustomSelectOption {
   value: string;
-  label: string;
+  /** Display content — a plain string or rich node (e.g. an icon + label). */
+  label: React.ReactNode;
 }
 
 export interface CustomSelectProps {

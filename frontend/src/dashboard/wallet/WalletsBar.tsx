@@ -54,9 +54,9 @@ const AddWalletTile: React.FC<{ onClick: () => void; className?: string }> = ({
 }) => (
   <button
     onClick={onClick}
-    className={`cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input/60 transition-all hover:bg-app-input hover:border-app-green/50 shrink-0 text-left ${className}`}
+    className={`cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input/60 transition-all hover:bg-app-input hover:border-[var(--brand-1)]/50 shrink-0 text-left ${className}`}
   >
-    <div className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-app-green transition-colors shrink-0">
+    <div className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-[var(--brand-1)] transition-colors shrink-0">
       <FontAwesomeIcon icon={faPlus} />
     </div>
     <div className="flex flex-col min-w-0">
@@ -79,6 +79,27 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
   const [activeId, setActiveId] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const didInitScroll = useRef(false);
+  // The wallet cards are real <a> links (so mouse users get open-in-new-tab via
+  // middle/right-click). dnd-kit leaves a synthetic `click` behind on drag
+  // release, and that click would navigate — turning a reorder into a page
+  // load. This flag lets us swallow exactly that one trailing click.
+  const suppressNextClick = useRef(false);
+
+  // Kill the trailing click in the capture phase, on `document`, BEFORE it can
+  // reach any wallet-card link (or React's own handlers). It fires wherever the
+  // pointer was released, so a per-card guard can't catch it reliably — this
+  // one is authoritative because it's armed by dnd-kit's own drag lifecycle.
+  useEffect(() => {
+    const onClickCapture = (e: MouseEvent) => {
+      if (suppressNextClick.current) {
+        suppressNextClick.current = false;
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    document.addEventListener("click", onClickCapture, true);
+    return () => document.removeEventListener("click", onClickCapture, true);
+  }, []);
 
   const {
     invites,
@@ -177,11 +198,23 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
+    // A real drag started (activation threshold met) → arm the click swallow.
+    suppressNextClick.current = true;
+  };
+
+  // Disarm as a fallback: the browser fires the trailing `click` synchronously
+  // right after `mouseup` (so onClickCapture consumes the flag first); this
+  // clears it for the no-click case so a later genuine click isn't eaten.
+  const disarmClickSuppress = () => {
+    setTimeout(() => {
+      suppressNextClick.current = false;
+    }, 0);
   };
 
   // --- 2. SALVATAGGIO ORDINE AL TERMINE DEL DRAG ---
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveId(null);
+    disarmClickSuppress();
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -211,7 +244,10 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onDragCancel={() => setActiveId(null)}
+      onDragCancel={() => {
+        setActiveId(null);
+        disarmClickSuppress();
+      }}
     >
       <aside
         className="

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { WalletsBar } from "./wallet/WalletsBar.tsx";
-import { WalletContextBar } from "./wallet/WalletContextBar.tsx";
 import { WalletDashboard } from "./wallet/WalletDashboard.tsx";
 import { DashboardBackground } from "./DashboardBackground.tsx";
 import api from "../api/axiosConfig";
@@ -139,11 +138,6 @@ const UserDashboard: React.FC = () => {
 
       {/* The header takes its fixed slot at the top */}
       <AppHeader page={{ text: "My", accent: "Wallet" }} />
-
-      {/* Constant-height context bar above the wallets bar: shows a hint when no
-          wallet is selected and the wallet's identity header when one is, so the
-          wallets bar and content below never jump between the two states. */}
-      <WalletContextBar wallet={selectedWallet} loading={loading} />
 
       {/* Desktop: clip the overflow spilling out of the flex layout */}
       <div className="flex flex-col xl:flex-row flex-1 xl:overflow-hidden">

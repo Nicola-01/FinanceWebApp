@@ -150,17 +150,8 @@ describe("CreateWalletWizard", () => {
     expect(screen.getByText("3 created")).toBeInTheDocument();
   });
 
-  it("closes an untouched draft immediately, with no discard prompt", () => {
+  it("prompts on close even for an untouched draft, keeping the wizard open", () => {
     open();
-    expect(screen.getByText("Create a new wallet")).toBeInTheDocument();
-    clickShellClose();
-    expect(screen.queryByText("Create a new wallet")).not.toBeInTheDocument();
-    expect(discardDialog()).not.toHaveAttribute("open");
-  });
-
-  it("prompts before discarding a dirty draft and keeps the wizard open", () => {
-    open();
-    fireEvent.click(screen.getByText("set-name")); // dirties the draft
     clickShellClose();
     expect(discardDialog()).toHaveAttribute("open");
     expect(screen.getByText("Discard wallet setup?")).toBeInTheDocument();
@@ -170,7 +161,6 @@ describe("CreateWalletWizard", () => {
 
   it("declining the discard prompt returns to the wizard", () => {
     open();
-    fireEvent.click(screen.getByText("set-name"));
     clickShellClose();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(discardDialog()).not.toHaveAttribute("open");
@@ -179,7 +169,6 @@ describe("CreateWalletWizard", () => {
 
   it("confirming the discard closes the wizard", () => {
     open();
-    fireEvent.click(screen.getByText("set-name"));
     clickShellClose();
     fireEvent.click(screen.getByRole("button", { name: "Discard" }));
     expect(screen.queryByText("Create a new wallet")).not.toBeInTheDocument();

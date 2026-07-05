@@ -29,9 +29,16 @@ export const WalletCardUI = forwardRef<
     // tell a mouse right-click (allow native menu) from a touch long-press
     // (which is the drag-reorder gesture — suppress the menu).
     const lastPointerType = useRef<string>("mouse");
+    // Where the current press started. dnd-kit leaves a trailing `click` on the
+    // anchor after a drag-reorder; if the pointer moved past the drag threshold
+    // between press and click we treat that click as drag debris and swallow it
+    // (otherwise it would navigate and drop the URL query string).
+    const pointerDownPos = useRef<{ x: number; y: number } | null>(null);
+    const DRAG_CLICK_THRESHOLD = 5; // px — matches MouseSensor activation distance
 
     const handlePointerDown = (e: React.PointerEvent<HTMLAnchorElement>) => {
       lastPointerType.current = e.pointerType;
+      pointerDownPos.current = { x: e.clientX, y: e.clientY };
       if (isOverlay) return;
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -74,6 +81,14 @@ export const WalletCardUI = forwardRef<
         return;
       }
       e.preventDefault(); // no full-page reload — navigate within the SPA
+      // Ignore the synthetic click dnd-kit fires at the end of a drag-reorder:
+      // if the pointer travelled past the drag threshold, this was a drag, not
+      // a tap — don't navigate (which would reset the URL / current view).
+      const start = pointerDownPos.current;
+      if (start) {
+        const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+        if (moved > DRAG_CLICK_THRESHOLD) return;
+      }
       onClick?.();
     };
 

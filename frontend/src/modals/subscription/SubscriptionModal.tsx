@@ -407,7 +407,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
               </label>
               <Input
                 type="text"
-                placeholder="Defaults to the category name"
+                placeholder="Name of the subscription (Optional)"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />

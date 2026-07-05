@@ -69,6 +69,15 @@ const NavLinks: React.FC<NavLinksProps> = ({
     onNavigate?.();
   };
 
+  const goHome = () => {
+    if (isAbout) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      navigate("/about");
+    }
+    onNavigate?.();
+  };
+
   const goFeatures = () => {
     if (isAbout) {
       document
@@ -87,7 +96,7 @@ const NavLinks: React.FC<NavLinksProps> = ({
         size="sm"
         className={`${linkClass} ${activeCls(homeActive)}`}
         style={activeStyle(homeActive)}
-        onClick={() => go("/about")}
+        onClick={goHome}
       >
         Home
       </Button>

@@ -87,6 +87,11 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
+          // config.js e generato a runtime dal container: NON va precache-ato
+          // (altrimenti il SW servirebbe il placeholder di build). Serve sia il
+          // pattern root ("config.js") sia "**/config.js": il primo perche
+          // "**/" in minimatch NON matcha un file nella root.
+          globIgnores: ["config.js", "**/config.js"],
           runtimeCaching: [
             {
               // Config runtime (/config.js, generato dal container): rete-first

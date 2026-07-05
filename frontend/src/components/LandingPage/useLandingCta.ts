@@ -32,6 +32,9 @@ export const useLandingCta = (): LandingCta => {
 
   useEffect(() => {
     if (getUserAuth()) setIsLoggedIn(true);
+    // React Router keeps the previous scroll offset across routes; reset it so
+    // a public page always opens at the top (e.g. /ToDo → Home → /about).
+    window.scrollTo(0, 0);
   }, []);
 
   const handleTryDemo = async () => {

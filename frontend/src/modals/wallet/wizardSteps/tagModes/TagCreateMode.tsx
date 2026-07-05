@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { Input } from "../../../components/ui/Input";
-import Button from "../../../components/ui/Button";
+import { Input } from "../../../../components/ui/Input";
+import Button from "../../../../components/ui/Button";
 import {
   CustomSelect,
   type CustomSelectOption,
-} from "../../../components/ui/CustomSelect";
-import { IconPickerButton } from "../../../components/icon/IconPickerButton";
-import type { IconKey } from "../../../utils/icons";
-import type { TagRequest } from "../../../dashboard/settings/csvImport";
+} from "../../../../components/ui/CustomSelect";
+import { IconPickerButton } from "../../../../components/icon/IconPickerButton";
+import { Icon } from "../../../../components/icon/Icon";
+import type { IconKey } from "../../../../utils/icons";
+import type { TagRequest } from "../../../../dashboard/settings/csvImport";
 
 /** Sensible defaults so a tag is valid the moment a name is typed. */
 const DEFAULT_ICON: IconKey = "tag";
@@ -57,8 +58,16 @@ export function TagCreateMode({
   const selectedParent = topLevelNames.has(parentName) ? parentName : "";
 
   const parentOptions: CustomSelectOption[] = [
-    { value: "", label: "No parent (top-level)" },
-    ...topLevel.map((t) => ({ value: t.name, label: t.name })),
+    { value: "", label: "No subcategory (top-level)" },
+    ...topLevel.map((t) => ({
+      value: t.name,
+      label: (
+        <span className="flex items-center gap-2">
+          <Icon icon={t.icon} color={t.colorHex} />
+          {t.name}
+        </span>
+      ),
+    })),
   ];
 
   const trimmedName = name.trim();
@@ -126,7 +135,7 @@ export function TagCreateMode({
       {/* Optional parent */}
       <div className="flex flex-col gap-1.5">
         <span className="text-xs font-semibold uppercase tracking-wider text-app-muted">
-          Parent category
+          Subcategory of
         </span>
         <CustomSelect
           value={selectedParent}

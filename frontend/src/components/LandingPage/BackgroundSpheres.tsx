@@ -26,57 +26,39 @@ interface SphereConfig {
 const SPHERES: SphereConfig[] = [
   {
     rgb: "139, 92, 246", // violet — top-left
-    size: 560,
-    pos: { top: "-6%", left: "-6%" },
+    size: 580,
+    pos: { top: "-8%", left: "-8%" },
     x: [0, 60, -20, 0],
     y: [0, 30, -25, 0],
-    duration: 22,
+    duration: 24,
     delay: 0,
   },
   {
     rgb: "224, 51, 154", // magenta — top-right
     size: 620,
-    pos: { top: "-10%", right: "-6%" },
+    pos: { top: "-10%", right: "-8%" },
     x: [0, -50, 30, 0],
     y: [0, 40, -20, 0],
-    duration: 26,
+    duration: 27,
     delay: 1.5,
   },
   {
-    rgb: "244, 114, 182", // pink — upper-center
-    size: 440,
-    pos: { top: "26%", left: "32%" },
-    x: [0, 40, -45, 0],
+    rgb: "244, 114, 182", // pink — center
+    size: 500,
+    pos: { top: "40%", left: "30%" },
+    x: [0, 45, -40, 0],
     y: [0, -30, 35, 0],
-    duration: 24,
+    duration: 26,
     delay: 0.8,
   },
   {
-    rgb: "96, 165, 250", // blue — center-right
-    size: 480,
-    pos: { top: "42%", right: "6%" },
-    x: [0, -40, 25, 0],
-    y: [0, 35, -30, 0],
+    rgb: "96, 165, 250", // blue — lower-left
+    size: 520,
+    pos: { top: "68%", left: "-4%" },
+    x: [0, 50, -25, 0],
+    y: [0, -35, 25, 0],
     duration: 28,
     delay: 2.2,
-  },
-  {
-    rgb: "139, 92, 246", // violet — lower-left
-    size: 520,
-    pos: { top: "62%", left: "-8%" },
-    x: [0, 55, -25, 0],
-    y: [0, -35, 25, 0],
-    duration: 25,
-    delay: 1,
-  },
-  {
-    rgb: "224, 51, 154", // magenta — lower-center
-    size: 460,
-    pos: { top: "72%", left: "42%" },
-    x: [0, -35, 45, 0],
-    y: [0, 30, -25, 0],
-    duration: 27,
-    delay: 3,
   },
 ];
 

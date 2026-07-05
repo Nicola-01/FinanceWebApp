@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { TagCreateMode } from "../../../../modals/wallet/wizardSteps/TagCreateMode";
-import type { TagRequest } from "../../../../dashboard/settings/csvImport";
+import { TagCreateMode } from "../../../../../modals/wallet/wizardSteps/tagModes/TagCreateMode";
+import type { TagRequest } from "../../../../../dashboard/settings/csvImport";
 
 const nameInput = () =>
   screen.getByLabelText("Category name") as HTMLInputElement;
@@ -51,7 +51,7 @@ describe("TagCreateMode", () => {
 
     await user.type(nameInput(), "Salary");
     // Open the parent dropdown (default label) and pick the top-level "Work".
-    await user.click(screen.getByRole("button", { name: /no parent/i }));
+    await user.click(screen.getByRole("button", { name: /top-level/i }));
     await user.click(screen.getByRole("button", { name: /^work$/i }));
     await user.click(addButton());
 
@@ -76,7 +76,7 @@ describe("TagCreateMode", () => {
     ];
     render(<TagCreateMode value={value} onAdd={vi.fn()} />);
 
-    await user.click(screen.getByRole("button", { name: /no parent/i }));
+    await user.click(screen.getByRole("button", { name: /top-level/i }));
     // "Work" is a valid parent; the sub-tag "Salary" must not be offered.
     expect(screen.getByRole("button", { name: /^work$/i })).toBeInTheDocument();
     expect(
@@ -129,7 +129,7 @@ describe("TagCreateMode", () => {
 
     expect(nameInput()).toHaveValue("");
     // The added tag now becomes a selectable parent for the next one.
-    await user.click(screen.getByRole("button", { name: /no parent/i }));
+    await user.click(screen.getByRole("button", { name: /top-level/i }));
     expect(
       screen.getByRole("button", { name: /^travel$/i }),
     ).toBeInTheDocument();

@@ -4,6 +4,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
   faArrowTurnUp,
   faChevronRight,
+  faMinus,
   faRotateLeft,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -153,7 +154,11 @@ export function StagedTagTree({
                 </div>
               ) : (
                 <div className="flex min-w-0 flex-1 items-center gap-2 p-2">
-                  <span className="h-3 w-3 shrink-0" aria-hidden />
+                  <FontAwesomeIcon
+                    icon={faMinus}
+                    aria-hidden
+                    className="h-3 w-3 shrink-0 text-app-muted/40"
+                  />
                   <span
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--r-input)] bg-app-surface text-lg shadow-sm"
                     style={{ color: g.parent.colorHex }}

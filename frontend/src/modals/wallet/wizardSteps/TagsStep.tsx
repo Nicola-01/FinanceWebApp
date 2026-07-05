@@ -2,21 +2,19 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faChevronLeft,
-  faChevronRight,
   faFileCsv,
   faPlus,
   faTag,
   faWallet,
   faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
-import { CsvUploadField } from "../../../components/ui/CsvUploadField";
-import { Icon } from "../../../components/icon/Icon";
 import { Selector } from "../../../components/ui/Selector";
 import { WizardStepHeader } from "./WizardStepHeader";
 import { StagedTagTree, type StagedTagNode } from "./StagedTagTree";
-import { TagCategoryPicker } from "./TagCategoryPicker";
-import { TagCreateMode } from "./TagCreateMode";
+import { RecommendedTagMode } from "./tagModes/RecommendedTagMode";
+import { WalletTagMode } from "./tagModes/WalletTagMode";
+import { CsvTagMode } from "./tagModes/CsvTagMode";
+import { TagCreateMode } from "./tagModes/TagCreateMode";
 import {
   RECOMMENDED_TAG_GROUPS,
   groupToTagRequests,
@@ -92,19 +90,6 @@ export function TagsStep({
     if (w) return { label: w.name, icon: faWallet };
     if (originOverrides[k] === "csv") return { label: "CSV", icon: faFileCsv };
     return { label: "Custom", icon: faPlus };
-  };
-
-  // How much of a source wallet is staged, for the wallet-card highlight.
-  const walletState = (w: SourceWallet): "none" | "partial" | "full" => {
-    const states = w.groups.map((g) => {
-      if (!stagedKeys.has(keyOf(g.parent.name))) return "none";
-      return g.children.every((c) => stagedKeys.has(keyOf(c.name)))
-        ? "full"
-        : "partial";
-    });
-    if (states.every((s) => s === "none")) return "none";
-    if (states.every((s) => s === "full")) return "full";
-    return "partial";
   };
 
   const removeCategory = (parentName: string) => {
@@ -216,15 +201,13 @@ export function TagsStep({
     origin: originOf(n.name),
   }));
 
-  const sourceWallet =
-    sourceWallets.find((w) => w.id === sourceWalletId) ?? null;
-
   return (
     <div className="space-y-6 text-left">
       <WizardStepHeader
         icon={faTag}
         title="Tags"
         subtitle="Optional — organise spending into categories."
+        note="You can edit or delete any tag anytime from the wallet."
       />
 
       <Selector<TagMode>
@@ -266,125 +249,28 @@ export function TagsStep({
         transition={{ duration: 0.18, ease: "easeOut" }}
       >
         {mode === "recommended" && (
-          <TagCategoryPicker
-            groups={RECOMMENDED_TAG_GROUPS}
+          <RecommendedTagMode stagedKeys={stagedKeys} onToggle={toggleGroup} />
+        )}
+
+        {mode === "wallet" && (
+          <WalletTagMode
+            sourceWallets={sourceWallets}
+            selectedWalletId={sourceWalletId}
+            onSelectWallet={setSourceWalletId}
             stagedKeys={stagedKeys}
             onToggle={toggleGroup}
           />
         )}
 
-        {mode === "wallet" &&
-          (sourceWallet ? (
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => setSourceWalletId(null)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-app-muted transition-colors hover:text-app-text"
-              >
-                <FontAwesomeIcon icon={faChevronLeft} className="text-[10px]" />
-                All wallets
-              </button>
-              <p className="text-xs text-app-muted">
-                Pick categories to copy from{" "}
-                <span className="font-semibold text-app-text">
-                  {sourceWallet.name}
-                </span>
-                .
-              </p>
-              <TagCategoryPicker
-                groups={sourceWallet.groups}
-                stagedKeys={stagedKeys}
-                onToggle={toggleGroup}
-              />
-            </div>
-          ) : sourceWallets.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-[var(--r-card)] border border-dashed border-app-border bg-app-surface px-6 py-10 text-center">
-              <FontAwesomeIcon
-                icon={faWallet}
-                className="text-2xl text-app-muted"
-              />
-              <p className="text-sm text-app-muted">
-                You have no other wallets to copy categories from.
-              </p>
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {sourceWallets.map((w) => {
-                const st = walletState(w);
-                const active = st !== "none";
-                return (
-                  <button
-                    key={w.id}
-                    type="button"
-                    onClick={() => setSourceWalletId(w.id)}
-                    aria-label={`Use tags from ${w.name}`}
-                    aria-pressed={
-                      st === "full" ? true : st === "partial" ? "mixed" : false
-                    }
-                    className={`flex items-center gap-3 rounded-[var(--r-card)] border p-3 text-left transition-colors ${
-                      active
-                        ? st === "partial"
-                          ? "border-dashed"
-                          : ""
-                        : "border-app-border bg-app-surface hover:bg-app-input"
-                    }`}
-                    style={
-                      active
-                        ? {
-                            borderColor: w.color,
-                            backgroundColor: `${w.color}14`,
-                          }
-                        : undefined
-                    }
-                  >
-                    <span
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--r-input)] bg-app-card text-lg shadow-sm"
-                      style={{ color: w.color }}
-                    >
-                      <Icon icon={w.icon} color={w.color} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-bold text-app-text">
-                        {w.name}
-                      </span>
-                      <span className="block text-xs text-app-muted">
-                        {w.groups.length} categor
-                        {w.groups.length === 1 ? "y" : "ies"}
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-
-        {mode === "csv" &&
-          (csvTags.length === 0 ? (
-            <CsvUploadField<TagRequest>
-              resource="tags"
-              title="Import tags from a CSV"
-              columnsHint="Name, Icon, ColorHex, ParentName"
-              noun="tag"
-              accentColor={accentColor}
-              onDtos={handleCsvUpload}
-            />
-          ) : (
-            <div className="space-y-3">
-              <CsvUploadField<TagRequest>
-                resource="tags"
-                title="Import tags from a CSV"
-                noun="tag"
-                accentColor={accentColor}
-                compact
-                onDtos={handleCsvUpload}
-              />
-              <TagCategoryPicker
-                groups={groupTagRequests(csvTags)}
-                stagedKeys={stagedKeys}
-                onToggle={toggleGroup}
-              />
-            </div>
-          ))}
+        {mode === "csv" && (
+          <CsvTagMode
+            csvTags={csvTags}
+            stagedKeys={stagedKeys}
+            accentColor={accentColor}
+            onUpload={handleCsvUpload}
+            onToggle={toggleGroup}
+          />
+        )}
 
         {mode === "create" && (
           <TagCreateMode

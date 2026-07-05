@@ -60,6 +60,11 @@ const Hero: React.FC<HeroProps> = ({ ctaLabel, demoLoading, onPrimaryCta }) => {
       <div className="mt-16 md:mt-24 w-full max-w-4xl relative hidden sm:flex justify-center">
         <div
           className="relative pointer-events-none select-none text-left backdrop-blur-xl bg-app-surface/50 border border-app-border border-b-0 rounded-[var(--r-card)] rounded-b-none shadow-[0_20px_60px_-24px_rgba(0,0,0,0.55)] overflow-hidden flex flex-col md:flex-row p-5 gap-5 items-stretch w-full"
+          style={{
+            WebkitMaskImage:
+              "linear-gradient(to bottom, #000 40%, transparent 100%)",
+            maskImage: "linear-gradient(to bottom, #000 40%, transparent 100%)",
+          }}
           aria-hidden="true"
         >
           {/* Wallet column — real WalletCardUI */}
@@ -85,10 +90,6 @@ const Hero: React.FC<HeroProps> = ({ ctaLabel, demoLoading, onPrimaryCta }) => {
               />
             ))}
           </div>
-
-          {/* Bottom fade — inside the panel, so it's clipped to the exact
-              same box + rounded corners (no oversized overlay on top). */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-app-bg to-transparent" />
         </div>
       </div>
     </header>

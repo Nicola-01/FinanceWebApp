@@ -1,4 +1,6 @@
-import type { RecommendedTagGroup } from "./recommendedTags";
+import api from "../../../api/axiosConfig";
+import { groupTagRequests, type RecommendedTagGroup } from "./recommendedTags";
+import type { TagRequest } from "../../../dashboard/settings/csvImport";
 
 /**
  * One of the user's existing wallets, offered as a tag source in the wizard.
@@ -11,6 +13,35 @@ export interface SourceWallet {
   color: string;
   groups: RecommendedTagGroup[];
 }
+
+/** Shape of one entry from `GET /api/wallets/tag-sources`. */
+interface TagSourceDto {
+  wallet: {
+    id: string;
+    name: string;
+    icon: string;
+    color: string;
+    currency?: string;
+  };
+  tags: TagRequest[];
+}
+
+/**
+ * Fetch every wallet the user can read plus all its tags in ONE request
+ * (`GET /wallets/tag-sources`), and shape them into {@link SourceWallet}s — the
+ * flat tag list of each wallet is grouped into a category tree client-side.
+ * A single round-trip on purpose: a per-wallet fetch would be N requests.
+ */
+export const fetchTagSources = async (): Promise<SourceWallet[]> => {
+  const { data } = await api.get<TagSourceDto[]>("/wallets/tag-sources");
+  return data.map((entry) => ({
+    id: entry.wallet.id,
+    name: entry.wallet.name,
+    icon: entry.wallet.icon,
+    color: entry.wallet.color,
+    groups: groupTagRequests(entry.tags ?? []),
+  }));
+};
 
 /**
  * TEMP mock — the real data will come from a single dedicated endpoint (see

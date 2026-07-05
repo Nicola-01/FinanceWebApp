@@ -19,6 +19,10 @@ import Button from "../../components/ui/Button";
 import { ConfirmModal } from "../common/ConfirmModal";
 import { BasicsStep } from "./wizardSteps/BasicsStep";
 import { TagsStep } from "./wizardSteps/TagsStep";
+import {
+  fetchTagSources,
+  type SourceWallet,
+} from "./wizardSteps/sourceWallets";
 import { SubscriptionsStep } from "./wizardSteps/SubscriptionsStep";
 import { TransactionsStep } from "./wizardSteps/TransactionsStep";
 import { InvitesStep } from "./wizardSteps/InvitesStep";
@@ -52,13 +56,6 @@ const DEFAULT_DRAFT: WalletDraft = {
   transactions: [],
   invites: [],
 };
-
-const isDirty = (d: WalletDraft): boolean =>
-  d.basics.name.trim() !== "" ||
-  d.tags.length > 0 ||
-  d.subscriptions.length > 0 ||
-  d.transactions.length > 0 ||
-  d.invites.length > 0;
 
 const RES_LABEL: Record<ResourceOutcome["resource"], string> = {
   tags: "Tags",
@@ -192,6 +189,8 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
     const [runKey, setRunKey] = useState(0);
     const [draft, setDraft] = useState<WalletDraft>(DEFAULT_DRAFT);
     const [confirmDiscard, setConfirmDiscard] = useState(false);
+    // The user's existing wallets + tags, offered by the "From wallet" tag mode.
+    const [tagSources, setTagSources] = useState<SourceWallet[]>([]);
     const createdWalletId = useRef<string | null>(null);
 
     useImperativeHandle(ref, () => ({
@@ -200,6 +199,11 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
         createdWalletId.current = null;
         setRunKey((k) => k + 1); // remount the Wizard fresh (step 0)
         setOpen(true);
+        // Load tag sources in one request; empty on failure (tab shows empty state).
+        setTagSources([]);
+        void fetchTagSources()
+          .then(setTagSources)
+          .catch(() => setTagSources([]));
       },
     }));
 
@@ -213,13 +217,8 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
         finish(createdWalletId.current);
         return;
       }
-      // Unsaved draft — ask before throwing the setup away. A clean (untouched)
-      // draft closes immediately.
-      if (isDirty(draft)) {
-        setConfirmDiscard(true);
-        return;
-      }
-      setOpen(false);
+      // Always confirm before abandoning the setup, even for an untouched draft.
+      setConfirmDiscard(true);
     };
 
     const discardAndClose = () => {
@@ -254,6 +253,7 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
             value={draft.tags}
             onChange={(tags) => setDraft((d) => ({ ...d, tags }))}
             accentColor={draft.basics.color}
+            sourceWallets={tagSources}
           />
         ),
       },
@@ -288,6 +288,8 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
             onChange={(subscriptions) =>
               setDraft((d) => ({ ...d, subscriptions }))
             }
+            tags={draft.tags}
+            onTagsChange={(tags) => setDraft((d) => ({ ...d, tags }))}
             currency={draft.basics.currency}
             accentColor={draft.basics.color}
           />

@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.controller;
 import dev.busato.FinanceWebApp.backend.dto.WalletDashboardResponse;
 import dev.busato.FinanceWebApp.backend.dto.WalletRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
+import dev.busato.FinanceWebApp.backend.dto.WalletTagsResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.WalletService;
 import jakarta.validation.Valid;
@@ -25,6 +26,12 @@ public class WalletController {
   @GetMapping
   public ResponseEntity<List<WalletResponse>> getMyWallets(@AuthenticationPrincipal User user) {
     return ResponseEntity.ok(walletService.getWallets(user.getId()));
+  }
+
+  @GetMapping("/tag-sources")
+  public ResponseEntity<List<WalletTagsResponse>> getWalletsWithTags(
+      @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(walletService.getWalletsWithTags(user.getId()));
   }
 
   @GetMapping("/{walletID}")

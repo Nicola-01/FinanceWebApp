@@ -123,7 +123,7 @@ export function Wizard<TResult = unknown>({
   const nextDisabled = step.mandatory && !step.isComplete;
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex min-h-0 w-full flex-1 flex-col">
       {/* Stepper — equidistant circles with short end caps:
           [lead·½] (o)─[conn·1]─(o)─[conn·1]─(o) [trail·½]. The line fills with the
           accent up to the current node; past steps show a coloured ring, the
@@ -133,7 +133,7 @@ export function Wizard<TResult = unknown>({
       <div
         role="list"
         aria-label="Progress"
-        className="mb-11 flex items-center pb-7"
+        className="mb-11 flex shrink-0 items-center pb-7 pt-8"
       >
         {steps.map((s, i) => {
           // On the completion phase every node is "done".
@@ -226,8 +226,9 @@ export function Wizard<TResult = unknown>({
       </div>
 
       {/* Content — each step/completion panel slides+fades in the nav direction.
-          Keyed so React remounts on every swap, replaying the enter animation. */}
-      <div className="min-h-0 flex-1">
+          Keyed so React remounts on every swap, replaying the enter animation.
+          This is the only scroll region, so the stepper and footer stay pinned. */}
+      <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-4">
         <motion.div
           key={inSteps ? `step-${current}` : "completion"}
           custom={direction}
@@ -242,9 +243,9 @@ export function Wizard<TResult = unknown>({
         </motion.div>
       </div>
 
-      {/* Footer */}
+      {/* Footer — pinned below the scroll region, always visible. */}
       {inSteps && (
-        <div className="mt-8 flex items-center justify-between gap-3">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-app-border pt-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           {current > 0 ? (
             <Button
               variant="secondary"
