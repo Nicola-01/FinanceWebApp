@@ -32,6 +32,7 @@ import {
 function Wrap({ onChange }: { onChange?: (v: WalletBasicsValue) => void }) {
   const [v, setV] = useState<WalletBasicsValue>({
     name: "",
+    description: "",
     icon: "wallet",
     color: "#8b5cf6",
     currency: "EUR",
@@ -56,6 +57,18 @@ describe("BasicsStep", () => {
     });
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ name: "Travel" }),
+    );
+  });
+
+  it("updates the description", () => {
+    const onChange = vi.fn();
+    render(<Wrap onChange={onChange} />);
+    fireEvent.change(
+      screen.getByPlaceholderText("What is this wallet for? (optional)"),
+      { target: { value: "Shared holiday fund" } },
+    );
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ description: "Shared holiday fund" }),
     );
   });
 

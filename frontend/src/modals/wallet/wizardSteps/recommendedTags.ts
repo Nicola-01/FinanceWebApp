@@ -75,6 +75,47 @@ export const RECOMMENDED_TAG_GROUPS: RecommendedTagGroup[] = [
   },
 ];
 
+const keyOfName = (s: string) => s.trim().toLowerCase();
+
+/**
+ * Inverse of {@link groupToTagRequests}: group a flat tag list into categories
+ * (parent + children), mirroring how the wallet tree nests. Top-level tags (no
+ * `parentName`) become category parents; children attach by `parentName`; a
+ * child whose parent isn't present falls back to its own top-level category.
+ * Used to render imported / CSV tags as the same category cards as the presets.
+ */
+export const groupTagRequests = (tags: TagRequest[]): RecommendedTagGroup[] => {
+  const toTag = (t: TagRequest): RecommendedTag => ({
+    name: t.name,
+    icon: t.icon,
+    colorHex: t.colorHex,
+  });
+  const parents = tags.filter((t) => !t.parentName?.trim());
+  const parentKeys = new Set(parents.map((p) => keyOfName(p.name)));
+  const childrenByParent = new Map<string, TagRequest[]>();
+  const orphans: TagRequest[] = [];
+  tags.forEach((t) => {
+    const pn = t.parentName?.trim();
+    if (!pn) return;
+    if (parentKeys.has(keyOfName(pn))) {
+      const k = keyOfName(pn);
+      childrenByParent.set(k, [...(childrenByParent.get(k) ?? []), t]);
+    } else {
+      orphans.push(t);
+    }
+  });
+  return [
+    ...parents.map((p) => ({
+      parent: toTag(p),
+      children: (childrenByParent.get(keyOfName(p.name)) ?? []).map(toTag),
+    })),
+    ...orphans.map((o) => ({
+      parent: toTag(o),
+      children: [] as RecommendedTag[],
+    })),
+  ];
+};
+
 /**
  * Flatten a group into bulk-import DTOs: the parent first (no `parentName`),
  * then each child carrying `parentName` so the backend nests it correctly.

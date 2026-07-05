@@ -147,7 +147,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
           </span>
         </div>
 
-        {/* Notes (Only if present) */}
+        {/* Description (Only if present) — backed by the notes field. */}
         {sub.notes && (
           <div className="flex flex-col gap-3 p-5">
             <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center">
@@ -155,7 +155,7 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
                 icon={faStickyNote}
                 className="w-5 text-center mr-2"
               />
-              Notes
+              Description
             </span>
             <span className="text-app-muted text-sm bg-app-input p-3 rounded-lg border border-app-border">
               {sub.notes}

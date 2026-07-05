@@ -16,6 +16,7 @@ import {
 } from "../../components/ui/Wizard";
 import { WizardShell } from "../../components/ui/WizardShell";
 import Button from "../../components/ui/Button";
+import { ConfirmModal } from "../common/ConfirmModal";
 import { BasicsStep } from "./wizardSteps/BasicsStep";
 import { TagsStep } from "./wizardSteps/TagsStep";
 import { SubscriptionsStep } from "./wizardSteps/SubscriptionsStep";
@@ -39,7 +40,13 @@ interface Props {
 }
 
 const DEFAULT_DRAFT: WalletDraft = {
-  basics: { name: "", icon: "wallet", color: "#8b5cf6", currency: "EUR" },
+  basics: {
+    name: "",
+    description: "",
+    icon: "wallet",
+    color: "#8b5cf6",
+    currency: "EUR",
+  },
   tags: [],
   subscriptions: [],
   transactions: [],
@@ -184,6 +191,7 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
     const [open, setOpen] = useState(false);
     const [runKey, setRunKey] = useState(0);
     const [draft, setDraft] = useState<WalletDraft>(DEFAULT_DRAFT);
+    const [confirmDiscard, setConfirmDiscard] = useState(false);
     const createdWalletId = useRef<string | null>(null);
 
     useImperativeHandle(ref, () => ({
@@ -205,11 +213,17 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
         finish(createdWalletId.current);
         return;
       }
-      if (
-        isDirty(draft) &&
-        !window.confirm("Discard wallet setup? Your changes won't be saved.")
-      )
+      // Unsaved draft — ask before throwing the setup away. A clean (untouched)
+      // draft closes immediately.
+      if (isDirty(draft)) {
+        setConfirmDiscard(true);
         return;
+      }
+      setOpen(false);
+    };
+
+    const discardAndClose = () => {
+      setConfirmDiscard(false);
       setOpen(false);
     };
 
@@ -244,24 +258,6 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
         ),
       },
       {
-        name: "Subscriptions",
-        icon: faArrowsRotate,
-        mandatory: false,
-        isComplete: draft.subscriptions.length > 0,
-        nextLabel: "Continue",
-        nextLabelIncomplete: "Continue without subscriptions",
-        content: (
-          <SubscriptionsStep
-            value={draft.subscriptions}
-            onChange={(subscriptions) =>
-              setDraft((d) => ({ ...d, subscriptions }))
-            }
-            currency={draft.basics.currency}
-            accentColor={draft.basics.color}
-          />
-        ),
-      },
-      {
         name: "Transactions",
         icon: faReceipt,
         mandatory: false,
@@ -273,6 +269,24 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
             value={draft.transactions}
             onChange={(transactions) =>
               setDraft((d) => ({ ...d, transactions }))
+            }
+            currency={draft.basics.currency}
+            accentColor={draft.basics.color}
+          />
+        ),
+      },
+      {
+        name: "Subscriptions",
+        icon: faArrowsRotate,
+        mandatory: false,
+        isComplete: draft.subscriptions.length > 0,
+        nextLabel: "Continue",
+        nextLabelIncomplete: "Continue without subscriptions",
+        content: (
+          <SubscriptionsStep
+            value={draft.subscriptions}
+            onChange={(subscriptions) =>
+              setDraft((d) => ({ ...d, subscriptions }))
             }
             currency={draft.basics.currency}
             accentColor={draft.basics.color}
@@ -303,32 +317,45 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
     };
 
     return (
-      <WizardShell
-        open={open}
-        title={
-          <span className="flex items-center gap-2">
-            <FontAwesomeIcon icon={faWallet} className="text-app-green" />
-            Create a new wallet
-          </span>
-        }
-        subtitle="Set up your wallet — add as much or as little as you like."
-        onClose={handleClose}
-      >
-        <Wizard<WalletCreationResult>
-          key={runKey}
-          steps={steps}
-          onComplete={onComplete}
-          onCancel={handleClose}
-          accentColor={draft.basics.color}
-          renderCompletion={(s) => (
-            <WalletCompletionScreen
-              state={s}
-              accentColor={draft.basics.color}
-              onFinish={finish}
-            />
-          )}
+      <>
+        <WizardShell
+          open={open}
+          title={
+            <span className="flex items-center gap-2">
+              <FontAwesomeIcon icon={faWallet} className="text-app-green" />
+              Create a new wallet
+            </span>
+          }
+          subtitle="Set up your wallet — add as much or as little as you like."
+          onClose={handleClose}
+        >
+          <Wizard<WalletCreationResult>
+            key={runKey}
+            steps={steps}
+            onComplete={onComplete}
+            accentColor={draft.basics.color}
+            renderCompletion={(s) => (
+              <WalletCompletionScreen
+                state={s}
+                accentColor={draft.basics.color}
+                onFinish={finish}
+              />
+            )}
+          />
+        </WizardShell>
+
+        {/* Discard-confirm for the X / Esc close while the draft is dirty.
+            Native <dialog> top layer — paints above the full-screen shell. */}
+        <ConfirmModal
+          open={confirmDiscard}
+          tone="warning"
+          title="Discard wallet setup?"
+          message="Your changes won't be saved."
+          confirmLabel="Discard"
+          onConfirm={discardAndClose}
+          onCancel={() => setConfirmDiscard(false)}
         />
-      </WizardShell>
+      </>
     );
   },
 );

@@ -97,8 +97,8 @@ export const WalletCardUI = forwardRef<
         {...props}
         onPointerDown={handlePointerDown}
         className={`
-                group relative overflow-hidden flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md shrink-0 
-                
+                group relative overflow-hidden flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md shrink-0
+
                 /* Fixed mobile width; fills the sidebar column on desktop */
                 w-[260px] xl:w-full
                 

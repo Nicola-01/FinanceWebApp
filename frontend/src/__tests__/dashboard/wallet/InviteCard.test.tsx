@@ -22,29 +22,18 @@ const invite: Invitation = {
 
 describe("InviteCard", () => {
   it("shows wallet name, owner and role", () => {
-    render(
-      <InviteCard invite={invite} onAccept={vi.fn()} onReject={vi.fn()} />,
-    );
+    render(<InviteCard invite={invite} onOpen={vi.fn()} />);
     expect(screen.getByText("Shared Budget")).toBeInTheDocument();
     expect(screen.getByText("Alice")).toBeInTheDocument();
     expect(screen.getByText("EDITOR")).toBeInTheDocument();
   });
 
-  it("calls onAccept with the wallet id", async () => {
-    const onAccept = vi.fn();
-    render(
-      <InviteCard invite={invite} onAccept={onAccept} onReject={vi.fn()} />,
+  it("calls onOpen with the invite when the card is clicked", async () => {
+    const onOpen = vi.fn();
+    render(<InviteCard invite={invite} onOpen={onOpen} />);
+    await userEvent.click(
+      screen.getByRole("button", { name: /respond to invitation/i }),
     );
-    await userEvent.click(screen.getByRole("button", { name: /accept/i }));
-    expect(onAccept).toHaveBeenCalledWith("w1");
-  });
-
-  it("calls onReject with the invite", async () => {
-    const onReject = vi.fn();
-    render(
-      <InviteCard invite={invite} onAccept={vi.fn()} onReject={onReject} />,
-    );
-    await userEvent.click(screen.getByRole("button", { name: /reject/i }));
-    expect(onReject).toHaveBeenCalledWith(invite);
+    expect(onOpen).toHaveBeenCalledWith(invite);
   });
 });

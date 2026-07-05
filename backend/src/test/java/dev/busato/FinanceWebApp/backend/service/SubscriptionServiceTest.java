@@ -220,6 +220,80 @@ class SubscriptionServiceTest {
     assertEquals(LocalDate.of(2024, 3, 15), sub.getNextExecutionDate());
   }
 
+  @Test
+  void processDueSubscriptions_GeneratedTransaction_UsesTagNameAndOmitsSubscriptionNameAndNotes() {
+    Tag tag = new Tag();
+    tag.setId(UUID.randomUUID());
+    tag.setName("Streaming");
+
+    Subscription sub = new Subscription();
+    sub.setId(UUID.randomUUID());
+    sub.setName("My Netflix Plan");
+    sub.setNotes("Secret personal note");
+    sub.setTag(tag);
+    sub.setAmount(new BigDecimal("10.00"));
+    sub.setType(Subscription.Type.EXPENSE);
+    sub.setStatus(Subscription.Status.ACTIVE);
+    sub.setFrequencyType(Subscription.Frequency.MONTHLY);
+    sub.setFrequencyInterval(1);
+    sub.setStartDate(LocalDate.of(2024, 1, 15));
+    sub.setNextExecutionDate(LocalDate.of(2024, 2, 15));
+    sub.setDuration(Subscription.Duration.FOREVER);
+
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(
+            anyList(), eq(LocalDate.of(2024, 2, 15))))
+        .thenReturn(List.of(sub));
+
+    subscriptionService.processDueSubscriptions();
+
+    ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(txCaptor.capture());
+    Transaction tx = txCaptor.getValue();
+
+    // Name is the tag name, not the subscription name
+    assertEquals("Streaming", tx.getName());
+    // Recurrence marker uses the tag name and never leaks the subscription's custom name/notes
+    assertTrue(tx.getNotes().contains("Streaming"));
+    assertTrue(tx.getNotes().startsWith("Recurring: Streaming"));
+    assertTrue(!tx.getNotes().contains("My Netflix Plan"));
+    assertTrue(!tx.getNotes().contains("Secret personal note"));
+  }
+
+  @Test
+  void processDueSubscriptions_GeneratedTransaction_TagNull_FallsBackToSubscriptionName() {
+    Subscription sub = new Subscription();
+    sub.setId(UUID.randomUUID());
+    sub.setName("Untagged Sub");
+    sub.setNotes("Private note");
+    sub.setTag(null);
+    sub.setAmount(new BigDecimal("10.00"));
+    sub.setType(Subscription.Type.EXPENSE);
+    sub.setStatus(Subscription.Status.ACTIVE);
+    sub.setFrequencyType(Subscription.Frequency.MONTHLY);
+    sub.setFrequencyInterval(1);
+    sub.setStartDate(LocalDate.of(2024, 1, 15));
+    sub.setNextExecutionDate(LocalDate.of(2024, 2, 15));
+    // Use TIMES duration to also cover that branch of the notes format
+    sub.setDuration(Subscription.Duration.TIMES);
+    sub.setDurationTimes(3);
+
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(
+            anyList(), eq(LocalDate.of(2024, 2, 15))))
+        .thenReturn(List.of(sub));
+
+    subscriptionService.processDueSubscriptions();
+
+    ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(txCaptor.capture());
+    Transaction tx = txCaptor.getValue();
+
+    // With no tag, name falls back to the subscription name
+    assertEquals("Untagged Sub", tx.getName());
+    assertEquals("Recurring: Untagged Sub (1 / 3)", tx.getNotes());
+    // The subscription's free-text notes must never be appended
+    assertTrue(!tx.getNotes().contains("Private note"));
+  }
+
   private Subscription foreignSub(Wallet w) {
     Subscription sub = new Subscription();
     sub.setId(UUID.randomUUID());

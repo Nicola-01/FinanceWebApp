@@ -70,7 +70,8 @@ export function InvitesStep({
       <WizardStepHeader
         icon={faUserPlus}
         title="Invite people"
-        subtitle="Share this wallet as a viewer or editor — you can add more later."
+        subtitle="Share this wallet as a viewer or editor."
+        note="You can invite more people or change their access anytime from the wallet."
       />
 
       {/* Identifier + role + add */}

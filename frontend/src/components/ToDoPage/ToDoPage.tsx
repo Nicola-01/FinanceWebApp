@@ -1,25 +1,19 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getUserAuth } from "../../utils/authHelper";
+import React from "react";
 
 import BackgroundBlobs from "../LandingPage/BackgroundBlobs";
 import Navbar from "../LandingPage/Navbar";
 import Footer from "../LandingPage/Footer";
+import { useLandingCta } from "../LandingPage/useLandingCta";
 import ToDoList from "./ToDoList";
 
 const ToDoPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [isLoggedIn] = useState(() => !!getUserAuth());
+  const { navCtaLabel, onPrimaryCta } = useLandingCta();
 
   return (
     <div className="bg-app-bg min-h-screen text-app-text font-sans overflow-x-hidden selection:bg-app-purple/30">
       <BackgroundBlobs />
 
-      <Navbar
-        isLoggedIn={isLoggedIn}
-        onDashboardClick={() => navigate("/dashboard")}
-        onLoginClick={() => navigate("/login")}
-      />
+      <Navbar ctaLabel={navCtaLabel} onPrimaryCta={onPrimaryCta} />
 
       <div className="relative pt-32 pb-10 px-4 max-w-7xl mx-auto flex flex-col items-center text-center z-10">
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 max-w-6xl">

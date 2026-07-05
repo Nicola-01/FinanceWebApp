@@ -25,6 +25,8 @@ export interface CsvUploadFieldProps<T> {
   /** Singular noun for the success line ("{n} {noun}s added."). */
   noun?: string;
   accentColor?: string;
+  /** Compact variant: a small "Upload CSV" button in a corner (no big dropzone). */
+  compact?: boolean;
   /** Called with the parsed rows when a file validates cleanly. */
   onDtos: (dtos: T[]) => void;
 }
@@ -42,6 +44,7 @@ export function CsvUploadField<T>({
   columnsHint,
   noun = "row",
   accentColor,
+  compact = false,
   onDtos,
 }: CsvUploadFieldProps<T>) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -85,65 +88,93 @@ export function CsvUploadField<T>({
 
   return (
     <div className="flex flex-col gap-3">
-      <div
-        data-testid="csv-dropzone"
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={onDrop}
-        className={`relative flex flex-col items-center gap-3 rounded-[var(--r-card)] border border-dashed px-6 py-8 text-center transition-colors ${
-          dragging
-            ? "border-app-blue bg-app-hover"
-            : "border-app-border bg-app-surface"
-        }`}
-      >
-        <button
-          type="button"
-          onClick={() => setFormatOpen(true)}
-          aria-label="CSV format help"
-          title="CSV format"
-          className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
-        >
-          <FontAwesomeIcon icon={faCircleInfo} />
-        </button>
-
-        <FontAwesomeIcon icon={faFileCsv} className="text-2xl text-app-muted" />
-        <div>
-          <p className="text-sm font-semibold text-app-text">{title}</p>
-          {subtitle && (
-            <p className="mt-1 text-xs text-app-muted">{subtitle}</p>
-          )}
-          <p className="mt-1 text-xs text-app-muted">
-            Drag &amp; drop a <span className="font-app-mono">.csv</span> here,
-            or
-          </p>
+      {compact ? (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setFormatOpen(true)}
+            aria-label="CSV format help"
+            title="CSV format"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+          >
+            <FontAwesomeIcon icon={faCircleInfo} />
+          </button>
+          <Button
+            type="button"
+            variant="secondary"
+            accentColor={accentColor}
+            ripple
+            onClick={() => inputRef.current?.click()}
+          >
+            <FontAwesomeIcon icon={faUpload} />
+            Upload CSV
+          </Button>
         </div>
-        <Button
-          type="button"
-          accentColor={accentColor}
-          ripple
-          onClick={() => inputRef.current?.click()}
+      ) : (
+        <div
+          data-testid="csv-dropzone"
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={onDrop}
+          className={`relative flex flex-col items-center gap-3 rounded-[var(--r-card)] border border-dashed px-6 py-8 text-center transition-colors ${
+            dragging
+              ? "border-app-blue bg-app-hover"
+              : "border-app-border bg-app-surface"
+          }`}
         >
-          <FontAwesomeIcon icon={faUpload} />
-          Choose file
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".csv"
-          className="hidden"
-          aria-label={`${resource} CSV file`}
-          onChange={onInput}
-        />
-        {columnsHint && (
-          <p className="text-[11px] text-app-muted">
-            Columns: <span className="font-app-mono">{columnsHint}</span> — tap{" "}
-            <FontAwesomeIcon icon={faCircleInfo} /> for the full format.
-          </p>
-        )}
-      </div>
+          <button
+            type="button"
+            onClick={() => setFormatOpen(true)}
+            aria-label="CSV format help"
+            title="CSV format"
+            className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+          >
+            <FontAwesomeIcon icon={faCircleInfo} />
+          </button>
+
+          <FontAwesomeIcon
+            icon={faFileCsv}
+            className="text-2xl text-app-muted"
+          />
+          <div>
+            <p className="text-sm font-semibold text-app-text">{title}</p>
+            {subtitle && (
+              <p className="mt-1 text-xs text-app-muted">{subtitle}</p>
+            )}
+            <p className="mt-1 text-xs text-app-muted">
+              Drag &amp; drop a <span className="font-app-mono">.csv</span>{" "}
+              here, or
+            </p>
+          </div>
+          <Button
+            type="button"
+            accentColor={accentColor}
+            ripple
+            onClick={() => inputRef.current?.click()}
+          >
+            <FontAwesomeIcon icon={faUpload} />
+            Choose file
+          </Button>
+          {columnsHint && (
+            <p className="text-[11px] text-app-muted">
+              Columns: <span className="font-app-mono">{columnsHint}</span> —
+              tap <FontAwesomeIcon icon={faCircleInfo} /> for the full format.
+            </p>
+          )}
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".csv"
+        className="hidden"
+        aria-label={`${resource} CSV file`}
+        onChange={onInput}
+      />
 
       {errors.length > 0 && (
         <div className="rounded-[var(--r-input)] border border-app-red/40 bg-app-red/10 p-3">

@@ -7,20 +7,15 @@ import { InviteCard } from "./InviteCard";
 
 interface ListProps {
   invites: Invitation[];
-  onAccept: (walletId: string) => void;
-  onReject: (invite: Invitation) => void;
+  /** Open the respond-to-invitation modal for a given invite. */
+  onOpen: (invite: Invitation) => void;
 }
 
-const InvitesList: React.FC<ListProps> = ({ invites, onAccept, onReject }) =>
+const InvitesList: React.FC<ListProps> = ({ invites, onOpen }) =>
   invites.length > 0 ? (
     <>
       {invites.map((inv) => (
-        <InviteCard
-          key={inv.wallet.id}
-          invite={inv}
-          onAccept={onAccept}
-          onReject={onReject}
-        />
+        <InviteCard key={inv.wallet.id} invite={inv} onOpen={onOpen} />
       ))}
     </>
   ) : (
@@ -70,7 +65,7 @@ export const InvitesBadge: React.FC<{
 //    vertical divider separating the invites zone from the wallets. ────────────
 export const InvitesMobileInline: React.FC<
   ListProps & { count: number; open: boolean; onToggle: () => void }
-> = ({ count, open, onToggle, invites, onAccept, onReject }) => (
+> = ({ count, open, onToggle, invites, onOpen }) => (
   <div className="flex shrink-0 flex-row items-center gap-4 xl:hidden">
     <InvitesBadge count={count} open={open} onToggle={onToggle} />
     <AnimatePresence initial={false}>
@@ -84,7 +79,7 @@ export const InvitesMobileInline: React.FC<
             transition={{ duration: 0.25, ease: "easeOut" }}
             className="shrink-0 overflow-hidden"
           >
-            <InviteCard invite={inv} onAccept={onAccept} onReject={onReject} />
+            <InviteCard invite={inv} onOpen={onOpen} />
           </motion.div>
         ))}
     </AnimatePresence>
@@ -95,8 +90,7 @@ export const InvitesMobileInline: React.FC<
 // ── Desktop: collapsible section above "Add New Wallet" ───────────────────────
 export const InvitesDesktopSection: React.FC<ListProps> = ({
   invites,
-  onAccept,
-  onReject,
+  onOpen,
 }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -111,11 +105,7 @@ export const InvitesDesktopSection: React.FC<ListProps> = ({
             className="overflow-hidden"
           >
             <div className="mb-2 flex flex-col gap-3">
-              <InvitesList
-                invites={invites}
-                onAccept={onAccept}
-                onReject={onReject}
-              />
+              <InvitesList invites={invites} onOpen={onOpen} />
             </div>
           </motion.div>
         )}

@@ -131,4 +131,48 @@ describe("CategoryManagerDrawer", () => {
     render(<CategoryManagerDrawer open={false} onClose={() => {}} />);
     expect(screen.queryByText("Food")).not.toBeInTheDocument();
   });
+
+  it("reflects a colour change when only colorHex changes (same name/parent)", () => {
+    // Regression: the drawer keeps a local tree derived from tags. When a tag
+    // is recoloured, name/parent are unchanged, so the resync key must still
+    // change — otherwise the row shows the stale colour until a full reload,
+    // even though other screens (reading tags directly) already updated.
+    setCtx({ tags: [{ ...tag("Food"), colorHex: "#111111" }] });
+    const { rerender } = render(
+      <CategoryManagerDrawer open onClose={() => {}} />,
+    );
+    expect(screen.getByTitle("Change Icon & Color")).toHaveStyle({
+      color: "#111111",
+    });
+
+    // Simulate the context tags updating after handleUpdateTag recolours Food.
+    setCtx({ tags: [{ ...tag("Food"), colorHex: "#ff0000" }] });
+    rerender(<CategoryManagerDrawer open onClose={() => {}} />);
+
+    expect(screen.getByTitle("Change Icon & Color")).toHaveStyle({
+      color: "#ff0000",
+    });
+  });
+
+  it("reflects an icon change when only icon changes (same name/parent)", () => {
+    setCtx({ tags: [{ ...tag("Food"), icon: "tag" }] });
+    const { rerender } = render(
+      <CategoryManagerDrawer open onClose={() => {}} />,
+    );
+    const iconBefore = screen
+      .getByTitle("Change Icon & Color")
+      .querySelector("svg")
+      ?.getAttribute("data-icon");
+
+    // IconKey "cart" renders FontAwesome's faCartShopping (data-icon="cart-shopping").
+    setCtx({ tags: [{ ...tag("Food"), icon: "cart" }] });
+    rerender(<CategoryManagerDrawer open onClose={() => {}} />);
+    const iconAfter = screen
+      .getByTitle("Change Icon & Color")
+      .querySelector("svg")
+      ?.getAttribute("data-icon");
+
+    expect(iconAfter).not.toBe(iconBefore);
+    expect(iconAfter).toBe("cart-shopping");
+  });
 });

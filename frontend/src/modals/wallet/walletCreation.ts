@@ -19,6 +19,7 @@ export interface WalletInvite {
 
 export interface WalletBasics {
   name: string;
+  description: string;
   icon: string;
   color: string;
   currency: string;
@@ -120,6 +121,7 @@ export async function createWalletFromDraft(
   try {
     const { data } = await api.post("/wallets", {
       name: draft.basics.name,
+      description: draft.basics.description,
       icon: draft.basics.icon,
       color: draft.basics.color,
       currency: draft.basics.currency,

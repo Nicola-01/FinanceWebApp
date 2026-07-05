@@ -17,6 +17,8 @@ interface PatFormViewProps {
   showDesktopButton?: boolean;
   /** Hide the built-in submit button entirely (host renders its own, e.g. a modal footer). */
   hideSubmit?: boolean;
+  /** Hide the token-name field entirely (host supplies the name, e.g. OAuth consent auto-names it). */
+  hideName?: boolean;
 }
 
 export const PatFormView: React.FC<PatFormViewProps> = ({
@@ -31,6 +33,7 @@ export const PatFormView: React.FC<PatFormViewProps> = ({
   submittingText,
   showDesktopButton = false,
   hideSubmit = false,
+  hideName = false,
 }) => {
   const submitDisabled =
     isSubmitting ||
@@ -40,21 +43,23 @@ export const PatFormView: React.FC<PatFormViewProps> = ({
   return (
     <div className="space-y-5">
       {/* Token name */}
-      <div>
-        <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
-          Token Name
-        </label>
-        <Input
-          id="pat-token-name"
-          type="text"
-          value={tokenName}
-          onChange={(e) => setTokenName(e.target.value)}
-          placeholder="e.g., CI/CD Bot, Budget Tracker"
-          maxLength={50}
-          disabled={isEdit}
-          className={isEdit ? "cursor-not-allowed opacity-60" : ""}
-        />
-      </div>
+      {!hideName && (
+        <div>
+          <label className="mb-2 ml-1 block text-xs font-bold uppercase tracking-wider text-app-muted">
+            Token Name
+          </label>
+          <Input
+            id="pat-token-name"
+            type="text"
+            value={tokenName}
+            onChange={(e) => setTokenName(e.target.value)}
+            placeholder="e.g., CI/CD Bot, Budget Tracker"
+            maxLength={50}
+            disabled={isEdit}
+            className={isEdit ? "cursor-not-allowed opacity-60" : ""}
+          />
+        </div>
+      )}
 
       {/* Wallet permissions */}
       <div>

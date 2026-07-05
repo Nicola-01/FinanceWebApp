@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, act, within } from "@testing-library/react";
 import { createRef } from "react";
 
 // Mock the orchestration so no API is hit.
@@ -74,7 +74,33 @@ const open = (onSuccess = vi.fn()) => {
   return { onSuccess };
 };
 
-beforeEach(() => createWalletFromDraft.mockReset());
+// The discard ConfirmModal renders through a native <dialog> portaled into
+// #modal-root, which jsdom neither provides nor drives — set both up.
+let modalRoot: HTMLDivElement;
+
+beforeEach(() => {
+  createWalletFromDraft.mockReset();
+  modalRoot = document.createElement("div");
+  modalRoot.id = "modal-root";
+  document.body.appendChild(modalRoot);
+  // jsdom doesn't implement the <dialog> API; stub showModal/close.
+  HTMLDialogElement.prototype.showModal ??= function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close ??= function () {
+    this.removeAttribute("open");
+  };
+});
+
+afterEach(() => modalRoot.remove());
+
+// The confirm dialog is the only <dialog>; its `open` attribute is the source
+// of truth for whether the discard prompt is showing.
+const discardDialog = () => document.querySelector("dialog");
+// The shell's header is the only `banner` landmark — scope to it so we hit the
+// shell's X, not the ConfirmModal's own (always-mounted) close button.
+const clickShellClose = () =>
+  fireEvent.click(within(screen.getByRole("banner")).getByLabelText("Close"));
 
 describe("CreateWalletWizard", () => {
   it("opens on the ref handle and gates the mandatory Basics step", () => {
@@ -122,5 +148,40 @@ describe("CreateWalletWizard", () => {
     await screen.findByText("Wallet created with some issues");
     expect(screen.getByText("Row 2: bad")).toBeInTheDocument();
     expect(screen.getByText("3 created")).toBeInTheDocument();
+  });
+
+  it("closes an untouched draft immediately, with no discard prompt", () => {
+    open();
+    expect(screen.getByText("Create a new wallet")).toBeInTheDocument();
+    clickShellClose();
+    expect(screen.queryByText("Create a new wallet")).not.toBeInTheDocument();
+    expect(discardDialog()).not.toHaveAttribute("open");
+  });
+
+  it("prompts before discarding a dirty draft and keeps the wizard open", () => {
+    open();
+    fireEvent.click(screen.getByText("set-name")); // dirties the draft
+    clickShellClose();
+    expect(discardDialog()).toHaveAttribute("open");
+    expect(screen.getByText("Discard wallet setup?")).toBeInTheDocument();
+    // The wizard is still mounted behind the confirmation.
+    expect(screen.getByText("Create a new wallet")).toBeInTheDocument();
+  });
+
+  it("declining the discard prompt returns to the wizard", () => {
+    open();
+    fireEvent.click(screen.getByText("set-name"));
+    clickShellClose();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(discardDialog()).not.toHaveAttribute("open");
+    expect(screen.getByText("Create a new wallet")).toBeInTheDocument();
+  });
+
+  it("confirming the discard closes the wizard", () => {
+    open();
+    fireEvent.click(screen.getByText("set-name"));
+    clickShellClose();
+    fireEvent.click(screen.getByRole("button", { name: "Discard" }));
+    expect(screen.queryByText("Create a new wallet")).not.toBeInTheDocument();
   });
 });

@@ -18,6 +18,7 @@ import { TagCategoryPicker } from "./TagCategoryPicker";
 import {
   RECOMMENDED_TAG_GROUPS,
   groupToTagRequests,
+  groupTagRequests,
   type RecommendedTagGroup,
 } from "./recommendedTags";
 import { MOCK_SOURCE_WALLETS, type SourceWallet } from "./sourceWallets";
@@ -58,6 +59,9 @@ export function TagsStep({
   const [originOverrides, setOriginOverrides] = useState<
     Record<string, "csv" | "create">
   >({});
+  // CSV-uploaded tags, kept so this mode can keep showing them as cards (all
+  // pre-selected) even after they've been merged into the staged list.
+  const [csvTags, setCsvTags] = useState<TagRequest[]>([]);
   const stagedKeys = new Set(value.map((t) => keyOf(t.name)));
 
   // Every category the user can pick from (presets + each source wallet's),
@@ -66,6 +70,7 @@ export function TagsStep({
   const knownGroups: RecommendedTagGroup[] = [
     ...RECOMMENDED_TAG_GROUPS,
     ...sourceWallets.flatMap((w) => w.groups),
+    ...groupTagRequests(csvTags),
   ];
   const groupByParentKey = new Map<string, RecommendedTagGroup>();
   knownGroups.forEach((g) => {
@@ -151,6 +156,17 @@ export function TagsStep({
       return next;
     });
     onChange([...merged.values()]);
+  };
+
+  // CSV mode: remember the uploaded tags (so they keep showing as cards) and
+  // pre-stage all of them.
+  const handleCsvUpload = (dtos: TagRequest[]) => {
+    setCsvTags((prev) => {
+      const m = new Map(prev.map((t) => [keyOf(t.name), t]));
+      dtos.forEach((t) => m.set(keyOf(t.name), t));
+      return [...m.values()];
+    });
+    mergeDtos(dtos);
   };
 
   // Staged tree data = active tags plus the struck-out (excluded) children of
@@ -333,16 +349,33 @@ export function TagsStep({
             </div>
           ))}
 
-        {mode === "csv" && (
-          <CsvUploadField<TagRequest>
-            resource="tags"
-            title="Import tags from a CSV"
-            columnsHint="Name, Icon, ColorHex, ParentName"
-            noun="tag"
-            accentColor={accentColor}
-            onDtos={mergeDtos}
-          />
-        )}
+        {mode === "csv" &&
+          (csvTags.length === 0 ? (
+            <CsvUploadField<TagRequest>
+              resource="tags"
+              title="Import tags from a CSV"
+              columnsHint="Name, Icon, ColorHex, ParentName"
+              noun="tag"
+              accentColor={accentColor}
+              onDtos={handleCsvUpload}
+            />
+          ) : (
+            <div className="space-y-3">
+              <CsvUploadField<TagRequest>
+                resource="tags"
+                title="Import tags from a CSV"
+                noun="tag"
+                accentColor={accentColor}
+                compact
+                onDtos={handleCsvUpload}
+              />
+              <TagCategoryPicker
+                groups={groupTagRequests(csvTags)}
+                stagedKeys={stagedKeys}
+                onToggle={toggleGroup}
+              />
+            </div>
+          ))}
 
         {mode === "create" && (
           <div className="flex flex-col items-center gap-2 rounded-[var(--r-card)] border border-dashed border-app-border bg-app-surface px-6 py-10 text-center">

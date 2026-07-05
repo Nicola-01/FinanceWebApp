@@ -4,22 +4,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faShieldAlt,
   faTimes,
-  faSpinner,
   faExclamationTriangle,
   faRobot,
-  faPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import { isTokenValid } from "../utils/authHelper";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
-import type { Wallet, PatToken, WalletPermState } from "../utils/types";
-import { PatListView } from "../modals/pat/PatListView";
+import type { Wallet, WalletPermState } from "../utils/types";
 import { PatFormView } from "../modals/pat/PatFormView";
+import Button from "../components/ui/Button";
 import { AnimateBackground } from "./AnimateBackground";
 import api from "../api/axiosConfig";
 import axios from "axios";
 import { getApiErrorDetail, isReplayError } from "../utils/apiError";
-
-type ConsentView = "select" | "create";
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -34,20 +30,12 @@ const OAuthConsent = () => {
   const codeChallenge = searchParams.get("code_challenge") || "";
   const state = searchParams.get("state") || "";
 
-  // UI state
-  const [view, setView] = useState<ConsentView>("select");
-  // const [loading, setLoading] = useState(false);
-  const [authorizing, setAuthorizing] = useState(false);
+  // Token is auto-named after the requesting client — the user never edits it.
+  const tokenName = `OAuth: ${clientId}`;
 
-  // Existing tokens
-  const [tokens, setTokens] = useState<PatToken[]>([]);
-  const [walletsMap, setWalletsMap] = useState<Record<string, Wallet>>({});
-  const [loadingTokens, setLoadingTokens] = useState(true);
-
-  // Create new token state
-  const [tokenName, setTokenName] = useState("");
+  // Wallet permissions the user grants to the new token
   const [walletPerms, setWalletPerms] = useState<WalletPermState[]>([]);
-  const [creating, setCreating] = useState(false);
+  const [authorizing, setAuthorizing] = useState(false);
 
   // Replay protection state
   const [hasReplayError, setHasReplayError] = useState(false);
@@ -80,42 +68,15 @@ const OAuthConsent = () => {
       return;
     }
 
-    fetchTokens();
-    fetchWalletsMap();
-    // Init one-shot al mount: valida i parametri OAuth (derivati dall'URL, stabili
-    // per la vita della pagina) e carica token/wallet una sola volta.
+    fetchWallets();
+    // One-shot init on mount: validate the OAuth params (derived from the URL,
+    // stable for the page's lifetime) and load the wallets exactly once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Data fetching ───────────────────────────────────────────────────────
 
-  const fetchTokens = async () => {
-    setLoadingTokens(true);
-    try {
-      const res = await api.get("/tokens");
-      setTokens(res.data);
-    } catch {
-      triggerToast("Failed to load tokens", false);
-    } finally {
-      setLoadingTokens(false);
-    }
-  };
-
-  const fetchWalletsMap = async () => {
-    try {
-      const wRes = await api.get("/wallets");
-      const fetched: Wallet[] = wRes.data;
-      const map: Record<string, Wallet> = {};
-      fetched.forEach((w) => {
-        map[w.id] = w;
-      });
-      setWalletsMap(map);
-    } catch {
-      /* silently ignore */
-    }
-  };
-
-  const fetchWalletsForCreate = async () => {
+  const fetchWallets = async () => {
     try {
       const wRes = await api.get("/wallets");
       const fetchedWallets: Wallet[] = wRes.data;
@@ -139,51 +100,19 @@ const OAuthConsent = () => {
   // ─── Actions ─────────────────────────────────────────────────────────────
 
   /**
-   * Authorize with an existing token — creates a fresh PAT with the same
-   * permissions as the selected token, then initiates the OAuth flow.
+   * Create a new token scoped to the selected wallets and authorize with it.
    */
-  const handleSelectExistingToken = async (token: PatToken) => {
-    setAuthorizing(true);
-    try {
-      // Create a new PAT with the same wallet permissions as the selected token
-      const createPayload = {
-        name: `OAuth: ${clientId} (via ${token.name})`,
-        walletPermissions: token.walletPermissions,
-      };
-      const createRes = await api.post("/tokens", createPayload);
-      const plainToken = createRes.data.plainToken;
-
-      await completeAuthorization(plainToken);
-    } catch (err: unknown) {
-      if (isReplayError(err)) {
-        setHasReplayError(true);
-      } else {
-        triggerToast(getApiErrorDetail(err, "Authorization failed"), false);
-      }
-    } finally {
-      setAuthorizing(false);
-    }
-  };
-
-  /**
-   * Create a new token and authorize with it.
-   */
-  const handleCreateAndAuthorize = async () => {
-    if (!tokenName.trim()) {
-      triggerToast("Please enter a token name", false);
-      return;
-    }
-
+  const handleAuthorize = async () => {
     const selectedWallets = walletPerms.filter((w) => w.enabled);
     if (selectedWallets.length === 0) {
       triggerToast("Select at least one wallet", false);
       return;
     }
 
-    setCreating(true);
+    setAuthorizing(true);
     try {
       const payload = {
-        name: tokenName.trim(),
+        name: tokenName,
         walletPermissions: selectedWallets.map((w) => ({
           walletId: w.walletId,
           permissions: [
@@ -201,10 +130,10 @@ const OAuthConsent = () => {
       if (isReplayError(err)) {
         setHasReplayError(true);
       } else {
-        triggerToast(getApiErrorDetail(err, "Failed to create token"), false);
+        triggerToast(getApiErrorDetail(err, "Authorization failed"), false);
       }
     } finally {
-      setCreating(false);
+      setAuthorizing(false);
     }
   };
 
@@ -255,15 +184,6 @@ const OAuthConsent = () => {
     window.location.href = `${redirectUri}${separator}error=access_denied&state=${encodeURIComponent(state)}`;
   };
 
-  // ─── Token creation helpers ──────────────────────────────────────────────
-
-  const goToCreate = () => {
-    setTokenName(`OAuth: ${clientId}`);
-    setWalletPerms([]);
-    fetchWalletsForCreate();
-    setView("create");
-  };
-
   const setPermission = (
     walletId: string,
     level: "none" | "read" | "write",
@@ -287,12 +207,12 @@ const OAuthConsent = () => {
     return (
       <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
         <AnimateBackground />
-        <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface/40 p-8 shadow-2xl backdrop-blur-[20px] text-center">
+        <div className="relative z-10 w-full max-w-[480px] rounded-[var(--r-card)] border border-app-border bg-app-surface/40 p-8 text-center shadow-2xl backdrop-blur-[20px]">
           <FontAwesomeIcon
             icon={faExclamationTriangle}
-            className="text-4xl theme-text-warning mb-4"
+            className="mb-4 text-4xl text-app-yellow"
           />
-          <h2 className="text-xl font-bold text-app-text mb-2">
+          <h2 className="mb-2 text-xl font-bold text-app-text">
             Invalid Request
           </h2>
           <p className="text-sm text-app-muted">
@@ -308,60 +228,59 @@ const OAuthConsent = () => {
     return (
       <div className="relative flex min-h-[100dvh] items-center justify-center px-4">
         <AnimateBackground />
-        <div className="relative z-10 w-full max-w-[480px] rounded-[32px] border border-app-border bg-app-surface/40 p-8 shadow-2xl backdrop-blur-[20px] text-center">
+        <div className="relative z-10 w-full max-w-[480px] rounded-[var(--r-card)] border border-app-border bg-app-surface/40 p-8 text-center shadow-2xl backdrop-blur-[20px]">
           <FontAwesomeIcon
             icon={faExclamationTriangle}
-            className="text-4xl theme-text-danger mb-4"
+            className="mb-4 text-4xl text-app-red"
           />
-          <h2 className="text-xl font-bold text-app-text mb-2">
-            Richiesta Scaduta
+          <h2 className="mb-2 text-xl font-bold text-app-text">
+            Request Expired
           </h2>
-          <p className="text-sm text-app-muted mb-6">
-            Questa richiesta di autorizzazione è scaduta o è già stata
-            utilizzata. Per favore, avvia una nuova richiesta dal client.
+          <p className="mb-6 text-sm text-app-muted">
+            This authorization request has expired or has already been used.
+            Please start a new request from your client.
           </p>
-          <button
-            onClick={handleDeny}
-            className="rounded-xl border border-app-border bg-app-input px-6 py-2.5 text-sm font-semibold text-app-text transition-all hover:border-[#a78bfa]/50"
-          >
-            Torna all'applicazione
-          </button>
+          <Button variant="secondary" onClick={handleDeny}>
+            Back to application
+          </Button>
         </div>
       </div>
     );
   }
 
+  const noWalletSelected = walletPerms.filter((w) => w.enabled).length === 0;
+
   return (
-    <div className="relative flex min-h-[100dvh] items-start pt-[6dvh] sm:items-center sm:pt-0 justify-center overflow-x-hidden overflow-y-auto px-4 sm:px-0 pb-8 sm:pb-0">
+    <div className="relative flex min-h-[100dvh] items-start justify-center overflow-x-hidden overflow-y-auto px-4 pt-[6dvh] pb-8 sm:items-center sm:px-0 sm:pt-0 sm:pb-0">
       <AnimateBackground />
-      <div className="relative z-10 w-full max-w-[520px] flex flex-col items-center gap-6">
+      <div className="relative z-10 flex w-full max-w-[520px] flex-col items-center gap-6">
         {/* ═══════════ Main Card ═══════════ */}
-        <div className="w-full rounded-[32px] border border-app-border bg-app-surface/40 p-6 sm:p-8 text-app-text shadow-2xl backdrop-blur-[20px] animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)]">
+        <div className="w-full animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)] rounded-[var(--r-card)] border border-app-border bg-app-surface/40 p-6 text-app-text shadow-2xl backdrop-blur-[20px] sm:p-8">
           {/* Header */}
-          <div className="flex flex-col items-center mb-6">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-tr from-app-purple to-app-blue shadow-[0_0_20px_rgba(77,109,255,0.4)]">
+          <div className="mb-6 flex flex-col items-center">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[var(--brand-1)] to-[var(--brand-2)] shadow-[0_12px_26px_-14px_rgba(0,0,0,0.7)]">
               <FontAwesomeIcon
                 icon={faShieldAlt}
-                className="text-2xl theme-text-default"
+                className="text-2xl text-white"
               />
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-center">
+            <h2 className="text-center text-xl font-bold tracking-tight sm:text-2xl">
               Authorize Access
             </h2>
-            <p className="mt-2 text-sm text-app-muted text-center">
+            <p className="mt-2 text-center text-sm text-app-muted">
               An application is requesting access to your finance data
             </p>
           </div>
 
           {/* Client Info */}
-          <div className="mb-6 rounded-xl border border-app-border bg-app-input p-4">
+          <div className="mb-6 rounded-[var(--r-input)] border border-app-border bg-app-input p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#a78bfa]/15">
-                <FontAwesomeIcon icon={faRobot} className="text-[#a78bfa]" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-app-purple/15">
+                <FontAwesomeIcon icon={faRobot} className="text-app-purple" />
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-bold truncate">{clientId}</p>
-                <p className="text-[11px] text-app-muted truncate">
+                <p className="truncate text-sm font-bold">{clientId}</p>
+                <p className="truncate text-[11px] text-app-muted">
                   {redirectUri}
                 </p>
               </div>
@@ -374,7 +293,7 @@ const OAuthConsent = () => {
                   .map((s) => (
                     <span
                       key={s}
-                      className="inline-flex items-center rounded-md bg-[#a78bfa]/10 px-2 py-0.5 text-[10px] font-semibold text-[#a78bfa]"
+                      className="inline-flex items-center rounded-md bg-app-purple/10 px-2 py-0.5 text-[10px] font-semibold text-app-purple"
                     >
                       {s}
                     </span>
@@ -383,89 +302,47 @@ const OAuthConsent = () => {
             )}
           </div>
 
-          {/* ═══════════ SELECT VIEW ═══════════ */}
-          {view === "select" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold uppercase tracking-wider text-app-muted">
-                  Select a Token
-                </label>
-                <button
-                  onClick={goToCreate}
-                  className="flex items-center gap-1.5 rounded-lg bg-[#a78bfa]/15 px-2.5 py-1 text-[11px] font-bold text-[#a78bfa] transition-all hover:bg-[#a78bfa]/25"
-                >
-                  <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
-                  New Token
-                </button>
-              </div>
+          {/* ═══════════ Wallet permissions ═══════════ */}
+          <PatFormView
+            isEdit={false}
+            tokenName={tokenName}
+            setTokenName={() => {}}
+            walletPerms={walletPerms}
+            setPermission={setPermission}
+            onSubmit={handleAuthorize}
+            isSubmitting={authorizing}
+            hideName
+            hideSubmit
+          />
 
-              <PatListView
-                loadingTokens={loadingTokens}
-                tokens={tokens}
-                walletsMap={walletsMap}
-                isSelectMode={true}
-                onSelect={handleSelectExistingToken}
-                onCreate={goToCreate}
-                disabled={authorizing}
-              />
-            </div>
-          )}
-
-          {/* ═══════════ CREATE VIEW ═══════════ */}
-          {view === "create" && (
-            <div className="space-y-5">
-              {/* Back button */}
-              {tokens.length > 0 && (
-                <button
-                  onClick={() => setView("select")}
-                  className="text-xs font-semibold text-app-muted hover:text-app-text transition-colors"
-                >
-                  ← Back to existing tokens
-                </button>
-              )}
-
-              <PatFormView
-                isEdit={false}
-                tokenName={tokenName}
-                setTokenName={setTokenName}
-                walletPerms={walletPerms}
-                setPermission={setPermission}
-                onSubmit={handleCreateAndAuthorize}
-                isSubmitting={creating}
-                submitText="Create & Authorize"
-                submittingText="Authorizing..."
-                showDesktopButton={true}
-              />
-            </div>
-          )}
-
-          {/* ═══════════ Authorization loading overlay ═══════════ */}
-          {authorizing && (
-            <div className="mt-4 flex items-center justify-center gap-3 rounded-xl border border-[#a78bfa]/20 bg-[#a78bfa]/5 p-4">
-              <FontAwesomeIcon
-                icon={faSpinner}
-                className="animate-spin text-[#a78bfa]"
-              />
-              <span className="text-sm font-semibold text-[#a78bfa]">
-                Authorizing...
-              </span>
-            </div>
-          )}
-
-          {/* ═══════════ Deny Button ═══════════ */}
-          <button
-            id="oauth-deny-btn"
-            onClick={handleDeny}
-            disabled={authorizing || creating}
-            className="mt-4 w-full rounded-xl border border-app-border bg-app-input py-3 text-sm font-semibold text-app-muted transition-all hover:bg-app-bg hover:text-app-text disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <FontAwesomeIcon icon={faTimes} className="mr-2" />
-            Deny Access
-          </button>
+          {/* ═══════════ Actions ═══════════ */}
+          <div className="mt-6 flex flex-col gap-3">
+            <Button
+              id="oauth-allow-btn"
+              variant="primary"
+              fullWidth
+              ripple
+              onClick={handleAuthorize}
+              disabled={authorizing || noWalletSelected}
+            >
+              <FontAwesomeIcon icon={faShieldAlt} />
+              {authorizing ? "Authorizing…" : "Allow Access"}
+            </Button>
+            <Button
+              id="oauth-deny-btn"
+              variant="secondary"
+              fullWidth
+              onClick={handleDeny}
+              disabled={authorizing}
+            >
+              <FontAwesomeIcon icon={faTimes} />
+              Deny Access
+            </Button>
+          </div>
         </div>
 
         {/* Security notice */}
-        <p className="text-center text-[11px] text-app-muted/70 max-w-[400px]">
+        <p className="max-w-[400px] text-center text-[11px] text-app-muted/70">
           <FontAwesomeIcon icon={faShieldAlt} className="mr-1" />
           This will create a personal access token with the permissions you
           select. You can revoke it at any time from your API Tokens settings.

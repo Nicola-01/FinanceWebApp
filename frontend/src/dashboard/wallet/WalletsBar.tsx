@@ -7,9 +7,9 @@ import {
 } from "../../modals/wallet/CreateWalletModal.tsx";
 import WalletCard, { WalletCardUI } from "./WalletCard.tsx";
 import type { Wallet, Invitation } from "../../utils/types.ts";
-import { useDeleteModal } from "../../modals/common/DeleteModalContext";
 import { useInvitations } from "./useInvitations";
 import { InvitesMobileInline, InvitesDesktopSection } from "./WalletInvites";
+import { InviteModal } from "../../modals/wallet/InviteModal";
 
 import {
   DndContext,
@@ -80,7 +80,6 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
   const scrollerRef = useRef<HTMLDivElement>(null);
   const didInitScroll = useRef(false);
 
-  const deleteModalRef = useDeleteModal();
   const {
     invites,
     loading: invitesLoading,
@@ -88,15 +87,17 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
     reject,
   } = useInvitations(onRefreshAll);
   const [invitesOpen, setInvitesOpen] = useState(false);
+  // The invitation currently open in the respond modal (accept / reject live there).
+  const [activeInvite, setActiveInvite] = useState<Invitation | null>(null);
 
-  // Reject reuses the shared DeleteModal at level 0 (single-click confirm).
-  const handleReject = (invite: Invitation) => {
-    deleteModalRef.current?.deleteObject(
-      invite.wallet,
-      "invitation",
-      () => reject(invite.wallet.id),
-      0,
-    );
+  const handleAccept = async (walletId: string) => {
+    await accept(walletId);
+    setActiveInvite(null);
+  };
+
+  const handleReject = async (walletId: string) => {
+    await reject(walletId);
+    setActiveInvite(null);
   };
 
   // On first load with NO invitations, start the mobile row scrolled past the
@@ -246,8 +247,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
             open={invitesOpen}
             onToggle={() => setInvitesOpen((o) => !o)}
             invites={invites}
-            onAccept={accept}
-            onReject={handleReject}
+            onOpen={setActiveInvite}
           />
 
           {loading && wallets.length === 0 ? (
@@ -286,11 +286,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
         {/* Desktop-only footer, pinned below the scrolling wallet list:
             invitations section above the aligned "Add New Wallet" button. */}
         <div className="hidden xl:flex xl:flex-col xl:gap-3 xl:border-t xl:border-app-border xl:px-6 xl:py-4">
-          <InvitesDesktopSection
-            invites={invites}
-            onAccept={accept}
-            onReject={handleReject}
-          />
+          <InvitesDesktopSection invites={invites} onOpen={setActiveInvite} />
           {!loading && (
             <AddWalletTile
               onClick={() => walletModal.current?.openModal()}
@@ -299,6 +295,13 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
           )}
         </div>
       </aside>
+
+      <InviteModal
+        invite={activeInvite}
+        onAccept={handleAccept}
+        onReject={handleReject}
+        onClose={() => setActiveInvite(null)}
+      />
 
       <DragOverlay dropAnimation={{ duration: 250, easing: "ease-out" }}>
         {activeWallet ? (

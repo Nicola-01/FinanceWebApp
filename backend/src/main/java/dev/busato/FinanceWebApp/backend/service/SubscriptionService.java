@@ -444,15 +444,15 @@ public class SubscriptionService {
    */
   private void executeSubscription(Subscription sub) {
     int currentExecution = sub.getExecutedTimes() + 1;
+    // The subscription's name and notes are metadata of the subscription only and must NOT be
+    // transmitted onto the generated transactions. Use the tag name (with a safe fallback) instead.
+    String generatedName = sub.getTag() != null ? sub.getTag().getName() : sub.getName();
     String generatedNotes;
     if (sub.getDuration() == Subscription.Duration.TIMES && sub.getDurationTimes() != null)
       generatedNotes =
           String.format(
-              "Recurring: %s (%d / %d)", sub.getName(), currentExecution, sub.getDurationTimes());
-    else generatedNotes = String.format("Recurring: %s (#%d)", sub.getName(), currentExecution);
-
-    if (sub.getNotes() != null && !sub.getNotes().isBlank())
-      generatedNotes += "\n" + sub.getNotes();
+              "Recurring: %s (%d / %d)", generatedName, currentExecution, sub.getDurationTimes());
+    else generatedNotes = String.format("Recurring: %s (#%d)", generatedName, currentExecution);
 
     // 1. Create the actual Transaction entity linked to the wallet ONLY if ACTIVE
     if (sub.getStatus() == Subscription.Status.ACTIVE) {
@@ -482,7 +482,7 @@ public class SubscriptionService {
               .wallet(sub.getWallet())
               .subscription(sub)
               .tag(sub.getTag())
-              .name(sub.getName())
+              .name(generatedName)
               .amount(resolvedAmount)
               .originalAmount(sub.getOriginalAmount())
               .originalCurrency(sub.getOriginalCurrency())

@@ -46,6 +46,7 @@ public class WalletService {
     Wallet wallet =
         Wallet.builder()
             .name(request.getName())
+            .description(request.getDescription())
             .color(Optional.ofNullable(request.getColor()).orElse("#abababa"))
             .icon(request.getIcon())
             .currency(Optional.ofNullable(request.getCurrency()).orElse("EUR"))
@@ -97,6 +98,8 @@ public class WalletService {
       wallet.setColor(request.getColor());
     if (request.getIcon() != null && !request.getIcon().isBlank())
       wallet.setIcon(request.getIcon());
+    // Description is sent only at creation time; a null on update must not wipe the stored value.
+    if (request.getDescription() != null) wallet.setDescription(request.getDescription());
 
     return walletMapper.mapToResponse(ownerAccess);
   }

@@ -41,6 +41,7 @@ export function TransactionsStep({
         icon={faReceipt}
         title="Add transactions"
         subtitle="Optional — continue without transactions, or import them from a CSV."
+        note="You can edit or delete any transaction anytime from the wallet."
       />
 
       <CsvUploadField<TransactionRequest>

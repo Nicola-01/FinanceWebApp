@@ -38,6 +38,7 @@ class WalletMapperTest {
     wallet = new Wallet();
     wallet.setId(UUID.randomUUID());
     wallet.setName("Test Wallet");
+    wallet.setDescription("A shared family wallet");
     wallet.setCurrency("EUR");
     wallet.setIcon("icon");
     wallet.setColor("#000000");
@@ -58,6 +59,7 @@ class WalletMapperTest {
     assertNotNull(response);
     assertEquals(wallet.getId(), response.getId());
     assertEquals("Test Wallet", response.getName());
+    assertEquals("A shared family wallet", response.getDescription());
     assertEquals(WalletAccess.WalletRole.OWNER, response.getUserRole());
     assertNull(response.getTokenAccess());
   }

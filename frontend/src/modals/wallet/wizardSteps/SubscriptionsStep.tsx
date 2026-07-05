@@ -120,6 +120,7 @@ export function SubscriptionsStep({
         icon={faArrowsRotate}
         title="Subscriptions"
         subtitle="Optional — add recurring payments from common ones or a CSV."
+        note="You can edit, pause or remove subscriptions anytime from the wallet."
       />
 
       {/* Recommended subscriptions — toggle on to stage, edit the amount inline. */}

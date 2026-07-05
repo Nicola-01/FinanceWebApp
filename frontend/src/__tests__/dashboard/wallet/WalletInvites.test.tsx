@@ -44,11 +44,7 @@ describe("InvitesBadge", () => {
 describe("InvitesDesktopSection", () => {
   it("reveals invite cards only after expanding", async () => {
     render(
-      <InvitesDesktopSection
-        invites={[makeInvite("a")]}
-        onAccept={vi.fn()}
-        onReject={vi.fn()}
-      />,
+      <InvitesDesktopSection invites={[makeInvite("a")]} onOpen={vi.fn()} />,
     );
     expect(screen.queryByText("Wa")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /invitations/i }));

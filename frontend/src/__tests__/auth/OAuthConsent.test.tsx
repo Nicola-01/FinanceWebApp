@@ -20,9 +20,6 @@ vi.mock("../../components/ui/ToastNotification", () => ({
 vi.mock("../../auth/AnimateBackground", () => ({
   AnimateBackground: () => <div data-testid="bg" />,
 }));
-vi.mock("../../modals/pat/PatListView", () => ({
-  PatListView: () => <div data-testid="pat-list" />,
-}));
 vi.mock("../../modals/pat/PatFormView", () => ({
   PatFormView: () => <div data-testid="pat-form" />,
 }));
@@ -70,7 +67,7 @@ describe("OAuthConsent", () => {
   it("SECURITY: shows a replay screen when the state was already used", () => {
     sessionStorage.setItem("oauth_used_state_xyz", "true");
     renderAt(VALID_QS);
-    expect(screen.getByText(/Richiesta Scaduta/i)).toBeInTheDocument();
+    expect(screen.getByText(/Request Expired/i)).toBeInTheDocument();
   });
 
   it("renders the consent screen with client and scopes when authorized", async () => {

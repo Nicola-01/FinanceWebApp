@@ -31,6 +31,9 @@ public class Wallet {
   private String color;
   private String icon;
 
+  @Column(columnDefinition = "TEXT")
+  private String description;
+
   @OneToMany(mappedBy = "wallet", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
   private List<WalletAccess> accesses = new ArrayList<>();

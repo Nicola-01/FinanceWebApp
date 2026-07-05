@@ -12,6 +12,23 @@ export interface ToDoItem {
 type ToDoItemInput = Omit<ToDoItem, "id">;
 
 const rawToDoData: ToDoItemInput[] = [
+  // {
+  //   title: "BUGS",
+  //   description: "List of bugs to fix",
+  //   status: "STARTED",
+  //   subtasks: [""],
+  // },
+  {
+    title: "Minor improvements",
+    description: "List of improvements",
+    status: "PLANNED",
+    subtasks: ["Wallet Description", "Subscription Name & Description"],
+  },
+  {
+    title: "Guide",
+    description: "How to use the application",
+    status: "PLANNED",
+  },
   {
     title: "Core API",
     description: "The core API of the application (Spring Boot).",
@@ -140,7 +157,7 @@ const rawToDoData: ToDoItemInput[] = [
       "Push notifications",
       "PWA notifications",
       "Wallet invitation",
-      "New transactions"
+      "New transactions",
     ],
   },
   {
@@ -163,27 +180,26 @@ const rawToDoData: ToDoItemInput[] = [
       "European Open Banking standard (e.g., enablebanking)",
     ],
   },
-  {
-    title: "PWA (Progressive Web App)",
-    description: "Progressive Web App.",
-    status: "FINISHED",
-    subtasks: [
-      "Temporary implementation for Android App",
-      "Installable on Android",
-      "Offline support",
-      "Push notifications",
-      "Background sync",
-    ],
-  },
+  // {
+  //   title: "PWA (Progressive Web App)",
+  //   description: "Progressive Web App.",
+  //   status: "FINISHED",
+  //   subtasks: [
+  //     "Temporary implementation for Android App",
+  //     "Installable on Android",
+  //     "Push notifications",
+  //     "Background sync",
+  //   ],
+  // },
   {
     title: "Android App",
-    description: "Native Android application.",
-    status: "PLANNED",
+    description: "Android application.",
+    status: "STARTED",
     subtasks: [
-      "Basic UI",
+      "PWA",
       "Authentication/APIs integration",
       "Sync with backend",
-      "Offline support",
+      "Offline support - sync/unsync Badge",
       "Push notifications",
       "Background sync",
       "Widgets",

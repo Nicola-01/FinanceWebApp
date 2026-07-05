@@ -9,6 +9,7 @@ import { WizardStepHeader } from "./WizardStepHeader";
 
 export interface WalletBasicsValue {
   name: string;
+  description: string;
   icon: string;
   color: string;
   currency: string;
@@ -54,10 +55,14 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
         icon={faWallet}
         title="Wallet basics"
         subtitle="Name it and pick an icon, colour and currency."
+        note="You can rename and restyle your wallet later from its settings."
       />
 
       {/* Live icon preview + icon/colour popover */}
-      <div className="relative mb-6 flex flex-col items-center">
+      <div className="relative mb-3 flex flex-col items-center">
+        <span className="mb-2 text-[10px] font-bold uppercase tracking-wider text-app-muted">
+          Click icon to edit
+        </span>
         <button
           ref={buttonRef}
           type="button"
@@ -68,9 +73,6 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
         >
           <FontAwesomeIcon icon={ICONS[iconKey]} />
         </button>
-        <span className="mt-2 text-[10px] font-bold uppercase tracking-wider text-app-muted">
-          Click icon to edit
-        </span>
 
         {showSelectors && (
           <div
@@ -100,6 +102,19 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
         <p className="ml-1 mt-1 text-[11px] text-app-muted">
           Required · 3–25 characters
         </p>
+      </div>
+
+      <div>
+        <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
+          Description
+        </label>
+        <textarea
+          rows={2}
+          placeholder="What is this wallet for?  (optional)"
+          value={value.description}
+          onChange={(e) => set({ description: e.target.value })}
+          className="w-full resize-none rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3.5 py-2.5 text-app-text outline-none transition-colors duration-200 placeholder:text-app-muted focus:border-[var(--brand-1)] focus:ring-1 focus:ring-[var(--brand-1)]/50"
+        />
       </div>
 
       <CurrencySelector

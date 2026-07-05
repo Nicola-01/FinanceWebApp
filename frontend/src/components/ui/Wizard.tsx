@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useState, type ReactNode } from "react";
+import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import Button from "./Button";
@@ -47,6 +48,13 @@ const NODE_BASE =
   "flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold " +
   "transition-colors disabled:cursor-not-allowed";
 
+/** Directional slide+fade for the step/completion swap. `custom` is the nav
+ *  direction: +1 moving forward (new panel enters from the right), -1 back. */
+const PANEL_VARIANTS = {
+  enter: (dir: number) => ({ opacity: 0, x: dir >= 0 ? 28 : -28 }),
+  center: { opacity: 1, x: 0 },
+};
+
 /**
  * Generic, shell-agnostic multi-step wizard: horizontal stepper + current step
  * content + Back/Continue footer, plus an external completion phase driven by
@@ -61,6 +69,8 @@ export function Wizard<TResult = unknown>({
   const [current, setCurrent] = useState(0);
   const [furthest, setFurthest] = useState(0);
   const [phase, setPhase] = useState<"steps" | "completion">("steps");
+  // +1 when navigating forward, -1 backward — drives the slide direction.
+  const [direction, setDirection] = useState(1);
   const [completion, setCompletion] = useState<{
     status: WizardCompletionStatus;
     result?: TResult;
@@ -70,10 +80,12 @@ export function Wizard<TResult = unknown>({
   const goToStep = useCallback(
     (index: number) => {
       if (index < 0 || index > furthest) return;
+      // Leaving the completion phase always reads as going backward.
+      setDirection(phase !== "steps" ? -1 : index >= current ? 1 : -1);
       setPhase("steps");
       setCurrent(index);
     },
-    [furthest],
+    [furthest, current, phase],
   );
 
   const runCompletion = useCallback(async () => {
@@ -93,6 +105,7 @@ export function Wizard<TResult = unknown>({
 
   const handleNext = () => {
     if (step.mandatory && !step.isComplete) return;
+    setDirection(1);
     if (isLast) {
       void runCompletion();
       return;
@@ -212,9 +225,21 @@ export function Wizard<TResult = unknown>({
         })}
       </div>
 
-      {/* Content */}
+      {/* Content — each step/completion panel slides+fades in the nav direction.
+          Keyed so React remounts on every swap, replaying the enter animation. */}
       <div className="min-h-0 flex-1">
-        {inSteps ? step.content : renderCompletion({ ...completion, goToStep })}
+        <motion.div
+          key={inSteps ? `step-${current}` : "completion"}
+          custom={direction}
+          variants={PANEL_VARIANTS}
+          initial="enter"
+          animate="center"
+          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+        >
+          {inSteps
+            ? step.content
+            : renderCompletion({ ...completion, goToStep })}
+        </motion.div>
       </div>
 
       {/* Footer */}
@@ -224,7 +249,10 @@ export function Wizard<TResult = unknown>({
             <Button
               variant="secondary"
               data-testid="wizard-back"
-              onClick={() => setCurrent(current - 1)}
+              onClick={() => {
+                setDirection(-1);
+                setCurrent(current - 1);
+              }}
             >
               Back
             </Button>

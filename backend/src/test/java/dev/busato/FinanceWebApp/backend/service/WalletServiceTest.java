@@ -99,6 +99,48 @@ class WalletServiceTest {
   }
 
   @Test
+  void createWallet_WithDescription_PersistsDescription() {
+    WalletRequest request = new WalletRequest();
+    request.setName("New Wallet");
+    request.setDescription("A shared holiday budget");
+
+    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    when(walletRepository.save(any(Wallet.class)))
+        .thenAnswer(
+            i -> {
+              Wallet w = i.getArgument(0);
+              w.setId(walletId);
+              return w;
+            });
+    when(walletMapper.mapToResponse(any(WalletAccess.class)))
+        .thenReturn(WalletResponse.builder().build());
+
+    walletService.createWallet(request, userId);
+
+    org.mockito.ArgumentCaptor<Wallet> captor = org.mockito.ArgumentCaptor.forClass(Wallet.class);
+    verify(walletRepository).save(captor.capture());
+    assertEquals("A shared holiday budget", captor.getValue().getDescription());
+  }
+
+  @Test
+  void updateWallet_OmittingDescription_DoesNotWipeExisting() {
+    wallet.setDescription("Original description");
+
+    WalletRequest request = new WalletRequest();
+    request.setName("Updated Wallet");
+    // description intentionally left null (frontend never sends it on edit)
+
+    when(walletAccessRepository.findByWalletIdAndUserIdAndRole(
+            walletId, userId, WalletAccess.WalletRole.OWNER))
+        .thenReturn(Optional.of(walletAccess));
+
+    walletService.updateWallet(walletId, request, userId);
+
+    assertEquals("Original description", wallet.getDescription());
+    assertEquals("Updated Wallet", wallet.getName());
+  }
+
+  @Test
   void createWallet_WithPatToken_GrantsWalletToPat() {
     WalletRequest request = new WalletRequest();
     request.setName("New Wallet");

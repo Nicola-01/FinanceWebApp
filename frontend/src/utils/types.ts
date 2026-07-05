@@ -13,6 +13,7 @@ export interface User {
 export interface Wallet {
   id: string;
   name: string;
+  description?: string;
   icon: string;
   color: string;
   currency: string;

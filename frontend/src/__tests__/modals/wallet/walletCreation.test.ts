@@ -28,7 +28,13 @@ const sub = (): SubscriptionRequest => ({
 });
 
 const draft = (o: Partial<WalletDraft> = {}): WalletDraft => ({
-  basics: { name: "Main", icon: "wallet", color: "#8b5cf6", currency: "EUR" },
+  basics: {
+    name: "Main",
+    description: "",
+    icon: "wallet",
+    color: "#8b5cf6",
+    currency: "EUR",
+  },
   tags: [],
   subscriptions: [],
   transactions: [],

@@ -230,12 +230,15 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
   const treeBeforeDrag = useRef<TagTreeNode[] | null>(null);
 
   // Resync the derived tree when the underlying tags change (add / delete /
-  // rename / reparent) or the wallet switches. Render-time reconciliation
-  // (React-endorsed) rather than an effect: `tree` is derived from tags + the
-  // saved order, and drag handlers keep localStorage in step. Stale saved
-  // names are harmless and get pruned on the next persist.
+  // rename / reparent / recolor / re-icon) or the wallet switches. Render-time
+  // reconciliation (React-endorsed) rather than an effect: `tree` is derived
+  // from tags + the saved order, and drag handlers keep localStorage in step.
+  // Stale saved names are harmless and get pruned on the next persist.
+  // The key must reflect every rendered field: colour/icon changes don't touch
+  // name/parent, so omitting them left the tree showing stale colours until a
+  // full reload (rows read colour from this local tree, not from context).
   const derivedKey = `${wallet.id}|${tags
-    .map((t) => `${t.name}:${t.parentName ?? ""}`)
+    .map((t) => `${t.name}:${t.parentName ?? ""}:${t.colorHex}:${t.icon}`)
     .join(",")}`;
   const [syncKey, setSyncKey] = useState(derivedKey);
   if (syncKey !== derivedKey) {

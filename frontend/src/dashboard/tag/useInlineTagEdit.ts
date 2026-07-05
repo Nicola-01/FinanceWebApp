@@ -14,16 +14,33 @@ export function useInlineTagEdit(
   readOnly = false,
 ) {
   // --- icon + color ---
+  // The row displays these local values (not the tag prop directly) so a freshly
+  // picked colour/icon stays on screen continuously. `handleUpdateTag` awaits the
+  // backend before the tag prop reflects the change, so reverting to `tag.*` on
+  // close would flash the old colour for ~half a second — hence we hold the
+  // committed value here and only adopt the prop when it genuinely changes
+  // externally (tracked via seen* below), never during that async save gap.
   const [iconOpen, setIconOpen] = useState(false);
   const [iconVal, setIconVal] = useState<IconKey>(tag.icon as IconKey);
   const [colorVal, setColorVal] = useState(tag.colorHex);
 
+  // Adopt external icon/colour changes (edited elsewhere, or our own save landing)
+  // via render-time reconciliation, but never while the picker is open (would
+  // clobber the in-progress pick). Comparing against the last-seen prop — not the
+  // current local value — is what tells a real external change apart from the
+  // optimistic value we're already showing, so we don't revert during the save.
+  const [seenIcon, setSeenIcon] = useState(tag.icon);
+  const [seenColor, setSeenColor] = useState(tag.colorHex);
+  if (!iconOpen && (seenIcon !== tag.icon || seenColor !== tag.colorHex)) {
+    setSeenIcon(tag.icon);
+    setSeenColor(tag.colorHex);
+    setIconVal(tag.icon as IconKey);
+    setColorVal(tag.colorHex);
+  }
+
   const onIconToggle = (open: boolean) => {
     if (readOnly) return;
     if (open) {
-      // Re-seed from the tag every time the popup opens.
-      setIconVal(tag.icon as IconKey);
-      setColorVal(tag.colorHex);
       setIconOpen(true);
       return;
     }
@@ -70,10 +87,11 @@ export function useInlineTagEdit(
   };
 
   return {
-    // icon picker (controlled)
+    // icon picker (controlled) — display tracks the local committed value, which
+    // equals the tag until the user picks, then leads the (async) prop update.
     iconOpen,
-    displayIcon: iconOpen ? iconVal : (tag.icon as IconKey),
-    displayColor: iconOpen ? colorVal : tag.colorHex,
+    displayIcon: iconVal,
+    displayColor: colorVal,
     setIconVal,
     setColorVal,
     onIconToggle,

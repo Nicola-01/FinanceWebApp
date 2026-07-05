@@ -1,9 +1,15 @@
 import { describe, it, expect, vi } from "vitest";
 import { useState } from "react";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TagsStep } from "../../../../modals/wallet/wizardSteps/TagsStep";
 import type { TagRequest } from "../../../../dashboard/settings/csvImport";
+
+const TAGS_HEADER = "Name,Icon,ColorHex,ParentName";
+const csvFile = (body: string) =>
+  new File([`${TAGS_HEADER}\n${body}`], "tags.csv", { type: "text/csv" });
+const fileInput = () =>
+  document.querySelector('input[type="file"]') as HTMLInputElement;
 
 /** Controlled wrapper mirroring how the wizard owns the staged list. */
 function Harness({
@@ -182,6 +188,50 @@ describe("TagsStep — recommended categories", () => {
 
     const region = screen.getByRole("region", { name: /staged/i });
     expect(within(region).getByText(/freelance/i)).toBeInTheDocument();
+  });
+
+  it("shows uploaded CSV tags as preselected cards and shrinks the uploader", async () => {
+    const user = userEvent.setup();
+    render(<Harness onChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /^csv$/i }));
+    expect(screen.getByTestId("csv-dropzone")).toBeInTheDocument();
+
+    fireEvent.change(fileInput(), {
+      target: {
+        files: [csvFile("Coffee,dining,#ff0000,\nBooks,work,#0000ff,")],
+      },
+    });
+
+    // Parsed tags render as cards in this mode, all pre-selected.
+    const coffee = await screen.findByRole("button", {
+      name: /select the coffee category/i,
+    });
+    expect(coffee).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByRole("button", { name: /select the books category/i }),
+    ).toHaveAttribute("aria-pressed", "true");
+
+    // After the first upload the big dropzone is gone (compact uploader instead).
+    expect(screen.queryByTestId("csv-dropzone")).not.toBeInTheDocument();
+  });
+
+  it("groups hierarchical CSV tags into a category card", async () => {
+    const user = userEvent.setup();
+    render(<Harness onChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /^csv$/i }));
+    fireEvent.change(fileInput(), {
+      target: {
+        files: [csvFile("Trip,car,#ff0000,\nFlight,car,#0000ff,Trip")],
+      },
+    });
+
+    const trip = await screen.findByRole("button", {
+      name: /select the trip category/i,
+    });
+    // The child shows inside the parent card's preview.
+    expect(within(trip).getByText("Flight")).toBeInTheDocument();
   });
 
   it("striking a child excludes it and marks the category partial (mixed)", async () => {
