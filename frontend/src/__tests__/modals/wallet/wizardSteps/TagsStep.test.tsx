@@ -77,6 +77,43 @@ describe("TagsStep — recommended categories", () => {
     expect(within(region).getByText("Car")).toBeInTheDocument();
   });
 
+  it("keeps a struck child in its original position (no reorder)", async () => {
+    const user = userEvent.setup();
+    render(<Harness onChange={vi.fn()} />);
+
+    await user.click(card(/select the work category/i));
+    const region = () => screen.getByRole("region", { name: /staged/i });
+    await user.click(
+      within(region()).getByRole("button", { name: /expand work/i }),
+    );
+    await user.click(
+      within(region()).getByRole("button", { name: /remove bonus/i }),
+    );
+
+    // Bonus stays between Salary and Meal Vouchers, not shoved to the end.
+    const names = within(region())
+      .getAllByText(/^(Salary|Bonus|Meal Vouchers)$/)
+      .map((el) => el.textContent);
+    expect(names).toEqual(["Salary", "Bonus", "Meal Vouchers"]);
+  });
+
+  it("switches tag modes via the selector", async () => {
+    const user = userEvent.setup();
+    render(<Harness onChange={vi.fn()} />);
+
+    // Recommended is the default mode.
+    expect(card(/select the work category/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^csv$/i }));
+    expect(screen.getByTestId("csv-dropzone")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /select the work category/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^recommended$/i }));
+    expect(card(/select the work category/i)).toBeInTheDocument();
+  });
+
   it("striking a child excludes it and marks the category partial (mixed)", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
