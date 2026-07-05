@@ -2,9 +2,9 @@ import React, { useRef, useState, useEffect, useLayoutEffect } from "react";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  CreateWalletModal,
-  type CreateWalletModalHandle,
-} from "../../modals/wallet/CreateWalletModal.tsx";
+  CreateWalletWizard,
+  type CreateWalletWizardHandle,
+} from "../../modals/wallet/CreateWalletWizard.tsx";
 import WalletCard, { WalletCardUI } from "./WalletCard.tsx";
 import type { Wallet, Invitation } from "../../utils/types.ts";
 import { useInvitations } from "./useInvitations";
@@ -75,7 +75,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
   onSelectWallet,
   onRefreshAll,
 }) => {
-  const walletModal = useRef<CreateWalletModalHandle>(null);
+  const walletModal = useRef<CreateWalletWizardHandle>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const didInitScroll = useRef(false);
@@ -280,7 +280,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
             />
           )}
 
-          <CreateWalletModal ref={walletModal} onSuccess={handleCreate} />
+          <CreateWalletWizard ref={walletModal} onSuccess={handleCreate} />
         </div>
 
         {/* Desktop-only footer, pinned below the scrolling wallet list:
