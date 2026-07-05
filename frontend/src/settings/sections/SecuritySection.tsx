@@ -17,6 +17,7 @@ import { Card } from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { PasswordInput } from "../../modals/auth/PasswordInput";
+import { ConfirmModal } from "../../modals/common/ConfirmModal";
 import { PasswordRequirements } from "../../components/auth/PasswordRequirements";
 import { isPasswordValid } from "../../components/auth/passwordRequirements";
 import { getApiErrorDetail } from "../../utils/apiError";
@@ -242,41 +243,26 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
         icon={faRightFromBracket}
         description="Ends every active session on all devices and browsers. You'll need to sign in again everywhere."
         footer={
-          confirmingAll ? (
-            <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
-              <Button
-                variant="secondary"
-                className="w-full sm:w-40"
-                onClick={() => setConfirmingAll(false)}
-                disabled={signingOut}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                ripple
-                className="w-full sm:w-64"
-                onClick={handleSignOutAll}
-                disabled={signingOut}
-              >
-                <FontAwesomeIcon
-                  icon={signingOut ? faSpinner : faRightFromBracket}
-                  spin={signingOut}
-                />
-                {signingOut ? "Signing out…" : "Confirm — sign out everywhere"}
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="danger"
-              className="w-full sm:w-56"
-              onClick={() => setConfirmingAll(true)}
-            >
-              <FontAwesomeIcon icon={faRightFromBracket} />
-              Sign out everywhere
-            </Button>
-          )
+          <Button
+            variant="danger"
+            className="w-full sm:w-56"
+            onClick={() => setConfirmingAll(true)}
+          >
+            <FontAwesomeIcon icon={faRightFromBracket} />
+            Sign out everywhere
+          </Button>
         }
+      />
+
+      <ConfirmModal
+        open={confirmingAll}
+        tone="danger"
+        title="Sign out everywhere?"
+        message="This ends every active session on all your devices and browsers. You'll need to sign in again everywhere."
+        confirmLabel="Sign out everywhere"
+        busy={signingOut}
+        onConfirm={handleSignOutAll}
+        onCancel={() => setConfirmingAll(false)}
       />
     </div>
   );

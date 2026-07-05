@@ -1,11 +1,14 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
+import dev.busato.FinanceWebApp.backend.dto.PatBulkDeleteRequest;
+import dev.busato.FinanceWebApp.backend.dto.PatBulkPauseRequest;
 import dev.busato.FinanceWebApp.backend.dto.PatCreateRequest;
 import dev.busato.FinanceWebApp.backend.dto.PatCreateResponse;
 import dev.busato.FinanceWebApp.backend.dto.PatResponse;
 import dev.busato.FinanceWebApp.backend.dto.PatUpdateRequest;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.PatService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -63,6 +66,45 @@ public class PatController {
       @RequestBody PatUpdateRequest request,
       @AuthenticationPrincipal User user) {
     PatResponse response = patService.updateToken(tokenId, user.getId(), request);
+    return ResponseEntity.ok(response);
+  }
+
+  /** Pauses a token so it is rejected during API authentication (without deleting it). */
+  @PostMapping("/{tokenId}/pause")
+  public ResponseEntity<PatResponse> pauseToken(
+      @PathVariable UUID tokenId, @AuthenticationPrincipal User user) {
+    PatResponse response = patService.setPaused(tokenId, user.getId(), true);
+    return ResponseEntity.ok(response);
+  }
+
+  /** Resumes a previously paused token. */
+  @PostMapping("/{tokenId}/resume")
+  public ResponseEntity<PatResponse> resumeToken(
+      @PathVariable UUID tokenId, @AuthenticationPrincipal User user) {
+    PatResponse response = patService.setPaused(tokenId, user.getId(), false);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Bulk-deletes tokens by ID. Only tokens owned by the authenticated user are affected; IDs not
+   * owned by the user are silently ignored.
+   */
+  @PostMapping("/bulk-delete")
+  public ResponseEntity<Void> bulkDeleteTokens(
+      @Valid @RequestBody PatBulkDeleteRequest request, @AuthenticationPrincipal User user) {
+    patService.bulkDeleteTokens(request.getIds(), user.getId());
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Bulk pauses or resumes tokens by ID. Only tokens owned by the authenticated user are affected;
+   * IDs not owned by the user are silently ignored. Returns the updated tokens.
+   */
+  @PostMapping("/bulk-pause")
+  public ResponseEntity<List<PatResponse>> bulkPauseTokens(
+      @Valid @RequestBody PatBulkPauseRequest request, @AuthenticationPrincipal User user) {
+    List<PatResponse> response =
+        patService.bulkSetPaused(request.getIds(), user.getId(), request.getPaused());
     return ResponseEntity.ok(response);
   }
 }

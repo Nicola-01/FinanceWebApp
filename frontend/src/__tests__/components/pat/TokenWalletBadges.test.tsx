@@ -11,6 +11,7 @@ const token = (over: Partial<PatToken> = {}): PatToken => ({
   createdAt: "2026-01-01T00:00:00Z",
   expiresAt: null,
   lastUsedAt: null,
+  paused: false,
   ...over,
 });
 

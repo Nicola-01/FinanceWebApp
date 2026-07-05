@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -8,10 +8,77 @@ import {
   faCircleInfo,
 } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
+import { getApiErrorDetail } from "../../utils/apiError.ts";
 import { Card } from "../../components/ui/Card.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { CsvFormatModal } from "./CsvFormatModal.tsx";
+import {
+  ImportReviewModal,
+  type ImportRecap,
+} from "../../modals/common/ImportReviewModal.tsx";
+import api from "../../api/axiosConfig";
+import {
+  TRANSACTION_COLUMNS,
+  TAG_COLUMNS,
+  SUBSCRIPTION_COLUMNS,
+  parseTransactionsCsv,
+  parseTagsCsv,
+  parseSubscriptionsCsv,
+  type TransactionRequest,
+  type TagRequest,
+  type SubscriptionRequest,
+} from "./csvImport.ts";
+import {
+  detectTransactionOverwrites,
+  detectTagOverwrites,
+  detectSubscriptionOverwrites,
+  type DedupOverwrite,
+} from "./csvDedup.ts";
+import {
+  validateTransactions,
+  validateTags,
+  validateSubscriptions,
+  type RowError,
+} from "./csvValidation.ts";
 import type { Tag } from "../../utils/types";
+
+/** Which resource an export/import action targets. */
+type Resource = "transactions" | "tags" | "subscriptions";
+
+/** Request DTOs the bulk endpoints accept, keyed by resource. */
+type ImportDtos = TransactionRequest[] | TagRequest[] | SubscriptionRequest[];
+
+/** A prepared import: everything needed to POST and to render the review modal. */
+interface ImportJob {
+  resource: Resource;
+  endpoint: string;
+  dtos: ImportDtos;
+  newCount: number;
+  overwrites: DedupOverwrite[];
+  /** Client-side validation problems; a non-empty list blocks the import. */
+  rowErrors: RowError[];
+}
+
+/** Live state of the review modal (null = closed). */
+interface ImportModalState extends ImportJob {
+  phase: "confirm" | "recap";
+  recap?: ImportRecap;
+  submitting: boolean;
+}
+
+/** Shape of the structured bulk-import response bodies. */
+interface BulkResponse {
+  created?: unknown[];
+  updated?: unknown[];
+  autoCreatedTags?: { name: string }[];
+}
+
+/** Reduces a bulk response to the recap counts the modal displays. */
+const toRecap = (data: BulkResponse): ImportRecap => ({
+  created: data.created?.length ?? 0,
+  updated: data.updated?.length ?? 0,
+  autoCreatedTags: (data.autoCreatedTags ?? []).map((t) => t.name),
+});
 
 /**
  * Export order: alphabetical, grouped by parent — each parent immediately
@@ -51,8 +118,17 @@ const downloadCsv = (rows: (string | number)[][], filename: string) => {
 };
 
 export const DataTab: React.FC = () => {
-  const { wallet, tags, transactions } = useWalletContext();
+  const { wallet, tags, transactions, subscriptions, fetchData } =
+    useWalletContext();
   const [formatOpen, setFormatOpen] = useState(false);
+  // Review modal state (null = closed). Confirm phase gates overwrites; recap
+  // phase reports the backend's structured result after a successful import.
+  const [review, setReview] = useState<ImportModalState | null>(null);
+
+  // One hidden <input> shared by all three import buttons; the button that was
+  // clicked stores its resource here so the change handler knows the target.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const importTargetRef = useRef<Resource | null>(null);
 
   const handleExportTransactions = () => {
     if (!transactions || transactions.length === 0) {
@@ -60,17 +136,7 @@ export const DataTab: React.FC = () => {
       return;
     }
 
-    const headers = [
-      "Date",
-      "Name",
-      "Tag",
-      "Amount",
-      "Type",
-      "Notes",
-      "OriginalAmount",
-      "OriginalCurrency",
-      "ExchangeValue",
-    ];
+    const headers = TRANSACTION_COLUMNS.map((c) => c.key);
     // Chronological order (oldest first).
     const ordered = [...transactions].sort(
       (a, b) =>
@@ -99,7 +165,7 @@ export const DataTab: React.FC = () => {
       return;
     }
 
-    const headers = ["Name", "Icon", "ColorHex", "ParentName"];
+    const headers = TAG_COLUMNS.map((c) => c.key);
     const rows = sortTagsForExport(tags).map((tag) => [
       tag.name,
       tag.icon,
@@ -109,6 +175,153 @@ export const DataTab: React.FC = () => {
 
     downloadCsv([headers, ...rows], `${wallet.name}_tags.csv`);
     triggerToast("Tags exported successfully", true);
+  };
+
+  const handleExportSubscriptions = () => {
+    if (!subscriptions || subscriptions.length === 0) {
+      triggerToast("No subscriptions to export", false);
+      return;
+    }
+
+    const headers = SUBSCRIPTION_COLUMNS.map((c) => c.key);
+    const rows = subscriptions.map((sub) => [
+      sub.name,
+      sub.tag?.name ?? "",
+      sub.amount,
+      sub.type,
+      sub.status,
+      sub.startDate,
+      sub.frequencyType,
+      sub.frequencyInterval,
+      sub.monthlySpecificDay ?? "",
+      String(sub.lastWorkingDayOfMonth),
+      sub.duration,
+      sub.durationTimes ?? "",
+      sub.durationUntil ?? "",
+      sub.originalAmount ?? "",
+      sub.originalCurrency ?? "",
+      sub.exchangeValue ?? "",
+      String(sub.autoExchangeRate),
+      sub.notes ?? "",
+    ]);
+
+    downloadCsv([headers, ...rows], `${wallet.name}_subscriptions.csv`);
+    triggerToast("Subscriptions exported successfully", true);
+  };
+
+  // Open the file picker for a given resource.
+  const requestImport = (resource: Resource) => {
+    importTargetRef.current = resource;
+    fileInputRef.current?.click();
+  };
+
+  // Parse the CSV into request DTOs and run dedup detection against the wallet
+  // data, so the caller knows both the payload and whether overwrites loom.
+  const buildJob = (target: Resource, text: string): ImportJob => {
+    if (target === "transactions") {
+      const dtos = parseTransactionsCsv(text);
+      const rowErrors = validateTransactions(dtos);
+      const { overwrites, newCount } = detectTransactionOverwrites(
+        dtos,
+        transactions,
+      );
+      return {
+        resource: target,
+        endpoint: `/transactions/${wallet.id}/bulk`,
+        dtos,
+        overwrites,
+        newCount,
+        rowErrors,
+      };
+    }
+    if (target === "tags") {
+      const dtos = parseTagsCsv(text);
+      // Existing wallet tags count as resolvable parents for the batch.
+      const rowErrors = validateTags(
+        dtos,
+        tags.map((t) => t.name),
+      );
+      const { overwrites, newCount } = detectTagOverwrites(dtos, tags);
+      return {
+        resource: target,
+        endpoint: `/tags/${wallet.id}/bulk`,
+        dtos,
+        overwrites,
+        newCount,
+        rowErrors,
+      };
+    }
+    const dtos = parseSubscriptionsCsv(text);
+    const rowErrors = validateSubscriptions(dtos);
+    const { overwrites, newCount } = detectSubscriptionOverwrites(
+      dtos,
+      subscriptions,
+    );
+    return {
+      resource: target,
+      endpoint: `/subscription/${wallet.id}/bulk`,
+      dtos,
+      overwrites,
+      newCount,
+      rowErrors,
+    };
+  };
+
+  // POST the whole file to the matching bulk endpoint in a single atomic
+  // request, then swap the modal to the recap phase and refresh wallet data.
+  const submitJob = async (job: ImportJob) => {
+    setReview((prev) => (prev ? { ...prev, submitting: true } : prev));
+    try {
+      const { data } = await api.post(job.endpoint, job.dtos);
+      setReview({
+        ...job,
+        phase: "recap",
+        recap: toRecap(data as BulkResponse),
+        submitting: false,
+      });
+      await fetchData();
+    } catch (err: unknown) {
+      // The bulk endpoints report the offending line as `Row N: <reason>`.
+      triggerToast(getApiErrorDetail(err, "Import failed"), false);
+      setReview(null);
+    }
+  };
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
+    const target = importTargetRef.current;
+    // Reset immediately so re-selecting the same file fires `change` again.
+    input.value = "";
+    importTargetRef.current = null;
+
+    if (!file || !target) return;
+
+    let job: ImportJob;
+    try {
+      job = buildJob(target, await file.text());
+    } catch (err: unknown) {
+      triggerToast(getApiErrorDetail(err, "Import failed"), false);
+      return;
+    }
+
+    // Client-side validation gate: never POST a file the backend would 409 on.
+    if (job.rowErrors.length > 0) {
+      const first = job.rowErrors[0];
+      const more =
+        job.rowErrors.length > 1 ? ` (+${job.rowErrors.length - 1} more)` : "";
+      triggerToast(`Row ${first.row}: ${first.message}${more}`, false);
+      return;
+    }
+
+    // Overwrites → gate behind the confirm phase; the user commits explicitly.
+    if (job.overwrites.length > 0) {
+      setReview({ ...job, phase: "confirm", submitting: false });
+      return;
+    }
+
+    // Nothing to overwrite → import straight away and show the recap.
+    await submitJob(job);
   };
 
   return (
@@ -135,6 +348,29 @@ export const DataTab: React.FC = () => {
         accentColor={wallet.color}
       />
 
+      {/* Review overwrites (confirm) then report the result (recap). */}
+      <ImportReviewModal
+        open={review !== null}
+        phase={review?.phase ?? "confirm"}
+        resource={review?.resource ?? "transactions"}
+        newCount={review?.newCount ?? 0}
+        overwrites={review?.overwrites ?? []}
+        recap={review?.recap}
+        submitting={review?.submitting ?? false}
+        accentColor={wallet.color}
+        onConfirm={() => review && submitJob(review)}
+        onClose={() => setReview(null)}
+      />
+
+      {/* Shared hidden picker for all import buttons. */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv"
+        className="hidden"
+        onChange={handleFileSelected}
+      />
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* EXPORT */}
         <div className="flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4">
@@ -156,6 +392,14 @@ export const DataTab: React.FC = () => {
               <FontAwesomeIcon icon={faDownload} />
               Transactions (.csv)
             </Button>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={handleExportSubscriptions}
+            >
+              <FontAwesomeIcon icon={faDownload} />
+              Subscriptions (.csv)
+            </Button>
             <Button variant="secondary" fullWidth onClick={handleExportTags}>
               <FontAwesomeIcon icon={faDownload} />
               Tags (.csv)
@@ -163,14 +407,9 @@ export const DataTab: React.FC = () => {
           </div>
         </div>
 
-        {/* IMPORT — TODO: disabled on purpose.
-            The client-side implementation fired one HTTP request per row
-            (a 400-row CSV = 400+ POST/PUT requests), which floods the backend
-            like a self-inflicted DoS. Re-enable only once there is a single
-            bulk-import endpoint that ingests the whole file/array in one
-            request (server-side parse + batched upsert + the overwrite /
-            auto-create-main-tag merge rules). The preview/recap modal + merge
-            semantics are specced in .claude/TODO/settings-redesign.md. */}
+        {/* IMPORT — each button ships the whole CSV to a single bulk endpoint
+            (POST /<resource>/{walletId}/bulk), an atomic all-or-nothing request
+            rather than one call per row. */}
         <div className="flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4">
           <div className="flex items-center gap-2">
             <FontAwesomeIcon icon={faUpload} className="text-app-blue" />
@@ -179,14 +418,31 @@ export const DataTab: React.FC = () => {
             </span>
           </div>
           <p className="text-xs text-app-muted">
-            Bulk CSV import is coming soon.
+            Upload a CSV to add records in bulk. Match the export format — open
+            the format guide (?) if unsure.
           </p>
           <div className="mt-auto flex flex-col gap-2">
-            <Button variant="secondary" fullWidth disabled title="Coming soon">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => requestImport("transactions")}
+            >
               <FontAwesomeIcon icon={faUpload} />
               Transactions (.csv)
             </Button>
-            <Button variant="secondary" fullWidth disabled title="Coming soon">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => requestImport("subscriptions")}
+            >
+              <FontAwesomeIcon icon={faUpload} />
+              Subscriptions (.csv)
+            </Button>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => requestImport("tags")}
+            >
               <FontAwesomeIcon icon={faUpload} />
               Tags (.csv)
             </Button>

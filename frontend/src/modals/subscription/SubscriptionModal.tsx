@@ -14,6 +14,7 @@ import type { Tag, Wallet, Subscription } from "../../utils/types";
 // Sub-components reused from the transaction modal.
 import CustomDatePicker from "../../components/DataPicker/CustomDatePicker";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
+import { Input } from "../../components/ui/Input.tsx";
 import { AmountInput } from "../../components/ui/AmountInput.tsx";
 import { TransactionTypeToggle } from "../TransactionModal/TransactionTypeToggle";
 import { TagPicker } from "../TransactionModal/TagPicker/TagPicker";
@@ -398,14 +399,33 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             </div>
           </div>
 
-          {/* 4. NAME & NOTES */}
-          {/*<TransactionMetadataInputs*/}
-          {/*    name={name}*/}
-          {/*    setName={setName}*/}
-          {/*    notes={notes}*/}
-          {/*    setNotes={setNotes}*/}
-          {/*    selectedTagName={selectedTagName}*/}
-          {/*/>*/}
+          {/* 4. NAME & DESCRIPTION */}
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
+                Name
+              </label>
+              <Input
+                type="text"
+                placeholder="Name of the subscription (Optional)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
+                Description
+              </label>
+              <textarea
+                rows={2}
+                placeholder="Add a description (optional)"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full resize-none rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3.5 py-2.5 text-app-text outline-none transition-colors duration-200 placeholder:text-app-muted focus:border-[var(--brand-1)] focus:ring-1 focus:ring-[var(--brand-1)]/50"
+              />
+            </div>
+          </div>
 
           <hr className="my-2 border-app-border" />
 

@@ -11,6 +11,7 @@ import lombok.Data;
 public class WalletResponse {
   private UUID id;
   private String name;
+  private String description;
   private String icon;
   private String color;
   private String currency;

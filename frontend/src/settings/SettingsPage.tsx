@@ -23,10 +23,18 @@ function readMustChange(): boolean {
   }
 }
 
+/**
+ * Scroll-spy activation line — mirrors the sections' scroll-margin-top
+ * (`scroll-mt-[170px] lg:scroll-mt-28` below), so the highlighted nav item is
+ * always the section a click scrolls to. Keep these two values in sync.
+ */
+const spyOffset = () =>
+  window.matchMedia("(min-width: 1024px)").matches ? 112 : 170;
+
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const activeId = useScrollSpy(SETTINGS_SECTION_IDS);
+  const activeId = useScrollSpy(SETTINGS_SECTION_IDS, spyOffset);
 
   // Forced password-change mode (mustChangePWD): show only Security, blocking.
   const [forced, setForced] = useState(readMustChange);
@@ -54,14 +62,14 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="relative isolate min-h-screen bg-app-bg text-app-text transition-colors">
-      <DashboardBackground />
+      <DashboardBackground fixed />
 
       {/* Fixed top bar — stays put while the page scrolls (matches the dashboard). */}
       <div className="sticky top-0 z-[120]">
         <AppHeader page={{ text: "My", accent: "Settings" }} />
       </div>
 
-      <main className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:py-8">
+      <main className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6 lg:py-8">
         <div
           className={
             forced
@@ -70,8 +78,11 @@ const SettingsPage: React.FC = () => {
           }
         >
           {!forced && (
-            <div>
-              <div className="sticky top-16 z-20 -mx-4 border-b border-app-border/60 bg-app-bg/85 px-4 py-3 backdrop-blur lg:top-20 lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+            // On mobile the grid item itself is the sticky element (its containing
+            // block is the full-height grid, so the bar has room to stay pinned).
+            // On lg the column stretches and the inner bar handles stickiness.
+            <div className="min-w-0 sticky top-16 z-20 self-start lg:static lg:top-auto lg:z-auto lg:self-auto">
+              <div className="-mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-app-border/60 bg-app-bg/85 py-3 backdrop-blur lg:sticky lg:top-20 lg:z-20 lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
                 {/* Back link sits as the header of the settings nav, above the sections. */}
                 <button
                   type="button"

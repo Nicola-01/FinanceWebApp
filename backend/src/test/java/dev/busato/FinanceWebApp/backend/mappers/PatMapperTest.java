@@ -52,6 +52,7 @@ class PatMapperTest {
     token.setCreatedAt(LocalDateTime.now());
     token.setExpiresAt(LocalDateTime.now().plusDays(30));
     token.setLastUsedAt(LocalDateTime.now().plusDays(1));
+    token.setPaused(true);
     PatResponse response = patMapper.toResponse(token);
     assertNotNull(response);
     assertEquals(token.getId(), response.getId());
@@ -60,7 +61,19 @@ class PatMapperTest {
     assertEquals(token.getCreatedAt(), response.getCreatedAt());
     assertEquals(token.getExpiresAt(), response.getExpiresAt());
     assertEquals(token.getLastUsedAt(), response.getLastUsedAt());
+    assertTrue(response.isPaused());
     assertFalse(response.getWalletPermissions().isEmpty());
+  }
+
+  @Test
+  void toResponse_DefaultPaused_ShouldMapFalse() {
+    PersonalAccessToken token = new PersonalAccessToken();
+    token.setId(UUID.randomUUID());
+    token.setName("Not Paused");
+    token.setTokenPrefix("PREFIX_");
+    token.setWalletPermissions("[]");
+    PatResponse response = patMapper.toResponse(token);
+    assertFalse(response.isPaused());
   }
 
   @Test

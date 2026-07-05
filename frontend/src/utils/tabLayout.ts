@@ -187,6 +187,27 @@ export function moveSlot(
   return { ...layout, slots };
 }
 
+/**
+ * Move a visible slot to `index` in the list WITHOUT it (0..slots.length-1).
+ * The geometric drag reorder computes its target index over the *other* slots,
+ * so this matches that convention directly. No-op (same reference) when the slot
+ * would land back where it started or is unknown.
+ */
+export function moveSlotToIndex(
+  layout: TabLayout,
+  activeId: string,
+  index: number,
+): TabLayout {
+  const from = layout.slots.findIndex((s) => s.id === activeId);
+  if (from === -1) return layout;
+  const slots = [...layout.slots];
+  const [moved] = slots.splice(from, 1);
+  const to = Math.max(0, Math.min(index, slots.length));
+  if (to === from) return layout; // lands back in place
+  slots.splice(to, 0, moved);
+  return { ...layout, slots };
+}
+
 /** Next free `group-<n>` id across visible + hidden slots. */
 export function nextGroupId(layout: TabLayout): string {
   const used = [...layout.slots, ...layout.hiddenSlots]

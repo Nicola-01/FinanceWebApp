@@ -24,6 +24,7 @@ public class WalletMapper {
         WalletResponse.builder()
             .id(access.getWallet().getId())
             .name(access.getWallet().getName())
+            .description(access.getWallet().getDescription())
             .currency(access.getWallet().getCurrency())
             .icon(access.getWallet().getIcon())
             .color(access.getWallet().getColor())

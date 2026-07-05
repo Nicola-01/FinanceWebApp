@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.repository;
 
 import dev.busato.FinanceWebApp.backend.model.PersonalAccessToken;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,4 +30,10 @@ public interface PersonalAccessTokenRepository extends JpaRepository<PersonalAcc
 
   /** Revoke all tokens owned by a specific user */
   void deleteAllByUserId(UUID userId);
+
+  /** Bulk-revoke tokens by ID, restricted to those owned by the given user. */
+  void deleteAllByIdInAndUserId(Collection<UUID> ids, UUID userId);
+
+  /** Fetch tokens by ID, restricted to those owned by the given user, for bulk operations. */
+  List<PersonalAccessToken> findAllByIdInAndUserId(Collection<UUID> ids, UUID userId);
 }

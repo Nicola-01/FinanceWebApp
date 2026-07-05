@@ -1,9 +1,10 @@
-import React, { useState, forwardRef } from "react";
+import React, { useState, useRef, forwardRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import type { Wallet } from "../../utils/types.ts";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { walletSlug } from "../../utils/walletSlug.ts";
 
 export interface WalletProps {
   wallet: Wallet;
@@ -14,8 +15,8 @@ export interface WalletProps {
 }
 
 export const WalletCardUI = forwardRef<
-  HTMLDivElement,
-  WalletProps & React.HTMLAttributes<HTMLDivElement>
+  HTMLAnchorElement,
+  WalletProps & React.AnchorHTMLAttributes<HTMLAnchorElement>
 >(
   (
     { wallet, isSelected, onClick, isDragging, isOverlay, style, ...props },
@@ -24,8 +25,20 @@ export const WalletCardUI = forwardRef<
     const [ripples, setRipples] = useState<
       Array<{ x: number; y: number; id: number }>
     >([]);
+    // Remember how the last interaction started so the context-menu handler can
+    // tell a mouse right-click (allow native menu) from a touch long-press
+    // (which is the drag-reorder gesture — suppress the menu).
+    const lastPointerType = useRef<string>("mouse");
+    // Where the current press started. dnd-kit leaves a trailing `click` on the
+    // anchor after a drag-reorder; if the pointer moved past the drag threshold
+    // between press and click we treat that click as drag debris and swallow it
+    // (otherwise it would navigate and drop the URL query string).
+    const pointerDownPos = useRef<{ x: number; y: number } | null>(null);
+    const DRAG_CLICK_THRESHOLD = 5; // px — matches MouseSensor activation distance
 
-    const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const handlePointerDown = (e: React.PointerEvent<HTMLAnchorElement>) => {
+      lastPointerType.current = e.pointerType;
+      pointerDownPos.current = { x: e.clientX, y: e.clientY };
       if (isOverlay) return;
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -55,16 +68,52 @@ export const WalletCardUI = forwardRef<
       zIndex: isOverlay ? 50 : isSelected ? 10 : 1,
     };
 
+    // Render the card as a real link so the browser gives us open-in-new-tab
+    // for free on desktop: middle-click and ⌘/Ctrl+click open a new tab, and
+    // right-click shows the native "Open in new tab" menu. (On mobile the
+    // long-press stays reserved for drag-reorder — see handleContextMenu.)
+    const href = `/dashboard/${walletSlug(wallet)}`;
+
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      // Let modifier / middle / right clicks fall through to the browser's
+      // native link handling; only a plain left-click does SPA navigation.
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
+        return;
+      }
+      e.preventDefault(); // no full-page reload — navigate within the SPA
+      // Ignore the synthetic click dnd-kit fires at the end of a drag-reorder:
+      // if the pointer travelled past the drag threshold, this was a drag, not
+      // a tap — don't navigate (which would reset the URL / current view).
+      const start = pointerDownPos.current;
+      if (start) {
+        const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+        if (moved > DRAG_CLICK_THRESHOLD) return;
+      }
+      onClick?.();
+    };
+
+    const handleContextMenu = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      // Mouse right-click keeps the browser's native "Open in new tab" menu.
+      // On touch/pen the long-press is the drag-reorder gesture, so suppress
+      // the menu to keep dragging clean (no new-tab option on mobile).
+      if (lastPointerType.current !== "mouse") {
+        e.preventDefault();
+      }
+    };
+
     return (
-      <div
+      <a
         ref={ref}
+        href={href}
+        draggable={false}
         style={combinedStyle}
-        onClick={onClick}
+        onClick={handleClick}
+        onContextMenu={handleContextMenu}
         {...props}
         onPointerDown={handlePointerDown}
         className={`
-                group relative overflow-hidden flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md shrink-0 
-                
+                group relative overflow-hidden flex items-center gap-4 p-4 rounded-2xl border backdrop-blur-md shrink-0
+
                 /* Fixed mobile width; fills the sidebar column on desktop */
                 w-[260px] xl:w-full
                 
@@ -119,7 +168,7 @@ export const WalletCardUI = forwardRef<
             {wallet.currency}
           </p>
         </div>
-      </div>
+      </a>
     );
   },
 );

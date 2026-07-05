@@ -256,22 +256,15 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
     );
   };
 
-  // Only the list view keeps a header action (＋ New token); create/edit use the
-  // footer CTA below instead of a tiny header checkmark.
-  const renderRightActions = () => {
-    if (view === "list") {
-      return [
-        {
-          icon: <FontAwesomeIcon icon={faPlus} className="text-xl" />,
-          onClick: goToCreate,
-          hoverColor: "hover:text-app-green",
-        },
-      ];
-    }
-    return undefined;
-  };
-
+  // Every view drives its primary action from the footer CTA — no header buttons.
   const renderFooter = () => {
+    if (view === "list") {
+      return (
+        <Button variant="primary" fullWidth ripple onClick={goToCreate}>
+          <FontAwesomeIcon icon={faPlus} /> New token
+        </Button>
+      );
+    }
     if (view !== "create" && view !== "edit") return undefined;
     const disabled =
       isSubmitting ||
@@ -312,7 +305,6 @@ export const PatModal = forwardRef<PatModalHandle>((_props, ref) => {
       ref={dialogRef}
       className="max-w-[560px]"
       title={renderTitle()}
-      rightActions={renderRightActions()}
       footer={renderFooter()}
       onCloseClick={handleCloseClick}
       showClose={true}

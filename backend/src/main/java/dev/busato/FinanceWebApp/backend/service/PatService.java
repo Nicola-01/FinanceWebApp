@@ -122,6 +122,11 @@ public class PatService {
       throw new InvalidTokenException("API token has expired");
     }
 
+    // Reject paused tokens without bumping lastUsedAt
+    if (token.isPaused()) {
+      throw new InvalidTokenException("API token is paused");
+    }
+
     // Update lastUsedAt asynchronously (fire-and-forget, don't block the request)
     updateLastUsedAsync(token.getId());
 
@@ -162,6 +167,56 @@ public class PatService {
     token = tokenRepository.save(token);
 
     return patMapper.toResponse(token);
+  }
+
+  /**
+   * Pauses or resumes a token owned by the given user. A paused token is rejected during API
+   * authentication but not deleted. Evicts all patTokens cache entries so the new state takes
+   * effect immediately.
+   */
+  @Transactional
+  @CacheEvict(value = "patTokens", allEntries = true)
+  public PatResponse setPaused(UUID tokenId, UUID userId, boolean paused) {
+    PersonalAccessToken token =
+        tokenRepository
+            .findByIdAndUserId(tokenId, userId)
+            .orElseThrow(
+                () -> new InvalidTokenException("Token not found or does not belong to user"));
+
+    token.setPaused(paused);
+    token = tokenRepository.save(token);
+
+    return patMapper.toResponse(token);
+  }
+
+  /**
+   * Bulk-deletes tokens by ID, affecting ONLY tokens owned by the given user. IDs not owned by the
+   * user are silently ignored. Evicts all patTokens cache entries.
+   */
+  @Transactional
+  @CacheEvict(value = "patTokens", allEntries = true)
+  public void bulkDeleteTokens(java.util.Collection<UUID> ids, UUID userId) {
+    if (ids == null || ids.isEmpty()) return;
+    tokenRepository.deleteAllByIdInAndUserId(ids, userId);
+  }
+
+  /**
+   * Bulk pauses or resumes tokens by ID, affecting ONLY tokens owned by the given user. IDs not
+   * owned by the user are silently ignored. Evicts all patTokens cache entries so the new state
+   * takes effect immediately (a just-paused token stops authenticating from the Caffeine cache).
+   *
+   * @return the updated tokens (only those actually owned by the caller), mapped to responses
+   */
+  @Transactional
+  @CacheEvict(value = "patTokens", allEntries = true)
+  public List<PatResponse> bulkSetPaused(List<UUID> ids, UUID userId, boolean paused) {
+    if (ids == null || ids.isEmpty()) return List.of();
+
+    List<PersonalAccessToken> tokens = tokenRepository.findAllByIdInAndUserId(ids, userId);
+    tokens.forEach(token -> token.setPaused(paused));
+    tokens = tokenRepository.saveAll(tokens);
+
+    return tokens.stream().map(patMapper::toResponse).collect(Collectors.toList());
   }
 
   // ──────────────────────────────────── Private helpers ────────────────────────────────────

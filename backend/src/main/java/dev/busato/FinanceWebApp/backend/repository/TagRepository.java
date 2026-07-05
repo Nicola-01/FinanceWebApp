@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 public interface TagRepository extends JpaRepository<Tag, Long> {
   List<Tag> getTagsByWalletId(UUID walletId);
 
+  List<Tag> getTagsByWalletIdIn(List<UUID> walletIds);
+
   Optional<Tag> findByNameIgnoreCaseAndWalletId(String tagName, UUID walletID);
 
   boolean existsByNameIgnoreCaseAndWalletId(String name, UUID walletId);

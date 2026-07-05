@@ -1,19 +1,25 @@
 package dev.busato.FinanceWebApp.backend.service;
 
+import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.dto.WalletRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
+import dev.busato.FinanceWebApp.backend.dto.WalletTagsResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.UnauthorizedAccessException;
 import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
+import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.mappers.WalletMapper;
 import dev.busato.FinanceWebApp.backend.model.*;
+import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository; // <--- Nuovo import
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import dev.busato.FinanceWebApp.backend.security.WalletSecurity;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,6 +39,8 @@ public class WalletService {
   private final WalletMapper walletMapper;
   private final WalletSecurity walletSecurity;
   private final PatService patService;
+  private final TagRepository tagRepository;
+  private final TagMapper tagMapper;
 
   @Transactional
   public WalletResponse createWallet(WalletRequest request, UUID userId) {
@@ -46,6 +54,7 @@ public class WalletService {
     Wallet wallet =
         Wallet.builder()
             .name(request.getName())
+            .description(request.getDescription())
             .color(Optional.ofNullable(request.getColor()).orElse("#abababa"))
             .icon(request.getIcon())
             .currency(Optional.ofNullable(request.getCurrency()).orElse("EUR"))
@@ -97,6 +106,8 @@ public class WalletService {
       wallet.setColor(request.getColor());
     if (request.getIcon() != null && !request.getIcon().isBlank())
       wallet.setIcon(request.getIcon());
+    // Description is sent only at creation time; a null on update must not wipe the stored value.
+    if (request.getDescription() != null) wallet.setDescription(request.getDescription());
 
     return walletMapper.mapToResponse(ownerAccess);
   }
@@ -121,6 +132,46 @@ public class WalletService {
         .filter(access -> walletSecurity.hasReadAccessQuietly(userId, access.getWallet().getId()))
         .map(walletMapper::mapToResponse)
         .sorted((w1, w2) -> w2.getCreatedAt().compareTo(w1.getCreatedAt()))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Returns every wallet the user has ACCEPTED access to, each bundled with all of its tags. All
+   * tags are fetched in a single batch query and grouped in memory to avoid an N+1 query (one query
+   * per wallet).
+   */
+  public List<WalletTagsResponse> getWalletsWithTags(UUID userId) {
+    List<WalletAccess> accesses =
+        walletAccessRepository
+            .findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED)
+            .stream()
+            .filter(
+                access -> walletSecurity.hasReadAccessQuietly(userId, access.getWallet().getId()))
+            .collect(Collectors.toList());
+
+    List<UUID> walletIds =
+        accesses.stream().map(access -> access.getWallet().getId()).collect(Collectors.toList());
+
+    // Guard the empty case so we never issue a `WHERE id IN ()` query.
+    Map<UUID, List<TagResponse>> tagsByWallet = new HashMap<>();
+    if (!walletIds.isEmpty()) {
+      tagsByWallet =
+          tagRepository.getTagsByWalletIdIn(walletIds).stream()
+              .collect(
+                  Collectors.groupingBy(
+                      tag -> tag.getWallet().getId(),
+                      Collectors.mapping(tagMapper::mapToResponse, Collectors.toList())));
+    }
+
+    final Map<UUID, List<TagResponse>> grouped = tagsByWallet;
+    return accesses.stream()
+        .map(
+            access ->
+                WalletTagsResponse.builder()
+                    .wallet(walletMapper.mapToResponse(access))
+                    .tags(grouped.getOrDefault(access.getWallet().getId(), List.of()))
+                    .build())
+        .sorted((w1, w2) -> w2.getWallet().getCreatedAt().compareTo(w1.getWallet().getCreatedAt()))
         .collect(Collectors.toList());
   }
 

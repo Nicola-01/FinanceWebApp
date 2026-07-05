@@ -5,6 +5,7 @@ import {
   hideSlot,
   mergeSlots,
   moveSlot,
+  moveSlotToIndex,
   nextGroupId,
   popWidget,
   popWidgetTo,
@@ -205,6 +206,48 @@ describe("moveSlot", () => {
     const l = defaultLayout(WIDGETS);
     expect(moveSlot(l, "nope", "a")).toBe(l);
     expect(moveSlot(l, "a", "a")).toBe(l);
+  });
+});
+
+describe("moveSlotToIndex", () => {
+  // defaultLayout(WIDGETS) → visible slots [a, b, c, d].
+  it("inserts the active slot at an index of the list WITHOUT it", () => {
+    const l = defaultLayout(WIDGETS);
+    expect(moveSlotToIndex(l, "d", 0).slots.map((s) => s.id)).toEqual([
+      "d",
+      "a",
+      "b",
+      "c",
+    ]);
+    expect(moveSlotToIndex(l, "a", 2).slots.map((s) => s.id)).toEqual([
+      "b",
+      "c",
+      "a",
+      "d",
+    ]);
+  });
+
+  it("clamps out-of-range indices to the ends", () => {
+    const l = defaultLayout(WIDGETS);
+    expect(moveSlotToIndex(l, "a", 99).slots.map((s) => s.id)).toEqual([
+      "b",
+      "c",
+      "d",
+      "a",
+    ]);
+    expect(moveSlotToIndex(l, "d", -5).slots.map((s) => s.id)).toEqual([
+      "d",
+      "a",
+      "b",
+      "c",
+    ]);
+  });
+
+  it("is a no-op (same reference) when it lands back in place or the id is unknown", () => {
+    const l = defaultLayout(WIDGETS);
+    expect(moveSlotToIndex(l, "a", 0)).toBe(l);
+    expect(moveSlotToIndex(l, "b", 1)).toBe(l);
+    expect(moveSlotToIndex(l, "nope", 0)).toBe(l);
   });
 });
 

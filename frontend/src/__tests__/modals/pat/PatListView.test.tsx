@@ -12,6 +12,7 @@ const token = (over: Partial<PatToken> = {}): PatToken => ({
   createdAt: "2026-01-01T00:00:00Z",
   expiresAt: null,
   lastUsedAt: null,
+  paused: false,
   ...over,
 });
 
@@ -55,7 +56,7 @@ describe("PatListView", () => {
     expect(onCreate).toHaveBeenCalledTimes(1);
   });
 
-  it("renders each provided token with its name and prefix", () => {
+  it("renders each provided token by name, with the prefix masked", () => {
     render(
       <PatListView
         loadingTokens={false}
@@ -68,8 +69,9 @@ describe("PatListView", () => {
     );
     expect(screen.getByText("CI Bot")).toBeInTheDocument();
     expect(screen.getByText("Budget")).toBeInTheDocument();
-    expect(screen.getByText(/fin_pat_ab12/)).toBeInTheDocument();
-    expect(screen.getByText(/fin_pat_cd34/)).toBeInTheDocument();
+    // The raw prefix is hidden by default now; the row shows a masked placeholder.
+    expect(screen.getAllByText("••••••••")).toHaveLength(2);
+    expect(screen.queryByText(/fin_pat_ab12/)).toBeNull();
   });
 
   it("invokes onRevoke with the token id when the revoke action is used", async () => {

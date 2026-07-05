@@ -13,6 +13,7 @@ export interface User {
 export interface Wallet {
   id: string;
   name: string;
+  description?: string;
   icon: string;
   color: string;
   currency: string;
@@ -131,6 +132,8 @@ export interface PatToken {
   createdAt: string;
   expiresAt: string | null;
   lastUsedAt: string | null;
+  /** When true the token is temporarily disabled — kept, but rejected on the API. */
+  paused: boolean;
 }
 
 export type ModalView = "list" | "create" | "edit" | "showToken";

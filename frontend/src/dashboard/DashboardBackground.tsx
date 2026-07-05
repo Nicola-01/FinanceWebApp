@@ -8,10 +8,20 @@ import Sphere from "../assets/Sphere";
  *
  * Sits at `-z-10` (above the root's solid `bg-app-bg`, below the in-flow
  * dashboard content), so transparent regions of the layout let it show through.
+ *
+ * `fixed` pins the layer to the viewport (spheres stay put while the page
+ * scrolls) instead of the default `absolute` (scrolls with the page). Use it on
+ * long, window-scrolling pages like Settings.
  */
-export const DashboardBackground: React.FC = () => {
+export const DashboardBackground: React.FC<{ fixed?: boolean }> = ({
+  fixed = false,
+}) => {
   return (
-    <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden opacity-70 dark:opacity-100">
+    <div
+      className={`pointer-events-none ${
+        fixed ? "fixed" : "absolute"
+      } inset-0 -z-10 overflow-hidden opacity-70 dark:opacity-100`}
+    >
       {/* Violet — top right */}
       <Sphere
         style={{

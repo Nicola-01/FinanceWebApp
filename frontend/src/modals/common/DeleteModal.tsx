@@ -11,6 +11,7 @@ import type {
   Wallet,
   Subscription,
   Tag,
+  PatToken,
 } from "../../utils/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
@@ -28,21 +29,21 @@ export type DeleteLevel = 0 | 1 | 2;
 
 export interface DeleteModalHandle {
   deleteObject: (
-    object: User | Wallet | Transaction | Subscription | Tag,
+    object: User | Wallet | Transaction | Subscription | Tag | PatToken,
     typeName: string,
     handleConfirmClick: () => void | Promise<void>,
     level?: DeleteLevel,
   ) => void;
 }
 
-const HOLD_MS = 3000;
+const HOLD_MS = 1750;
 
 export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   // Internal modal state
   const [objToDelete, setObjToDelete] = useState<
-    User | Wallet | Transaction | Subscription | Tag | null
+    User | Wallet | Transaction | Subscription | Tag | PatToken | null
   >(null);
   const [onConfirmCb, setOnConfirmCb] = useState<
     (() => void | Promise<void>) | null

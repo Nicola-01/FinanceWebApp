@@ -1,10 +1,13 @@
 package dev.busato.FinanceWebApp.backend.service;
 
+import dev.busato.FinanceWebApp.backend.dto.SubscriptionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
+import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
+import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
@@ -19,7 +22,14 @@ import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +50,8 @@ public class SubscriptionService {
   private final TagRepository tagRepository;
   private final TransactionRepository transactionRepository;
   private final SubscriptionMapper subscriptionMapper;
+  private final TagMapper tagMapper;
+  private final TagService tagService;
   private final java.time.Clock clock;
   private final ExchangeRateService exchangeRateService;
 
@@ -69,24 +81,136 @@ public class SubscriptionService {
   @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
   public SubscriptionResponse createSubscription(
       SubscriptionRequest request, UUID walletId, UUID userId) {
+    return createSubscriptionInternal(request, walletId);
+  }
+
+  /**
+   * Bulk-upserts subscriptions in a single atomic transaction. Write access is verified once for
+   * the whole batch.
+   *
+   * <p>For each row the referenced tag is resolved by case-insensitive name; a non-blank tag name
+   * with no matching tag is <b>auto-created</b> with default styling (icon {@code "tag"}, colour
+   * {@code "var(--color-app-green)"}, no parent) and reported once in {@link
+   * SubscriptionBulkResponse#getAutoCreatedTags()}. A row is treated as a <b>duplicate</b> of an
+   * existing subscription when it shares the same name, tag and start date (name and tag compared
+   * case-insensitively/trimmed, date exact): the existing subscription's mutable fields are
+   * overwritten (via the standard update logic, including next-execution recalculation) and it is
+   * reported in {@code updated}; otherwise a new subscription is created and reported in {@code
+   * created}. Duplicate detection also spans rows created earlier in the same batch, so two
+   * identical rows collapse to a single record (last one wins).
+   *
+   * <p>The batch is all-or-nothing: if any row is invalid the whole transaction is rolled back and
+   * an {@link IllegalArgumentException} whose message is prefixed with the failing 0-based row
+   * index is thrown.
+   *
+   * @param requests The subscriptions to upsert (an empty/null list yields empty result lists)
+   * @param walletId The UUID of the wallet
+   * @param userId The UUID of the user performing the upsert
+   * @return The created and updated subscriptions plus any auto-created tags
+   */
+  @Transactional
+  @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
+  public SubscriptionBulkResponse createSubscriptionsBulk(
+      List<SubscriptionRequest> requests, UUID walletId, UUID userId) {
+    List<Subscription> createdList = new ArrayList<>();
+    List<Subscription> updatedList = new ArrayList<>();
+    List<TagResponse> autoCreatedTags = new ArrayList<>();
+    if (requests == null || requests.isEmpty())
+      return SubscriptionBulkResponse.builder()
+          .created(new ArrayList<>())
+          .updated(new ArrayList<>())
+          .autoCreatedTags(autoCreatedTags)
+          .build();
+
     Wallet wallet =
         walletRepository
             .findById(walletId)
             .orElseThrow(() -> new WalletNotFoundException(walletId));
 
-    if (request.getName().length() < 3 || request.getName().length() > 40)
-      throw new IllegalArgumentException("The name must be between 3 and 40 characters long.");
+    // Tag index (existing + auto-created within this batch), keyed by normalised name.
+    Map<String, Tag> tagByName = new HashMap<>();
+    for (Tag t : tagRepository.getTagsByWalletId(walletId))
+      tagByName.put(normalize(t.getName()), t);
 
-    if (request.getAmount().compareTo(BigDecimal.ZERO) < 0)
-      throw new IllegalArgumentException("The amount cannot be negative.");
+    // Existing subscriptions keyed by (name|tag|startDate) for dedup; absorbs in-batch creations.
+    Map<String, Subscription> byKey = new HashMap<>();
+    for (Subscription s : subscriptionRepository.findAllByWalletId(walletId))
+      byKey.put(
+          subscriptionKey(
+              s.getName(), s.getTag() == null ? null : s.getTag().getName(), s.getStartDate()),
+          s);
 
-    Tag tag = null;
-    if (request.getTag() != null && !request.getTag().isBlank()) {
-      tag =
-          tagRepository
-              .findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
-              .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
+    // Identity-based bookkeeping so responses are built once from final entity state (last wins).
+    Set<Subscription> createdInBatch = Collections.newSetFromMap(new IdentityHashMap<>());
+    Set<Subscription> updatedTracked = Collections.newSetFromMap(new IdentityHashMap<>());
+
+    for (int i = 0; i < requests.size(); i++) {
+      try {
+        SubscriptionRequest req = requests.get(i);
+        Tag tag = resolveOrAutoCreateTag(req.getTag(), walletId, tagByName, autoCreatedTags);
+
+        LocalDate startDate =
+            req.getStartDate() != null ? req.getStartDate() : LocalDate.now(clock);
+        String key = subscriptionKey(req.getName(), tag == null ? null : tag.getName(), startDate);
+        Subscription existing = byKey.get(key);
+
+        if (existing == null) {
+          Subscription created = buildAndPersistSubscription(req, wallet, tag);
+          byKey.put(
+              subscriptionKey(
+                  created.getName(), tag == null ? null : tag.getName(), created.getStartDate()),
+              created);
+          createdInBatch.add(created);
+          createdList.add(created);
+        } else {
+          applySubscriptionUpdate(existing, req, tag);
+          subscriptionRepository.save(existing);
+          if (!createdInBatch.contains(existing) && updatedTracked.add(existing))
+            updatedList.add(existing);
+        }
+      } catch (RuntimeException ex) {
+        throw new IllegalArgumentException("Row " + i + ": " + ex.getMessage(), ex);
+      }
     }
+
+    return SubscriptionBulkResponse.builder()
+        .created(
+            createdList.stream()
+                .map(subscriptionMapper::mapToResponse)
+                .collect(Collectors.toList()))
+        .updated(
+            updatedList.stream()
+                .map(subscriptionMapper::mapToResponse)
+                .collect(Collectors.toList()))
+        .autoCreatedTags(autoCreatedTags)
+        .build();
+  }
+
+  /**
+   * Per-row create logic for the single-create path. Assumes write access to the wallet has already
+   * been verified by the caller.
+   */
+  private SubscriptionResponse createSubscriptionInternal(
+      SubscriptionRequest request, UUID walletId) {
+    Wallet wallet =
+        walletRepository
+            .findById(walletId)
+            .orElseThrow(() -> new WalletNotFoundException(walletId));
+
+    Tag tag = resolveExistingTag(request.getTag(), walletId);
+
+    Subscription sub = buildAndPersistSubscription(request, wallet, tag);
+    return subscriptionMapper.mapToResponse(sub);
+  }
+
+  /**
+   * Validates, builds, schedules (and executes if already due) and persists a brand-new
+   * subscription. Shared by the single-create and bulk-create paths.
+   */
+  private Subscription buildAndPersistSubscription(
+      SubscriptionRequest request, Wallet wallet, Tag tag) {
+    validateSubscriptionNameForCreate(request.getName());
+    requireNonNegativeAmountForCreate(request.getAmount());
 
     Subscription sub =
         Subscription.builder()
@@ -120,8 +244,59 @@ public class SubscriptionService {
 
     if (!sub.getNextExecutionDate().isAfter(LocalDate.now(clock))) executeSubscription(sub);
 
-    sub = subscriptionRepository.save(sub);
-    return subscriptionMapper.mapToResponse(sub);
+    return subscriptionRepository.save(sub);
+  }
+
+  /** Resolves an existing tag by name (blank/null → no tag), throwing if it cannot be found. */
+  private Tag resolveExistingTag(String tagName, UUID walletId) {
+    if (tagName == null || tagName.isBlank()) return null;
+    return tagRepository
+        .findByNameIgnoreCaseAndWalletId(tagName, walletId)
+        .orElseThrow(() -> new TagNotFoundException(tagName, walletId));
+  }
+
+  /**
+   * Resolves a subscription's tag by name, auto-creating it with default styling when the name is
+   * non-blank and no matching tag exists. Auto-created tags are recorded once each.
+   */
+  private Tag resolveOrAutoCreateTag(
+      String tagName,
+      UUID walletId,
+      Map<String, Tag> tagByName,
+      List<TagResponse> autoCreatedTags) {
+    if (tagName == null || tagName.isBlank()) return null;
+    Tag tag = tagByName.get(normalize(tagName));
+    if (tag == null) {
+      tag =
+          tagService.createTagFromImport(tagName.trim(), "tag", "var(--color-app-green)", walletId);
+      tagByName.put(normalize(tagName), tag);
+      autoCreatedTags.add(tagMapper.mapToResponse(tag));
+    }
+    return tag;
+  }
+
+  private void validateSubscriptionNameForCreate(String name) {
+    if (name == null || name.length() < 3 || name.length() > 40)
+      throw new IllegalArgumentException("The name must be between 3 and 40 characters long.");
+  }
+
+  private void requireNonNegativeAmountForCreate(BigDecimal amount) {
+    if (amount == null) throw new IllegalArgumentException("The amount is required.");
+    if (amount.compareTo(BigDecimal.ZERO) < 0)
+      throw new IllegalArgumentException("The amount cannot be negative.");
+  }
+
+  private static String normalize(String value) {
+    return value == null ? null : value.trim().toLowerCase(Locale.ROOT);
+  }
+
+  /** Dedup key: name + tag name (both case-insensitive) + exact start date. */
+  private static String subscriptionKey(String name, String tagName, LocalDate startDate) {
+    return (name == null ? "" : normalize(name))
+        + "|"
+        + (tagName == null ? "" : normalize(tagName))
+        + "|"
+        + startDate;
   }
 
   /**
@@ -146,6 +321,19 @@ public class SubscriptionService {
                     new IllegalArgumentException(
                         "Subscription not found or does not belong to this wallet"));
 
+    Tag tag = resolveExistingTag(request.getTag(), walletId);
+    applySubscriptionUpdate(sub, request, tag);
+
+    sub = subscriptionRepository.save(sub);
+    return subscriptionMapper.mapToResponse(sub);
+  }
+
+  /**
+   * Applies an update to an already-loaded subscription using the provided (already-resolved) tag,
+   * recalculating the next execution date when a scheduling rule changes. Shared by the single
+   * update path and the bulk upsert. Does not persist; the caller saves.
+   */
+  private void applySubscriptionUpdate(Subscription sub, SubscriptionRequest request, Tag tag) {
     if (request.getName() != null) {
       if (request.getName().length() < 2 || request.getName().length() > 40)
         throw new IllegalArgumentException("The name must be between 3 and 40 characters long.");
@@ -155,13 +343,6 @@ public class SubscriptionService {
     if (request.getAmount() != null && request.getAmount().compareTo(BigDecimal.ZERO) < 0)
       throw new IllegalArgumentException("The amount cannot be negative.");
 
-    Tag tag = null;
-    if (request.getTag() != null && !request.getTag().isBlank()) {
-      tag =
-          tagRepository
-              .findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
-              .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
-    }
     sub.setTag(tag);
 
     if (request.getAmount() != null) sub.setAmount(request.getAmount());
@@ -209,9 +390,6 @@ public class SubscriptionService {
       sub.setDuration(Subscription.Duration.valueOf(request.getDuration()));
     sub.setDurationTimes(request.getDurationTimes());
     sub.setDurationUntil(request.getDurationUntil());
-
-    sub = subscriptionRepository.save(sub);
-    return subscriptionMapper.mapToResponse(sub);
   }
 
   /**
@@ -266,15 +444,15 @@ public class SubscriptionService {
    */
   private void executeSubscription(Subscription sub) {
     int currentExecution = sub.getExecutedTimes() + 1;
+    // The subscription's name and notes are metadata of the subscription only and must NOT be
+    // transmitted onto the generated transactions. Use the tag name (with a safe fallback) instead.
+    String generatedName = sub.getTag() != null ? sub.getTag().getName() : sub.getName();
     String generatedNotes;
     if (sub.getDuration() == Subscription.Duration.TIMES && sub.getDurationTimes() != null)
       generatedNotes =
           String.format(
-              "Recurring: %s (%d / %d)", sub.getName(), currentExecution, sub.getDurationTimes());
-    else generatedNotes = String.format("Recurring: %s (#%d)", sub.getName(), currentExecution);
-
-    if (sub.getNotes() != null && !sub.getNotes().isBlank())
-      generatedNotes += "\n" + sub.getNotes();
+              "Recurring: %s (%d / %d)", generatedName, currentExecution, sub.getDurationTimes());
+    else generatedNotes = String.format("Recurring: %s (#%d)", generatedName, currentExecution);
 
     // 1. Create the actual Transaction entity linked to the wallet ONLY if ACTIVE
     if (sub.getStatus() == Subscription.Status.ACTIVE) {
@@ -304,7 +482,7 @@ public class SubscriptionService {
               .wallet(sub.getWallet())
               .subscription(sub)
               .tag(sub.getTag())
-              .name(sub.getName())
+              .name(generatedName)
               .amount(resolvedAmount)
               .originalAmount(sub.getOriginalAmount())
               .originalCurrency(sub.getOriginalCurrency())

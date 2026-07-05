@@ -18,6 +18,7 @@ import {
 import type { Subscription, Transaction } from "../../utils/types";
 import { SubscriptionCard } from "../../dashboard/subscription/SubscriptionCard";
 import { ModalDialog } from "../common/ModalDialog";
+import Button from "../../components/ui/Button";
 
 export interface DayDetailModalHandle {
   openModal: (date: Date, subscriptions: Subscription[]) => void;
@@ -124,19 +125,6 @@ export const CalendarDayDetailPanel = forwardRef<
       return format(selectedDate, "EEEE");
     })();
 
-    const rightActions = [
-      {
-        icon: <FontAwesomeIcon icon={faPlus} className="text-lg" />,
-        onClick: () => {
-          handleClose();
-          onAddSubscription?.(selectedDate);
-        },
-        color: undefined,
-        hoverColor: "hover:text-app-green",
-        hoverBg: "hover:bg-app-green/10",
-      },
-    ];
-
     return (
       <ModalDialog
         ref={dialogRef}
@@ -150,7 +138,21 @@ export const CalendarDayDetailPanel = forwardRef<
             Day Details
           </>
         }
-        rightActions={rightActions}
+        footer={
+          onAddSubscription ? (
+            <Button
+              variant="primary"
+              fullWidth
+              ripple
+              onClick={() => {
+                handleClose();
+                onAddSubscription(selectedDate);
+              }}
+            >
+              <FontAwesomeIcon icon={faPlus} /> Add subscription
+            </Button>
+          ) : undefined
+        }
       >
         <div
           onTouchStart={handleTouchStart}

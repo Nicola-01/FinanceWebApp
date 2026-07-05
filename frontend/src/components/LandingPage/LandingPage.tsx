@@ -1,94 +1,55 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { getUserAuth } from "../../utils/authHelper";
-import api from "../../api/axiosConfig";
-import { triggerToast } from "../ui/ToastNotification.tsx";
-import { getApiErrorTitle } from "../../utils/apiError";
+import React from "react";
 
-// Sub-components
-import BackgroundBlobs from "./BackgroundBlobs";
+import BackgroundSpheres from "./BackgroundSpheres";
 import Navbar from "./Navbar";
 import Hero from "./Hero";
-import DemoSection from "./DemoSection";
+import ProblemBand from "./ProblemBand";
 import Features from "./Features";
+import McpSection from "./McpSection";
+import OpenBankingSection from "./OpenBankingSection";
+import RoadmapSection from "./RoadmapSection";
 import CTASection from "./CTASection";
-import ToDoSection from "./ToDoSection";
 import Footer from "./Footer";
-
-const demoEnabled = import.meta.env.VITE_DEMO_ENABLED === "true";
+import { useLandingCta } from "./useLandingCta";
 
 const LandingPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [demoLoading, setDemoLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const user = getUserAuth();
-    if (user) {
-      setIsLoggedIn(true);
-    }
-  }, []);
-
-  const handleTryDemo = async () => {
-    setDemoLoading(true);
-    try {
-      const response = await api.post("/auth/demo");
-      const { token } = response.data;
-      localStorage.setItem("mustChangePWD", JSON.stringify(false));
-      sessionStorage.setItem("jwtToken", token);
-      navigate("/dashboard");
-      window.location.reload(); // Quick refresh to apply auth state
-    } catch (err: unknown) {
-      const title = getApiErrorTitle(err, "Could not create demo account.");
-      triggerToast(title, false);
-      console.error(err);
-    } finally {
-      setDemoLoading(false);
-    }
-  };
-
-  const handleMainCta = () => {
-    if (isLoggedIn) {
-      navigate("/dashboard");
-    } else if (demoEnabled) {
-      handleTryDemo();
-    } else {
-      navigate("/login");
-    }
-  };
-
-  const handleSecondaryCta = () => {
-    navigate("/ToDo");
-  };
+  const {
+    isLoggedIn,
+    demoEnabled,
+    demoLoading,
+    ctaLabel,
+    navCtaLabel,
+    onPrimaryCta,
+  } = useLandingCta();
 
   return (
-    <div className="bg-app-bg min-h-screen theme-text-default font-sans overflow-x-hidden selection:bg-app-green/30">
-      <BackgroundBlobs />
+    <div className="relative isolate bg-app-bg min-h-screen text-app-text font-sans overflow-x-hidden selection:bg-app-purple/30">
+      <BackgroundSpheres />
 
-      <Navbar
-        isLoggedIn={isLoggedIn}
-        onDashboardClick={() => navigate("/dashboard")}
-        onLoginClick={() => navigate("/login")}
-      />
+      <Navbar ctaLabel={navCtaLabel} onPrimaryCta={onPrimaryCta} />
 
       <Hero
-        isLoggedIn={isLoggedIn}
-        demoEnabled={demoEnabled}
+        ctaLabel={ctaLabel}
         demoLoading={demoLoading}
-        onMainCta={handleMainCta}
-        onSecondaryCta={handleSecondaryCta}
+        onPrimaryCta={onPrimaryCta}
       />
 
-      <DemoSection demoEnabled={demoEnabled} isLoggedIn={isLoggedIn} />
+      <ProblemBand />
 
       <Features />
 
-      <ToDoSection />
+      <McpSection />
+
+      <OpenBankingSection />
+
+      <RoadmapSection />
 
       <CTASection
         isLoggedIn={isLoggedIn}
         demoEnabled={demoEnabled}
-        onMainCta={handleMainCta}
+        ctaLabel={ctaLabel}
+        demoLoading={demoLoading}
+        onPrimaryCta={onPrimaryCta}
       />
 
       <Footer />

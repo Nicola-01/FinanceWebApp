@@ -12,6 +12,23 @@ export interface ToDoItem {
 type ToDoItemInput = Omit<ToDoItem, "id">;
 
 const rawToDoData: ToDoItemInput[] = [
+  // {
+  //   title: "BUGS",
+  //   description: "List of bugs to fix",
+  //   status: "STARTED",
+  //   subtasks: [""],
+  // },
+  {
+    title: "Minor improvements",
+    description: "List of improvements",
+    status: "PLANNED",
+    subtasks: ["Wallet Description", "Subscription Name & Description"],
+  },
+  {
+    title: "Guide",
+    description: "How to use the application",
+    status: "PLANNED",
+  },
   {
     title: "Core API",
     description: "The core API of the application (Spring Boot).",
@@ -118,8 +135,40 @@ const rawToDoData: ToDoItemInput[] = [
     subtasks: [
       "MCP Server integration (with OAuth2)",
       "Spending anomaly detection",
-      "Monthly summarized reports via Email/Push",
       "AI-powered insights",
+    ],
+  },
+  {
+    title: "Monthly Summarized",
+    description: "Monthly summarized reports via Email/Push.",
+    status: "PLANNED",
+    subtasks: [
+      "Generate monthly/weekly summarized reports",
+      "Yearly wrap-up report",
+      "Send reports via Email",
+      "Send reports via Push notifications",
+    ],
+  },
+  {
+    title: "Notifications",
+    description: "Notifications system for the application.",
+    status: "PLANNED",
+    subtasks: [
+      "Push notifications",
+      "PWA notifications",
+      "Wallet invitation",
+      "New transactions",
+    ],
+  },
+  {
+    title: "Remainders (Notifications)",
+    description: "",
+    status: "PLANNED",
+    subtasks: [
+      "Daily reminders",
+      "For subscription payments",
+      "subscription without amount, ask the user to insert the amount when due -> e.g. salary is not fixed, so notify to the user to insert it ",
+      "For transaction reminders (save for later (remidner 1h 6h 24h)",
     ],
   },
   {
@@ -131,27 +180,26 @@ const rawToDoData: ToDoItemInput[] = [
       "European Open Banking standard (e.g., enablebanking)",
     ],
   },
-  {
-    title: "PWA (Progressive Web App)",
-    description: "Progressive Web App.",
-    status: "FINISHED",
-    subtasks: [
-      "Temporary implementation for Android App",
-      "Installable on Android",
-      "Offline support",
-      "Push notifications",
-      "Background sync",
-    ],
-  },
+  // {
+  //   title: "PWA (Progressive Web App)",
+  //   description: "Progressive Web App.",
+  //   status: "FINISHED",
+  //   subtasks: [
+  //     "Temporary implementation for Android App",
+  //     "Installable on Android",
+  //     "Push notifications",
+  //     "Background sync",
+  //   ],
+  // },
   {
     title: "Android App",
-    description: "Native Android application.",
-    status: "PLANNED",
+    description: "Android application.",
+    status: "STARTED",
     subtasks: [
-      "Basic UI",
+      "PWA",
       "Authentication/APIs integration",
       "Sync with backend",
-      "Offline support",
+      "Offline support - sync/unsync Badge",
       "Push notifications",
       "Background sync",
       "Widgets",

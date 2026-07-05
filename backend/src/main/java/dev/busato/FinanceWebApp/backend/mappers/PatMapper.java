@@ -39,6 +39,7 @@ public class PatMapper {
         .createdAt(entity.getCreatedAt())
         .expiresAt(entity.getExpiresAt())
         .lastUsedAt(entity.getLastUsedAt())
+        .paused(entity.isPaused())
         .build();
   }
 

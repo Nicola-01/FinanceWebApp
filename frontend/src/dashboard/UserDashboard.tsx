@@ -134,7 +134,7 @@ const UserDashboard: React.FC = () => {
     // (fixed layout). `relative isolate` scopes the ambient sphere layer below.
     <div className="relative isolate flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-app-bg text-app-text transition-colors">
       {/* Ambient animated spheres (sits at -z-10, behind the content) */}
-      <DashboardBackground />
+      <DashboardBackground fixed />
 
       {/* The header takes its fixed slot at the top */}
       <AppHeader page={{ text: "My", accent: "Wallet" }} />

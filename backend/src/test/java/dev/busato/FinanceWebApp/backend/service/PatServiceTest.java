@@ -180,6 +180,26 @@ class PatServiceTest {
   }
 
   @Test
+  void validateToken_PausedToken_ThrowsInvalidTokenException() {
+    String plainToken = "fin_pat_pausedToken";
+    String hashedToken = PatService.hashToken(plainToken);
+
+    PersonalAccessToken token = new PersonalAccessToken();
+    token.setId(tokenId);
+    token.setTokenHash(hashedToken);
+    token.setPaused(true);
+
+    when(tokenRepository.findByTokenHash(hashedToken)).thenReturn(Optional.of(token));
+
+    InvalidTokenException ex =
+        assertThrows(InvalidTokenException.class, () -> patService.validateToken(plainToken));
+    assertEquals("API token is paused", ex.getMessage());
+
+    // A rejected paused token must NOT bump lastUsedAt
+    verify(tokenRepository, never()).save(any(PersonalAccessToken.class));
+  }
+
+  @Test
   void listTokens_ReturnsTokensList() {
     PersonalAccessToken token = new PersonalAccessToken();
     when(tokenRepository.findAllByUserId(userId)).thenReturn(List.of(token));
@@ -308,6 +328,173 @@ class PatServiceTest {
 
     assertThrows(
         InvalidTokenException.class, () -> patService.updateToken(tokenId, userId, request));
+  }
+
+  // ==================== setPaused ====================
+
+  @Test
+  void setPaused_Pause_FlipsFlagAndReturnsResponse() {
+    PersonalAccessToken token = new PersonalAccessToken();
+    token.setPaused(false);
+
+    when(tokenRepository.findByIdAndUserId(tokenId, userId)).thenReturn(Optional.of(token));
+    when(tokenRepository.save(token)).thenReturn(token);
+
+    PatResponse expected = PatResponse.builder().paused(true).build();
+    when(patMapper.toResponse(token)).thenReturn(expected);
+
+    PatResponse result = patService.setPaused(tokenId, userId, true);
+
+    assertNotNull(result);
+    assertTrue(result.isPaused());
+    assertTrue(token.isPaused());
+    verify(tokenRepository).save(token);
+  }
+
+  @Test
+  void setPaused_Resume_FlipsFlagAndReturnsResponse() {
+    PersonalAccessToken token = new PersonalAccessToken();
+    token.setPaused(true);
+
+    when(tokenRepository.findByIdAndUserId(tokenId, userId)).thenReturn(Optional.of(token));
+    when(tokenRepository.save(token)).thenReturn(token);
+
+    PatResponse expected = PatResponse.builder().paused(false).build();
+    when(patMapper.toResponse(token)).thenReturn(expected);
+
+    PatResponse result = patService.setPaused(tokenId, userId, false);
+
+    assertNotNull(result);
+    assertFalse(result.isPaused());
+    assertFalse(token.isPaused());
+    verify(tokenRepository).save(token);
+  }
+
+  @Test
+  void setPaused_TokenNotOwned_ThrowsException() {
+    when(tokenRepository.findByIdAndUserId(tokenId, userId)).thenReturn(Optional.empty());
+
+    assertThrows(InvalidTokenException.class, () -> patService.setPaused(tokenId, userId, true));
+    verify(tokenRepository, never()).save(any());
+  }
+
+  // ==================== bulkDeleteTokens ====================
+
+  @Test
+  void bulkDeleteTokens_DeletesOnlyCallerOwnedTokens() {
+    List<UUID> ids = List.of(tokenId, UUID.randomUUID());
+
+    patService.bulkDeleteTokens(ids, userId);
+
+    verify(tokenRepository).deleteAllByIdInAndUserId(ids, userId);
+  }
+
+  @Test
+  void bulkDeleteTokens_EmptyIds_DoesNothing() {
+    patService.bulkDeleteTokens(List.of(), userId);
+    verify(tokenRepository, never()).deleteAllByIdInAndUserId(anyCollection(), any());
+  }
+
+  @Test
+  void bulkDeleteTokens_NullIds_DoesNothing() {
+    patService.bulkDeleteTokens(null, userId);
+    verify(tokenRepository, never()).deleteAllByIdInAndUserId(anyCollection(), any());
+  }
+
+  // ==================== bulkSetPaused ====================
+
+  @Test
+  void bulkSetPaused_Pause_SetsPausedTrueOnCallerTokensAndReturnsResponses() {
+    UUID secondId = UUID.randomUUID();
+    List<UUID> ids = List.of(tokenId, secondId);
+
+    PersonalAccessToken token1 = new PersonalAccessToken();
+    token1.setId(tokenId);
+    token1.setPaused(false);
+    PersonalAccessToken token2 = new PersonalAccessToken();
+    token2.setId(secondId);
+    token2.setPaused(false);
+    List<PersonalAccessToken> owned = List.of(token1, token2);
+
+    when(tokenRepository.findAllByIdInAndUserId(ids, userId)).thenReturn(owned);
+    when(tokenRepository.saveAll(owned)).thenReturn(owned);
+    when(patMapper.toResponse(token1))
+        .thenReturn(PatResponse.builder().id(tokenId).paused(true).build());
+    when(patMapper.toResponse(token2))
+        .thenReturn(PatResponse.builder().id(secondId).paused(true).build());
+
+    List<PatResponse> result = patService.bulkSetPaused(ids, userId, true);
+
+    assertEquals(2, result.size());
+    assertTrue(result.get(0).isPaused());
+    assertTrue(result.get(1).isPaused());
+    assertTrue(token1.isPaused());
+    assertTrue(token2.isPaused());
+    verify(tokenRepository).saveAll(owned);
+  }
+
+  @Test
+  void bulkSetPaused_Resume_SetsPausedFalseOnCallerTokens() {
+    List<UUID> ids = List.of(tokenId);
+
+    PersonalAccessToken token1 = new PersonalAccessToken();
+    token1.setId(tokenId);
+    token1.setPaused(true);
+    List<PersonalAccessToken> owned = List.of(token1);
+
+    when(tokenRepository.findAllByIdInAndUserId(ids, userId)).thenReturn(owned);
+    when(tokenRepository.saveAll(owned)).thenReturn(owned);
+    when(patMapper.toResponse(token1))
+        .thenReturn(PatResponse.builder().id(tokenId).paused(false).build());
+
+    List<PatResponse> result = patService.bulkSetPaused(ids, userId, false);
+
+    assertEquals(1, result.size());
+    assertFalse(result.get(0).isPaused());
+    assertFalse(token1.isPaused());
+    verify(tokenRepository).saveAll(owned);
+  }
+
+  @Test
+  void bulkSetPaused_OnlyCallerOwnedTokensAreLoadedAndUpdated() {
+    UUID foreignId = UUID.randomUUID();
+    List<UUID> ids = List.of(tokenId, foreignId);
+
+    // Repository only returns the caller-owned token; the foreign one is filtered out by the query.
+    PersonalAccessToken ownedToken = new PersonalAccessToken();
+    ownedToken.setId(tokenId);
+    ownedToken.setPaused(false);
+    List<PersonalAccessToken> owned = List.of(ownedToken);
+
+    when(tokenRepository.findAllByIdInAndUserId(ids, userId)).thenReturn(owned);
+    when(tokenRepository.saveAll(owned)).thenReturn(owned);
+    when(patMapper.toResponse(ownedToken))
+        .thenReturn(PatResponse.builder().id(tokenId).paused(true).build());
+
+    List<PatResponse> result = patService.bulkSetPaused(ids, userId, true);
+
+    // Only the caller-owned token is returned/updated; the foreign id is silently ignored.
+    assertEquals(1, result.size());
+    assertEquals(tokenId, result.get(0).getId());
+    verify(tokenRepository).findAllByIdInAndUserId(ids, userId);
+  }
+
+  @Test
+  void bulkSetPaused_EmptyIds_ReturnsEmptyAndSkipsRepository() {
+    List<PatResponse> result = patService.bulkSetPaused(List.of(), userId, true);
+
+    assertTrue(result.isEmpty());
+    verify(tokenRepository, never()).findAllByIdInAndUserId(anyCollection(), any());
+    verify(tokenRepository, never()).saveAll(anyList());
+  }
+
+  @Test
+  void bulkSetPaused_NullIds_ReturnsEmptyAndSkipsRepository() {
+    List<PatResponse> result = patService.bulkSetPaused(null, userId, true);
+
+    assertTrue(result.isEmpty());
+    verify(tokenRepository, never()).findAllByIdInAndUserId(anyCollection(), any());
+    verify(tokenRepository, never()).saveAll(anyList());
   }
 
   // ==================== addWalletToToken — edge case ====================

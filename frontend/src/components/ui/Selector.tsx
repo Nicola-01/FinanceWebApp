@@ -8,6 +8,8 @@ export interface SelectorOption<T extends string | number> {
   activeBgClass?: string;
   disabled?: boolean;
   disabledTitle?: string;
+  /** Tooltip + accessible name — use for icon-only options that have no label. */
+  title?: string;
   style?: React.CSSProperties;
 }
 
@@ -70,7 +72,7 @@ export const Selector = <T extends string | number>({
             type="button"
             onClick={() => !isDisabled && onChange(option.value)}
             disabled={isDisabled}
-            title={option.disabledTitle}
+            title={isDisabled ? option.disabledTitle : option.title}
             className={`flex-1 flex items-center justify-center transition-all px-2 ${buttonSizeClass} ${currentClass}`}
             style={option.style}
           >

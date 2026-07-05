@@ -1,9 +1,11 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { ThemeContext } from "../../../utils/ThemeContext";
+import { GITHUB_URL } from "../../../components/LandingPage/landingDemoData";
 
-// Light framer-motion stub (BackgroundBlobs -> Sphere uses motion.div).
+// Light framer-motion stub (BackgroundSpheres -> Sphere uses motion.div).
 vi.mock("framer-motion", () => {
   const make = (tag: string) => {
     const C = (props: {
@@ -27,7 +29,7 @@ vi.mock("framer-motion", () => {
   return {
     motion: new Proxy(
       {},
-      { get: (_target, tag: string) => make(tag) },
+      { get: (_t, tag: string) => make(tag) },
     ) as unknown as Record<string, React.FC>,
     AnimatePresence: ({ children }: { children?: React.ReactNode }) => children,
   };
@@ -49,29 +51,56 @@ import LandingPage from "../../../components/LandingPage/LandingPage";
 const renderPage = () =>
   render(
     <MemoryRouter>
-      <LandingPage />
+      <ThemeContext.Provider
+        value={{ theme: "dark", setTheme: vi.fn(), resolvedTheme: "dark" }}
+      >
+        <LandingPage />
+      </ThemeContext.Provider>
     </MemoryRouter>,
   );
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 describe("LandingPage (smoke)", () => {
-  it("renders the hero headline and primary CTA", () => {
+  it("renders the hero eyebrow, headline and navbar wordmark", () => {
     renderPage();
-    expect(screen.getByText(/Own Your Wealth/i)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /get started/i }),
+      screen.getByText(/open-source personal finance/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/aren't small\./i)).toBeInTheDocument();
+    // Wordmark appears in both the navbar and the footer.
+    expect(screen.getAllByText("FinanceWebApp").length).toBeGreaterThan(0);
+  });
+
+  it("links to the GitHub repository", () => {
+    const { container } = renderPage();
+    expect(
+      container.querySelector(`a[href="${GITHUB_URL}"]`),
     ).toBeInTheDocument();
   });
 
-  it("renders the closing CTA section", () => {
+  it("shows the Log in CTA when demo is disabled", () => {
     renderPage();
-    expect(screen.getByText("Want to Try It Out?")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /create an account/i }),
-    ).toBeInTheDocument();
+      screen.getAllByRole("button", { name: /log in/i }).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText("Ready to take control?")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /launch the demo/i }),
+    ).not.toBeInTheDocument();
   });
 
-  it("renders the navbar wordmark", () => {
+  it("shows the demo CTA and no login when demo is enabled", () => {
+    vi.stubEnv("VITE_DEMO_ENABLED", "true");
     renderPage();
-    expect(screen.getByText("FinanceWebApp")).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: /launch/i }).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByText("See it for yourself.")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /log in/i }),
+    ).not.toBeInTheDocument();
   });
 });

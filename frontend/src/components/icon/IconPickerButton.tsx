@@ -25,7 +25,7 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
   onToggle,
 }) => {
   const buttonRef = useRef<HTMLDivElement>(null);
-  const popupRef = useRef<HTMLDivElement>(null); // Nuovo ref per il popup
+  const popupRef = useRef<HTMLDivElement>(null); // ref to the popup container
   const [coords, setCoords] = useState<{
     top: number;
     left: number;
@@ -34,9 +34,9 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
 
   const sizeClasses =
     size === "sm"
-      ? "h-6 w-6 rounded-md text-xs"
-      : "h-10 w-10 rounded-lg text-lg";
-  const POPUP_HEIGHT = 320;
+      ? "h-6 w-6 rounded-[var(--r-sm)] text-xs"
+      : "h-10 w-10 rounded-[var(--r-input)] text-lg";
+  const POPUP_HEIGHT = 340;
   const POPUP_WIDTH = 280;
 
   useEffect(() => {
@@ -52,8 +52,8 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
       const openUpward =
         spaceBelow < POPUP_HEIGHT + 8 && rect.top > POPUP_HEIGHT + 8;
 
-      // Misura del DOM (getBoundingClientRect) per posizionare il popup:
-      // richiede necessariamente un effetto post-render.
+      // Positioning needs the button's measured rect (getBoundingClientRect),
+      // which is only available in a post-render effect.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setCoords({
         top: openUpward ? rect.top - POPUP_HEIGHT + 40 : rect.bottom + 8,
@@ -67,7 +67,7 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
     if (!isOpen) return;
 
     const handleScroll = (e: Event) => {
-      // Se l'evento di scroll proviene da dentro il popup, ignoralo
+      // Ignore scroll events originating from inside the popup itself.
       if (
         popupRef.current &&
         e.target instanceof Node &&
