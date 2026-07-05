@@ -76,4 +76,63 @@ describe("TagsStep — recommended categories", () => {
     const region = screen.getByRole("region", { name: /staged/i });
     expect(within(region).getByText("Car")).toBeInTheDocument();
   });
+
+  it("striking a child excludes it and marks the category partial (mixed)", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    await user.click(card(/select the work category/i));
+    const region = () => screen.getByRole("region", { name: /staged/i });
+    await user.click(
+      within(region()).getByRole("button", { name: /expand work/i }),
+    );
+    await user.click(
+      within(region()).getByRole("button", { name: /remove bonus/i }),
+    );
+
+    // Bonus is dropped from the staged (active) list...
+    const staged: TagRequest[] = onChange.mock.calls.at(-1)![0];
+    expect(staged.map((t) => t.name)).not.toContain("Bonus");
+    expect(staged.map((t) => t.name)).toEqual([
+      "Work",
+      "Salary",
+      "Meal Vouchers",
+    ]);
+    // ...but stays visible as struck (with a restore control), and the card
+    // reflects the partial selection.
+    expect(
+      within(region()).getByRole("button", { name: /restore bonus/i }),
+    ).toBeInTheDocument();
+    expect(card(/select the work category/i)).toHaveAttribute(
+      "aria-pressed",
+      "mixed",
+    );
+  });
+
+  it("re-selecting a category restores previously struck children", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    const work = () => card(/select the work category/i);
+    await user.click(work()); // stage full category
+    const region = () => screen.getByRole("region", { name: /staged/i });
+    await user.click(
+      within(region()).getByRole("button", { name: /expand work/i }),
+    );
+    await user.click(
+      within(region()).getByRole("button", { name: /remove bonus/i }),
+    ); // strike Bonus
+    await user.click(work()); // deselect the whole category
+    await user.click(work()); // re-select — should restore Bonus too
+
+    const staged: TagRequest[] = onChange.mock.calls.at(-1)![0];
+    expect(staged.map((t) => t.name)).toEqual([
+      "Work",
+      "Salary",
+      "Bonus",
+      "Meal Vouchers",
+    ]);
+  });
 });
