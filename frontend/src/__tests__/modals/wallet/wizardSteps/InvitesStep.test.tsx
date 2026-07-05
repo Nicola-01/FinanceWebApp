@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { useState } from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   InvitesStep,
@@ -81,6 +81,29 @@ describe("InvitesStep", () => {
     await user.click(addButton());
 
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("keeps the invitee visible and switches its role via a compact icon toggle", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <InvitesStep
+        value={[{ user: "alice@example.com", role: "EDITOR" }]}
+        onChange={onChange}
+      />,
+    );
+
+    const row = screen.getByText("alice@example.com").closest("li")!;
+    // The email stays visible alongside the switch.
+    expect(within(row).getByText("alice@example.com")).toBeInTheDocument();
+    // The per-row switch is icon-only (no "Editor"/"Viewer" text labels).
+    expect(within(row).queryByText("Editor")).not.toBeInTheDocument();
+    expect(within(row).queryByText("Viewer")).not.toBeInTheDocument();
+
+    await user.click(within(row).getByRole("button", { name: /viewer/i }));
+    expect(onChange).toHaveBeenCalledWith([
+      { user: "alice@example.com", role: "VIEWER" },
+    ]);
   });
 
   it("removes an invite via its × control", async () => {

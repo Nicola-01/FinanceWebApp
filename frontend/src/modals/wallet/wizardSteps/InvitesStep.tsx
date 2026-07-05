@@ -132,20 +132,23 @@ export function InvitesStep({
               <span className="min-w-0 flex-1 truncate text-sm text-app-text">
                 {invite.user}
               </span>
-              {/* Switch the role of an already-added invite. */}
+              {/* Compact icon-only switch to change an already-added invite's
+                  role — kept content-width so the email above stays visible. */}
               <Selector<WalletInvite["role"]>
                 size="sm"
+                fullWidth={false}
+                className="shrink-0"
                 value={invite.role}
                 onChange={(nextRole) => changeRole(invite.user, nextRole)}
                 options={[
                   {
                     value: "VIEWER",
-                    label: "Viewer",
+                    title: "Viewer",
                     icon: <FontAwesomeIcon icon={faEye} />,
                   },
                   {
                     value: "EDITOR",
-                    label: "Editor",
+                    title: "Editor",
                     icon: <FontAwesomeIcon icon={faPen} />,
                     activeColorClass: "text-app-yellow",
                   },

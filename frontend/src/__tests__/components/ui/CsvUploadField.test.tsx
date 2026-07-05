@@ -64,4 +64,12 @@ describe("CsvUploadField", () => {
     fireEvent.click(screen.getByLabelText(/CSV format help/i));
     await screen.findByText(/How your import \/ export files/i);
   });
+
+  it("opens the format reference on the field's own resource tab", async () => {
+    // The field is resource="tags", so the ℹ️ must land on the Tags format,
+    // not the modal's default Transactions tab.
+    renderField();
+    fireEvent.click(screen.getByLabelText(/CSV format help/i));
+    await screen.findByText("Name,Icon,ColorHex,ParentName");
+  });
 });

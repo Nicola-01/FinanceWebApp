@@ -175,6 +175,7 @@ export function CsvUploadField<T>({
         open={formatOpen}
         onClose={() => setFormatOpen(false)}
         accentColor={accentColor ?? "#8b5cf6"}
+        defaultMode={resource}
       />
     </div>
   );

@@ -176,6 +176,12 @@ interface CsvFormatModalProps {
   onClose: () => void;
   /** Per-wallet accent used for the header bar + table accents. */
   accentColor: string;
+  /**
+   * Which format tab to show first (and re-select whenever the modal reopens).
+   * Defaults to Transactions; set it so the ℹ️ on a resource's upload field
+   * lands on that resource's format.
+   */
+  defaultMode?: Mode;
 }
 
 /**
@@ -188,8 +194,12 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
   open,
   onClose,
   accentColor,
+  defaultMode = "transactions",
 }) => {
-  const [mode, setMode] = useState<Mode>("transactions");
+  // Seed the tab from the caller so a resource's ℹ️ reveals that resource's
+  // format first; the user can still switch tabs from there.
+  const [mode, setMode] = useState<Mode>(defaultMode);
+
   const spec = SAMPLES[mode];
   const headerLine = spec.columns.map((c) => c.key).join(",");
 

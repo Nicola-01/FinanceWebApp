@@ -24,7 +24,7 @@ export const ThemeSelector = () => {
           ),
           activeColorClass: "text-app-sky",
           activeBgClass: "bg-app-surface ring-1 ring-app-sky/10",
-          disabledTitle: t.charAt(0).toUpperCase() + t.slice(1),
+          title: t.charAt(0).toUpperCase() + t.slice(1),
         }))}
       />
     </div>

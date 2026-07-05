@@ -17,6 +17,21 @@ describe("Selector", () => {
     expect(screen.getByRole("button", { name: "Gamma" })).toBeInTheDocument();
   });
 
+  it("uses `title` as the accessible name for an icon-only option", () => {
+    render(
+      <Selector
+        value="v"
+        onChange={() => {}}
+        options={[
+          { value: "v", title: "Viewer", icon: <span aria-hidden>👁</span> },
+          { value: "e", title: "Editor", icon: <span aria-hidden>✏️</span> },
+        ]}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Viewer" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Editor" })).toBeInTheDocument();
+  });
+
   it("fires onChange with the selected option value", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
