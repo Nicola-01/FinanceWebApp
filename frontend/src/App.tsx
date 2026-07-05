@@ -23,6 +23,8 @@ import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import ToDoPage from "./components/ToDoPage/ToDoPage.tsx";
 import OAuthConsent from "./auth/OAuthConsent.tsx";
 import AuthLayout from "./auth/AuthLayout.tsx";
+// TEMP: wizard visual mock — remove with the /wizard-mock route in the integration phase.
+import CreateWalletWizardMock from "./modals/wallet/CreateWalletWizard.mock.tsx";
 
 const RootRedirect = () => {
   const user = getUserAuth();
@@ -65,6 +67,8 @@ const App: React.FC = () => {
             </Route>
             <Route path="/about" element={<LandingPage />} />
             <Route path="/ToDo" element={<ToDoPage />} />
+            {/* TEMP: wizard visual mock (remove in the integration phase). */}
+            <Route path="/wizard-mock" element={<CreateWalletWizardMock />} />
             <Route path="/oauth/authorize" element={<OAuthConsent />} />
 
             {/* Root Route serves the Landing Page or Redirects based on auth */}
