@@ -4,6 +4,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleCheck,
   faTriangleExclamation,
+  faWallet,
+  faTag,
+  faArrowsRotate,
+  faReceipt,
+  faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Wizard,
@@ -64,6 +69,7 @@ export default function CreateWalletWizardMock() {
   const steps: WizardStep[] = [
     {
       name: "Basics",
+      icon: faWallet,
       mandatory: true,
       isComplete: complete[0],
       nextLabel: "Continue",
@@ -98,6 +104,7 @@ export default function CreateWalletWizardMock() {
     },
     {
       name: "Tags",
+      icon: faTag,
       mandatory: false,
       isComplete: complete[1],
       nextLabel: "Continue",
@@ -112,6 +119,7 @@ export default function CreateWalletWizardMock() {
     },
     {
       name: "Subscriptions",
+      icon: faArrowsRotate,
       mandatory: false,
       isComplete: complete[2],
       nextLabel: "Continue",
@@ -126,6 +134,7 @@ export default function CreateWalletWizardMock() {
     },
     {
       name: "Transactions",
+      icon: faReceipt,
       mandatory: false,
       isComplete: complete[3],
       nextLabel: "Continue",
@@ -140,6 +149,7 @@ export default function CreateWalletWizardMock() {
     },
     {
       name: "Invite",
+      icon: faUserPlus,
       mandatory: false,
       isComplete: complete[4],
       nextLabel: "Finish setup",

@@ -1,12 +1,14 @@
 import { Fragment, useCallback, useState, type ReactNode } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import Button from "./Button";
 
 /** One configurable step. All state is owned by the consumer. */
 export interface WizardStep {
   /** Shown under the stepper node. */
   name: string;
+  /** Icon rendered inside the stepper node. */
+  icon: IconDefinition;
   /** When true, Continue stays disabled until `isComplete`. */
   mandatory: boolean;
   content: ReactNode;
@@ -110,25 +112,61 @@ export function Wizard<TResult = unknown>({
   return (
     <div className="flex w-full flex-col">
       {/* Stepper — equidistant circles with short end caps:
-          [lead·½] (o)─[conn·1]─(o)─[conn·1]─(o) [trail·½]. Labels are absolutely
-          positioned under each circle so they don't skew the rail's spacing. */}
+          [lead·½] (o)─[conn·1]─(o)─[conn·1]─(o) [trail·½]. The line fills with the
+          accent up to the current node; past steps show a coloured ring, the
+          current is fully filled, future are neutral. On completion every node
+          reads as done. Labels are absolutely positioned so they don't skew the
+          rail's spacing. */}
       <div
         role="list"
         aria-label="Progress"
         className="mb-11 flex items-center pb-7"
       >
         {steps.map((s, i) => {
-          const done = i < current && inSteps;
-          const active = i === current && inSteps;
+          // On the completion phase every node is "done".
+          const state = !inSteps
+            ? "done"
+            : i < current
+              ? "done"
+              : i === current
+                ? "active"
+                : "future";
           const navigable = inSteps && i <= furthest;
-          const filled = done || active;
-          const useAccent = filled && !!accentColor;
+          // The segment before this node (lead for i===0, connector otherwise)
+          // is filled once its node is reached.
+          const beforeFilled = !inSteps || i <= current;
+          const nodeStyle =
+            state === "active" && accentColor
+              ? { backgroundColor: accentColor }
+              : state === "done" && accentColor
+                ? { borderColor: accentColor, color: accentColor }
+                : undefined;
+          const nodeStateClass =
+            state === "future"
+              ? "border border-app-border bg-app-input text-app-muted"
+              : state === "active"
+                ? accentColor
+                  ? "border-2 border-transparent text-white"
+                  : "border-2 border-transparent bg-gradient-to-br from-[var(--brand-1)] to-[var(--brand-2)] text-white"
+                : accentColor
+                  ? "border-2 bg-app-card"
+                  : "border-2 border-[var(--brand-1)] bg-app-card text-[var(--brand-1)]";
           return (
             <Fragment key={s.name}>
-              {/* short lead before the first node, equal connectors between */}
               <span
                 aria-hidden="true"
-                className={`h-0.5 bg-app-border ${i === 0 ? "flex-[0.5]" : "flex-1"}`}
+                style={
+                  beforeFilled && accentColor
+                    ? { backgroundColor: accentColor }
+                    : undefined
+                }
+                className={`h-0.5 ${i === 0 ? "flex-[0.5]" : "flex-1"} ${
+                  beforeFilled
+                    ? accentColor
+                      ? ""
+                      : "bg-[var(--brand-1)]"
+                    : "bg-app-border"
+                }`}
               />
               <div role="listitem" className="relative flex-none">
                 <button
@@ -137,33 +175,36 @@ export function Wizard<TResult = unknown>({
                   disabled={!navigable}
                   onClick={() => goToStep(i)}
                   aria-label={`Step ${i + 1}: ${s.name}`}
-                  aria-current={active ? "step" : undefined}
-                  style={
-                    useAccent ? { backgroundColor: accentColor } : undefined
-                  }
-                  className={`${NODE_BASE} ${
-                    filled
-                      ? useAccent
-                        ? "text-white"
-                        : "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)] text-white"
-                      : "bg-app-input text-app-muted border border-app-border"
-                  } ${navigable ? "cursor-pointer" : ""}`}
+                  aria-current={state === "active" ? "step" : undefined}
+                  style={nodeStyle}
+                  className={`${NODE_BASE} ${nodeStateClass} ${navigable ? "cursor-pointer" : ""}`}
                 >
-                  {done ? <FontAwesomeIcon icon={faCheck} /> : i + 1}
+                  <FontAwesomeIcon icon={s.icon} />
                 </button>
                 <span
                   className={`absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap text-xs font-medium ${
-                    active ? "text-app-text" : "text-app-muted"
+                    state === "active" ? "text-app-text" : "text-app-muted"
                   }`}
                 >
                   {s.name}
                 </span>
               </div>
-              {/* short trail after the last node */}
+              {/* short trail after the last node — filled only on completion */}
               {i === steps.length - 1 && (
                 <span
                   aria-hidden="true"
-                  className="h-0.5 flex-[0.5] bg-app-border"
+                  style={
+                    !inSteps && accentColor
+                      ? { backgroundColor: accentColor }
+                      : undefined
+                  }
+                  className={`h-0.5 flex-[0.5] ${
+                    !inSteps
+                      ? accentColor
+                        ? ""
+                        : "bg-[var(--brand-1)]"
+                      : "bg-app-border"
+                  }`}
                 />
               )}
             </Fragment>

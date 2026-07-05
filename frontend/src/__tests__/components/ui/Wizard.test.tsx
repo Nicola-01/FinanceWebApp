@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { useState, type ReactNode } from "react";
+import { faWallet, faTag, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import {
   Wizard,
   type WizardStep,
@@ -25,6 +26,7 @@ function Harness({ onComplete, renderCompletion }: HarnessProps) {
   const steps: WizardStep[] = [
     {
       name: "Basics",
+      icon: faWallet,
       mandatory: true,
       isComplete: complete[0],
       nextLabel: "Continue",
@@ -37,6 +39,7 @@ function Harness({ onComplete, renderCompletion }: HarnessProps) {
     },
     {
       name: "Tags",
+      icon: faTag,
       mandatory: false,
       isComplete: complete[1],
       nextLabel: "Continue",
@@ -50,6 +53,7 @@ function Harness({ onComplete, renderCompletion }: HarnessProps) {
     },
     {
       name: "Invite",
+      icon: faUserPlus,
       mandatory: false,
       isComplete: complete[2],
       nextLabel: "Finish",
