@@ -132,6 +132,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
             <div className="p-4 sm:p-5">
               <ExchangeRateSection
                 mode="view"
+                accentColor={wallet.color}
                 baseCurrency={wallet.currency as CurrencyCode}
                 selectedCurrency={tx.originalCurrency as CurrencyCode}
                 originalAmount={tx.originalAmount || 0}

@@ -243,22 +243,9 @@ export const TagPicker: React.FC<TagPickerProps> = ({
         onClick={openPicker}
       >
         <div className="relative flex h-full flex-1 items-center overflow-hidden">
-          {!isOpen && selectedTag ? (
-            <div className="pointer-events-none flex w-full cursor-pointer items-center gap-3">
-              <div
-                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-app-input text-xs"
-                style={{ color: selectedTag.colorHex || "#ffffff" }}
-              >
-                <Icon
-                  icon={selectedTag.icon}
-                  color={selectedTag.colorHex || "#ffffff"}
-                />
-              </div>
-              <span className="truncate font-medium text-app-text">
-                {selectedTag.name}
-              </span>
-            </div>
-          ) : (
+          {isOpen ? (
+            // Search input only exists while open, and is NOT auto-focused: on
+            // mobile the keyboard stays down until the user taps ("Tap to search").
             <input
               type="text"
               value={searchQuery}
@@ -266,9 +253,32 @@ export const TagPicker: React.FC<TagPickerProps> = ({
                 setSearchQuery(e.target.value);
                 openPicker();
               }}
-              placeholder={isOpen ? "Tap to search..." : "Select a category..."}
-              className="theme-bg-transparent h-full w-full font-medium text-app-text outline-none placeholder:text-app-muted"
+              placeholder="Tap to search..."
+              className="h-full w-full bg-transparent font-medium text-app-text outline-none placeholder:text-app-muted"
             />
+          ) : selectedTag ? (
+            <div className="pointer-events-none flex w-full cursor-pointer items-center gap-3">
+              <div
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-app-input text-xs"
+                style={{
+                  color: selectedTag.colorHex || "var(--color-app-text)",
+                }}
+              >
+                <Icon
+                  icon={selectedTag.icon}
+                  color={selectedTag.colorHex || "var(--color-app-text)"}
+                />
+              </div>
+              <span className="truncate font-medium text-app-text">
+                {selectedTag.name}
+              </span>
+            </div>
+          ) : (
+            // Closed + no selection: a plain (non-focusable) placeholder so tapping
+            // it just opens the dropdown instead of focusing an input.
+            <span className="cursor-pointer truncate font-medium text-app-muted">
+              Select a category...
+            </span>
           )}
         </div>
 
@@ -300,6 +310,8 @@ export const TagPicker: React.FC<TagPickerProps> = ({
           setManagerOpen(false);
           setSortMode(readSortMode(wallet.id));
         }}
+        // Deep-link: if opened while drilled into a category, expand it there.
+        initialExpandedParent={currentParentName}
       />
     </div>
   );

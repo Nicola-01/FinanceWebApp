@@ -53,6 +53,11 @@ const CONTAINER_PREFIX = "container:";
 interface CategoryManagerDrawerProps {
   open: boolean;
   onClose: () => void;
+  /**
+   * When the drawer opens, pre-expand this main category's row (e.g. the
+   * TagPicker deep-links here with the category the user was drilled into).
+   */
+  initialExpandedParent?: string | null;
 }
 
 /**
@@ -179,6 +184,7 @@ const AddCategoryButton: React.FC<{
 export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
   open,
   onClose,
+  initialExpandedParent = null,
 }) => {
   const { wallet, tags, transactions, handleUpdateTag, handleDeleteTag } =
     useWalletContext();
@@ -237,6 +243,17 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
     setTree(applyTagOrder(wallet.id, tags));
   }
 
+  // On each open, pre-expand the deep-linked parent (the TagPicker's drilled-in
+  // category). Render-time reconciliation, matching the resync above. Additive:
+  // it never collapses rows the user already opened.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    if (open && initialExpandedParent) {
+      setExpanded((prev) => ({ ...prev, [initialExpandedParent]: true }));
+    }
+  }
+
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, {
@@ -262,8 +279,7 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
       async () => {
         await handleDeleteTag(tag.name);
       },
-      false,
-      0,
+      1,
     );
   };
 

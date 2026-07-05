@@ -15,6 +15,8 @@ export interface ResponsiveOverlayProps {
   accentColor?: string;
   /** Right-aligned header slot (e.g. edit / delete / stop actions). */
   headerActions?: React.ReactNode;
+  /** Sticky footer slot pinned to the bottom (primary CTA / edit+delete row). */
+  footer?: React.ReactNode;
   /** Desktop drawer width in px (ignored on mobile — full-screen). */
   width?: number;
   children: React.ReactNode;
@@ -40,7 +42,8 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
   subtitle,
   accentColor,
   headerActions,
-  width = 440,
+  footer,
+  width = 480,
   children,
 }) => {
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
@@ -80,10 +83,14 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
   }, [open]);
 
   // Basic focus management: focus the panel on open, restore the trigger on close.
+  // Don't steal focus from a child that already auto-focused (e.g. the amount
+  // input) — only grab the panel when nothing inside it has focus yet.
   useEffect(() => {
     if (!open) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
-    panelRef.current?.focus();
+    if (!panelRef.current?.contains(document.activeElement)) {
+      panelRef.current?.focus();
+    }
     return () => previouslyFocused?.focus?.();
   }, [open]);
 
@@ -173,6 +180,12 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
             <div className="custom-scrollbar flex-1 overflow-y-auto px-4 py-4">
               {children}
             </div>
+
+            {footer && (
+              <footer className="shrink-0 border-t border-app-border bg-app-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                {footer}
+              </footer>
+            )}
           </motion.aside>
         </motion.div>
       )}

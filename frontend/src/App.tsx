@@ -2,6 +2,7 @@ import React, { useRef, useEffect } from "react";
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import Login from "./auth/Login";
 import UserDashboard from "./dashboard/UserDashboard.tsx";
+import SettingsPage from "./settings/SettingsPage.tsx";
 import AdminDashboard from "./admin/AdminDashboard"; // Importa la pagina Admin
 import ProtectedRoute from "./utils/ProtectedRoute.tsx";
 import { ToastHost } from "./components/ui/ToastHost.tsx";
@@ -73,6 +74,9 @@ const App: React.FC = () => {
             <Route element={<ProtectedRoute />}>
               {/* User Dashboard */}
               <Route path="/dashboard/:walletId?" element={<UserDashboard />} />
+
+              {/* Account & app settings (all authenticated users) */}
+              <Route path="/settings" element={<SettingsPage />} />
 
               {/* Specific protected routes for ADMIN */}
               <Route element={<AdminRoute />}>

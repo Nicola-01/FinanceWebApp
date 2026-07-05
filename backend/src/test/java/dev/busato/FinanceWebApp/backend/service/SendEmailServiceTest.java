@@ -69,6 +69,20 @@ class SendEmailServiceTest {
   }
 
   @Test
+  void sendEmailChangeCode_ToNewAddress_SendsEmail() throws Exception {
+    sendEmailService.sendEmailChangeCode("new@example.com", "123456", true);
+
+    verify(mailSender).send(mimeMessage);
+  }
+
+  @Test
+  void sendEmailChangeCode_ToCurrentAddress_SendsEmail() throws Exception {
+    sendEmailService.sendEmailChangeCode("current@example.com", "654321", false);
+
+    verify(mailSender).send(mimeMessage);
+  }
+
+  @Test
   void toFontAwesomeIcon_ConvertsCorrectly() {
     assertNull(SendEmailService.toFontAwesomeIcon(null));
     assertEquals("fa-wallet", SendEmailService.toFontAwesomeIcon("Wallet"));

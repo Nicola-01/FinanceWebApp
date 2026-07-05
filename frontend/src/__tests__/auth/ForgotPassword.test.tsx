@@ -67,6 +67,24 @@ describe("ForgotPassword", () => {
     );
   });
 
+  it("returns to the form with the email preserved when editing it", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    await user.type(screen.getByLabelText("Email"), "typo@example.com");
+    await user.click(screen.getByRole("button", { name: /send reset link/i }));
+
+    await screen.findByText(/Check your email/i);
+    await user.click(
+      screen.getByRole("button", { name: /use a different email/i }),
+    );
+
+    // Back on the input state, with the previously typed value kept for editing.
+    expect(
+      screen.getByRole("button", { name: /send reset link/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toHaveValue("typo@example.com");
+  });
+
   it("shows a toast and stays on the form when sending fails", async () => {
     const user = userEvent.setup();
     const err = new AxiosError("bad", "ERR");

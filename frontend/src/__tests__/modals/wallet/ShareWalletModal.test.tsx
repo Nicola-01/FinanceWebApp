@@ -50,12 +50,11 @@ function Harness() {
 const identifierInput = () =>
   screen.getByPlaceholderText("e.g. mario.rossi@email.com");
 
-// The confirm control is an icon-only button carrying the fa-check svg.
+// The confirm control is the footer CTA ("Share Wallet" / "Sharing…").
 function submitButton(): HTMLButtonElement {
-  const svg = document.querySelector('[data-icon="check"]');
-  const btn = svg?.closest("button");
-  if (!btn) throw new Error("submit button not found");
-  return btn as HTMLButtonElement;
+  return screen.getByRole("button", {
+    name: /share wallet|sharing/i,
+  }) as HTMLButtonElement;
 }
 
 describe("ShareWalletModal", () => {

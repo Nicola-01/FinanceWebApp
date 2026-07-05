@@ -7,18 +7,17 @@ import {
 } from "react";
 import api from "../../api/axiosConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faWallet, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faWallet } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "../common/ModalDialog";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
+import { Input } from "../../components/ui/Input";
+import Button from "../../components/ui/Button";
 import type { CurrencyCode } from "../../utils/currencies";
 
-// Importiamo i nostri nuovi componenti puliti!
 import { type IconKey, ICONS } from "../../utils/icons";
 import { CurrencySelector } from "../../components/selectors/CurrencySelector.tsx";
 import { IconColorSelector } from "../../components/icon/IconColorSelector.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
-
-// import {IconPickerButton} from "../components/IconPickerButton.tsx";
 
 export interface CreateWalletModalHandle {
   openModal: () => void;
@@ -79,7 +78,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
 
       setLoading(true);
       try {
-        // Il backend riceverà la chiave testuale dell'icona (es. "piggyBank")
+        // The backend receives the textual icon key (e.g. "piggyBank").
         const response = await api.post("/wallets", {
           name,
           icon: iconKey,
@@ -106,19 +105,20 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
           </>
         }
         subtitle="Organize your finances with a custom wallet."
-        rightActions={[
-          {
-            icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
-            onClick: async () => {
-              if (!loading) await handleSubmit();
-            },
-            hoverColor: "hover:text-app-green",
-            disabled: loading,
-          },
-        ]}
+        footer={
+          <Button
+            variant="primary"
+            fullWidth
+            ripple
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Creating…" : "Create Wallet"}
+          </Button>
+        }
       >
         <div id="create-wallet-form" className="space-y-5 text-left">
-          {/* Anteprima Icona Real-time */}
+          {/* Live icon preview */}
           <div className="relative mb-6 flex flex-col items-center">
             <button
               ref={buttonRef}
@@ -148,19 +148,11 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
             )}
           </div>
 
-          {/*<IconPickerButton*/}
-          {/*    icon={iconKey} color={color}*/}
-          {/*    onIconChange={setIconKey}*/}
-          {/*    onColorChange={setColor}*/}
-          {/*    isOpen={showSelectors} onToggle={setShowSelectors}*/}
-          {/*/>*/}
-
           <div>
             <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
               Wallet Name
             </label>
-            <input
-              className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-app-green"
+            <Input
               type="text"
               placeholder="e.g. Personal Savings"
               value={name}
@@ -168,7 +160,7 @@ export const CreateWalletModal = forwardRef<CreateWalletModalHandle, Props>(
             />
           </div>
 
-          {/* Input Valuta */}
+          {/* Currency */}
           <CurrencySelector value={currency} onChange={setCurrency} />
         </div>
       </ModalDialog>

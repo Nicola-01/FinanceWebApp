@@ -1,6 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStickyNote, faTag } from "@fortawesome/free-solid-svg-icons";
+import { Input } from "../../components/ui/Input";
 
 interface Props {
   name: string;
@@ -25,8 +26,7 @@ export const TransactionMetadataInputs: React.FC<Props> = ({
           <FontAwesomeIcon icon={faTag} className="mr-2" />
           Name
         </label>
-        <input
-          className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all focus:border-app-green"
+        <Input
           type="text"
           placeholder={selectedTagName || "e.g. Groceries"}
           value={name}

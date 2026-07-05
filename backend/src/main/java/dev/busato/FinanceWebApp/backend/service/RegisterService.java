@@ -8,9 +8,9 @@ import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.repository.PersonalAccessTokenRepository;
 import dev.busato.FinanceWebApp.backend.repository.RegistrationsRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +33,12 @@ public class RegisterService {
 
   @Value("${application.frontend.url}")
   private String frontendUrl;
+
+  /** How long a password-reset link stays valid. */
+  private static final Duration RESET_TOKEN_VALIDITY = Duration.ofMinutes(15);
+
+  /** Minimum delay between two reset requests for the same account (anti-spam). */
+  private static final long RESET_COOLDOWN_SECONDS = 60;
 
   public RegisterInviteResponse getRegisterInvite(String token) {
     Registrations invitation =
@@ -82,40 +88,39 @@ public class RegisterService {
 
   @Transactional
   public void requestPasswordReset(String email) {
-    // Check if a user with this email exists
-    User user =
-        userRepository
-            .findByEmailIgnoreCase(email)
-            .orElseThrow(
-                () -> new IllegalArgumentException("No account found with this email address."));
-
-    // Check cooldown: if a FORGOTPASSWORD request was sent less than 1 minute ago, reject
-    Optional<Registrations> existing =
-        userInvitationRepository.findByEmailIgnoreCaseAndStatus(
-            email, Registrations.InvitationStatus.FORGOTPASSWORD);
-
-    if (existing.isPresent()) {
-      LocalDateTime createdAt = existing.get().getCreatedAt();
-      long secondsSince = ChronoUnit.SECONDS.between(createdAt, LocalDateTime.now());
-      if (secondsSince < 60) {
-        throw new IllegalArgumentException(
-            "A reset email was already sent. Please wait before requesting another one.");
-      }
-      // Delete old request before creating a new one
-      userInvitationRepository.deleteByEmailIgnoreCaseAndStatus(
-          email, Registrations.InvitationStatus.FORGOTPASSWORD);
+    // Anti-enumeration: never reveal whether an account exists for this email.
+    // If there is no matching user we return silently, so the caller always sees
+    // the same "reset email sent" response.
+    User user = userRepository.findByEmailIgnoreCase(email).orElse(null);
+    if (user == null) {
+      return;
     }
 
-    // Create new FORGOTPASSWORD record with 1 hour expiration
-    String token = UUID.randomUUID().toString();
+    // The registrations table has a UNIQUE email column and is reused across a
+    // user's lifecycle (invite -> reset), so we repurpose the existing row instead
+    // of inserting a new one — same pattern as AdminUserInviteService#createInvite.
     Registrations resetRequest =
-        Registrations.builder()
-            .email(user.getEmail())
-            .token(token)
-            .expiresAt(LocalDateTime.now().plusHours(1))
-            .status(Registrations.InvitationStatus.FORGOTPASSWORD)
-            .note("Password reset request")
-            .build();
+        userInvitationRepository.findByEmailIgnoreCase(email).orElse(new Registrations());
+
+    // Cooldown: if a reset was already requested less than RESET_COOLDOWN_SECONDS
+    // ago, silently succeed (anti-spam, and keeps the response uniform). The last
+    // request time is derived from the token expiry, since the row is reused.
+    if (resetRequest.getStatus() == Registrations.InvitationStatus.FORGOTPASSWORD
+        && resetRequest.getExpiresAt() != null) {
+      LocalDateTime lastRequestedAt = resetRequest.getExpiresAt().minus(RESET_TOKEN_VALIDITY);
+      if (ChronoUnit.SECONDS.between(lastRequestedAt, LocalDateTime.now())
+          < RESET_COOLDOWN_SECONDS) {
+        return;
+      }
+    }
+
+    // Repurpose the row as a fresh FORGOTPASSWORD request.
+    String token = UUID.randomUUID().toString();
+    resetRequest.setEmail(user.getEmail());
+    resetRequest.setToken(token);
+    resetRequest.setExpiresAt(LocalDateTime.now().plus(RESET_TOKEN_VALIDITY));
+    resetRequest.setStatus(Registrations.InvitationStatus.FORGOTPASSWORD);
+    resetRequest.setNote("Password reset request");
 
     userInvitationRepository.save(resetRequest);
 

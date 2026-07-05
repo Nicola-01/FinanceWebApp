@@ -5,6 +5,7 @@ import {
   faCopy,
   faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
+import Button from "../../components/ui/Button";
 
 interface PatShowTokenViewProps {
   generatedToken: string;
@@ -22,16 +23,16 @@ export const PatShowTokenView: React.FC<PatShowTokenViewProps> = ({
   return (
     <div className="space-y-5">
       {/* Warning banner */}
-      <div className="flex items-start gap-3 rounded-xl border theme-border-warning theme-bg-warning-transparent p-4">
+      <div className="flex items-start gap-3 rounded-[var(--r-input)] border border-app-yellow/30 bg-app-yellow/10 p-4">
         <FontAwesomeIcon
           icon={faExclamationTriangle}
-          className="mt-0.5 shrink-0 theme-text-warning"
+          className="mt-0.5 shrink-0 text-app-yellow"
         />
         <div>
-          <p className="text-sm font-bold theme-text-warning-light">
+          <p className="text-sm font-bold text-app-yellow">
             Copy your token now!
           </p>
-          <p className="mt-0.5 text-xs theme-text-warning-muted">
+          <p className="mt-0.5 text-xs text-app-muted">
             This token will only be shown once. You won't be able to see it
             again after closing this dialog.
           </p>
@@ -52,11 +53,12 @@ export const PatShowTokenView: React.FC<PatShowTokenViewProps> = ({
         {/* Copy button */}
         <button
           id="pat-copy-btn"
+          type="button"
           onClick={onCopy}
-          className={`absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg transition-all ${
+          className={`absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-[var(--r-sm)] transition-colors ${
             copied
               ? "bg-app-green/15 text-app-green"
-              : "bg-app-input text-app-muted hover:bg-app-border hover:text-app-text"
+              : "bg-app-input text-app-muted hover:bg-app-hover hover:text-app-text"
           }`}
           title="Copy to clipboard"
         >
@@ -68,13 +70,9 @@ export const PatShowTokenView: React.FC<PatShowTokenViewProps> = ({
       </div>
 
       {/* Done button */}
-      <button
-        id="pat-done-btn"
-        onClick={onDone}
-        className="w-full rounded-xl border border-app-border bg-app-input py-3 text-sm font-semibold text-app-text transition-all hover:bg-app-border"
-      >
+      <Button id="pat-done-btn" variant="secondary" fullWidth onClick={onDone}>
         I've copied the token
-      </button>
+      </Button>
     </div>
   );
 };

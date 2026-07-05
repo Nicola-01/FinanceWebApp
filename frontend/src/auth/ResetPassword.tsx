@@ -154,6 +154,12 @@ const ResetPassword: React.FC = () => {
             <strong className="text-app-text">{inviteData?.email}</strong>
           </p>
 
+          {/* Password Requirements */}
+          <PasswordRequirements
+            password={password}
+            confirmPassword={confirmPassword}
+          />
+
           {/* Password Input */}
           <div className="mb-4">
             <Input
@@ -190,12 +196,6 @@ const ResetPassword: React.FC = () => {
               leadingIcon={<FontAwesomeIcon icon={faLock} />}
             />
           </div>
-
-          {/* Password Requirements */}
-          <PasswordRequirements
-            password={password}
-            confirmPassword={confirmPassword}
-          />
 
           {/* Submit Button */}
           <Button

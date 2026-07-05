@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faKey, faPlus } from "@fortawesome/free-solid-svg-icons";
 import type { Wallet, PatToken } from "../../utils/types";
 import { TokenListItem } from "../../components/pat/TokenListItem";
+import Button from "../../components/ui/Button";
 
 interface PatListViewProps {
   loadingTokens: boolean;
@@ -33,7 +34,7 @@ export const PatListView: React.FC<PatListViewProps> = ({
     return (
       <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
         <div className="flex items-center justify-center py-12">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-app-border border-t-[#a78bfa]" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-app-border border-t-app-purple" />
         </div>
       </div>
     );
@@ -52,13 +53,16 @@ export const PatListView: React.FC<PatListViewProps> = ({
           <p className="mt-1 text-xs text-app-muted/70">
             Create a token to access your data via MCP
           </p>
-          <button
+          <Button
+            variant="primary"
+            size="sm"
+            ripple
             onClick={onCreate}
-            className="mt-4 rounded-xl bg-[#a78bfa]/20 px-4 py-2 text-sm font-bold text-[#a78bfa] transition-all hover:bg-[#a78bfa]/30"
+            className="mt-4"
           >
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
+            <FontAwesomeIcon icon={faPlus} />
             Create Token
-          </button>
+          </Button>
         </div>
       </div>
     );

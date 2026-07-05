@@ -7,9 +7,11 @@ import {
 } from "react";
 import api from "../../api/axiosConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTags, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faTags } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "../common/ModalDialog";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
+import { Input } from "../../components/ui/Input";
+import Button from "../../components/ui/Button";
 import { type IconKey, ICONS } from "../../utils/icons";
 import { IconColorSelector } from "../../components/icon/IconColorSelector.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
@@ -68,7 +70,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
           name: name.trim(),
           icon: iconKey,
           colorHex,
-          parentName: null, // Crea SOLO padri da questo modale
+          parentName: null, // This modal only creates top-level (parent) categories.
         };
 
         await api.post(`/tags/${walletId}`, payload);
@@ -92,16 +94,17 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
           </>
         }
         subtitle="Organize your transactions better."
-        rightActions={[
-          {
-            icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
-            onClick: async () => {
-              if (!loading) await handleSubmit();
-            },
-            hoverColor: "hover:text-app-green",
-            disabled: loading,
-          },
-        ]}
+        footer={
+          <Button
+            variant="primary"
+            fullWidth
+            ripple
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? "Creating…" : "Create Category"}
+          </Button>
+        }
       >
         <div id="create-tag-form" className="space-y-5 text-left">
           <div className="relative mb-6 flex flex-col items-center">
@@ -132,8 +135,7 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
             <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
               Category Name *
             </label>
-            <input
-              className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 theme-text-default outline-none transition-all focus:border-app-green"
+            <Input
               type="text"
               placeholder="e.g. Shopping"
               value={name}

@@ -265,6 +265,61 @@ export function popWidget(
   return { ...layout, slots };
 }
 
+/** Reorder a member within a group (Feature 3). No-op for standalone slots or unknown ids. */
+export function reorderMember(
+  layout: TabLayout,
+  slotId: string,
+  fromWidgetId: string,
+  toWidgetId: string,
+): TabLayout {
+  const gi = layout.slots.findIndex((s) => s.id === slotId);
+  const slot = layout.slots[gi];
+  if (!slot || slot.widgets.length < 2 || fromWidgetId === toWidgetId)
+    return layout;
+  const from = slot.widgets.indexOf(fromWidgetId);
+  const to = slot.widgets.indexOf(toWidgetId);
+  if (from === -1 || to === -1) return layout;
+  const widgets = [...slot.widgets];
+  const [m] = widgets.splice(from, 1);
+  widgets.splice(to, 0, m);
+  const slots = [...layout.slots];
+  slots[gi] = { ...slot, widgets };
+  return { ...layout, slots };
+}
+
+/**
+ * Pop a member out of a group into a standalone slot inserted at grid index `atIndex`
+ * (Feature 2 drop-at-position). A 2-member group dissolves; activeWidget heals if the
+ * popped member was active. No-op for standalone slots or a missing member.
+ */
+export function popWidgetTo(
+  layout: TabLayout,
+  slotId: string,
+  widgetId: string,
+  atIndex: number,
+): TabLayout {
+  const gi = layout.slots.findIndex((s) => s.id === slotId);
+  const slot = layout.slots[gi];
+  if (!slot || slot.widgets.length < 2 || !slot.widgets.includes(widgetId))
+    return layout;
+  const remaining = slot.widgets.filter((w) => w !== widgetId);
+  if (remaining.length === 0) return layout; // defensive
+  const reduced: LayoutSlot =
+    remaining.length === 1
+      ? { id: remaining[0], widgets: remaining }
+      : {
+          id: slot.id,
+          widgets: remaining,
+          activeWidget:
+            slot.activeWidget === widgetId ? remaining[0] : slot.activeWidget,
+        };
+  const slots = [...layout.slots];
+  slots[gi] = reduced;
+  const idx = Math.max(0, Math.min(atIndex, slots.length));
+  slots.splice(idx, 0, { id: widgetId, widgets: [widgetId] });
+  return { ...layout, slots };
+}
+
 /** Hide a visible slot (groups hide as one unit). */
 export function hideSlot(layout: TabLayout, slotId: string): TabLayout {
   const slot = layout.slots.find((s) => s.id === slotId);

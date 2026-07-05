@@ -15,6 +15,7 @@ import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -40,6 +41,7 @@ public class SubscriptionService {
   private final TransactionRepository transactionRepository;
   private final SubscriptionMapper subscriptionMapper;
   private final java.time.Clock clock;
+  private final ExchangeRateService exchangeRateService;
 
   /**
    * Retrieves all subscriptions associated with a specific wallet.
@@ -276,16 +278,37 @@ public class SubscriptionService {
 
     // 1. Create the actual Transaction entity linked to the wallet ONLY if ACTIVE
     if (sub.getStatus() == Subscription.Status.ACTIVE) {
+      // Resolve the converted amount / rate: a foreign-currency subscription with
+      // autoExchangeRate uses the day's live rate; otherwise the stored (fixed)
+      // values are kept. If the live fetch fails, we fall back to the stored ones
+      // rather than skip the transaction.
+      BigDecimal resolvedAmount = sub.getAmount();
+      BigDecimal resolvedExchange = sub.getExchangeValue();
+      String walletCurrency = sub.getWallet() != null ? sub.getWallet().getCurrency() : null;
+      boolean foreign =
+          sub.getOriginalCurrency() != null
+              && walletCurrency != null
+              && !sub.getOriginalCurrency().equals(walletCurrency);
+      if (foreign && sub.isAutoExchangeRate() && sub.getOriginalAmount() != null) {
+        BigDecimal liveRate =
+            exchangeRateService.getRate(sub.getOriginalCurrency(), walletCurrency).orElse(null);
+        if (liveRate != null) {
+          resolvedExchange = liveRate;
+          resolvedAmount =
+              sub.getOriginalAmount().multiply(liveRate).setScale(2, RoundingMode.HALF_UP);
+        }
+      }
+
       Transaction transaction =
           Transaction.builder()
               .wallet(sub.getWallet())
               .subscription(sub)
               .tag(sub.getTag())
               .name(sub.getName())
-              .amount(sub.getAmount())
+              .amount(resolvedAmount)
               .originalAmount(sub.getOriginalAmount())
               .originalCurrency(sub.getOriginalCurrency())
-              .exchangeValue(sub.getExchangeValue())
+              .exchangeValue(resolvedExchange)
               .type(Transaction.Type.valueOf(sub.getType().name()))
               .notes(generatedNotes)
               .transactionDate(

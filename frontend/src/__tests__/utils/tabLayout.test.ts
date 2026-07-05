@@ -7,8 +7,10 @@ import {
   moveSlot,
   nextGroupId,
   popWidget,
+  popWidgetTo,
   readLayout,
   reconcileLayout,
+  reorderMember,
   setActiveWidget,
   showSlot,
   writeLayout,
@@ -298,6 +300,126 @@ describe("popWidget", () => {
       hiddenSlots: [],
     };
     expect(popWidget(l, "group-1", "a")).toBe(l);
+  });
+});
+
+describe("reorderMember", () => {
+  it("moves a member within a group to the target member's position", () => {
+    const l: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "b", "c"], activeWidget: "b" }],
+      hiddenSlots: [],
+    };
+    // a -> c: remove a, insert at c's index -> [b, c, a]
+    expect(reorderMember(l, "group-1", "a", "c").slots[0].widgets).toEqual([
+      "b",
+      "c",
+      "a",
+    ]);
+  });
+
+  it("preserves activeWidget", () => {
+    const l: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "b", "c"], activeWidget: "b" }],
+      hiddenSlots: [],
+    };
+    expect(reorderMember(l, "group-1", "a", "c").slots[0].activeWidget).toBe(
+      "b",
+    );
+  });
+
+  it("is a no-op on a standalone slot", () => {
+    const l = defaultLayout(WIDGETS);
+    expect(reorderMember(l, "a", "a", "b")).toBe(l);
+  });
+
+  it("is a no-op when either member is not part of the group", () => {
+    const l: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "b"] }],
+      hiddenSlots: [],
+    };
+    expect(reorderMember(l, "group-1", "a", "z")).toBe(l);
+    expect(reorderMember(l, "group-1", "z", "a")).toBe(l);
+  });
+
+  it("is a no-op when from === to", () => {
+    const l: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "b"] }],
+      hiddenSlots: [],
+    };
+    expect(reorderMember(l, "group-1", "a", "a")).toBe(l);
+  });
+});
+
+describe("popWidgetTo", () => {
+  it("pops a member out of a group into a standalone slot at the given index", () => {
+    const l: TabLayout = {
+      slots: [
+        { id: "group-1", widgets: ["a", "b", "c"], activeWidget: "a" },
+        single("d"),
+      ],
+      hiddenSlots: [],
+    };
+    const popped = popWidgetTo(l, "group-1", "b", 1);
+    expect(popped.slots.map((s) => s.id)).toEqual(["group-1", "b", "d"]);
+    expect(popped.slots[0]).toEqual({
+      id: "group-1",
+      widgets: ["a", "c"],
+      activeWidget: "a",
+    });
+    expect(popped.slots[1]).toEqual(single("b"));
+  });
+
+  it("dissolves a 2-member group and frees the member at the index", () => {
+    const l: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "b"] }, single("c")],
+      hiddenSlots: [],
+    };
+    const popped = popWidgetTo(l, "group-1", "b", 2);
+    expect(popped.slots.map((s) => s.id)).toEqual(["a", "c", "b"]);
+    expect(popped.slots[0]).toEqual(single("a"));
+    expect(popped.slots[2]).toEqual(single("b"));
+  });
+
+  it("heals activeWidget when the popped member was active", () => {
+    const l: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "b", "c"], activeWidget: "b" }],
+      hiddenSlots: [],
+    };
+    const popped = popWidgetTo(l, "group-1", "b", 0);
+    expect(popped.slots[0]).toEqual(single("b"));
+    expect(popped.slots.find((s) => s.id === "group-1")).toEqual({
+      id: "group-1",
+      widgets: ["a", "c"],
+      activeWidget: "a",
+    });
+  });
+
+  it("clamps atIndex to the slot list bounds", () => {
+    const l: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "b", "c"] }, single("d")],
+      hiddenSlots: [],
+    };
+    expect(popWidgetTo(l, "group-1", "b", 99).slots.map((s) => s.id)).toEqual([
+      "group-1",
+      "d",
+      "b",
+    ]);
+    expect(popWidgetTo(l, "group-1", "b", -5).slots.map((s) => s.id)).toEqual([
+      "b",
+      "group-1",
+      "d",
+    ]);
+  });
+
+  it("is a no-op on a standalone slot or a missing member", () => {
+    const l = defaultLayout(WIDGETS);
+    expect(popWidgetTo(l, "a", "a", 0)).toBe(l);
+    const g: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "b"] }],
+      hiddenSlots: [],
+    };
+    expect(popWidgetTo(g, "group-1", "z", 0)).toBe(g);
+    expect(popWidgetTo(g, "group-9", "a", 0)).toBe(g);
   });
 });
 

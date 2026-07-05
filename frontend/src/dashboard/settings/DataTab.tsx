@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faDownload,
   faUpload,
   faFileCsv,
+  faCircleInfo,
 } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { Card } from "../../components/ui/Card.tsx";
 import Button from "../../components/ui/Button.tsx";
+import { CsvFormatModal } from "./CsvFormatModal.tsx";
 import type { Tag } from "../../utils/types";
 
 /**
@@ -50,6 +52,7 @@ const downloadCsv = (rows: (string | number)[][], filename: string) => {
 
 export const DataTab: React.FC = () => {
   const { wallet, tags, transactions } = useWalletContext();
+  const [formatOpen, setFormatOpen] = useState(false);
 
   const handleExportTransactions = () => {
     if (!transactions || transactions.length === 0) {
@@ -115,6 +118,23 @@ export const DataTab: React.FC = () => {
       icon={faFileCsv}
       iconColor={wallet.color}
     >
+      {/* Help affordance: opens the CSV format reference. */}
+      <button
+        type="button"
+        onClick={() => setFormatOpen(true)}
+        aria-label="CSV format help"
+        title="CSV format"
+        className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text sm:right-6 sm:top-6"
+      >
+        <FontAwesomeIcon icon={faCircleInfo} />
+      </button>
+
+      <CsvFormatModal
+        open={formatOpen}
+        onClose={() => setFormatOpen(false)}
+        accentColor={wallet.color}
+      />
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* EXPORT */}
         <div className="flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4">

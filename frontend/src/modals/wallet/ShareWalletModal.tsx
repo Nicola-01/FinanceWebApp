@@ -1,9 +1,4 @@
-import React, {
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import api from "../../api/axiosConfig";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -11,10 +6,11 @@ import {
   faPen,
   faShareNodes,
   faUser,
-  faCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "../common/ModalDialog";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
+import { Input } from "../../components/ui/Input";
+import Button from "../../components/ui/Button";
 import type { Wallet } from "../../utils/types";
 import { getApiErrorTitle } from "../../utils/apiError";
 
@@ -37,7 +33,7 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
     useImperativeHandle(ref, () => ({
       openModal: () => {
         setIdentifier("");
-        setRole("VIEWER"); // Reset di default
+        setRole("VIEWER");
         dialogRef.current?.showModal();
       },
     }));
@@ -49,7 +45,6 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
 
       setLoading(true);
       try {
-        // TODO: Assicurati che l'endpoint combaci con quello del tuo backend Java!
         await api.post(`/wallets/${wallet.id}/share`, {
           identifier: identifier.trim(),
           role: role,
@@ -63,8 +58,6 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
         setLoading(false);
       }
     };
-
-    console.log(wallet);
 
     if (!wallet) return;
 
@@ -82,32 +75,26 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
           </>
         }
         subtitle="Invite someone to view or edit this wallet."
-        rightActions={[
-          {
-            icon: <FontAwesomeIcon icon={faCheck} className="text-xl" />,
-            onClick: async () => {
-              if (!loading && identifier.trim().length >= 3)
-                await handleSubmit();
-            },
-            hoverColor: "hover:text-app-green",
-            disabled: loading || identifier.trim().length < 3,
-          },
-        ]}
+        footer={
+          <Button
+            accentColor={wallet.color}
+            fullWidth
+            ripple
+            onClick={handleSubmit}
+            disabled={loading || identifier.trim().length < 3}
+          >
+            {loading ? "Sharing…" : "Share Wallet"}
+          </Button>
+        }
       >
-        <div
-          id="share-wallet-form"
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-5 text-left"
-        >
-          {/* 1. Input Username/Email */}
+        <div id="share-wallet-form" className="flex flex-col gap-5 text-left">
+          {/* Username / email */}
           <div>
             <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
               <FontAwesomeIcon icon={faUser} className="mr-2" />
               User Email or Username *
             </label>
-            <input
-              className="h-[48px] w-full rounded-xl border border-app-border bg-app-input px-4 text-app-text outline-none transition-all"
-              style={{ focusBorderColor: wallet.color } as React.CSSProperties} // Fix rapido per il colore
+            <Input
               type="text"
               placeholder="e.g. mario.rossi@email.com"
               value={identifier}
@@ -117,18 +104,18 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
             />
           </div>
 
-          {/* 2. Selezione Ruolo */}
+          {/* Role selection */}
           <div>
             <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
               Permission Role
             </label>
-            <div className="flex rounded-xl bg-app-input p-1 border border-app-border w-full">
+            <div className="flex w-full rounded-[var(--r-input)] border border-app-border bg-app-input p-1">
               <button
                 type="button"
                 onClick={() => setRole("VIEWER")}
-                className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-[var(--r-sm)] py-2.5 text-xs font-bold transition-all ${
                   role === "VIEWER"
-                    ? "theme-bg-primary-light  text-app-text shadow-sm"
+                    ? "bg-app-surface text-app-text shadow-sm"
                     : "text-app-muted hover:text-app-text"
                 }`}
               >
@@ -138,9 +125,9 @@ export const ShareWalletModal = forwardRef<ShareWalletModalHandle, Props>(
               <button
                 type="button"
                 onClick={() => setRole("EDITOR")}
-                className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                className={`flex flex-1 items-center justify-center gap-2 rounded-[var(--r-sm)] py-2.5 text-xs font-bold transition-all ${
                   role === "EDITOR"
-                    ? "theme-bg-warning-light theme-text-warning shadow-sm"
+                    ? "bg-app-yellow/15 text-app-yellow shadow-sm"
                     : "text-app-muted hover:text-app-text"
                 }`}
               >

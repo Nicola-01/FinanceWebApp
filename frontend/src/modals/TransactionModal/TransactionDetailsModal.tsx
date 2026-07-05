@@ -2,6 +2,7 @@ import { forwardRef, useImperativeHandle, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
+import Button from "../../components/ui/Button.tsx";
 import { useDeleteModal } from "../common/DeleteModalContext";
 import type { Transaction, Wallet } from "../../utils/types.ts";
 
@@ -51,32 +52,36 @@ export const TransactionDetailsModal = forwardRef<
         tx,
         "transaction",
         async () => handleDeleteAndClose(),
-        false,
         0,
       );
     }
   };
 
   const canEdit = !!tx && wallet.userRole !== "VIEWER";
-  const headerActions = canEdit ? (
-    <>
-      <button
+  const footer = canEdit ? (
+    <div className="flex items-center gap-3">
+      <Button
         type="button"
-        aria-label="Edit"
         onClick={() => handleEditAndClose(tx!)}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+        accentColor={wallet.color}
+        ripple
+        className="flex-1"
+        aria-label="Edit"
       >
         <FontAwesomeIcon icon={faEdit} />
-      </button>
-      <button
+        Edit
+      </Button>
+      <Button
         type="button"
-        aria-label="Delete"
+        variant="danger"
         onClick={handleDelete}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-red/10 hover:text-app-red"
+        ripple
+        aria-label="Delete"
       >
         <FontAwesomeIcon icon={faTrash} />
-      </button>
-    </>
+        Delete
+      </Button>
+    </div>
   ) : undefined;
 
   return (
@@ -85,7 +90,7 @@ export const TransactionDetailsModal = forwardRef<
       onClose={handleClose}
       title="Transaction"
       accentColor={wallet.color}
-      headerActions={headerActions}
+      footer={footer}
     >
       {tx && <TransactionView tx={tx} wallet={wallet} />}
     </ResponsiveOverlay>

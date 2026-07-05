@@ -1,8 +1,7 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
 import api from "../../api/axiosConfig";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
+import Button from "../../components/ui/Button.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Transaction } from "../../utils/types.ts";
@@ -137,19 +136,19 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
       amount !== "" && Number(amount) !== 0 && selectedTagName !== "";
     const isEditing = !!editingTxId;
 
-    const headerActions = (
-      <button
+    const footer = (
+      <Button
         type="button"
-        onClick={() => {
-          if (canSave && !loading) handleSave();
-        }}
+        onClick={handleSave}
         disabled={!canSave || loading}
+        accentColor={wallet.color}
+        ripple
+        fullWidth
+        size="lg"
         aria-label="Save transaction"
-        className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-app-input disabled:cursor-not-allowed disabled:opacity-40"
-        style={{ color: canSave ? wallet.color : undefined }}
       >
-        <FontAwesomeIcon icon={faCheck} className="text-lg" />
-      </button>
+        {loading ? "Saving…" : isEditing ? "Save changes" : "Add transaction"}
+      </Button>
     );
 
     return (
@@ -158,8 +157,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
         onClose={() => setOpen(false)}
         title={isEditing ? "Edit Transaction" : "New Transaction"}
         accentColor={wallet.color}
-        width={480}
-        headerActions={headerActions}
+        footer={footer}
       >
         <div
           id="transaction-form"
@@ -173,6 +171,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
               type={type}
               setType={setType}
               currencySymbol={currencySymbol}
+              autoFocus={!isEditing}
               onAmountChange={(val) => {
                 setAmount(val);
                 if (currency !== baseCurrency && exchangeRate)
@@ -224,6 +223,8 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
           {/* 4. EXCHANGE RATE */}
           <ExchangeRateSection
             mode={isEditing ? "edit" : "create"}
+            accentColor={wallet.color}
+            walletId={wallet.id}
             baseCurrency={baseCurrency}
             selectedCurrency={currency}
             onCurrencyChange={setCurrency}

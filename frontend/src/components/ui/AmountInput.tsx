@@ -89,7 +89,12 @@ export const AmountInput = ({
     else setTextSize("text-6xl");
   };
 
-  // Sincronizza il valore iniziale (o i reset) con l'input fisico
+  // Sincronizza il valore iniziale, i reset e le modifiche ESTERNE con l'input
+  // fisico (non-controllato). L'input riporta al parent la sola magnitudine
+  // (senza segno); quando quel valore rientra dall'esterno — es. la sezione del
+  // tasso di cambio che modifica l'importo — va riscritto qui, preservando il
+  // segno. Durante la digitazione dell'utente la magnitudine coincide già, così
+  // saltiamo la riscrittura e non spostiamo il cursore.
   useEffect(() => {
     if (internalRef.current && value !== undefined) {
       if (value === "") {
@@ -99,12 +104,27 @@ export const AmountInput = ({
         setColor("text-app-muted opacity-40");
         setTextSize("text-6xl");
         setLiveResult(null);
-      } else if (internalRef.current.value === "") {
-        internalRef.current.value = value;
-        adjustTextSize(value);
+      } else {
+        const current = internalRef.current.value;
+        const domMagnitude = current.replace(/^[+-]/, "");
+        // Riscrivi solo se il valore è cambiato dall'esterno (non è la nostra
+        // stessa digitazione, in cui magnitudine e `value` coincidono).
+        if (domMagnitude !== value) {
+          const sign = current.startsWith("+")
+            ? "+"
+            : current.startsWith("-")
+              ? "-"
+              : type === "INCOME"
+                ? "+"
+                : type === "EXPENSE"
+                  ? "-"
+                  : "";
+          internalRef.current.value = sign + value;
+          adjustTextSize(sign + value);
+        }
       }
     }
-  }, [value]);
+  }, [value, type]);
 
   // Gestione colori e cambio segno programmatico
   useEffect(() => {
@@ -125,6 +145,19 @@ export const AmountInput = ({
         (type === "EXPENSE" ? "-" : "+") + currentValue;
     }
   }, [type]);
+
+  // On mount, focus the field and select any pre-filled value (edit mode) so the
+  // amount is ready to type/overwrite without an extra click. The overlay no
+  // longer steals this focus (see ResponsiveOverlay).
+  useEffect(() => {
+    if (!autoFocus) return;
+    const input = internalRef.current;
+    if (!input) return;
+    input.focus();
+    input.select();
+    // Run once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Centralizziamo gli aggiornamenti di stato
   const updateAmountState = (rawVal: string, selectionStart?: number) => {
@@ -148,7 +181,16 @@ export const AmountInput = ({
 
     const isNegative = cleanedValue.startsWith("-");
     const isPositive = cleanedValue.startsWith("+");
-    const currentSignType = isNegative ? "EXPENSE" : isPositive ? "INCOME" : "";
+    // A value with no digits (empty, or just a lingering sign/operator) means
+    // "no amount" — clear the Expense/Income selection instead of keeping it lit.
+    const hasDigits = /\d/.test(cleanedValue);
+    const currentSignType = !hasDigits
+      ? ""
+      : isNegative
+        ? "EXPENSE"
+        : isPositive
+          ? "INCOME"
+          : "";
     setType(currentSignType);
     adjustTextSize(cleanedValue);
 
