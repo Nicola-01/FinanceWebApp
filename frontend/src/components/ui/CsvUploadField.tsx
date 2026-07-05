@@ -99,10 +99,11 @@ export function CsvUploadField<T>({
           >
             <FontAwesomeIcon icon={faCircleInfo} />
           </button>
+          {/* Neutral (no accent) once tags are already imported — this is a
+              secondary "add more" action, not the primary CTA. */}
           <Button
             type="button"
             variant="secondary"
-            accentColor={accentColor}
             ripple
             onClick={() => inputRef.current?.click()}
           >
