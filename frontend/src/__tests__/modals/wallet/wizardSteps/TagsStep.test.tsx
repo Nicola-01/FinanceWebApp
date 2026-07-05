@@ -114,6 +114,36 @@ describe("TagsStep — recommended categories", () => {
     expect(card(/select the work category/i)).toBeInTheDocument();
   });
 
+  it("lists source wallets in the From-wallet mode", async () => {
+    const user = userEvent.setup();
+    render(<Harness onChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /from wallet/i }));
+    expect(
+      screen.getByRole("button", { name: /use tags from freelance/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /use tags from travel 2026/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("stages a category imported from a source wallet", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+
+    await user.click(screen.getByRole("button", { name: /from wallet/i }));
+    await user.click(
+      screen.getByRole("button", { name: /use tags from freelance/i }),
+    );
+    // The chosen wallet's categories now show as picker cards.
+    await user.click(card(/select the clients category/i));
+
+    const staged: TagRequest[] = onChange.mock.calls.at(-1)![0];
+    expect(staged.map((t) => t.name)).toEqual(["Clients", "Acme", "Globex"]);
+    expect(staged.find((t) => t.name === "Acme")!.parentName).toBe("Clients");
+  });
+
   it("striking a child excludes it and marks the category partial (mixed)", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
