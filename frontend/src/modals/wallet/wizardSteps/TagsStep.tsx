@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChevronLeft,
+  faChevronRight,
   faFileCsv,
   faPlus,
   faTag,
@@ -15,6 +16,7 @@ import { Selector } from "../../../components/ui/Selector";
 import { WizardStepHeader } from "./WizardStepHeader";
 import { StagedTagTree, type StagedTagNode } from "./StagedTagTree";
 import { TagCategoryPicker } from "./TagCategoryPicker";
+import { TagCreateMode } from "./TagCreateMode";
 import {
   RECOMMENDED_TAG_GROUPS,
   groupToTagRequests,
@@ -167,6 +169,13 @@ export function TagsStep({
       return [...m.values()];
     });
     mergeDtos(dtos);
+  };
+
+  // Create mode: stage a hand-made tag and mark its origin as custom.
+  const addCreated = (tag: TagRequest) => {
+    if (stagedKeys.has(keyOf(tag.name))) return;
+    setOriginOverrides((prev) => ({ ...prev, [keyOf(tag.name)]: "create" }));
+    onChange([...value, tag]);
   };
 
   // Staged tree data = active tags plus the struck-out (excluded) children of
@@ -378,15 +387,11 @@ export function TagsStep({
           ))}
 
         {mode === "create" && (
-          <div className="flex flex-col items-center gap-2 rounded-[var(--r-card)] border border-dashed border-app-border bg-app-surface px-6 py-10 text-center">
-            <FontAwesomeIcon
-              icon={faPlus}
-              className="text-2xl text-app-muted"
-            />
-            <p className="text-sm text-app-muted">
-              Create your own categories from scratch — coming next.
-            </p>
-          </div>
+          <TagCreateMode
+            value={value}
+            onAdd={addCreated}
+            accentColor={accentColor}
+          />
         )}
       </motion.div>
 

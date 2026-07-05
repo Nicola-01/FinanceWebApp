@@ -234,6 +234,19 @@ describe("TagsStep — recommended categories", () => {
     expect(within(trip).getByText("Flight")).toBeInTheDocument();
   });
 
+  it("stages a hand-made tag from the Create mode with a Custom origin", async () => {
+    const user = userEvent.setup();
+    render(<Harness onChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /^create$/i }));
+    await user.type(screen.getByLabelText(/category name/i), "Freelancing");
+    await user.click(screen.getByRole("button", { name: /add category/i }));
+
+    const region = screen.getByRole("region", { name: /staged/i });
+    expect(within(region).getByText("Freelancing")).toBeInTheDocument();
+    expect(within(region).getByText(/custom/i)).toBeInTheDocument();
+  });
+
   it("striking a child excludes it and marks the category partial (mixed)", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
