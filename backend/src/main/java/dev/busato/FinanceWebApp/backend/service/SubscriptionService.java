@@ -92,13 +92,12 @@ public class SubscriptionService {
    * with no matching tag is <b>auto-created</b> with default styling (icon {@code "tag"}, colour
    * {@code "var(--color-app-green)"}, no parent) and reported once in {@link
    * SubscriptionBulkResponse#getAutoCreatedTags()}. A row is treated as a <b>duplicate</b> of an
-   * existing subscription when it shares the same tag and start date (tag compared
-   * case-insensitively/trimmed, date exact — the name is <i>not</i> part of the key): the existing
-   * subscription's mutable fields are overwritten (via the standard update logic, including
-   * next-execution recalculation) and it is reported in {@code updated}; otherwise a new
-   * subscription is created and reported in {@code created}. Duplicate detection also spans rows
-   * created earlier in the same batch, so two identical rows collapse to a single record (last one
-   * wins).
+   * existing subscription when it shares the same name, tag and start date (name and tag compared
+   * case-insensitively/trimmed, date exact): the existing subscription's mutable fields are
+   * overwritten (via the standard update logic, including next-execution recalculation) and it is
+   * reported in {@code updated}; otherwise a new subscription is created and reported in {@code
+   * created}. Duplicate detection also spans rows created earlier in the same batch, so two
+   * identical rows collapse to a single record (last one wins).
    *
    * <p>The batch is all-or-nothing: if any row is invalid the whole transaction is rolled back and
    * an {@link IllegalArgumentException} whose message is prefixed with the failing 0-based row
@@ -133,11 +132,13 @@ public class SubscriptionService {
     for (Tag t : tagRepository.getTagsByWalletId(walletId))
       tagByName.put(normalize(t.getName()), t);
 
-    // Existing subscriptions keyed by (tag|startDate) for dedup; absorbs in-batch creations.
+    // Existing subscriptions keyed by (name|tag|startDate) for dedup; absorbs in-batch creations.
     Map<String, Subscription> byKey = new HashMap<>();
     for (Subscription s : subscriptionRepository.findAllByWalletId(walletId))
       byKey.put(
-          subscriptionKey(s.getTag() == null ? null : s.getTag().getName(), s.getStartDate()), s);
+          subscriptionKey(
+              s.getName(), s.getTag() == null ? null : s.getTag().getName(), s.getStartDate()),
+          s);
 
     // Identity-based bookkeeping so responses are built once from final entity state (last wins).
     Set<Subscription> createdInBatch = Collections.newSetFromMap(new IdentityHashMap<>());
@@ -150,13 +151,15 @@ public class SubscriptionService {
 
         LocalDate startDate =
             req.getStartDate() != null ? req.getStartDate() : LocalDate.now(clock);
-        String key = subscriptionKey(tag == null ? null : tag.getName(), startDate);
+        String key = subscriptionKey(req.getName(), tag == null ? null : tag.getName(), startDate);
         Subscription existing = byKey.get(key);
 
         if (existing == null) {
           Subscription created = buildAndPersistSubscription(req, wallet, tag);
           byKey.put(
-              subscriptionKey(tag == null ? null : tag.getName(), created.getStartDate()), created);
+              subscriptionKey(
+                  created.getName(), tag == null ? null : tag.getName(), created.getStartDate()),
+              created);
           createdInBatch.add(created);
           createdList.add(created);
         } else {
@@ -287,9 +290,13 @@ public class SubscriptionService {
     return value == null ? null : value.trim().toLowerCase(Locale.ROOT);
   }
 
-  /** Dedup key: tag name (case-insensitive) + exact start date. Name is intentionally excluded. */
-  private static String subscriptionKey(String tagName, LocalDate startDate) {
-    return (tagName == null ? "" : normalize(tagName)) + "|" + startDate;
+  /** Dedup key: name + tag name (both case-insensitive) + exact start date. */
+  private static String subscriptionKey(String name, String tagName, LocalDate startDate) {
+    return (name == null ? "" : normalize(name))
+        + "|"
+        + (tagName == null ? "" : normalize(tagName))
+        + "|"
+        + startDate;
   }
 
   /**

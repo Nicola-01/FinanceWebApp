@@ -478,7 +478,7 @@ class SubscriptionServiceTest {
     r2.setType("EXPENSE");
     r2.setFrequencyType("MONTHLY");
     r2.setFrequencyInterval(1);
-    // Different start date so the (tag|startDate) dedup key does not collapse the two rows.
+    // Different start date so the (name|tag|startDate) dedup key does not collapse the two rows.
     r2.setStartDate(LocalDate.of(2024, 4, 15));
     r2.setDuration("FOREVER");
 
@@ -575,7 +575,53 @@ class SubscriptionServiceTest {
   }
 
   @Test
-  void createSubscriptionsBulk_DuplicateTagAndStartDate_UpdatesExisting() {
+  void createSubscriptionsBulk_DuplicateNameTagAndStartDate_UpdatesExisting() {
+    Tag tag = new Tag();
+    tag.setId(UUID.randomUUID());
+    tag.setName("Rent");
+
+    Subscription existing = new Subscription();
+    existing.setId(UUID.randomUUID());
+    existing.setName("Rent");
+    existing.setAmount(new BigDecimal("500.00"));
+    existing.setType(Subscription.Type.EXPENSE);
+    existing.setTag(tag);
+    existing.setStartDate(LocalDate.of(2024, 1, 1));
+    existing.setFrequencyType(Subscription.Frequency.MONTHLY);
+    existing.setFrequencyInterval(1);
+    existing.setDuration(Subscription.Duration.FOREVER);
+    existing.setStatus(Subscription.Status.ACTIVE);
+    existing.setNextExecutionDate(LocalDate.of(2024, 2, 1));
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(tag));
+    when(subscriptionRepository.findAllByWalletId(walletId)).thenReturn(List.of(existing));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    // Same name + tag + start date as the existing subscription → overwrites its mutable fields.
+    SubscriptionRequest row = SubscriptionRequest.builder().build();
+    row.setName("Rent");
+    row.setAmount(new BigDecimal("650.00"));
+    row.setType("EXPENSE");
+    row.setTag("Rent");
+    row.setStartDate(LocalDate.of(2024, 1, 1));
+    row.setFrequencyType("MONTHLY");
+    row.setFrequencyInterval(1);
+    row.setDuration("FOREVER");
+
+    SubscriptionBulkResponse result =
+        subscriptionService.createSubscriptionsBulk(List.of(row), walletId, userId);
+
+    assertEquals(0, result.getCreated().size());
+    assertEquals(1, result.getUpdated().size());
+    assertEquals(0, result.getAutoCreatedTags().size());
+    assertEquals(new BigDecimal("650.00"), existing.getAmount());
+  }
+
+  @Test
+  void createSubscriptionsBulk_SameTagAndStartDate_DifferentName_CreatesSeparate() {
     Tag tag = new Tag();
     tag.setId(UUID.randomUUID());
     tag.setName("Rent");
@@ -600,8 +646,8 @@ class SubscriptionServiceTest {
     when(subscriptionMapper.mapToResponse(any()))
         .thenReturn(SubscriptionResponse.builder().build());
 
-    // Same tag + start date as the existing subscription (name differs, but name is NOT part of the
-    // dedup key) → overwrites the existing subscription's mutable fields.
+    // Same tag + start date but a DIFFERENT name → name is part of the dedup key, so this is a new
+    // subscription, not an overwrite of the existing one.
     SubscriptionRequest row = SubscriptionRequest.builder().build();
     row.setName("New Rent");
     row.setAmount(new BigDecimal("650.00"));
@@ -615,11 +661,9 @@ class SubscriptionServiceTest {
     SubscriptionBulkResponse result =
         subscriptionService.createSubscriptionsBulk(List.of(row), walletId, userId);
 
-    assertEquals(0, result.getCreated().size());
-    assertEquals(1, result.getUpdated().size());
-    assertEquals(0, result.getAutoCreatedTags().size());
-    assertEquals("New Rent", existing.getName());
-    assertEquals(new BigDecimal("650.00"), existing.getAmount());
+    assertEquals(1, result.getCreated().size());
+    assertEquals(0, result.getUpdated().size());
+    assertEquals("Old Rent", existing.getName()); // existing left untouched
   }
 
   // ==================== updateSubscription ====================
