@@ -144,6 +144,46 @@ describe("TagsStep — recommended categories", () => {
     expect(staged.find((t) => t.name === "Acme")!.parentName).toBe("Clients");
   });
 
+  it("highlights a source wallet card by how much of it is staged", async () => {
+    const user = userEvent.setup();
+    render(<Harness onChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /from wallet/i }));
+    const freelance = () =>
+      screen.getByRole("button", { name: /use tags from freelance/i });
+    expect(freelance()).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(freelance());
+    await user.click(card(/select the clients category/i)); // 1 of 3 categories
+    await user.click(screen.getByRole("button", { name: /all wallets/i }));
+
+    expect(freelance()).toHaveAttribute("aria-pressed", "mixed");
+  });
+
+  it("badges a recommended category with its origin in the staged tree", async () => {
+    const user = userEvent.setup();
+    render(<Harness onChange={vi.fn()} />);
+
+    await user.click(card(/select the work category/i));
+
+    const region = screen.getByRole("region", { name: /staged/i });
+    expect(within(region).getByText(/recommended/i)).toBeInTheDocument();
+  });
+
+  it("badges an imported category with the source wallet name", async () => {
+    const user = userEvent.setup();
+    render(<Harness onChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /from wallet/i }));
+    await user.click(
+      screen.getByRole("button", { name: /use tags from freelance/i }),
+    );
+    await user.click(card(/select the clients category/i));
+
+    const region = screen.getByRole("region", { name: /staged/i });
+    expect(within(region).getByText(/freelance/i)).toBeInTheDocument();
+  });
+
   it("striking a child excludes it and marks the category partial (mixed)", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

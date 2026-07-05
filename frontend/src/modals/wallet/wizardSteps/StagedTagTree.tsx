@@ -1,5 +1,6 @@
 import { useState, type KeyboardEvent } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import {
   faArrowTurnUp,
   faChevronRight,
@@ -11,10 +12,26 @@ import type { TagRequest } from "../../../dashboard/settings/csvImport";
 
 const keyOf = (s: string) => s.trim().toLowerCase();
 
+/** Where a staged tag came from (this screen only) — shown as a small badge. */
+export interface TagOrigin {
+  label: string;
+  icon: IconDefinition;
+}
+
 /** A staged tag, optionally marked `excluded` (struck out, kept only for display). */
 export interface StagedTagNode extends TagRequest {
   excluded?: boolean;
+  /** Provenance badge (Recommended / a wallet name / CSV / Custom). */
+  origin?: TagOrigin;
 }
+
+/** Small provenance pill shown on a category row. */
+const OriginBadge = ({ origin }: { origin: TagOrigin }) => (
+  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-app-input px-2 py-0.5 text-[10px] font-semibold text-app-muted">
+    <FontAwesomeIcon icon={origin.icon} className="text-[9px]" />
+    {origin.label}
+  </span>
+);
 
 interface TreeGroup {
   parent: StagedTagNode;
@@ -126,6 +143,7 @@ export function StagedTagTree({
                   <span className="min-w-0 flex-1 truncate text-base font-bold text-app-text">
                     {g.parent.name}
                   </span>
+                  {g.parent.origin && <OriginBadge origin={g.parent.origin} />}
                   <span
                     title={`${activeChildren} sub-categor${activeChildren === 1 ? "y" : "ies"}`}
                     className="shrink-0 rounded-full bg-app-input px-2 py-0.5 font-app-mono text-[11px] font-bold tabular-nums text-app-muted"
@@ -145,6 +163,7 @@ export function StagedTagTree({
                   <span className="min-w-0 flex-1 truncate text-base font-bold text-app-text">
                     {g.parent.name}
                   </span>
+                  {g.parent.origin && <OriginBadge origin={g.parent.origin} />}
                 </div>
               )}
 
