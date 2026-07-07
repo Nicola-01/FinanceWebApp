@@ -42,8 +42,21 @@ const draft = (o: Partial<WalletDraft> = {}): WalletDraft => ({
   ...o,
 });
 
-const bulkOk = (created = 1) => ({
-  data: { created: Array(created).fill({}), updated: [], autoCreatedTags: [] },
+const bulkBody = (created = 0, updated = 0, autoTags: string[] = []) => ({
+  created: Array(created).fill({}),
+  updated: Array(updated).fill({}),
+  autoCreatedTags: autoTags.map((name) => ({ name })),
+});
+
+/** Composite endpoint response; every section is always present. */
+const fullOk = (o: Record<string, unknown> = {}) => ({
+  data: {
+    wallet: { id: "w1" },
+    tags: bulkBody(),
+    subscriptions: bulkBody(),
+    transactions: bulkBody(),
+    ...o,
+  },
 });
 
 const conflict = (detail: string) => {
@@ -58,31 +71,52 @@ const conflict = (detail: string) => {
   return err;
 };
 
-beforeEach(() => post.mockReset());
+// Block body on purpose: mockReset() returns the mock, and a function returned
+// from beforeEach would be run by Vitest as a no-arg cleanup hook.
+beforeEach(() => {
+  post.mockReset();
+});
 
 describe("createWalletFromDraft", () => {
-  it("creates the wallet and skips resources with no staged data", async () => {
-    post.mockResolvedValueOnce({ data: { id: "w1" } });
-    const res = await createWalletFromDraft(draft());
+  it("sends the whole draft to the composite endpoint in one call", async () => {
+    post.mockResolvedValueOnce(fullOk());
+    const res = await createWalletFromDraft(
+      draft({ tags: [{ name: "Food", icon: "tag", colorHex: "#22c55e" }] }),
+    );
     expect(res.walletId).toBe("w1");
-    expect(res.outcomes).toEqual([]);
-    expect(res.anyFailed).toBe(false);
     expect(post).toHaveBeenCalledTimes(1);
     expect(post).toHaveBeenCalledWith(
-      "/wallets",
-      expect.objectContaining({ name: "Main", currency: "EUR" }),
+      "/wallets/full",
+      {
+        wallet: expect.objectContaining({ name: "Main", currency: "EUR" }),
+        tags: [{ name: "Food", icon: "tag", colorHex: "#22c55e" }],
+        subscriptions: [],
+        transactions: [],
+      },
+      // The composite call must never be queued offline with a fake success.
+      { skipOfflineQueue: true },
     );
   });
 
-  it("fires only the staged bulk imports and reports per-resource outcomes", async () => {
-    post.mockImplementation((url: string) =>
-      url === "/wallets"
-        ? Promise.resolve({ data: { id: "w1" } })
-        : Promise.resolve(bulkOk(2)),
+  it("skips outcomes for resources with no staged data", async () => {
+    post.mockResolvedValueOnce(fullOk());
+    const res = await createWalletFromDraft(draft());
+    expect(res.outcomes).toEqual([]);
+    expect(res.anyFailed).toBe(false);
+  });
+
+  it("maps the per-resource response counts into outcomes", async () => {
+    post.mockResolvedValueOnce(
+      fullOk({
+        tags: bulkBody(2, 1),
+        subscriptions: bulkBody(1, 0, ["Streaming"]),
+        transactions: bulkBody(3),
+      }),
     );
     const res = await createWalletFromDraft(
       draft({
         tags: [{ name: "Food", icon: "tag", colorHex: "#22c55e" }],
+        subscriptions: [sub()],
         transactions: [
           {
             transactionDate: "2026-01-01",
@@ -96,54 +130,51 @@ describe("createWalletFromDraft", () => {
     );
     expect(res.anyFailed).toBe(false);
     const byRes = Object.fromEntries(res.outcomes.map((o) => [o.resource, o]));
-    expect(byRes.tags.ok).toBe(true);
-    expect(byRes.tags.created).toBe(2);
-    expect(byRes.transactions.ok).toBe(true);
-    expect(post).toHaveBeenCalledWith("/tags/w1/bulk", expect.any(Array));
-    expect(post).toHaveBeenCalledWith(
-      "/transactions/w1/bulk",
-      expect.any(Array),
-    );
-    expect(post).not.toHaveBeenCalledWith(
-      "/subscription/w1/bulk",
-      expect.anything(),
-    );
-  });
-
-  it("keeps the wallet and marks only the failing resource on a bulk 409", async () => {
-    post.mockImplementation((url: string) => {
-      if (url === "/wallets") return Promise.resolve({ data: { id: "w1" } });
-      if (url === "/subscription/w1/bulk")
-        return Promise.reject(conflict("Row 3: bad"));
-      return Promise.resolve(bulkOk(1));
+    expect(byRes.tags).toMatchObject({ ok: true, created: 2, updated: 1 });
+    expect(byRes.subscriptions).toMatchObject({
+      ok: true,
+      created: 1,
+      autoCreatedTags: ["Streaming"],
     });
-    const res = await createWalletFromDraft(
-      draft({
-        tags: [{ name: "Food", icon: "tag", colorHex: "#22c55e" }],
-        subscriptions: [sub()],
-      }),
-    );
-    expect(res.walletId).toBe("w1");
-    expect(res.anyFailed).toBe(true);
-    const subs = res.outcomes.find((o) => o.resource === "subscriptions")!;
-    expect(subs.ok).toBe(false);
-    expect(subs.error).toMatch(/Row 3/);
-    expect(res.outcomes.find((o) => o.resource === "tags")!.ok).toBe(true);
+    expect(byRes.transactions).toMatchObject({ ok: true, created: 3 });
   });
 
-  it("throws WalletCreateError and fires no imports when wallet creation fails", async () => {
-    post.mockRejectedValueOnce(new AxiosError("boom"));
+  it("throws WalletCreateError with the resource-prefixed detail and sends no invites", async () => {
+    post.mockRejectedValueOnce(conflict("Transactions: Row 3: bad"));
     await expect(
       createWalletFromDraft(
-        draft({ tags: [{ name: "Food", icon: "tag", colorHex: "#22c55e" }] }),
+        draft({
+          transactions: [
+            {
+              transactionDate: "2026-01-01",
+              name: "x",
+              amount: 1,
+              type: "NOPE",
+            },
+          ],
+          invites: [{ user: "a@x.com", role: "EDITOR" }],
+        }),
       ),
-    ).rejects.toBeInstanceOf(WalletCreateError);
+    ).rejects.toThrow("Transactions: Row 3: bad");
+    // The backend rolled everything back — no wallet exists to invite people to.
     expect(post).toHaveBeenCalledTimes(1);
   });
 
-  it("loops invites and reports sent/failed counts", async () => {
+  it("throws WalletCreateError on failure", async () => {
+    post.mockRejectedValueOnce(conflict("Tags: Row 0: bad"));
+    await expect(createWalletFromDraft(draft())).rejects.toBeInstanceOf(
+      WalletCreateError,
+    );
+  });
+
+  it("reports an offline-specific error when the request never reached the backend", async () => {
+    post.mockRejectedValueOnce(new AxiosError("Network Error")); // no response
+    await expect(createWalletFromDraft(draft())).rejects.toThrow(/offline/);
+  });
+
+  it("loops invites best-effort after the atomic create and reports counts", async () => {
     post.mockImplementation((url: string) => {
-      if (url === "/wallets") return Promise.resolve({ data: { id: "w1" } });
+      if (url === "/wallets/full") return Promise.resolve(fullOk());
       if (url === "/invitations/w1") {
         const nth = post.mock.calls.filter(
           (c) => c[0] === "/invitations/w1",
@@ -152,7 +183,7 @@ describe("createWalletFromDraft", () => {
           ? Promise.resolve({ data: {} })
           : Promise.reject(new AxiosError("x"));
       }
-      return Promise.resolve(bulkOk());
+      throw new Error(`unexpected call: ${url}`);
     });
     const res = await createWalletFromDraft(
       draft({
@@ -166,6 +197,8 @@ describe("createWalletFromDraft", () => {
     expect(inv.sent).toBe(1);
     expect(inv.failed).toBe(1);
     expect(inv.ok).toBe(false);
+    // Invites are the only resource that can partially fail with the wallet kept.
     expect(res.anyFailed).toBe(true);
+    expect(res.walletId).toBe("w1");
   });
 });

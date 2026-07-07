@@ -76,8 +76,9 @@ const outcomeSummary = (o: ResourceOutcome): string => {
   return parts.length ? parts.join(", ") : "Done";
 };
 
-/** Terminal screen: processing spinner, blocking-error (no wallet), or the
- *  per-resource recap after the wallet was created. */
+/** Terminal screen: processing spinner, blocking-error (the creation is atomic,
+ *  so no wallet exists), or the per-resource recap after the wallet was created.
+ *  Only invites can partially fail here — everything else is transactional. */
 function WalletCompletionScreen({
   state,
   accentColor,
@@ -133,7 +134,7 @@ function WalletCompletionScreen({
         </h3>
         <p className="mt-1 text-sm text-app-muted">
           {result.anyFailed
-            ? "The wallet exists — some data didn't import."
+            ? "The wallet was created, but some invitations couldn't be sent."
             : "Your new wallet is set up."}
         </p>
       </div>
@@ -164,7 +165,7 @@ function WalletCompletionScreen({
 
       {result.anyFailed && (
         <p className="text-xs text-app-muted">
-          You can re-import the failed items later from Settings → Data.
+          You can invite members again later from the wallet's member settings.
         </p>
       )}
 

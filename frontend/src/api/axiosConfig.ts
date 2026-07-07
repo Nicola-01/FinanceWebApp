@@ -173,7 +173,8 @@ api.interceptors.response.use(
         }
       } else if (
         ["POST", "PUT", "DELETE"].includes(method) &&
-        !config.isSyncRequest
+        !config.isSyncRequest &&
+        !config.skipOfflineQueue
       ) {
         try {
           let payloadData = null;

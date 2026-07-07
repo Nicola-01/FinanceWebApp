@@ -137,12 +137,14 @@ describe("CreateWalletWizard", () => {
     expect(onSuccess).toHaveBeenCalledWith("w1");
   });
 
-  it("shows a per-resource recap when an import fails", async () => {
+  it("shows a per-resource recap when some invites fail", async () => {
+    // Data imports are atomic (a failure would have thrown), so a partial
+    // outcome can only come from the best-effort invites.
     createWalletFromDraft.mockResolvedValue({
       walletId: "w1",
       outcomes: [
         { resource: "tags", ok: true, created: 3, updated: 0 },
-        { resource: "subscriptions", ok: false, error: "Row 2: bad" },
+        { resource: "invites", ok: false, sent: 1, failed: 1 },
       ],
       anyFailed: true,
     });
@@ -152,8 +154,29 @@ describe("CreateWalletWizard", () => {
       fireEvent.click(screen.getByTestId("wizard-next"));
     }
     await screen.findByText("Wallet created with some issues");
-    expect(screen.getByText("Row 2: bad")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "The wallet was created, but some invitations couldn't be sent.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("1/2 sent")).toBeInTheDocument();
     expect(screen.getByText("3 created")).toBeInTheDocument();
+  });
+
+  it("shows a blocking error when the atomic create fails (no wallet kept)", async () => {
+    createWalletFromDraft.mockRejectedValue(
+      new Error("Transactions: Row 3: bad"),
+    );
+    open();
+    fireEvent.click(screen.getByText("set-name"));
+    for (let i = 0; i < 5; i++) {
+      fireEvent.click(screen.getByTestId("wizard-next"));
+    }
+    await screen.findByText("Couldn't create the wallet");
+    expect(screen.getByText("Transactions: Row 3: bad")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Return to setup" }),
+    ).toBeInTheDocument();
   });
 
   it("blocks Continue on Subscriptions while a subscription's tag is unresolved", () => {

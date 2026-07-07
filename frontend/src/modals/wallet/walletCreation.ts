@@ -1,9 +1,11 @@
 // Final-phase orchestration for the wallet-creation wizard. Decoupled from React
-// so it can be unit-tested. Creates the wallet first (blocking), then fires the
-// staged bulk imports in parallel and loops the invites, aggregating a
-// per-resource result. The bulk endpoints are all-or-nothing, so a resource is
-// reported as a whole (created/updated counts on success, or an error string).
+// so it can be unit-tested. The whole draft is sent to the atomic composite
+// endpoint (POST /wallets/full): wallet, tags, subscriptions and transactions
+// are persisted in ONE backend transaction, so a failure anywhere means no
+// wallet was created at all. Invites can't join that transaction (emails can't
+// be unsent), so they are looped best-effort after the wallet exists.
 
+import { AxiosError } from "axios";
 import api from "../../api/axiosConfig";
 import { getApiErrorDetail } from "../../utils/apiError";
 import type {
@@ -56,7 +58,7 @@ export interface WalletCreationResult {
   anyFailed: boolean;
 }
 
-/** Thrown when the wallet itself couldn't be created — the blocking failure. */
+/** Thrown when the composite create fails — nothing was persisted. */
 export class WalletCreateError extends Error {
   constructor(message: string) {
     super(message);
@@ -70,29 +72,23 @@ interface BulkResponse {
   autoCreatedTags?: { name: string }[];
 }
 
-async function bulkTask(
-  resource: ResourceKey,
-  endpoint: string,
-  payload: unknown[],
-): Promise<ResourceOutcome> {
-  try {
-    const { data } = await api.post(endpoint, payload);
-    const body = data as BulkResponse;
-    return {
-      resource,
-      ok: true,
-      created: body.created?.length ?? 0,
-      updated: body.updated?.length ?? 0,
-      autoCreatedTags: (body.autoCreatedTags ?? []).map((t) => t.name),
-    };
-  } catch (err) {
-    return {
-      resource,
-      ok: false,
-      error: getApiErrorDetail(err, "Import failed"),
-    };
-  }
+interface WalletFullResponse {
+  wallet: { id: string };
+  tags: BulkResponse;
+  subscriptions: BulkResponse;
+  transactions: BulkResponse;
 }
+
+const bulkOutcome = (
+  resource: ResourceKey,
+  body: BulkResponse,
+): ResourceOutcome => ({
+  resource,
+  ok: true,
+  created: body.created?.length ?? 0,
+  updated: body.updated?.length ?? 0,
+  autoCreatedTags: (body.autoCreatedTags ?? []).map((t) => t.name),
+});
 
 async function invitesTask(
   walletId: string,
@@ -109,51 +105,54 @@ async function invitesTask(
 }
 
 /**
- * Creates the wallet from the draft, then imports the staged data. Throws
- * {@link WalletCreateError} if the wallet POST fails (nothing else runs); a
- * later import failure is captured in that resource's outcome, and the wallet is
- * kept.
+ * Creates the wallet and all its staged data in one atomic call, then loops
+ * the invites. Throws {@link WalletCreateError} when the composite call fails —
+ * the backend transaction rolled back, so no wallet (or anything else) exists.
+ * Only invite failures survive as a non-ok outcome with the wallet kept.
  */
 export async function createWalletFromDraft(
   draft: WalletDraft,
 ): Promise<WalletCreationResult> {
-  let walletId: string;
+  let data: WalletFullResponse;
   try {
-    const { data } = await api.post("/wallets", {
-      name: draft.basics.name,
-      description: draft.basics.description,
-      icon: draft.basics.icon,
-      color: draft.basics.color,
-      currency: draft.basics.currency,
-    });
-    walletId = (data as { id: string }).id;
+    // skipOfflineQueue: queueing would fake a success with a bogus wallet id;
+    // an offline finish must fail loudly instead.
+    ({ data } = await api.post(
+      "/wallets/full",
+      {
+        wallet: {
+          name: draft.basics.name,
+          description: draft.basics.description,
+          icon: draft.basics.icon,
+          color: draft.basics.color,
+          currency: draft.basics.currency,
+        },
+        tags: draft.tags,
+        subscriptions: draft.subscriptions,
+        transactions: draft.transactions,
+      },
+      { skipOfflineQueue: true },
+    ));
   } catch (err) {
+    // No response = the request never reached the backend (offline/network).
+    if (err instanceof AxiosError && !err.response)
+      throw new WalletCreateError(
+        "You appear to be offline — reconnect and try again.",
+      );
     throw new WalletCreateError(
       getApiErrorDetail(err, "Could not create the wallet"),
     );
   }
 
-  const tasks: Promise<ResourceOutcome>[] = [];
-  if (draft.tags.length)
-    tasks.push(bulkTask("tags", `/tags/${walletId}/bulk`, draft.tags));
+  const walletId = data.wallet.id;
+  const outcomes: ResourceOutcome[] = [];
+  if (draft.tags.length) outcomes.push(bulkOutcome("tags", data.tags));
   if (draft.subscriptions.length)
-    tasks.push(
-      bulkTask(
-        "subscriptions",
-        `/subscription/${walletId}/bulk`,
-        draft.subscriptions,
-      ),
-    );
+    outcomes.push(bulkOutcome("subscriptions", data.subscriptions));
   if (draft.transactions.length)
-    tasks.push(
-      bulkTask(
-        "transactions",
-        `/transactions/${walletId}/bulk`,
-        draft.transactions,
-      ),
-    );
-  if (draft.invites.length) tasks.push(invitesTask(walletId, draft.invites));
+    outcomes.push(bulkOutcome("transactions", data.transactions));
+  if (draft.invites.length)
+    outcomes.push(await invitesTask(walletId, draft.invites));
 
-  const outcomes = await Promise.all(tasks);
   return { walletId, outcomes, anyFailed: outcomes.some((o) => !o.ok) };
 }
