@@ -4,7 +4,17 @@ import { faTrashCan, faReceipt } from "@fortawesome/free-solid-svg-icons";
 import Button from "../../../components/ui/Button";
 import { CsvUploadField } from "../../../components/ui/CsvUploadField";
 import { WizardStepHeader } from "./WizardStepHeader";
-import type { TransactionRequest } from "../../../dashboard/settings/csvImport";
+import { MissingTransactionTags } from "./MissingTransactionTags";
+import {
+  groupMissingTransactionTags,
+  reassignTransactionTag,
+  removeTransactionsWithTag,
+} from "./transactionTags";
+import { addTagToDraft } from "./tagDraft";
+import type {
+  TagRequest,
+  TransactionRequest,
+} from "../../../dashboard/settings/csvImport";
 
 export interface TransactionsStepProps {
   /** Transactions staged so far (owned by the wizard). */
@@ -15,6 +25,10 @@ export interface TransactionsStepProps {
   currency: string;
   /** Wallet colour (hex) applied to the upload CTA. */
   accentColor?: string;
+  /** Tags staged in the previous (Tags) step — resolves each transaction's tag. */
+  tags?: TagRequest[];
+  /** Add a tag to the draft (for "Create «X»" when a transaction's tag is missing). */
+  onTagsChange?: (next: TagRequest[]) => void;
 }
 
 /** How many staged rows to preview before collapsing into a "+N more" note. */
@@ -25,15 +39,35 @@ const PREVIEW_LIMIT = 5;
  * upload — the only entry point. Optional: the wizard lets the user continue
  * without any. The shared {@link CsvUploadField} handles parse/validate/errors;
  * this step just appends clean rows and previews the staged list.
+ *
+ * Like the Subscriptions step, a staged transaction pointing at a tag that isn't
+ * in the wallet blocks Continue. Because transactions arrive in bulk, conflicts
+ * are grouped **per missing tag** in {@link MissingTransactionTags}, where each
+ * one can be created, reassigned to an existing tag, or removed wholesale.
  */
 export function TransactionsStep({
   value,
   onChange,
   currency,
   accentColor,
+  tags = [],
+  onTagsChange,
 }: TransactionsStepProps): React.JSX.Element {
   const preview = value.slice(0, PREVIEW_LIMIT);
   const overflow = value.length - preview.length;
+  const missingGroups = groupMissingTransactionTags(value, tags);
+
+  const createMissingTag = (name: string) => {
+    if (!onTagsChange) return;
+    const next = addTagToDraft(name, tags, accentColor);
+    if (next !== tags) onTagsChange(next);
+  };
+
+  const reassign = (key: string, toName: string) =>
+    onChange(reassignTransactionTag(value, key, toName));
+
+  const removeTagged = (key: string) =>
+    onChange(removeTransactionsWithTag(value, key));
 
   return (
     <div className="flex flex-col gap-5">
@@ -52,6 +86,15 @@ export function TransactionsStep({
         noun="transaction"
         accentColor={accentColor}
         onDtos={(dtos) => onChange([...value, ...dtos])}
+      />
+
+      <MissingTransactionTags
+        groups={missingGroups}
+        tags={tags}
+        accentColor={accentColor}
+        onCreate={createMissingTag}
+        onReassign={reassign}
+        onRemove={removeTagged}
       />
 
       {value.length > 0 && (

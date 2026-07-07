@@ -10,6 +10,7 @@ import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.mappers.WalletMapper;
 import dev.busato.FinanceWebApp.backend.model.*;
+import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository; // <--- Nuovo import
@@ -41,6 +42,7 @@ public class WalletService {
   private final PatService patService;
   private final TagRepository tagRepository;
   private final TagMapper tagMapper;
+  private final SubscriptionRepository subscriptionRepository;
 
   @Transactional
   public WalletResponse createWallet(WalletRequest request, UUID userId) {
@@ -120,9 +122,13 @@ public class WalletService {
             .findByUserIdAndWalletId(userId, walletId)
             .orElseThrow(() -> new UnauthorizedAccessException("No access to this wallet"));
 
-    if (userAccess.getRole() == WalletAccess.WalletRole.OWNER)
+    if (userAccess.getRole() == WalletAccess.WalletRole.OWNER) {
+      // Subscriptions are not part of the Wallet entity cascade, so remove them first (they
+      // FK-reference the wallet's tags); the wallet delete then cascades tags, transactions and
+      // access rows.
+      subscriptionRepository.deleteAllByWalletId(walletId);
       walletRepository.delete(userAccess.getWallet());
-    else userAccess.setStatus(WalletAccess.InvitationStatus.LEFT);
+    } else userAccess.setStatus(WalletAccess.InvitationStatus.LEFT);
   }
 
   public List<WalletResponse> getWallets(UUID userId) {

@@ -218,7 +218,16 @@ public class SubscriptionService {
             .tag(tag)
             .name(request.getName())
             .amount(request.getAmount())
-            .originalAmount(request.getOriginalAmount())
+            // originalAmount is required (NOT NULL) and equals the amount when no
+            // currency conversion is involved. Callers that omit it — e.g. the wallet
+            // wizard staging simple, single-currency subscriptions — would otherwise
+            // persist null and break both the subscription and the transactions it
+            // generates, so default it to the amount here (before executeSubscription
+            // copies it onto the first generated transaction).
+            .originalAmount(
+                request.getOriginalAmount() != null
+                    ? request.getOriginalAmount()
+                    : request.getAmount())
             .originalCurrency(request.getOriginalCurrency())
             .exchangeValue(request.getExchangeValue())
             .autoExchangeRate(request.isAutoExchangeRate())
@@ -484,7 +493,12 @@ public class SubscriptionService {
               .tag(sub.getTag())
               .name(generatedName)
               .amount(resolvedAmount)
-              .originalAmount(sub.getOriginalAmount())
+              // Transactions.original_amount is NOT NULL. Guard here (not just at
+              // subscription build) so the daily cron never fails on a subscription
+              // that somehow carries a null original amount — fall back to the
+              // resolved amount, which equals it when no conversion is involved.
+              .originalAmount(
+                  sub.getOriginalAmount() != null ? sub.getOriginalAmount() : resolvedAmount)
               .originalCurrency(sub.getOriginalCurrency())
               .exchangeValue(resolvedExchange)
               .type(Transaction.Type.valueOf(sub.getType().name()))

@@ -62,6 +62,16 @@ public class GlobalExceptionHandler {
     return buildErrorResponse(ex, HttpStatus.FORBIDDEN, "Permission Denied", request);
   }
 
+  // Method-security denials (e.g. @PreAuthorize failing) surface an AccessDeniedException /
+  // AuthorizationDeniedException here rather than at the security filter. Map it to 403 so it is
+  // not
+  // swallowed by the generic 500 handler below.
+  @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+  public ResponseEntity<ProblemDetail> handleAccessDeniedException(
+      org.springframework.security.access.AccessDeniedException ex, HttpServletRequest request) {
+    return buildErrorResponse(ex, HttpStatus.FORBIDDEN, "Access Denied", request);
+  }
+
   @ExceptionHandler(TagHasChildrenException.class)
   public ResponseEntity<ProblemDetail> handleTagHasChildrenException(
       TagHasChildrenException ex, HttpServletRequest request) {

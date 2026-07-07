@@ -9,6 +9,7 @@ import {
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { Icon } from "../../../components/icon/Icon";
+import { Badge } from "../../../components/ui/Badge";
 import type { TagRequest } from "../../../dashboard/settings/csvImport";
 
 const keyOf = (s: string) => s.trim().toLowerCase();
@@ -28,10 +29,9 @@ export interface StagedTagNode extends TagRequest {
 
 /** Small provenance pill shown on a category row. */
 const OriginBadge = ({ origin }: { origin: TagOrigin }) => (
-  <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-app-input px-2 py-0.5 text-[10px] font-semibold text-app-muted">
-    <FontAwesomeIcon icon={origin.icon} className="text-[9px]" />
+  <Badge variant="subtle" icon={origin.icon} className="shrink-0">
     {origin.label}
-  </span>
+  </Badge>
 );
 
 interface TreeGroup {
@@ -145,12 +145,14 @@ export function StagedTagTree({
                     {g.parent.name}
                   </span>
                   {g.parent.origin && <OriginBadge origin={g.parent.origin} />}
-                  <span
+                  <Badge
+                    variant="subtle"
+                    mono
                     title={`${activeChildren} sub-categor${activeChildren === 1 ? "y" : "ies"}`}
-                    className="shrink-0 rounded-full bg-app-input px-2 py-0.5 font-app-mono text-[11px] font-bold tabular-nums text-app-muted"
+                    className="shrink-0"
                   >
                     {activeChildren}
-                  </span>
+                  </Badge>
                 </div>
               ) : (
                 <div className="flex min-w-0 flex-1 items-center gap-2 p-2">

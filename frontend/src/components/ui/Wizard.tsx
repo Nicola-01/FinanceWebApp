@@ -2,6 +2,7 @@ import { Fragment, useCallback, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import Button from "./Button";
 
 /** One configurable step. All state is owned by the consumer. */
@@ -20,6 +21,12 @@ export interface WizardStep {
   nextLabelIncomplete?: string;
   /** Parent-computed validity: gates a mandatory step and picks the label. */
   isComplete: boolean;
+  /** Hard block: disables Continue regardless of `mandatory`/`isComplete`, for
+   *  content that is present but invalid (e.g. an item with an unresolved tag).
+   *  Distinct from an optional step the user may legitimately skip. */
+  blocked?: boolean;
+  /** Shown above the footer when `blocked`, telling the user what to fix. */
+  blockedReason?: string;
 }
 
 export type WizardCompletionStatus = "processing" | "done" | "error";
@@ -104,6 +111,7 @@ export function Wizard<TResult = unknown>({
   const isLast = current === steps.length - 1;
 
   const handleNext = () => {
+    if (step.blocked) return;
     if (step.mandatory && !step.isComplete) return;
     setDirection(1);
     if (isLast) {
@@ -120,7 +128,7 @@ export function Wizard<TResult = unknown>({
     : step.isComplete
       ? step.nextLabel
       : (step.nextLabelIncomplete ?? step.nextLabel);
-  const nextDisabled = step.mandatory && !step.isComplete;
+  const nextDisabled = step.blocked || (step.mandatory && !step.isComplete);
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
@@ -133,7 +141,7 @@ export function Wizard<TResult = unknown>({
       <div
         role="list"
         aria-label="Progress"
-        className="mb-11 flex shrink-0 items-center pb-7 pt-8"
+        className="mb-11 flex shrink-0 items-center pb-3 pt-8"
       >
         {steps.map((s, i) => {
           // On the completion phase every node is "done".
@@ -145,17 +153,25 @@ export function Wizard<TResult = unknown>({
                 ? "active"
                 : "future";
           const navigable = inSteps && i <= furthest;
+          // "Opened-ahead" steps: reachable (no not-allowed cursor) yet sitting
+          // after the current one. Drawn dashed — both the ring and the inbound
+          // rail — so they read as "already visited, jump forward anytime",
+          // distinct from the solid "done" steps behind the current node.
+          const reopenable = state === "future" && navigable;
           // The segment before this node (lead for i===0, connector otherwise)
           // is filled once its node is reached.
           const beforeFilled = !inSteps || i <= current;
           const nodeStyle =
             state === "active" && accentColor
               ? { backgroundColor: accentColor }
-              : state === "done" && accentColor
+              : (state === "done" || reopenable) && accentColor
                 ? { borderColor: accentColor, color: accentColor }
                 : undefined;
-          const nodeStateClass =
-            state === "future"
+          const nodeStateClass = reopenable
+            ? accentColor
+              ? "border-2 border-dashed bg-app-card"
+              : "border-2 border-dashed border-app-border bg-app-input text-app-muted"
+            : state === "future"
               ? "border border-app-border bg-app-input text-app-muted"
               : state === "active"
                 ? accentColor
@@ -169,16 +185,24 @@ export function Wizard<TResult = unknown>({
               <span
                 aria-hidden="true"
                 style={
-                  beforeFilled && accentColor
-                    ? { backgroundColor: accentColor }
-                    : undefined
+                  reopenable && accentColor
+                    ? { borderColor: accentColor }
+                    : beforeFilled && accentColor
+                      ? { backgroundColor: accentColor }
+                      : undefined
                 }
-                className={`h-0.5 ${i === 0 ? "flex-[0.5]" : "flex-1"} ${
-                  beforeFilled
-                    ? accentColor
-                      ? ""
-                      : "bg-[var(--brand-1)]"
-                    : "bg-app-border"
+                className={`${i === 0 ? "flex-[0.5]" : "flex-1"} ${
+                  reopenable
+                    ? `h-0 self-center border-t-2 border-dashed ${
+                        accentColor ? "" : "border-app-border"
+                      }`
+                    : `h-0.5 ${
+                        beforeFilled
+                          ? accentColor
+                            ? ""
+                            : "bg-[var(--brand-1)]"
+                          : "bg-app-border"
+                      }`
                 }`}
               />
               <div role="listitem" className="relative flex-none">
@@ -245,30 +269,44 @@ export function Wizard<TResult = unknown>({
 
       {/* Footer — pinned below the scroll region, always visible. */}
       {inSteps && (
-        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-app-border pt-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          {current > 0 ? (
-            <Button
-              variant="secondary"
-              data-testid="wizard-back"
-              onClick={() => {
-                setDirection(-1);
-                setCurrent(current - 1);
-              }}
+        <div className="shrink-0 border-t border-app-border pt-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          {step.blocked && step.blockedReason && (
+            <p
+              role="alert"
+              className="mb-3 flex items-center gap-2 text-xs font-medium text-app-yellow"
             >
-              Back
-            </Button>
-          ) : (
-            <span />
+              <FontAwesomeIcon
+                icon={faTriangleExclamation}
+                className="shrink-0"
+              />
+              {step.blockedReason}
+            </p>
           )}
-          <Button
-            data-testid="wizard-next"
-            ripple
-            accentColor={accentColor}
-            disabled={nextDisabled}
-            onClick={handleNext}
-          >
-            {nextLabel}
-          </Button>
+          <div className="flex items-center justify-between gap-3">
+            {current > 0 ? (
+              <Button
+                variant="secondary"
+                data-testid="wizard-back"
+                onClick={() => {
+                  setDirection(-1);
+                  setCurrent(current - 1);
+                }}
+              >
+                Back
+              </Button>
+            ) : (
+              <span />
+            )}
+            <Button
+              data-testid="wizard-next"
+              ripple
+              accentColor={accentColor}
+              disabled={nextDisabled}
+              onClick={handleNext}
+            >
+              {nextLabel}
+            </Button>
+          </div>
         </div>
       )}
     </div>

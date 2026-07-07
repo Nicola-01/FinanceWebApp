@@ -100,6 +100,42 @@ class SubscriptionServiceTest {
   }
 
   @Test
+  void createSubscription_NoOriginalAmount_DefaultsToAmountOnSubscriptionAndGeneratedTransaction() {
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setName("Spotify");
+    request.setAmount(new BigDecimal("9.99"));
+    request.setType("EXPENSE");
+    request.setFrequencyType("MONTHLY");
+    request.setFrequencyInterval(1);
+    // Start today (fixed clock): immediately due, so a transaction is generated on create —
+    // the exact wallet-wizard scenario that used to insert a null original_amount.
+    request.setStartDate(LocalDate.of(2024, 2, 15));
+    request.setDuration("FOREVER");
+    // originalAmount intentionally left null, as the wizard omits it.
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    ArgumentCaptor<Subscription> subCaptor = ArgumentCaptor.forClass(Subscription.class);
+    verify(subscriptionRepository, atLeastOnce()).save(subCaptor.capture());
+    assertEquals(
+        0,
+        new BigDecimal("9.99").compareTo(subCaptor.getValue().getOriginalAmount()),
+        "originalAmount must default to amount when omitted");
+
+    ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(txCaptor.capture());
+    assertNotNull(
+        txCaptor.getValue().getOriginalAmount(),
+        "generated transaction must not carry a null original_amount");
+    assertEquals(0, new BigDecimal("9.99").compareTo(txCaptor.getValue().getOriginalAmount()));
+  }
+
+  @Test
   void createSubscription_NegativeAmount_ThrowsIllegalArgumentException() {
     SubscriptionRequest request = SubscriptionRequest.builder().build();
     request.setName("Netflix");
@@ -218,6 +254,35 @@ class SubscriptionServiceTest {
     assertEquals(1, sub.getExecutedTimes());
     assertEquals(LocalDate.of(2024, 2, 15), sub.getLastExecutionDate());
     assertEquals(LocalDate.of(2024, 3, 15), sub.getNextExecutionDate());
+  }
+
+  @Test
+  void processDueSubscriptions_NullOriginalAmount_GeneratedTransactionFallsBackToAmount() {
+    Subscription sub = new Subscription();
+    sub.setId(UUID.randomUUID());
+    sub.setName("Test");
+    sub.setAmount(new BigDecimal("10.00"));
+    sub.setOriginalAmount(null); // legacy / edge data: must not crash the cron
+    sub.setType(Subscription.Type.EXPENSE);
+    sub.setStatus(Subscription.Status.ACTIVE);
+    sub.setFrequencyType(Subscription.Frequency.MONTHLY);
+    sub.setFrequencyInterval(1);
+    sub.setStartDate(LocalDate.of(2024, 1, 15));
+    sub.setNextExecutionDate(LocalDate.of(2024, 2, 15)); // Due today based on fixed clock
+    sub.setDuration(Subscription.Duration.FOREVER);
+
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(
+            anyList(), eq(LocalDate.of(2024, 2, 15))))
+        .thenReturn(List.of(sub));
+
+    subscriptionService.processDueSubscriptions();
+
+    ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(txCaptor.capture());
+    assertNotNull(
+        txCaptor.getValue().getOriginalAmount(),
+        "generated transaction must not carry a null original_amount");
+    assertEquals(0, new BigDecimal("10.00").compareTo(txCaptor.getValue().getOriginalAmount()));
   }
 
   @Test

@@ -35,6 +35,7 @@ class AdminUserInviteServiceTest {
   @Mock private RegistrationsRepository userInvitationRepository;
   @Mock private WalletAccessRepository walletAccessRepository;
   @Mock private TransactionRepository transactionRepository;
+  @Mock private AccountDeletionService accountDeletionService;
   @Mock private UserMapper userMapper;
   @Mock private AdminInviteMapper adminInviteMapper;
 
@@ -78,16 +79,17 @@ class AdminUserInviteServiceTest {
   }
 
   @Test
-  void deleteUser_UserExists_DeletesUser() {
-    when(userRepository.existsById(userId)).thenReturn(true);
+  void deleteUser_UserExists_DelegatesCascadeToAccountDeletionService() {
+    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
     adminUserInviteService.deleteUser(userId);
-    verify(userRepository).deleteById(userId);
+    verify(accountDeletionService).deleteUserAsAdmin(user);
   }
 
   @Test
-  void deleteUser_UserNotFound_ThrowsException() {
-    when(userRepository.existsById(userId)).thenReturn(false);
+  void deleteUser_UserNotFound_ThrowsExceptionAndDeletesNothing() {
+    when(userRepository.findById(userId)).thenReturn(Optional.empty());
     assertThrows(UserNotFoundException.class, () -> adminUserInviteService.deleteUser(userId));
+    verify(accountDeletionService, never()).deleteUserAsAdmin(any());
   }
 
   @Test

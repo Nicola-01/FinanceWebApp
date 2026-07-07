@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -62,6 +63,13 @@ public class PatAuthenticationFilter extends OncePerRequestFilter {
 
     try {
       PersonalAccessToken pat = patService.validateToken(plainToken);
+
+      // validateToken is @Cacheable, so on a cache hit its in-body expiry check is skipped and a
+      // token that expired while cached would keep authenticating until the entry ages out. Expiry
+      // is time-based (no eviction trigger), so re-check it here on every request.
+      if (pat.getExpiresAt() != null && pat.getExpiresAt().isBefore(LocalDateTime.now())) {
+        throw new InvalidTokenException("API token has expired");
+      }
 
       // We must load a fresh UserDetails from the DB so that its lazy collections
       // (like walletAccesses) are attached to the current Hibernate Session.

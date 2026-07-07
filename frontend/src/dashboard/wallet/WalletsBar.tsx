@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from "react";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Badge } from "../../components/ui/Badge";
 import {
   CreateWalletWizard,
   type CreateWalletWizardHandle,
@@ -262,9 +263,9 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
             Wallets
           </h3>
           {!loading && wallets.length > 0 && (
-            <span className="rounded-full bg-app-input px-2 py-0.5 font-app-mono text-[11px] font-bold tabular-nums text-app-muted">
+            <Badge variant="subtle" mono>
               {wallets.length}
-            </span>
+            </Badge>
           )}
         </div>
 

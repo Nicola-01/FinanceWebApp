@@ -8,7 +8,7 @@ import {
 } from "../../../../modals/wallet/wizardSteps/InvitesStep";
 
 const identifierInput = () =>
-  screen.getByLabelText("Email or username") as HTMLInputElement;
+  screen.getByLabelText(/username or email/i) as HTMLInputElement;
 const addButton = () => screen.getByRole("button", { name: "Add" });
 
 describe("InvitesStep", () => {

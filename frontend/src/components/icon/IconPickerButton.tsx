@@ -91,7 +91,7 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
       <div
         ref={buttonRef}
         onClick={() => onToggle(!isOpen)}
-        className={`shrink-0 flex items-center justify-center bg-app-surface shadow-sm cursor-pointer hover:scale-110 transition-transform ${sizeClasses}`}
+        className={`shrink-0 flex items-center justify-center border border-app-border bg-app-surface shadow-sm cursor-pointer hover:scale-110 transition-transform ${sizeClasses}`}
         style={{ color }}
         title="Change Icon & Color"
       >

@@ -21,9 +21,19 @@ export interface CardProps {
   footer?: ReactNode;
   /** Footer horizontal alignment. Default `end`. */
   footerAlign?: "start" | "center" | "end";
+  /** Inner padding. `md` (default) = `p-5 sm:p-6` · `sm` = `p-4` · `none`. */
+  padding?: "none" | "sm" | "md";
+  /** Inline styles forwarded to the surface (e.g. a dynamic `zIndex`). */
+  style?: React.CSSProperties;
   children?: ReactNode;
   className?: string;
 }
+
+const PADDING: Record<NonNullable<CardProps["padding"]>, string> = {
+  none: "",
+  sm: "p-4",
+  md: "p-5 sm:p-6",
+};
 
 /**
  * Shared surface primitive: soft glass card (app-card + blur), `--r-card` radius,
@@ -42,6 +52,8 @@ export const Card: React.FC<CardProps> = ({
   headerCentered,
   footer,
   footerAlign = "end",
+  padding = "md",
+  style,
   children,
   className = "",
 }) => {
@@ -63,7 +75,8 @@ export const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className={`relative flex flex-col gap-4 rounded-[var(--r-card)] border p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_14px_34px_-20px_rgba(0,0,0,0.22)] backdrop-blur-md sm:gap-5 sm:p-6 ${surface} ${className}`}
+      style={style}
+      className={`relative flex flex-col gap-4 rounded-[var(--r-card)] border ${PADDING[padding]} shadow-[0_1px_2px_rgba(0,0,0,0.04),0_14px_34px_-20px_rgba(0,0,0,0.22)] backdrop-blur-md sm:gap-5 ${surface} ${className}`}
     >
       {hasHeader && (
         <div

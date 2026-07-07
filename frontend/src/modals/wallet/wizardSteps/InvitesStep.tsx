@@ -1,22 +1,18 @@
 import { useState, type JSX } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash, faUser, faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import { InviteComposer } from "../../../components/ui/InviteComposer";
 import {
-  faEnvelope,
-  faEye,
-  faPen,
-  faUserPlus,
-  faXmark,
-} from "@fortawesome/free-solid-svg-icons";
-import { Input } from "../../../components/ui/Input";
-import Button from "../../../components/ui/Button";
-import { Selector } from "../../../components/ui/Selector";
+  RoleSelector,
+  type WalletRole,
+} from "../../../components/ui/RoleSelector";
 import { WizardStepHeader } from "./WizardStepHeader";
 
 /** A single staged invitation for the wallet being created. */
 export interface WalletInvite {
   /** Email OR username of the person being invited. */
   user: string;
-  role: "VIEWER" | "EDITOR";
+  role: WalletRole;
 }
 
 export interface InvitesStepProps {
@@ -31,7 +27,10 @@ export interface InvitesStepProps {
 /**
  * Wizard step body for inviting people to a new wallet. Renders only the step
  * content (no stepper, no Back/Continue) and is fully controlled by the parent
- * via `value` / `onChange`.
+ * via `value` / `onChange`. The compose row reuses the same {@link InviteComposer}
+ * as wallet settings › Members, and each staged invite is shaped like a settings
+ * member row — the difference being invites are staged here and only sent when
+ * the wallet is created.
  */
 export function InvitesStep({
   value,
@@ -39,7 +38,7 @@ export function InvitesStep({
   accentColor,
 }: InvitesStepProps): JSX.Element {
   const [identifier, setIdentifier] = useState("");
-  const [role, setRole] = useState<WalletInvite["role"]>("EDITOR");
+  const [role, setRole] = useState<WalletRole>("EDITOR");
 
   const trimmed = identifier.trim();
   const isDuplicate = value.some(
@@ -57,7 +56,7 @@ export function InvitesStep({
     onChange(value.filter((invite) => invite.user !== user));
   };
 
-  const changeRole = (user: string, nextRole: WalletInvite["role"]) => {
+  const changeRole = (user: string, nextRole: WalletRole) => {
     onChange(
       value.map((invite) =>
         invite.user === user ? { ...invite, role: nextRole } : invite,
@@ -74,94 +73,53 @@ export function InvitesStep({
         note="You can invite more people or change their access anytime from the wallet."
       />
 
-      {/* Identifier + role + add */}
-      <div className="flex flex-col gap-3">
-        <Input
-          type="text"
-          value={identifier}
-          onChange={(e) => setIdentifier(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              handleAdd();
-            }
-          }}
-          placeholder="Email or username"
-          aria-label="Email or username"
-          leadingIcon={<FontAwesomeIcon icon={faEnvelope} />}
-        />
+      {/* Same compose row as wallet settings › Members — here it stages an
+          invite instead of sending it immediately. */}
+      <InviteComposer
+        identifier={identifier}
+        onIdentifierChange={setIdentifier}
+        role={role}
+        onRoleChange={setRole}
+        onSubmit={handleAdd}
+        disabled={!canAdd}
+        accentColor={accentColor}
+        actionIcon={faUserPlus}
+        actionLabel="Add"
+      />
 
-        <div className="flex items-stretch gap-3">
-          <Selector
-            className="flex-1"
-            value={role}
-            onChange={setRole}
-            options={[
-              {
-                value: "VIEWER",
-                label: "Viewer",
-                icon: <FontAwesomeIcon icon={faEye} />,
-              },
-              {
-                value: "EDITOR",
-                label: "Editor",
-                icon: <FontAwesomeIcon icon={faPen} />,
-                activeColorClass: "text-app-yellow",
-              },
-            ]}
-          />
-          <Button
-            type="button"
-            accentColor={accentColor}
-            ripple
-            onClick={handleAdd}
-            disabled={!canAdd}
-          >
-            Add
-          </Button>
-        </div>
-      </div>
-
-      {/* Staged invites */}
+      {/* Staged invites — shaped like the settings member rows. */}
       {value.length > 0 && (
         <ul className="flex flex-col gap-2">
           {value.map((invite) => (
             <li
               key={invite.user}
-              className="flex items-center gap-3 rounded-[var(--r-input)] border border-app-border bg-app-input px-3 py-2"
+              className="group flex items-center gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-3 transition-colors hover:bg-app-hover"
             >
-              <span className="min-w-0 flex-1 truncate text-sm text-app-text">
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-app-card text-sm shadow-sm"
+                style={{ color: accentColor }}
+              >
+                <FontAwesomeIcon icon={faUser} />
+              </div>
+              <span className="min-w-0 flex-1 truncate text-sm font-bold text-app-text">
                 {invite.user}
               </span>
               {/* Compact icon-only switch to change an already-added invite's
-                  role — kept content-width so the email above stays visible. */}
-              <Selector<WalletInvite["role"]>
-                size="sm"
+                  role — kept content-width so the identifier stays visible. */}
+              <RoleSelector
+                iconOnly
                 fullWidth={false}
                 className="shrink-0"
                 value={invite.role}
                 onChange={(nextRole) => changeRole(invite.user, nextRole)}
-                options={[
-                  {
-                    value: "VIEWER",
-                    title: "Viewer",
-                    icon: <FontAwesomeIcon icon={faEye} />,
-                  },
-                  {
-                    value: "EDITOR",
-                    title: "Editor",
-                    icon: <FontAwesomeIcon icon={faPen} />,
-                    activeColorClass: "text-app-yellow",
-                  },
-                ]}
               />
               <button
                 type="button"
                 onClick={() => handleRemove(invite.user)}
                 aria-label={`Remove ${invite.user}`}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--r-sm)] text-app-muted transition-colors hover:bg-app-hover hover:text-app-red"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-app-muted opacity-40 transition-all hover:bg-app-red/10 hover:text-app-red group-hover:opacity-100"
               >
-                <FontAwesomeIcon icon={faXmark} />
+                <FontAwesomeIcon icon={faTrash} className="text-sm" />
               </button>
             </li>
           ))}

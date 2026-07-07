@@ -13,18 +13,22 @@ import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 /**
  * REST controller for managing Personal Access Tokens (PATs).
  *
- * <p>All endpoints require JWT authentication (the PAT filter only handles API authentication, not
- * PAT management itself).
+ * <p>All endpoints require an interactive JWT session. Token management must never be reachable
+ * with a PAT itself: otherwise a narrowly-scoped token could mint a fully-privileged one (or revoke
+ * the user's other tokens), escaping its per-wallet scope. {@code preventPatAccess()} rejects any
+ * request authenticated with a PAT.
  */
 @RestController
 @RequestMapping("/api/tokens")
 @RequiredArgsConstructor
+@PreAuthorize("@walletSecurity.preventPatAccess()")
 public class PatController {
 
   private final PatService patService;

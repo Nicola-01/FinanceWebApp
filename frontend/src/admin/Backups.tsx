@@ -17,6 +17,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
+import { Badge } from "../components/ui/Badge";
 import { getApiErrorTitle } from "../utils/apiError.ts";
 import { AdminPageHeader } from "./AdminPageHeader.tsx";
 import Button from "../components/ui/Button";
@@ -556,9 +557,9 @@ const Backups: React.FC = () => {
                           {formatLabel(e.key)}
                         </span>
                         {e.key === newest?.key && (
-                          <span className="rounded-full bg-app-green/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-green">
+                          <Badge variant="subtle" tone="green" uppercase>
                             Latest
-                          </span>
+                          </Badge>
                         )}
                       </div>
                     </td>

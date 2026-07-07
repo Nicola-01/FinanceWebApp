@@ -13,6 +13,7 @@ import {
 import api from "../../api/axiosConfig";
 import type { Wallet, PatToken, WalletPermState } from "../../utils/types";
 import { Card } from "../../components/ui/Card";
+import { Badge as UiBadge } from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import { ModalDialog } from "../../modals/common/ModalDialog";
 import { PatFormView } from "../../modals/pat/PatFormView";
@@ -35,13 +36,13 @@ const isMcpToken = (t: PatToken) =>
 
 const Badge: React.FC<{ mcp: boolean }> = ({ mcp }) =>
   mcp ? (
-    <span className="shrink-0 rounded-full bg-app-purple/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-purple">
+    <UiBadge variant="subtle" tone="purple" uppercase className="shrink-0">
       MCP
-    </span>
+    </UiBadge>
   ) : (
-    <span className="shrink-0 rounded-full bg-app-surface px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-muted">
+    <UiBadge variant="subtle" tone="neutral" uppercase className="shrink-0">
       Manual
-    </span>
+    </UiBadge>
   );
 
 export const TokensSection: React.FC = () => {

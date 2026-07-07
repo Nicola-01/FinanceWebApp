@@ -69,6 +69,14 @@ public class OAuthController {
   @Value("${application.frontend.url}")
   private String frontendUrl;
 
+  /**
+   * Comma-separated allowlist of hosts permitted as OAuth {@code redirect_uri} targets. Loopback
+   * addresses (localhost / 127.0.0.1 / ::1) are always allowed for local MCP clients; every other
+   * host must be https and appear in this list. Override via {@code OAUTH_ALLOWED_REDIRECT_HOSTS}.
+   */
+  @Value("${application.oauth.allowed-redirect-hosts:claude.ai,claude.com}")
+  private String allowedRedirectHosts;
+
   // ──────────────────────────────────────────────────────────────────────
   // STEP 1 — Discovery metadata
   // Il client chiama questo endpoint per scoprire tutti gli altri.
@@ -157,6 +165,13 @@ public class OAuthController {
       return ResponseEntity.badRequest().build();
     }
 
+    // Reject unknown redirect targets before sending the user to the consent page. Without this an
+    // attacker could point redirect_uri at their own server and, because they chose the PKCE
+    // code_challenge themselves, exchange the resulting code for the victim's freshly-issued PAT.
+    if (!isAllowedRedirectUri(redirectUri)) {
+      return ResponseEntity.badRequest().build();
+    }
+
     // Build the frontend consent URL with all OAuth params forwarded
     String consentUrl =
         frontendUrl
@@ -201,6 +216,14 @@ public class OAuthController {
     if (user == null) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
           .body(Map.of("error", "User must be logged in"));
+    }
+
+    // Re-validate the redirect target here — this is the security-critical point where the token is
+    // bound to a redirect and the code is issued. The GET check can be bypassed by posting
+    // directly.
+    if (!isAllowedRedirectUri(request.getRedirectUri())) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body(Map.of("error", "invalid_redirect_uri", "message", "redirect_uri is not allowed"));
     }
 
     // Generate auth code and store it with the PKCE challenge + token
@@ -351,5 +374,70 @@ public class OAuthController {
   private static String encode(String value) {
     if (value == null) return "";
     return java.net.URLEncoder.encode(value, StandardCharsets.UTF_8);
+  }
+
+  // Extracts scheme + authority ("[^/?#]*") from a URI without choking on illegal characters
+  // (e.g. spaces) that may appear in the path/query — we only need the host to make a trust
+  // decision.
+  private static final java.util.regex.Pattern SCHEME_AUTHORITY =
+      java.util.regex.Pattern.compile("^([a-zA-Z][a-zA-Z0-9+.-]*)://([^/?#]*)");
+
+  /**
+   * Validates a {@code redirect_uri} against the trust policy: loopback hosts are always allowed
+   * (over http or https) for local MCP clients, while every other host must use https and match a
+   * configured allowed host (exact match or a subdomain of one). This prevents auth-code
+   * interception via an attacker-controlled redirect target.
+   */
+  private boolean isAllowedRedirectUri(String redirectUri) {
+    if (redirectUri == null || redirectUri.isBlank()) {
+      return false;
+    }
+    java.util.regex.Matcher matcher = SCHEME_AUTHORITY.matcher(redirectUri.trim());
+    if (!matcher.find()) {
+      return false; // not an absolute http(s)-style URI
+    }
+    String scheme = matcher.group(1).toLowerCase();
+    String host = extractHost(matcher.group(2));
+    if (host.isEmpty()) {
+      return false;
+    }
+
+    boolean loopback =
+        host.equals("localhost")
+            || host.equals("127.0.0.1")
+            || host.equals("::1")
+            || host.equals("[::1]");
+    if (loopback) {
+      return scheme.equals("http") || scheme.equals("https");
+    }
+
+    if (!scheme.equals("https")) {
+      return false; // non-loopback redirects must be https
+    }
+    for (String allowed : allowedRedirectHosts.split(",")) {
+      String candidate = allowed.trim().toLowerCase();
+      if (!candidate.isEmpty() && (host.equals(candidate) || host.endsWith("." + candidate))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** Strips optional userinfo and port from a URI authority, returning the lowercase host. */
+  private static String extractHost(String authority) {
+    String hostPort = authority;
+    int at = hostPort.lastIndexOf('@');
+    if (at >= 0) {
+      hostPort = hostPort.substring(at + 1);
+    }
+    String host;
+    if (hostPort.startsWith("[")) { // IPv6 literal, e.g. [::1]:8080
+      int close = hostPort.indexOf(']');
+      host = close >= 0 ? hostPort.substring(0, close + 1) : hostPort;
+    } else {
+      int colon = hostPort.indexOf(':');
+      host = colon >= 0 ? hostPort.substring(0, colon) : hostPort;
+    }
+    return host.toLowerCase();
   }
 }

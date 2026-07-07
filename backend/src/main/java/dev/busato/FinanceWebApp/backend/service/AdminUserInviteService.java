@@ -37,6 +37,7 @@ public class AdminUserInviteService {
   private final RegistrationsRepository userInvitationRepository;
   private final WalletAccessRepository walletAccessRepository;
   private final TransactionRepository transactionRepository;
+  private final AccountDeletionService accountDeletionService;
   private final UserMapper userMapper;
   private final AdminInviteMapper adminInviteMapper;
 
@@ -51,8 +52,11 @@ public class AdminUserInviteService {
                       user.getId(), WalletAccess.InvitationStatus.ACCEPTED);
               accesses =
                   accesses.stream()
-                      .filter(access -> !access.getWallet().getName().equals("Portafoglio Demo"))
-                      .collect(Collectors.toList());
+                      .filter(
+                          access ->
+                              !(access.getWallet().getName().equals("Portafoglio Demo")
+                                  || access.getWallet().getName().equals("Demo Wallet")))
+                      .toList();
               response.setWallets(accesses.size());
 
               int txCount = 0;
@@ -65,10 +69,11 @@ public class AdminUserInviteService {
         .collect(Collectors.toList());
   }
 
+  @Transactional
   @PreAuthorize("hasRole('ADMIN')")
   public void deleteUser(UUID id) {
-    if (!userRepository.existsById(id)) throw new UserNotFoundException(id);
-    userRepository.deleteById(id);
+    User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
+    accountDeletionService.deleteUserAsAdmin(user);
   }
 
   @Transactional

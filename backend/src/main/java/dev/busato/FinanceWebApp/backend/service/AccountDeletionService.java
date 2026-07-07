@@ -39,15 +39,27 @@ public class AccountDeletionService {
    * Strict, deterministic order used to pick the heir of a shared wallet:
    *
    * <ol>
-   *   <li>longest-standing member — earliest {@link WalletAccess#getInvitedAt()};
+   *   <li>most-privileged role first — a co-OWNER, then an EDITOR, and only then a VIEWER, so a
+   *       read-only member never inherits ownership while a writer is available;
+   *   <li>tie → longest-standing member — earliest {@link WalletAccess#getInvitedAt()};
    *   <li>tie → oldest account — earliest {@link User#getCreatedAt()};
    *   <li>tie → alphabetical username, case-insensitive.
    * </ol>
    */
   private static final Comparator<WalletAccess> NEW_OWNER_ORDER =
-      Comparator.comparing(WalletAccess::getInvitedAt)
+      Comparator.comparingInt((WalletAccess access) -> roleRank(access.getRole()))
+          .thenComparing(WalletAccess::getInvitedAt)
           .thenComparing(access -> access.getUser().getCreatedAt())
           .thenComparing(access -> access.getUser().getUsername(), String.CASE_INSENSITIVE_ORDER);
+
+  /** Heir preference by role: OWNER (0) &lt; EDITOR (1) &lt; VIEWER (2) — lower inherits first. */
+  private static int roleRank(WalletAccess.WalletRole role) {
+    return switch (role) {
+      case OWNER -> 0;
+      case EDITOR -> 1;
+      case VIEWER -> 2;
+    };
+  }
 
   /**
    * Irreversibly deletes {@code user} after confirming their password. Runs in a single
@@ -62,7 +74,25 @@ public class AccountDeletionService {
     if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
       throw new BadCredentialsException("Password is incorrect");
     }
+    purge(user);
+  }
 
+  /**
+   * Admin-initiated erasure (GDPR/moderation): performs the same cascade cleanup as the
+   * self-service path, but without the password confirmation the account owner would supply.
+   */
+  @Transactional
+  public void deleteUserAsAdmin(User user) {
+    purge(user);
+  }
+
+  /**
+   * Shared irreversible cleanup: owned wallets are transferred or cascaded-deleted, non-owner
+   * memberships are dropped, and every artifact tied to the user's id (PATs, pending email change,
+   * access rows, the user row) is removed.
+   */
+  @Transactional
+  void purge(User user) {
     UUID userId = user.getId();
 
     for (WalletAccess access : walletAccessRepository.findAllByUserId(userId)) {

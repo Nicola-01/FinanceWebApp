@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock, faCopy, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
+import { Badge, type BadgeTone } from "../components/ui/Badge";
+import { Card } from "../components/ui/Card";
 import { Collapse } from "../components/ui/Collapse.tsx";
 
 export interface AdminInvite {
@@ -59,12 +61,12 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({
       defaultOpen={hasPending}
       title="Invitations"
       badge={
-        <span className="rounded-full bg-app-input px-2 py-0.5 text-xs font-bold text-app-muted">
+        <Badge variant="subtle" size="md">
           {invites.length}
-        </span>
+        </Badge>
       }
     >
-      <div className="overflow-hidden rounded-[var(--r-card)] border border-app-border bg-app-card/40">
+      <Card padding="none" className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-app-muted">
             <thead className="bg-app-input text-xs uppercase text-app-muted">
@@ -87,25 +89,6 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({
                   displayStatus = "EXPIRED";
                 }
 
-                // Status pill colours (app-* tokens)
-                let statusColorClasses = "";
-                switch (displayStatus) {
-                  case "ACCEPTED":
-                    statusColorClasses =
-                      "bg-app-green/10 text-app-green border border-app-green/20";
-                    break;
-                  case "EXPIRED":
-                  case "REVOKED":
-                    statusColorClasses =
-                      "bg-app-red/10 text-app-red border border-app-red/20";
-                    break;
-                  case "PENDING":
-                  default:
-                    statusColorClasses =
-                      "bg-app-yellow/10 text-app-yellow border border-app-yellow/20";
-                    break;
-                }
-
                 const isRevoked = displayStatus === "REVOKED";
                 const isExpired = displayStatus === "EXPIRED";
                 const isAccepted = displayStatus === "ACCEPTED";
@@ -125,11 +108,19 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${statusColorClasses}`}
+                      <Badge
+                        tone={
+                          (isAccepted
+                            ? "green"
+                            : isExpired || isRevoked
+                              ? "red"
+                              : "yellow") satisfies BadgeTone
+                        }
+                        shape="rounded"
+                        uppercase
                       >
                         {displayStatus}
-                      </span>
+                      </Badge>
                     </td>
                     <td className="px-6 py-4 font-app-mono text-app-sky">
                       {/* Hide the timer once the invite is no longer PENDING */}
@@ -175,7 +166,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
     </Collapse>
   );
 };

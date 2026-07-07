@@ -125,4 +125,43 @@ class SendEmailServiceTest {
 
     verify(mailSender).send(mimeMessage);
   }
+
+  @Test
+  void renderWalletInviteHtml_EscapesUserControlledFields() {
+    // Security regression: walletName / inviterUsername / walletColor are user-controlled and land
+    // in an HTML email. They must be escaped / validated so they cannot inject markup.
+    Wallet wallet = new Wallet();
+    wallet.setName("<img src=x onerror=alert(1)>");
+    // Not a hex colour — must be dropped in favour of the safe default, so the tag never renders.
+    wallet.setColor("red\"><script>alert(1)</script>");
+
+    String template =
+        "<a style=\"color:{{walletColor}}\">{{walletName}} by {{inviterUsername}} at {{appUrl}}</a>";
+    String html = sendEmailService.renderWalletInviteHtml(template, "<b>attacker</b>", wallet);
+
+    // Raw attacker markup must not survive into the email body.
+    assertFalse(html.contains("<img src=x"), "wallet name markup must be escaped");
+    assertFalse(
+        html.contains("<script>alert(1)</script>"), "injected color markup must be dropped");
+    assertFalse(html.contains("<b>attacker</b>"), "inviter username markup must be escaped");
+
+    // Escaped forms / safe fallback are present instead.
+    assertTrue(html.contains("&lt;img src=x"), "wallet name should be HTML-escaped");
+    assertTrue(
+        html.contains("color:#000000"), "invalid color should fall back to the safe default");
+  }
+
+  @Test
+  void renderWalletInviteHtml_KeepsValidHexColor() {
+    Wallet wallet = new Wallet();
+    wallet.setName("My Wallet");
+    wallet.setColor("#1A2B3C");
+
+    String html =
+        sendEmailService.renderWalletInviteHtml(
+            "<a style=\"color:{{walletColor}}\">{{walletName}}</a>", "inviter", wallet);
+
+    assertTrue(html.contains("color:#1A2B3C"), "a valid hex colour should be preserved");
+    assertTrue(html.contains("My Wallet"));
+  }
 }

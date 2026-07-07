@@ -18,6 +18,7 @@ import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
+import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
@@ -31,6 +32,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -48,6 +50,7 @@ class WalletServiceTest {
   @Mock private PatService patService;
   @Mock private TagRepository tagRepository;
   @Mock private TagMapper tagMapper;
+  @Mock private SubscriptionRepository subscriptionRepository;
 
   @InjectMocks private WalletService walletService;
 
@@ -222,7 +225,22 @@ class WalletServiceTest {
 
     walletService.removeWallet(walletId, userId);
 
-    verify(walletRepository).delete(wallet);
+    // Subscriptions must be dropped BEFORE the wallet delete, otherwise their FK to the wallet's
+    // tags makes the cascade blow up (regression guard for the wallet-deletion 500).
+    InOrder inOrder = inOrder(subscriptionRepository, walletRepository);
+    inOrder.verify(subscriptionRepository).deleteAllByWalletId(walletId);
+    inOrder.verify(walletRepository).delete(wallet);
+  }
+
+  @Test
+  void removeWallet_NotOwner_DoesNotDeleteSubscriptions() {
+    walletAccess.setRole(WalletAccess.WalletRole.VIEWER);
+    when(walletAccessRepository.findByUserIdAndWalletId(userId, walletId))
+        .thenReturn(Optional.of(walletAccess));
+
+    walletService.removeWallet(walletId, userId);
+
+    verify(subscriptionRepository, never()).deleteAllByWalletId(any());
   }
 
   @Test

@@ -1,14 +1,9 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTrash,
-  faEye,
-  faPen,
-  faCheck,
-} from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faCheck } from "@fortawesome/free-solid-svg-icons";
 import type { WalletMember } from "../../utils/types";
 import { getUserAuth } from "../../utils/authHelper.ts";
-import { Selector } from "../../components/ui/Selector.tsx";
+import { RoleSelector } from "../../components/ui/RoleSelector.tsx";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 interface MemberRowProps {
@@ -80,28 +75,12 @@ export const MemberRow: React.FC<MemberRowProps> = ({
           <>
             {member.status === "ACCEPTED" && (
               <div className="flex items-center gap-2">
-                <Selector
+                <RoleSelector
                   value={selectedRole}
                   onChange={setSelectedRole}
                   size="sm"
                   fullWidth={false}
                   className="w-36"
-                  options={[
-                    {
-                      value: "VIEWER",
-                      label: "Viewer",
-                      icon: <FontAwesomeIcon icon={faEye} />,
-                      activeBgClass: "bg-app-surface",
-                      activeColorClass: "text-app-text",
-                    },
-                    {
-                      value: "EDITOR",
-                      label: "Editor",
-                      icon: <FontAwesomeIcon icon={faPen} />,
-                      activeBgClass: "bg-app-surface",
-                      activeColorClass: "text-app-text",
-                    },
-                  ]}
                 />
                 <button
                   onClick={() => onChangeRole(member.userId, selectedRole)}

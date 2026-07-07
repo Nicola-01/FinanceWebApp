@@ -35,13 +35,19 @@ vi.mock("../../../modals/wallet/wizardSteps/TagsStep", () => ({
   }) => <button onClick={() => onChange([...value, {}])}>add-tag</button>,
 }));
 vi.mock("../../../modals/wallet/wizardSteps/SubscriptionsStep", () => ({
+  // Stage a subscription pointing at a tag that isn't in the (empty) draft, so
+  // the container flags it as an unresolved-tag conflict.
   SubscriptionsStep: ({
     value,
     onChange,
   }: {
     value: unknown[];
     onChange: (v: unknown[]) => void;
-  }) => <button onClick={() => onChange([...value, {}])}>add-sub</button>,
+  }) => (
+    <button onClick={() => onChange([...value, { tag: "Unstaged" }])}>
+      add-sub
+    </button>
+  ),
 }));
 vi.mock("../../../modals/wallet/wizardSteps/TransactionsStep", () => ({
   TransactionsStep: ({
@@ -148,6 +154,22 @@ describe("CreateWalletWizard", () => {
     await screen.findByText("Wallet created with some issues");
     expect(screen.getByText("Row 2: bad")).toBeInTheDocument();
     expect(screen.getByText("3 created")).toBeInTheDocument();
+  });
+
+  it("blocks Continue on Subscriptions while a subscription's tag is unresolved", () => {
+    open();
+    fireEvent.click(screen.getByText("set-name")); // Basics complete
+    // Basics(0) -> Tags(1) -> Subscriptions(2)
+    fireEvent.click(screen.getByTestId("wizard-next"));
+    fireEvent.click(screen.getByTestId("wizard-next"));
+
+    // No subscriptions yet — nothing to block.
+    expect(screen.getByTestId("wizard-next")).toBeEnabled();
+
+    // Stage one whose tag isn't in the draft → Continue is blocked with a reason.
+    fireEvent.click(screen.getByText("add-sub"));
+    expect(screen.getByTestId("wizard-next")).toBeDisabled();
+    expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 
   it("prompts on close even for an untouched draft, keeping the wizard open", () => {

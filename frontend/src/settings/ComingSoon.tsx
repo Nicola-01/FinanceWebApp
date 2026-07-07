@@ -1,15 +1,14 @@
 import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
+import { Badge } from "../components/ui/Badge";
 
 /** Small pill marking a feature whose backend isn't wired up yet. */
 export const ComingSoonBadge: React.FC<{ label?: string }> = ({
   label = "Coming soon",
 }) => (
-  <span className="inline-flex items-center gap-1 rounded-full border border-app-border bg-app-input px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-muted">
-    <FontAwesomeIcon icon={faClock} className="text-[9px]" />
+  <Badge tone="neutral" uppercase icon={faClock}>
     {label}
-  </span>
+  </Badge>
 );
 
 /**

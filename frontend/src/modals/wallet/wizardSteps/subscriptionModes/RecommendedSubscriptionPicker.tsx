@@ -1,64 +1,64 @@
-import { useState } from "react";
-import { Checkbox } from "../../../../components/ui/Checkbox";
-import { AmountInput } from "../../../../components/ui/AmountInput";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { TagBadge } from "../../../../components/ui/TagBadge";
+import { RECOMMENDED_TAG_GROUPS } from "../recommendedTags";
 import {
   RECOMMENDED_SUBSCRIPTIONS,
   type RecommendedSubscription,
 } from "./recommendedSubscriptions";
+import { formatFrequency } from "./subscriptionSummary";
+import type { Tag } from "../../../../utils/types";
+import type { SubscriptionRequest } from "../../../../dashboard/settings/csvImport";
 
 export interface RecommendedSubscriptionPickerProps {
-  /** Names of subscriptions currently staged (drives the checked state). */
-  stagedNames: Set<string>;
+  /** Subscriptions currently staged (drives the selected state). */
+  staged: SubscriptionRequest[];
   /** Wallet-currency symbol shown next to each amount. */
   currencySymbol: string;
-  /** Wallet accent colour applied to the checkboxes. */
-  accentColor?: string;
-  /** Stage a suggestion at its (possibly edited) amount. */
+  /** Stage a suggestion at its default amount. */
   onStage: (suggestion: RecommendedSubscription, amount: number) => void;
   /** Unstage a suggestion by name. */
   onUnstage: (name: string) => void;
-  /** Update the amount of an already-staged suggestion. */
-  onEditAmount: (name: string, amount: number) => void;
 }
 
+// `TagBadge` resolves a tag's parent from a tag list; the creation wizard has no
+// WalletProvider, so we hand it the Recommended category tags directly — enough
+// to render the "Parent › Child" chain.
+const RECOMMENDED_CONTEXT_TAGS: Tag[] = RECOMMENDED_TAG_GROUPS.flatMap((g) => [
+  {
+    name: g.parent.name,
+    icon: g.parent.icon,
+    colorHex: g.parent.colorHex,
+    parentName: null,
+  },
+  ...g.children.map((c) => ({
+    name: c.name,
+    icon: c.icon,
+    colorHex: c.colorHex,
+    parentName: g.parent.name,
+  })),
+]);
+
 /**
- * "Recommended" mode of the wizard's Subscriptions step: a checklist of common
- * subscriptions, each toggled on to stage it and revealing an inline amount
- * editor. Self-contained — it owns the pending per-suggestion amount, and hands
- * every change up through the callbacks; the parent owns the staged list.
+ * "Recommended" mode of the wizard's Subscriptions step: a list of common
+ * recurring payments, each shown as its {@link TagBadge} (with the parent
+ * category), its default recurrence and a suggested price. Tapping a row only
+ * *selects* it — it's staged and painted in the tag's colour, then editing
+ * (amount, start date, recurrence) happens in the "subscriptions ready" list
+ * below. Tapping again removes it. The parent owns the staged list, the single
+ * source of truth for what's selected.
  */
 export function RecommendedSubscriptionPicker({
-  stagedNames,
+  staged,
   currencySymbol,
-  accentColor,
   onStage,
   onUnstage,
-  onEditAmount,
 }: RecommendedSubscriptionPickerProps) {
-  // Per-suggestion editable amount (magnitude string), seeded from the defaults.
-  const [amounts, setAmounts] = useState<Record<string, string>>(() =>
-    Object.fromEntries(
-      RECOMMENDED_SUBSCRIPTIONS.map((s) => [s.name, String(s.amount)]),
-    ),
-  );
+  const stagedByName = new Map(staged.map((s) => [s.name, s]));
 
   const toggle = (s: RecommendedSubscription) => {
-    if (stagedNames.has(s.name)) {
-      onUnstage(s.name);
-      return;
-    }
-    const raw = amounts[s.name];
-    const parsed = Number(raw);
-    const amount = raw !== "" && Number.isFinite(parsed) ? parsed : s.amount;
-    onStage(s, amount);
-  };
-
-  const editAmount = (s: RecommendedSubscription, magnitude: string) => {
-    setAmounts((prev) => ({ ...prev, [s.name]: magnitude }));
-    if (!stagedNames.has(s.name)) return;
-    const parsed = magnitude === "" ? 0 : Number(magnitude);
-    if (!Number.isFinite(parsed)) return;
-    onEditAmount(s.name, parsed);
+    if (stagedByName.has(s.name)) onUnstage(s.name);
+    else onStage(s, s.amount);
   };
 
   return (
@@ -66,45 +66,74 @@ export function RecommendedSubscriptionPicker({
       <p className="text-xs font-semibold uppercase tracking-wider text-app-muted">
         Recommended
       </p>
-      <ul className="flex flex-col gap-2">
+      <ul className="custom-scrollbar grid max-h-72 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
         {RECOMMENDED_SUBSCRIPTIONS.map((s) => {
-          const checked = stagedNames.has(s.name);
-          return (
-            <li
-              key={s.name}
-              className="rounded-[var(--r-input)] border border-app-border bg-app-input px-3 py-3"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <Checkbox
-                  state={checked}
-                  onChange={() => toggle(s)}
-                  label={s.name}
-                  color={accentColor}
-                />
-                <div className="flex items-center gap-2">
-                  <span className="rounded-[var(--r-sm)] border border-app-border bg-app-surface px-2 py-0.5 text-[11px] font-medium text-app-muted">
-                    {s.tag}
-                  </span>
-                  {!checked && (
-                    <span className="font-app-mono text-sm tabular-nums text-app-muted">
-                      {amounts[s.name]} {currencySymbol}
-                    </span>
-                  )}
-                </div>
-              </div>
+          const current = stagedByName.get(s.name);
+          const selected = current !== undefined;
+          const accent = s.tag.colorHex;
+          const shownAmount = current ? current.amount : s.amount;
+          // Income shows green with a leading +, expense red with a −, matching
+          // the staged "subscriptions ready" list.
+          const type = current?.type ?? s.type;
+          // Reflect edits made in the staged list; fall back to the defaults a
+          // fresh stage would use (monthly, interval 1).
+          const frequency = formatFrequency(
+            current?.frequencyInterval ?? 1,
+            current?.frequencyType ?? "MONTHLY",
+          );
 
-              {checked && (
-                <div className="mt-1 flex justify-center">
-                  <AmountInput
-                    value={amounts[s.name]}
-                    currencySymbol={currencySymbol}
-                    type="EXPENSE"
-                    setType={() => {}}
-                    onAmountChange={(magnitude) => editAmount(s, magnitude)}
-                    autoFocus={false}
+          return (
+            <li key={s.name}>
+              <button
+                type="button"
+                onClick={() => toggle(s)}
+                aria-pressed={selected}
+                aria-label={s.name}
+                className={`flex h-full w-full items-center justify-between gap-3 rounded-[var(--r-input)] border px-3 py-2.5 text-left transition-colors ${
+                  selected ? "" : "border-app-border bg-app-input"
+                }`}
+                style={
+                  selected
+                    ? { borderColor: accent, backgroundColor: `${accent}0d` }
+                    : undefined
+                }
+              >
+                <span className="flex min-w-0 flex-col gap-1">
+                  <TagBadge
+                    tag={{
+                      name: s.tag.name,
+                      icon: s.tag.icon,
+                      colorHex: s.tag.colorHex,
+                      parentName: s.tag.parentName ?? null,
+                    }}
+                    tags={RECOMMENDED_CONTEXT_TAGS}
+                    showParent
+                    forceShowParent
                   />
-                </div>
-              )}
+                  <span className="text-[11px] text-app-muted">
+                    {frequency}
+                  </span>
+                </span>
+
+                <span className="flex shrink-0 items-center gap-2.5">
+                  <span
+                    className={`font-app-mono text-sm tabular-nums ${
+                      type === "INCOME" ? "text-app-green" : "text-app-red"
+                    }`}
+                  >
+                    {type === "INCOME" ? "+" : "-"}
+                    {shownAmount} {currencySymbol}
+                  </span>
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${
+                      selected ? "text-app-surface" : "text-app-muted"
+                    }`}
+                    style={selected ? { backgroundColor: accent } : undefined}
+                  >
+                    <FontAwesomeIcon icon={selected ? faCheck : faPlus} />
+                  </span>
+                </span>
+              </button>
             </li>
           );
         })}

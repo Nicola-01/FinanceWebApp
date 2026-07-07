@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWallet } from "@fortawesome/free-solid-svg-icons";
 import { Input } from "../../../components/ui/Input";
+import { Textarea } from "../../../components/ui/Textarea";
 import { IconColorSelector } from "../../../components/icon/IconColorSelector";
 import { CurrencySelector } from "../../../components/selectors/CurrencySelector";
 import { ICONS, type IconKey } from "../../../utils/icons";
@@ -108,18 +109,18 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
         <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
           Description
         </label>
-        <textarea
-          rows={2}
+        <Textarea
           placeholder="What is this wallet for?  (optional)"
           value={value.description}
           onChange={(e) => set({ description: e.target.value })}
-          className="w-full resize-none rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3.5 py-2.5 text-app-text outline-none transition-colors duration-200 placeholder:text-app-muted focus:border-[var(--brand-1)] focus:ring-1 focus:ring-[var(--brand-1)]/50"
+          accentColor={value.color}
         />
       </div>
 
       <CurrencySelector
         value={value.currency}
         onChange={(c) => set({ currency: c })}
+        accentColor={value.color}
       />
     </div>
   );
