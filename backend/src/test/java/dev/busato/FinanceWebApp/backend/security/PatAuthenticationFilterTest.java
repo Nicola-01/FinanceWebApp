@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -166,6 +167,33 @@ class PatAuthenticationFilterTest {
 
     verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     verify(filterChain, never()).doFilter(any(), any());
+    assertNull(SecurityContextHolder.getContext().getAuthentication());
+  }
+
+  @Test
+  void doFilterInternal_ExpiredCachedToken_Returns401() throws ServletException, IOException {
+    // Security regression: validateToken is @Cacheable, so on a cache hit it can return a token
+    // that has since expired. The filter must re-check expiry and reject it (401), not
+    // authenticate.
+    String token = "fin_pat_expired";
+    when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
+    User user = new User();
+    user.setUsername("testuser");
+    PersonalAccessToken pat = new PersonalAccessToken();
+    pat.setUser(user);
+    pat.setExpiresAt(LocalDateTime.now().minusMinutes(1)); // expired, but returned from cache
+
+    when(patService.validateToken(token)).thenReturn(pat);
+
+    StringWriter stringWriter = new StringWriter();
+    when(response.getWriter()).thenReturn(new PrintWriter(stringWriter));
+
+    patAuthenticationFilter.doFilterInternal(request, response, filterChain);
+
+    verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    verify(filterChain, never()).doFilter(any(), any());
+    assertTrue(stringWriter.toString().contains("expired"));
     assertNull(SecurityContextHolder.getContext().getAuthentication());
   }
 

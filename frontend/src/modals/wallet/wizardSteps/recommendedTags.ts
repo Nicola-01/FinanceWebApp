@@ -78,6 +78,24 @@ export const RECOMMENDED_TAG_GROUPS: RecommendedTagGroup[] = [
 const keyOfName = (s: string) => s.trim().toLowerCase();
 
 /**
+ * Look up a leaf tag by name across all Recommended groups, returning both the
+ * child tag and its parent category. Used to restore the hierarchy when a
+ * staged subscription references a Recommended leaf (e.g. "Netflix") whose
+ * parent ("Subscriptions") hasn't been staged yet — so the parent can be shown
+ * and created alongside the child. Returns `null` for unknown/custom tags.
+ */
+export const findRecommendedTagWithParent = (
+  name: string,
+): { parent: RecommendedTag; child: RecommendedTag } | null => {
+  const key = keyOfName(name);
+  for (const group of RECOMMENDED_TAG_GROUPS) {
+    const child = group.children.find((c) => keyOfName(c.name) === key);
+    if (child) return { parent: group.parent, child };
+  }
+  return null;
+};
+
+/**
  * Inverse of {@link groupToTagRequests}: group a flat tag list into categories
  * (parent + children), mirroring how the wallet tree nests. Top-level tags (no
  * `parentName`) become category parents; children attach by `parentName`; a

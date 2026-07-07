@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Badge } from "../ui/Badge";
 import {
   faKey,
   faArrowRight,
@@ -148,9 +149,14 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
               </p>
               {badge}
               {token.paused && (
-                <span className="shrink-0 rounded-full bg-app-yellow/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-yellow">
+                <Badge
+                  variant="subtle"
+                  tone="yellow"
+                  uppercase
+                  className="shrink-0"
+                >
                   Paused
-                </span>
+                </Badge>
               )}
             </div>
 

@@ -1,6 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
+// Shared visible focus ring — same treatment as `Button`/`Toggle`.
+const FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 " +
+  "focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
+
 export interface CustomSelectOption {
   value: string;
   /** Display content — a plain string or rich node (e.g. an icon + label). */
@@ -50,7 +55,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full h-full flex items-center justify-between gap-1 focus:outline-none"
+        className={`w-full h-full flex items-center justify-between gap-1 rounded-[var(--r-sm)] ${FOCUS}`}
       >
         <span className="truncate">{selectedOption?.label || value}</span>
         <ChevronDown
@@ -61,7 +66,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
       {isOpen && (
         <div
-          className={`absolute top-full ${dropdownAlign === "left" ? "left-0" : "right-0"} mt-2 z-[100] bg-app-card border border-app-border rounded-lg shadow-xl overflow-hidden min-w-[140px] py-1 animate-[fadeIn_0.15s_ease-out]`}
+          className={`absolute top-full ${dropdownAlign === "left" ? "left-0" : "right-0"} mt-2 z-[100] w-full bg-app-card border border-app-border rounded-[var(--r-input)] shadow-xl overflow-hidden min-w-[140px] py-1 animate-[fadeIn_0.15s_ease-out]`}
         >
           {options.map((opt) => (
             <button
@@ -71,9 +76,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 onChange(opt.value);
                 setIsOpen(false);
               }}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+              className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${FOCUS} ${
                 value === opt.value
-                  ? `bg-app-hover font-bold ${!activeColor ? "theme-text-primary" : ""}`
+                  ? `bg-app-hover font-bold ${!activeColor ? "text-app-text" : ""}`
                   : "text-app-text hover:bg-app-hover/50 font-medium"
               }`}
               style={

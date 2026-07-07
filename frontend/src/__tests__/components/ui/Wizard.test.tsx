@@ -146,6 +146,45 @@ describe("Wizard", () => {
     await screen.findByText("Completion: done");
   });
 
+  it("blocks Continue when a step is `blocked` even if complete, showing the reason", () => {
+    const steps: WizardStep[] = [
+      {
+        name: "One",
+        icon: faWallet,
+        mandatory: false,
+        isComplete: true, // complete...
+        blocked: true, // ...but blocked wins over completeness
+        blockedReason: "Resolve the flagged items first",
+        nextLabel: "Continue",
+        content: <p>Step 0 content</p>,
+      },
+      {
+        name: "Two",
+        icon: faTag,
+        mandatory: false,
+        isComplete: true,
+        nextLabel: "Finish",
+        content: <p>Step 1 content</p>,
+      },
+    ];
+    render(
+      <Wizard
+        steps={steps}
+        onComplete={() => Promise.resolve("ok")}
+        renderCompletion={(s) => <div>Completion: {s.status}</div>}
+      />,
+    );
+
+    const next = screen.getByTestId("wizard-next");
+    expect(next).toBeDisabled();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Resolve the flagged items first",
+    );
+    // The disabled Continue can't advance — still on step 0.
+    fireEvent.click(next);
+    expect(screen.getByText("Step 0 content")).toBeInTheDocument();
+  });
+
   it("renders the completion error state and lets goToStep return to the steps", async () => {
     const onComplete = vi.fn(() => Promise.reject(new Error("boom")));
     const renderCompletion = (s: WizardCompletionState<unknown>) =>

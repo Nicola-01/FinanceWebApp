@@ -15,8 +15,10 @@ import dev.busato.FinanceWebApp.backend.repository.PersonalAccessTokenRepository
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
+import dev.busato.FinanceWebApp.backend.security.JwtService;
 import dev.busato.FinanceWebApp.backend.service.PatService;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,10 +37,13 @@ public class PatIntegrationTest extends BaseIntegrationTest {
 
   @Autowired private PatService patService;
 
+  @Autowired private JwtService jwtService;
+
   private User testUser;
   private Wallet testWallet;
   private String readOnlyPatPlain;
   private String readWritePatPlain;
+  private String testUserJwt;
 
   @BeforeEach
   void setUp() {
@@ -92,6 +97,55 @@ public class PatIntegrationTest extends BaseIntegrationTest {
     readWritePat.setWalletPermissions(
         "[{\"walletId\":\"" + testWallet.getId() + "\",\"permissions\":[\"READ\",\"WRITE\"]}]");
     patRepository.save(readWritePat);
+
+    // A JWT session for the same user — token management (unlike wallet data access) is only
+    // reachable with an interactive JWT, never a PAT.
+    testUserJwt = jwtService.generateToken(new HashMap<>(), testUser);
+  }
+
+  // =================================================================================================
+  // PAT CANNOT MANAGE TOKENS OR ACCOUNT (privilege-escalation guard)
+  // =================================================================================================
+
+  @Test
+  void createToken_WithPat_Returns403() throws Exception {
+    // Security regression: a PAT must not be able to mint another PAT. Otherwise a narrowly-scoped
+    // token could create a fully-privileged one, escaping its per-wallet scope.
+    mockMvc
+        .perform(
+            post("/api/tokens")
+                .header("Authorization", "Bearer " + readWritePatPlain)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"escalated\",\"walletPermissions\":[]}"))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void listTokens_WithPat_Returns403() throws Exception {
+    mockMvc
+        .perform(get("/api/tokens").header("Authorization", "Bearer " + readOnlyPatPlain))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void revokeToken_WithPat_Returns403() throws Exception {
+    mockMvc
+        .perform(
+            delete("/api/tokens/" + UUID.randomUUID())
+                .header("Authorization", "Bearer " + readWritePatPlain))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void updateUsername_WithPat_Returns403() throws Exception {
+    // A PAT must not be able to rename the account (account-management is JWT-session only).
+    mockMvc
+        .perform(
+            put("/api/users/me/username")
+                .header("Authorization", "Bearer " + readWritePatPlain)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"username\":\"newname123\"}"))
+        .andExpect(status().isForbidden());
   }
 
   @Test
@@ -249,7 +303,7 @@ public class PatIntegrationTest extends BaseIntegrationTest {
     mockMvc
         .perform(
             post("/api/tokens/bulk-pause")
-                .header("Authorization", "Bearer " + readWritePatPlain)
+                .header("Authorization", "Bearer " + testUserJwt)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk());

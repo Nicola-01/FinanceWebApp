@@ -124,7 +124,16 @@ public class MemberService {
     if (access.getRole() == WalletAccess.WalletRole.OWNER)
       throw new IllegalArgumentException("Cannot change the role of the wallet owner");
 
-    access.setRole(WalletAccess.WalletRole.valueOf(request.getRole().toUpperCase()));
+    WalletAccess.WalletRole newRole =
+        WalletAccess.WalletRole.valueOf(request.getRole().toUpperCase());
+
+    // A wallet has exactly one owner. Promoting a member to OWNER here would create a second,
+    // unremovable co-owner (removeMember refuses to remove an OWNER). Ownership handoff must go
+    // through a dedicated transfer flow, not a role edit.
+    if (newRole == WalletAccess.WalletRole.OWNER)
+      throw new IllegalArgumentException("Cannot promote a member to OWNER");
+
+    access.setRole(newRole);
     return memberMapper.mapToResponse(access);
   }
 
@@ -168,6 +177,13 @@ public class MemberService {
         walletAccessRepository
             .findByWalletIdAndUserId(walletID, id)
             .orElseThrow(() -> new IllegalArgumentException("Member not found in this wallet"));
+
+    // Only a PENDING invitation may be answered. Without this guard a member whose access was
+    // REVOKED (owner removed them) or who LEFT/was REJECTED could re-accept and silently restore
+    // their own access to the wallet, defeating owner-initiated removal and the re-invite cooldown.
+    if (access.getStatus() != WalletAccess.InvitationStatus.PENDING) {
+      throw new IllegalArgumentException("This invitation is no longer pending");
+    }
 
     access.setStatus(invitationStatus);
     walletAccessRepository.save(access);

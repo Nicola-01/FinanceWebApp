@@ -8,6 +8,12 @@ import type {
   TagRequest,
 } from "../../../../dashboard/settings/csvImport";
 
+// The Start-date picker (revealed when a suggestion is selected) reads the
+// ThemeContext, which isn't provided here — stub it to a plain node.
+vi.mock("../../../../components/DataPicker/CustomDatePicker", () => ({
+  default: () => <div />,
+}));
+
 // AmountInput (revealed when a suggestion is selected) pulls in framer-motion;
 // render its nodes as plain children so animations don't interfere with the test.
 vi.mock("framer-motion", () => ({
@@ -68,14 +74,16 @@ describe("SubscriptionsStep", () => {
       />,
     );
 
-    await user.click(screen.getByRole("checkbox", { name: "Netflix" }));
+    // No checkbox anymore — the recommendation is a toggle card (aria-pressed).
+    await user.click(screen.getByRole("button", { name: "Netflix" }));
 
     expect(onChange).toHaveBeenCalledTimes(1);
     const next = onChange.mock.calls[0][0] as SubscriptionRequest[];
     expect(next).toHaveLength(1);
     expect(next[0]).toMatchObject({
       name: "Netflix",
-      tag: "Entertainment",
+      // Recommended subscriptions now carry a real Recommended tag.
+      tag: "Netflix",
       type: "EXPENSE",
       status: "ACTIVE",
       frequencyType: "MONTHLY",
@@ -83,6 +91,14 @@ describe("SubscriptionsStep", () => {
       duration: "FOREVER",
       autoExchangeRate: false,
     });
+  });
+
+  it("shows the default recurrence on each recommended card", () => {
+    render(<SubscriptionsStep value={[]} onChange={vi.fn()} currency="EUR" />);
+    // Selecting is now a plain toggle — the recurrence is surfaced on the card.
+    expect(screen.getByRole("button", { name: "Netflix" })).toHaveTextContent(
+      "Repeat every 1 month",
+    );
   });
 
   it("surfaces row errors from an invalid CSV and stages nothing", async () => {
@@ -153,6 +169,42 @@ describe("SubscriptionsStep", () => {
     ]);
   });
 
+  it("recreates the parent category when creating a missing Recommended tag", async () => {
+    const user = userEvent.setup();
+    const onTagsChange = vi.fn();
+    render(
+      <SubscriptionsStep
+        value={[completeSubscription({ tag: "Netflix" })]}
+        onChange={vi.fn()}
+        currency="EUR"
+        accentColor="#8b5cf6"
+        tags={[]}
+        onTagsChange={onTagsChange}
+      />,
+    );
+
+    // The amber badge surfaces the Recommended parent alongside the leaf tag.
+    const badge = screen.getByRole("button", { name: "Fix tag for Netflix" });
+    expect(badge).toHaveTextContent("Subscriptions");
+
+    await user.click(badge);
+    await user.click(
+      screen.getByRole("button", { name: "Create tag Netflix" }),
+    );
+
+    // Creating it rebuilds the hierarchy: the parent category first, then the
+    // child under it — both with their curated icon/colour.
+    expect(onTagsChange).toHaveBeenCalledWith([
+      { name: "Subscriptions", icon: "calendar", colorHex: "#9c27b0" },
+      {
+        name: "Netflix",
+        icon: "movies",
+        colorHex: "#e50914",
+        parentName: "Subscriptions",
+      },
+    ]);
+  });
+
   it("reassigns a conflicting subscription to an existing tag", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
@@ -192,5 +244,23 @@ describe("SubscriptionsStep", () => {
     expect(
       screen.queryByRole("button", { name: "Fix tag for Netflix" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("expands a resolved staged subscription to reveal its editor", async () => {
+    const user = userEvent.setup();
+    render(
+      <SubscriptionsStep
+        value={[completeSubscription()]}
+        onChange={vi.fn()}
+        currency="EUR"
+        tags={[tag("Entertainment", { icon: "movies", colorHex: "#e50914" })]}
+      />,
+    );
+
+    // The editor card lives inside the collapsed row — hidden until expanded.
+    expect(screen.queryByText("Start date")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Edit Netflix" }));
+    expect(screen.getByText("Start date")).toBeInTheDocument();
+    expect(screen.getByText("Repeat Every")).toBeInTheDocument();
   });
 });

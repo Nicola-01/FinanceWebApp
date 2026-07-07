@@ -39,9 +39,19 @@ function Harness({
       }}
       currency={rest.currency ?? "EUR"}
       accentColor={rest.accentColor}
+      tags={rest.tags}
+      onTagsChange={rest.onTagsChange}
     />
   );
 }
+
+const stagedTx = (name: string, tag: string): TransactionRequest => ({
+  transactionDate: "2026-06-01",
+  name,
+  tag,
+  amount: 10,
+  type: "EXPENSE",
+});
 
 describe("TransactionsStep", () => {
   it("appends one DTO from a valid CSV (header + 1 row)", async () => {
@@ -109,5 +119,113 @@ describe("TransactionsStep", () => {
 
     await waitFor(() => expect(onChange).toHaveBeenCalledWith([]));
     expect(screen.queryByText("Salary")).not.toBeInTheDocument();
+  });
+
+  it("names which tags are missing and how many rows each affects", () => {
+    render(
+      <Harness
+        onChange={vi.fn()}
+        // "Groceries" twice (collapses to one group of 2) + "Fuel" once.
+        initial={[
+          stagedTx("Coffee", "Groceries"),
+          stagedTx("Milk", "groceries"),
+          stagedTx("Gas", "Fuel"),
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        /2 tags used by these transactions aren't in this wallet/i,
+      ),
+    ).toBeInTheDocument();
+    // The tag names ARE shown now, each with its affected-row count.
+    expect(screen.getByText("Groceries")).toBeInTheDocument();
+    expect(screen.getByText("Fuel")).toBeInTheDocument();
+    expect(screen.getByText(/2 transactions use it/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 transaction uses it/i)).toBeInTheDocument();
+  });
+
+  it("removes every transaction carrying a missing tag", () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          stagedTx("Coffee", "Groceries"),
+          stagedTx("Milk", "groceries"),
+          stagedTx("Gas", "Fuel"),
+        ]}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /remove transactions tagged groceries/i,
+      }),
+    );
+
+    // Only the "Fuel" row survives.
+    expect(onChange).toHaveBeenCalledWith([stagedTx("Gas", "Fuel")]);
+  });
+
+  it("reassigns every transaction with a missing tag to an existing tag", () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          stagedTx("Coffee", "Groceries"),
+          stagedTx("Milk", "GROCERIES"),
+        ]}
+        tags={[{ name: "Food", icon: "tag", colorHex: "#000" }]}
+      />,
+    );
+
+    // Open the reassign dropdown and pick "Food".
+    fireEvent.click(screen.getByRole("button", { name: /change tag/i }));
+    fireEvent.click(screen.getByText("Food"));
+
+    expect(onChange).toHaveBeenCalledWith([
+      { ...stagedTx("Coffee", "Groceries"), tag: "Food" },
+      { ...stagedTx("Milk", "GROCERIES"), tag: "Food" },
+    ]);
+  });
+
+  it("creates the missing tag in the draft", () => {
+    const onTagsChange = vi.fn();
+    render(
+      <Harness
+        onChange={vi.fn()}
+        onTagsChange={onTagsChange}
+        initial={[stagedTx("Coffee", "Groceries")]}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /create tag groceries/i }),
+    );
+
+    expect(onTagsChange).toHaveBeenCalledTimes(1);
+    expect(onTagsChange.mock.calls[0][0]).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: "Groceries" })]),
+    );
+  });
+
+  it("shows no resolution panel when every staged tag resolves", () => {
+    render(
+      <Harness
+        onChange={vi.fn()}
+        initial={[stagedTx("Coffee", "Groceries")]}
+        tags={[{ name: "Groceries", icon: "tag", colorHex: "#000" }]}
+      />,
+    );
+
+    expect(
+      screen.queryByText(/used by these transactions/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /create tag/i }),
+    ).not.toBeInTheDocument();
   });
 });

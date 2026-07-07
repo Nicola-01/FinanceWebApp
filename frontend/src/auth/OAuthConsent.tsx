@@ -12,6 +12,7 @@ import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import type { Wallet, WalletPermState } from "../utils/types";
 import { PatFormView } from "../modals/pat/PatFormView";
 import Button from "../components/ui/Button";
+import { Badge } from "../components/ui/Badge";
 import { AnimateBackground } from "./AnimateBackground";
 import api from "../api/axiosConfig";
 import axios from "axios";
@@ -291,12 +292,14 @@ const OAuthConsent = () => {
                   .split(" ")
                   .filter(Boolean)
                   .map((s) => (
-                    <span
+                    <Badge
                       key={s}
-                      className="inline-flex items-center rounded-md bg-app-purple/10 px-2 py-0.5 text-[10px] font-semibold text-app-purple"
+                      variant="subtle"
+                      tone="purple"
+                      shape="rounded"
                     >
                       {s}
-                    </span>
+                    </Badge>
                   ))}
               </div>
             )}

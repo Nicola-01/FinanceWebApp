@@ -216,6 +216,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
             notes={notes}
             setNotes={setNotes}
             selectedTagName={selectedTagName}
+            accentColor={wallet.color}
           />
 
           <hr className="my-2 border-app-border" />

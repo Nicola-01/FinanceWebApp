@@ -1,24 +1,33 @@
 import type React from "react";
+import { useContext } from "react";
 import type { Tag } from "../../utils/types.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { faChevronRight, faTags } from "@fortawesome/free-solid-svg-icons";
-import { useWalletContext } from "../../dashboard/wallet/WalletContext.tsx";
+import { WalletContext } from "../../dashboard/wallet/WalletContext.tsx";
 
 export const TagBadge = ({
   tag,
+  tags: tagsProp,
   showParent = true,
   forceShowParent = false,
   compact = false,
   onClick,
 }: {
   tag?: Tag;
+  /** Tag list used to resolve `parentName`. Defaults to the wallet context;
+   *  pass it explicitly when rendering outside a WalletProvider (e.g. the
+   *  wallet-creation wizard) so the badge still shows the parent chain. */
+  tags?: Tag[];
   showParent?: boolean;
   forceShowParent?: boolean;
   compact?: boolean;
   onClick?: (e: React.MouseEvent) => void;
 }) => {
-  const { tags } = useWalletContext();
+  // Read the wallet context when present, but don't require it: TagBadge is also
+  // used where no WalletProvider exists, in which case the caller supplies `tags`.
+  const ctx = useContext(WalletContext);
+  const tags = tagsProp ?? ctx?.tags ?? [];
   if (!tag) return null;
 
   return (
@@ -26,6 +35,21 @@ export const TagBadge = ({
       className={`inline-flex items-center gap-1.5 ${compact ? "min-w-0 w-full" : ""}`}
       onClick={onClick}
     >
+      {showParent && tag.parentName && (
+        <span
+          className={`${forceShowParent ? "flex" : "hidden sm:flex"} items-center gap-1.5`}
+        >
+          <TagBadge
+            tag={tags.find((t) => t.name === tag.parentName)}
+            tags={tags}
+            forceShowParent={forceShowParent}
+          />
+          <FontAwesomeIcon
+            icon={faChevronRight}
+            className="text-[8px] text-app-muted shrink-0"
+          />
+        </span>
+      )}
       <span
         className={`inline-flex items-center gap-1 rounded-md font-bold uppercase tracking-wider ${
           compact
@@ -44,21 +68,6 @@ export const TagBadge = ({
         />
         <span className={compact ? "truncate" : ""}>{tag.name}</span>
       </span>
-
-      {showParent && tag.parentName && (
-        <span
-          className={`${forceShowParent ? "flex" : "hidden sm:flex"} items-center gap-1.5`}
-        >
-          <FontAwesomeIcon
-            icon={faChevronRight}
-            className="text-[8px] theme-text-subtle shrink-0"
-          />
-          <TagBadge
-            tag={tags.find((t) => t.name === tag.parentName)}
-            forceShowParent={forceShowParent}
-          />
-        </span>
-      )}
     </span>
   );
 };

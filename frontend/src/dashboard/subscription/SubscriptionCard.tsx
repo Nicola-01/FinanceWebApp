@@ -154,7 +154,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           />
         </div>
 
-        <div className="flex flex-col md:items-center items-start gap-1.5 min-w-0 py-0.5">
+        <div className="flex flex-col items-start gap-1.5 min-w-0 py-0.5">
           {subscription.name != subscription.tag.name && (
             <span className="text-base font-bold text-app-text truncate">
               {subscription.name}

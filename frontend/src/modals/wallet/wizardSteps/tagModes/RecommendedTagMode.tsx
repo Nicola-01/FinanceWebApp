@@ -22,11 +22,15 @@ export function RecommendedTagMode({
   onToggle,
 }: RecommendedTagModeProps) {
   return (
-    <TagCategoryPicker
-      groups={RECOMMENDED_TAG_GROUPS}
-      stagedKeys={stagedKeys}
-      onToggle={onToggle}
-    />
+    // Cap the height so the long preset grid scrolls within its own box instead
+    // of pushing the rest of the step (and staged list) far down the page.
+    <div className="custom-scrollbar overflow-y-auto pr-1">
+      <TagCategoryPicker
+        groups={RECOMMENDED_TAG_GROUPS}
+        stagedKeys={stagedKeys}
+        onToggle={onToggle}
+      />
+    </div>
   );
 }
 

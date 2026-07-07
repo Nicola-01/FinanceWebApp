@@ -24,6 +24,8 @@ import {
   type SourceWallet,
 } from "./wizardSteps/sourceWallets";
 import { SubscriptionsStep } from "./wizardSteps/SubscriptionsStep";
+import { hasUnresolvedSubscriptionTags } from "./wizardSteps/subscriptionModes/subscriptionTags";
+import { missingTransactionTagCount } from "./wizardSteps/transactionTags";
 import { TransactionsStep } from "./wizardSteps/TransactionsStep";
 import { InvitesStep } from "./wizardSteps/InvitesStep";
 import {
@@ -74,8 +76,9 @@ const outcomeSummary = (o: ResourceOutcome): string => {
   return parts.length ? parts.join(", ") : "Done";
 };
 
-/** Terminal screen: processing spinner, blocking-error (no wallet), or the
- *  per-resource recap after the wallet was created. */
+/** Terminal screen: processing spinner, blocking-error (the creation is atomic,
+ *  so no wallet exists), or the per-resource recap after the wallet was created.
+ *  Only invites can partially fail here — everything else is transactional. */
 function WalletCompletionScreen({
   state,
   accentColor,
@@ -131,7 +134,7 @@ function WalletCompletionScreen({
         </h3>
         <p className="mt-1 text-sm text-app-muted">
           {result.anyFailed
-            ? "The wallet exists — some data didn't import."
+            ? "The wallet was created, but some invitations couldn't be sent."
             : "Your new wallet is set up."}
         </p>
       </div>
@@ -162,7 +165,7 @@ function WalletCompletionScreen({
 
       {result.anyFailed && (
         <p className="text-xs text-app-muted">
-          You can re-import the failed items later from Settings → Data.
+          You can invite members again later from the wallet's member settings.
         </p>
       )}
 
@@ -227,6 +230,18 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
     };
 
     const nameLen = draft.basics.name.trim().length;
+    // A staged subscription pointing at a tag that isn't in the draft can't be
+    // imported — block Continue until every such conflict is resolved.
+    const subscriptionsBlocked = hasUnresolvedSubscriptionTags(
+      draft.subscriptions,
+      draft.tags,
+    );
+    // Same guard for transactions — but we surface only the *count* of missing
+    // tags, never their names.
+    const missingTransactionTags = missingTransactionTagCount(
+      draft.transactions,
+      draft.tags,
+    );
     const steps: WizardStep[] = [
       {
         name: "Basics",
@@ -258,28 +273,13 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
         ),
       },
       {
-        name: "Transactions",
-        icon: faReceipt,
-        mandatory: false,
-        isComplete: draft.transactions.length > 0,
-        nextLabel: "Continue",
-        nextLabelIncomplete: "Continue without transactions",
-        content: (
-          <TransactionsStep
-            value={draft.transactions}
-            onChange={(transactions) =>
-              setDraft((d) => ({ ...d, transactions }))
-            }
-            currency={draft.basics.currency}
-            accentColor={draft.basics.color}
-          />
-        ),
-      },
-      {
         name: "Subscriptions",
         icon: faArrowsRotate,
         mandatory: false,
         isComplete: draft.subscriptions.length > 0,
+        blocked: subscriptionsBlocked,
+        blockedReason:
+          "Some subscriptions use a tag that isn't in this wallet — reassign or create it to continue.",
         nextLabel: "Continue",
         nextLabelIncomplete: "Continue without subscriptions",
         content: (
@@ -292,6 +292,29 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
             onTagsChange={(tags) => setDraft((d) => ({ ...d, tags }))}
             currency={draft.basics.currency}
             accentColor={draft.basics.color}
+          />
+        ),
+      },
+      {
+        name: "Transactions",
+        icon: faReceipt,
+        mandatory: false,
+        isComplete: draft.transactions.length > 0,
+        blocked: missingTransactionTags > 0,
+        blockedReason:
+          "Some transactions use a tag that isn't in this wallet — create it, reassign, or remove those transactions to continue.",
+        nextLabel: "Continue",
+        nextLabelIncomplete: "Continue without transactions",
+        content: (
+          <TransactionsStep
+            value={draft.transactions}
+            onChange={(transactions) =>
+              setDraft((d) => ({ ...d, transactions }))
+            }
+            currency={draft.basics.currency}
+            accentColor={draft.basics.color}
+            tags={draft.tags}
+            onTagsChange={(tags) => setDraft((d) => ({ ...d, tags }))}
           />
         ),
       },
@@ -328,7 +351,7 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
               Create a new wallet
             </span>
           }
-          subtitle="Set up your wallet — add as much or as little as you like."
+          // subtitle="Set up your wallet — add as much or as little as you like."
           onClose={handleClose}
         >
           <Wizard<WalletCreationResult>

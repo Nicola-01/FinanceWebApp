@@ -30,6 +30,7 @@ import {
 } from "@dnd-kit/sortable";
 import type { Tag } from "../../utils/types.ts";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
+import { Badge } from "../../components/ui/Badge";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { Icon } from "../../components/icon/Icon.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
@@ -653,9 +654,9 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
                 <span className="text-sm font-bold text-app-text">
                   {activeNode.parent.name}
                 </span>
-                <span className="ml-auto rounded-full bg-app-input px-2 py-0.5 font-app-mono text-[11px] font-bold tabular-nums text-app-muted">
+                <Badge variant="subtle" mono className="ml-auto">
                   {activeNode.children.length}
-                </span>
+                </Badge>
               </div>
               {activeNode.children.length > 0 && (
                 <div className="ml-5 flex flex-col gap-1 border-l border-app-border pb-2 pl-2 pr-2">

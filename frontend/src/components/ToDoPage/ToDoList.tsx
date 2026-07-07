@@ -1,6 +1,7 @@
 import React from "react";
 import { CheckCircle2, Circle, ArrowRightCircle } from "lucide-react";
 import { todoData, type ToDoItem, type ToDoStatus } from "./todoData";
+import { Badge } from "../ui/Badge";
 
 const StatusIcon = ({ status }: { status: ToDoStatus }) => {
   switch (status) {
@@ -18,22 +19,22 @@ const StatusBadge = ({ status }: { status: ToDoStatus }) => {
   switch (status) {
     case "FINISHED":
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-green/10 text-app-green border border-app-green/20 text-xs font-semibold">
+        <Badge tone="green" size="md">
           Completed
-        </span>
+        </Badge>
       );
     case "STARTED":
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-purple/10 text-app-purple border border-app-purple/30 text-xs font-semibold">
+        <Badge tone="purple" size="md">
           Started
-        </span>
+        </Badge>
       );
     case "PLANNED":
     default:
       return (
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-app-input text-app-muted border border-app-border text-xs font-semibold">
+        <Badge tone="neutral" size="md">
           Planned
-        </span>
+        </Badge>
       );
   }
 };

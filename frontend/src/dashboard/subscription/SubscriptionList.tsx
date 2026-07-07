@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import type { Subscription, Transaction } from "../../utils/types";
 import { SubscriptionCard } from "./SubscriptionCard";
+import { Badge } from "../../components/ui/Badge";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faRepeat,
@@ -158,9 +159,9 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
           {within7Days.length > 0 && (
             <div className="flex flex-col gap-3">
               <div>
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-app-yellow/15 text-app-yellow text-[10px] font-bold uppercase tracking-widest border border-app-yellow/40">
+                <Badge tone="yellow" uppercase>
                   Within 7 Days
-                </span>
+                </Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {within7Days.map((sub) => (
@@ -180,9 +181,9 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
           {within31Days.length > 0 && (
             <div className="flex flex-col gap-3">
               <div>
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-app-surface text-app-muted text-[10px] font-bold uppercase tracking-widest border border-app-border">
+                <Badge tone="neutral" uppercase>
                   Within 31 Days
-                </span>
+                </Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {within31Days.map((sub) => (

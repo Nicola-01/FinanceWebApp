@@ -130,6 +130,54 @@ class OAuthControllerTest extends BaseWebMvcTest {
   }
 
   @Test
+  void authorizeRedirect_WithUntrustedExternalHost_ShouldReturn400() throws Exception {
+    // Security regression: an attacker-controlled https host that is not on the allowlist must be
+    // rejected before the user ever reaches the consent page.
+    mockMvc
+        .perform(
+            get("/oauth/authorize")
+                .param("client_id", "client-abc")
+                .param("redirect_uri", "https://evil.example/callback")
+                .param("code_challenge", "challenge123")
+                .param("state", "xyz"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void authorizeRedirect_WithAllowlistedHttpsHost_ShouldRedirect() throws Exception {
+    // claude.ai is on the default allowlist — a legitimate hosted MCP client must still work.
+    mockMvc
+        .perform(
+            get("/oauth/authorize")
+                .param("client_id", "client-abc")
+                .param("redirect_uri", "https://claude.ai/api/mcp/auth_callback")
+                .param("code_challenge", "challenge123")
+                .param("state", "xyz"))
+        .andExpect(status().isFound());
+  }
+
+  @Test
+  void authorizeConfirm_WithUntrustedExternalHost_ShouldReturn400() throws Exception {
+    // The security-critical check: even if the GET step is bypassed by posting directly, an
+    // untrusted redirect_uri must not have a token bound to it / an auth code issued.
+    OAuthController.OAuthAuthorizeRequest request = new OAuthController.OAuthAuthorizeRequest();
+    request.setPlainToken("fin_pat_abc123");
+    request.setClientId("client-1");
+    request.setRedirectUri("https://evil.example/callback");
+    request.setCodeChallenge("challenge-evil-host");
+    request.setState("state-evil");
+    request.setScope("read");
+
+    mockMvc
+        .perform(
+            post("/oauth/authorize")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.error").value("invalid_redirect_uri"));
+  }
+
+  @Test
   void authorizeRedirect_WithPlainCodeChallengeMethod_ShouldReturn400() throws Exception {
     mockMvc
         .perform(

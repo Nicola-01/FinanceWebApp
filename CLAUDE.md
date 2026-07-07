@@ -17,6 +17,7 @@ DB and one root `.env`.
 - `mcp-server/` — Python FastMCP OAuth2 server exposing ~25 finance tools to LLM clients.
 - `docker-compose.yml` (dev, builds locally) / `docker-compose.prod.yml` (pulls GHCR images).
 - `.github/workflows/deploy.yml` — CI/CD to GHCR + self-hosted runners.
+- `docs/superpowers/` — implementation plans and specs written by the superpowers workflow.
 - `graphify-out/` — generated knowledge graph (see **graphify** below); not app code.
 - `OpenBanking/` — standalone EnableBanking/PSD2 experiment (Python script + certs); not wired into the apps.
 
@@ -44,8 +45,8 @@ npm test           # Vitest (run once); npm run test:watch for watch mode
 Note: **Vitest + Testing Library** are configured (`vitest.config.ts`, jsdom, setup in
 `src/test/setup.ts`); `*.test.*` files live under **`src/__tests__/`** (mirroring the source
 tree; shared helpers in `src/test/`) and are excluded from the production build
-(`tsconfig.app.json`). Coverage is sparse — **CI gates on lint/build only**, tests are not
-yet wired into the pipeline.
+(`tsconfig.app.json`). **CI gates on lint → Vitest → build** (in that order, same as the
+local Stop hook — see Conventions below).
 
 Full stack (from repo root):
 ```bash
@@ -79,10 +80,19 @@ entities/DTOs.
 - **Cross-cutting:** `controller/GlobalExceptionHandler.java` (`@RestControllerAdvice`)
   maps custom exceptions in `exceptions/` to RFC-7807 `ProblemDetail` responses; DTOs use
   Jakarta `@Valid` annotations.
-- **Scheduled jobs (`CronJob/`, `@EnableScheduling`):** subscription execution (materializes
-  due subscriptions on `nextExecutionDate`), encrypted DB backup (→ Cloudflare R2), demo cleanup.
+- **Scheduled jobs (`scheduling/` + `CronJob/`):** jobs implement the `ManagedJob` interface
+  (`key()`, `displayName()`, `run()`, `available()`) instead of hardcoded `@Scheduled`;
+  `scheduling/ScheduledJobService` stores each schedule in the DB (`ScheduledJobConfig`),
+  records per-execution history (`JobRun`), reschedules live and supports run-on-demand from
+  the admin System tab. Current jobs (`CronJob/`): subscription execution (materializes due
+  subscriptions on `nextExecutionDate`), encrypted DB backup (→ Cloudflare R2), demo cleanup.
+- **Email:** SMTP via `MAIL_*` env vars. `mailing/EmailService` (plain messages) and
+  `service/SendEmailService` (HTML/MIME with templates in `resources/templates/`) back
+  registration, password reset, admin user invites, and wallet-member invites.
 - **Persistence:** PostgreSQL 16, `spring.jpa.hibernate.ddl-auto=update` — **no Flyway/Liquibase;
-  schema evolves from entity edits.** Tests use in-memory H2 (`src/test/resources/application-test.properties`).
+  schema evolves from entity edits.** Entity PKs are time-ordered **UUIDv7**
+  (`persistence/UuidV7Generator`, wired via `@UuidGenerator` on `@Id` fields) — keep this on
+  new entities. Tests use in-memory H2 (`src/test/resources/application-test.properties`).
 - On first boot `config/DataInitializer.java` creates the admin user from `ADMIN_*` env vars.
 
 ## Frontend architecture
@@ -104,8 +114,10 @@ entities/DTOs.
   auto-refreshes on 401 via `/auth/refresh`.
 - **Offline-first PWA:** Dexie/IndexedDB caches GET responses and **queues POST/PUT/DELETE
   while offline**, replaying on reconnect (`utils/offlineDb.ts`, `utils/syncService.ts`).
-- **Routing (`src/App.tsx`):** `/dashboard/:walletId?` (protected), `/admin/dashboard/*`
-  (ADMIN only), `/oauth/authorize` (OAuth consent page the MCP flow redirects to).
+- **Routing (`src/App.tsx`):** `/dashboard/:walletId?` and `/settings` (protected;
+  `src/settings/SettingsPage.tsx` with scroll-spied sections), `/admin/dashboard/*`
+  (ADMIN only), `/oauth/authorize` (OAuth consent page the MCP flow redirects to);
+  auth screens `/login`, `/register`, `/forgot-password`, `/reset-password` share `AuthLayout`.
 - **UI:** Tailwind 4 + MUI X-Charts for analytics, Framer Motion, dnd-kit for reordering.
 
 ## MCP server
@@ -121,16 +133,19 @@ every tool forwards the bearer token to the backend, which enforces per-wallet p
 
 - **Language — English only:** all user-facing UI copy **and** all code comments are written
   in **English** (the app ships in English). Don't introduce Italian strings/comments in code.
-- **Backend test discipline (enforced by hooks):** whenever you change anything under
-  `backend/`, you must **(1)** re-run the suite (`./gradlew test`), **(2)** add or update
-  tests covering the change, and **(3)** re-run until green. A `PostToolUse` hook
-  (`.claude/hooks/backend-mark.sh`) flags the turn when you edit a `backend/` file, and the
-  `Stop` hook (`.claude/hooks/backend-tests.sh`) auto-runs the suite at end of that turn and
-  wakes you on failure — but writing the *new* tests is on you, not the hook.
+- **Test discipline (enforced by hooks in `.claude/hooks/`):** `PostToolUse` hooks mark the
+  turn when you edit a file under `backend/` or `frontend/`; matching `Stop` hooks then
+  auto-run the checks at end of turn and wake you on failure:
+  - **backend** → `./gradlew test`. You must also **add or update tests covering your
+    change** and re-run until green — writing the *new* tests is on you, not the hook.
+  - **frontend** → `prettier --write` on `src/`, then fail-fast `npm run lint` →
+    `npm test` → `npm run build` (same order as CI). Add/update Vitest tests for what
+    you changed here too.
 - **All REST endpoints are under `/api/...`** (e.g. `/api/wallets`, `/api/auth`, `/api/transactions`).
 - **CI gates you must satisfy locally:** backend `check` enforces Spotless formatting +
-  **90% line coverage** (`jacocoTestCoverageVerification`); frontend runs ESLint + Prettier.
-  Run `./gradlew spotlessApply` and keep coverage ≥ 90% before pushing.
+  **90% line coverage** (`jacocoTestCoverageVerification`); frontend CI runs ESLint +
+  Prettier, Vitest, and the production build. Run `./gradlew spotlessApply` and keep
+  coverage ≥ 90% before pushing.
 - **Single shared root `.env`** feeds all services via Compose. `VITE_*` vars are baked into
   the frontend **at build time**. Demo mode is gated by `DEMO_ENABLED` (backend) +
   `VITE_DEMO_ENABLED` (frontend).

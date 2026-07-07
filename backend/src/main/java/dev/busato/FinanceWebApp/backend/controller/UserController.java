@@ -19,6 +19,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,6 +52,7 @@ public class UserController {
    * store.
    */
   @PutMapping("/me/username")
+  @PreAuthorize("@walletSecurity.preventPatAccess()")
   public ResponseEntity<AuthResponse> updateUsername(
       @AuthenticationPrincipal User user,
       @Valid @RequestBody UpdateUsernameRequest request,
@@ -77,6 +79,7 @@ public class UserController {
    * the requested new address. Never returns the codes.
    */
   @PostMapping("/me/email/change-request")
+  @PreAuthorize("@walletSecurity.preventPatAccess()")
   public ResponseEntity<Map<String, String>> requestEmailChange(
       @AuthenticationPrincipal User user, @Valid @RequestBody EmailChangeRequestDto request) {
     userService.requestEmailChange(user, request.getNewEmail());
@@ -89,6 +92,7 @@ public class UserController {
    * stays valid and no token reissue is needed.
    */
   @PostMapping("/me/email/change-confirm")
+  @PreAuthorize("@walletSecurity.preventPatAccess()")
   public ResponseEntity<UserProfileResponse> confirmEmailChange(
       @AuthenticationPrincipal User user, @Valid @RequestBody EmailChangeConfirmDto request) {
     User updated =
@@ -99,6 +103,7 @@ public class UserController {
 
   /** Cancels a pending email change, if any. */
   @DeleteMapping("/me/email/change")
+  @PreAuthorize("@walletSecurity.preventPatAccess()")
   public ResponseEntity<Map<String, String>> cancelEmailChange(@AuthenticationPrincipal User user) {
     userService.cancelEmailChange(user);
     return ResponseEntity.ok(Map.of("message", "Email change cancelled"));
@@ -110,6 +115,7 @@ public class UserController {
    * transferred to another member when possible, otherwise deleted with all their data.
    */
   @DeleteMapping("/me")
+  @PreAuthorize("@walletSecurity.preventPatAccess()")
   public ResponseEntity<Map<String, String>> deleteAccount(
       @AuthenticationPrincipal User user,
       @RequestBody DeleteAccountRequest request,

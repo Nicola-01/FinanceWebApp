@@ -19,8 +19,19 @@ export interface SelectorProps<T extends string | number> {
   onChange: (value: T) => void;
   size?: "sm" | "md" | "lg";
   fullWidth?: boolean;
+  /**
+   * Flat accent fill for the active segment (e.g. `wallet.color`) — mirrors
+   * `Button`/`Toggle`. The active segment gets a solid accent background + white
+   * text; per-option `activeBgClass`/`activeColorClass` still win over it.
+   */
+  accentColor?: string;
   className?: string;
 }
+
+// Shared visible focus ring — same treatment as `Button`/`Toggle`.
+const FOCUS =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 " +
+  "focus-visible:ring-offset-1 focus-visible:ring-offset-transparent";
 
 export const Selector = <T extends string | number>({
   options,
@@ -28,6 +39,7 @@ export const Selector = <T extends string | number>({
   onChange,
   size = "md",
   fullWidth = true,
+  accentColor,
   className = "",
 }: SelectorProps<T>) => {
   const containerSizeClass =
@@ -48,14 +60,17 @@ export const Selector = <T extends string | number>({
 
   const inactiveClassName = "text-app-muted hover:text-app-text";
 
+  const useAccent = Boolean(accentColor);
+  // Default active look: raised neutral surface (sober). With `accentColor`,
+  // the fill comes from the inline style below and the text goes white.
+  const defaultActiveBg = useAccent ? "" : "bg-app-surface";
+  const defaultActiveText = useAccent ? "text-white" : "text-app-text";
+
   return (
     <div className={containerClassName}>
       {options.map((option) => {
         const isActive = value === option.value;
         const isDisabled = option.disabled;
-
-        const defaultActiveBg = "bg-app-surface";
-        const defaultActiveText = "theme-text-primary";
 
         let currentClass = isActive
           ? `${option.activeBgClass || defaultActiveBg} ${option.activeColorClass || defaultActiveText} shadow-sm font-bold`
@@ -66,6 +81,13 @@ export const Selector = <T extends string | number>({
             "opacity-40 cursor-not-allowed text-app-muted font-semibold";
         }
 
+        // Flat accent fill only when active, accent requested and the option
+        // doesn't pin its own background.
+        const accentStyle =
+          isActive && useAccent && !option.activeBgClass
+            ? { backgroundColor: accentColor }
+            : undefined;
+
         return (
           <button
             key={String(option.value)}
@@ -73,8 +95,8 @@ export const Selector = <T extends string | number>({
             onClick={() => !isDisabled && onChange(option.value)}
             disabled={isDisabled}
             title={isDisabled ? option.disabledTitle : option.title}
-            className={`flex-1 flex items-center justify-center transition-all px-2 ${buttonSizeClass} ${currentClass}`}
-            style={option.style}
+            className={`flex-1 flex items-center justify-center transition-all px-2 ${FOCUS} ${buttonSizeClass} ${currentClass}`}
+            style={{ ...accentStyle, ...option.style }}
           >
             {option.icon && (
               <span className="flex items-center justify-center">

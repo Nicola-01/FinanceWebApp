@@ -172,6 +172,26 @@ class MemberServiceTest {
   }
 
   @Test
+  void updateMemberRole_PromoteToOwner_ThrowsException() {
+    // Security: a member must not be promotable to OWNER via a role edit (would create a second,
+    // unremovable co-owner).
+    MemberRequest request = new MemberRequest();
+    request.setRole("OWNER");
+
+    WalletAccess access = new WalletAccess();
+    access.setRole(WalletAccess.WalletRole.EDITOR);
+
+    when(walletAccessRepository.findByWalletIdAndUserId(walletId, targetUserId))
+        .thenReturn(Optional.of(access));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> memberService.updateMemberRole(walletId, targetUserId, request, userId));
+
+    assertEquals(WalletAccess.WalletRole.EDITOR, access.getRole());
+  }
+
+  @Test
   void updateMemberRole_ChangeOwnerRole_ThrowsException() {
     MemberRequest request = new MemberRequest();
     request.setRole("EDITOR");
@@ -364,5 +384,59 @@ class MemberServiceTest {
         () ->
             memberService.setStatus(
                 targetUserId, walletId, WalletAccess.InvitationStatus.ACCEPTED));
+  }
+
+  @Test
+  void setStatus_RevokedMemberCannotReAccept_ThrowsAndKeepsStatus() {
+    // Security regression: a removed (REVOKED) member must not be able to re-accept and restore
+    // their own access. Their WalletAccess row still carries the old role, so the only guard is the
+    // PENDING precondition.
+    WalletAccess access = new WalletAccess();
+    access.setRole(WalletAccess.WalletRole.EDITOR);
+    access.setStatus(WalletAccess.InvitationStatus.REVOKED);
+
+    when(walletAccessRepository.findByWalletIdAndUserId(walletId, targetUserId))
+        .thenReturn(Optional.of(access));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            memberService.setStatus(
+                targetUserId, walletId, WalletAccess.InvitationStatus.ACCEPTED));
+
+    assertEquals(WalletAccess.InvitationStatus.REVOKED, access.getStatus());
+    verify(walletAccessRepository, never()).save(any(WalletAccess.class));
+  }
+
+  @Test
+  void setStatus_LeftMemberCannotRejoin_Throws() {
+    // A member who voluntarily LEFT must not silently rejoin by re-accepting.
+    WalletAccess access = new WalletAccess();
+    access.setRole(WalletAccess.WalletRole.VIEWER);
+    access.setStatus(WalletAccess.InvitationStatus.LEFT);
+
+    when(walletAccessRepository.findByWalletIdAndUserId(walletId, targetUserId))
+        .thenReturn(Optional.of(access));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            memberService.setStatus(
+                targetUserId, walletId, WalletAccess.InvitationStatus.ACCEPTED));
+    verify(walletAccessRepository, never()).save(any(WalletAccess.class));
+  }
+
+  @Test
+  void setStatus_PendingInviteCanBeRejected_UpdatesStatus() {
+    WalletAccess access = new WalletAccess();
+    access.setStatus(WalletAccess.InvitationStatus.PENDING);
+
+    when(walletAccessRepository.findByWalletIdAndUserId(walletId, targetUserId))
+        .thenReturn(Optional.of(access));
+
+    memberService.setStatus(targetUserId, walletId, WalletAccess.InvitationStatus.REJECTED);
+
+    assertEquals(WalletAccess.InvitationStatus.REJECTED, access.getStatus());
+    verify(walletAccessRepository).save(access);
   }
 }

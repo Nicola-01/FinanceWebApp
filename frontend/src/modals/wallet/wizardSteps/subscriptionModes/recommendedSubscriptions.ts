@@ -1,42 +1,107 @@
+import {
+  RECOMMENDED_TAG_GROUPS,
+  type RecommendedTag,
+} from "../recommendedTags";
 import type { SubscriptionRequest } from "../../../../dashboard/settings/csvImport";
 
-/** A curated subscription offered as a one-tap starting point. */
+/** A Recommended tag together with the parent category it belongs to. */
+export type RecommendedSubscriptionTag = RecommendedTag & {
+  parentName?: string;
+};
+
+/**
+ * A curated subscription offered as a one-tap starting point. Its `tag` is a
+ * real tag taken from the Recommended tag set ({@link RECOMMENDED_TAG_GROUPS}),
+ * so staging it lines up with the categories a user picks in the Tags step — no
+ * phantom tag to reconcile later.
+ */
 export interface RecommendedSubscription {
   name: string;
-  tag: string;
+  tag: RecommendedSubscriptionTag;
   amount: number;
+  type: "EXPENSE" | "INCOME";
 }
 
 /**
- * Curated starter subscriptions offered in the wallet-creation wizard. Their
- * `tag` is a plain name — it may or may not match a tag the user staged in the
- * previous step, which is exactly what the Subscriptions step flags and lets the
- * user resolve (reassign to an existing tag or create it).
+ * Resolve a leaf tag from the Recommended tag groups by parent + child name, so
+ * recommended subscriptions reuse the exact same tag (icon/colour) as the Tags
+ * step. A typo throws at module load, catching drift in development.
+ */
+const leaf = (
+  parentName: string,
+  childName: string,
+): RecommendedSubscriptionTag => {
+  const group = RECOMMENDED_TAG_GROUPS.find(
+    (g) => g.parent.name === parentName,
+  );
+  const child = group?.children.find((c) => c.name === childName);
+  if (!child)
+    throw new Error(
+      `recommendedSubscriptions: no tag "${childName}" under "${parentName}"`,
+    );
+  return { ...child, parentName };
+};
+
+/**
+ * Curated starter subscriptions offered in the wallet-creation wizard. Every
+ * `tag` is a real Recommended tag, so the proposed subscriptions and the
+ * proposed tags are one and the same set.
  */
 export const RECOMMENDED_SUBSCRIPTIONS: RecommendedSubscription[] = [
-  { name: "Netflix", tag: "Entertainment", amount: 12.99 },
-  { name: "Spotify", tag: "Music", amount: 9.99 },
-  { name: "Gym", tag: "Fitness", amount: 30 },
-  { name: "Rent", tag: "Housing", amount: 800 },
-  { name: "Mobile plan", tag: "Phone", amount: 15 },
-  { name: "Internet", tag: "Internet", amount: 30 },
-  { name: "Insurance", tag: "Insurance", amount: 40 },
-  { name: "Cloud storage", tag: "Software", amount: 2.99 },
+  {
+    name: "Netflix",
+    tag: leaf("Subscriptions", "Netflix"),
+    amount: 12.99,
+    type: "EXPENSE",
+  },
+  {
+    name: "Amazon Prime",
+    tag: leaf("Subscriptions", "Amazon Prime"),
+    amount: 4.99,
+    type: "EXPENSE",
+  },
+  {
+    name: "Spotify",
+    tag: leaf("Subscriptions", "Spotify"),
+    amount: 9.99,
+    type: "EXPENSE",
+  },
+  { name: "Rent", tag: leaf("Home", "Rent"), amount: 800, type: "EXPENSE" },
+  {
+    name: "Internet",
+    tag: leaf("Home", "Internet"),
+    amount: 30,
+    type: "EXPENSE",
+  },
+  { name: "Gas", tag: leaf("Home", "Gas"), amount: 40, type: "EXPENSE" },
+  {
+    name: "Electricity",
+    tag: leaf("Home", "Electricity"),
+    amount: 50,
+    type: "EXPENSE",
+  },
+  {
+    name: "Insurance",
+    tag: leaf("Car", "Insurance"),
+    amount: 40,
+    type: "EXPENSE",
+  },
 ];
 
 /**
  * Expands a recommended suggestion (with its possibly-edited amount) into a
- * complete `SubscriptionRequest`: a monthly, active, never-ending expense
- * starting today with no multi-currency conversion.
+ * complete `SubscriptionRequest`: a monthly, active, never-ending payment
+ * starting today with no multi-currency conversion. The `tag` is stored as the
+ * tag's name (the shape the bulk-import endpoint expects).
  */
 export const toSubscriptionRequest = (
   suggestion: RecommendedSubscription,
   amount: number,
 ): SubscriptionRequest => ({
   name: suggestion.name,
-  tag: suggestion.tag,
+  tag: suggestion.tag.name,
   amount,
-  type: "EXPENSE",
+  type: suggestion.type,
   status: "ACTIVE",
   startDate: new Date().toISOString().slice(0, 10),
   frequencyType: "MONTHLY",

@@ -94,13 +94,16 @@ public class SecurityConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
 
+    // Only the configured origins are allowed. In dev these default to localhost (see
+    // application.properties); in prod they resolve to the real hosts, so no localhost origin
+    // bleeds
+    // through into a production deployment (which, combined with allowCredentials, would be
+    // unsafe).
     configuration.setAllowedOrigins(
-        List.of(
-            FRONTEND_URL,
-            BACKEND_URL,
-            MCP_SERVER_URL,
-            "http://localhost:5173",
-            "http://localhost:3000"));
+        java.util.stream.Stream.of(FRONTEND_URL, BACKEND_URL, MCP_SERVER_URL)
+            .filter(o -> o != null && !o.isBlank())
+            .distinct()
+            .toList());
 
     configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     // A volte "Authorization" non basta, meglio essere permissivi in fase di debug

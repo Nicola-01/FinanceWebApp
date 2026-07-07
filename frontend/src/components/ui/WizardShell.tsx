@@ -44,7 +44,9 @@ export function WizardShell({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col bg-app-bg">
-      <header className="flex items-start justify-between gap-4 border-b border-app-border px-5 py-4 sm:px-8 lg:pt-2">
+      <header
+        className={`flex ${subtitle ? "items-start" : "items-center"} justify-between gap-4 border-b border-app-border px-5 py-4 sm:px-8 lg:pt-2`}
+      >
         <div className="min-w-0">
           <h2 className="truncate text-lg font-bold text-app-text">{title}</h2>
           {subtitle && (

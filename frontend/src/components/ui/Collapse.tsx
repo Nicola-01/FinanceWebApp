@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 
-interface CollapseProps extends React.HTMLAttributes<HTMLDivElement> {
+interface CollapseProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
   children: React.ReactNode;
-  title: string;
+  title: React.ReactNode;
   defaultOpen?: boolean;
   /** `lg` (default) = big section title; `sm` = compact inline disclosure. */
   size?: "sm" | "lg";
@@ -29,7 +32,9 @@ export const Collapse: React.FC<CollapseProps> = ({
   return (
     <div className={`${className}`} {...props}>
       <button
+        type="button"
         onClick={() => setCollapseOpen((o) => !o)}
+        aria-expanded={collapseOpen}
         className="group mb-3 flex w-full items-center gap-2.5 text-left outline-none"
       >
         <FontAwesomeIcon

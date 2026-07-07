@@ -17,15 +17,12 @@ import {
   toSubscriptionRequest,
   type RecommendedSubscription,
 } from "./subscriptionModes/recommendedSubscriptions";
+import { addTagToDraft } from "./tagDraft";
 import { CURRENCY_META, type CurrencyCode } from "../../../utils/currencies";
 import type {
   SubscriptionRequest,
   TagRequest,
 } from "../../../dashboard/settings/csvImport";
-
-const DEFAULT_TAG_ICON = "tag";
-const DEFAULT_TAG_COLOR = "#8b5cf6";
-const tagKey = (s: string) => s.trim().toLowerCase();
 
 type SubMode = "recommended" | "csv" | "create";
 
@@ -69,20 +66,19 @@ export function SubscriptionsStep({
     [currency],
   );
 
-  const stagedNames = new Set(value.map((s) => s.name));
-
   // --- Recommended mode ---
   const stageSuggestion = (s: RecommendedSubscription, amount: number) =>
     onChange([...value, toSubscriptionRequest(s, amount)]);
   const unstageByName = (name: string) =>
     onChange(value.filter((s) => s.name !== name));
-  const editAmountByName = (name: string, amount: number) =>
-    onChange(value.map((s) => (s.name === name ? { ...s, amount } : s)));
 
   // --- Create mode ---
   const addCreated = (sub: SubscriptionRequest) => onChange([...value, sub]);
 
-  // --- Staged list: remove + tag resolution ---
+  // --- Staged list: edit + remove + tag resolution ---
+  const editStaged = (index: number, patch: Partial<SubscriptionRequest>) =>
+    onChange(value.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+
   const removeStaged = (index: number) =>
     onChange(value.filter((_, i) => i !== index));
 
@@ -90,19 +86,14 @@ export function SubscriptionsStep({
     onChange(value.map((s, i) => (i === index ? { ...s, tag: tagName } : s)));
 
   // Create a tag named after the subscription's missing tag, adding it to the
-  // draft's tag list; the conflict then clears since the names now match.
+  // draft's tag list; the conflict then clears since the names now match. The
+  // shared {@link addTagToDraft} recreates the Recommended hierarchy when the
+  // tag is a known curated leaf.
   const createTagFor = (index: number) => {
-    const name = value[index]?.tag.trim();
+    const name = value[index]?.tag;
     if (!name || !onTagsChange) return;
-    if (tags.some((t) => tagKey(t.name) === tagKey(name))) return;
-    onTagsChange([
-      ...tags,
-      {
-        name,
-        icon: DEFAULT_TAG_ICON,
-        colorHex: accentColor ?? DEFAULT_TAG_COLOR,
-      },
-    ]);
+    const next = addTagToDraft(name, tags, accentColor);
+    if (next !== tags) onTagsChange(next);
   };
 
   return (
@@ -148,12 +139,10 @@ export function SubscriptionsStep({
       >
         {mode === "recommended" && (
           <RecommendedSubscriptionPicker
-            stagedNames={stagedNames}
+            staged={value}
             currencySymbol={currencySymbol}
-            accentColor={accentColor}
             onStage={stageSuggestion}
             onUnstage={unstageByName}
-            onEditAmount={editAmountByName}
           />
         )}
 
@@ -187,6 +176,7 @@ export function SubscriptionsStep({
           onRemove={removeStaged}
           onReassignTag={reassignTag}
           onCreateTagFor={createTagFor}
+          onEdit={editStaged}
         />
       )}
     </div>

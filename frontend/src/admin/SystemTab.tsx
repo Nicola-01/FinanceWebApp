@@ -15,6 +15,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
+import { Card } from "../components/ui/Card";
 import { getApiErrorTitle } from "../utils/apiError.ts";
 import { AdminPageHeader } from "./AdminPageHeader.tsx";
 import Button from "../components/ui/Button";
@@ -448,9 +449,12 @@ const SystemTab: React.FC = () => {
     }
     if (jobs.length === 0) {
       return (
-        <div className="rounded-[var(--r-card)] border border-app-border bg-app-card/40 px-4 py-6 text-center text-sm text-app-muted">
+        <Card
+          padding="none"
+          className="px-4 py-6 text-center text-sm text-app-muted"
+        >
           No scheduled jobs.
-        </div>
+        </Card>
       );
     }
     return (

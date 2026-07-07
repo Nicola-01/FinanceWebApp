@@ -201,6 +201,22 @@ describe("response interceptor — offline fallback", () => {
     await expect(resHandler.rejected(error)).rejects.toBe(error);
     expect(queueAdd).not.toHaveBeenCalled();
   });
+
+  it("does not queue a POST that opted out via skipOfflineQueue", async () => {
+    setOnline(false);
+    const error: FakeError = {
+      config: cfg({
+        method: "post",
+        url: "/wallets/full",
+        data: "{}",
+        // opt-out set by atomic flows that must not fake a success
+        skipOfflineQueue: true,
+      } as Partial<InternalAxiosRequestConfig>),
+      code: "ERR_NETWORK",
+    };
+    await expect(resHandler.rejected(error)).rejects.toBe(error);
+    expect(queueAdd).not.toHaveBeenCalled();
+  });
 });
 
 describe("response interceptor — 401 auto-refresh", () => {

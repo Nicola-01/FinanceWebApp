@@ -130,6 +130,31 @@ class AccountDeletionServiceTest {
         emailChangeRepository);
   }
 
+  // ==================== ADMIN ERASURE (NO PASSWORD) ====================
+
+  @Test
+  void deleteUserAsAdmin_PurgesUserWithoutPasswordCheck() {
+    Wallet w = wallet();
+    WalletAccess editor =
+        access(
+            meId,
+            w,
+            WalletAccess.WalletRole.EDITOR,
+            WalletAccess.InvitationStatus.ACCEPTED,
+            LocalDate.of(2021, 1, 1),
+            "owner",
+            LocalDate.of(2020, 1, 1));
+    when(walletAccessRepository.findAllByUserId(meId)).thenReturn(List.of(editor));
+
+    accountDeletionService.deleteUserAsAdmin(me);
+
+    // Same cascade cleanup as the self-service path...
+    verify(walletAccessRepository).delete(editor);
+    verifyAccountRowRemoved();
+    // ...but the admin path never asks for a password.
+    verifyNoInteractions(passwordEncoder);
+  }
+
   // ==================== TAIL: PAT + EMAIL + USER ====================
 
   @Test
@@ -217,7 +242,7 @@ class AccountDeletionServiceTest {
         access(
             UUID.randomUUID(),
             w,
-            WalletAccess.WalletRole.EDITOR,
+            WalletAccess.WalletRole.VIEWER, // same role → invitedAt decides
             WalletAccess.InvitationStatus.ACCEPTED,
             LocalDate.of(2022, 6, 1), // joined later
             "amy",
@@ -235,6 +260,45 @@ class AccountDeletionServiceTest {
     verify(walletAccessRepository).delete(mine);
     verify(walletRepository, never()).delete(any());
     verifyNoInteractions(subscriptionRepository);
+    verifyAccountRowRemoved();
+  }
+
+  @Test
+  void deleteAccount_Transfer_PrefersEditorOverEarlierViewer() {
+    // An EDITOR inherits ahead of a VIEWER even if the VIEWER joined earlier: a read-only member
+    // should not be handed ownership while a writer is available.
+    passwordOk();
+    Wallet w = wallet();
+    WalletAccess mine = myOwnerAccess(w);
+    WalletAccess earlyViewer =
+        access(
+            UUID.randomUUID(),
+            w,
+            WalletAccess.WalletRole.VIEWER,
+            WalletAccess.InvitationStatus.ACCEPTED,
+            LocalDate.of(2020, 1, 1), // joined much earlier
+            "viewer",
+            LocalDate.of(2019, 1, 1));
+    WalletAccess lateEditor =
+        access(
+            UUID.randomUUID(),
+            w,
+            WalletAccess.WalletRole.EDITOR,
+            WalletAccess.InvitationStatus.ACCEPTED,
+            LocalDate.of(2023, 1, 1), // joined later, but is a writer
+            "editor",
+            LocalDate.of(2022, 1, 1));
+
+    when(walletAccessRepository.findAllByUserId(meId)).thenReturn(List.of(mine));
+    when(walletAccessRepository.findAllByWalletId(w.getId()))
+        .thenReturn(List.of(mine, earlyViewer, lateEditor));
+
+    accountDeletionService.deleteAccount(me, RAW_PASSWORD);
+
+    assertEquals(WalletAccess.WalletRole.OWNER, lateEditor.getRole());
+    assertEquals(WalletAccess.WalletRole.VIEWER, earlyViewer.getRole());
+    verify(walletAccessRepository).save(lateEditor);
+    verify(walletAccessRepository).delete(mine);
     verifyAccountRowRemoved();
   }
 
@@ -257,7 +321,7 @@ class AccountDeletionServiceTest {
         access(
             UUID.randomUUID(),
             w,
-            WalletAccess.WalletRole.EDITOR,
+            WalletAccess.WalletRole.VIEWER, // same role → createdAt decides
             WalletAccess.InvitationStatus.ACCEPTED,
             sameInvited,
             "zzz",
@@ -295,7 +359,7 @@ class AccountDeletionServiceTest {
         access(
             UUID.randomUUID(),
             w,
-            WalletAccess.WalletRole.EDITOR,
+            WalletAccess.WalletRole.VIEWER, // same role → username decides
             WalletAccess.InvitationStatus.ACCEPTED,
             sameInvited,
             "alice", // wins alphabetically

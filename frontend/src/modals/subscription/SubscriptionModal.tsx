@@ -1,11 +1,5 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
 import api from "../../api/axiosConfig";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faPause,
-  faPlay,
-  faCheckDouble,
-} from "@fortawesome/free-solid-svg-icons";
 import Button from "../../components/ui/Button.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
@@ -15,12 +9,12 @@ import type { Tag, Wallet, Subscription } from "../../utils/types";
 import CustomDatePicker from "../../components/DataPicker/CustomDatePicker";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { Input } from "../../components/ui/Input.tsx";
+import { Textarea } from "../../components/ui/Textarea";
 import { AmountInput } from "../../components/ui/AmountInput.tsx";
 import { TransactionTypeToggle } from "../TransactionModal/TransactionTypeToggle";
 import { TagPicker } from "../TransactionModal/TagPicker/TagPicker";
 import { ExchangeRateSection } from "../TransactionModal/ExchangeRateSection";
-import { Selector } from "../../components/ui/Selector.tsx";
-import { CustomSelect } from "../../components/ui/CustomSelect.tsx";
+import { SchedulingRules } from "./SchedulingRules";
 import { getApiErrorTitle } from "../../utils/apiError";
 
 export interface SubscriptionModalHandle {
@@ -275,129 +269,22 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           </div>
 
           {/* 3. SCHEDULING RULES (Frequenza e Durata) */}
-          <div className="bg-app-input/50 border border-app-border rounded-xl p-4 flex flex-col gap-4">
-            <h4 className="text-sm font-bold text-app-text">
-              Scheduling Rules
-            </h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Repeat Every */}
-              <div>
-                <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                  Repeat Every
-                </label>
-                <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:border-[var(--brand-1)] transition-colors h-12">
-                  <input
-                    type="number"
-                    min="1"
-                    value={frequencyInterval}
-                    onChange={(e) =>
-                      setFrequencyInterval(Number(e.target.value) || 1)
-                    }
-                    className="w-1/2 bg-transparent px-3 py-2 text-app-text font-bold focus:outline-none text-center border-r border-app-border [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <CustomSelect
-                    value={frequencyType}
-                    onChange={(val) =>
-                      setFrequencyType(
-                        val as "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY",
-                      )
-                    }
-                    className="w-1/2 bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer"
-                    activeColor={wallet.color}
-                    options={[
-                      { value: "DAILY", label: "Days" },
-                      { value: "WEEKLY", label: "Weeks" },
-                      { value: "MONTHLY", label: "Months" },
-                      { value: "YEARLY", label: "Years" },
-                    ]}
-                  />
-                </div>
-              </div>
-
-              {/* Ends */}
-              <div>
-                <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                  Ends
-                </label>
-                <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:border-[var(--brand-1)] transition-colors h-12">
-                  <CustomSelect
-                    value={duration}
-                    onChange={(val) =>
-                      setDuration(val as "FOREVER" | "TIMES" | "UNTIL")
-                    }
-                    className={`${duration === "FOREVER" ? "w-full" : "w-1/2 border-r border-app-border"} bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer`}
-                    activeColor={wallet.color}
-                    options={[
-                      { value: "FOREVER", label: "Never" },
-                      { value: "TIMES", label: "After times" },
-                      { value: "UNTIL", label: "On date" },
-                    ]}
-                  />
-
-                  {duration === "TIMES" && (
-                    <input
-                      type="number"
-                      min="1"
-                      value={durationTimes}
-                      onChange={(e) =>
-                        setDurationTimes(Number(e.target.value) || 1)
-                      }
-                      className="w-1/2 bg-transparent px-3 py-2 text-app-text font-bold focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                  )}
-
-                  {duration === "UNTIL" && (
-                    <div className="w-1/2 relative flex">
-                      <CustomDatePicker
-                        isRange={false}
-                        color={wallet.color}
-                        initialPreset="custom"
-                        initialStartDate={durationUntil || new Date()}
-                        onChange={(val) => {
-                          if (val instanceof Date) setDurationUntil(val);
-                        }}
-                        triggerClassName="w-full h-full border-0 bg-transparent shadow-none px-3 py-2 text-app-text font-bold focus:outline-none"
-                        dropdownAlign="right"
-                        dropdownPosition="top"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                Status
-              </label>
-              <Selector
-                value={status}
-                onChange={(val) => setStatus(val)}
-                size="md"
-                options={[
-                  {
-                    value: "PAUSED",
-                    label: "Paused",
-                    icon: <FontAwesomeIcon icon={faPause} />,
-                    activeColorClass: "text-app-yellow",
-                  },
-                  {
-                    value: "ACTIVE",
-                    label: "Active",
-                    icon: <FontAwesomeIcon icon={faPlay} />,
-                    activeColorClass: "text-app-sky",
-                  },
-                  {
-                    value: "COMPLETED",
-                    label: "Completed",
-                    icon: <FontAwesomeIcon icon={faCheckDouble} />,
-                    activeColorClass: "text-app-green",
-                  },
-                ]}
-              />
-            </div>
-          </div>
+          <SchedulingRules
+            frequencyInterval={frequencyInterval}
+            onFrequencyIntervalChange={setFrequencyInterval}
+            frequencyType={frequencyType}
+            onFrequencyTypeChange={setFrequencyType}
+            duration={duration}
+            onDurationChange={setDuration}
+            durationTimes={durationTimes}
+            onDurationTimesChange={setDurationTimes}
+            durationUntil={durationUntil}
+            onDurationUntilChange={setDurationUntil}
+            showStatus
+            status={status}
+            onStatusChange={setStatus}
+            accentColor={wallet.color}
+          />
 
           {/* 4. NAME & DESCRIPTION */}
           <div className="flex flex-col gap-4">
@@ -417,12 +304,11 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
               <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
                 Description
               </label>
-              <textarea
-                rows={2}
-                placeholder="Add a description (optional)"
+              <Textarea
+                placeholder="Any details... (Optional)"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full resize-none rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3.5 py-2.5 text-app-text outline-none transition-colors duration-200 placeholder:text-app-muted focus:border-[var(--brand-1)] focus:ring-1 focus:ring-[var(--brand-1)]/50"
+                accentColor={wallet.color}
               />
             </div>
           </div>

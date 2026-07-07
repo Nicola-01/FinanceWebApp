@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Badge } from "../../components/ui/Badge";
 import { faEnvelope, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import type { Invitation } from "../../utils/types";
 import { InviteCard } from "./InviteCard";
@@ -26,15 +27,9 @@ const InvitesList: React.FC<ListProps> = ({ invites, onOpen }) =>
 
 /** Count pill — yellow when there's at least one pending invite, grey at zero. */
 const CountPill: React.FC<{ count: number }> = ({ count }) => (
-  <span
-    className={`rounded-full px-2 py-0.5 font-app-mono text-[11px] font-bold tabular-nums ${
-      count >= 1
-        ? "bg-app-yellow/15 text-app-yellow"
-        : "bg-app-input text-app-muted"
-    }`}
-  >
+  <Badge variant="subtle" mono tone={count >= 1 ? "yellow" : "neutral"}>
     {count}
-  </span>
+  </Badge>
 );
 
 // ── Mobile: square badge (first item in the horizontal scroller) ──────────────

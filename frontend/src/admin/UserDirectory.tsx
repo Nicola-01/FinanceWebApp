@@ -7,6 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import UserRow from "./UserRow";
 import SearchInput from "../components/ui/SearchInput";
+import { Card } from "../components/ui/Card";
 import type { User } from "../utils/types.ts";
 
 type SortConfig = {
@@ -77,7 +78,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
     "sticky top-0 z-10 cursor-pointer border-b border-app-border bg-app-card p-[18px] font-semibold text-app-muted transition-colors hover:text-app-text";
 
   return (
-    <div className="rounded-[var(--r-card)] border border-app-border bg-app-card/50 p-5 backdrop-blur-sm">
+    <Card padding="md">
       {/* Header & Search Bar */}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-[15px]">
         <h4 className="m-0 text-[1.05rem] font-semibold text-app-text">
@@ -157,6 +158,6 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   );
 };

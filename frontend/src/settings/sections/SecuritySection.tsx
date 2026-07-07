@@ -14,6 +14,7 @@ import {
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import api from "../../api/axiosConfig";
 import { Card } from "../../components/ui/Card";
+import { Badge } from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { PasswordInput } from "../../modals/auth/PasswordInput";
@@ -64,9 +65,9 @@ const MfaMethod: React.FC<MfaMethodProps> = ({
         <div className="flex items-center gap-2">
           <p className="text-sm font-bold text-app-text">{title}</p>
           {recommended && (
-            <span className="rounded-full bg-[var(--brand-1)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand-1)]">
+            <Badge variant="subtle" tone="brand" uppercase>
               Recommended
-            </span>
+            </Badge>
           )}
         </div>
       </div>

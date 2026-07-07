@@ -2,6 +2,7 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStickyNote, faTag } from "@fortawesome/free-solid-svg-icons";
 import { Input } from "../../components/ui/Input";
+import { Textarea } from "../../components/ui/Textarea";
 
 interface Props {
   name: string;
@@ -9,6 +10,8 @@ interface Props {
   notes: string;
   setNotes: (val: string) => void;
   selectedTagName: string;
+  /** Wallet accent (hex) for the Notes field's focus border/ring. */
+  accentColor?: string;
 }
 
 export const TransactionMetadataInputs: React.FC<Props> = ({
@@ -17,6 +20,7 @@ export const TransactionMetadataInputs: React.FC<Props> = ({
   notes,
   setNotes,
   selectedTagName,
+  accentColor,
 }) => {
   return (
     <div className="flex flex-col gap-4">
@@ -40,12 +44,12 @@ export const TransactionMetadataInputs: React.FC<Props> = ({
           <FontAwesomeIcon icon={faStickyNote} className="mr-2" />
           Notes
         </label>
-        <textarea
-          className="w-full min-h-[100px] resize-none rounded-xl border border-app-border bg-app-input p-4 text-app-text outline-none transition-all focus:border-app-green"
-          placeholder="Any details..."
+        <Textarea
+          className="min-h-[100px]"
+          placeholder="Any details... (Optional)"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          rows={2}
+          accentColor={accentColor}
         />
       </div>
     </div>

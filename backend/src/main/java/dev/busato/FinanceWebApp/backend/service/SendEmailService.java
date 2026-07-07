@@ -21,6 +21,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 @Service
 public class SendEmailService {
@@ -29,6 +30,11 @@ public class SendEmailService {
 
   @Value("${application.frontend.url}")
   private String FRONTEND_URL;
+
+  // A wallet colour is only ever a CSS hex colour. Anything else is rejected before it reaches the
+  // email HTML, so a crafted value cannot break out of the style attribute it is interpolated into.
+  private static final java.util.regex.Pattern HEX_COLOR =
+      java.util.regex.Pattern.compile("^#[0-9a-fA-F]{6}$");
 
   public void sendRegistrationInvitation(AdminInviteResponse inviteResponse)
       throws MessagingException, UnsupportedEncodingException {
@@ -112,6 +118,25 @@ public class SendEmailService {
     }
   }
 
+  /**
+   * Fills the wallet-invitation template. All three user-controlled values are interpolated into an
+   * HTML email that is later sent with {@code helper.setText(html, true)}, so they must be
+   * sanitized to prevent HTML/markup injection: the colour is restricted to a hex literal (it lands
+   * inside a {@code style} attribute) and the free-text fields are HTML-escaped.
+   */
+  String renderWalletInviteHtml(String htmlTemplate, String inviterUsername, Wallet wallet) {
+    return htmlTemplate
+        .replace("{{walletColor}}", sanitizeHexColor(wallet.getColor()))
+        .replace("{{inviterUsername}}", HtmlUtils.htmlEscape(inviterUsername))
+        .replace("{{appUrl}}", FRONTEND_URL)
+        .replace("{{walletName}}", HtmlUtils.htmlEscape(wallet.getName()));
+  }
+
+  /** Returns the colour if it is a valid 6-digit hex literal, otherwise a safe default. */
+  private static String sanitizeHexColor(String color) {
+    return color != null && HEX_COLOR.matcher(color).matches() ? color : "#000000";
+  }
+
   public static String toFontAwesomeIcon(String input) {
     if (input == null) return null;
 
@@ -127,15 +152,8 @@ public class SendEmailService {
       throws Exception {
     String htmlTemplate = getHtmlTemplate("templates/email/walletInviteEmail.html");
 
-    String safeColor = wallet.getColor() != null ? wallet.getColor() : "#000000";
-
-    // Sostituisci i segnaposto (rimuoviamo {{walletIconClass}} perché usiamo l'immagine)
-    String finalHtml =
-        htmlTemplate
-            .replace("{{walletColor}}", safeColor)
-            .replace("{{inviterUsername}}", inviterUsername)
-            .replace("{{appUrl}}", FRONTEND_URL)
-            .replace("{{walletName}}", wallet.getName());
+    String finalHtml = renderWalletInviteHtml(htmlTemplate, inviterUsername, wallet);
+    String safeColor = sanitizeHexColor(wallet.getColor());
 
     // ATTENZIONE: Il parametro 'true' abilita il multipart (necessario per le immagini inline)
     MimeMessage message = mailSender.createMimeMessage();
@@ -149,8 +167,8 @@ public class SendEmailService {
     // 1. Imposta l'HTML
     helper.setText(finalHtml, true);
 
-    // 2. Genera l'icona FontAwesome come immagine PNG
-    byte[] iconBytes = generateIconImage(wallet.getIcon(), wallet.getColor());
+    // 2. Genera l'icona FontAwesome come immagine PNG (usa il colore già sanificato)
+    byte[] iconBytes = generateIconImage(wallet.getIcon(), safeColor);
 
     // 3. Inietta l'immagine nell'HTML usando il Content-ID "walletIcon"
     helper.addInline("walletIcon", new ByteArrayResource(iconBytes), "image/png");

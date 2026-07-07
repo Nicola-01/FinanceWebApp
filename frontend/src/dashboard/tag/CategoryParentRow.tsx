@@ -1,5 +1,6 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Badge } from "../../components/ui/Badge";
 import {
   faChevronRight,
   faGripVertical,
@@ -145,12 +146,13 @@ export const CategoryParentRow: React.FC<CategoryParentRowProps> = ({
               {occurrences}
             </span>
           )}
-          <span
+          <Badge
+            variant="subtle"
+            mono
             title={`${childCount} sub-categor${childCount === 1 ? "y" : "ies"}`}
-            className="rounded-full bg-app-input px-2 py-0.5 font-app-mono text-[11px] font-bold tabular-nums"
           >
             {childCount}
-          </span>
+          </Badge>
         </div>
 
         {!readOnly && !edit.isEditing && (
