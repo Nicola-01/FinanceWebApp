@@ -112,6 +112,18 @@ public class SubscriptionService {
   @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
   public SubscriptionBulkResponse createSubscriptionsBulk(
       List<SubscriptionRequest> requests, UUID walletId, UUID userId) {
+    return createSubscriptionsBulkInternal(requests, walletId);
+  }
+
+  /**
+   * Same upsert as {@link #createSubscriptionsBulk(List, UUID, UUID)} but without its own
+   * authorization. Write access must already have been verified by the caller, so this method
+   * carries no {@code @PreAuthorize} of its own — used by the atomic wallet-creation flow, where
+   * the caller has just created the wallet as OWNER within the same transaction.
+   */
+  @Transactional
+  public SubscriptionBulkResponse createSubscriptionsBulkInternal(
+      List<SubscriptionRequest> requests, UUID walletId) {
     List<Subscription> createdList = new ArrayList<>();
     List<Subscription> updatedList = new ArrayList<>();
     List<TagResponse> autoCreatedTags = new ArrayList<>();

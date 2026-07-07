@@ -1,10 +1,13 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
 import dev.busato.FinanceWebApp.backend.dto.WalletDashboardResponse;
+import dev.busato.FinanceWebApp.backend.dto.WalletFullRequest;
+import dev.busato.FinanceWebApp.backend.dto.WalletFullResponse;
 import dev.busato.FinanceWebApp.backend.dto.WalletRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
 import dev.busato.FinanceWebApp.backend.dto.WalletTagsResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
+import dev.busato.FinanceWebApp.backend.service.WalletProvisioningService;
 import dev.busato.FinanceWebApp.backend.service.WalletService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class WalletController {
 
   private final WalletService walletService;
+  private final WalletProvisioningService walletProvisioningService;
   private final dev.busato.FinanceWebApp.backend.service.WalletDashboardService
       walletDashboardService;
 
@@ -50,6 +54,12 @@ public class WalletController {
   public ResponseEntity<WalletResponse> createWallet(
       @Valid @RequestBody WalletRequest request, @AuthenticationPrincipal User user) {
     return ResponseEntity.ok(walletService.createWallet(request, user.getId()));
+  }
+
+  @PostMapping("/full")
+  public ResponseEntity<WalletFullResponse> createWalletFull(
+      @Valid @RequestBody WalletFullRequest request, @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(walletProvisioningService.createWalletFull(request, user.getId()));
   }
 
   @DeleteMapping("/{walletID}")
