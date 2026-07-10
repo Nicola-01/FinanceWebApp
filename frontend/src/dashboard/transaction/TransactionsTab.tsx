@@ -8,8 +8,14 @@ import { TransactionsTable } from "./TransactionsTable.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 
 export const TransactionsTab: React.FC = () => {
-  const { wallet, isLoading, tags, fetchData, filteredTransactions } =
-    useWalletContext();
+  const {
+    wallet,
+    isLoading,
+    tags,
+    fetchData,
+    filteredTransactions,
+    pendingTransactions,
+  } = useWalletContext();
   const baseCurrency = wallet.currency as CurrencyCode;
   const onRefresh = () => fetchData();
 
@@ -34,6 +40,7 @@ export const TransactionsTab: React.FC = () => {
             wallet={wallet}
             tags={tags}
             transactions={filteredTransactions}
+            pendingTransactions={pendingTransactions}
             onRefresh={onRefresh}
             isLoading={isLoading}
           />
