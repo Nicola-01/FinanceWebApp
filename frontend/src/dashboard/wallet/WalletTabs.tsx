@@ -3,6 +3,7 @@ import type { TabType } from "./walletTabs";
 import { useWalletContext } from "./WalletContext.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faBullseye,
   faCalendarDays,
   faChartLine,
   faChartPie,
@@ -21,6 +22,7 @@ export const WalletTabs: React.FC = () => {
     { id: "subscription", label: "Subscriptions", icon: faCalendarDays },
     { id: "category", label: "Categories", icon: faChartPie },
     { id: "statistics", label: "Statistics", icon: faChartLine },
+    { id: "budget", label: "Budget", icon: faBullseye },
     { id: "settings", label: "Settings", icon: faGear },
   ];
 

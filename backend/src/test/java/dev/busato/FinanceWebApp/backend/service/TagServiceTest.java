@@ -19,6 +19,7 @@ import dev.busato.FinanceWebApp.backend.exceptions.TagInUseException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.repository.BudgetRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
@@ -41,6 +42,7 @@ class TagServiceTest {
   @Mock private TagRepository tagRepository;
   @Mock private WalletRepository walletRepository;
   @Mock private TagMapper tagMapper;
+  @Mock private BudgetRepository budgetRepository;
 
   @InjectMocks private TagService tagService;
 
@@ -326,6 +328,21 @@ class TagServiceTest {
 
     assertThrows(
         TagInUseException.class, () -> tagService.deleteTag("Food", walletId, userId, null));
+  }
+
+  @Test
+  void deleteTag_ReferencedByBudget_ThrowsException() {
+    Tag tag = new Tag();
+
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
+        .thenReturn(Optional.of(tag));
+    when(tagRepository.existsByParent(tag)).thenReturn(false);
+    when(transactionRepository.existsByTag(tag)).thenReturn(false);
+    when(budgetRepository.existsByTag(tag)).thenReturn(true);
+
+    assertThrows(
+        TagInUseException.class, () -> tagService.deleteTag("Food", walletId, userId, null));
+    verify(tagRepository, never()).delete(any());
   }
 
   @Test

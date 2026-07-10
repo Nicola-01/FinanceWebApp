@@ -102,6 +102,39 @@ export interface Subscription {
   syncState?: SyncState;
 }
 
+export interface Budget {
+  id: string;
+  name: string;
+  tagName?: string | null; // null = whole-wallet budget
+  limitAmount: number;
+  periodType: "WEEKLY" | "MONTHLY" | "YEARLY" | "CUSTOM";
+  startDate: string;
+  endDate?: string | null;
+  rollover: boolean;
+  alertThresholds: number[];
+  // Computed by the backend for the current period
+  periodStart: string;
+  periodEnd: string;
+  spent: number;
+  effectiveLimit: number;
+  remaining: number;
+  percentUsed: number;
+  status: "OK" | "WARNING" | "EXCEEDED";
+  crossedThresholds: number[];
+  active: boolean;
+}
+
+export interface BudgetPayload {
+  name: string;
+  tagName?: string | null;
+  limitAmount: number;
+  periodType: Budget["periodType"];
+  startDate?: string;
+  endDate?: string | null;
+  rollover?: boolean;
+  alertThresholds?: number[];
+}
+
 export interface WalletDashboardData {
   wallet: Wallet;
   transactions: Transaction[];

@@ -12,6 +12,7 @@ import type {
   Subscription,
   Tag,
   PatToken,
+  Budget,
 } from "../../utils/types";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
@@ -29,7 +30,8 @@ export type DeleteLevel = 0 | 1 | 2;
 
 export interface DeleteModalHandle {
   deleteObject: (
-    object: User | Wallet | Transaction | Subscription | Tag | PatToken,
+    object:
+      User | Wallet | Transaction | Subscription | Tag | PatToken | Budget,
     typeName: string,
     handleConfirmClick: () => void | Promise<void>,
     level?: DeleteLevel,
@@ -43,7 +45,7 @@ export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
 
   // Internal modal state
   const [objToDelete, setObjToDelete] = useState<
-    User | Wallet | Transaction | Subscription | Tag | PatToken | null
+    User | Wallet | Transaction | Subscription | Tag | PatToken | Budget | null
   >(null);
   const [onConfirmCb, setOnConfirmCb] = useState<
     (() => void | Promise<void>) | null

@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.service;
 
 import dev.busato.FinanceWebApp.backend.dto.AdminInviteResponse;
+import dev.busato.FinanceWebApp.backend.dto.BudgetStatusResponse;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -13,6 +14,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.imageio.ImageIO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -105,6 +107,50 @@ public class SendEmailService {
     helper.setText(finalHtml, true);
 
     mailSender.send(message);
+  }
+
+  /**
+   * Notifies wallet members that a budget crossed one of its alert thresholds. {@code budgetName},
+   * {@code walletName} and {@code currency} are user-controlled free text (see {@link
+   * #renderBudgetAlertHtml}) and, like the wallet-invitation email above, are HTML-escaped before
+   * interpolation to prevent markup injection.
+   */
+  public void sendBudgetAlert(
+      Wallet wallet, BudgetStatusResponse status, int threshold, List<String> recipients)
+      throws Exception {
+    String finalHtml = renderBudgetAlertHtml(wallet, status, threshold);
+
+    MimeMessage message = mailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+    helper.setFrom("noreply@busato.dev", "FinanceWebApp");
+    helper.setTo(recipients.toArray(String[]::new));
+    helper.setSubject(
+        "Budget \"" + status.getName() + "\" reached " + threshold + "% in " + wallet.getName());
+    helper.setText(finalHtml, true);
+
+    mailSender.send(message);
+  }
+
+  /**
+   * Fills the budget-alert template. {@code walletName}, {@code budgetName} and {@code currency}
+   * are user-controlled free text interpolated into an HTML email later sent with {@code
+   * helper.setText(html, true)}, so they are HTML-escaped to prevent markup injection. The
+   * remaining fields (amounts, dates, threshold) are numeric/date values computed server-side and
+   * are safe as-is.
+   */
+  String renderBudgetAlertHtml(Wallet wallet, BudgetStatusResponse status, int threshold) {
+    String htmlTemplate = getHtmlTemplate("templates/email/budgetAlertEmail.html");
+
+    return htmlTemplate
+        .replace("{{walletName}}", HtmlUtils.htmlEscape(wallet.getName()))
+        .replace("{{budgetName}}", HtmlUtils.htmlEscape(status.getName()))
+        .replace("{{threshold}}", String.valueOf(threshold))
+        .replace("{{spent}}", status.getSpent().toPlainString())
+        .replace("{{limit}}", status.getEffectiveLimit().toPlainString())
+        .replace("{{currency}}", HtmlUtils.htmlEscape(wallet.getCurrency()))
+        .replace("{{periodStart}}", status.getPeriodStart().toString())
+        .replace("{{periodEnd}}", status.getPeriodEnd().toString());
   }
 
   private String getHtmlTemplate(String path) {

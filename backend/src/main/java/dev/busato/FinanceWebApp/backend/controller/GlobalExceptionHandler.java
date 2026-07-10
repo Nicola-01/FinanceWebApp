@@ -34,12 +34,24 @@ public class GlobalExceptionHandler {
     return buildErrorResponse(ex, HttpStatus.NOT_FOUND, "Tag Not Found", request);
   }
 
+  @ExceptionHandler(BudgetNotFoundException.class)
+  public ResponseEntity<ProblemDetail> handleBudgetNotFoundException(
+      BudgetNotFoundException ex, HttpServletRequest request) {
+    return buildErrorResponse(ex, HttpStatus.NOT_FOUND, "Budget Not Found", request);
+  }
+
   // --- 409 CONFLICT ---
 
   @ExceptionHandler(UserAlreadyExistsException.class)
   public ResponseEntity<ProblemDetail> handleUserAlreadyExistsException(
       UserAlreadyExistsException ex, HttpServletRequest request) {
     return buildErrorResponse(ex, HttpStatus.CONFLICT, "User Already Exists", request);
+  }
+
+  @ExceptionHandler(BudgetConflictException.class)
+  public ResponseEntity<ProblemDetail> handleBudgetConflictException(
+      BudgetConflictException ex, HttpServletRequest request) {
+    return buildErrorResponse(ex, HttpStatus.CONFLICT, "Budget Conflict", request);
   }
 
   // --- SECURITY (401 & 403) ---
