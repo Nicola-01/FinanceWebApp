@@ -47,6 +47,23 @@ public class User implements UserDetails {
   @Builder.Default
   private int tokenVersion = 0;
 
+  // --- Global notification preferences (all default ON; per-event-type opt-out) ---
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  @Builder.Default
+  private boolean notifyInvites = true;
+
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  @Builder.Default
+  private boolean notifyTransactions = true;
+
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  @Builder.Default
+  private boolean notifySubscriptions = true;
+
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  @Builder.Default
+  private boolean notifyRecurringExecutions = true;
+
   @Column(updatable = false)
   private LocalDate createdAt; // Stores only YYYY-MM-DD
 
