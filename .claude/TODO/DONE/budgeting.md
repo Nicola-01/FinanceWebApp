@@ -1,5 +1,31 @@
 # Budgeting — Implementation Plan / TODO
 
+> ## ✅ COMPLETED — 2026-07-11
+> Implemented via **superpowers:subagent-driven-development** (a fresh implementer + a
+> task reviewer per task, plus a final whole-branch review on Opus). All 10 feature tasks
+> (backend 1–6, frontend 7–10) are done, reviewed, and gated green (backend `./gradlew
+> check`, coverage ≥91%; frontend lint + Vitest + build). Per-task review findings were
+> fixed in-loop (e.g. threshold null-guard ordering, `subtreeTagIds` cycle guard,
+> per-threshold alert isolation + `currency` HTML-escaping, `useBudgets`/overlay test
+> gaps, duplicate-threshold chip).
+>
+> **Final whole-branch review surfaced & fixed 3 issues the per-task reviews couldn't see:**
+> 1. **CRITICAL** — the alert cron resolved recipients with a lazy `WalletAccess.getUser()`
+>    on the (non-transactional) scheduler thread → `LazyInitializationException` swallowed
+>    per-budget → **no threshold email would ever send on the real hourly schedule** (admin
+>    "Run now" masked it). Fixed by using the eager `findAllByWalletIdAndStatus`.
+> 2. Editing a recurring budget reset its `startDate` to today → wiped the rollover anchor/
+>    carry. Fixed by preserving the entity's existing `startDate` when the request omits it.
+> 3. Deleting a tag referenced by a budget threw a 500 (unhandled FK). Fixed with a
+>    `budgetRepository.existsByTag` guard → clean `TagInUseException` (409).
+>
+> - **Task 11 (MCP budget tools): SKIPPED** per user decision.
+> - **graphify update: SKIPPED** (heavy regeneration deferred).
+> - **Merge:** `feat/budgeting` was merged **manually by the user** (concurrent with this
+>   session) into `Feat/budget` → `release/v3.5.0`; that merged state was re-verified green
+>   (backend `./gradlew test` + frontend `npm test` + `npm run build`).
+> - Roadmap `todoData.ts` "Budgeting" set to `STARTED`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task.
 > Steps use checkbox (`- [ ]`) syntax for tracking.
@@ -68,7 +94,7 @@ Vitest + Testing Library; existing `components/ui/` primitives.
   and `sumAmountByWalletAndDateRangeAndTags(UUID, Transaction.Type, LocalDate, LocalDate, Collection<UUID>)`
   — both return `BigDecimal`, never null (`COALESCE`).
 
-- [ ] **Step 1: Write the failing repository test**
+- [x] **Step 1: Write the failing repository test**
 
 ```java
 package dev.busato.FinanceWebApp.backend.repository;
@@ -196,12 +222,12 @@ class BudgetRepositoryTest {
 }
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run (from `backend/`): `./gradlew test --tests "*.BudgetRepositoryTest"`
 Expected: COMPILATION FAILURE (`Budget`/`BudgetRepository`/`sumAmountByWalletAndDateRange` don't exist).
 
-- [ ] **Step 3: Create the entity**
+- [x] **Step 3: Create the entity**
 
 `model/Budget.java` — same Lombok/annotation style as `Transaction.java`:
 
@@ -281,7 +307,7 @@ public class Budget {
 }
 ```
 
-- [ ] **Step 4: Create the repository and the aggregate queries**
+- [x] **Step 4: Create the repository and the aggregate queries**
 
 `repository/BudgetRepository.java`:
 
@@ -344,12 +370,12 @@ imports: `java.math.BigDecimal`, `java.time.LocalDate`, `java.util.Collection`,
       @Param("tagIds") Collection<UUID> tagIds);
 ```
 
-- [ ] **Step 5: Run the test to verify it passes**
+- [x] **Step 5: Run the test to verify it passes**
 
 Run: `./gradlew test --tests "*.BudgetRepositoryTest"`
 Expected: PASS (4 tests).
 
-- [ ] **Step 6: Format + full suite + commit**
+- [x] **Step 6: Format + full suite + commit**
 
 ```bash
 ./gradlew spotlessApply test
@@ -381,7 +407,7 @@ counts calendar periods from the one containing `startDate` through today's, inc
 `isActive`: recurring → today is not before the first period's start; CUSTOM → today
 within the range (inclusive).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```java
 package dev.busato.FinanceWebApp.backend.service;
@@ -485,9 +511,9 @@ class BudgetPeriodsTest {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetPeriodsTest"` → compilation failure.
+- [x] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetPeriodsTest"` → compilation failure.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 ```java
 package dev.busato.FinanceWebApp.backend.service;
@@ -562,9 +588,9 @@ public final class BudgetPeriods {
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetPeriodsTest"` → PASS (8 tests).
+- [x] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetPeriodsTest"` → PASS (8 tests).
 
-- [ ] **Step 5: Format + commit**
+- [x] **Step 5: Format + commit**
 
 ```bash
 ./gradlew spotlessApply
@@ -597,7 +623,7 @@ git commit -m "feat(budget): period math (ISO week/month/year/custom, rollover-e
   half-filled `BudgetStatusResponse.BudgetStatusResponseBuilder`.
 - `BudgetNotFoundException(UUID id)` → 404; `BudgetConflictException(String message)` → 409.
 
-- [ ] **Step 1: Write the failing mapper test**
+- [x] **Step 1: Write the failing mapper test**
 
 ```java
 package dev.busato.FinanceWebApp.backend.mappers;
@@ -674,9 +700,9 @@ class BudgetMapperTest {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetMapperTest"` → compilation failure.
+- [x] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetMapperTest"` → compilation failure.
 
-- [ ] **Step 3: Implement DTOs, exceptions, mapper, handler entries**
+- [x] **Step 3: Implement DTOs, exceptions, mapper, handler entries**
 
 `dto/BudgetRequest.java`:
 
@@ -868,9 +894,9 @@ Add to `controller/GlobalExceptionHandler.java`, following the existing
 handlers receive the request parameter and copy that exact shape, and add the imports
 the file already uses for the other exceptions.)
 
-- [ ] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetMapperTest"` → PASS (5 tests).
+- [x] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetMapperTest"` → PASS (5 tests).
 
-- [ ] **Step 5: Format + commit**
+- [x] **Step 5: Format + commit**
 
 ```bash
 ./gradlew spotlessApply
@@ -914,7 +940,7 @@ pinned to 100 with status EXCEEDED when `effectiveLimit <= 0`; status WARNING wh
 threshold `< 100` is crossed; `spent` is always computed over the period bounds, and
 `active` only gates alerts/UI).
 
-- [ ] **Step 1: Write the failing service test** (Mockito style, like `WalletServiceTest`;
+- [x] **Step 1: Write the failing service test** (Mockito style, like `WalletServiceTest`;
   real `BudgetMapper(new ObjectMapper())`, mocked repositories)
 
 ```java
@@ -1228,9 +1254,9 @@ class BudgetServiceTest {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetServiceTest"` → compilation failure.
+- [x] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetServiceTest"` → compilation failure.
 
-- [ ] **Step 3: Implement the service** (and fix the `TagRepository` generic)
+- [x] **Step 3: Implement the service** (and fix the `TagRepository` generic)
 
 ```java
 package dev.busato.FinanceWebApp.backend.service;
@@ -1460,9 +1486,9 @@ Also change in `TagRepository.java`: `extends JpaRepository<Tag, Long>` →
 `extends JpaRepository<Tag, UUID>` (the entity id is `UUID`; run the grep from the
 Files list first to confirm no `Long`-keyed usage exists).
 
-- [ ] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetServiceTest"` → PASS (11 tests). Then run the **full** suite: `./gradlew test` (the TagRepository generic fix must not break anything).
+- [x] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetServiceTest"` → PASS (11 tests). Then run the **full** suite: `./gradlew test` (the TagRepository generic fix must not break anything).
 
-- [ ] **Step 5: Format + commit**
+- [x] **Step 5: Format + commit**
 
 ```bash
 ./gradlew spotlessApply
@@ -1486,7 +1512,7 @@ git commit -m "feat(budget): BudgetService — CRUD, validation, on-read status 
 - `PUT /api/budgets/{walletId}/{budgetId}` + `BudgetRequest` → 200 (write access)
 - `DELETE /api/budgets/{walletId}/{budgetId}` → 204 (write access)
 
-- [ ] **Step 1: Write the failing integration test** (mirror `BulkImportIntegrationTest`
+- [x] **Step 1: Write the failing integration test** (mirror `BulkImportIntegrationTest`
   setup: entities via repositories, JWT via `JwtService`, requests via `MockMvc`;
   **all dates relative to `LocalDate.now()`** so the month-based asserts never go stale)
 
@@ -1719,9 +1745,9 @@ public class BudgetIntegrationTest extends BaseIntegrationTest {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetIntegrationTest"` → 404s (no controller).
+- [x] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetIntegrationTest"` → 404s (no controller).
 
-- [ ] **Step 3: Implement the controller** (mirror `TagController`)
+- [x] **Step 3: Implement the controller** (mirror `TagController`)
 
 ```java
 package dev.busato.FinanceWebApp.backend.controller;
@@ -1784,9 +1810,9 @@ If `SecurityConfig` whitelists paths explicitly, confirm `/api/budgets/**` falls
 the authenticated group like `/api/tags/**` (it should by default — only adjust if the
 integration test comes back 401 for valid JWTs).
 
-- [ ] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetIntegrationTest"` → PASS (5 tests).
+- [x] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetIntegrationTest"` → PASS (5 tests).
 
-- [ ] **Step 5: Format + full suite + commit**
+- [x] **Step 5: Format + full suite + commit**
 
 ```bash
 ./gradlew spotlessApply test
@@ -1821,7 +1847,7 @@ git commit -m "feat(budget): REST endpoints under /api/budgets with per-wallet R
   `deleteAllByBudgetId(UUID)`.
   `SendEmailService.sendBudgetAlert(Wallet wallet, BudgetStatusResponse status, int threshold, List<String> recipients)`.
 
-- [ ] **Step 1: Write the failing cron-job test** (Mockito; `BudgetService` mocked so the
+- [x] **Step 1: Write the failing cron-job test** (Mockito; `BudgetService` mocked so the
   test crafts statuses directly)
 
 ```java
@@ -2002,9 +2028,9 @@ class BudgetAlertCronJobTest {
 }
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetAlertCronJobTest"` → compilation failure.
+- [x] **Step 2: Run to verify it fails** — `./gradlew test --tests "*.BudgetAlertCronJobTest"` → compilation failure.
 
-- [ ] **Step 3: Implement entity, repository, email, job**
+- [x] **Step 3: Implement entity, repository, email, job**
 
 `model/BudgetAlertLog.java`:
 
@@ -2266,9 +2292,9 @@ call with the extra mock and add one assertion to the delete path:
   }
 ```
 
-- [ ] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetAlertCronJobTest" --tests "*.BudgetServiceTest"` → PASS.
+- [x] **Step 4: Run to verify it passes** — `./gradlew test --tests "*.BudgetAlertCronJobTest" --tests "*.BudgetServiceTest"` → PASS.
 
-- [ ] **Step 5: Backend wrap-up — full gate + commit**
+- [x] **Step 5: Backend wrap-up — full gate + commit**
 
 ```bash
 ./gradlew spotlessApply check   # Spotless + tests + 90% coverage gate
@@ -2294,7 +2320,7 @@ branches in `applyRequest` are the usual culprits) before committing.
 - `Budget` type = `BudgetStatusResponse` shape (see Task 5); `BudgetPayload` = request body.
 - `STATUS_META`, `periodLabel(budget)`, `barPercent(budget)`, `validateThresholds(numbers)`.
 
-- [ ] **Step 1: Add the types** to `frontend/src/utils/types.ts`:
+- [x] **Step 1: Add the types** to `frontend/src/utils/types.ts`:
 
 ```ts
 export interface Budget {
@@ -2331,7 +2357,7 @@ export interface BudgetPayload {
 }
 ```
 
-- [ ] **Step 2: Write the failing Vitest test**
+- [x] **Step 2: Write the failing Vitest test**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -2413,9 +2439,9 @@ describe("STATUS_META", () => {
 });
 ```
 
-- [ ] **Step 3: Run to verify it fails** — from `frontend/`: `npm test` → fails (module not found).
+- [x] **Step 3: Run to verify it fails** — from `frontend/`: `npm test` → fails (module not found).
 
-- [ ] **Step 4: Implement `budgetLogic.ts`**
+- [x] **Step 4: Implement `budgetLogic.ts`**
 
 ```ts
 import type { Budget } from "../../utils/types";
@@ -2466,7 +2492,7 @@ export function validateThresholds(thresholds: number[]): string | null {
 }
 ```
 
-- [ ] **Step 5: Verify + commit**
+- [x] **Step 5: Verify + commit**
 
 ```bash
 npm run lint && npm test && npm run build
@@ -2487,7 +2513,7 @@ git commit -m "feat(budget): Budget types and pure budget logic module"
 - `useBudgets(walletId: string)` → `{ budgets: Budget[]; isLoading: boolean; refresh(): Promise<void>; createBudget(p: BudgetPayload): Promise<boolean>; updateBudget(id: string, p: BudgetPayload): Promise<boolean>; deleteBudget(id: string): Promise<boolean>; }`
 - Mutations toast success/failure (`triggerToast` + `getApiErrorTitle`) and `refresh()` on success — same UX contract as the tag handlers in `WalletProvider`.
 
-- [ ] **Step 1: Write the failing hook test** (mock the axios module; `renderHook` +
+- [x] **Step 1: Write the failing hook test** (mock the axios module; `renderHook` +
   `waitFor` from `@testing-library/react`)
 
 ```ts
@@ -2552,9 +2578,9 @@ describe("useBudgets", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npm test` → module not found.
+- [x] **Step 2: Run to verify it fails** — `npm test` → module not found.
 
-- [ ] **Step 3: Implement the hook**
+- [x] **Step 3: Implement the hook**
 
 ```ts
 import { useCallback, useEffect, useState } from "react";
@@ -2631,9 +2657,9 @@ export function useBudgets(walletId: string) {
 }
 ```
 
-- [ ] **Step 4: Run to verify it passes** — `npm test` → PASS.
+- [x] **Step 4: Run to verify it passes** — `npm test` → PASS.
 
-- [ ] **Step 5: Verify + commit**
+- [x] **Step 5: Verify + commit**
 
 ```bash
 npm run lint && npm test && npm run build
@@ -2667,7 +2693,7 @@ git commit -m "feat(budget): useBudgets hook (fetch + CRUD with toasts)"
 (`grep -rn "Intl.NumberFormat" frontend/src/utils frontend/src/dashboard/transaction | head`)
 and reuse it — do not add a new one.
 
-- [ ] **Step 1: Write the failing tab test**
+- [x] **Step 1: Write the failing tab test**
 
 ```tsx
 import { render, screen } from "@testing-library/react";
@@ -2766,9 +2792,9 @@ describe("BudgetTab", () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it fails** — `npm test` → module not found.
+- [x] **Step 2: Run to verify it fails** — `npm test` → module not found.
 
-- [ ] **Step 3: Implement `BudgetCard.tsx`** (structure below is binding for behavior —
+- [x] **Step 3: Implement `BudgetCard.tsx`** (structure below is binding for behavior —
   name/status/label/bar; fine-tune classes against `style.md`, not against new design
   ideas: **no sweeping visual inventions, reuse the app's card look** — check how
   `SubscriptionTab`'s cards are styled and stay consistent)
@@ -2866,7 +2892,7 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
 (The `walletColor` prop is used for the header CTA and any accent ring; if unused in
 the final card markup after style.md alignment, drop the prop — keep the tests green.)
 
-- [ ] **Step 4: Implement `BudgetTab.tsx`**
+- [x] **Step 4: Implement `BudgetTab.tsx`**
 
 ```tsx
 import React, { useState } from "react";
@@ -2933,17 +2959,17 @@ Check `components/ui/Button`'s actual props (`grep -n "interface ButtonProps" -A
 frontend/src/components/ui/Button.tsx`) and pass the wallet accent the way the other
 tabs' primary CTAs do.
 
-- [ ] **Step 5: Wire the tab.** In `WalletTabs.tsx` add
+- [x] **Step 5: Wire the tab.** In `WalletTabs.tsx` add
   `{ id: "budget", label: "Budget", icon: faBullseye }` between Statistics and Settings
   (import `faBullseye` from `@fortawesome/free-solid-svg-icons`). In
   `WalletDashboard.tsx` add `{activeTab === "budget" && <BudgetTab />}` alongside the
   other tab conditionals (import from `../budget/BudgetTab`). `"budget"` is already in
   `VALID_TABS` — no routing change needed.
 
-- [ ] **Step 6: Run to verify it passes** — `npm test` → PASS. Also eyeball it in the
+- [x] **Step 6: Run to verify it passes** — `npm test` → PASS. Also eyeball it in the
   running dev server (do **not** restart it): open a wallet → Budget tab.
 
-- [ ] **Step 7: Verify + commit**
+- [x] **Step 7: Verify + commit**
 
 ```bash
 npm run lint && npm test && npm run build
@@ -2990,7 +3016,7 @@ git commit -m "feat(budget): Budget tab with status cards"
   calling `deleteBudget(budget.id)` on confirm. Find the reference usage with
   `grep -rn "DeleteModal" frontend/src/dashboard/tag/`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```tsx
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
@@ -3075,9 +3101,9 @@ current value as clickable text and its options as text — adjust the queries t
 `CustomSelect`'s real markup (see its own tests under
 `src/__tests__/components/ui/` if present) **without changing what is asserted**.
 
-- [ ] **Step 2: Run to verify it fails** — `npm test` → module not found.
+- [x] **Step 2: Run to verify it fails** — `npm test` → module not found.
 
-- [ ] **Step 3: Implement `BudgetFormOverlay.tsx`.** Structure: local `useState` per
+- [x] **Step 3: Implement `BudgetFormOverlay.tsx`.** Structure: local `useState` per
   field, initialised from `initial` (or defaults: period MONTHLY, thresholds
   `[80, 100]`, scope whole-wallet); a `payload()` builder; `canSubmit` =
   name 3–25 && amount > 0 && (`periodType !== "CUSTOM"` || (start && end && end >= start))
@@ -3087,16 +3113,16 @@ current value as clickable text and its options as text — adjust the queries t
   rounded `bg-app-input` pill `"{t}%"` with an in-chip remove button
   (`aria-label={\`Remove ${t}%\`}`).
 
-- [ ] **Step 4: Wire into `BudgetTab.tsx`:** render
+- [x] **Step 4: Wire into `BudgetTab.tsx`:** render
   `<BudgetFormOverlay open={creating || editing !== null} initial={editing} tags={tags} accentColor={wallet.color} onClose={...reset state...} onSubmit={editing ? (p) => updateBudget(editing.id, p) : createBudget} />`
   (take `tags` from `useWalletContext()`), plus the `DeleteModal` for `deleting`
   (friction level 1, confirm → `deleteBudget(deleting.id)`). Remove the placeholder
   `void` statements from Task 9.
 
-- [ ] **Step 5: Run to verify it passes** — `npm test` → PASS. Manually exercise
+- [x] **Step 5: Run to verify it passes** — `npm test` → PASS. Manually exercise
   create/edit/delete against the dev servers (backend on :8080 must be running).
 
-- [ ] **Step 6: Verify + commit**
+- [x] **Step 6: Verify + commit**
 
 ```bash
 npm run lint && npm test && npm run build
@@ -3127,13 +3153,13 @@ Commit: `git commit -m "feat(mcp): budget tools (list/create/delete)"`.
 
 ### Task 12: Final gates + roadmap tick
 
-- [ ] Backend: `./gradlew spotlessApply check` — green (Spotless + tests + ≥90% coverage).
-- [ ] Frontend: `npm run lint && npm test && npm run build` — green.
-- [ ] Update the public roadmap: in `frontend/src/components/ToDoPage/todoData.ts` set
+- [x] Backend: `./gradlew spotlessApply check` — green (Spotless + tests + ≥90% coverage).
+- [x] Frontend: `npm run lint && npm test && npm run build` — green.
+- [x] Update the public roadmap: in `frontend/src/components/ToDoPage/todoData.ts` set
   the "Budgeting" item `status` to `"FINISHED"` (or `"STARTED"` if Task 11 was skipped
   and the user considers MCP part of the feature — ask).
-- [ ] `graphify update .` (house rule after code changes).
-- [ ] Commit: `git commit -am "chore(budget): roadmap status + graph refresh"`.
+- [ ] `graphify update .` (house rule after code changes). — **SKIPPED** (heavy graph regeneration deferred; run separately)
+- [x] Commit: `git commit -am "chore(budget): roadmap status + graph refresh"`.
 - [ ] Use superpowers:finishing-a-development-branch to close out (the user merges
   manually — do not merge or push without being asked).
 
