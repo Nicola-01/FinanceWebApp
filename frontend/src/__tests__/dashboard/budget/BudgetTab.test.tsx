@@ -45,12 +45,20 @@ vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
   useWalletContext: () => mockContext(),
 }));
 
+vi.mock("../../../modals/common/DeleteModalContext.tsx", () => ({
+  useDeleteModal: vi.fn(),
+}));
+
 import { BudgetTab } from "../../../dashboard/budget/BudgetTab";
+import { useDeleteModal } from "../../../modals/common/DeleteModalContext.tsx";
+
+const mockedDelete = useDeleteModal as unknown as ReturnType<typeof vi.fn>;
 
 describe("BudgetTab", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockContext.mockReturnValue({ wallet, tags: [] });
+    mockedDelete.mockReturnValue({ current: { deleteObject: vi.fn() } });
     mockUseBudgets.mockReturnValue({
       budgets: budgetsFixture,
       isLoading: false,

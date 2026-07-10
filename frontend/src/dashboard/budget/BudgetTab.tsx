@@ -5,24 +5,35 @@ import type { Budget } from "../../utils/types";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { useBudgets } from "./useBudgets";
 import { BudgetCard } from "./BudgetCard";
+import { BudgetFormOverlay } from "./BudgetFormOverlay";
 import Button from "../../components/ui/Button";
+import { useDeleteModal } from "../../modals/common/DeleteModalContext.tsx";
 
 export const BudgetTab: React.FC = () => {
-  const { wallet } = useWalletContext();
+  const { wallet, tags } = useWalletContext();
   const { budgets, isLoading, createBudget, updateBudget, deleteBudget } =
     useBudgets(wallet.id);
   const canEdit = wallet.userRole !== "VIEWER";
+  const deleteModalRef = useDeleteModal();
 
-  // Wired to BudgetFormOverlay + DeleteModal in the next task.
   const [editing, setEditing] = useState<Budget | null>(null);
   const [creating, setCreating] = useState(false);
-  const [deleting, setDeleting] = useState<Budget | null>(null);
-  void editing;
-  void creating;
-  void deleting;
-  void createBudget;
-  void updateBudget;
-  void deleteBudget;
+
+  const closeForm = () => {
+    setCreating(false);
+    setEditing(null);
+  };
+
+  const requestDelete = (budget: Budget) => {
+    deleteModalRef.current?.deleteObject(
+      budget,
+      "budget",
+      async () => {
+        await deleteBudget(budget.id);
+      },
+      1,
+    );
+  };
 
   return (
     <div className="flex flex-col gap-4 animate-[fadeIn_0.3s_ease-out]">
@@ -63,10 +74,19 @@ export const BudgetTab: React.FC = () => {
             currency={wallet.currency}
             canEdit={canEdit}
             onEdit={setEditing}
-            onDelete={setDeleting}
+            onDelete={requestDelete}
           />
         ))}
       </div>
+
+      <BudgetFormOverlay
+        open={creating || editing !== null}
+        initial={editing}
+        tags={tags}
+        accentColor={wallet.color}
+        onClose={closeForm}
+        onSubmit={editing ? (p) => updateBudget(editing.id, p) : createBudget}
+      />
     </div>
   );
 };
