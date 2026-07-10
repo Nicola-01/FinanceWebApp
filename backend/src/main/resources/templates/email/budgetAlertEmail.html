@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinanceWebApp - Budget Alert</title>
+    <style>
+        /* Base styles for email-client compatibility */
+        body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        a { text-decoration: none; }
+
+        /* Media query for extra dark-mode support in modern clients */
+        @media (prefers-color-scheme: dark) {
+            .card { border-color: #2a2a35 !important; }
+            .text-muted { color: #a0aec0 !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; width: 100%; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="padding: 40px 20px;">
+    <tr>
+        <td align="center">
+
+            <table class="card" width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; border: 1px solid #e2e8f0; border-top: 4px solid #f59e0b; border-radius: 16px; overflow: hidden; margin: 0 auto;">
+
+                <tr>
+                    <td align="center" style="padding: 40px 30px 20px 30px;">
+                        <div style="display: inline-block; background-color: rgba(245, 158, 11, 0.1); padding: 15px; border-radius: 50%; margin-bottom: 20px; border: 1px solid rgba(245, 158, 11, 0.3);">
+                            <span style="font-size: 24px; line-height: 1;">⚠️</span>
+                        </div>
+
+                        <h1 style="font-size: 26px; margin: 0 0 10px 0; font-weight: 700; letter-spacing: -0.5px;">
+                            Budget alert: {{budgetName}}
+                        </h1>
+                        <p class="text-muted" style="color: #4a5568; font-size: 16px; line-height: 1.6; margin: 0;">
+                            Your budget in <strong>{{walletName}}</strong> has reached
+                            <strong style="color: #f59e0b;">{{threshold}}%</strong> of its limit.
+                        </p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center" style="padding: 0 30px 30px 30px;">
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f7fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                            <tr>
+                                <td style="padding: 14px 20px; color: #4a5568; font-size: 14px;">Spent</td>
+                                <td align="right" style="padding: 14px 20px; color: #1a202c; font-size: 14px; font-weight: bold;">{{spent}} {{currency}}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 14px 20px; color: #4a5568; font-size: 14px; border-top: 1px solid #e2e8f0;">Limit</td>
+                                <td align="right" style="padding: 14px 20px; color: #1a202c; font-size: 14px; font-weight: bold; border-top: 1px solid #e2e8f0;">{{limit}} {{currency}}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 14px 20px; color: #4a5568; font-size: 14px; border-top: 1px solid #e2e8f0;">Period</td>
+                                <td align="right" style="padding: 14px 20px; color: #1a202c; font-size: 14px; border-top: 1px solid #e2e8f0;">{{periodStart}} &rarr; {{periodEnd}}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center" style="padding: 0 30px 40px 30px;">
+                        <p class="text-muted" style="color: #718096; font-size: 13px; margin: 0; line-height: 1.5;">
+                            You receive this because you are a member of this wallet. Alert thresholds can be
+                            changed on the wallet's Budget tab.
+                        </p>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center" style="background-color: rgba(0, 0, 0, 0.03); padding: 24px;">
+                        <p class="text-muted" style="color: #718096; font-size: 12px; margin: 0; font-weight: 500;">
+                            This is an open-source project on
+                            <a href="https://github.com/Nicola-01/FinanceWebApp" target="_blank" style="color: inherit; text-decoration: underline;">GitHub</a>.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

@@ -5,9 +5,14 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
 import dev.busato.FinanceWebApp.backend.dto.AdminInviteResponse;
+import dev.busato.FinanceWebApp.backend.dto.BudgetStatusResponse;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import jakarta.mail.internet.MimeMessage;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -163,5 +168,45 @@ class SendEmailServiceTest {
 
     assertTrue(html.contains("color:#1A2B3C"), "a valid hex colour should be preserved");
     assertTrue(html.contains("My Wallet"));
+  }
+
+  @Test
+  void renderBudgetAlertHtml_escapesUserControlledFields() {
+    // Security regression: walletName / budgetName / currency are user-controlled free text and
+    // land in an HTML email. They must be escaped so they cannot inject markup.
+    Wallet wallet = new Wallet();
+    wallet.setName("<script>alert(1)</script>");
+    wallet.setCurrency("<img src=x>");
+
+    BudgetStatusResponse status =
+        BudgetStatusResponse.builder()
+            .id(UUID.randomUUID())
+            .name("<script>alert(2)</script>")
+            .spent(new BigDecimal("85.00"))
+            .effectiveLimit(new BigDecimal("100.00"))
+            .percentUsed(85)
+            .status("WARNING")
+            .crossedThresholds(List.of(80))
+            .active(true)
+            .periodStart(LocalDate.of(2026, 7, 1))
+            .periodEnd(LocalDate.of(2026, 7, 31))
+            .alertThresholds(List.of(80, 100))
+            .build();
+
+    String html = sendEmailService.renderBudgetAlertHtml(wallet, status, 80);
+
+    // Raw attacker markup must not survive into the email body.
+    assertFalse(html.contains("<script>alert(1)</script>"), "wallet name markup must be escaped");
+    assertFalse(html.contains("<script>alert(2)</script>"), "budget name markup must be escaped");
+    assertFalse(html.contains("<img src=x>"), "currency markup must be escaped");
+
+    // Escaped forms are present instead.
+    assertTrue(
+        html.contains("&lt;script&gt;alert(1)&lt;/script&gt;"),
+        "wallet name should be HTML-escaped");
+    assertTrue(
+        html.contains("&lt;script&gt;alert(2)&lt;/script&gt;"),
+        "budget name should be HTML-escaped");
+    assertTrue(html.contains("&lt;img src=x&gt;"), "currency should be HTML-escaped");
   }
 }

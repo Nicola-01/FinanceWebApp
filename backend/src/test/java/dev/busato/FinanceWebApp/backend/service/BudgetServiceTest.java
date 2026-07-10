@@ -15,6 +15,7 @@ import dev.busato.FinanceWebApp.backend.model.Budget;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.repository.BudgetAlertLogRepository;
 import dev.busato.FinanceWebApp.backend.repository.BudgetRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
@@ -41,6 +42,7 @@ class BudgetServiceTest {
   @Mock private TransactionRepository transactionRepository;
   @Mock private TagRepository tagRepository;
   @Mock private WalletRepository walletRepository;
+  @Mock private BudgetAlertLogRepository budgetAlertLogRepository;
 
   private BudgetService budgetService;
 
@@ -58,7 +60,8 @@ class BudgetServiceTest {
             transactionRepository,
             tagRepository,
             walletRepository,
-            new BudgetMapper(new ObjectMapper()));
+            new BudgetMapper(new ObjectMapper()),
+            budgetAlertLogRepository);
     wallet = new Wallet();
     wallet.setId(walletId);
     wallet.setName("W");
@@ -206,6 +209,19 @@ class BudgetServiceTest {
                     .build(),
                 walletId,
                 userId));
+  }
+
+  @Test
+  void deleteBudget_purgesAlertLogsFirst() {
+    Budget budget = monthlyBudget(null, "100.00", false);
+    when(budgetRepository.findByIdAndWalletId(budget.getId(), walletId))
+        .thenReturn(Optional.of(budget));
+
+    budgetService.deleteBudget(budget.getId(), walletId, userId);
+
+    var order = inOrder(budgetAlertLogRepository, budgetRepository);
+    order.verify(budgetAlertLogRepository).deleteAllByBudgetId(budget.getId());
+    order.verify(budgetRepository).delete(budget);
   }
 
   @Test

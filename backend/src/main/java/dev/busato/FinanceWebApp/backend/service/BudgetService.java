@@ -9,6 +9,7 @@ import dev.busato.FinanceWebApp.backend.mappers.BudgetMapper;
 import dev.busato.FinanceWebApp.backend.model.Budget;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
+import dev.busato.FinanceWebApp.backend.repository.BudgetAlertLogRepository;
 import dev.busato.FinanceWebApp.backend.repository.BudgetRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
@@ -41,6 +42,7 @@ public class BudgetService {
   private final TagRepository tagRepository;
   private final WalletRepository walletRepository;
   private final BudgetMapper budgetMapper;
+  private final BudgetAlertLogRepository budgetAlertLogRepository;
 
   @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
   public List<BudgetStatusResponse> getBudgets(UUID walletId, UUID userId) {
@@ -81,6 +83,8 @@ public class BudgetService {
         budgetRepository
             .findByIdAndWalletId(budgetId, walletId)
             .orElseThrow(() -> new BudgetNotFoundException(budgetId));
+    // Alert logs FK-reference the budget; purge them first or the delete would be blocked.
+    budgetAlertLogRepository.deleteAllByBudgetId(budgetId);
     budgetRepository.delete(budget);
   }
 
