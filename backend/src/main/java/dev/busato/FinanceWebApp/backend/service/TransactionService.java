@@ -10,6 +10,7 @@ import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.mappers.TransactionMapper;
 import dev.busato.FinanceWebApp.backend.model.*;
+import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.*;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
@@ -26,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -42,12 +44,13 @@ public class TransactionService {
   private final TransactionMapper transactionMapper;
   private final TagMapper tagMapper;
   private final TagService tagService;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
   public TransactionResponse createTransaction(
       TransactionRequest request, UUID walletId, UUID userId) {
-    return createTransactionInternal(request, walletId);
+    return createTransactionInternal(request, walletId, userId);
   }
 
   /**
@@ -167,10 +170,11 @@ public class TransactionService {
    * Per-row create logic for the single-create path. Assumes write access to the wallet has already
    * been verified by the caller.
    */
-  private TransactionResponse createTransactionInternal(TransactionRequest request, UUID walletId) {
+  private TransactionResponse createTransactionInternal(
+      TransactionRequest request, UUID walletId, UUID actorUserId) {
     if (request.getId() != null
         && transactionRepository.existsByIdAndWalletId(request.getId(), walletId)) {
-      // Idempotent offline replay: the row already landed in a previous attempt.
+      // Idempotent offline replay: the row already landed in a previous attempt — no re-notify.
       return transactionMapper.mapToResponse(
           transactionRepository.findById(request.getId()).orElseThrow());
     }
@@ -213,7 +217,31 @@ public class TransactionService {
             .build();
 
     transaction = transactionRepository.save(transaction);
+    publishTransactionActivity(
+        Notification.NotificationType.TRANSACTION_CREATED, transaction, actorUserId);
     return transactionMapper.mapToResponse(transaction);
+  }
+
+  /**
+   * Publishes a wallet-activity event for a single transaction mutation. Bulk paths intentionally
+   * do not call this (one import would flood every member).
+   */
+  private void publishTransactionActivity(
+      Notification.NotificationType type, Transaction transaction, UUID actorUserId) {
+    Wallet wallet = transaction.getWallet();
+    if (wallet == null) return; // a wallet is always present in production; guard defensively
+    String actorUsername = userRepository.findById(actorUserId).map(User::getUsername).orElse(null);
+    eventPublisher.publishEvent(
+        new WalletActivityEvent(
+            type,
+            wallet.getId(),
+            wallet.getName(),
+            wallet.getCurrency(),
+            actorUserId,
+            actorUsername,
+            transaction.getTag() != null ? transaction.getTag().getName() : null,
+            transaction.getAmount(),
+            transaction.getName()));
   }
 
   /** Builds (without persisting) a new transaction entity for the bulk-create path. */
@@ -367,6 +395,8 @@ public class TransactionService {
     if (request.getTransactionDate() != null)
       transaction.setTransactionDate(request.getTransactionDate());
 
+    publishTransactionActivity(
+        Notification.NotificationType.TRANSACTION_UPDATED, transaction, userId);
     return transactionMapper.mapToResponse(transaction);
   }
 
@@ -388,6 +418,9 @@ public class TransactionService {
       throw new StaleWriteException("transaction");
     }
 
+    // Read the fields for the notification before the row is gone.
+    publishTransactionActivity(
+        Notification.NotificationType.TRANSACTION_DELETED, transaction, userId);
     transactionRepository.delete(transaction);
   }
 }

@@ -16,10 +16,13 @@ import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.mappers.TransactionMapper;
+import dev.busato.FinanceWebApp.backend.model.Notification;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
+import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.*;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -47,6 +50,7 @@ class TransactionServiceTest {
   @Mock private TransactionMapper transactionMapper;
   @Mock private TagMapper tagMapper;
   @Mock private TagService tagService;
+  @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private TransactionService transactionService;
 
@@ -84,6 +88,97 @@ class TransactionServiceTest {
     transactionService.createTransaction(request, walletId, userId);
 
     verify(transactionRepository).save(any(Transaction.class));
+  }
+
+  @Test
+  void createTransaction_PublishesCreatedEventWithActorAndWalletFields() {
+    wallet.setName("Casa");
+    wallet.setCurrency("EUR");
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setName("Groceries");
+    request.setAmount(new BigDecimal("50.00"));
+    request.setType("EXPENSE");
+    request.setTag("Food");
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+    Tag tag = new Tag();
+    tag.setName("Food");
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
+        .thenReturn(Optional.of(tag));
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+    User actor = new User();
+    actor.setId(userId);
+    actor.setUsername("nicola");
+    when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+
+    transactionService.createTransaction(request, walletId, userId);
+
+    ArgumentCaptor<WalletActivityEvent> captor = ArgumentCaptor.forClass(WalletActivityEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    WalletActivityEvent e = captor.getValue();
+    assertEquals(Notification.NotificationType.TRANSACTION_CREATED, e.type());
+    assertEquals(walletId, e.walletId());
+    assertEquals("Casa", e.walletName());
+    assertEquals("EUR", e.currency());
+    assertEquals(userId, e.actorId());
+    assertEquals("nicola", e.actorUsername());
+    assertEquals("Food", e.tagName());
+    assertEquals(new BigDecimal("50.00"), e.amount());
+  }
+
+  @Test
+  void updateTransaction_PublishesUpdatedEvent() {
+    Transaction tx =
+        Transaction.builder().wallet(wallet).name("Old").amount(new BigDecimal("10")).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(tx));
+    User actor = new User();
+    actor.setId(userId);
+    actor.setUsername("nicola");
+    when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setAmount(new BigDecimal("20.00"));
+    request.setName("New name");
+
+    transactionService.updateTransaction(transactionId, request, walletId, userId);
+
+    ArgumentCaptor<WalletActivityEvent> captor = ArgumentCaptor.forClass(WalletActivityEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    assertEquals(Notification.NotificationType.TRANSACTION_UPDATED, captor.getValue().type());
+  }
+
+  @Test
+  void deleteTransaction_PublishesDeletedEventBeforeDeleting() {
+    Transaction tx =
+        Transaction.builder().wallet(wallet).name("X").amount(new BigDecimal("10")).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(tx));
+    User actor = new User();
+    actor.setId(userId);
+    actor.setUsername("nicola");
+    when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+
+    transactionService.deleteTransaction(transactionId, walletId, userId, null);
+
+    ArgumentCaptor<WalletActivityEvent> captor = ArgumentCaptor.forClass(WalletActivityEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    assertEquals(Notification.NotificationType.TRANSACTION_DELETED, captor.getValue().type());
+    verify(transactionRepository).delete(tx);
+  }
+
+  @Test
+  void bulkCreate_PublishesNothing() {
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+    when(transactionRepository.getAllByWalletId(walletId)).thenReturn(List.of());
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+    TransactionRequest r = TransactionRequest.builder().build();
+    r.setName("Groceries");
+    r.setAmount(new BigDecimal("5.00"));
+    r.setType("EXPENSE");
+
+    transactionService.createTransactionsBulk(List.of(r), walletId, userId);
+
+    verify(eventPublisher, never()).publishEvent(any());
   }
 
   @Test

@@ -8,6 +8,7 @@ import dev.busato.FinanceWebApp.backend.mappers.MemberMapper;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
+import dev.busato.FinanceWebApp.backend.push.WalletInviteEvent;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +35,7 @@ public class MemberService {
 
   private final WalletService walletService;
   private final MemberMapper memberMapper;
+  private final ApplicationEventPublisher eventPublisher;
 
   @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
   public List<MemberResponse> getMembers(UUID walletId, UUID userId) {
@@ -108,6 +111,15 @@ public class MemberService {
     }
 
     walletAccessRepository.save(access);
+
+    // A real invite row was persisted — notify the invitee (synthetic no-account path returns
+    // earlier and publishes nothing).
+    eventPublisher.publishEvent(
+        new WalletInviteEvent(
+            targetUser.getId(),
+            userRepository.findById(userId).map(User::getUsername).orElse(null),
+            wallet.getId(),
+            wallet.getName()));
 
     return memberMapper.mapToResponse(access);
   }

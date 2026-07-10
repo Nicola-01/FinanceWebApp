@@ -13,6 +13,7 @@ import dev.busato.FinanceWebApp.backend.mappers.MemberMapper;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
+import dev.busato.FinanceWebApp.backend.push.WalletInviteEvent;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
@@ -22,6 +23,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -35,6 +37,7 @@ class MemberServiceTest {
   @Mock private SendEmailService sendEmailService;
   @Mock private WalletService walletService;
   @Mock private MemberMapper memberMapper;
+  @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private MemberService memberService;
 
@@ -100,6 +103,56 @@ class MemberServiceTest {
     verify(walletAccessRepository).save(any(WalletAccess.class));
     verify(sendEmailService)
         .sendWalletInvitation(eq("owner"), eq(wallet), eq("target@example.com"), eq(false));
+  }
+
+  @Test
+  void inviteMember_RealInvite_PublishesInviteEvent() throws Exception {
+    wallet.setName("Casa");
+    MemberRequest request = new MemberRequest();
+    request.setUser("targetUser");
+    request.setRole("VIEWER");
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+    when(userRepository.findByUsernameIgnoreCaseOrEmailIgnoreCase("targetUser", "targetUser"))
+        .thenReturn(Optional.of(targetUser));
+    targetUser.setRole(User.Role.USER);
+    when(walletAccessRepository.existsByWalletIdAndUserIdAndStatusIn(
+            eq(walletId), eq(targetUserId), any()))
+        .thenReturn(false);
+    when(walletAccessRepository.existsByWalletIdAndUserIdAndStatusInAndUpdatedAtAfter(
+            eq(walletId), eq(targetUserId), any(), any()))
+        .thenReturn(false);
+    User owner = new User();
+    owner.setUsername("owner");
+    when(userRepository.findById(userId)).thenReturn(Optional.of(owner));
+    when(memberMapper.mapToResponse(any())).thenReturn(MemberResponse.builder().build());
+
+    memberService.inviteMember(walletId, request, userId);
+
+    ArgumentCaptor<WalletInviteEvent> captor = ArgumentCaptor.forClass(WalletInviteEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    WalletInviteEvent e = captor.getValue();
+    assertEquals(targetUserId, e.invitedUserId());
+    assertEquals("owner", e.inviterUsername());
+    assertEquals(walletId, e.walletId());
+    assertEquals("Casa", e.walletName());
+  }
+
+  @Test
+  void inviteMember_SyntheticNoAccount_PublishesNothing() {
+    MemberRequest request = new MemberRequest();
+    request.setUser("ghost@example.com");
+    request.setRole("VIEWER");
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+    when(userRepository.findByUsernameIgnoreCaseOrEmailIgnoreCase(
+            "ghost@example.com", "ghost@example.com"))
+        .thenReturn(Optional.empty());
+
+    memberService.inviteMember(walletId, request, userId);
+
+    verify(eventPublisher, never()).publishEvent(any());
+    verify(walletAccessRepository, never()).save(any());
   }
 
   @Test

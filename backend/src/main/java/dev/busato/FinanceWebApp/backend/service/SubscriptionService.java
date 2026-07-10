@@ -9,13 +9,17 @@ import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
+import dev.busato.FinanceWebApp.backend.model.Notification;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
+import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
+import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
@@ -35,6 +39,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +61,8 @@ public class SubscriptionService {
   private final TagService tagService;
   private final java.time.Clock clock;
   private final ExchangeRateService exchangeRateService;
+  private final UserRepository userRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * Retrieves all subscriptions associated with a specific wallet.
@@ -83,7 +90,7 @@ public class SubscriptionService {
   @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
   public SubscriptionResponse createSubscription(
       SubscriptionRequest request, UUID walletId, UUID userId) {
-    return createSubscriptionInternal(request, walletId);
+    return createSubscriptionInternal(request, walletId, userId);
   }
 
   /**
@@ -205,10 +212,10 @@ public class SubscriptionService {
    * been verified by the caller.
    */
   private SubscriptionResponse createSubscriptionInternal(
-      SubscriptionRequest request, UUID walletId) {
+      SubscriptionRequest request, UUID walletId, UUID actorUserId) {
     if (request.getId() != null
         && subscriptionRepository.existsByIdAndWalletId(request.getId(), walletId)) {
-      // Idempotent offline replay: the row already landed in a previous attempt.
+      // Idempotent offline replay: the row already landed in a previous attempt — no re-notify.
       return subscriptionMapper.mapToResponse(
           subscriptionRepository.findById(request.getId()).orElseThrow());
     }
@@ -221,7 +228,34 @@ public class SubscriptionService {
     Tag tag = resolveExistingTag(request.getTag(), walletId);
 
     Subscription sub = buildAndPersistSubscription(request, wallet, tag);
+    // Notify only for ACTIVE subscriptions; a PAUSED one makes no noise for members.
+    if (sub.getStatus() == Subscription.Status.ACTIVE) {
+      publishSubscriptionActivity(
+          Notification.NotificationType.SUBSCRIPTION_CREATED, sub, actorUserId);
+    }
     return subscriptionMapper.mapToResponse(sub);
+  }
+
+  /**
+   * Publishes a wallet-activity event for a single subscription mutation. Bulk paths do not call
+   * this (an import would flood every member).
+   */
+  private void publishSubscriptionActivity(
+      Notification.NotificationType type, Subscription sub, UUID actorUserId) {
+    Wallet wallet = sub.getWallet();
+    if (wallet == null) return; // a wallet is always present in production; guard defensively
+    String actorUsername = userRepository.findById(actorUserId).map(User::getUsername).orElse(null);
+    eventPublisher.publishEvent(
+        new WalletActivityEvent(
+            type,
+            wallet.getId(),
+            wallet.getName(),
+            wallet.getCurrency(),
+            actorUserId,
+            actorUsername,
+            sub.getTag() != null ? sub.getTag().getName() : null,
+            sub.getAmount(),
+            sub.getName()));
   }
 
   /**
@@ -273,7 +307,9 @@ public class SubscriptionService {
 
     sub.setNextExecutionDate(calculateNextExecutionDate(sub, sub.getStartDate(), false));
 
-    if (!sub.getNextExecutionDate().isAfter(LocalDate.now(clock))) executeSubscription(sub);
+    // Immediate catch-up execution on create/import must NOT emit a recurring-execution
+    // notification (that is reserved for the cron) — pass notify=false.
+    if (!sub.getNextExecutionDate().isAfter(LocalDate.now(clock))) executeSubscription(sub, false);
 
     return subscriptionRepository.save(sub);
   }
@@ -363,6 +399,9 @@ public class SubscriptionService {
     applySubscriptionUpdate(sub, request, tag);
 
     sub = subscriptionRepository.save(sub);
+    if (sub.getStatus() == Subscription.Status.ACTIVE) {
+      publishSubscriptionActivity(Notification.NotificationType.SUBSCRIPTION_UPDATED, sub, userId);
+    }
     return subscriptionMapper.mapToResponse(sub);
   }
 
@@ -458,6 +497,10 @@ public class SubscriptionService {
       throw new StaleWriteException("subscription");
     }
 
+    boolean wasActive = sub.getStatus() == Subscription.Status.ACTIVE;
+    if (wasActive) {
+      publishSubscriptionActivity(Notification.NotificationType.SUBSCRIPTION_DELETED, sub, userId);
+    }
     subscriptionRepository.delete(sub);
   }
 
@@ -482,7 +525,8 @@ public class SubscriptionService {
         subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(
             List.of(Subscription.Status.ACTIVE, Subscription.Status.PAUSED), today);
 
-    for (Subscription sub : dueSubscriptions) executeSubscription(sub);
+    // Cron path: emit a RECURRING_EXECUTED notification for each ACTIVE subscription executed.
+    for (Subscription sub : dueSubscriptions) executeSubscription(sub, true);
   }
 
   /**
@@ -490,8 +534,10 @@ public class SubscriptionService {
    * execution date, and checks for completion.
    *
    * @param sub The Subscription entity to execute
+   * @param notify When true (cron path), emit a RECURRING_EXECUTED notification for the generated
+   *     transaction; false for immediate catch-up during create/import.
    */
-  private void executeSubscription(Subscription sub) {
+  private void executeSubscription(Subscription sub, boolean notify) {
     int currentExecution = sub.getExecutedTimes() + 1;
     // The subscription's name and notes are metadata of the subscription only and must NOT be
     // transmitted onto the generated transactions. Use the tag name (with a safe fallback) instead.
@@ -551,6 +597,22 @@ public class SubscriptionService {
 
       // Increment executed times only when a transaction actually occurred
       sub.setExecutedTimes(sub.getExecutedTimes() + 1);
+
+      // Cron-only: tell the wallet members a recurring transaction just landed.
+      if (notify && sub.getWallet() != null) {
+        Wallet wallet = sub.getWallet();
+        eventPublisher.publishEvent(
+            new WalletActivityEvent(
+                Notification.NotificationType.RECURRING_EXECUTED,
+                wallet.getId(),
+                wallet.getName(),
+                wallet.getCurrency(),
+                null,
+                null,
+                null,
+                resolvedAmount,
+                generatedName));
+      }
     }
 
     // 2. Update tracking history
