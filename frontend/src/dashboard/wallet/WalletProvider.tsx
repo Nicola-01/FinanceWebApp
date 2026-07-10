@@ -12,7 +12,7 @@ import type {
   DateRangeValue,
   PresetType,
 } from "../../components/DataPicker/CustomDatePicker.tsx";
-import api from "../../api/axiosConfig";
+import * as walletOps from "../../api/walletOps";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle, isAbortError } from "../../utils/apiError";
 import {
@@ -21,6 +21,9 @@ import {
   peek,
   invalidate,
 } from "../../api/walletDataCache";
+import { applyPendingOps } from "../../sync/overlay";
+import { listOps, SYNC_QUEUE_CHANGED } from "../../sync/opsQueue";
+import type { PendingOp } from "../../utils/offlineDb";
 import { WalletContext } from "./WalletContext.tsx";
 import { VALID_TABS, type TabType } from "./walletTabs";
 
@@ -41,6 +44,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [pendingOps, setPendingOps] = useState<PendingOp[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [selectedTags, setSelectedTags] = useState<string[] | null>(null);
@@ -64,6 +68,19 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     ? urlTab
     : "transactions";
 
+  // Overlay the pending offline-ops queue onto the served data so unsynced
+  // creates/updates/deletes render immediately (flagged with syncState). With an
+  // empty queue this returns the exact same references (Task 7 identity), so the
+  // online view is unchanged.
+  const overlaid = useMemo(
+    () =>
+      applyPendingOps(
+        { wallet, transactions, subscriptions, tags },
+        pendingOps,
+      ),
+    [wallet, transactions, subscriptions, tags, pendingOps],
+  );
+
   const filteredTransactions = useMemo(() => {
     const currentActiveTags = selectedTags ?? tags.map((t) => t.name);
     // The text search only applies on the Transactions tab. Elsewhere (e.g.
@@ -72,7 +89,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     const q =
       activeTab === "transactions" ? debouncedQuery.trim().toLowerCase() : "";
 
-    return transactions.filter((tx) => {
+    return overlaid.transactions.filter((tx) => {
       if (!currentActiveTags.includes(tx.tag.name)) return false;
 
       // Free-text search over the transaction name, its tag and notes.
@@ -97,7 +114,14 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
       }
       return true;
     });
-  }, [transactions, tags, selectedTags, dateRange, debouncedQuery, activeTab]);
+  }, [
+    overlaid.transactions,
+    tags,
+    selectedTags,
+    dateRange,
+    debouncedQuery,
+    activeTab,
+  ]);
 
   useEffect(() => {
     if (!urlTab || !VALID_TABS.includes(urlTab)) {
@@ -179,12 +203,47 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   const fetchData = (signal?: AbortSignal) =>
     runLoad(() => refreshWalletData(_wallet.id, signal), signal);
 
+  // Load the pending-ops queue for the active wallet and keep it in sync: any
+  // enqueue/replay dispatches SYNC_QUEUE_CHANGED, which re-reads the queue.
+  useEffect(() => {
+    let alive = true;
+    const refresh = () =>
+      listOps(_wallet.id).then((o) => alive && setPendingOps(o));
+    refresh();
+    window.addEventListener(SYNC_QUEUE_CHANGED, refresh);
+    return () => {
+      alive = false;
+      window.removeEventListener(SYNC_QUEUE_CHANGED, refresh);
+    };
+  }, [_wallet.id]);
+
+  // When the offline queue finishes replaying, refetch the active wallet so the
+  // authoritative server state replaces the optimistic overlay.
+  useEffect(() => {
+    const onSynced = () => fetchData();
+    window.addEventListener("offline-sync-complete", onSynced);
+    return () => window.removeEventListener("offline-sync-complete", onSynced);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_wallet.id]);
+
   const handleAddTag = async (newTag: Partial<Tag>): Promise<boolean> => {
     try {
-      const response = await api.post(`/tags/${wallet.id}`, newTag);
-      setTags((prev) => [...prev, response.data]);
+      const res = await walletOps.createTag(
+        wallet.id,
+        newTag as Record<string, unknown>,
+      );
+      // Offline: the overlay renders the queued create (SYNC_QUEUE_CHANGED →
+      // pendingOps), so skip the local mutation and flag it as saved offline.
+      if (!res.queued) {
+        setTags((prev) => [...prev, res.data as Tag]);
+      }
       invalidate(wallet.id);
-      triggerToast("Tag created successfully!", true);
+      triggerToast(
+        res.queued
+          ? "Saved offline — will sync when you're back online"
+          : "Tag created successfully!",
+        true,
+      );
       return true;
     } catch (err: unknown) {
       triggerToast(getApiErrorTitle(err, "Error creating tag"), false);
@@ -197,27 +256,35 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     updatedTag: Partial<Tag>,
   ): Promise<boolean> => {
     try {
-      await api.put(
-        `/tags/${wallet.id}/${encodeURIComponent(oldName)}`,
-        updatedTag,
+      const base = tags.find((t) => t.name === oldName);
+      const res = await walletOps.updateTag(
+        wallet.id,
+        oldName,
+        updatedTag as Record<string, unknown>,
+        base?.updatedAt ?? null,
       );
 
-      setTags((prev) =>
-        prev.map((tag) => {
-          if (tag.name === oldName) {
-            return { ...tag, ...updatedTag } as Tag;
-          }
-          if (
-            tag.parentName === oldName &&
-            updatedTag.name &&
-            updatedTag.name !== oldName
-          ) {
-            return { ...tag, parentName: updatedTag.name };
-          }
-          return tag;
-        }),
-      );
+      if (!res.queued) {
+        setTags((prev) =>
+          prev.map((tag) => {
+            if (tag.name === oldName) {
+              return { ...tag, ...updatedTag } as Tag;
+            }
+            if (
+              tag.parentName === oldName &&
+              updatedTag.name &&
+              updatedTag.name !== oldName
+            ) {
+              return { ...tag, parentName: updatedTag.name };
+            }
+            return tag;
+          }),
+        );
+      }
       invalidate(wallet.id);
+      if (res.queued) {
+        triggerToast("Saved offline — will sync when you're back online", true);
+      }
 
       return true;
     } catch (err: unknown) {
@@ -228,14 +295,26 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
 
   const handleDeleteTag = async (tagName: string): Promise<boolean> => {
     try {
-      await api.delete(`/tags/${wallet.id}/${encodeURIComponent(tagName)}`);
-      setTags((prev) =>
-        prev.filter(
-          (tag) => tag.name !== tagName && tag.parentName !== tagName,
-        ),
+      const base = tags.find((t) => t.name === tagName);
+      const res = await walletOps.deleteTag(
+        wallet.id,
+        tagName,
+        base?.updatedAt ?? null,
       );
+      if (!res.queued) {
+        setTags((prev) =>
+          prev.filter(
+            (tag) => tag.name !== tagName && tag.parentName !== tagName,
+          ),
+        );
+      }
       invalidate(wallet.id);
-      triggerToast("Tag deleted!", true);
+      triggerToast(
+        res.queued
+          ? "Saved offline — will sync when you're back online"
+          : "Tag deleted!",
+        true,
+      );
       return true;
     } catch (err: unknown) {
       triggerToast(getApiErrorTitle(err, "Error deleting tag"), false);
@@ -247,10 +326,20 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     updatedInfo: Partial<Wallet>,
   ): Promise<boolean> => {
     try {
-      const res = await api.put(`/wallets/${wallet.id}`, updatedInfo);
-      setWallet(res.data);
+      const res = await walletOps.updateWallet(
+        wallet.id,
+        updatedInfo as Record<string, unknown>,
+      );
+      if (!res.queued) {
+        setWallet(res.data as Wallet);
+      }
       invalidate(wallet.id);
-      triggerToast("Wallet updated successfully!", true);
+      triggerToast(
+        res.queued
+          ? "Saved offline — will sync when you're back online"
+          : "Wallet updated successfully!",
+        true,
+      );
       onWalletUpdate();
       return true;
     } catch (err: unknown) {
@@ -262,11 +351,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   return (
     <WalletContext.Provider
       value={{
-        wallet,
-        transactions,
+        wallet: overlaid.wallet,
+        transactions: overlaid.transactions,
         filteredTransactions,
-        subscriptions,
-        tags,
+        subscriptions: overlaid.subscriptions,
+        tags: overlaid.tags,
         isLoading,
         activeTab,
         setActiveTab,

@@ -9,7 +9,7 @@ import {
 import React, { useRef } from "react";
 import type { Tag, Transaction, Wallet } from "../../utils/types.ts";
 import TransactionRow from "./TransactionRow.tsx";
-import api from "../../api/axiosConfig.ts";
+import * as walletOps from "../../api/walletOps.ts";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
@@ -92,7 +92,8 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
   const onSuccessDelete = async (id: string) => {
     try {
-      await api.delete(`/transactions/${wallet.id}/${id}`);
+      const row = transactions.find((t) => t.id === id);
+      await walletOps.deleteTransaction(wallet.id, id, row?.updatedAt ?? null);
       onRefresh(); // Più sicuro chiamare il refresh dal padre che mutare l'array localmente
       return true;
     } catch (err: unknown) {

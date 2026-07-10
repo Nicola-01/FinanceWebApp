@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
-import api from "../../api/axiosConfig";
+import * as walletOps from "../../api/walletOps";
 import Button from "../../components/ui/Button.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
@@ -34,6 +34,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
 
     // --- General data state ---
     const [editingSubId, setEditingSubId] = useState<string | null>(null);
+    // Full row kept while editing so we can read its updatedAt (offline
+    // precondition for the queued update op).
+    const [editingSub, setEditingSub] = useState<Subscription | null>(null);
     const [type, setType] = useState<"EXPENSE" | "INCOME" | "">("");
     const [name, setName] = useState("");
     const [amount, setAmount] = useState<string>("");
@@ -70,6 +73,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         if (sub) {
           // --- EDIT MODE ---
           setEditingSubId(sub.id);
+          setEditingSub(sub);
           setType(sub.type);
           setName(sub.name || "");
 
@@ -101,6 +105,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         } else {
           // --- CREATE MODE ---
           setEditingSubId(null);
+          setEditingSub(null);
           // Open neutral (no type preselected) — matches New Transaction; the
           // type is set as soon as the user enters an amount (sign-driven).
           setType("");
@@ -166,10 +171,15 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         };
 
         if (editingSubId) {
-          await api.put(`/subscription/${wallet.id}/${editingSubId}`, payload);
+          await walletOps.updateSubscription(
+            wallet.id,
+            editingSubId,
+            payload,
+            editingSub?.updatedAt ?? null,
+          );
           triggerToast("Subscription updated successfully!", true);
         } else {
-          await api.post(`/subscription/${wallet.id}`, payload);
+          await walletOps.createSubscription(wallet.id, payload);
           triggerToast("Subscription created successfully!", true);
         }
 

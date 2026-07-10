@@ -13,6 +13,7 @@ import type { Subscription, Wallet } from "../../utils/types";
 import { SubscriptionView } from "./SubscriptionView";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import api from "../../api/axiosConfig";
+import * as walletOps from "../../api/walletOps";
 import { format } from "date-fns";
 import { getApiErrorTitle } from "../../utils/apiError";
 
@@ -48,7 +49,11 @@ export const SubscriptionDetailsModal = forwardRef<
 
   const handleConfirmDelete = async (idToDelete: string) => {
     try {
-      await api.delete(`/subscription/${wallet.id}/${idToDelete}`);
+      await walletOps.deleteSubscription(
+        wallet.id,
+        idToDelete,
+        sub?.updatedAt ?? null,
+      );
       triggerToast("Subscription deleted successfully", true);
       onDeleteSuccess();
       handleClose();

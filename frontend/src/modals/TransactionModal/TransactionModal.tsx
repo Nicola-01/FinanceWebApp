@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
-import api from "../../api/axiosConfig";
+import * as walletOps from "../../api/walletOps";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
@@ -34,6 +34,9 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
     const [editingTxId, setEditingTxId] = useState<number | string | null>(
       null,
     );
+    // Full row kept while editing so we can read its updatedAt (offline
+    // precondition for the queued update op).
+    const [editingTx, setEditingTx] = useState<Transaction | null>(null);
     const [type, setType] = useState<"EXPENSE" | "INCOME" | "">("");
     const [name, setName] = useState("");
     const [amount, setAmount] = useState<string>("");
@@ -53,6 +56,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
         if (tx) {
           // --- EDIT MODE ---
           setEditingTxId(tx.id);
+          setEditingTx(tx);
           setType(tx.type);
           setName(tx.name || "");
 
@@ -73,6 +77,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
         } else {
           // --- CREATE MODE ---
           setEditingTxId(null);
+          setEditingTx(null);
           setType("");
           setName("");
           setAmount("");
@@ -115,8 +120,13 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
         };
 
         if (editingTxId)
-          await api.put(`/transactions/${wallet.id}/${editingTxId}`, payload);
-        else await api.post(`/transactions/${wallet.id}`, payload);
+          await walletOps.updateTransaction(
+            wallet.id,
+            String(editingTxId),
+            payload,
+            editingTx?.updatedAt ?? null,
+          );
+        else await walletOps.createTransaction(wallet.id, payload);
 
         onSuccess();
         setOpen(false);

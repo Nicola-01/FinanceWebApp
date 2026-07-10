@@ -22,13 +22,14 @@ import {
   TransactionModal,
   type TransactionModalHandle,
 } from "../../modals/TransactionModal/TransactionModal.tsx";
-import api from "../../api/axiosConfig.ts";
+import * as walletOps from "../../api/walletOps.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 
 type ViewMode = "list" | "calendar";
 
 export const SubscriptionTab = () => {
-  const { subscriptions, fetchData, isLoading } = useWalletContext();
+  const { subscriptions, transactions, fetchData, isLoading } =
+    useWalletContext();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   const { wallet, tags } = useWalletContext();
@@ -137,7 +138,12 @@ export const SubscriptionTab = () => {
         ref={txDetailsModalRef}
         wallet={wallet}
         handleDeleteSuccess={async (id) => {
-          await api.delete(`/transactions/${wallet.id}/${id}`);
+          const row = transactions.find((t) => t.id === id);
+          await walletOps.deleteTransaction(
+            wallet.id,
+            id,
+            row?.updatedAt ?? null,
+          );
           fetchData();
         }}
         onEditRequest={(tx) => txModalRef.current?.openModal(tx)}
