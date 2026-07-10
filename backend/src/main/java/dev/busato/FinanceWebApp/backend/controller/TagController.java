@@ -6,6 +6,7 @@ import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.TagService;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -46,8 +47,9 @@ public class TagController {
   public ResponseEntity<TagResponse> deleteTag(
       @PathVariable String tagName,
       @PathVariable UUID walletID,
+      @RequestParam(required = false) Instant baseUpdatedAt,
       @AuthenticationPrincipal User user) {
-    tagService.deleteTag(tagName, walletID, user.getId());
+    tagService.deleteTag(tagName, walletID, user.getId(), baseUpdatedAt);
     return ResponseEntity.noContent().build();
   }
 

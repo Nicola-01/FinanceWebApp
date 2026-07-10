@@ -5,6 +5,7 @@ import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.SubscriptionService;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -59,9 +60,10 @@ public class SubscriptionController {
   public ResponseEntity<Void> deleteSubscription(
       @PathVariable UUID walletID,
       @PathVariable UUID subscriptionID,
+      @RequestParam(required = false) Instant baseUpdatedAt,
       @AuthenticationPrincipal User user) {
 
-    subscriptionService.deleteSubscription(subscriptionID, walletID, user.getId());
+    subscriptionService.deleteSubscription(subscriptionID, walletID, user.getId(), baseUpdatedAt);
     return ResponseEntity.noContent().build();
   }
 }

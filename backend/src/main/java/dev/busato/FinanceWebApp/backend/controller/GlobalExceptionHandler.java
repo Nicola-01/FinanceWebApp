@@ -84,6 +84,12 @@ public class GlobalExceptionHandler {
     return buildErrorResponse(ex, HttpStatus.CONFLICT, "Tag in Use", request);
   }
 
+  @ExceptionHandler(StaleWriteException.class)
+  public ResponseEntity<ProblemDetail> handleStaleWriteException(
+      StaleWriteException ex, HttpServletRequest request) {
+    return buildErrorResponse(ex, HttpStatus.CONFLICT, "Stale Write", request);
+  }
+
   @ExceptionHandler(InvalidTokenException.class)
   public ResponseEntity<ProblemDetail> handleInvalidTokenException(
       InvalidTokenException ex, HttpServletRequest request) {

@@ -12,6 +12,7 @@ import dev.busato.FinanceWebApp.backend.dto.SubscriptionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
+import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
@@ -923,7 +924,7 @@ class SubscriptionServiceTest {
     Subscription sub = new Subscription();
     when(subscriptionRepository.findByIdAndWalletId(subId, walletId)).thenReturn(Optional.of(sub));
 
-    subscriptionService.deleteSubscription(subId, walletId, userId);
+    subscriptionService.deleteSubscription(subId, walletId, userId, null);
 
     verify(subscriptionRepository).delete(sub);
   }
@@ -935,7 +936,65 @@ class SubscriptionServiceTest {
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> subscriptionService.deleteSubscription(subId, walletId, userId));
+        () -> subscriptionService.deleteSubscription(subId, walletId, userId, null));
+  }
+
+  // ==================== baseUpdatedAt / Stale Write precondition ====================
+
+  @Test
+  void updateSubscription_staleBaseUpdatedAt_throwsStaleWrite() {
+    UUID subId = UUID.randomUUID();
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Subscription existing = Subscription.builder().id(subId).updatedAt(serverTime).build();
+    when(subscriptionRepository.findByIdAndWalletId(subId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    SubscriptionRequest request =
+        SubscriptionRequest.builder()
+            .name("x")
+            .baseUpdatedAt(serverTime.minusSeconds(60)) // older than the server row
+            .build();
+
+    assertThrows(
+        StaleWriteException.class,
+        () -> subscriptionService.updateSubscription(subId, request, walletId, userId));
+    verify(subscriptionRepository, never()).save(any());
+  }
+
+  @Test
+  void updateSubscription_nullBaseUpdatedAt_skipsPrecondition() {
+    UUID subId = UUID.randomUUID();
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Subscription existing = Subscription.builder().id(subId).updatedAt(serverTime).build();
+    when(subscriptionRepository.findByIdAndWalletId(subId, walletId))
+        .thenReturn(Optional.of(existing));
+    when(subscriptionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    SubscriptionRequest request =
+        SubscriptionRequest.builder().name("Updated Name").build(); // no baseUpdatedAt
+
+    subscriptionService.updateSubscription(subId, request, walletId, userId);
+
+    assertEquals("Updated Name", existing.getName());
+    verify(subscriptionRepository).save(existing);
+  }
+
+  @Test
+  void deleteSubscription_staleBaseUpdatedAt_throwsStaleWrite() {
+    UUID subId = UUID.randomUUID();
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Subscription existing = Subscription.builder().id(subId).updatedAt(serverTime).build();
+    when(subscriptionRepository.findByIdAndWalletId(subId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    assertThrows(
+        StaleWriteException.class,
+        () ->
+            subscriptionService.deleteSubscription(
+                subId, walletId, userId, serverTime.minusSeconds(60)));
+    verify(subscriptionRepository, never()).delete(any());
   }
 
   // ==================== executeSubscription — PAUSED status ====================

@@ -4,6 +4,7 @@ import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
+import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
@@ -12,6 +13,7 @@ import dev.busato.FinanceWebApp.backend.model.*;
 import dev.busato.FinanceWebApp.backend.repository.*;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -327,6 +329,13 @@ public class TransactionService {
                     new IllegalArgumentException(
                         "Transaction not found or does not belong to this wallet"));
 
+    Instant baseUpdatedAt = request.getBaseUpdatedAt();
+    if (baseUpdatedAt != null
+        && transaction.getUpdatedAt() != null
+        && transaction.getUpdatedAt().isAfter(baseUpdatedAt)) {
+      throw new StaleWriteException("transaction");
+    }
+
     if (request.getName() != null) {
       if (request.getName().length() < 2 || request.getName().length() > 40) {
         throw new IllegalArgumentException("The name must be between 3 and 40 characters long.");
@@ -363,7 +372,8 @@ public class TransactionService {
 
   @Transactional
   @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
-  public void deleteTransaction(UUID transactionId, UUID walletId, UUID userId) {
+  public void deleteTransaction(
+      UUID transactionId, UUID walletId, UUID userId, Instant baseUpdatedAt) {
     Transaction transaction =
         transactionRepository
             .findByIdAndWalletId(transactionId, walletId)
@@ -371,6 +381,12 @@ public class TransactionService {
                 () ->
                     new IllegalArgumentException(
                         "Transaction not found or does not belong to this wallet"));
+
+    if (baseUpdatedAt != null
+        && transaction.getUpdatedAt() != null
+        && transaction.getUpdatedAt().isAfter(baseUpdatedAt)) {
+      throw new StaleWriteException("transaction");
+    }
 
     transactionRepository.delete(transaction);
   }

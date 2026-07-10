@@ -6,6 +6,7 @@ import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.TransactionService;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -57,9 +58,10 @@ public class TransactionController {
   public ResponseEntity<Void> deleteTransaction(
       @PathVariable UUID walletID,
       @PathVariable UUID transactionID,
+      @RequestParam(required = false) Instant baseUpdatedAt,
       @AuthenticationPrincipal User user) {
 
-    transactionService.deleteTransaction(transactionID, walletID, user.getId());
+    transactionService.deleteTransaction(transactionID, walletID, user.getId(), baseUpdatedAt);
     return ResponseEntity.noContent().build();
   }
 }

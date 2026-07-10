@@ -4,6 +4,7 @@ import dev.busato.FinanceWebApp.backend.dto.SubscriptionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
+import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
@@ -20,6 +21,7 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -350,6 +352,13 @@ public class SubscriptionService {
                     new IllegalArgumentException(
                         "Subscription not found or does not belong to this wallet"));
 
+    Instant baseUpdatedAt = request.getBaseUpdatedAt();
+    if (baseUpdatedAt != null
+        && sub.getUpdatedAt() != null
+        && sub.getUpdatedAt().isAfter(baseUpdatedAt)) {
+      throw new StaleWriteException("subscription");
+    }
+
     Tag tag = resolveExistingTag(request.getTag(), walletId);
     applySubscriptionUpdate(sub, request, tag);
 
@@ -427,10 +436,14 @@ public class SubscriptionService {
    * @param subscriptionId The UUID of the subscription to delete
    * @param walletId The UUID of the wallet
    * @param userId The UUID of the requesting user
+   * @param baseUpdatedAt The server {@code updatedAt} the offline edit was based on, or {@code
+   *     null} for a regular online delete; throws {@link StaleWriteException} if the row changed
+   *     since
    */
   @Transactional
   @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
-  public void deleteSubscription(UUID subscriptionId, UUID walletId, UUID userId) {
+  public void deleteSubscription(
+      UUID subscriptionId, UUID walletId, UUID userId, Instant baseUpdatedAt) {
     Subscription sub =
         subscriptionRepository
             .findByIdAndWalletId(subscriptionId, walletId)
@@ -438,6 +451,13 @@ public class SubscriptionService {
                 () ->
                     new IllegalArgumentException(
                         "Subscription not found or does not belong to this wallet"));
+
+    if (baseUpdatedAt != null
+        && sub.getUpdatedAt() != null
+        && sub.getUpdatedAt().isAfter(baseUpdatedAt)) {
+      throw new StaleWriteException("subscription");
+    }
+
     subscriptionRepository.delete(sub);
   }
 

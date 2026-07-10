@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -150,6 +151,24 @@ public class SubscriptionControllerTest extends BaseWebMvcTest {
         .andDo(print())
         .andExpect(status().isNoContent());
 
-    verify(subscriptionService).deleteSubscription(eq(subId), eq(walletId), any(UUID.class));
+    verify(subscriptionService)
+        .deleteSubscription(eq(subId), eq(walletId), any(UUID.class), isNull());
+  }
+
+  @Test
+  void deleteSubscription_WithBaseUpdatedAt_ForwardsItToService() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    UUID subId = UUID.randomUUID();
+    java.time.Instant baseUpdatedAt = java.time.Instant.parse("2026-07-08T10:00:00Z");
+
+    mockMvc
+        .perform(
+            delete("/api/subscription/{walletID}/{subscriptionID}", walletId, subId)
+                .param("baseUpdatedAt", baseUpdatedAt.toString()))
+        .andDo(print())
+        .andExpect(status().isNoContent());
+
+    verify(subscriptionService)
+        .deleteSubscription(eq(subId), eq(walletId), any(UUID.class), eq(baseUpdatedAt));
   }
 }

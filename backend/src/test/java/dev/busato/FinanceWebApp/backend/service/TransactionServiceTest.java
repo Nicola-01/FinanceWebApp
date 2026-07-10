@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
+import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.mappers.TransactionMapper;
@@ -21,6 +22,7 @@ import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.repository.*;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -331,7 +333,7 @@ class TransactionServiceTest {
     when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
         .thenReturn(Optional.of(transaction));
 
-    transactionService.deleteTransaction(transactionId, walletId, userId);
+    transactionService.deleteTransaction(transactionId, walletId, userId, null);
 
     verify(transactionRepository).delete(transaction);
   }
@@ -512,6 +514,60 @@ class TransactionServiceTest {
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.deleteTransaction(transactionId, walletId, userId));
+        () -> transactionService.deleteTransaction(transactionId, walletId, userId, null));
+  }
+
+  // ==================== baseUpdatedAt / Stale Write precondition ====================
+
+  @Test
+  void updateTransaction_staleBaseUpdatedAt_throwsStaleWrite() {
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Transaction existing = Transaction.builder().id(transactionId).updatedAt(serverTime).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    TransactionRequest request =
+        TransactionRequest.builder()
+            .name("x")
+            .baseUpdatedAt(serverTime.minusSeconds(60)) // older than the server row
+            .build();
+
+    assertThrows(
+        StaleWriteException.class,
+        () -> transactionService.updateTransaction(transactionId, request, walletId, userId));
+    verify(transactionRepository, never()).save(any());
+  }
+
+  @Test
+  void updateTransaction_nullBaseUpdatedAt_skipsPrecondition() {
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Transaction existing = Transaction.builder().id(transactionId).updatedAt(serverTime).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    TransactionRequest request =
+        TransactionRequest.builder()
+            .name("Updated Name")
+            .amount(new BigDecimal("10.00"))
+            .build(); // no baseUpdatedAt
+
+    transactionService.updateTransaction(transactionId, request, walletId, userId);
+
+    assertEquals("Updated Name", existing.getName());
+  }
+
+  @Test
+  void deleteTransaction_staleBaseUpdatedAt_throwsStaleWrite() {
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Transaction existing = Transaction.builder().id(transactionId).updatedAt(serverTime).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    assertThrows(
+        StaleWriteException.class,
+        () ->
+            transactionService.deleteTransaction(
+                transactionId, walletId, userId, serverTime.minusSeconds(60)));
+    verify(transactionRepository, never()).delete(any());
   }
 }

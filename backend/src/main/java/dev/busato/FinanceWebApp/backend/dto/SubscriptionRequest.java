@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.dto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.Builder;
@@ -36,4 +37,7 @@ public class SubscriptionRequest {
   private String duration; // FOREVER, TIMES, UNTIL
   private Integer durationTimes;
   private LocalDate durationUntil;
+
+  /** updatedAt the offline edit was based on; server rejects with 409 if newer. */
+  private Instant baseUpdatedAt;
 }
