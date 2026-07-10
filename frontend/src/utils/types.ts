@@ -22,6 +22,9 @@ export interface Wallet {
   wallet?: Wallet;
 }
 
+/** Offline sync status of a pending domain op, overlaid onto read data by applyPendingOps. */
+export type SyncState = "pending" | "failed" | "conflict";
+
 export interface Tag {
   id?: string;
   name: string;
@@ -29,6 +32,8 @@ export interface Tag {
   colorHex: string;
   parentName?: string | null;
   parent?: Tag | null;
+  updatedAt?: string;
+  syncState?: SyncState;
 }
 
 export interface Transaction {
@@ -43,6 +48,8 @@ export interface Transaction {
   type: "INCOME" | "EXPENSE";
   notes?: string;
   transactionDate: string;
+  updatedAt?: string;
+  syncState?: SyncState;
 }
 
 export interface WalletMember {
@@ -89,6 +96,8 @@ export interface Subscription {
   executedTimes: number;
   durationUntil?: string;
   history?: Transaction[];
+  updatedAt?: string;
+  syncState?: SyncState;
 }
 
 export interface WalletDashboardData {
