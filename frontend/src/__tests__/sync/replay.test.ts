@@ -196,6 +196,35 @@ describe("replaySync", () => {
     expect(mockedRemoveOp).not.toHaveBeenCalled();
   });
 
+  it("classifies a delete that 409s with a Stale Write title as a stale conflict (not gone-already)", async () => {
+    const staleDelete = makeOp({
+      id: 1,
+      op: "delete",
+      entityKey: "tx-1",
+      payload: {},
+      baseUpdatedAt: "t",
+      attempts: 1,
+    });
+    mockedListOps.mockResolvedValue([staleDelete]);
+    mockedDelete.mockRejectedValue(
+      httpErr(409, { title: "Stale Write", detail: "changed on the server" }),
+    );
+
+    await replaySync();
+
+    // "Stale Write" wins over the delete gone-already fallback: this is a real
+    // conflict the user must resolve, so the op is marked, not swallowed.
+    expect(mockedUpdateOp).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        status: "conflict",
+        conflictKind: "stale",
+        attempts: 2,
+      }),
+    );
+    expect(mockedRemoveOp).not.toHaveBeenCalled();
+  });
+
   it("treats a delete that 409s (non-stale) as already gone and removes the op", async () => {
     mockedListOps.mockResolvedValue([
       makeOp({

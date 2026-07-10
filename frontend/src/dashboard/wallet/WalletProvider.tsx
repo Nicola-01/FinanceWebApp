@@ -82,7 +82,10 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   );
 
   const filteredTransactions = useMemo(() => {
-    const currentActiveTags = selectedTags ?? tags.map((t) => t.name);
+    // Fallback active-tag set is derived from the OVERLAID tags (not raw `tags`)
+    // so a transaction whose category was created offline — a tag that only
+    // exists in the overlay — isn't filtered out and made to "vanish".
+    const currentActiveTags = selectedTags ?? overlaid.tags.map((t) => t.name);
     // The text search only applies on the Transactions tab. Elsewhere (e.g.
     // Categories) the query is preserved but NOT applied — the charts show all
     // transactions — and it re-applies when the user returns to Transactions.
@@ -116,7 +119,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     });
   }, [
     overlaid.transactions,
-    tags,
+    overlaid.tags,
     selectedTags,
     dateRange,
     debouncedQuery,

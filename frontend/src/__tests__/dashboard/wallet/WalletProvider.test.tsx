@@ -255,6 +255,41 @@ const createTxOp: PendingOp = {
   createdAt: 1,
 };
 
+// A tag created offline lives only in the overlay (never in the raw `tags`
+// state) until the queue drains.
+const createTagOp: PendingOp = {
+  id: 2,
+  walletId: "w1",
+  entityType: "tag",
+  entityKey: "Food",
+  op: "create",
+  payload: { name: "Food", icon: "faTags", colorHex: "#f00" },
+  baseUpdatedAt: null,
+  status: "pending",
+  attempts: 0,
+  createdAt: 2,
+};
+
+// A transaction created offline whose category is the pending "Food" tag above.
+const createTxWithPendingTagOp: PendingOp = {
+  id: 3,
+  walletId: "w1",
+  entityType: "transaction",
+  entityKey: "tmp-2",
+  op: "create",
+  payload: {
+    name: "Offline groceries",
+    amount: 5,
+    type: "EXPENSE",
+    tag: "Food",
+    transactionDate: "2026-07-08",
+  },
+  baseUpdatedAt: null,
+  status: "pending",
+  attempts: 0,
+  createdAt: 3,
+};
+
 function OverlayConsumer() {
   const { transactions } = useWalletContext();
   return (
@@ -265,6 +300,19 @@ function OverlayConsumer() {
           data-testid={`tx-${t.id}`}
           data-sync={t.syncState ?? ""}
         >
+          {t.name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function FilteredOverlayConsumer() {
+  const { filteredTransactions } = useWalletContext();
+  return (
+    <div>
+      {filteredTransactions.map((t) => (
+        <span key={t.id} data-testid={`ftx-${t.id}`}>
           {t.name}
         </span>
       ))}
@@ -324,6 +372,33 @@ describe("WalletProvider offline overlay", () => {
     await waitFor(() =>
       expect(screen.queryByTestId("tx-tmp-1")).not.toBeInTheDocument(),
     );
+  });
+
+  it("keeps an offline transaction whose tag was also created offline visible in filteredTransactions", async () => {
+    mockedPeek.mockReturnValue(richData);
+    // A pending tag create + a pending transaction create that uses it. No
+    // explicit selectedTags filter, so the active-tag set is the fallback.
+    listOps.mockResolvedValue([createTagOp, createTxWithPendingTagOp]);
+
+    render(
+      <MemoryRouter>
+        <WalletProvider
+          _wallet={wallet}
+          onWalletDelete={() => {}}
+          onWalletUpdate={() => {}}
+        >
+          <FilteredOverlayConsumer />
+        </WalletProvider>
+      </MemoryRouter>,
+    );
+
+    // Regression: the fallback active-tag set must come from the OVERLAID tags
+    // (which include the pending "Food"), not the raw `tags` state — otherwise
+    // the offline transaction is filtered out and "vanishes".
+    expect(await screen.findByTestId("ftx-tmp-2")).toBeInTheDocument();
+    // The pre-existing server rows are still there.
+    expect(screen.getByTestId("ftx-1")).toBeInTheDocument();
+    expect(screen.getByTestId("ftx-2")).toBeInTheDocument();
   });
 
   it("keeps identical arrays when the queue is empty", async () => {

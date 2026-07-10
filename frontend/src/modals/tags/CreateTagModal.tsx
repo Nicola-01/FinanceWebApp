@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from "react";
-import api from "../../api/axiosConfig";
+import * as walletOps from "../../api/walletOps";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTags } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "../common/ModalDialog";
@@ -73,7 +73,10 @@ export const CreateTagModal = forwardRef<CreateTagModalHandle, Props>(
           parentName: null, // This modal only creates top-level (parent) categories.
         };
 
-        await api.post(`/tags/${walletId}`, payload);
+        // Offline-aware: online this sends the same POST /tags/{walletId};
+        // offline it enqueues the create and the overlay renders the pending
+        // tag, so either outcome is treated as success.
+        await walletOps.createTag(walletId, payload);
         triggerToast("Parent Tag created!", true);
         onSuccess();
         dialogRef.current?.close();

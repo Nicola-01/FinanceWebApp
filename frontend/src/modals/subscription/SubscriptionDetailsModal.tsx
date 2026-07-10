@@ -12,7 +12,6 @@ import type { Subscription, Wallet } from "../../utils/types";
 
 import { SubscriptionView } from "./SubscriptionView";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
-import api from "../../api/axiosConfig";
 import * as walletOps from "../../api/walletOps";
 import { format } from "date-fns";
 import { getApiErrorTitle } from "../../utils/apiError";
@@ -92,7 +91,14 @@ export const SubscriptionDetailsModal = forwardRef<
         durationUntil: formattedDate,
       };
 
-      await api.put(`/subscription/${wallet.id}/${sub.id}`, updateRequest);
+      // Offline-aware status change: online this is the same PUT; offline it
+      // enqueues an update op carrying the optimistic-concurrency base.
+      await walletOps.updateSubscription(
+        wallet.id,
+        sub.id,
+        updateRequest,
+        sub.updatedAt ?? null,
+      );
       triggerToast(`Subscription stopped at ${formattedDate}`, true);
       onDeleteSuccess();
       handleClose();
