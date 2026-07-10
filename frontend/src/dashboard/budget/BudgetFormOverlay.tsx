@@ -120,6 +120,11 @@ export const BudgetFormOverlay: React.FC<BudgetFormOverlayProps> = ({
   const handleAddThreshold = () => {
     const parsed = Number(newThreshold);
     if (!newThreshold.trim() || Number.isNaN(parsed)) return;
+    // Prevent duplicates: if the threshold already exists, just clear and return
+    if (thresholds.includes(parsed)) {
+      setNewThreshold("");
+      return;
+    }
     setThresholds((prev) => [...prev, parsed]);
     setNewThreshold("");
   };
@@ -269,9 +274,9 @@ export const BudgetFormOverlay: React.FC<BudgetFormOverlayProps> = ({
         <div className="flex flex-col gap-1.5">
           <span className={LABEL}>Alert thresholds</span>
           <div className="flex flex-wrap gap-2">
-            {thresholds.map((t) => (
+            {thresholds.map((t, i) => (
               <span
-                key={t}
+                key={`${t}-${i}`}
                 className="inline-flex items-center gap-1.5 rounded-full bg-app-input px-3 py-1 text-xs font-semibold text-app-text"
               >
                 {`${t}%`}
@@ -321,5 +326,3 @@ export const BudgetFormOverlay: React.FC<BudgetFormOverlayProps> = ({
     </ResponsiveOverlay>
   );
 };
-
-export default BudgetFormOverlay;

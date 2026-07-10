@@ -75,4 +75,22 @@ describe("BudgetFormOverlay", () => {
       screen.getByRole("button", { name: /create budget/i }),
     ).toBeDisabled();
   });
+
+  it("prevents duplicate threshold chips", () => {
+    renderForm();
+    // Default thresholds are [80, 100], so 80% and 100% chips should exist
+    expect(screen.getAllByText("80%")).toHaveLength(1);
+    expect(screen.getAllByText("100%")).toHaveLength(1);
+
+    // Try to add 80 again via the threshold input + Add button
+    fireEvent.change(screen.getByLabelText(/new alert threshold/i), {
+      target: { value: "80" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+
+    // Should still have exactly one 80% chip (duplicate was rejected)
+    expect(screen.getAllByText("80%")).toHaveLength(1);
+    // The input should be cleared
+    expect(screen.getByLabelText(/new alert threshold/i)).toHaveValue(null);
+  });
 });
