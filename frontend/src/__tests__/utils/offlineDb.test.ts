@@ -18,7 +18,9 @@ describe("offlineDb (FinanceDb)", () => {
     expect(offlineDb.ops.schema.indexes.map((i) => i.name)).toEqual(
       expect.arrayContaining(["walletId", "status", "createdAt"]),
     );
-    expect((offlineDb as unknown as { syncQueue?: unknown }).syncQueue).toBeUndefined();
+    expect(
+      (offlineDb as unknown as { syncQueue?: unknown }).syncQueue,
+    ).toBeUndefined();
   });
 
   it("stores and reads back a cached response by url", async () => {

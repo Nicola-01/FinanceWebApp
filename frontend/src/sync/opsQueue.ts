@@ -13,11 +13,18 @@ export async function enqueueOp(
     const existing = await offlineDb.ops
       .where("walletId")
       .equals(op.walletId)
-      .filter((o) => o.entityType === op.entityType && o.entityKey === op.entityKey)
+      .filter(
+        (o) => o.entityType === op.entityType && o.entityKey === op.entityKey,
+      )
       .first();
 
     if (!existing) {
-      await offlineDb.ops.add({ ...op, status: "pending", attempts: 0, createdAt: Date.now() });
+      await offlineDb.ops.add({
+        ...op,
+        status: "pending",
+        attempts: 0,
+        createdAt: Date.now(),
+      });
       return;
     }
     if (existing.op === "create" && op.op === "update") {
@@ -32,15 +39,27 @@ export async function enqueueOp(
       return;
     }
     if (existing.op === "update" && op.op === "update") {
-      await offlineDb.ops.update(existing.id!, { payload: op.payload, status: "pending" });
+      await offlineDb.ops.update(existing.id!, {
+        payload: op.payload,
+        status: "pending",
+      });
       return;
     }
     if (existing.op === "update" && op.op === "delete") {
-      await offlineDb.ops.update(existing.id!, { op: "delete", payload: {}, status: "pending" });
+      await offlineDb.ops.update(existing.id!, {
+        op: "delete",
+        payload: {},
+        status: "pending",
+      });
       return;
     }
     // delete + anything, or unexpected combos: append defensively.
-    await offlineDb.ops.add({ ...op, status: "pending", attempts: 0, createdAt: Date.now() });
+    await offlineDb.ops.add({
+      ...op,
+      status: "pending",
+      attempts: 0,
+      createdAt: Date.now(),
+    });
   });
   notify();
 }
@@ -51,12 +70,20 @@ export async function listOps(walletId?: string): Promise<PendingOp[]> {
 }
 
 export async function countByStatus(): Promise<Record<OpStatus, number>> {
-  const counts: Record<OpStatus, number> = { pending: 0, syncing: 0, failed: 0, conflict: 0 };
+  const counts: Record<OpStatus, number> = {
+    pending: 0,
+    syncing: 0,
+    failed: 0,
+    conflict: 0,
+  };
   for (const op of await offlineDb.ops.toArray()) counts[op.status]++;
   return counts;
 }
 
-export async function updateOp(id: number, patch: Partial<PendingOp>): Promise<void> {
+export async function updateOp(
+  id: number,
+  patch: Partial<PendingOp>,
+): Promise<void> {
   await offlineDb.ops.update(id, patch);
   notify();
 }

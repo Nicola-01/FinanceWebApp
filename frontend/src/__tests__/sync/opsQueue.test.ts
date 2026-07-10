@@ -1,7 +1,13 @@
 import "fake-indexeddb/auto";
 import { describe, it, expect, beforeEach } from "vitest";
 import { offlineDb } from "../../utils/offlineDb";
-import { enqueueOp, listOps, removeOp, updateOp, countByStatus } from "../../sync/opsQueue";
+import {
+  enqueueOp,
+  listOps,
+  removeOp,
+  updateOp,
+  countByStatus,
+} from "../../sync/opsQueue";
 
 const base = {
   walletId: "w1",
@@ -32,7 +38,11 @@ describe("opsQueue coalescing", () => {
   });
 
   it("keeps the first baseUpdatedAt across update+update", async () => {
-    await enqueueOp({ ...base, op: "update", baseUpdatedAt: "2026-07-08T10:00:00Z" });
+    await enqueueOp({
+      ...base,
+      op: "update",
+      baseUpdatedAt: "2026-07-08T10:00:00Z",
+    });
     await enqueueOp({
       ...base,
       op: "update",
@@ -46,8 +56,17 @@ describe("opsQueue coalescing", () => {
   });
 
   it("turns update+delete into a delete keeping baseUpdatedAt", async () => {
-    await enqueueOp({ ...base, op: "update", baseUpdatedAt: "2026-07-08T10:00:00Z" });
-    await enqueueOp({ ...base, op: "delete", payload: {}, baseUpdatedAt: null });
+    await enqueueOp({
+      ...base,
+      op: "update",
+      baseUpdatedAt: "2026-07-08T10:00:00Z",
+    });
+    await enqueueOp({
+      ...base,
+      op: "delete",
+      payload: {},
+      baseUpdatedAt: null,
+    });
     const ops = await listOps();
     expect(ops[0].op).toBe("delete");
     expect(ops[0].baseUpdatedAt).toBe("2026-07-08T10:00:00Z");
