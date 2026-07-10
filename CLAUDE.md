@@ -113,8 +113,16 @@ entities/DTOs.
 - **API client:** `src/api/axiosConfig.ts`, baseURL = `VITE_API_URL + "/api"`. Request
   interceptor attaches the JWT from `localStorage`/`sessionStorage`; response interceptor
   auto-refreshes on 401 via `/auth/refresh`.
-- **Offline-first PWA:** Dexie/IndexedDB caches GET responses and **queues POST/PUT/DELETE
-  while offline**, replaying on reconnect (`utils/offlineDb.ts`, `utils/syncService.ts`).
+- **Offline-first PWA:** Dexie/IndexedDB caches GET responses; domain mutations made
+  offline are queued as a **typed domain-ops queue** (`sync/opsQueue.ts`, Dexie v2 `ops`
+  table) restricted to **transaction/subscription/tag CRUD + wallet update** — everything
+  else (auth, members, PATs, CSV import) fails fast offline. Creates carry a
+  **client-generated UUID** the backend honors (`persistence/AssignableUuidV7`); reads are
+  **overlaid** so pending items render flagged with `syncState` (`sync/overlay.ts`). On
+  reconnect `sync/replay.ts` replays FIFO with an optimistic `baseUpdatedAt` precondition —
+  the server answers **409 "Stale Write"** rather than clobbering newer data, surfaced in the
+  header **Sync Center** with **Keep mine / Take theirs** (`utils/offlineDb.ts`,
+  `api/walletOps.ts`). Mutations route through `api/walletOps.ts`, not raw `api.*`.
 - **Routing (`src/App.tsx`):** `/dashboard/:walletId?` and `/settings` (protected;
   `src/settings/SettingsPage.tsx` with scroll-spied sections), `/admin/dashboard/*`
   (ADMIN only), `/oauth/authorize` (OAuth consent page the MCP flow redirects to);
