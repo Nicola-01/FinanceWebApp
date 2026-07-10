@@ -166,6 +166,13 @@ public class TransactionService {
    * been verified by the caller.
    */
   private TransactionResponse createTransactionInternal(TransactionRequest request, UUID walletId) {
+    if (request.getId() != null
+        && transactionRepository.existsByIdAndWalletId(request.getId(), walletId)) {
+      // Idempotent offline replay: the row already landed in a previous attempt.
+      return transactionMapper.mapToResponse(
+          transactionRepository.findById(request.getId()).orElseThrow());
+    }
+
     Wallet wallet =
         walletRepository
             .findById(walletId)
@@ -186,6 +193,7 @@ public class TransactionService {
 
     Transaction transaction =
         Transaction.builder()
+            .id(request.getId())
             .wallet(wallet)
             .subscription(subscription)
             .tag(tag)

@@ -10,6 +10,9 @@ import lombok.Data;
 @Data
 @Builder
 public class TransactionRequest {
+  /** Optional client-generated id (offline-created entities); honored on insert. */
+  private UUID id;
+
   @NotBlank(message = "Name is required")
   private String name;
 

@@ -598,6 +598,51 @@ class SubscriptionServiceTest {
         () -> subscriptionService.createSubscription(request, walletId, userId));
   }
 
+  // ==================== createSubscription — client-generated id (offline replay)
+  // ====================
+
+  @Test
+  void createSubscription_withClientId_setsIdOnEntity() {
+    UUID clientId = UUID.randomUUID();
+    SubscriptionRequest request =
+        SubscriptionRequest.builder()
+            .id(clientId)
+            .name("Netflix")
+            .amount(new BigDecimal("15.99"))
+            .type("EXPENSE")
+            .frequencyType("MONTHLY")
+            .frequencyInterval(1)
+            .startDate(LocalDate.of(2024, 3, 15)) // Future date → no immediate execution
+            .duration("FOREVER")
+            .build();
+    when(subscriptionRepository.existsByIdAndWalletId(clientId, walletId)).thenReturn(false);
+    // Reuse the suite's existing happy-path stubbing for wallet lookup + save + mapper.
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+    verify(subscriptionRepository).save(captor.capture());
+    assertEquals(clientId, captor.getValue().getId());
+  }
+
+  @Test
+  void createSubscription_withExistingClientId_isIdempotentAndDoesNotSave() {
+    UUID clientId = UUID.randomUUID();
+    SubscriptionRequest request = SubscriptionRequest.builder().id(clientId).name("x").build();
+    Subscription existing = Subscription.builder().id(clientId).build();
+    when(subscriptionRepository.existsByIdAndWalletId(clientId, walletId)).thenReturn(true);
+    when(subscriptionRepository.findById(clientId)).thenReturn(Optional.of(existing));
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    verify(subscriptionRepository, never()).save(any());
+    verify(subscriptionMapper).mapToResponse(existing);
+  }
+
   // ==================== createSubscriptionsBulk (upsert) ====================
 
   @Test

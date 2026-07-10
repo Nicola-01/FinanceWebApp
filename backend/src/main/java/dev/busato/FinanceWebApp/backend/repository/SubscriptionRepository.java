@@ -14,6 +14,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
   Optional<Subscription> findByIdAndWalletId(UUID id, UUID walletId);
 
+  boolean existsByIdAndWalletId(UUID id, UUID walletId);
+
   List<Subscription> findAllByStatusAndNextExecutionDateLessThanEqual(
       Subscription.Status status, LocalDate date);
 

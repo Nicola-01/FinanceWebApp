@@ -204,6 +204,13 @@ public class SubscriptionService {
    */
   private SubscriptionResponse createSubscriptionInternal(
       SubscriptionRequest request, UUID walletId) {
+    if (request.getId() != null
+        && subscriptionRepository.existsByIdAndWalletId(request.getId(), walletId)) {
+      // Idempotent offline replay: the row already landed in a previous attempt.
+      return subscriptionMapper.mapToResponse(
+          subscriptionRepository.findById(request.getId()).orElseThrow());
+    }
+
     Wallet wallet =
         walletRepository
             .findById(walletId)
@@ -226,6 +233,7 @@ public class SubscriptionService {
 
     Subscription sub =
         Subscription.builder()
+            .id(request.getId())
             .wallet(wallet)
             .tag(tag)
             .name(request.getName())

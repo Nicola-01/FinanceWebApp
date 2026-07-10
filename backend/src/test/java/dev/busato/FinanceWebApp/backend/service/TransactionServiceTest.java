@@ -413,6 +413,47 @@ class TransactionServiceTest {
     verify(transactionRepository).save(any(Transaction.class));
   }
 
+  // ==================== createTransaction — client-generated id (offline replay)
+  // ====================
+
+  @Test
+  void createTransaction_withClientId_setsIdOnEntity() {
+    UUID clientId = UUID.randomUUID();
+    TransactionRequest request =
+        TransactionRequest.builder()
+            .id(clientId)
+            .name("Coffee")
+            .amount(new BigDecimal("2.50"))
+            .originalAmount(new BigDecimal("2.50"))
+            .type("EXPENSE")
+            .transactionDate(LocalDate.of(2026, 7, 8))
+            .build();
+    when(transactionRepository.existsByIdAndWalletId(clientId, walletId)).thenReturn(false);
+    // Reuse the suite's existing happy-path stubbing for wallet lookup + save.
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+
+    transactionService.createTransaction(request, walletId, userId);
+
+    ArgumentCaptor<Transaction> captor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(captor.capture());
+    assertEquals(clientId, captor.getValue().getId());
+  }
+
+  @Test
+  void createTransaction_withExistingClientId_isIdempotentAndDoesNotSave() {
+    UUID clientId = UUID.randomUUID();
+    TransactionRequest request = TransactionRequest.builder().id(clientId).name("x").build();
+    Transaction existing = Transaction.builder().id(clientId).build();
+    when(transactionRepository.existsByIdAndWalletId(clientId, walletId)).thenReturn(true);
+    when(transactionRepository.findById(clientId)).thenReturn(Optional.of(existing));
+
+    transactionService.createTransaction(request, walletId, userId);
+
+    verify(transactionRepository, never()).save(any());
+    verify(transactionMapper).mapToResponse(existing);
+  }
+
   // ==================== updateTransaction — edge cases ====================
 
   @Test

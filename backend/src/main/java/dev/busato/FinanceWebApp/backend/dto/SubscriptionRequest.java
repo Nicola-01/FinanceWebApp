@@ -2,12 +2,16 @@ package dev.busato.FinanceWebApp.backend.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
 public class SubscriptionRequest {
+  /** Optional client-generated id (offline-created entities); honored on insert. */
+  private UUID id;
+
   private String name;
   private String tag; // Nome del tag
   private BigDecimal amount;
