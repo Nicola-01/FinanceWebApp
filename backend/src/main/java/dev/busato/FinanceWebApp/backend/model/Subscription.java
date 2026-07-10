@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.model;
 import dev.busato.FinanceWebApp.backend.persistence.AssignableUuidV7;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
 @Builder
@@ -123,4 +125,7 @@ public class Subscription {
   @OrderBy("transactionDate DESC")
   @Builder.Default
   private List<Transaction> history = new ArrayList<>();
+
+  /** Server-side last-write timestamp; optimistic precondition for offline replays. */
+  @UpdateTimestamp @Column private Instant updatedAt;
 }

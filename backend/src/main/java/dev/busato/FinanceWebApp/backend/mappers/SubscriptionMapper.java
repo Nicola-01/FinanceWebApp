@@ -40,6 +40,7 @@ public class SubscriptionMapper {
             sub.getHistory() != null
                 ? sub.getHistory().stream().map(transactionMapper::mapToResponse).toList()
                 : null)
+        .updatedAt(sub.getUpdatedAt())
         .build();
   }
 }

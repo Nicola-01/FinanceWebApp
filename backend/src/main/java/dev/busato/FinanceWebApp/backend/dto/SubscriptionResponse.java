@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.dto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -37,4 +38,6 @@ public class SubscriptionResponse {
   private LocalDate durationUntil;
 
   private List<TransactionResponse> history;
+
+  private Instant updatedAt;
 }

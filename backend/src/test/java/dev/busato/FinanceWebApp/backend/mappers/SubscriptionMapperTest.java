@@ -8,6 +8,7 @@ import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +46,8 @@ class SubscriptionMapperTest {
     subscription.setLastWorkingDayOfMonth(false);
     subscription.setDuration(Subscription.Duration.FOREVER);
     subscription.setHistory(null);
+    Instant updatedAt = Instant.now();
+    subscription.setUpdatedAt(updatedAt);
     SubscriptionResponse response = subscriptionMapper.mapToResponse(subscription);
     assertNotNull(response);
     assertEquals(subscription.getId(), response.getId());
@@ -64,6 +67,7 @@ class SubscriptionMapperTest {
     assertFalse(response.isLastWorkingDayOfMonth());
     assertEquals("FOREVER", response.getDuration());
     assertNull(response.getHistory());
+    assertEquals(updatedAt, response.getUpdatedAt());
   }
 
   @Test

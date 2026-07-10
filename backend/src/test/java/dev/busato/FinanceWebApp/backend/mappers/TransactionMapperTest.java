@@ -9,6 +9,7 @@ import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,8 @@ class TransactionMapperTest {
     transaction.setTransactionDate(LocalDate.now());
     transaction.setType(Transaction.Type.EXPENSE);
     transaction.setNotes("Notes");
+    Instant updatedAt = Instant.now();
+    transaction.setUpdatedAt(updatedAt);
     TransactionResponse response = transactionMapper.mapToResponse(transaction);
     assertNotNull(response);
     assertEquals(transaction.getId(), response.getId());
@@ -55,6 +58,7 @@ class TransactionMapperTest {
     assertEquals(transaction.getTransactionDate(), response.getTransactionDate());
     assertEquals("EXPENSE", response.getType());
     assertEquals("Notes", response.getNotes());
+    assertEquals(updatedAt, response.getUpdatedAt());
   }
 
   @Test

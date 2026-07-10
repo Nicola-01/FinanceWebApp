@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.dto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.Builder;
@@ -26,5 +27,6 @@ public class TransactionResponse {
   private String notes;
 
   private LocalDate transactionDate;
-  ;
+
+  private Instant updatedAt;
 }

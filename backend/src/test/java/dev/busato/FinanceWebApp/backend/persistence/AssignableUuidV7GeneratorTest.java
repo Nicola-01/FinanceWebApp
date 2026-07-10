@@ -56,4 +56,15 @@ class AssignableUuidV7GeneratorTest {
     assertNotNull(saved.getId());
     assertEquals(7, saved.getId().version());
   }
+
+  @Test
+  void updatedAtIsSetOnInsertAndAdvancesOnUpdate() throws Exception {
+    Transaction saved = transactionRepository.saveAndFlush(tx().build());
+    assertNotNull(saved.getUpdatedAt());
+    java.time.Instant first = saved.getUpdatedAt();
+    Thread.sleep(5); // Instant precision guard
+    saved.setName("renamed");
+    Transaction updated = transactionRepository.saveAndFlush(saved);
+    org.junit.jupiter.api.Assertions.assertTrue(updated.getUpdatedAt().isAfter(first));
+  }
 }

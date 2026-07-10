@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.dto;
 
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,4 +12,5 @@ public class TagResponse {
   private String colorHex;
   //    private String description;
   private String parentName;
+  private Instant updatedAt;
 }
