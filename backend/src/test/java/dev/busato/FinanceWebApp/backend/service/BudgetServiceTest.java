@@ -225,6 +225,34 @@ class BudgetServiceTest {
   }
 
   @Test
+  void updateBudget_omittedStartDate_preservesExistingAnchor() {
+    // Recurring budget with an established rollover anchor. The frontend omits startDate on
+    // update, so the existing anchor must be preserved rather than reset to today (which would
+    // collapse elapsedPeriods to 1 and discard the accumulated rollover carry).
+    Budget existing = monthlyBudget(food, "300.00", true);
+    existing.setStartDate(LocalDate.of(2026, 1, 1));
+    when(budgetRepository.findByIdAndWalletId(existing.getId(), walletId))
+        .thenReturn(Optional.of(existing));
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
+        .thenReturn(Optional.of(food));
+    when(budgetRepository.findAllByWalletId(walletId)).thenReturn(List.of(existing));
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(food, restaurants));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.EXPENSE), any(), any(), anyCollection()))
+        .thenReturn(BigDecimal.ZERO);
+
+    budgetService.updateBudget(
+        existing.getId(),
+        validRequest().limitAmount(new BigDecimal("400.00")).build(), // no startDate set
+        walletId,
+        userId);
+
+    ArgumentCaptor<Budget> captor = ArgumentCaptor.forClass(Budget.class);
+    verify(budgetRepository).save(captor.capture());
+    assertEquals(LocalDate.of(2026, 1, 1), captor.getValue().getStartDate()); // not reset to today
+  }
+
+  @Test
   void updateBudget_missing_throwsNotFound() {
     when(budgetRepository.findByIdAndWalletId(any(), eq(walletId))).thenReturn(Optional.empty());
     assertThrows(

@@ -88,7 +88,12 @@ class BudgetAlertCronJobTest {
     a.setWallet(wallet);
     a.setStatus(status);
     a.setRole(WalletAccess.WalletRole.EDITOR);
-    when(walletAccessRepository.findAllByWalletId(wallet.getId())).thenReturn(List.of(a));
+    // The job uses the EAGER, ACCEPTED-filtered query (findAllByWalletId + lazy getUser() would
+    // throw LazyInitializationException on the real scheduler thread), so the DB-level filter is
+    // reproduced here: only an ACCEPTED member is returned by the ACCEPTED-status stub.
+    when(walletAccessRepository.findAllByWalletIdAndStatus(
+            wallet.getId(), WalletAccess.InvitationStatus.ACCEPTED))
+        .thenReturn(status == WalletAccess.InvitationStatus.ACCEPTED ? List.of(a) : List.of());
   }
 
   @Test

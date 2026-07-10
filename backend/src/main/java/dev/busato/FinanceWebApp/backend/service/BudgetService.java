@@ -98,7 +98,14 @@ public class BudgetService {
               .orElseThrow(() -> new TagNotFoundException(request.getTagName(), walletId));
     }
 
-    LocalDate startDate = request.getStartDate() != null ? request.getStartDate() : LocalDate.now();
+    // On update the frontend omits startDate for recurring budgets; preserve the entity's
+    // existing anchor rather than resetting it to today (which would collapse elapsedPeriods to 1
+    // and discard accumulated rollover carry). A brand-new create passes a fresh Budget with a
+    // null startDate, so it still defaults to today.
+    LocalDate startDate =
+        request.getStartDate() != null
+            ? request.getStartDate()
+            : (budget.getStartDate() != null ? budget.getStartDate() : LocalDate.now());
 
     if (request.getPeriodType() == Budget.PeriodType.CUSTOM) {
       if (request.getEndDate() == null)

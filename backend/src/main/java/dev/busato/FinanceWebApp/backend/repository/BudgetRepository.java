@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.repository;
 
 import dev.busato.FinanceWebApp.backend.model.Budget;
+import dev.busato.FinanceWebApp.backend.model.Tag;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,4 +18,7 @@ public interface BudgetRepository extends JpaRepository<Budget, UUID> {
   /** All budgets with wallet and tag eagerly loaded — used by the alerts cron job. */
   @Query("SELECT b FROM Budget b JOIN FETCH b.wallet LEFT JOIN FETCH b.tag")
   List<Budget> findAllWithWalletAndTag();
+
+  /** Used by {@code TagService#deleteTag} to block deleting a tag a budget still references. */
+  boolean existsByTag(Tag tag);
 }

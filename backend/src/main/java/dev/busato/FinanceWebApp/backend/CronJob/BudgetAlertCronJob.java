@@ -113,9 +113,16 @@ public class BudgetAlertCronJob implements ManagedJob {
   private record BudgetResolution(
       BudgetStatusResponse status, List<String> recipients, String periodKey) {}
 
+  /**
+   * Uses the EAGER (user-fetching) query rather than {@code findAllByWalletId}: this job runs on
+   * the {@code taskScheduler} thread with no Open-Session-In-View and no {@code @Transactional}, so
+   * a lazy {@code a.getUser()} would throw {@link org.hibernate.LazyInitializationException} once
+   * the Hibernate session backing the query result is closed.
+   */
   private List<String> acceptedMemberEmails(UUID walletId) {
-    return walletAccessRepository.findAllByWalletId(walletId).stream()
-        .filter(a -> a.getStatus() == WalletAccess.InvitationStatus.ACCEPTED)
+    return walletAccessRepository
+        .findAllByWalletIdAndStatus(walletId, WalletAccess.InvitationStatus.ACCEPTED)
+        .stream()
         .map(a -> a.getUser().getEmail())
         .toList();
   }
