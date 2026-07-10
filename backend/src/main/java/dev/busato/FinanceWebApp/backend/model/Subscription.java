@@ -1,6 +1,6 @@
 package dev.busato.FinanceWebApp.backend.model;
 
-import dev.busato.FinanceWebApp.backend.persistence.UuidV7Generator;
+import dev.busato.FinanceWebApp.backend.persistence.AssignableUuidV7;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UuidGenerator;
 
 @Data
 @Builder
@@ -21,9 +20,7 @@ import org.hibernate.annotations.UuidGenerator;
 @Table(name = "subscriptions") // Corretto il typo
 public class Subscription {
 
-  @Id
-  @UuidGenerator(algorithm = UuidV7Generator.class)
-  private UUID id;
+  @Id @AssignableUuidV7 private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "wallet_id", nullable = false)
