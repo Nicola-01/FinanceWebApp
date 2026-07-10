@@ -16,6 +16,11 @@ public class SubscriptionRequest {
   private String name;
   private String tag; // Nome del tag
   private BigDecimal amount;
+
+  // Reminder subscription (no fixed amount). Boxed on purpose: null = "not specified", so
+  // updates that omit it leave the flag unchanged.
+  private Boolean amountPending;
+
   private BigDecimal originalAmount;
   private String originalCurrency;
   private BigDecimal exchangeValue;

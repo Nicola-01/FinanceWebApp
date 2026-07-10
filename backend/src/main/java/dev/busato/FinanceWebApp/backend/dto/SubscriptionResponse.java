@@ -15,6 +15,7 @@ public class SubscriptionResponse {
   private String name;
   private TagResponse tag;
   private BigDecimal amount;
+  private boolean amountPending;
   private BigDecimal originalAmount;
   private String originalCurrency;
   private BigDecimal exchangeValue;

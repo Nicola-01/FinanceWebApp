@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
@@ -42,6 +43,16 @@ public class Transaction {
   private BigDecimal amount; // In wallet Value (EUR)
 
   private String encryptedAmount;
+
+  /**
+   * When true the real amount is not known yet: amount and originalAmount stay 0 until the user
+   * fills them in (rendered as a pinned "awaiting amount" row in the UI). Only
+   * subscription-generated transactions are ever created pending.
+   */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean amountPending = false;
 
   @Column(nullable = false, precision = 19, scale = 2)
   private BigDecimal originalAmount;

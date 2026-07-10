@@ -74,4 +74,16 @@ class TransactionMapperTest {
     assertNull(response.getSubscriptionId());
     assertEquals("INCOME", response.getType());
   }
+
+  @Test
+  void mapToResponse_PendingTransaction_MapsAmountPending() {
+    Transaction transaction = new Transaction();
+    transaction.setId(UUID.randomUUID());
+    transaction.setType(Transaction.Type.INCOME);
+    transaction.setAmountPending(true);
+
+    TransactionResponse response = transactionMapper.mapToResponse(transaction);
+
+    assertTrue(response.isAmountPending());
+  }
 }
