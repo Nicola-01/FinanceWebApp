@@ -1,5 +1,10 @@
 import React from "react";
-import { CheckCircle2, Circle, ArrowRightCircle } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  CircleDashed,
+  ArrowRightCircle,
+} from "lucide-react";
 import { todoData, type ToDoItem, type ToDoStatus } from "./todoData";
 import { Badge } from "../ui/Badge";
 
@@ -9,6 +14,8 @@ const StatusIcon = ({ status }: { status: ToDoStatus }) => {
       return <CheckCircle2 className="w-6 h-6 text-app-green" />;
     case "STARTED":
       return <ArrowRightCircle className="w-6 h-6 text-app-purple" />;
+    case "EVALUATION":
+      return <CircleDashed className="w-6 h-6 text-app-yellow" />;
     case "PLANNED":
     default:
       return <Circle className="w-6 h-6 text-app-muted" />;
@@ -27,6 +34,12 @@ const StatusBadge = ({ status }: { status: ToDoStatus }) => {
       return (
         <Badge tone="purple" size="md">
           Started
+        </Badge>
+      );
+    case "EVALUATION":
+      return (
+        <Badge tone="yellow" size="md">
+          Evaluating
         </Badge>
       );
     case "PLANNED":
@@ -100,6 +113,7 @@ const ToDoList: React.FC = () => {
   const finished = todoData.filter((i) => i.status === "FINISHED");
   const started = todoData.filter((i) => i.status === "STARTED");
   const planned = todoData.filter((i) => i.status === "PLANNED");
+  const evaluation = todoData.filter((i) => i.status === "EVALUATION");
 
   return (
     <div className="max-w-4xl xl:max-w-6xl mx-auto space-y-12 pb-24">
@@ -125,6 +139,23 @@ const ToDoList: React.FC = () => {
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             {planned.map((item) => (
+              <ToDoCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {evaluation.length > 0 && (
+        <section>
+          <h2 className="text-2xl font-bold mb-2 flex items-center gap-2 text-app-muted">
+            <span className="w-3 h-3 rounded-full bg-app-yellow"></span>
+            Under Evaluation
+          </h2>
+          <p className="text-sm text-app-muted mb-6">
+            Ideas being considered — not confirmed yet.
+          </p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {evaluation.map((item) => (
               <ToDoCard key={item.id} item={item} />
             ))}
           </div>

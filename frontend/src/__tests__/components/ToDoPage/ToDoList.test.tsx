@@ -9,7 +9,18 @@ describe("ToDoList", () => {
     render(<ToDoList />);
     expect(screen.getByText("Currently In Progress")).toBeInTheDocument();
     expect(screen.getByText("Future Roadmap")).toBeInTheDocument();
+    expect(screen.getByText("Under Evaluation")).toBeInTheDocument();
     expect(screen.getByText("Recently Shipped")).toBeInTheDocument();
+  });
+
+  it("renders the Under Evaluation section above Recently Shipped", () => {
+    render(<ToDoList />);
+    const evaluationHeading = screen.getByText("Under Evaluation");
+    const finishedHeading = screen.getByText("Recently Shipped");
+    expect(
+      evaluationHeading.compareDocumentPosition(finishedHeading) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("renders item titles and status badges from the data", () => {
@@ -18,11 +29,13 @@ describe("ToDoList", () => {
     expect(screen.getByText("Core API")).toBeInTheDocument(); // FINISHED
     expect(screen.getByText("AI Financial Insights")).toBeInTheDocument(); // STARTED
     expect(screen.getByText("Android App")).toBeInTheDocument(); // PLANNED
+    expect(screen.getByText("Cash-Flow Forecast")).toBeInTheDocument(); // EVALUATION
 
     // Badges (at least one of each present in the fixture data).
     expect(screen.getAllByText("Completed").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Started").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Planned").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Evaluating").length).toBeGreaterThan(0);
   });
 
   it("renders one card per to-do item", () => {

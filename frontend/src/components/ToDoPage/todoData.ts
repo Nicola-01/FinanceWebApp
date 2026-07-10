@@ -1,4 +1,4 @@
-export type ToDoStatus = "STARTED" | "FINISHED" | "PLANNED";
+export type ToDoStatus = "STARTED" | "FINISHED" | "PLANNED" | "EVALUATION";
 
 export interface ToDoItem {
   id: string;
@@ -264,6 +264,167 @@ const rawToDoData: ToDoItemInput[] = [
     // description: 'Multi-Factor Authentication.',
     status: "PLANNED",
     subtasks: ["Passkey/OTP app"],
+  },
+  // ——— Under evaluation: ideas being considered, not confirmed yet ———
+  {
+    title: "Cash-Flow Forecast",
+    description: "Project wallet balances into the future.",
+    status: "EVALUATION",
+    subtasks: [
+      "30/90-day balance projection chart",
+      "Based on upcoming subscriptions and budgets",
+    ],
+  },
+  {
+    title: "Savings Goals",
+    description: "Saving targets with progress tracking.",
+    status: "EVALUATION",
+    subtasks: [
+      "Goal creation with target amount and date",
+      "Progress bar and estimated completion date",
+    ],
+  },
+  {
+    title: "Subscription Audit",
+    description: "Rule-based insights on recurring costs.",
+    status: "EVALUATION",
+    subtasks: [
+      "Annualized cost overview",
+      "Price-increase detection",
+      "Unused (zombie) subscription detection",
+      "Upcoming charges (next 30 days)",
+    ],
+  },
+  {
+    title: "Scheduled One-Off Transactions",
+    description: "Plan future one-time transactions without a subscription.",
+    status: "EVALUATION",
+    subtasks: [
+      "Future-dated planned transactions",
+      "Feeds the cash-flow forecast",
+    ],
+  },
+  {
+    title: "Duplicate Detection",
+    description: "Warn about possible duplicate transactions.",
+    status: "EVALUATION",
+    subtasks: ["On manual entry", "On CSV import and bank sync"],
+  },
+  {
+    title: "Global Search",
+    description: "Command palette (Ctrl+K) to search the whole app.",
+    status: "EVALUATION",
+    subtasks: [
+      "Cross-wallet transaction search",
+      "Quick navigation to wallets, settings and actions",
+    ],
+  },
+  {
+    title: "Net Worth Overview",
+    description: "Aggregated dashboard across all wallets.",
+    status: "EVALUATION",
+    subtasks: [
+      "Total balance converted to a preferred currency",
+      "Historical net-worth trend",
+    ],
+  },
+  {
+    title: "Transaction Templates & Quick Add",
+    description: "One-tap entry for frequent expenses.",
+    status: "EVALUATION",
+    subtasks: [
+      "Favorite transaction templates",
+      "Quick-add chips (coffee, fuel, ...)",
+      "Pairs with Android home-screen widgets",
+    ],
+  },
+  {
+    title: "Interactive Onboarding",
+    description: "Guided in-app tour for new users.",
+    status: "EVALUATION",
+    subtasks: [
+      "Step-by-step guided tour",
+      "Seeded example wallet (reusing demo-mode logic)",
+    ],
+  },
+  {
+    title: "Wallet Activity Feed",
+    description: "Audit log for shared wallets.",
+    status: "EVALUATION",
+    subtasks: [
+      "Who changed what, and when",
+      "Foundation for WebSocket live updates",
+    ],
+  },
+  {
+    title: "Trash & Undo",
+    description: "Soft-delete with restore.",
+    status: "EVALUATION",
+    subtasks: [
+      "Trash bin for deleted transactions and wallets",
+      "30-day restore window",
+    ],
+  },
+  {
+    title: "Session Management",
+    description: "Active sessions overview in Settings.",
+    status: "EVALUATION",
+    subtasks: [
+      "List active devices/sessions",
+      "Per-device revocation",
+      "Log out everywhere",
+    ],
+  },
+  {
+    title: "Full Export / Import",
+    description: "Complete account data portability beyond CSV.",
+    status: "EVALUATION",
+    subtasks: [
+      "Full account export (JSON/ZIP)",
+      "Re-import support",
+      "Recommended before enabling wallet encryption",
+    ],
+  },
+  {
+    title: "Localization (i18n)",
+    description: "Multi-language support.",
+    status: "EVALUATION",
+    subtasks: ["Italian translation", "Locale-aware number and date formats"],
+  },
+  {
+    title: "Public API Docs",
+    description: "OpenAPI/Swagger documentation for the REST API.",
+    status: "EVALUATION",
+    subtasks: [
+      "springdoc-openapi + Swagger UI",
+      "Makes personal access tokens useful beyond the MCP server",
+    ],
+  },
+  {
+    title: "AI Receipt Scanning",
+    description: "Turn receipt photos into transactions.",
+    status: "EVALUATION",
+    subtasks: [
+      "Attach a photo/PDF to a transaction",
+      "AI extraction of amount, date and merchant",
+      "Prefilled transaction from the receipt",
+    ],
+  },
+  {
+    title: "Merchant / Payee Field",
+    description: "Merchant tracking on transactions.",
+    status: "EVALUATION",
+    subtasks: [
+      "New payee field on transactions",
+      "Merchant-based auto-tagging rules",
+      "Prepares Bank Sync merchant normalization",
+    ],
+  },
+  {
+    title: "Observability",
+    description: "Monitoring for the HomeLab deployment.",
+    status: "EVALUATION",
+    subtasks: ["Prometheus metrics (Spring Actuator)", "Grafana dashboards"],
   },
 ];
 

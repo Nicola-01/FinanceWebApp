@@ -18,6 +18,7 @@ DB and one root `.env`.
 - `docker-compose.yml` (dev, builds locally) / `docker-compose.prod.yml` (pulls GHCR images).
 - `.github/workflows/deploy.yml` — CI/CD to GHCR + self-hosted runners.
 - `docs/superpowers/` — implementation plans and specs written by the superpowers workflow.
+- `.claude/TODO/` — active implementation plans/TODOs (e.g. `frontend-restructure.md`); completed ones move to `DONE/`.
 - `graphify-out/` — generated knowledge graph (see **graphify** below); not app code.
 - `OpenBanking/` — standalone EnableBanking/PSD2 experiment (Python script + certs); not wired into the apps.
 
@@ -119,6 +120,38 @@ entities/DTOs.
   (ADMIN only), `/oauth/authorize` (OAuth consent page the MCP flow redirects to);
   auth screens `/login`, `/register`, `/forgot-password`, `/reset-password` share `AuthLayout`.
 - **UI:** Tailwind 4 + MUI X-Charts for analytics, Framer Motion, dnd-kit for reordering.
+
+### Frontend code organization (structure guidelines)
+
+An active restructuring plan lives at **`.claude/TODO/frontend-restructure.md`** — read it
+before any structural frontend work (splits, moves, renames) and follow its phases; new
+findings get *censused* there, not fixed opportunistically. The rules it encodes:
+
+- **Component size:** a `.tsx` above **~250 lines** is a split candidate — but split only
+  along **real responsibility boundaries**: a complex inline subcomponent → its own file,
+  non-UI logic → a hook, pure logic / constants / data blocks → a `.ts` module. A
+  large-but-cohesive file (e.g. `utils/icons.ts`, a single chart, a DnD state machine)
+  stays whole. Don't fragment JSX just to hit a number.
+- **Placement:** feature-specific subcomponents are **colocated** next to their parent
+  (feature subfolder). Promote to `components/ui/` only what is (or should be) reused by
+  ≥2 features — and then *never* re-implement it inline (style.md golden rule). Shared
+  pure logic goes in `utils/`, shared hooks in `hooks/` — extend those instead of
+  duplicating inline (formatting, clipboard, outside-click, selection, etc. have bred
+  many copies; the plan consolidates them).
+- **Extracted pure logic must ship with a Vitest unit test** — extraction is the cheap
+  moment to gain coverage.
+- **Folder naming:** lowercase for category folders (`ui/`, `selectors/`, `common/`),
+  `PascalCase.tsx` for component files. No single-file PascalCase subfolders.
+- **No path aliases** (`tsconfig` has none): all imports are relative. Moving a file
+  means fixing imports in the file *and* all importers, and mirror-moving its test under
+  `src/__tests__/<same path>`. Always verify with `npm run build`.
+- **Modal shells:** exactly two exist — `modals/common/ModalDialog.tsx` (native
+  `<dialog>`) and `components/ui/ResponsiveOverlay.tsx` (drawer / mobile full-screen),
+  plus `WizardShell` for wizards. Never introduce another shell; pick one of these.
+- **Behavior-invariant refactors:** structural work (splits/moves/dedup) must not change
+  markup, classes, copy, or behavior — existing tests are the spec and must pass
+  unchanged. Visual changes (adopting `Button`/`Input` primitives, token migrations)
+  are a separate, user-approved initiative.
 
 ## MCP server
 
