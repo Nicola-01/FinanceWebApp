@@ -11,6 +11,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Tag } from "../../utils/types.ts";
 import { IconPickerButton } from "../../components/icon/IconPickerButton.tsx";
+import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";
 import { useInlineTagEdit } from "./useInlineTagEdit.ts";
 
 interface CategoryChildRowProps {
@@ -99,6 +100,8 @@ export const CategoryChildRow: React.FC<CategoryChildRowProps> = ({
           {child.name}
         </span>
       )}
+
+      <SyncStateIcon state={child.syncState} />
 
       {occurrences > 0 && (
         <span

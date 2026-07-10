@@ -4,6 +4,7 @@ import { faCalendarAlt, faTags } from "@fortawesome/free-solid-svg-icons";
 import type { Subscription } from "../../utils/types";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
+import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
 import { differenceInMonths, differenceInYears } from "date-fns";
 
@@ -162,6 +163,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           )}
 
           <div className="flex items-center gap-1.5 overflow-hidden shrink-0 flex-wrap">
+            <SyncStateIcon state={subscription.syncState} />
             {subscription.tag && (
               <TagBadge tag={subscription.tag} showParent={false} />
             )}
