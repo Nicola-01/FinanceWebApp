@@ -6,7 +6,10 @@ import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
 import api from "../../api/axiosConfig.ts";
 import Button from "../../components/ui/Button.tsx";
-import { Input } from "../../components/ui/Input.tsx";
+import {
+  NumberInput,
+  type AmountType,
+} from "../../components/ui/NumberInput.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
 
@@ -24,6 +27,8 @@ const PendingTransactionRow: React.FC<PendingRowProps> = ({
   onOpenDetails,
 }) => {
   const [value, setValue] = useState("");
+  // Seed the direction from the reminder's inherited type; the user can flip it.
+  const [type, setType] = useState<AmountType>(transaction.type);
   const [saving, setSaving] = useState(false);
   const canEdit = wallet.userRole !== "VIEWER";
   const currency = (transaction.originalCurrency ??
@@ -37,6 +42,7 @@ const PendingTransactionRow: React.FC<PendingRowProps> = ({
     try {
       await api.put(`/transactions/${wallet.id}/${transaction.id}/amount`, {
         originalAmount: Math.abs(Number(value)),
+        type: type || undefined,
       });
       triggerToast("Amount saved!", true);
       onFilled();
@@ -88,16 +94,14 @@ const PendingTransactionRow: React.FC<PendingRowProps> = ({
       >
         {canEdit ? (
           <>
-            <div className="w-28">
-              <Input
-                type="number"
-                inputMode="decimal"
+            <div className="w-52">
+              <NumberInput
                 placeholder={`0.00 ${symbol}`}
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") submit();
-                }}
+                onChange={setValue}
+                onEnter={submit}
+                type={type}
+                onTypeChange={setType}
                 aria-label={`Amount for ${transaction.name}`}
               />
             </div>

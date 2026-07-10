@@ -714,6 +714,50 @@ class TransactionServiceTest {
   }
 
   @Test
+  void fillTransactionAmount_WithType_OverridesDirection() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR"); // seeded as INCOME
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder()
+            .originalAmount(new BigDecimal("42.00"))
+            .type(Transaction.Type.EXPENSE)
+            .build(),
+        walletId,
+        UUID.randomUUID());
+
+    assertEquals(Transaction.Type.EXPENSE, tx.getType());
+    assertFalse(tx.isAmountPending());
+  }
+
+  @Test
+  void fillTransactionAmount_NullType_KeepsInheritedDirection() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR"); // seeded as INCOME
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder().originalAmount(new BigDecimal("42.00")).build(),
+        walletId,
+        UUID.randomUUID());
+
+    assertEquals(Transaction.Type.INCOME, tx.getType());
+  }
+
+  @Test
   void fillTransactionAmount_ForeignCurrencyAutoRate_UsesLiveRateAtFillTime() {
     UUID txId = UUID.randomUUID();
     UUID walletId = UUID.randomUUID();

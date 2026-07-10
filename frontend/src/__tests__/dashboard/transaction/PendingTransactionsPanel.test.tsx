@@ -67,9 +67,34 @@ describe("PendingTransactionsPanel", () => {
     await waitFor(() =>
       expect(api.put).toHaveBeenCalledWith("/transactions/w1/t1/amount", {
         originalAmount: 2450,
+        type: "INCOME",
       }),
     );
     expect(onFilled).toHaveBeenCalled();
+  });
+
+  it("sends the chosen direction when the type is flipped to expense", async () => {
+    render(
+      <PendingTransactionsPanel
+        wallet={wallet}
+        pendingTransactions={[pendingTx]}
+        onFilled={vi.fn()}
+        onOpenDetails={vi.fn()}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Amount for Salary"), {
+      target: { value: "80" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Expense — money out" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Confirm amount" }));
+    await waitFor(() =>
+      expect(api.put).toHaveBeenCalledWith("/transactions/w1/t1/amount", {
+        originalAmount: 80,
+        type: "EXPENSE",
+      }),
+    );
   });
 
   it("opens the details view when the row body is clicked", () => {

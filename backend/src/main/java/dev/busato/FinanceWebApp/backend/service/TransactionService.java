@@ -464,6 +464,7 @@ public class TransactionService {
     transaction.setOriginalAmount(originalAmount);
     transaction.setAmount(amount);
     transaction.setExchangeValue(exchangeValue);
+    if (request.getType() != null) transaction.setType(request.getType());
     transaction.setAmountPending(false);
     return transactionMapper.mapToResponse(transaction);
   }
