@@ -230,8 +230,10 @@ public class SubscriptionService {
    */
   private Subscription buildAndPersistSubscription(
       SubscriptionRequest request, Wallet wallet, Tag tag) {
+    boolean amountPending = Boolean.TRUE.equals(request.getAmountPending());
     validateSubscriptionNameForCreate(request.getName());
-    requireNonNegativeAmountForCreate(request.getAmount());
+    // Reminder templates deliberately have no amount; everything else still requires one.
+    if (!amountPending) requireNonNegativeAmountForCreate(request.getAmount());
 
     Subscription sub =
         Subscription.builder()
@@ -239,17 +241,20 @@ public class SubscriptionService {
             .wallet(wallet)
             .tag(tag)
             .name(request.getName())
-            .amount(request.getAmount())
+            .amountPending(amountPending)
+            .amount(amountPending ? BigDecimal.ZERO : request.getAmount())
             // originalAmount is required (NOT NULL) and equals the amount when no
             // currency conversion is involved. Callers that omit it — e.g. the wallet
             // wizard staging simple, single-currency subscriptions — would otherwise
             // persist null and break both the subscription and the transactions it
             // generates, so default it to the amount here (before executeSubscription
-            // copies it onto the first generated transaction).
+            // copies it onto the first generated transaction). Reminders store 0.
             .originalAmount(
-                request.getOriginalAmount() != null
-                    ? request.getOriginalAmount()
-                    : request.getAmount())
+                amountPending
+                    ? BigDecimal.ZERO
+                    : request.getOriginalAmount() != null
+                        ? request.getOriginalAmount()
+                        : request.getAmount())
             .originalCurrency(request.getOriginalCurrency())
             .exchangeValue(request.getExchangeValue())
             .autoExchangeRate(request.isAutoExchangeRate())
@@ -381,10 +386,29 @@ public class SubscriptionService {
     if (request.getAmount() != null && request.getAmount().compareTo(BigDecimal.ZERO) < 0)
       throw new IllegalArgumentException("The amount cannot be negative.");
 
+    // Reminder flag first: turning it on zeroes the stored amounts; turning it off requires a
+    // real amount to take their place. Not retroactive on already-generated transactions.
+    if (request.getAmountPending() != null && request.getAmountPending() != sub.isAmountPending()) {
+      if (request.getAmountPending()) {
+        sub.setAmountPending(true);
+        sub.setAmount(BigDecimal.ZERO);
+        sub.setOriginalAmount(BigDecimal.ZERO);
+      } else {
+        if (request.getAmount() == null)
+          throw new IllegalArgumentException(
+              "An amount is required to turn a reminder subscription into a regular one.");
+        sub.setAmountPending(false);
+      }
+    }
+
     sub.setTag(tag);
 
-    if (request.getAmount() != null) sub.setAmount(request.getAmount());
-    if (request.getOriginalAmount() != null) sub.setOriginalAmount(request.getOriginalAmount());
+    // While the subscription is a reminder its stored amounts stay 0 — incoming values are
+    // metadata noise from stale clients, not a real amount change.
+    if (!sub.isAmountPending()) {
+      if (request.getAmount() != null) sub.setAmount(request.getAmount());
+      if (request.getOriginalAmount() != null) sub.setOriginalAmount(request.getOriginalAmount());
+    }
     sub.setOriginalCurrency(request.getOriginalCurrency());
     if (request.getExchangeValue() != null) sub.setExchangeValue(request.getExchangeValue());
     sub.setAutoExchangeRate(request.isAutoExchangeRate());
@@ -509,14 +533,17 @@ public class SubscriptionService {
       // autoExchangeRate uses the day's live rate; otherwise the stored (fixed)
       // values are kept. If the live fetch fails, we fall back to the stored ones
       // rather than skip the transaction.
-      BigDecimal resolvedAmount = sub.getAmount();
-      BigDecimal resolvedExchange = sub.getExchangeValue();
+      // Reminder subscriptions generate amount-less transactions: skip rate resolution
+      // entirely — the amount is unknown until the user fills it in (fill endpoint).
+      boolean pending = sub.isAmountPending();
+      BigDecimal resolvedAmount = pending ? BigDecimal.ZERO : sub.getAmount();
+      BigDecimal resolvedExchange = pending ? null : sub.getExchangeValue();
       String walletCurrency = sub.getWallet() != null ? sub.getWallet().getCurrency() : null;
       boolean foreign =
           sub.getOriginalCurrency() != null
               && walletCurrency != null
               && !sub.getOriginalCurrency().equals(walletCurrency);
-      if (foreign && sub.isAutoExchangeRate() && sub.getOriginalAmount() != null) {
+      if (!pending && foreign && sub.isAutoExchangeRate() && sub.getOriginalAmount() != null) {
         BigDecimal liveRate =
             exchangeRateService.getRate(sub.getOriginalCurrency(), walletCurrency).orElse(null);
         if (liveRate != null) {
@@ -532,13 +559,16 @@ public class SubscriptionService {
               .subscription(sub)
               .tag(sub.getTag())
               .name(generatedName)
+              .amountPending(pending)
               .amount(resolvedAmount)
               // Transactions.original_amount is NOT NULL. Guard here (not just at
               // subscription build) so the daily cron never fails on a subscription
               // that somehow carries a null original amount — fall back to the
               // resolved amount, which equals it when no conversion is involved.
               .originalAmount(
-                  sub.getOriginalAmount() != null ? sub.getOriginalAmount() : resolvedAmount)
+                  pending
+                      ? BigDecimal.ZERO
+                      : sub.getOriginalAmount() != null ? sub.getOriginalAmount() : resolvedAmount)
               .originalCurrency(sub.getOriginalCurrency())
               .exchangeValue(resolvedExchange)
               .type(Transaction.Type.valueOf(sub.getType().name()))
