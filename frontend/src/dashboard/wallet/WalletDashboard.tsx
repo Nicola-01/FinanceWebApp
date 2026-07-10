@@ -7,6 +7,7 @@ import { Icon } from "../../components/icon/Icon.tsx";
 import { WalletTabs } from "./WalletTabs.tsx";
 // import { WalletMenu } from "./WalletMenu.tsx";
 import { TagsTab } from "../tag/TagsTab.tsx";
+import { BudgetTab } from "../budget/BudgetTab";
 import { SettingsTab } from "../settings/SettingsTab.tsx";
 import { WalletProvider } from "./WalletProvider.tsx";
 import { useWalletContext } from "./WalletContext.tsx";
@@ -51,6 +52,7 @@ const WalletBody: React.FC = () => {
       {activeTab === "subscription" && <SubscriptionTab />}
       {activeTab === "category" && <TagsTab />}
       {activeTab === "statistics" && <StatisticsTab />}
+      {activeTab === "budget" && <BudgetTab />}
       {activeTab === "settings" && <SettingsTab />}
     </div>
   );
