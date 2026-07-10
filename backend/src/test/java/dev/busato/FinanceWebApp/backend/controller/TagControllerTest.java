@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -127,6 +128,21 @@ class TagControllerTest extends BaseWebMvcTest {
         .perform(delete("/api/tags/{walletID}/{tagName}", walletId, tagName))
         .andExpect(status().isNoContent());
 
-    verify(tagService).deleteTag(eq(tagName), eq(walletId), any(UUID.class));
+    verify(tagService).deleteTag(eq(tagName), eq(walletId), any(UUID.class), isNull());
+  }
+
+  @Test
+  void deleteTag_WithBaseUpdatedAt_ForwardsItToService() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    String tagName = "Groceries";
+    java.time.Instant baseUpdatedAt = java.time.Instant.parse("2026-07-08T10:00:00Z");
+
+    mockMvc
+        .perform(
+            delete("/api/tags/{walletID}/{tagName}", walletId, tagName)
+                .param("baseUpdatedAt", baseUpdatedAt.toString()))
+        .andExpect(status().isNoContent());
+
+    verify(tagService).deleteTag(eq(tagName), eq(walletId), any(UUID.class), eq(baseUpdatedAt));
   }
 }

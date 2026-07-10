@@ -8,6 +8,7 @@ import {
   faRepeat,
 } from "@fortawesome/free-solid-svg-icons";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
+import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
 
 interface TransactionRowProps {
@@ -62,6 +63,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                 title="Recurring Payment"
               />
             )}
+            <SyncStateIcon state={transaction.syncState} />
             <TagBadge tag={transaction.tag} />
           </div>
         </div>

@@ -1,15 +1,17 @@
 package dev.busato.FinanceWebApp.backend.model;
 
-import dev.busato.FinanceWebApp.backend.persistence.UuidV7Generator;
+import dev.busato.FinanceWebApp.backend.persistence.AssignableUuidV7;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
 @Builder
@@ -19,9 +21,7 @@ import org.hibernate.annotations.UuidGenerator;
 @Table(name = "transactions")
 public class Transaction {
 
-  @Id
-  @UuidGenerator(algorithm = UuidV7Generator.class)
-  private UUID id;
+  @Id @AssignableUuidV7 private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "wallet_id", nullable = false)
@@ -44,6 +44,16 @@ public class Transaction {
 
   private String encryptedAmount;
 
+  /**
+   * When true the real amount is not known yet: amount and originalAmount stay 0 until the user
+   * fills them in (rendered as a pinned "awaiting amount" row in the UI). Only
+   * subscription-generated transactions are ever created pending.
+   */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean amountPending = false;
+
   @Column(nullable = false, precision = 19, scale = 2)
   private BigDecimal originalAmount;
 
@@ -60,6 +70,9 @@ public class Transaction {
 
   @Column(nullable = false)
   private LocalDate transactionDate;
+
+  /** Server-side last-write timestamp; optimistic precondition for offline replays. */
+  @UpdateTimestamp @Column private Instant updatedAt;
 
   public enum Type {
     INCOME,

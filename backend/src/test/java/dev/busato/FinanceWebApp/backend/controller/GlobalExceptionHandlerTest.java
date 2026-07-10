@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import dev.busato.FinanceWebApp.backend.exceptions.InvalidTokenException;
 import dev.busato.FinanceWebApp.backend.exceptions.PermissionDeniedException;
+import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagHasChildrenException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagInUseException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
@@ -195,6 +196,20 @@ class GlobalExceptionHandlerTest {
     assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
     ProblemDetail problemDetail = response.getBody();
     assertEquals("Tag in Use", problemDetail.getTitle());
+    assertEquals(ex.getMessage(), problemDetail.getDetail());
+    assertEquals(URI.create("/api/test"), problemDetail.getInstance());
+    assertNotNull(problemDetail.getProperties().get("timestamp"));
+  }
+
+  @Test
+  void handleStaleWriteException_Returns409() {
+    StaleWriteException ex = new StaleWriteException("transaction");
+    ResponseEntity<ProblemDetail> response =
+        exceptionHandler.handleStaleWriteException(ex, request);
+
+    assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+    ProblemDetail problemDetail = response.getBody();
+    assertEquals("Stale Write", problemDetail.getTitle());
     assertEquals(ex.getMessage(), problemDetail.getDetail());
     assertEquals(URI.create("/api/test"), problemDetail.getInstance());
     assertNotNull(problemDetail.getProperties().get("timestamp"));

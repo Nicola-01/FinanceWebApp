@@ -2,6 +2,7 @@ import {
   faUser,
   faShieldAlt,
   faCode,
+  faBell,
   faInfoCircle,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
@@ -30,6 +31,12 @@ export const SETTINGS_SECTIONS: SettingsSectionDef[] = [
     label: "Tokens & Connections",
     icon: faCode,
     description: "API tokens and connected MCP apps",
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    icon: faBell,
+    description: "Push notifications and activity alerts",
   },
   {
     id: "about",

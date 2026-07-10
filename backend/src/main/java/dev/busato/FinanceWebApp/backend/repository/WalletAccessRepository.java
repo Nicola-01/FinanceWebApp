@@ -23,6 +23,13 @@ public interface WalletAccessRepository
   List<WalletAccess> findAllByUserIdAndStatus(
       UUID userId, WalletAccess.InvitationStatus invitationStatus);
 
+  /**
+   * Recipient source for the notification dispatcher: all members of a wallet in a given status.
+   */
+  @EntityGraph(attributePaths = {"user", "wallet"})
+  List<WalletAccess> findAllByWalletIdAndStatus(
+      UUID walletId, WalletAccess.InvitationStatus status);
+
   Optional<WalletAccess> findByWalletIdAndUserIdAndRole(
       UUID walletId, UUID userId, WalletAccess.WalletRole role);
 

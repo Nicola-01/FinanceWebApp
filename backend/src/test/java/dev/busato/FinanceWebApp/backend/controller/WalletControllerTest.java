@@ -35,6 +35,24 @@ class WalletControllerTest extends BaseWebMvcTest {
   @org.springframework.test.context.bean.override.mockito.MockitoBean
   private dev.busato.FinanceWebApp.backend.service.WalletDashboardService walletDashboardService;
 
+  @org.springframework.test.context.bean.override.mockito.MockitoBean
+  private dev.busato.FinanceWebApp.backend.service.NotificationPreferenceService
+      notificationPreferenceService;
+
+  @Test
+  void setNotificationMute_ShouldReturn204AndDelegate() throws Exception {
+    UUID walletId = UUID.randomUUID();
+
+    mockMvc
+        .perform(
+            put("/api/wallets/{walletID}/notification-mute", walletId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"muted\":true}"))
+        .andExpect(status().isNoContent());
+
+    verify(notificationPreferenceService).setWalletMute(mockUser.getId(), walletId, true);
+  }
+
   @Test
   void getMyWallets_ShouldReturn200() throws Exception {
     WalletResponse mockResponse = WalletResponse.builder().name("Main Wallet").build();

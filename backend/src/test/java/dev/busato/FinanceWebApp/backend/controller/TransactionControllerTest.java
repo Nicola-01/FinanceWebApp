@@ -3,12 +3,14 @@ package dev.busato.FinanceWebApp.backend.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
+import dev.busato.FinanceWebApp.backend.dto.TransactionFillRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.service.TransactionService;
@@ -123,6 +125,29 @@ class TransactionControllerTest extends BaseWebMvcTest {
   }
 
   @Test
+  void fillTransactionAmount_ShouldReturn200() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    UUID transactionId = UUID.randomUUID();
+    TransactionResponse mockResponse = TransactionResponse.builder().name("Salary").build();
+
+    when(transactionService.fillTransactionAmount(
+            eq(transactionId), any(TransactionFillRequest.class), eq(walletId), any(UUID.class)))
+        .thenReturn(mockResponse);
+
+    mockMvc
+        .perform(
+            put("/api/transactions/{walletID}/{transactionID}/amount", walletId, transactionId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"originalAmount\": 2450.00}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.name").value("Salary"));
+
+    verify(transactionService)
+        .fillTransactionAmount(
+            eq(transactionId), any(TransactionFillRequest.class), eq(walletId), any(UUID.class));
+  }
+
+  @Test
   void deleteTransaction_ShouldReturn204() throws Exception {
     UUID walletId = UUID.randomUUID();
     UUID transactionId = UUID.randomUUID();
@@ -131,6 +156,23 @@ class TransactionControllerTest extends BaseWebMvcTest {
         .perform(delete("/api/transactions/{walletID}/{transactionID}", walletId, transactionId))
         .andExpect(status().isNoContent());
 
-    verify(transactionService).deleteTransaction(eq(transactionId), eq(walletId), any(UUID.class));
+    verify(transactionService)
+        .deleteTransaction(eq(transactionId), eq(walletId), any(UUID.class), isNull());
+  }
+
+  @Test
+  void deleteTransaction_WithBaseUpdatedAt_ForwardsItToService() throws Exception {
+    UUID walletId = UUID.randomUUID();
+    UUID transactionId = UUID.randomUUID();
+    java.time.Instant baseUpdatedAt = java.time.Instant.parse("2026-07-08T10:00:00Z");
+
+    mockMvc
+        .perform(
+            delete("/api/transactions/{walletID}/{transactionID}", walletId, transactionId)
+                .param("baseUpdatedAt", baseUpdatedAt.toString()))
+        .andExpect(status().isNoContent());
+
+    verify(transactionService)
+        .deleteTransaction(eq(transactionId), eq(walletId), any(UUID.class), eq(baseUpdatedAt));
   }
 }

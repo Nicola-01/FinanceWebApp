@@ -13,6 +13,7 @@ import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.repository.EmailChangeRequestRepository;
 import dev.busato.FinanceWebApp.backend.repository.PersonalAccessTokenRepository;
+import dev.busato.FinanceWebApp.backend.repository.PushSubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
@@ -39,6 +40,7 @@ class AccountDeletionServiceTest {
   @Mock private SubscriptionRepository subscriptionRepository;
   @Mock private PersonalAccessTokenRepository patRepository;
   @Mock private EmailChangeRequestRepository emailChangeRepository;
+  @Mock private PushSubscriptionRepository pushSubscriptionRepository;
 
   @InjectMocks private AccountDeletionService accountDeletionService;
 
@@ -106,6 +108,7 @@ class AccountDeletionServiceTest {
 
   private void verifyAccountRowRemoved() {
     verify(patRepository).deleteAllByUserId(meId);
+    verify(pushSubscriptionRepository).deleteAllByUserId(meId);
     verify(emailChangeRepository).deleteByUserId(meId);
     verify(walletAccessRepository).deleteAllByUserId(meId);
     verify(userRepository).delete(me);
@@ -127,6 +130,7 @@ class AccountDeletionServiceTest {
         walletAccessRepository,
         subscriptionRepository,
         patRepository,
+        pushSubscriptionRepository,
         emailChangeRepository);
   }
 

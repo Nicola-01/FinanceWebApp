@@ -11,6 +11,21 @@ vi.mock("../../../modals/TransactionModal/TransactionView", () => ({
 vi.mock("../../../modals/common/DeleteModalContext", () => ({
   useDeleteModal: () => ({ current: { deleteObject } }),
 }));
+// Deps needed to render the REAL TransactionView in isolation (see the
+// "Amount pending" test) — harmless to the other tests, which use the
+// mocked TransactionView above and never touch these modules.
+vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
+  useWalletContext: () => ({ subscriptions: [], tags: [], fetchData: vi.fn() }),
+}));
+vi.mock("../../../modals/subscription/SubscriptionModal.tsx", () => ({
+  SubscriptionModal: () => null,
+}));
+vi.mock("../../../components/ui/TagBadge.tsx", () => ({
+  TagBadge: () => <div data-testid="tag-badge" />,
+}));
+vi.mock("../../../modals/TransactionModal/ExchangeRateSection.tsx", () => ({
+  ExchangeRateSection: () => <div data-testid="exchange" />,
+}));
 
 import {
   TransactionDetailsModal,
@@ -76,5 +91,21 @@ describe("TransactionDetailsModal", () => {
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
     expect(deleteObject).toHaveBeenCalledTimes(1);
     expect(deleteObject.mock.calls[0][1]).toBe("transaction");
+  });
+
+  // TransactionView is mocked at the module level for the tests above (they
+  // assert on the "tx-view" placeholder), so we pull in the real component
+  // here via importActual to verify its pending-amount rendering.
+  it("shows 'Amount pending' for a pending transaction", async () => {
+    const { TransactionView } = await vi.importActual<
+      typeof import("../../../modals/TransactionModal/TransactionView")
+    >("../../../modals/TransactionModal/TransactionView");
+    render(
+      <TransactionView
+        tx={{ ...tx, amount: 0, amountPending: true } as unknown as Transaction}
+        wallet={wallet()}
+      />,
+    );
+    expect(screen.getByText("Amount pending")).toBeInTheDocument();
   });
 });

@@ -63,15 +63,19 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
     <div className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">
       {/* 1. AMOUNT */}
       <div className="text-center mt-2 flex flex-col items-center">
-        <p
-          className={`text-6xl font-app-mono ${isIncome ? "text-app-green" : "text-app-red"}`}
-        >
-          {isIncome ? "+" : "-"}
-          {sub.amount.toFixed(2)}{" "}
-          <span className="text-3xl">
-            {CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}
-          </span>
-        </p>
+        {sub.amountPending ? (
+          <p className="text-4xl font-app-mono text-app-muted">Reminder</p>
+        ) : (
+          <p
+            className={`text-6xl font-app-mono ${isIncome ? "text-app-green" : "text-app-red"}`}
+          >
+            {isIncome ? "+" : "-"}
+            {sub.amount.toFixed(2)}{" "}
+            <span className="text-3xl">
+              {CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}
+            </span>
+          </p>
+        )}
         <div className="flex items-center gap-2 mt-2 px-3 py-1 rounded-full bg-app-input border border-app-border text-xs font-bold tracking-wider uppercase">
           {getStatusIcon()}
           <span className="text-app-muted">{sub.status}</span>

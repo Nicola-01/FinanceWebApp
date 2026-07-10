@@ -14,11 +14,12 @@ import { DeleteModalProvider } from "./modals/common/DeleteModalProvider";
 import Register from "./register/Register.tsx";
 import ForgotPassword from "./auth/ForgotPassword.tsx";
 import ResetPassword from "./auth/ResetPassword.tsx";
-import { initSync } from "./utils/syncService.ts";
+import { initSync } from "./sync/replay";
 import { ThemeProvider } from "./utils/ThemeProvider.tsx";
 import { getUserAuth } from "./utils/authHelper.ts";
 import { PWAProvider } from "./utils/PWAProvider.tsx";
 import { PWAPrompt } from "./components/ui/PWAPrompt.tsx";
+import { usePushMessages } from "./push/usePushMessages.ts";
 import LandingPage from "./components/LandingPage/LandingPage.tsx";
 import ToDoPage from "./components/ToDoPage/ToDoPage.tsx";
 import OAuthConsent from "./auth/OAuthConsent.tsx";
@@ -40,6 +41,15 @@ const AdminRoute = () => {
   return <Outlet />;
 };
 
+/**
+ * Bridges service-worker push messages to the app (foreground toast, click-ack,
+ * click-navigate). Rendered inside Router context so it can use `useNavigate`.
+ */
+const PushMessagesBridge: React.FC = () => {
+  usePushMessages();
+  return null;
+};
+
 const App: React.FC = () => {
   const deleteModalRef = useRef<DeleteModalHandle>(null);
 
@@ -51,6 +61,7 @@ const App: React.FC = () => {
     <ThemeProvider>
       <PWAProvider>
         <PWAPrompt />
+        <PushMessagesBridge />
         <ToastHost />
         <DeleteModalProvider deleteModalRef={deleteModalRef}>
           <DeleteModal ref={deleteModalRef} />

@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.dto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -14,6 +15,7 @@ public class SubscriptionResponse {
   private String name;
   private TagResponse tag;
   private BigDecimal amount;
+  private boolean amountPending;
   private BigDecimal originalAmount;
   private String originalCurrency;
   private BigDecimal exchangeValue;
@@ -37,4 +39,6 @@ public class SubscriptionResponse {
   private LocalDate durationUntil;
 
   private List<TransactionResponse> history;
+
+  private Instant updatedAt;
 }

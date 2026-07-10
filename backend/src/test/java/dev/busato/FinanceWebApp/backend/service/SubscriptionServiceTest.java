@@ -12,15 +12,20 @@ import dev.busato.FinanceWebApp.backend.dto.SubscriptionBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionRequest;
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
+import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
+import dev.busato.FinanceWebApp.backend.model.Notification;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
+import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
+import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -49,6 +54,8 @@ class SubscriptionServiceTest {
   @Mock private TagMapper tagMapper;
   @Mock private TagService tagService;
   @Mock private ExchangeRateService exchangeRateService;
+  @Mock private UserRepository userRepository;
+  @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
   @Mock private Clock clock;
 
@@ -97,6 +104,91 @@ class SubscriptionServiceTest {
     Subscription saved = captor.getValue();
     assertEquals("Netflix", saved.getName());
     assertEquals(LocalDate.of(2024, 3, 15), saved.getNextExecutionDate()); // 1 month from Feb 15
+  }
+
+  @Test
+  void createSubscription_Active_PublishesCreatedEvent() {
+    mockWallet.setName("Casa");
+    mockWallet.setCurrency("EUR");
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setName("Netflix");
+    request.setAmount(new BigDecimal("15.99"));
+    request.setType("EXPENSE");
+    request.setFrequencyType("MONTHLY");
+    request.setFrequencyInterval(1);
+    request.setStartDate(LocalDate.of(2024, 3, 15)); // future → not immediately due
+    request.setDuration("FOREVER");
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+    User actor = new User();
+    actor.setId(userId);
+    actor.setUsername("nicola");
+    when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    ArgumentCaptor<WalletActivityEvent> captor = ArgumentCaptor.forClass(WalletActivityEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    WalletActivityEvent e = captor.getValue();
+    assertEquals(Notification.NotificationType.SUBSCRIPTION_CREATED, e.type());
+    assertEquals("nicola", e.actorUsername());
+    assertEquals("Casa", e.walletName());
+  }
+
+  @Test
+  void createSubscription_Paused_PublishesNothing() {
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setName("Netflix");
+    request.setAmount(new BigDecimal("15.99"));
+    request.setType("EXPENSE");
+    request.setFrequencyType("MONTHLY");
+    request.setFrequencyInterval(1);
+    request.setStartDate(LocalDate.of(2024, 3, 15));
+    request.setDuration("FOREVER");
+    request.setStatus("PAUSED");
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  @Test
+  void processDueSubscriptions_ActiveDue_PublishesRecurringExecutedWithNullActor() {
+    mockWallet.setName("Casa");
+    mockWallet.setCurrency("EUR");
+    Subscription sub =
+        Subscription.builder()
+            .wallet(mockWallet)
+            .name("Netflix")
+            .amount(new BigDecimal("9.99"))
+            .originalAmount(new BigDecimal("9.99"))
+            .type(Subscription.Type.EXPENSE)
+            .status(Subscription.Status.ACTIVE)
+            .frequencyType(Subscription.Frequency.MONTHLY)
+            .frequencyInterval(1)
+            .duration(Subscription.Duration.FOREVER)
+            .startDate(LocalDate.of(2024, 1, 15))
+            .nextExecutionDate(LocalDate.of(2024, 2, 15))
+            .executedTimes(0)
+            .build();
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(any(), any()))
+        .thenReturn(List.of(sub));
+
+    subscriptionService.processDueSubscriptions();
+
+    ArgumentCaptor<WalletActivityEvent> captor = ArgumentCaptor.forClass(WalletActivityEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    WalletActivityEvent e = captor.getValue();
+    assertEquals(Notification.NotificationType.RECURRING_EXECUTED, e.type());
+    assertNull(e.actorId());
+    assertEquals("Netflix", e.entityName());
+    assertEquals("Casa", e.walletName());
   }
 
   @Test
@@ -598,6 +690,51 @@ class SubscriptionServiceTest {
         () -> subscriptionService.createSubscription(request, walletId, userId));
   }
 
+  // ==================== createSubscription — client-generated id (offline replay)
+  // ====================
+
+  @Test
+  void createSubscription_withClientId_setsIdOnEntity() {
+    UUID clientId = UUID.randomUUID();
+    SubscriptionRequest request =
+        SubscriptionRequest.builder()
+            .id(clientId)
+            .name("Netflix")
+            .amount(new BigDecimal("15.99"))
+            .type("EXPENSE")
+            .frequencyType("MONTHLY")
+            .frequencyInterval(1)
+            .startDate(LocalDate.of(2024, 3, 15)) // Future date → no immediate execution
+            .duration("FOREVER")
+            .build();
+    when(subscriptionRepository.existsByIdAndWalletId(clientId, walletId)).thenReturn(false);
+    // Reuse the suite's existing happy-path stubbing for wallet lookup + save + mapper.
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+    verify(subscriptionRepository).save(captor.capture());
+    assertEquals(clientId, captor.getValue().getId());
+  }
+
+  @Test
+  void createSubscription_withExistingClientId_isIdempotentAndDoesNotSave() {
+    UUID clientId = UUID.randomUUID();
+    SubscriptionRequest request = SubscriptionRequest.builder().id(clientId).name("x").build();
+    Subscription existing = Subscription.builder().id(clientId).build();
+    when(subscriptionRepository.existsByIdAndWalletId(clientId, walletId)).thenReturn(true);
+    when(subscriptionRepository.findById(clientId)).thenReturn(Optional.of(existing));
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    verify(subscriptionRepository, never()).save(any());
+    verify(subscriptionMapper).mapToResponse(existing);
+  }
+
   // ==================== createSubscriptionsBulk (upsert) ====================
 
   @Test
@@ -878,7 +1015,7 @@ class SubscriptionServiceTest {
     Subscription sub = new Subscription();
     when(subscriptionRepository.findByIdAndWalletId(subId, walletId)).thenReturn(Optional.of(sub));
 
-    subscriptionService.deleteSubscription(subId, walletId, userId);
+    subscriptionService.deleteSubscription(subId, walletId, userId, null);
 
     verify(subscriptionRepository).delete(sub);
   }
@@ -890,7 +1027,65 @@ class SubscriptionServiceTest {
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> subscriptionService.deleteSubscription(subId, walletId, userId));
+        () -> subscriptionService.deleteSubscription(subId, walletId, userId, null));
+  }
+
+  // ==================== baseUpdatedAt / Stale Write precondition ====================
+
+  @Test
+  void updateSubscription_staleBaseUpdatedAt_throwsStaleWrite() {
+    UUID subId = UUID.randomUUID();
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Subscription existing = Subscription.builder().id(subId).updatedAt(serverTime).build();
+    when(subscriptionRepository.findByIdAndWalletId(subId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    SubscriptionRequest request =
+        SubscriptionRequest.builder()
+            .name("x")
+            .baseUpdatedAt(serverTime.minusSeconds(60)) // older than the server row
+            .build();
+
+    assertThrows(
+        StaleWriteException.class,
+        () -> subscriptionService.updateSubscription(subId, request, walletId, userId));
+    verify(subscriptionRepository, never()).save(any());
+  }
+
+  @Test
+  void updateSubscription_nullBaseUpdatedAt_skipsPrecondition() {
+    UUID subId = UUID.randomUUID();
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Subscription existing = Subscription.builder().id(subId).updatedAt(serverTime).build();
+    when(subscriptionRepository.findByIdAndWalletId(subId, walletId))
+        .thenReturn(Optional.of(existing));
+    when(subscriptionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    SubscriptionRequest request =
+        SubscriptionRequest.builder().name("Updated Name").build(); // no baseUpdatedAt
+
+    subscriptionService.updateSubscription(subId, request, walletId, userId);
+
+    assertEquals("Updated Name", existing.getName());
+    verify(subscriptionRepository).save(existing);
+  }
+
+  @Test
+  void deleteSubscription_staleBaseUpdatedAt_throwsStaleWrite() {
+    UUID subId = UUID.randomUUID();
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Subscription existing = Subscription.builder().id(subId).updatedAt(serverTime).build();
+    when(subscriptionRepository.findByIdAndWalletId(subId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    assertThrows(
+        StaleWriteException.class,
+        () ->
+            subscriptionService.deleteSubscription(
+                subId, walletId, userId, serverTime.minusSeconds(60)));
+    verify(subscriptionRepository, never()).delete(any());
   }
 
   // ==================== executeSubscription — PAUSED status ====================
@@ -1004,5 +1199,155 @@ class SubscriptionServiceTest {
     Subscription saved = captor.getValue();
     // Feb 2024 has 29 days (leap year), so 31 should be capped to 29
     assertEquals(LocalDate.of(2024, 2, 29), saved.getNextExecutionDate());
+  }
+
+  // ==================== reminder (amount-less) subscriptions ====================
+
+  private Subscription baseMonthlySub() {
+    return Subscription.builder()
+        .id(UUID.randomUUID())
+        .wallet(mockWallet)
+        .name("Salary")
+        .amount(new BigDecimal("100.00"))
+        .originalAmount(new BigDecimal("100.00"))
+        .type(Subscription.Type.INCOME)
+        .status(Subscription.Status.ACTIVE)
+        .startDate(LocalDate.of(2024, 1, 1))
+        .nextExecutionDate(LocalDate.of(2024, 3, 1))
+        .frequencyType(Subscription.Frequency.MONTHLY)
+        .frequencyInterval(1)
+        .duration(Subscription.Duration.FOREVER)
+        .build();
+  }
+
+  @Test
+  void createSubscription_Reminder_AllowsNullAmountAndZeroesStoredAmounts() {
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setName("Salary reminder");
+    request.setAmountPending(true);
+    request.setType("INCOME");
+    request.setFrequencyType("MONTHLY");
+    request.setFrequencyInterval(1);
+    request.setStartDate(LocalDate.of(2024, 3, 1)); // future → no immediate execution
+    request.setDuration("FOREVER");
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+    verify(subscriptionRepository, atLeastOnce()).save(captor.capture());
+    Subscription saved = captor.getValue();
+    assertTrue(saved.isAmountPending());
+    assertEquals(0, BigDecimal.ZERO.compareTo(saved.getAmount()));
+    assertEquals(0, BigDecimal.ZERO.compareTo(saved.getOriginalAmount()));
+  }
+
+  @Test
+  void createSubscription_NoAmountAndNotReminder_Throws() {
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setName("Netflix");
+    request.setType("EXPENSE");
+    request.setFrequencyType("MONTHLY");
+    request.setFrequencyInterval(1);
+    request.setStartDate(LocalDate.of(2024, 3, 1));
+    request.setDuration("FOREVER");
+
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> subscriptionService.createSubscription(request, walletId, userId));
+  }
+
+  @Test
+  void updateSubscription_TurnReminderOn_ZeroesStoredAmounts() {
+    Subscription existing = baseMonthlySub();
+    when(subscriptionRepository.findByIdAndWalletId(existing.getId(), walletId))
+        .thenReturn(Optional.of(existing));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setAmountPending(true);
+
+    subscriptionService.updateSubscription(existing.getId(), request, walletId, userId);
+
+    assertTrue(existing.isAmountPending());
+    assertEquals(0, BigDecimal.ZERO.compareTo(existing.getAmount()));
+    assertEquals(0, BigDecimal.ZERO.compareTo(existing.getOriginalAmount()));
+  }
+
+  @Test
+  void updateSubscription_TurnReminderOffWithoutAmount_Throws() {
+    Subscription existing = baseMonthlySub();
+    existing.setAmountPending(true);
+    existing.setAmount(BigDecimal.ZERO);
+    existing.setOriginalAmount(BigDecimal.ZERO);
+    when(subscriptionRepository.findByIdAndWalletId(existing.getId(), walletId))
+        .thenReturn(Optional.of(existing));
+
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setAmountPending(false);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> subscriptionService.updateSubscription(existing.getId(), request, walletId, userId));
+  }
+
+  @Test
+  void updateSubscription_StillReminder_IgnoresIncomingAmounts() {
+    Subscription existing = baseMonthlySub();
+    existing.setAmountPending(true);
+    existing.setAmount(BigDecimal.ZERO);
+    existing.setOriginalAmount(BigDecimal.ZERO);
+    when(subscriptionRepository.findByIdAndWalletId(existing.getId(), walletId))
+        .thenReturn(Optional.of(existing));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setAmount(new BigDecimal("50.00")); // must NOT stick while still a reminder
+
+    subscriptionService.updateSubscription(existing.getId(), request, walletId, userId);
+
+    assertTrue(existing.isAmountPending());
+    assertEquals(0, BigDecimal.ZERO.compareTo(existing.getAmount()));
+  }
+
+  @Test
+  void processDueSubscriptions_ReminderSubscription_GeneratesPendingTransaction() {
+    Subscription sub = baseMonthlySub();
+    sub.setAmountPending(true);
+    sub.setAmount(BigDecimal.ZERO);
+    sub.setOriginalAmount(BigDecimal.ZERO);
+    // Foreign-currency reminder: the flag must short-circuit rate resolution too.
+    sub.setOriginalCurrency("USD");
+    sub.setAutoExchangeRate(true);
+    mockWallet.setCurrency("EUR");
+    sub.setNextExecutionDate(LocalDate.of(2024, 2, 15)); // due at the fixed clock date
+
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(
+            List.of(Subscription.Status.ACTIVE, Subscription.Status.PAUSED),
+            LocalDate.of(2024, 2, 15)))
+        .thenReturn(List.of(sub));
+
+    subscriptionService.processDueSubscriptions();
+
+    ArgumentCaptor<Transaction> txCaptor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(txCaptor.capture());
+    Transaction generated = txCaptor.getValue();
+    assertTrue(generated.isAmountPending());
+    assertEquals(0, BigDecimal.ZERO.compareTo(generated.getAmount()));
+    assertEquals(0, BigDecimal.ZERO.compareTo(generated.getOriginalAmount()));
+    assertNull(generated.getExchangeValue());
+    assertEquals("USD", generated.getOriginalCurrency());
+    assertEquals(LocalDate.of(2024, 2, 15), generated.getTransactionDate());
+    verify(exchangeRateService, never()).getRate(any(), any());
   }
 }

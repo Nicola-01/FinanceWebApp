@@ -86,52 +86,15 @@ export default defineConfig(({ mode }) => {
             },
           ],
         },
-        workbox: {
-          // config.js e generato a runtime dal container: NON va precache-ato
-          // (altrimenti il SW servirebbe il placeholder di build). Serve sia il
-          // pattern root ("config.js") sia "**/config.js": il primo perche
-          // "**/" in minimatch NON matcha un file nella root.
+        // Custom service worker (src/sw.ts) via injectManifest so we can add
+        // Web Push (push / notificationclick) handlers. The runtime caching the
+        // old generateSW config declared now lives inside sw.ts.
+        strategies: "injectManifest",
+        srcDir: "src",
+        filename: "sw.ts",
+        injectManifest: {
+          // config.js is generated at runtime by the container — never precache it.
           globIgnores: ["config.js", "**/config.js"],
-          runtimeCaching: [
-            {
-              // Config runtime (/config.js, generato dal container): rete-first
-              // con fallback cache per l'offline. Non e nel precache perche non
-              // e un asset di build.
-              urlPattern: ({ url }) => url.pathname === "/config.js",
-              handler: "StaleWhileRevalidate",
-              options: {
-                cacheName: "runtime-config",
-              },
-            },
-            {
-              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-              handler: "CacheFirst",
-              options: {
-                cacheName: "google-fonts-cache",
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365,
-                },
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
-            },
-            {
-              urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-              handler: "CacheFirst",
-              options: {
-                cacheName: "gstatic-fonts-cache",
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365,
-                },
-                cacheableResponse: {
-                  statuses: [0, 200],
-                },
-              },
-            },
-          ],
         },
       }),
     ],

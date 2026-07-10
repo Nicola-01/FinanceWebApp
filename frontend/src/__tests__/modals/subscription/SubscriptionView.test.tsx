@@ -89,6 +89,16 @@ describe("SubscriptionView", () => {
     expect(screen.getByText("Family plan")).toBeInTheDocument();
   });
 
+  it("shows 'Reminder' instead of the amount for reminder subscriptions", () => {
+    render(
+      <SubscriptionView
+        sub={makeSub({ amount: 0, amountPending: true })}
+        wallet={wallet}
+      />,
+    );
+    expect(screen.getByText("Reminder")).toBeInTheDocument();
+  });
+
   it("renders the exchange section only for a foreign currency", () => {
     const { rerender } = render(
       <SubscriptionView

@@ -1,6 +1,7 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
-import api from "../../api/axiosConfig";
+import * as walletOps from "../../api/walletOps";
 import Button from "../../components/ui/Button.tsx";
+import Toggle from "../../components/ui/Toggle.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Subscription } from "../../utils/types";
@@ -34,9 +35,14 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
 
     // --- General data state ---
     const [editingSubId, setEditingSubId] = useState<string | null>(null);
+    // Full row kept while editing so we can read its updatedAt (offline
+    // precondition for the queued update op).
+    const [editingSub, setEditingSub] = useState<Subscription | null>(null);
     const [type, setType] = useState<"EXPENSE" | "INCOME" | "">("");
     const [name, setName] = useState("");
     const [amount, setAmount] = useState<string>("");
+    // Reminder mode: no fixed amount — the user fills it in each occurrence.
+    const [amountPending, setAmountPending] = useState(false);
     const [convertedAmount, setConvertedAmount] = useState<string>("0");
     const [currency, setCurrency] = useState<CurrencyCode>(baseCurrency);
     const [exchangeRate, setExchangeRate] = useState<string>("1");
@@ -70,6 +76,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         if (sub) {
           // --- EDIT MODE ---
           setEditingSubId(sub.id);
+          setEditingSub(sub);
           setType(sub.type);
           setName(sub.name || "");
 
@@ -80,6 +87,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setAmount(origAmount.toString());
 
           setConvertedAmount(sub.amount.toString());
+          setAmountPending(sub.amountPending ?? false);
 
           const exRate = sub.exchangeValue || 1;
           setExchangeRate(exRate.toString());
@@ -101,11 +109,13 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         } else {
           // --- CREATE MODE ---
           setEditingSubId(null);
+          setEditingSub(null);
           // Open neutral (no type preselected) — matches New Transaction; the
           // type is set as soon as the user enters an amount (sign-driven).
           setType("");
           setName("");
           setAmount("");
+          setAmountPending(false);
           setConvertedAmount("0");
           setCurrency(baseCurrency);
           setExchangeRate("1");
@@ -127,7 +137,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
     }));
 
     const handleSave = async () => {
-      if (!amount || Number(amount) === 0)
+      if (!amountPending && (!amount || Number(amount) === 0))
         return triggerToast("Please enter a valid amount.", false);
       if (!selectedTagName)
         return triggerToast("Please select a category.", false);
@@ -141,8 +151,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         // Payload mapped to SubscriptionRequest.java
         const payload = {
           name: finalName,
-          amount: Math.abs(Number(convertedAmount)),
-          originalAmount: Math.abs(Number(amount)),
+          amount: amountPending ? 0 : Math.abs(Number(convertedAmount)),
+          originalAmount: amountPending ? 0 : Math.abs(Number(amount)),
+          amountPending,
           type,
           originalCurrency: currency,
           exchangeValue: Number(exchangeRate) || 1,
@@ -166,10 +177,15 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         };
 
         if (editingSubId) {
-          await api.put(`/subscription/${wallet.id}/${editingSubId}`, payload);
+          await walletOps.updateSubscription(
+            wallet.id,
+            editingSubId,
+            payload,
+            editingSub?.updatedAt ?? null,
+          );
           triggerToast("Subscription updated successfully!", true);
         } else {
-          await api.post(`/subscription/${wallet.id}`, payload);
+          await walletOps.createSubscription(wallet.id, payload);
           triggerToast("Subscription created successfully!", true);
         }
 
@@ -188,8 +204,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
 
     const currencySymbol = CURRENCY_META[currency]?.symbol || currency;
     const canSave =
-      amount !== "" &&
-      Number(amount) !== 0 &&
+      (amountPending || (amount !== "" && Number(amount) !== 0)) &&
       selectedTagName !== "" &&
       type !== "";
     const isEditing = !!editingSubId;
@@ -225,22 +240,33 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         >
           {/* 1. AMOUNT AREA */}
           <div className="flex flex-col items-center justify-center py-2">
-            <AmountInput
-              value={amount}
-              type={type}
-              setType={setType}
-              currencySymbol={currencySymbol}
-              autoFocus={!isEditing}
-              onAmountChange={(val) => {
-                setAmount(val);
-                if (currency !== baseCurrency && exchangeRate)
-                  setConvertedAmount(
-                    (Number(val) * Number(exchangeRate)).toFixed(2),
-                  );
-                else setConvertedAmount(val);
-              }}
-            />
+            {!amountPending && (
+              <AmountInput
+                value={amount}
+                type={type}
+                setType={setType}
+                currencySymbol={currencySymbol}
+                autoFocus={!isEditing}
+                onAmountChange={(val) => {
+                  setAmount(val);
+                  if (currency !== baseCurrency && exchangeRate)
+                    setConvertedAmount(
+                      (Number(val) * Number(exchangeRate)).toFixed(2),
+                    );
+                  else setConvertedAmount(val);
+                }}
+              />
+            )}
             <TransactionTypeToggle type={type} setType={setType} />
+            <Toggle
+              checked={amountPending}
+              onChange={setAmountPending}
+              accentColor={wallet.color}
+              size="sm"
+              className="mt-3"
+              label="Reminder — no fixed amount, fill it in each time"
+              aria-label="Reminder subscription (no fixed amount)"
+            />
           </div>
 
           {/* 2. TAGS & START DATE */}

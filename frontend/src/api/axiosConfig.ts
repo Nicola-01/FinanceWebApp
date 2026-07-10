@@ -171,47 +171,10 @@ api.interceptors.response.use(
         } catch (e) {
           console.error("Offline cache error: ", e);
         }
-      } else if (
-        ["POST", "PUT", "DELETE"].includes(method) &&
-        !config.isSyncRequest &&
-        !config.skipOfflineQueue
-      ) {
-        try {
-          let payloadData = null;
-          if (config.data) {
-            payloadData =
-              typeof config.data === "string"
-                ? JSON.parse(config.data)
-                : config.data;
-          }
-
-          await offlineDb.syncQueue.add({
-            url: url,
-            method: method,
-            payload: payloadData,
-            headers: config.headers,
-            createdAt: Date.now(),
-          });
-
-          let mockData = payloadData || {};
-          if (method === "POST") {
-            mockData = { id: `offline-${Date.now()}`, ...mockData };
-          }
-
-          window.dispatchEvent(new CustomEvent("offline-sync-queued"));
-
-          return Promise.resolve({
-            data: mockData,
-            status: 200,
-            statusText: "OK",
-            headers: {},
-            config,
-            isOfflineQueueMock: true,
-          });
-        } catch (e) {
-          console.error("Offline queue error: ", e);
-        }
       }
+      // Offline POST/PUT/DELETE are no longer queued here: they reject with the
+      // network error and callers decide (the typed domain-ops queue handles
+      // the mutations that must survive offline).
     }
 
     return Promise.reject(error);

@@ -2,11 +2,13 @@ package dev.busato.FinanceWebApp.backend.model;
 
 import dev.busato.FinanceWebApp.backend.persistence.UuidV7Generator;
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
 @Data
@@ -42,4 +44,7 @@ public class Tag {
   @ManyToOne
   @JoinColumn(name = "parent_id")
   private Tag parent;
+
+  /** Server-side last-write timestamp; optimistic precondition for offline replays. */
+  @UpdateTimestamp @Column private Instant updatedAt;
 }

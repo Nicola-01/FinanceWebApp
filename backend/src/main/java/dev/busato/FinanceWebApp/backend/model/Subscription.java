@@ -1,8 +1,9 @@
 package dev.busato.FinanceWebApp.backend.model;
 
-import dev.busato.FinanceWebApp.backend.persistence.UuidV7Generator;
+import dev.busato.FinanceWebApp.backend.persistence.AssignableUuidV7;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
 @Builder
@@ -21,9 +23,7 @@ import org.hibernate.annotations.UuidGenerator;
 @Table(name = "subscriptions") // Corretto il typo
 public class Subscription {
 
-  @Id
-  @UuidGenerator(algorithm = UuidV7Generator.class)
-  private UUID id;
+  @Id @AssignableUuidV7 private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "wallet_id", nullable = false)
@@ -50,6 +50,16 @@ public class Subscription {
   private String originalCurrency;
 
   private boolean autoExchangeRate;
+
+  /**
+   * When true this subscription is a reminder template: it carries no real amount (amount and
+   * originalAmount stay 0) and every transaction it generates is created with {@code amountPending
+   * = true}, waiting for the user to fill in the actual amount.
+   */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean amountPending = false;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
@@ -126,4 +136,7 @@ public class Subscription {
   @OrderBy("transactionDate DESC")
   @Builder.Default
   private List<Transaction> history = new ArrayList<>();
+
+  /** Server-side last-write timestamp; optimistic precondition for offline replays. */
+  @UpdateTimestamp @Column private Instant updatedAt;
 }

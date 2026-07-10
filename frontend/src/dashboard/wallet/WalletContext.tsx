@@ -11,6 +11,7 @@ export interface WalletContextType {
   transactions: Transaction[];
   subscriptions: Subscription[];
   filteredTransactions: Transaction[];
+  pendingTransactions: Transaction[];
   tags: Tag[];
   isLoading: boolean;
   selectedTags: string[] | null;

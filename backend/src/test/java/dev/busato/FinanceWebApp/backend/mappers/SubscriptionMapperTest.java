@@ -8,6 +8,7 @@ import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,6 +46,8 @@ class SubscriptionMapperTest {
     subscription.setLastWorkingDayOfMonth(false);
     subscription.setDuration(Subscription.Duration.FOREVER);
     subscription.setHistory(null);
+    Instant updatedAt = Instant.now();
+    subscription.setUpdatedAt(updatedAt);
     SubscriptionResponse response = subscriptionMapper.mapToResponse(subscription);
     assertNotNull(response);
     assertEquals(subscription.getId(), response.getId());
@@ -64,6 +67,7 @@ class SubscriptionMapperTest {
     assertFalse(response.isLastWorkingDayOfMonth());
     assertEquals("FOREVER", response.getDuration());
     assertNull(response.getHistory());
+    assertEquals(updatedAt, response.getUpdatedAt());
   }
 
   @Test
@@ -81,5 +85,23 @@ class SubscriptionMapperTest {
     assertNull(response.getTag());
     assertNull(response.getHistory());
     assertEquals("INCOME", response.getType());
+  }
+
+  @Test
+  void mapToResponse_ReminderSubscription_MapsAmountPending() {
+    Subscription sub = new Subscription();
+    sub.setId(UUID.randomUUID());
+    sub.setName("Salary");
+    sub.setAmount(BigDecimal.ZERO);
+    sub.setOriginalAmount(BigDecimal.ZERO);
+    sub.setAmountPending(true);
+    sub.setType(Subscription.Type.INCOME);
+    sub.setStatus(Subscription.Status.ACTIVE);
+    sub.setFrequencyType(Subscription.Frequency.MONTHLY);
+    sub.setDuration(Subscription.Duration.FOREVER);
+
+    SubscriptionResponse response = subscriptionMapper.mapToResponse(sub);
+
+    assertTrue(response.isAmountPending());
   }
 }

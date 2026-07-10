@@ -5,7 +5,7 @@ import { offlineDb } from "../../utils/offlineDb";
 describe("offlineDb (FinanceDb)", () => {
   beforeEach(async () => {
     await offlineDb.cache.clear();
-    await offlineDb.syncQueue.clear();
+    await offlineDb.ops.clear();
   });
   afterAll(() => {
     offlineDb.close();
@@ -13,8 +13,14 @@ describe("offlineDb (FinanceDb)", () => {
 
   it("declares the expected schema", () => {
     expect(offlineDb.cache.schema.primKey.keyPath).toBe("url");
-    expect(offlineDb.syncQueue.schema.primKey.name).toBe("id");
-    expect(offlineDb.syncQueue.schema.primKey.auto).toBe(true);
+    expect(offlineDb.ops.schema.primKey.name).toBe("id");
+    expect(offlineDb.ops.schema.primKey.auto).toBe(true);
+    expect(offlineDb.ops.schema.indexes.map((i) => i.name)).toEqual(
+      expect.arrayContaining(["walletId", "status", "createdAt"]),
+    );
+    expect(
+      (offlineDb as unknown as { syncQueue?: unknown }).syncQueue,
+    ).toBeUndefined();
   });
 
   it("stores and reads back a cached response by url", async () => {
@@ -32,38 +38,50 @@ describe("offlineDb (FinanceDb)", () => {
     expect(await offlineDb.cache.get("/missing")).toBeUndefined();
   });
 
-  it("auto-increments syncQueue ids and orders by createdAt", async () => {
-    const id2 = await offlineDb.syncQueue.add({
-      url: "/b",
-      method: "POST",
-      payload: null,
-      headers: {},
+  it("auto-increments ops ids and orders by createdAt", async () => {
+    const id2 = await offlineDb.ops.add({
+      walletId: "w1",
+      entityType: "transaction",
+      entityKey: "tx-b",
+      op: "create",
+      payload: {},
+      baseUpdatedAt: null,
+      status: "pending",
+      attempts: 0,
       createdAt: 200,
     });
-    const id1 = await offlineDb.syncQueue.add({
-      url: "/a",
-      method: "POST",
-      payload: null,
-      headers: {},
+    const id1 = await offlineDb.ops.add({
+      walletId: "w1",
+      entityType: "transaction",
+      entityKey: "tx-a",
+      op: "create",
+      payload: {},
+      baseUpdatedAt: null,
+      status: "pending",
+      attempts: 0,
       createdAt: 100,
     });
 
     expect(typeof id1).toBe("number");
     expect(id1).not.toBe(id2);
 
-    const ordered = await offlineDb.syncQueue.orderBy("createdAt").toArray();
-    expect(ordered.map((i) => i.url)).toEqual(["/a", "/b"]);
+    const ordered = await offlineDb.ops.orderBy("createdAt").toArray();
+    expect(ordered.map((i) => i.entityKey)).toEqual(["tx-a", "tx-b"]);
   });
 
-  it("deletes a queued item by id", async () => {
-    const id = await offlineDb.syncQueue.add({
-      url: "/c",
-      method: "DELETE",
-      payload: null,
-      headers: {},
+  it("deletes a queued op by id", async () => {
+    const id = await offlineDb.ops.add({
+      walletId: "w1",
+      entityType: "transaction",
+      entityKey: "tx-c",
+      op: "delete",
+      payload: {},
+      baseUpdatedAt: null,
+      status: "pending",
+      attempts: 0,
       createdAt: 1,
     });
-    await offlineDb.syncQueue.delete(id);
-    expect(await offlineDb.syncQueue.count()).toBe(0);
+    await offlineDb.ops.delete(id);
+    expect(await offlineDb.ops.count()).toBe(0);
   });
 });

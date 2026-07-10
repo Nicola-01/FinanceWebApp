@@ -2,6 +2,7 @@ package dev.busato.FinanceWebApp.backend.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 import lombok.Builder;
@@ -10,6 +11,9 @@ import lombok.Data;
 @Data
 @Builder
 public class TransactionRequest {
+  /** Optional client-generated id (offline-created entities); honored on insert. */
+  private UUID id;
+
   @NotBlank(message = "Name is required")
   private String name;
 
@@ -26,5 +30,7 @@ public class TransactionRequest {
   private String notes;
 
   private LocalDate transactionDate;
-  ;
+
+  /** updatedAt the offline edit was based on; server rejects with 409 if newer. */
+  private Instant baseUpdatedAt;
 }

@@ -52,6 +52,10 @@ dependencies {
     // AWS SDK v2 – S3 client (Cloudflare R2 is S3-compatible)
     implementation platform('software.amazon.awssdk:bom:2.26.12')
     implementation 'software.amazon.awssdk:s3'
+
+    // Web Push (VAPID) — encrypts and delivers push messages to browser push services
+    implementation 'nl.martijndwars:web-push:5.1.1'
+    implementation 'org.bouncycastle:bcprov-jdk18on:1.78.1'
 }
 
 tasks.named('test') {

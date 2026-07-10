@@ -58,15 +58,21 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
       <div className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">
         {/* 1. IMPORTO (Invariato) */}
         <div className="text-center mt-2">
-          <p
-            className={`text-6xl font-app-mono ${isIncome ? "text-app-green" : "text-app-red"}`}
-          >
-            {isIncome ? "+" : "-"}
-            {tx.amount.toFixed(2)}{" "}
-            <span className="text-3xl">
-              {CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}
-            </span>
-          </p>
+          {tx.amountPending ? (
+            <p className="text-4xl font-app-mono text-app-muted">
+              Amount pending
+            </p>
+          ) : (
+            <p
+              className={`text-6xl font-app-mono ${isIncome ? "text-app-green" : "text-app-red"}`}
+            >
+              {isIncome ? "+" : "-"}
+              {tx.amount.toFixed(2)}{" "}
+              <span className="text-3xl">
+                {CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}
+              </span>
+            </p>
+          )}
         </div>
 
         {/* --- NUOVA SEZIONE CATEGORIA --- */}

@@ -18,6 +18,7 @@ public class SubscriptionMapper {
         .name(sub.getName())
         .tag(sub.getTag() != null ? tagMapper.mapToResponse(sub.getTag()) : null)
         .amount(sub.getAmount())
+        .amountPending(sub.isAmountPending())
         .originalAmount(sub.getOriginalAmount())
         .originalCurrency(sub.getOriginalCurrency())
         .exchangeValue(sub.getExchangeValue())
@@ -40,6 +41,7 @@ public class SubscriptionMapper {
             sub.getHistory() != null
                 ? sub.getHistory().stream().map(transactionMapper::mapToResponse).toList()
                 : null)
+        .updatedAt(sub.getUpdatedAt())
         .build();
   }
 }

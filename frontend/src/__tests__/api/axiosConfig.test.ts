@@ -10,7 +10,6 @@ import { stubLocation, setOnline } from "../../test/testUtils";
 vi.mock("../../utils/offlineDb", () => ({
   offlineDb: {
     cache: { put: vi.fn().mockResolvedValue(undefined), get: vi.fn() },
-    syncQueue: { add: vi.fn().mockResolvedValue(1) },
   },
 }));
 
@@ -19,7 +18,6 @@ import { offlineDb } from "../../utils/offlineDb";
 
 const cachePut = offlineDb.cache.put as unknown as ReturnType<typeof vi.fn>;
 const cacheGet = offlineDb.cache.get as unknown as ReturnType<typeof vi.fn>;
-const queueAdd = offlineDb.syncQueue.add as unknown as ReturnType<typeof vi.fn>;
 
 interface InterceptorHandler {
   fulfilled: (value: unknown) => unknown;
@@ -60,7 +58,6 @@ beforeEach(() => {
   sessionStorage.clear();
   cachePut.mockReset().mockResolvedValue(undefined);
   cacheGet.mockReset();
-  queueAdd.mockReset().mockResolvedValue(1);
   setOnline(true);
 });
 afterEach(() => {
@@ -162,60 +159,22 @@ describe("response interceptor — offline fallback", () => {
     await expect(resHandler.rejected(error)).rejects.toBe(error);
   });
 
-  it("queues an offline POST and returns a mock response", async () => {
+  it("rejects an offline mutation instead of queueing it", async () => {
     setOnline(false);
     const dispatch = vi.spyOn(window, "dispatchEvent");
     const error: FakeError = {
       config: cfg({
         method: "post",
-        url: "/transactions",
-        data: JSON.stringify({ x: 1 }),
+        url: "/auth/login",
+        data: JSON.stringify({ u: "x" }),
       }),
       code: "ERR_NETWORK",
     };
-    const res = (await resHandler.rejected(error)) as AxiosResponse<{
-      id: string;
-      x: number;
-    }> & { isOfflineQueueMock?: boolean };
-
-    expect(queueAdd).toHaveBeenCalledTimes(1);
-    expect(res.isOfflineQueueMock).toBe(true);
-    expect(res.data.x).toBe(1);
-    expect(res.data.id).toMatch(/^offline-/);
+    // The mutation must reject with the original network error, not resolve
+    // with a faked success — nothing is queued and no event is dispatched.
+    await expect(resHandler.rejected(error)).rejects.toBe(error);
     const types = dispatch.mock.calls.map(([e]) => (e as Event).type);
-    expect(types).toContain("offline-sync-queued");
-  });
-
-  it("SECURITY: does not re-queue a sync replay request", async () => {
-    setOnline(false);
-    const error: FakeError = {
-      config: cfg({
-        method: "post",
-        url: "/x",
-        data: "{}",
-        // custom flag set by syncService to avoid re-queueing
-        isSyncRequest: true,
-      } as Partial<InternalAxiosRequestConfig>),
-      code: "ERR_NETWORK",
-    };
-    await expect(resHandler.rejected(error)).rejects.toBe(error);
-    expect(queueAdd).not.toHaveBeenCalled();
-  });
-
-  it("does not queue a POST that opted out via skipOfflineQueue", async () => {
-    setOnline(false);
-    const error: FakeError = {
-      config: cfg({
-        method: "post",
-        url: "/wallets/full",
-        data: "{}",
-        // opt-out set by atomic flows that must not fake a success
-        skipOfflineQueue: true,
-      } as Partial<InternalAxiosRequestConfig>),
-      code: "ERR_NETWORK",
-    };
-    await expect(resHandler.rejected(error)).rejects.toBe(error);
-    expect(queueAdd).not.toHaveBeenCalled();
+    expect(types).not.toContain("offline-sync-queued");
   });
 });
 

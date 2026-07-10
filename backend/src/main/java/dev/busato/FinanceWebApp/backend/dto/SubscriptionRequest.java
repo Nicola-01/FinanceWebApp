@@ -1,16 +1,26 @@
 package dev.busato.FinanceWebApp.backend.dto;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
 public class SubscriptionRequest {
+  /** Optional client-generated id (offline-created entities); honored on insert. */
+  private UUID id;
+
   private String name;
   private String tag; // Nome del tag
   private BigDecimal amount;
+
+  // Reminder subscription (no fixed amount). Boxed on purpose: null = "not specified", so
+  // updates that omit it leave the flag unchanged.
+  private Boolean amountPending;
+
   private BigDecimal originalAmount;
   private String originalCurrency;
   private BigDecimal exchangeValue;
@@ -32,4 +42,7 @@ public class SubscriptionRequest {
   private String duration; // FOREVER, TIMES, UNTIL
   private Integer durationTimes;
   private LocalDate durationUntil;
+
+  /** updatedAt the offline edit was based on; server rejects with 409 if newer. */
+  private Instant baseUpdatedAt;
 }

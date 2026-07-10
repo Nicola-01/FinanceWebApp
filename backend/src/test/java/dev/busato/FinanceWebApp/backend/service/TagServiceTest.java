@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import dev.busato.FinanceWebApp.backend.dto.TagBulkResponse;
 import dev.busato.FinanceWebApp.backend.dto.TagRequest;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
+import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagHasChildrenException;
 import dev.busato.FinanceWebApp.backend.exceptions.TagInUseException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
@@ -21,6 +22,7 @@ import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -296,7 +298,7 @@ class TagServiceTest {
     when(tagRepository.existsByParent(tag)).thenReturn(false);
     when(transactionRepository.existsByTag(tag)).thenReturn(false);
 
-    tagService.deleteTag("Food", walletId, userId);
+    tagService.deleteTag("Food", walletId, userId, null);
 
     verify(tagRepository).delete(tag);
   }
@@ -310,7 +312,7 @@ class TagServiceTest {
     when(tagRepository.existsByParent(tag)).thenReturn(true);
 
     assertThrows(
-        TagHasChildrenException.class, () -> tagService.deleteTag("Food", walletId, userId));
+        TagHasChildrenException.class, () -> tagService.deleteTag("Food", walletId, userId, null));
   }
 
   @Test
@@ -322,7 +324,8 @@ class TagServiceTest {
     when(tagRepository.existsByParent(tag)).thenReturn(false);
     when(transactionRepository.existsByTag(tag)).thenReturn(true);
 
-    assertThrows(TagInUseException.class, () -> tagService.deleteTag("Food", walletId, userId));
+    assertThrows(
+        TagInUseException.class, () -> tagService.deleteTag("Food", walletId, userId, null));
   }
 
   @Test
@@ -445,7 +448,64 @@ class TagServiceTest {
 
     assertThrows(
         dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException.class,
-        () -> tagService.deleteTag("Ghost", walletId, userId));
+        () -> tagService.deleteTag("Ghost", walletId, userId, null));
+  }
+
+  // ==================== baseUpdatedAt / Stale Write precondition ====================
+
+  @Test
+  void updateTag_staleBaseUpdatedAt_throwsStaleWrite() {
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Tag tag = new Tag();
+    tag.setName("Food");
+    tag.setUpdatedAt(serverTime);
+
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
+        .thenReturn(Optional.of(tag));
+
+    TagRequest request =
+        TagRequest.builder()
+            .name("NewFood")
+            .baseUpdatedAt(serverTime.minusSeconds(60)) // older than the server row
+            .build();
+
+    assertThrows(
+        StaleWriteException.class, () -> tagService.updateTag("Food", request, walletId, userId));
+    assertEquals("Food", tag.getName()); // not mutated
+  }
+
+  @Test
+  void updateTag_nullBaseUpdatedAt_skipsPrecondition() {
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Tag tag = new Tag();
+    tag.setName("Food");
+    tag.setUpdatedAt(serverTime);
+
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
+        .thenReturn(Optional.of(tag));
+    when(tagRepository.existsByNameIgnoreCaseAndWalletId("NewFood", walletId)).thenReturn(false);
+
+    TagRequest request = TagRequest.builder().name("NewFood").build(); // no baseUpdatedAt
+
+    tagService.updateTag("Food", request, walletId, userId);
+
+    assertEquals("NewFood", tag.getName());
+  }
+
+  @Test
+  void deleteTag_staleBaseUpdatedAt_throwsStaleWrite() {
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Tag tag = new Tag();
+    tag.setName("Food");
+    tag.setUpdatedAt(serverTime);
+
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
+        .thenReturn(Optional.of(tag));
+
+    assertThrows(
+        StaleWriteException.class,
+        () -> tagService.deleteTag("Food", walletId, userId, serverTime.minusSeconds(60)));
+    verify(tagRepository, never()).delete(any());
   }
 
   // ==================== updateTag — edge cases ====================

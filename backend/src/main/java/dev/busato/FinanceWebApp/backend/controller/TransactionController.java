@@ -1,11 +1,13 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
 import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
+import dev.busato.FinanceWebApp.backend.dto.TransactionFillRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.service.TransactionService;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -53,13 +55,25 @@ public class TransactionController {
         transactionService.updateTransaction(transactionID, request, walletID, user.getId()));
   }
 
+  /** Fills the amount of a pending (amount-less) transaction and clears its pending flag. */
+  @PutMapping("/{walletID}/{transactionID}/amount")
+  public ResponseEntity<TransactionResponse> fillTransactionAmount(
+      @PathVariable UUID walletID,
+      @PathVariable UUID transactionID,
+      @RequestBody TransactionFillRequest request,
+      @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(
+        transactionService.fillTransactionAmount(transactionID, request, walletID, user.getId()));
+  }
+
   @DeleteMapping("/{walletID}/{transactionID}")
   public ResponseEntity<Void> deleteTransaction(
       @PathVariable UUID walletID,
       @PathVariable UUID transactionID,
+      @RequestParam(required = false) Instant baseUpdatedAt,
       @AuthenticationPrincipal User user) {
 
-    transactionService.deleteTransaction(transactionID, walletID, user.getId());
+    transactionService.deleteTransaction(transactionID, walletID, user.getId(), baseUpdatedAt);
     return ResponseEntity.noContent().build();
   }
 }

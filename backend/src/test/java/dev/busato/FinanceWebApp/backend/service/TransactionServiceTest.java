@@ -1,6 +1,8 @@
 package dev.busato.FinanceWebApp.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,16 +13,23 @@ import static org.mockito.Mockito.when;
 
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
+import dev.busato.FinanceWebApp.backend.dto.TransactionFillRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
+import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
+import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.mappers.TransactionMapper;
+import dev.busato.FinanceWebApp.backend.model.Notification;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
+import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.*;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +54,8 @@ class TransactionServiceTest {
   @Mock private TransactionMapper transactionMapper;
   @Mock private TagMapper tagMapper;
   @Mock private TagService tagService;
+  @Mock private ExchangeRateService exchangeRateService;
+  @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private TransactionService transactionService;
 
@@ -82,6 +93,97 @@ class TransactionServiceTest {
     transactionService.createTransaction(request, walletId, userId);
 
     verify(transactionRepository).save(any(Transaction.class));
+  }
+
+  @Test
+  void createTransaction_PublishesCreatedEventWithActorAndWalletFields() {
+    wallet.setName("Casa");
+    wallet.setCurrency("EUR");
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setName("Groceries");
+    request.setAmount(new BigDecimal("50.00"));
+    request.setType("EXPENSE");
+    request.setTag("Food");
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+    Tag tag = new Tag();
+    tag.setName("Food");
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
+        .thenReturn(Optional.of(tag));
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+    User actor = new User();
+    actor.setId(userId);
+    actor.setUsername("nicola");
+    when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+
+    transactionService.createTransaction(request, walletId, userId);
+
+    ArgumentCaptor<WalletActivityEvent> captor = ArgumentCaptor.forClass(WalletActivityEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    WalletActivityEvent e = captor.getValue();
+    assertEquals(Notification.NotificationType.TRANSACTION_CREATED, e.type());
+    assertEquals(walletId, e.walletId());
+    assertEquals("Casa", e.walletName());
+    assertEquals("EUR", e.currency());
+    assertEquals(userId, e.actorId());
+    assertEquals("nicola", e.actorUsername());
+    assertEquals("Food", e.tagName());
+    assertEquals(new BigDecimal("50.00"), e.amount());
+  }
+
+  @Test
+  void updateTransaction_PublishesUpdatedEvent() {
+    Transaction tx =
+        Transaction.builder().wallet(wallet).name("Old").amount(new BigDecimal("10")).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(tx));
+    User actor = new User();
+    actor.setId(userId);
+    actor.setUsername("nicola");
+    when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setAmount(new BigDecimal("20.00"));
+    request.setName("New name");
+
+    transactionService.updateTransaction(transactionId, request, walletId, userId);
+
+    ArgumentCaptor<WalletActivityEvent> captor = ArgumentCaptor.forClass(WalletActivityEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    assertEquals(Notification.NotificationType.TRANSACTION_UPDATED, captor.getValue().type());
+  }
+
+  @Test
+  void deleteTransaction_PublishesDeletedEventBeforeDeleting() {
+    Transaction tx =
+        Transaction.builder().wallet(wallet).name("X").amount(new BigDecimal("10")).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(tx));
+    User actor = new User();
+    actor.setId(userId);
+    actor.setUsername("nicola");
+    when(userRepository.findById(userId)).thenReturn(Optional.of(actor));
+
+    transactionService.deleteTransaction(transactionId, walletId, userId, null);
+
+    ArgumentCaptor<WalletActivityEvent> captor = ArgumentCaptor.forClass(WalletActivityEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    assertEquals(Notification.NotificationType.TRANSACTION_DELETED, captor.getValue().type());
+    verify(transactionRepository).delete(tx);
+  }
+
+  @Test
+  void bulkCreate_PublishesNothing() {
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of());
+    when(transactionRepository.getAllByWalletId(walletId)).thenReturn(List.of());
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+    TransactionRequest r = TransactionRequest.builder().build();
+    r.setName("Groceries");
+    r.setAmount(new BigDecimal("5.00"));
+    r.setType("EXPENSE");
+
+    transactionService.createTransactionsBulk(List.of(r), walletId, userId);
+
+    verify(eventPublisher, never()).publishEvent(any());
   }
 
   @Test
@@ -331,7 +433,7 @@ class TransactionServiceTest {
     when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
         .thenReturn(Optional.of(transaction));
 
-    transactionService.deleteTransaction(transactionId, walletId, userId);
+    transactionService.deleteTransaction(transactionId, walletId, userId, null);
 
     verify(transactionRepository).delete(transaction);
   }
@@ -413,6 +515,47 @@ class TransactionServiceTest {
     verify(transactionRepository).save(any(Transaction.class));
   }
 
+  // ==================== createTransaction — client-generated id (offline replay)
+  // ====================
+
+  @Test
+  void createTransaction_withClientId_setsIdOnEntity() {
+    UUID clientId = UUID.randomUUID();
+    TransactionRequest request =
+        TransactionRequest.builder()
+            .id(clientId)
+            .name("Coffee")
+            .amount(new BigDecimal("2.50"))
+            .originalAmount(new BigDecimal("2.50"))
+            .type("EXPENSE")
+            .transactionDate(LocalDate.of(2026, 7, 8))
+            .build();
+    when(transactionRepository.existsByIdAndWalletId(clientId, walletId)).thenReturn(false);
+    // Reuse the suite's existing happy-path stubbing for wallet lookup + save.
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(wallet));
+    when(transactionRepository.save(any(Transaction.class))).thenAnswer(i -> i.getArgument(0));
+
+    transactionService.createTransaction(request, walletId, userId);
+
+    ArgumentCaptor<Transaction> captor = ArgumentCaptor.forClass(Transaction.class);
+    verify(transactionRepository).save(captor.capture());
+    assertEquals(clientId, captor.getValue().getId());
+  }
+
+  @Test
+  void createTransaction_withExistingClientId_isIdempotentAndDoesNotSave() {
+    UUID clientId = UUID.randomUUID();
+    TransactionRequest request = TransactionRequest.builder().id(clientId).name("x").build();
+    Transaction existing = Transaction.builder().id(clientId).build();
+    when(transactionRepository.existsByIdAndWalletId(clientId, walletId)).thenReturn(true);
+    when(transactionRepository.findById(clientId)).thenReturn(Optional.of(existing));
+
+    transactionService.createTransaction(request, walletId, userId);
+
+    verify(transactionRepository, never()).save(any());
+    verify(transactionMapper).mapToResponse(existing);
+  }
+
   // ==================== updateTransaction — edge cases ====================
 
   @Test
@@ -471,6 +614,264 @@ class TransactionServiceTest {
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> transactionService.deleteTransaction(transactionId, walletId, userId));
+        () -> transactionService.deleteTransaction(transactionId, walletId, userId, null));
+  }
+
+  // ==================== baseUpdatedAt / Stale Write precondition ====================
+
+  @Test
+  void updateTransaction_staleBaseUpdatedAt_throwsStaleWrite() {
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Transaction existing = Transaction.builder().id(transactionId).updatedAt(serverTime).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    TransactionRequest request =
+        TransactionRequest.builder()
+            .name("x")
+            .baseUpdatedAt(serverTime.minusSeconds(60)) // older than the server row
+            .build();
+
+    assertThrows(
+        StaleWriteException.class,
+        () -> transactionService.updateTransaction(transactionId, request, walletId, userId));
+    verify(transactionRepository, never()).save(any());
+  }
+
+  @Test
+  void updateTransaction_nullBaseUpdatedAt_skipsPrecondition() {
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Transaction existing = Transaction.builder().id(transactionId).updatedAt(serverTime).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    TransactionRequest request =
+        TransactionRequest.builder()
+            .name("Updated Name")
+            .amount(new BigDecimal("10.00"))
+            .build(); // no baseUpdatedAt
+
+    transactionService.updateTransaction(transactionId, request, walletId, userId);
+
+    assertEquals("Updated Name", existing.getName());
+  }
+
+  @Test
+  void deleteTransaction_staleBaseUpdatedAt_throwsStaleWrite() {
+    Instant serverTime = Instant.parse("2026-07-08T10:00:00Z");
+    Transaction existing = Transaction.builder().id(transactionId).updatedAt(serverTime).build();
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(existing));
+
+    assertThrows(
+        StaleWriteException.class,
+        () ->
+            transactionService.deleteTransaction(
+                transactionId, walletId, userId, serverTime.minusSeconds(60)));
+    verify(transactionRepository, never()).delete(any());
+  }
+
+  // ==================== fillTransactionAmount ====================
+
+  private Transaction pendingTx(UUID txId, Wallet wallet, String originalCurrency) {
+    Transaction tx = new Transaction();
+    tx.setId(txId);
+    tx.setWallet(wallet);
+    tx.setName("Salary");
+    tx.setAmountPending(true);
+    tx.setAmount(BigDecimal.ZERO);
+    tx.setOriginalAmount(BigDecimal.ZERO);
+    tx.setOriginalCurrency(originalCurrency);
+    tx.setType(Transaction.Type.INCOME);
+    tx.setTransactionDate(LocalDate.of(2026, 6, 27));
+    return tx;
+  }
+
+  @Test
+  void fillTransactionAmount_SameCurrency_SetsAmountsAndClearsPending() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR");
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder().originalAmount(new BigDecimal("2450.00")).build(),
+        walletId,
+        userId);
+
+    assertFalse(tx.isAmountPending());
+    assertEquals(0, new BigDecimal("2450.00").compareTo(tx.getAmount()));
+    assertEquals(0, new BigDecimal("2450.00").compareTo(tx.getOriginalAmount()));
+    assertNull(tx.getExchangeValue());
+    assertEquals(LocalDate.of(2026, 6, 27), tx.getTransactionDate());
+    verify(exchangeRateService, never()).getRate(any(), any());
+  }
+
+  @Test
+  void fillTransactionAmount_WithType_OverridesDirection() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR"); // seeded as INCOME
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder()
+            .originalAmount(new BigDecimal("42.00"))
+            .type(Transaction.Type.EXPENSE)
+            .build(),
+        walletId,
+        UUID.randomUUID());
+
+    assertEquals(Transaction.Type.EXPENSE, tx.getType());
+    assertFalse(tx.isAmountPending());
+  }
+
+  @Test
+  void fillTransactionAmount_NullType_KeepsInheritedDirection() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR"); // seeded as INCOME
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder().originalAmount(new BigDecimal("42.00")).build(),
+        walletId,
+        UUID.randomUUID());
+
+    assertEquals(Transaction.Type.INCOME, tx.getType());
+  }
+
+  @Test
+  void fillTransactionAmount_ForeignCurrencyAutoRate_UsesLiveRateAtFillTime() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "USD");
+    Subscription sub = new Subscription();
+    sub.setAutoExchangeRate(true);
+    tx.setSubscription(sub);
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+    when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.of(new BigDecimal("0.90")));
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder().originalAmount(new BigDecimal("100.00")).build(),
+        walletId,
+        UUID.randomUUID());
+
+    assertFalse(tx.isAmountPending());
+    assertEquals(0, new BigDecimal("100.00").compareTo(tx.getOriginalAmount()));
+    assertEquals(0, new BigDecimal("90.00").compareTo(tx.getAmount()));
+    assertEquals(0, new BigDecimal("0.90").compareTo(tx.getExchangeValue()));
+  }
+
+  @Test
+  void fillTransactionAmount_ForeignCurrencyFixedRate_UsesStoredSubscriptionRate() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "USD");
+    Subscription sub = new Subscription();
+    sub.setAutoExchangeRate(false);
+    sub.setExchangeValue(new BigDecimal("0.85"));
+    tx.setSubscription(sub);
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder().originalAmount(new BigDecimal("100.00")).build(),
+        walletId,
+        UUID.randomUUID());
+
+    assertEquals(0, new BigDecimal("85.00").compareTo(tx.getAmount()));
+    verify(exchangeRateService, never()).getRate(any(), any());
+  }
+
+  @Test
+  void fillTransactionAmount_ForeignCurrencyNoRateAvailable_ThrowsAndStaysPending() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "USD");
+    Subscription sub = new Subscription();
+    sub.setAutoExchangeRate(true);
+    tx.setSubscription(sub);
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.empty());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            transactionService.fillTransactionAmount(
+                txId,
+                TransactionFillRequest.builder().originalAmount(new BigDecimal("100.00")).build(),
+                walletId,
+                UUID.randomUUID()));
+    assertTrue(tx.isAmountPending());
+  }
+
+  @Test
+  void fillTransactionAmount_NotPending_Throws() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR");
+    tx.setAmountPending(false);
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            transactionService.fillTransactionAmount(
+                txId,
+                TransactionFillRequest.builder().originalAmount(BigDecimal.TEN).build(),
+                walletId,
+                UUID.randomUUID()));
+  }
+
+  @Test
+  void updateTransaction_ProvidingAmount_ClearsPendingFlag() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR");
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setAmount(new BigDecimal("50.00"));
+
+    transactionService.updateTransaction(txId, request, walletId, UUID.randomUUID());
+
+    assertFalse(tx.isAmountPending());
+    assertEquals(0, new BigDecimal("50.00").compareTo(tx.getAmount()));
   }
 }

@@ -47,6 +47,10 @@ public class WalletAccess {
   @Column(nullable = false)
   private LocalDate updatedAt;
 
+  /** When true, this member receives no push/notifications for activity in this wallet. */
+  @Column(nullable = false, columnDefinition = "boolean default false")
+  private boolean notificationsMuted = false;
+
   @PrePersist
   void onCreate() {
     if (status == null) {

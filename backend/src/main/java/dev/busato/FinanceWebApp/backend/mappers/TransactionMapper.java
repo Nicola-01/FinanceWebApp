@@ -16,6 +16,7 @@ public class TransactionMapper {
         .id(transaction.getId())
         .name(transaction.getName())
         .amount(transaction.getAmount())
+        .amountPending(transaction.isAmountPending())
         .originalAmount(transaction.getOriginalAmount())
         .originalCurrency(transaction.getOriginalCurrency())
         .exchangeValue(transaction.getExchangeValue())
@@ -25,6 +26,7 @@ public class TransactionMapper {
         .transactionDate(transaction.getTransactionDate())
         .type(transaction.getType().toString())
         .notes(transaction.getNotes())
+        .updatedAt(transaction.getUpdatedAt())
         .build();
   }
 }
