@@ -42,6 +42,7 @@ export interface Transaction {
   name: string;
   tag: Tag;
   amount: number;
+  amountPending?: boolean;
   originalAmount?: number;
   originalCurrency?: string;
   exchangeValue?: number;
@@ -74,6 +75,7 @@ export interface Subscription {
   name: string;
   tag: Tag;
   amount: number;
+  amountPending?: boolean;
   originalAmount: number;
   originalCurrency: string;
   exchangeValue: number;
@@ -111,6 +113,7 @@ export interface SubscriptionRequestDTO {
   name: string;
   tag: string;
   amount: number;
+  amountPending?: boolean;
   originalAmount: number;
   originalCurrency: string;
   exchangeValue: number;

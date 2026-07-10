@@ -26,6 +26,7 @@ import { listOps, SYNC_QUEUE_CHANGED } from "../../sync/opsQueue";
 import type { PendingOp } from "../../utils/offlineDb";
 import { WalletContext } from "./WalletContext.tsx";
 import { VALID_TABS, type TabType } from "./walletTabs";
+import { selectPendingTransactions } from "./pendingTransactions";
 
 interface WalletProviderProps {
   _wallet: Wallet;
@@ -93,6 +94,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
       activeTab === "transactions" ? debouncedQuery.trim().toLowerCase() : "";
 
     return overlaid.transactions.filter((tx) => {
+      // Pending (amount-less) rows live only in the pinned panel, never in the normal list.
+      if (tx.amountPending) return false;
       if (!currentActiveTags.includes(tx.tag.name)) return false;
 
       // Free-text search over the transaction name, its tag and notes.
@@ -125,6 +128,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     debouncedQuery,
     activeTab,
   ]);
+
+  const pendingTransactions = useMemo(
+    () => selectPendingTransactions(transactions),
+    [transactions],
+  );
 
   useEffect(() => {
     if (!urlTab || !VALID_TABS.includes(urlTab)) {
@@ -357,6 +365,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
         wallet: overlaid.wallet,
         transactions: overlaid.transactions,
         filteredTransactions,
+        pendingTransactions,
         subscriptions: overlaid.subscriptions,
         tags: overlaid.tags,
         isLoading,
