@@ -85,17 +85,12 @@ describe("createWalletFromDraft", () => {
     );
     expect(res.walletId).toBe("w1");
     expect(post).toHaveBeenCalledTimes(1);
-    expect(post).toHaveBeenCalledWith(
-      "/wallets/full",
-      {
-        wallet: expect.objectContaining({ name: "Main", currency: "EUR" }),
-        tags: [{ name: "Food", icon: "tag", colorHex: "#22c55e" }],
-        subscriptions: [],
-        transactions: [],
-      },
-      // The composite call must never be queued offline with a fake success.
-      { skipOfflineQueue: true },
-    );
+    expect(post).toHaveBeenCalledWith("/wallets/full", {
+      wallet: expect.objectContaining({ name: "Main", currency: "EUR" }),
+      tags: [{ name: "Food", icon: "tag", colorHex: "#22c55e" }],
+      subscriptions: [],
+      transactions: [],
+    });
   });
 
   it("skips outcomes for resources with no staged data", async () => {

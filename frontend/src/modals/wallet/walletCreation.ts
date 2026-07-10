@@ -115,24 +115,18 @@ export async function createWalletFromDraft(
 ): Promise<WalletCreationResult> {
   let data: WalletFullResponse;
   try {
-    // skipOfflineQueue: queueing would fake a success with a bogus wallet id;
-    // an offline finish must fail loudly instead.
-    ({ data } = await api.post(
-      "/wallets/full",
-      {
-        wallet: {
-          name: draft.basics.name,
-          description: draft.basics.description,
-          icon: draft.basics.icon,
-          color: draft.basics.color,
-          currency: draft.basics.currency,
-        },
-        tags: draft.tags,
-        subscriptions: draft.subscriptions,
-        transactions: draft.transactions,
+    ({ data } = await api.post("/wallets/full", {
+      wallet: {
+        name: draft.basics.name,
+        description: draft.basics.description,
+        icon: draft.basics.icon,
+        color: draft.basics.color,
+        currency: draft.basics.currency,
       },
-      { skipOfflineQueue: true },
-    ));
+      tags: draft.tags,
+      subscriptions: draft.subscriptions,
+      transactions: draft.transactions,
+    }));
   } catch (err) {
     // No response = the request never reached the backend (offline/network).
     if (err instanceof AxiosError && !err.response)
