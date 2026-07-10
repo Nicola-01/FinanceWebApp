@@ -86,4 +86,22 @@ class SubscriptionMapperTest {
     assertNull(response.getHistory());
     assertEquals("INCOME", response.getType());
   }
+
+  @Test
+  void mapToResponse_ReminderSubscription_MapsAmountPending() {
+    Subscription sub = new Subscription();
+    sub.setId(UUID.randomUUID());
+    sub.setName("Salary");
+    sub.setAmount(BigDecimal.ZERO);
+    sub.setOriginalAmount(BigDecimal.ZERO);
+    sub.setAmountPending(true);
+    sub.setType(Subscription.Type.INCOME);
+    sub.setStatus(Subscription.Status.ACTIVE);
+    sub.setFrequencyType(Subscription.Frequency.MONTHLY);
+    sub.setDuration(Subscription.Duration.FOREVER);
+
+    SubscriptionResponse response = subscriptionMapper.mapToResponse(sub);
+
+    assertTrue(response.isAmountPending());
+  }
 }

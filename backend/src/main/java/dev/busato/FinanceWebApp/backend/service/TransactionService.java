@@ -2,6 +2,7 @@ package dev.busato.FinanceWebApp.backend.service;
 
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
+import dev.busato.FinanceWebApp.backend.dto.TransactionFillRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
@@ -14,6 +15,7 @@ import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.*;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -45,6 +47,7 @@ public class TransactionService {
   private final TagMapper tagMapper;
   private final TagService tagService;
   private final ApplicationEventPublisher eventPublisher;
+  private final ExchangeRateService exchangeRateService;
 
   @Transactional
   @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
@@ -277,6 +280,7 @@ public class TransactionService {
     transaction.setOriginalAmount(req.getOriginalAmount());
     transaction.setOriginalCurrency(req.getOriginalCurrency());
     transaction.setExchangeValue(req.getExchangeValue());
+    transaction.setAmountPending(false);
   }
 
   /**
@@ -371,7 +375,7 @@ public class TransactionService {
       transaction.setName(request.getName());
     }
 
-    if (request.getAmount().compareTo(BigDecimal.ZERO) < 0)
+    if (request.getAmount() != null && request.getAmount().compareTo(BigDecimal.ZERO) < 0)
       throw new IllegalArgumentException("The amount cannot be negative.");
 
     if (request.getTag() != null && !request.getTag().isBlank()) {
@@ -382,7 +386,11 @@ public class TransactionService {
       transaction.setTag(tag);
     }
 
-    if (request.getAmount() != null) transaction.setAmount(request.getAmount());
+    if (request.getAmount() != null) {
+      transaction.setAmount(request.getAmount());
+      // Any explicit amount resolves a pending transaction (full-edit fill path).
+      transaction.setAmountPending(false);
+    }
     if (request.getOriginalAmount() != null)
       transaction.setOriginalAmount(request.getOriginalAmount());
     if (request.getOriginalCurrency() != null)
@@ -397,6 +405,66 @@ public class TransactionService {
 
     publishTransactionActivity(
         Notification.NotificationType.TRANSACTION_UPDATED, transaction, userId);
+    return transactionMapper.mapToResponse(transaction);
+  }
+
+  /**
+   * Fills the amount of a pending (amount-less) transaction and clears its pending flag.
+   *
+   * <p>The caller provides the amount in the transaction's original currency; the transaction keeps
+   * its scheduled date. For a foreign-currency transaction the wallet-currency amount is computed
+   * like the subscription cron does: the stored fixed rate wins when the originating subscription
+   * uses manual rates, otherwise the live rate at fill time (falling back to the stored rate). When
+   * no rate can be resolved the fill fails and the transaction stays pending.
+   */
+  @Transactional
+  @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
+  public TransactionResponse fillTransactionAmount(
+      UUID transactionId, TransactionFillRequest request, UUID walletId, UUID userId) {
+    Transaction transaction =
+        transactionRepository
+            .findByIdAndWalletId(transactionId, walletId)
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "Transaction not found or does not belong to this wallet"));
+
+    if (!transaction.isAmountPending())
+      throw new IllegalArgumentException("Transaction is not awaiting an amount.");
+    requireNonNegativeAmount(request.getOriginalAmount());
+
+    BigDecimal originalAmount = request.getOriginalAmount();
+    String walletCurrency =
+        transaction.getWallet() != null ? transaction.getWallet().getCurrency() : null;
+    boolean foreign =
+        transaction.getOriginalCurrency() != null
+            && walletCurrency != null
+            && !transaction.getOriginalCurrency().equals(walletCurrency);
+
+    BigDecimal amount = originalAmount;
+    BigDecimal exchangeValue = null;
+    if (foreign) {
+      Subscription sub = transaction.getSubscription();
+      BigDecimal storedRate = sub != null ? sub.getExchangeValue() : null;
+      boolean useLiveRate = sub == null || sub.isAutoExchangeRate() || storedRate == null;
+      exchangeValue =
+          useLiveRate
+              ? exchangeRateService
+                  .getRate(transaction.getOriginalCurrency(), walletCurrency)
+                  .orElse(storedRate)
+              : storedRate;
+      if (exchangeValue == null)
+        throw new IllegalArgumentException(
+            "Exchange rate unavailable for "
+                + transaction.getOriginalCurrency()
+                + " — try again later.");
+      amount = originalAmount.multiply(exchangeValue).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    transaction.setOriginalAmount(originalAmount);
+    transaction.setAmount(amount);
+    transaction.setExchangeValue(exchangeValue);
+    transaction.setAmountPending(false);
     return transactionMapper.mapToResponse(transaction);
   }
 

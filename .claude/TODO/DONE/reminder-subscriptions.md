@@ -1,6 +1,12 @@
 # Reminder Subscriptions (Amount-less) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **STATUS — Phase 1 COMPLETE (2026-07-10).** Implemented on branch `feat/reminder-subscriptions`
+> (branched from `feat/offline-sync`, in an isolated git worktree). Tasks 1–9 done; backend
+> `./gradlew check` green (Spotless + 90% coverage) and frontend lint + Vitest (879 tests) + build
+> green. Not merged (user merges manually). Deferred: E2E sanity check (optional) and
+> `graphify update .` (run post-merge). **Phases 2–5 below remain future work.**
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Let users create subscriptions with no amount ("reminders", e.g. a salary): the cron generates amount-less *pending* transactions that render as pinned, wallet-color-accented rows above the transaction list, with an inline input to fill in the actual amount.
 
@@ -60,14 +66,14 @@
 **Interfaces:**
 - Produces: `Subscription.isAmountPending()/setAmountPending(boolean)`, `Transaction.isAmountPending()/setAmountPending(boolean)`, `SubscriptionRequest.getAmountPending() : Boolean` (nullable — `null` = "not specified"), `SubscriptionResponse.isAmountPending() : boolean`, `TransactionResponse.isAmountPending() : boolean`. All later tasks rely on these exact names.
 
-- [ ] **Step 1: Create the feature branch**
+- [x] **Step 1: Create the feature branch** (branched `feat/reminder-subscriptions` from current `feat/offline-sync` per user; work isolated in git worktree `../FinanceWebApp-reminder-wt`)
 
 ```bash
 cd /home/nicola/Desktop/FinanceWebApp
 git checkout release/v3.2.0 && git checkout -b feat/reminder-subscriptions
 ```
 
-- [ ] **Step 2: Write the failing mapper tests**
+- [x] **Step 2: Write the failing mapper tests**
 
 Append to `TransactionMapperTest.java` (imports already present):
 
@@ -107,12 +113,12 @@ Append to `SubscriptionMapperTest.java` (add any missing imports following the f
   }
 ```
 
-- [ ] **Step 3: Run tests to verify they fail**
+- [x] **Step 3: Run tests to verify they fail**
 
 Run: `cd backend && ./gradlew test --tests "*.TransactionMapperTest" --tests "*.SubscriptionMapperTest"`
 Expected: **compilation FAILURE** (`method setAmountPending in class ... cannot be found`) — that is the red state here.
 
-- [ ] **Step 4: Add the entity flags**
+- [x] **Step 4: Add the entity flags**
 
 In `Subscription.java`, after the `private boolean autoExchangeRate;` field (line ~52), add (plus `import org.hibernate.annotations.ColumnDefault;`):
 
@@ -144,7 +150,7 @@ In `Transaction.java`, after `private String encryptedAmount;` (line ~45), add (
 
 `@ColumnDefault` is what makes Hibernate emit `ADD COLUMN ... DEFAULT false NOT NULL`, which succeeds on populated Postgres tables. Do not omit it.
 
-- [ ] **Step 5: Add the DTO fields and mapper lines**
+- [x] **Step 5: Add the DTO fields and mapper lines**
 
 `SubscriptionRequest.java` — after `private BigDecimal amount;`:
 
@@ -160,12 +166,12 @@ In `Transaction.java`, after `private String encryptedAmount;` (line ~45), add (
 `SubscriptionMapper.java` — in the builder chain, after `.amount(sub.getAmount())`: `.amountPending(sub.isAmountPending())`
 `TransactionMapper.java` — after `.amount(transaction.getAmount())`: `.amountPending(transaction.isAmountPending())`
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `cd backend && ./gradlew test --tests "*.TransactionMapperTest" --tests "*.SubscriptionMapperTest"`
 Expected: PASS.
 
-- [ ] **Step 7: Format and commit**
+- [x] **Step 7: Format and commit**
 
 ```bash
 cd backend && ./gradlew spotlessApply && cd ..
@@ -185,7 +191,7 @@ git commit -m "feat(subscription): amountPending flag on Subscription/Transactio
 - Consumes: `SubscriptionRequest.getAmountPending() : Boolean` (Task 1).
 - Produces: create accepts `amountPending=true` with null amount (persists `amount = originalAmount = 0`, flag true); update can flip the flag (on → zeroes amounts; off → requires `request.amount != null`). Bulk upsert paths reuse these two methods, so wizard/CSV callers inherit the behavior automatically.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `SubscriptionServiceTest.java` (the class already has `walletId`, `userId`, `mockWallet`, fixed clock at **2024-02-15**; add a shared fixture helper):
 
@@ -308,12 +314,12 @@ Append to `SubscriptionServiceTest.java` (the class already has `walletId`, `use
   }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd backend && ./gradlew test --tests "*.SubscriptionServiceTest"`
 Expected: the 5 new tests FAIL (`The amount is required.` on create; amounts not zeroed / no exception on update).
 
-- [ ] **Step 3: Implement in `buildAndPersistSubscription`**
+- [x] **Step 3: Implement in `buildAndPersistSubscription`**
 
 Replace the two validation lines at the top of the method:
 
@@ -350,7 +356,7 @@ and in the builder chain replace `.amount(request.getAmount())` and the `.origin
                         : request.getAmount())
 ```
 
-- [ ] **Step 4: Implement in `applySubscriptionUpdate`**
+- [x] **Step 4: Implement in `applySubscriptionUpdate`**
 
 Immediately after the negative-amount validation (`if (request.getAmount() != null && ... < 0) throw ...` — currently at ~line 364) and **before** `sub.setTag(tag);`, insert:
 
@@ -390,12 +396,12 @@ with:
     }
 ```
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `cd backend && ./gradlew test --tests "*.SubscriptionServiceTest"`
 Expected: PASS (all, including pre-existing tests).
 
-- [ ] **Step 6: Format and commit**
+- [x] **Step 6: Format and commit**
 
 ```bash
 cd backend && ./gradlew spotlessApply && cd ..
@@ -415,7 +421,7 @@ git commit -m "feat(subscription): create/update reminder (amount-less) subscrip
 - Consumes: `Subscription.isAmountPending()` (Task 1), `baseMonthlySub()` fixture (Task 2).
 - Produces: cron-generated transactions for reminder subscriptions carry `amountPending=true`, `amount=0`, `originalAmount=0`, `exchangeValue=null`, `originalCurrency` copied from the subscription; the live-rate fetch is skipped. Date advancement, notes, `executedTimes`, completion checks: unchanged.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `SubscriptionServiceTest.java`:
 
@@ -452,12 +458,12 @@ Append to `SubscriptionServiceTest.java`:
   }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd backend && ./gradlew test --tests "*.SubscriptionServiceTest.processDueSubscriptions_ReminderSubscription*"`
 Expected: FAIL (`generated.isAmountPending()` is false; live rate fetched).
 
-- [ ] **Step 3: Implement in `executeSubscription`**
+- [x] **Step 3: Implement in `executeSubscription`**
 
 Inside the `if (sub.getStatus() == Subscription.Status.ACTIVE) {` block, replace the rate-resolution prologue:
 
@@ -491,12 +497,12 @@ change the live-rate guard from `if (foreign && sub.isAutoExchangeRate() && ...)
                       : sub.getOriginalAmount() != null ? sub.getOriginalAmount() : resolvedAmount)
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd backend && ./gradlew test --tests "*.SubscriptionServiceTest"`
 Expected: PASS.
 
-- [ ] **Step 5: Format and commit**
+- [x] **Step 5: Format and commit**
 
 ```bash
 cd backend && ./gradlew spotlessApply && cd ..
@@ -519,7 +525,7 @@ git commit -m "feat(subscription): cron materializes reminder subscriptions as p
 - Consumes: `Transaction.isAmountPending()` (Task 1), `ExchangeRateService.getRate(String base, String quote) : Optional<BigDecimal>`.
 - Produces: `PUT /api/transactions/{walletID}/{transactionID}/amount` with body `{"originalAmount": <decimal>}` → `TransactionResponse`; service method `fillTransactionAmount(UUID transactionId, TransactionFillRequest request, UUID walletId, UUID userId)`. The frontend (Task 6) calls this exact route.
 
-- [ ] **Step 1: Write the failing service tests**
+- [x] **Step 1: Write the failing service tests**
 
 Add `@Mock private ExchangeRateService exchangeRateService;` to `TransactionServiceTest`'s mock list (it becomes a constructor dep in Step 3). Add imports for `Subscription`, `TransactionFillRequest`, `Optional`, `assertFalse`, `assertNull`, `assertTrue`, `never` as needed, then append:
 
@@ -688,12 +694,12 @@ Add `@Mock private ExchangeRateService exchangeRateService;` to `TransactionServ
   }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd backend && ./gradlew test --tests "*.TransactionServiceTest"`
 Expected: compilation FAILURE (`fillTransactionAmount`/`TransactionFillRequest` not defined) — the red state.
 
-- [ ] **Step 3: Implement the DTO and the service method**
+- [x] **Step 3: Implement the DTO and the service method**
 
 Create `TransactionFillRequest.java`:
 
@@ -777,7 +783,7 @@ In `TransactionService.java`: add `private final ExchangeRateService exchangeRat
   }
 ```
 
-- [ ] **Step 4: Clear the flag on regular updates and bulk overwrites**
+- [x] **Step 4: Clear the flag on regular updates and bulk overwrites**
 
 In `updateTransaction` (~line 329) fix the latent NPE and clear the flag — replace:
 
@@ -809,7 +815,7 @@ In `applyMutableTransactionFields` (bulk upsert; rows always carry an amount) ad
     transaction.setAmountPending(false);
 ```
 
-- [ ] **Step 5: Add the controller route**
+- [x] **Step 5: Add the controller route**
 
 In `TransactionController.java` (import `TransactionFillRequest`), after `updateTransaction`:
 
@@ -828,12 +834,12 @@ In `TransactionController.java` (import `TransactionFillRequest`), after `update
 
 Then open `TransactionControllerTest.java`, copy its existing PUT-update test verbatim as a template, and adapt it for the new route: perform `put("/api/transactions/{walletID}/{transactionID}/amount", ...)` with body `{"originalAmount": 2450.00}`, stub `transactionService.fillTransactionAmount(any(), any(), any(), any())` to return a `TransactionResponse`, expect 200 and verify the service call. Follow that file's existing mock/auth conventions exactly (it extends `BaseWebMvcTest`).
 
-- [ ] **Step 6: Run tests to verify they pass**
+- [x] **Step 6: Run tests to verify they pass**
 
 Run: `cd backend && ./gradlew test --tests "*.TransactionServiceTest" --tests "*.TransactionControllerTest"`
 Expected: PASS.
 
-- [ ] **Step 7: Format, full backend suite, commit**
+- [x] **Step 7: Format, full backend suite, commit**
 
 ```bash
 cd backend && ./gradlew spotlessApply && ./gradlew test && cd ..
@@ -856,7 +862,7 @@ git commit -m "feat(transaction): fill-amount endpoint for pending transactions"
 - Consumes: `TransactionResponse.amountPending` from the API (Task 1).
 - Produces: `Transaction.amountPending?: boolean`, `Subscription.amountPending?: boolean`, `SubscriptionRequestDTO.amountPending?: boolean`; `selectPendingTransactions(transactions: Transaction[]): Transaction[]` (oldest first); context field `pendingTransactions: Transaction[]`; `filteredTransactions` excludes pending rows. Tasks 6–8 rely on these exact names.
 
-- [ ] **Step 1: Write the failing unit test**
+- [x] **Step 1: Write the failing unit test**
 
 Create `frontend/src/__tests__/dashboard/wallet/pendingTransactions.test.ts`:
 
@@ -899,12 +905,12 @@ describe("selectPendingTransactions", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd frontend && npx vitest run src/__tests__/dashboard/wallet/pendingTransactions.test.ts`
 Expected: FAIL (module `pendingTransactions` not found).
 
-- [ ] **Step 3: Implement types + helper + provider wiring**
+- [x] **Step 3: Implement types + helper + provider wiring**
 
 `frontend/src/utils/types.ts`:
 - In `interface Transaction`, after `amount: number;` add: `amountPending?: boolean;`
@@ -952,12 +958,12 @@ export function selectPendingTransactions(
 
 `WalletContext.tsx` — in `WalletContextType`, after `filteredTransactions: Transaction[];` add: `pendingTransactions: Transaction[];`
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd frontend && npx vitest run src/__tests__/dashboard/wallet/`
 Expected: PASS — including the pre-existing `WalletProvider.test.tsx`. If that file builds its own context value object, add the new `pendingTransactions` field there too.
 
-- [ ] **Step 5: Lint, build, commit**
+- [x] **Step 5: Lint, build, commit**
 
 ```bash
 cd frontend && npm run lint && npm run build && cd ..
@@ -979,7 +985,7 @@ git commit -m "feat(wallet): expose pendingTransactions in WalletContext, exclud
 - Consumes: `pendingTransactions` from context (Task 5); `PUT /transactions/{walletId}/{txId}/amount` (Task 4); `Button`/`Input` primitives; `detailsModalRef` already in `TransactionsTable`.
 - Produces: `<PendingTransactionsPanel wallet pendingTransactions onFilled onOpenDetails />`; new `TransactionsTable` prop `pendingTransactions: Transaction[]`.
 
-- [ ] **Step 1: Write the failing component test**
+- [x] **Step 1: Write the failing component test**
 
 Create `frontend/src/__tests__/dashboard/transaction/PendingTransactionsPanel.test.tsx`:
 
@@ -1088,12 +1094,12 @@ describe("PendingTransactionsPanel", () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd frontend && npx vitest run src/__tests__/dashboard/transaction/PendingTransactionsPanel.test.tsx`
 Expected: FAIL (module not found).
 
-- [ ] **Step 3: Implement the component**
+- [x] **Step 3: Implement the component**
 
 Create `frontend/src/dashboard/transaction/PendingTransactionsPanel.tsx`. Before finalizing, check the actual prop surfaces of `Button.tsx` and `Input.tsx` (both in `src/components/ui/`) and keep the mandated primitives — do not hand-roll `<button>`/`<input>`:
 
@@ -1266,7 +1272,7 @@ export const PendingTransactionsPanel: React.FC<
 
 Styling constraints (from `style.md` + saved feedback): soft wallet-color tint via hex-alpha (`0d` bg / `40` border), **no colored glow/halos**, `Button` with `accentColor` + `ripple` (the approved accent pattern).
 
-- [ ] **Step 4: Wire into TransactionsTable and TransactionsTab**
+- [x] **Step 4: Wire into TransactionsTable and TransactionsTab**
 
 `TransactionsTable.tsx`:
 - Add to props interface: `pendingTransactions: Transaction[];` and destructure it.
@@ -1289,12 +1295,12 @@ Styling constraints (from `style.md` + saved feedback): soft wallet-color tint v
 `TransactionsTab.tsx`:
 - Destructure `pendingTransactions` from `useWalletContext()` and pass `pendingTransactions={pendingTransactions}` to `<TransactionsTable />`.
 
-- [ ] **Step 5: Run tests to verify they pass**
+- [x] **Step 5: Run tests to verify they pass**
 
 Run: `cd frontend && npx vitest run src/__tests__/dashboard/transaction/`
 Expected: PASS.
 
-- [ ] **Step 6: Lint, full test run, build, commit**
+- [x] **Step 6: Lint, full test run, build, commit**
 
 ```bash
 cd frontend && npm run lint && npm test && npm run build && cd ..
@@ -1314,7 +1320,7 @@ git commit -m "feat(transactions): pinned awaiting-amount panel with inline fill
 - Consumes: `Toggle` primitive (`src/components/ui/Toggle.tsx`, props: `checked/onChange/accentColor/size/label/aria-label/className`); `SubscriptionRequest.amountPending` (Task 1); `Subscription.amountPending` (Task 5).
 - Produces: create/edit payloads carry `amountPending: boolean` and send `amount: 0, originalAmount: 0` when it's true.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Open `frontend/src/__tests__/modals/subscription/SubscriptionModal.test.tsx`, reuse its existing render harness/mocks (api mock, ref-based `openModal`), and add — adapting fixture names to the file's conventions:
 
@@ -1355,12 +1361,12 @@ Open `frontend/src/__tests__/modals/subscription/SubscriptionModal.test.tsx`, re
   });
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `cd frontend && npx vitest run src/__tests__/modals/subscription/SubscriptionModal.test.tsx`
 Expected: FAIL (no switch found; save disabled with amount 0).
 
-- [ ] **Step 3: Implement the toggle**
+- [x] **Step 3: Implement the toggle**
 
 In `SubscriptionModal.tsx`:
 
@@ -1427,12 +1433,12 @@ In `SubscriptionModal.tsx`:
 
 Keep `ExchangeRateSection` visible: currency choice (and manual-rate mode) stays meaningful for foreign-currency reminders — the fill endpoint uses it. With no amount its conversion preview just reads 0; acceptable for v1.
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd frontend && npx vitest run src/__tests__/modals/subscription/`
 Expected: PASS (new + pre-existing).
 
-- [ ] **Step 5: Lint, build, commit**
+- [x] **Step 5: Lint, build, commit**
 
 ```bash
 cd frontend && npm run lint && npm run build && cd ..
@@ -1455,7 +1461,7 @@ git commit -m "feat(subscription): reminder toggle in SubscriptionModal"
 - Consumes: `subscription.amountPending` / `tx.amountPending` (Task 5).
 - Produces: user-visible copy `Reminder` (subscription contexts) and `Amount pending` (transaction details) — the exact strings the tests assert.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 In `SubscriptionView.test.tsx` add (reusing the file's fixture/render helpers):
 
@@ -1477,12 +1483,12 @@ In `TransactionDetailsModal.test.tsx` add (reusing its open/render helper):
   });
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd frontend && npx vitest run src/__tests__/modals/subscription/SubscriptionView.test.tsx src/__tests__/modals/TransactionModal/TransactionDetailsModal.test.tsx`
 Expected: the 2 new tests FAIL.
 
-- [ ] **Step 3: Implement the three display states**
+- [x] **Step 3: Implement the three display states**
 
 `SubscriptionCard.tsx` — replace the amount row (inside the right-side `div` with `font-app-mono`):
 
@@ -1556,12 +1562,12 @@ Expected: the 2 new tests FAIL.
 
 (`SubscriptionCalendar` needs no change: day cells render only `TagBadge`s; a pending past occurrence opens the transaction details, which now says "Amount pending".)
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 Run: `cd frontend && npx vitest run src/__tests__/modals/ src/__tests__/dashboard/`
 Expected: PASS.
 
-- [ ] **Step 5: Lint, build, commit**
+- [x] **Step 5: Lint, build, commit**
 
 ```bash
 cd frontend && npm run lint && npm run build && cd ..
@@ -1577,25 +1583,25 @@ git commit -m "feat(subscription): reminder/pending display states in cards and 
 - Modify: `.claude/TODO/reminder-subscriptions.md` (tick checkboxes)
 - Modify: `graphify-out/` (regenerated)
 
-- [ ] **Step 1: Full backend gate (Spotless + 90% coverage)**
+- [x] **Step 1: Full backend gate (Spotless + 90% coverage)**
 
 Run: `cd backend && ./gradlew check`
 Expected: BUILD SUCCESSFUL (includes `jacocoTestCoverageVerification`). If coverage dips below 90%, the untested lines are in this feature's new code — add the missing service-test cases; do not lower the gate.
 
-- [ ] **Step 2: Full frontend gate (CI order)**
+- [x] **Step 2: Full frontend gate (CI order)**
 
 Run: `cd frontend && npm run lint && npm test && npm run build`
 Expected: all three succeed.
 
-- [ ] **Step 3: Optional end-to-end sanity check**
+- [ ] **Step 3: Optional end-to-end sanity check** — SKIPPED (optional; unit/integration suites green: backend `check` incl. 90% coverage + frontend lint/test/build 879 tests)
 
 Use the repo's `/verify` skill (throwaway Postgres + second bootRun — do not touch the running dev services): create a reminder subscription with `startDate` = today via `POST /api/subscription/{walletId}`, confirm the response and `GET /api/transactions/{walletId}` show a pending transaction (`amountPending: true, amount: 0`), fill it via `PUT /api/transactions/{walletId}/{txId}/amount` with `{"originalAmount": 2450}`, confirm `amountPending: false, amount: 2450.00` and the unchanged scheduled date.
 
-- [ ] **Step 4: Update the knowledge graph**
+- [ ] **Step 4: Update the knowledge graph** — DEFERRED to post-merge: `graphify-out/` is a shared generated artifact and this work was done in an isolated worktree alongside concurrent sessions; updating it per-branch would conflict. Run `graphify update .` from the repo root once this branch is merged to main.
 
 Run: `graphify update .` (from repo root — required by CLAUDE.md after code changes).
 
-- [ ] **Step 5: Commit and hand off**
+- [x] **Step 5: Commit and hand off**
 
 ```bash
 git add -A

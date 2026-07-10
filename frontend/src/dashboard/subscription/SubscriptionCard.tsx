@@ -180,16 +180,24 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <div
           className={`text-right text-lg font-bold font-app-mono inline-flex items-baseline justify-end gap-1 ${isIncome ? "text-app-green" : "text-app-red"}`}
         >
-          <span>
-            {isIncome ? "+" : "-"}
-            {subscription.amount.toFixed(2)}
-          </span>
-          <span>
-            {
-              CURRENCY_META[subscription.originalCurrency as CurrencyCode]
-                ?.symbol
-            }
-          </span>
+          {subscription.amountPending ? (
+            <span className="text-xs font-bold uppercase tracking-wider text-app-muted">
+              Reminder
+            </span>
+          ) : (
+            <>
+              <span>
+                {isIncome ? "+" : "-"}
+                {subscription.amount.toFixed(2)}
+              </span>
+              <span>
+                {
+                  CURRENCY_META[subscription.originalCurrency as CurrencyCode]
+                    ?.symbol
+                }
+              </span>
+            </>
+          )}
 
           <span className="text-xs text-app-muted font-sans font-medium ml-0.5">
             / {frequencyText}

@@ -1,6 +1,8 @@
 package dev.busato.FinanceWebApp.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,7 +13,9 @@ import static org.mockito.Mockito.when;
 
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
+import dev.busato.FinanceWebApp.backend.dto.TransactionFillRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
+import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
@@ -50,6 +54,7 @@ class TransactionServiceTest {
   @Mock private TransactionMapper transactionMapper;
   @Mock private TagMapper tagMapper;
   @Mock private TagService tagService;
+  @Mock private ExchangeRateService exchangeRateService;
   @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
   @InjectMocks private TransactionService transactionService;
@@ -664,5 +669,165 @@ class TransactionServiceTest {
             transactionService.deleteTransaction(
                 transactionId, walletId, userId, serverTime.minusSeconds(60)));
     verify(transactionRepository, never()).delete(any());
+  }
+
+  // ==================== fillTransactionAmount ====================
+
+  private Transaction pendingTx(UUID txId, Wallet wallet, String originalCurrency) {
+    Transaction tx = new Transaction();
+    tx.setId(txId);
+    tx.setWallet(wallet);
+    tx.setName("Salary");
+    tx.setAmountPending(true);
+    tx.setAmount(BigDecimal.ZERO);
+    tx.setOriginalAmount(BigDecimal.ZERO);
+    tx.setOriginalCurrency(originalCurrency);
+    tx.setType(Transaction.Type.INCOME);
+    tx.setTransactionDate(LocalDate.of(2026, 6, 27));
+    return tx;
+  }
+
+  @Test
+  void fillTransactionAmount_SameCurrency_SetsAmountsAndClearsPending() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    UUID userId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR");
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder().originalAmount(new BigDecimal("2450.00")).build(),
+        walletId,
+        userId);
+
+    assertFalse(tx.isAmountPending());
+    assertEquals(0, new BigDecimal("2450.00").compareTo(tx.getAmount()));
+    assertEquals(0, new BigDecimal("2450.00").compareTo(tx.getOriginalAmount()));
+    assertNull(tx.getExchangeValue());
+    assertEquals(LocalDate.of(2026, 6, 27), tx.getTransactionDate());
+    verify(exchangeRateService, never()).getRate(any(), any());
+  }
+
+  @Test
+  void fillTransactionAmount_ForeignCurrencyAutoRate_UsesLiveRateAtFillTime() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "USD");
+    Subscription sub = new Subscription();
+    sub.setAutoExchangeRate(true);
+    tx.setSubscription(sub);
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+    when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.of(new BigDecimal("0.90")));
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder().originalAmount(new BigDecimal("100.00")).build(),
+        walletId,
+        UUID.randomUUID());
+
+    assertFalse(tx.isAmountPending());
+    assertEquals(0, new BigDecimal("100.00").compareTo(tx.getOriginalAmount()));
+    assertEquals(0, new BigDecimal("90.00").compareTo(tx.getAmount()));
+    assertEquals(0, new BigDecimal("0.90").compareTo(tx.getExchangeValue()));
+  }
+
+  @Test
+  void fillTransactionAmount_ForeignCurrencyFixedRate_UsesStoredSubscriptionRate() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "USD");
+    Subscription sub = new Subscription();
+    sub.setAutoExchangeRate(false);
+    sub.setExchangeValue(new BigDecimal("0.85"));
+    tx.setSubscription(sub);
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    transactionService.fillTransactionAmount(
+        txId,
+        TransactionFillRequest.builder().originalAmount(new BigDecimal("100.00")).build(),
+        walletId,
+        UUID.randomUUID());
+
+    assertEquals(0, new BigDecimal("85.00").compareTo(tx.getAmount()));
+    verify(exchangeRateService, never()).getRate(any(), any());
+  }
+
+  @Test
+  void fillTransactionAmount_ForeignCurrencyNoRateAvailable_ThrowsAndStaysPending() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "USD");
+    Subscription sub = new Subscription();
+    sub.setAutoExchangeRate(true);
+    tx.setSubscription(sub);
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.empty());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            transactionService.fillTransactionAmount(
+                txId,
+                TransactionFillRequest.builder().originalAmount(new BigDecimal("100.00")).build(),
+                walletId,
+                UUID.randomUUID()));
+    assertTrue(tx.isAmountPending());
+  }
+
+  @Test
+  void fillTransactionAmount_NotPending_Throws() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR");
+    tx.setAmountPending(false);
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            transactionService.fillTransactionAmount(
+                txId,
+                TransactionFillRequest.builder().originalAmount(BigDecimal.TEN).build(),
+                walletId,
+                UUID.randomUUID()));
+  }
+
+  @Test
+  void updateTransaction_ProvidingAmount_ClearsPendingFlag() {
+    UUID txId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Wallet wallet = new Wallet();
+    wallet.setId(walletId);
+    wallet.setCurrency("EUR");
+    Transaction tx = pendingTx(txId, wallet, "EUR");
+    when(transactionRepository.findByIdAndWalletId(txId, walletId)).thenReturn(Optional.of(tx));
+    when(transactionMapper.mapToResponse(any())).thenReturn(TransactionResponse.builder().build());
+
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setAmount(new BigDecimal("50.00"));
+
+    transactionService.updateTransaction(txId, request, walletId, UUID.randomUUID());
+
+    assertFalse(tx.isAmountPending());
+    assertEquals(0, new BigDecimal("50.00").compareTo(tx.getAmount()));
   }
 }

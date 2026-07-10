@@ -9,6 +9,7 @@ import {
 import React, { useRef } from "react";
 import type { Tag, Transaction, Wallet } from "../../utils/types.ts";
 import TransactionRow from "./TransactionRow.tsx";
+import { PendingTransactionsPanel } from "./PendingTransactionsPanel.tsx";
 import * as walletOps from "../../api/walletOps.ts";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -21,6 +22,7 @@ interface TransactionsTableProps {
   wallet: Wallet;
   tags: Tag[];
   transactions: Transaction[];
+  pendingTransactions: Transaction[];
   onRefresh: () => void;
   isLoading: boolean;
 }
@@ -48,6 +50,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   wallet,
   tags,
   transactions,
+  pendingTransactions,
   isLoading,
   onRefresh,
 }) => {
@@ -110,6 +113,14 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   return (
     <div className="flex flex-col flex-1 relative min-h-0">
       <div className="flex-1 overflow-auto pb-10 custom-scrollbar">
+        {!isLoading && (
+          <PendingTransactionsPanel
+            wallet={wallet}
+            pendingTransactions={pendingTransactions}
+            onFilled={onRefresh}
+            onOpenDetails={(tx) => detailsModalRef.current?.openModal(tx)}
+          />
+        )}
         {/* 1. STATO DI CARICAMENTO */}
         {isLoading ? (
           <>
@@ -123,7 +134,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
             </div>
           </>
         ) : /* 2. STATO VUOTO (Nessuna transazione) - Migliorato visivamente */
-        transactions.length === 0 ? (
+        transactions.length === 0 && pendingTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-app-muted">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input">
               <FontAwesomeIcon

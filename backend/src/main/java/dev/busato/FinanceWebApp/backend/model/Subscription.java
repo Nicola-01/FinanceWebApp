@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
@@ -49,6 +50,16 @@ public class Subscription {
   private String originalCurrency;
 
   private boolean autoExchangeRate;
+
+  /**
+   * When true this subscription is a reminder template: it carries no real amount (amount and
+   * originalAmount stay 0) and every transaction it generates is created with {@code amountPending
+   * = true}, waiting for the user to fill in the actual amount.
+   */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean amountPending = false;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)

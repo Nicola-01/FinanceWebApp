@@ -19,6 +19,7 @@ public class TransactionResponse {
   private UUID subscriptionId;
 
   private BigDecimal amount;
+  private boolean amountPending;
   private BigDecimal originalAmount;
   private String originalCurrency;
   private BigDecimal exchangeValue;

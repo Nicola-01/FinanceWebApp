@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
 import dev.busato.FinanceWebApp.backend.dto.TransactionBulkResponse;
+import dev.busato.FinanceWebApp.backend.dto.TransactionFillRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -52,6 +53,17 @@ public class TransactionController {
 
     return ResponseEntity.ok(
         transactionService.updateTransaction(transactionID, request, walletID, user.getId()));
+  }
+
+  /** Fills the amount of a pending (amount-less) transaction and clears its pending flag. */
+  @PutMapping("/{walletID}/{transactionID}/amount")
+  public ResponseEntity<TransactionResponse> fillTransactionAmount(
+      @PathVariable UUID walletID,
+      @PathVariable UUID transactionID,
+      @RequestBody TransactionFillRequest request,
+      @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(
+        transactionService.fillTransactionAmount(transactionID, request, walletID, user.getId()));
   }
 
   @DeleteMapping("/{walletID}/{transactionID}")

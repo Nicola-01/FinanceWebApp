@@ -16,6 +16,7 @@ public class TransactionMapper {
         .id(transaction.getId())
         .name(transaction.getName())
         .amount(transaction.getAmount())
+        .amountPending(transaction.isAmountPending())
         .originalAmount(transaction.getOriginalAmount())
         .originalCurrency(transaction.getOriginalCurrency())
         .exchangeValue(transaction.getExchangeValue())
