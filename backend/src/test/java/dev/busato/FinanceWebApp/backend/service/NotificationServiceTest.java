@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -8,12 +9,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.busato.FinanceWebApp.backend.dto.NotificationResponse;
 import dev.busato.FinanceWebApp.backend.model.Notification;
 import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.push.NotificationCopy;
 import dev.busato.FinanceWebApp.backend.push.WebPushSender;
 import dev.busato.FinanceWebApp.backend.repository.NotificationRepository;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,5 +80,69 @@ class NotificationServiceTest {
     notificationService.ack(id, userId);
 
     verify(notificationRepository).deleteByIdAndUserId(id, userId);
+  }
+
+  @Test
+  void list_mapsFieldsAndReadFlag() {
+    UUID userId = UUID.randomUUID();
+    UUID walletId = UUID.randomUUID();
+    Notification unread =
+        Notification.builder()
+            .id(UUID.randomUUID())
+            .type(NotificationType.TRANSACTION_CREATED)
+            .walletId(walletId)
+            .title("New transaction by @nicola")
+            .body("Food · 12.50 EUR · Casa")
+            .url("/dashboard/" + walletId + "?tab=transactions")
+            .createdAt(Instant.parse("2026-07-10T10:00:00Z"))
+            .readAt(null)
+            .build();
+    Notification read =
+        Notification.builder()
+            .id(UUID.randomUUID())
+            .type(NotificationType.WALLET_INVITE)
+            .title("Wallet invitation")
+            .body("@nicola invited you to \"Casa\"")
+            .url("/dashboard")
+            .createdAt(Instant.parse("2026-07-09T10:00:00Z"))
+            .readAt(Instant.parse("2026-07-09T11:00:00Z"))
+            .build();
+    when(notificationRepository.findAllByUserIdOrderByCreatedAtDesc(userId))
+        .thenReturn(List.of(unread, read));
+
+    List<NotificationResponse> res = notificationService.list(userId);
+
+    assertEquals(2, res.size());
+    assertEquals("TRANSACTION_CREATED", res.get(0).getType());
+    assertEquals(walletId, res.get(0).getWalletId());
+    assertEquals("New transaction by @nicola", res.get(0).getTitle());
+    assertFalse(res.get(0).isRead());
+    assertTrue(res.get(1).isRead());
+  }
+
+  @Test
+  void unreadCount_delegates() {
+    UUID userId = UUID.randomUUID();
+    when(notificationRepository.countByUserIdAndReadAtIsNull(userId)).thenReturn(3L);
+
+    assertEquals(3L, notificationService.unreadCount(userId));
+  }
+
+  @Test
+  void markAllRead_callsModifyingQuery() {
+    UUID userId = UUID.randomUUID();
+
+    notificationService.markAllRead(userId);
+
+    verify(notificationRepository).markAllRead(eq(userId), any(Instant.class));
+  }
+
+  @Test
+  void purgeRead_deletesOnlyReadNotifications() {
+    UUID userId = UUID.randomUUID();
+
+    notificationService.purgeRead(userId);
+
+    verify(notificationRepository).deleteAllByUserIdAndReadAtIsNotNull(userId);
   }
 }

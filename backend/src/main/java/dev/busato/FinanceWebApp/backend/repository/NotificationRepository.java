@@ -33,6 +33,6 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   /** Remove every notification owned by a user (account deletion). */
   void deleteAllByUserId(UUID userId);
 
-  /** Retention job: drop notifications older than a cutoff. */
-  void deleteAllByCreatedAtBefore(Instant cutoff);
+  /** Retention job: drop notifications older than a cutoff; returns how many were removed. */
+  long deleteAllByCreatedAtBefore(Instant cutoff);
 }
