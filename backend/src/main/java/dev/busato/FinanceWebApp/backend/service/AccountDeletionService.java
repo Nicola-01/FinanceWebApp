@@ -5,6 +5,7 @@ import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.repository.EmailChangeRequestRepository;
 import dev.busato.FinanceWebApp.backend.repository.PersonalAccessTokenRepository;
+import dev.busato.FinanceWebApp.backend.repository.PushSubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
@@ -34,6 +35,7 @@ public class AccountDeletionService {
   private final SubscriptionRepository subscriptionRepository;
   private final PersonalAccessTokenRepository patRepository;
   private final EmailChangeRequestRepository emailChangeRepository;
+  private final PushSubscriptionRepository pushSubscriptionRepository;
 
   /**
    * Strict, deterministic order used to pick the heir of a shared wallet:
@@ -105,6 +107,7 @@ public class AccountDeletionService {
     }
 
     patRepository.deleteAllByUserId(userId);
+    pushSubscriptionRepository.deleteAllByUserId(userId);
     emailChangeRepository.deleteByUserId(userId);
     walletAccessRepository.deleteAllByUserId(userId);
     userRepository.delete(user);
