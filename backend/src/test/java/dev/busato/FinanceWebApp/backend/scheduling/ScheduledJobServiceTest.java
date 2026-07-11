@@ -164,7 +164,7 @@ class ScheduledJobServiceTest {
   @Test
   void updateSchedule_MutatesConfigAndReschedules() {
     UpdateScheduleRequest req =
-        new UpdateScheduleRequest(JobFrequency.WEEKLY, 4, 30, List.of("MON", "WED"));
+        new UpdateScheduleRequest(JobFrequency.WEEKLY, 4, 30, List.of("MON", "WED"), null, null);
 
     ScheduledJobDTO dto = service.updateSchedule("backup", req);
 
@@ -256,5 +256,39 @@ class ScheduledJobServiceTest {
     assertEquals(
         "0 30 4 * * *",
         ScheduledJobService.toCron(config("k", true, JobFrequency.WEEKLY, 4, 30, null)));
+  }
+
+  @Test
+  void toCron_Monthly_UsesDayOfMonth() {
+    ScheduledJobConfig c = config("k", true, JobFrequency.MONTHLY, 7, 0, null);
+    c.setDayOfMonth(1);
+    assertEquals("0 0 7 1 * *", ScheduledJobService.toCron(c));
+  }
+
+  @Test
+  void toCron_Monthly_NullDayOfMonth_DefaultsToFirst() {
+    ScheduledJobConfig c = config("k", true, JobFrequency.MONTHLY, 7, 0, null);
+    assertEquals("0 0 7 1 * *", ScheduledJobService.toCron(c));
+  }
+
+  @Test
+  void toCron_Yearly_UsesDayAndMonth() {
+    ScheduledJobConfig c = config("k", true, JobFrequency.YEARLY, 7, 30, null);
+    c.setDayOfMonth(1);
+    c.setMonthOfYear(1);
+    assertEquals("0 30 7 1 1 *", ScheduledJobService.toCron(c));
+  }
+
+  @Test
+  void updateSchedule_PersistsDayOfMonthAndMonthOfYear() {
+    UpdateScheduleRequest req =
+        new UpdateScheduleRequest(JobFrequency.YEARLY, 7, 30, List.of(), 15, 6);
+
+    ScheduledJobDTO dto = service.updateSchedule("backup", req);
+
+    assertEquals(15, dto.dayOfMonth());
+    assertEquals(6, dto.monthOfYear());
+    assertEquals(15, backupCfg.getDayOfMonth());
+    assertEquals(6, backupCfg.getMonthOfYear());
   }
 }
