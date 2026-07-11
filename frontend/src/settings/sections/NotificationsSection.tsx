@@ -11,13 +11,20 @@ import {
 } from "../../push/pushClient";
 
 type PrefKey =
-  "invites" | "transactions" | "subscriptions" | "recurringExecutions";
+  | "invites"
+  | "transactions"
+  | "subscriptions"
+  | "recurringExecutions"
+  | "monthlyReport"
+  | "yearlyReport";
 
 interface NotificationPrefs {
   invites: boolean;
   transactions: boolean;
   subscriptions: boolean;
   recurringExecutions: boolean;
+  monthlyReport: boolean;
+  yearlyReport: boolean;
 }
 
 interface WalletMute {
@@ -37,12 +44,22 @@ const GLOBAL_PREFS: { key: PrefKey; label: string }[] = [
   { key: "recurringExecutions", label: "Recurring executions" },
 ];
 
+const REPORT_PREFS: { key: PrefKey; label: string; hint: string }[] = [
+  {
+    key: "monthlyReport",
+    label: "Monthly report",
+    hint: "A summary of last month",
+  },
+  { key: "yearlyReport", label: "Yearly wrap-up", hint: "Your year in review" },
+];
+
 /**
- * Settings → Notifications: three cards managing all push preferences —
+ * Settings → Notifications: cards managing all notification preferences —
  *  1. this device's browser subscription (enroll / unenroll),
  *  2. global per-event-type toggles (invites / transactions / subscriptions /
  *     recurring executions),
- *  3. per-wallet mute switches.
+ *  3. periodic report opt-ins (each gates both the email and its push),
+ *  4. per-wallet mute switches.
  * Outside a wallet, so it uses the brand tokens (no per-wallet accent).
  */
 export const NotificationsSection: React.FC = () => {
@@ -66,6 +83,8 @@ export const NotificationsSection: React.FC = () => {
           transactions: rest.transactions,
           subscriptions: rest.subscriptions,
           recurringExecutions: rest.recurringExecutions,
+          monthlyReport: rest.monthlyReport,
+          yearlyReport: rest.yearlyReport,
         });
         setWalletMutes(mutes ?? []);
       } catch {
@@ -197,7 +216,35 @@ export const NotificationsSection: React.FC = () => {
         </div>
       </Card>
 
-      {/* 3. Per-wallet mute */}
+      {/* 3. Periodic report emails (each toggle also gates its push notification) */}
+      <Card title="Periodic reports">
+        <p className="mb-3 text-xs text-app-muted">
+          Emailed as a PDF, with a push notification when it's ready.
+        </p>
+        <div className="flex flex-col divide-y divide-app-border">
+          {REPORT_PREFS.map((pref) => (
+            <div
+              key={pref.key}
+              className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+            >
+              <div className="min-w-0">
+                <span className="block text-sm font-medium text-app-text">
+                  {pref.label}
+                </span>
+                <span className="text-xs text-app-muted">{pref.hint}</span>
+              </div>
+              <Toggle
+                checked={prefs ? prefs[pref.key] : false}
+                onChange={(nextVal) => handlePrefToggle(pref.key, nextVal)}
+                disabled={!prefs}
+                aria-label={pref.label}
+              />
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* 4. Per-wallet mute */}
       <Card title="Per-wallet">
         {walletMutes.length === 0 ? (
           <p className="text-sm text-app-muted">
