@@ -1,12 +1,15 @@
 package dev.busato.FinanceWebApp.backend.report;
 
+import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess.InvitationStatus;
+import dev.busato.FinanceWebApp.backend.push.NotificationCopy;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
+import dev.busato.FinanceWebApp.backend.service.NotificationService;
 import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -33,6 +36,7 @@ public class ReportService {
   private final ReportHtmlBuilder htmlBuilder;
   private final ReportPdfRenderer pdfRenderer;
   private final SendEmailService sendEmailService;
+  private final NotificationService notificationService;
 
   public String sendMonthlyReports(YearMonth period) {
     return sendAll(
@@ -54,6 +58,10 @@ public class ReportService {
               htmlBuilder.monthlyEmailBody(user.getUsername(), period, reports),
               "FinanceWebApp-Report-" + period + ".pdf",
               pdf);
+          notifyReportReady(
+              user,
+              NotificationType.MONTHLY_REPORT,
+              NotificationCopy.monthlyReportReady(ReportHtmlBuilder.monthLabel(period)));
           return true;
         });
   }
@@ -78,8 +86,26 @@ public class ReportService {
               htmlBuilder.yearlyEmailBody(user.getUsername(), year, reports),
               "FinanceWebApp-Wrap-" + year + ".pdf",
               pdf);
+          notifyReportReady(
+              user, NotificationType.YEARLY_REPORT, NotificationCopy.yearlyReportReady(year));
           return true;
         });
+  }
+
+  /**
+   * Best-effort report-ready notification (persisted row + Web Push) gated by the same opt-in as
+   * the email. A push/notification failure must never flip an already-sent report to failed, so it
+   * is swallowed here rather than propagated to the batch loop.
+   */
+  private void notifyReportReady(User user, NotificationType type, NotificationCopy.Copy copy) {
+    try {
+      notificationService.notifyUser(user, type, null, copy);
+    } catch (Exception e) {
+      log.warn(
+          "[Reports] report-ready notification failed for user {}: {}",
+          user.getId(),
+          e.getMessage());
+    }
   }
 
   /** Shared batch loop: opt-in filter → build+send (true = sent, false = no data). */

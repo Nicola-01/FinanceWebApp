@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
@@ -11,6 +12,7 @@ import dev.busato.FinanceWebApp.backend.model.WalletAccess.InvitationStatus;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
+import dev.busato.FinanceWebApp.backend.service.NotificationService;
 import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import java.math.BigDecimal;
 import java.time.YearMonth;
@@ -33,6 +35,7 @@ class ReportServiceTest {
   @Mock private ReportHtmlBuilder htmlBuilder;
   @Mock private ReportPdfRenderer pdfRenderer;
   @Mock private SendEmailService sendEmailService;
+  @Mock private NotificationService notificationService;
 
   @InjectMocks private ReportService reportService;
 
@@ -91,6 +94,25 @@ class ReportServiceTest {
             eq("<body/>"),
             eq("FinanceWebApp-Report-2026-06.pdf"),
             any(byte[].class));
+    verify(notificationService)
+        .notifyUser(eq(user), eq(NotificationType.MONTHLY_REPORT), isNull(), any());
+  }
+
+  @Test
+  void sendMonthlyReports_PushFailureStillCountsAsSent() throws Exception {
+    wireHappyPath(3);
+    when(htmlBuilder.monthlyEmailBody(any(), any(), anyList())).thenReturn("<body/>");
+    when(htmlBuilder.monthlyPdfHtml(any(), any(), anyList())).thenReturn("<pdf/>");
+    when(pdfRenderer.render(any())).thenReturn("%PDF".getBytes());
+    doThrow(new RuntimeException("push down"))
+        .when(notificationService)
+        .notifyUser(any(), any(), any(), any());
+
+    String summary = reportService.sendMonthlyReports(period);
+
+    // Email went out; a failing report-ready push must not flip it to failed.
+    assertEquals("sent 1, skipped 0 (no data), failed 0", summary);
+    verify(sendEmailService).sendReportEmail(any(), any(), any(), any(), any());
   }
 
   @Test
@@ -182,5 +204,7 @@ class ReportServiceTest {
             eq("<body/>"),
             eq("FinanceWebApp-Wrap-2025.pdf"),
             any(byte[].class));
+    verify(notificationService)
+        .notifyUser(eq(user), eq(NotificationType.YEARLY_REPORT), isNull(), any());
   }
 }

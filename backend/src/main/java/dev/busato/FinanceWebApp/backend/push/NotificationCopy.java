@@ -66,6 +66,21 @@ public final class NotificationCopy {
         "/dashboard");
   }
 
+  /** Report-ready ping; the full report itself is delivered by email as a PDF. */
+  public static Copy monthlyReportReady(String periodLabel) {
+    return new Copy(
+        "Your " + periodLabel + " report is ready",
+        "Your monthly summary was just emailed to you as a PDF.",
+        "/dashboard");
+  }
+
+  public static Copy yearlyReportReady(int year) {
+    return new Copy(
+        "Your " + year + " wrap-up is here 🎉",
+        "Your year in review was just emailed to you as a PDF.",
+        "/dashboard");
+  }
+
   /** Recap body: {@code "{name} · {amount} {currency} · {walletName}"}; null name → "Untagged". */
   private static String recap(String name, BigDecimal amount, String currency, String walletName) {
     String label = (name == null) ? "Untagged" : name;
