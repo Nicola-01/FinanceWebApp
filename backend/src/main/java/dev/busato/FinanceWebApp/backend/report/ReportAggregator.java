@@ -7,10 +7,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 /**
@@ -124,5 +126,110 @@ public class ReportAggregator {
     return part.multiply(BigDecimal.valueOf(100))
         .divide(total, 1, RoundingMode.HALF_UP)
         .doubleValue();
+  }
+
+  // ── Yearly wrap-up ──────────────────────────────────────────────────────────
+
+  public WalletYearlyReport yearly(Wallet wallet, List<Transaction> allTransactions, int year) {
+    List<Transaction> settled = settled(allTransactions);
+    LocalDate from = LocalDate.of(year, 1, 1);
+    LocalDate to = LocalDate.of(year, 12, 31);
+    List<Transaction> inYear = between(settled, from, to);
+    List<Transaction> inPrevious =
+        between(settled, LocalDate.of(year - 1, 1, 1), LocalDate.of(year - 1, 12, 31));
+    PeriodTotals totals = totals(inYear);
+    Map<String, BigDecimal> prevExpenseByCat =
+        inPrevious.isEmpty() ? Map.of() : byCategory(inPrevious, Transaction.Type.EXPENSE);
+    Map<String, BigDecimal> prevIncomeByCat =
+        inPrevious.isEmpty() ? Map.of() : byCategory(inPrevious, Transaction.Type.INCOME);
+
+    List<MonthRow> months = new ArrayList<>(12);
+    YearMonth best = null;
+    YearMonth worst = null;
+    BigDecimal bestNet = null;
+    BigDecimal worstNet = null;
+    for (int m = 1; m <= 12; m++) {
+      YearMonth ym = YearMonth.of(year, m);
+      List<Transaction> inMonth = between(inYear, ym.atDay(1), ym.atEndOfMonth());
+      PeriodTotals t = totals(inMonth);
+      months.add(new MonthRow(ym, t.income(), t.expense(), t.net(), inMonth.size()));
+      if (inMonth.isEmpty()) continue;
+      if (bestNet == null || t.net().compareTo(bestNet) > 0) {
+        bestNet = t.net();
+        best = ym;
+      }
+      if (worstNet == null || t.net().compareTo(worstNet) < 0) {
+        worstNet = t.net();
+        worst = ym;
+      }
+    }
+
+    return new WalletYearlyReport(
+        wallet.getName(),
+        wallet.getColor(),
+        wallet.getCurrency(),
+        year,
+        totals,
+        inPrevious.isEmpty() ? null : totals(inPrevious),
+        months,
+        best,
+        worst,
+        topCategories(inYear, Transaction.Type.EXPENSE, totals.expense(), prevExpenseByCat),
+        topCategories(inYear, Transaction.Type.INCOME, totals.income(), prevIncomeByCat),
+        records(inYear, months, prevExpenseByCat, inPrevious.isEmpty()),
+        inYear.size());
+  }
+
+  private static YearRecords records(
+      List<Transaction> inYear,
+      List<MonthRow> months,
+      Map<String, BigDecimal> prevExpenseByCat,
+      boolean previousYearEmpty) {
+    Transaction biggest =
+        inYear.stream()
+            .filter(t -> t.getType() == Transaction.Type.EXPENSE)
+            .max(Comparator.comparing(Transaction::getAmount))
+            .orElse(null);
+
+    Map.Entry<LocalDate, BigDecimal> costliestDay =
+        inYear.stream()
+            .filter(t -> t.getType() == Transaction.Type.EXPENSE)
+            .collect(
+                Collectors.groupingBy(
+                    Transaction::getTransactionDate,
+                    Collectors.reducing(BigDecimal.ZERO, Transaction::getAmount, BigDecimal::add)))
+            .entrySet()
+            .stream()
+            .max(Map.Entry.comparingByValue())
+            .orElse(null);
+
+    MonthRow mostActive =
+        months.stream().max(Comparator.comparingLong(MonthRow::transactionCount)).orElse(null);
+
+    String growthCat = null;
+    BigDecimal growth = null;
+    if (!previousYearEmpty) {
+      for (Map.Entry<String, BigDecimal> e :
+          byCategory(inYear, Transaction.Type.EXPENSE).entrySet()) {
+        BigDecimal increase =
+            e.getValue().subtract(prevExpenseByCat.getOrDefault(e.getKey(), BigDecimal.ZERO));
+        if (growth == null || increase.compareTo(growth) > 0) {
+          growth = increase;
+          growthCat = e.getKey();
+        }
+      }
+    }
+
+    return new YearRecords(
+        biggest == null ? null : biggest.getName(),
+        biggest == null ? null : biggest.getTransactionDate(),
+        biggest == null ? null : biggest.getAmount(),
+        costliestDay == null ? null : costliestDay.getKey(),
+        costliestDay == null ? null : costliestDay.getValue(),
+        mostActive == null || mostActive.transactionCount() == 0 ? null : mostActive.month(),
+        mostActive == null ? 0 : mostActive.transactionCount(),
+        inYear.size(),
+        growthCat,
+        growth);
   }
 }
