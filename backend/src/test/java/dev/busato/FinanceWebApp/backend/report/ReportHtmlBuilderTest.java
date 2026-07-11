@@ -94,4 +94,69 @@ class ReportHtmlBuilderTest {
                     "nicola", YearMonth.of(2026, 6), List.of(report("Main", "#8b5cf6"))));
     assertTrue(pdf.length > 500);
   }
+
+  private static WalletYearlyReport yearlyReport() {
+    java.util.List<MonthRow> months = new java.util.ArrayList<>();
+    for (int m = 1; m <= 12; m++) {
+      months.add(
+          new MonthRow(
+              YearMonth.of(2025, m),
+              new BigDecimal("100.00"),
+              new BigDecimal("50.00"),
+              new BigDecimal("50.00"),
+              m == 3 ? 9 : 1));
+    }
+    return new WalletYearlyReport(
+        "Main",
+        "#8b5cf6",
+        "EUR",
+        2025,
+        new PeriodTotals(
+            new BigDecimal("1200.00"), new BigDecimal("600.00"), new BigDecimal("600.00")),
+        null,
+        months,
+        YearMonth.of(2025, 1),
+        YearMonth.of(2025, 12),
+        List.of(
+            new CategoryTotal("Food", new BigDecimal("300.00"), 50.0, new BigDecimal("250.00"))),
+        List.of(),
+        new YearRecords(
+            "laptop",
+            java.time.LocalDate.of(2025, 4, 2),
+            new BigDecimal("950.00"),
+            java.time.LocalDate.of(2025, 11, 28),
+            new BigDecimal("1000.00"),
+            YearMonth.of(2025, 3),
+            9,
+            20,
+            "Food",
+            new BigDecimal("50.00")),
+        20);
+  }
+
+  @Test
+  void yearlyPdfHtml_ContainsMonthTableRecordsAndNoTokens() {
+    String html = builder.yearlyPdfHtml("nicola", 2025, List.of(yearlyReport()));
+
+    assertTrue(html.contains("2025"));
+    assertTrue(html.contains("laptop"));
+    assertTrue(html.contains("March")); // month rows + most-active month
+    assertFalse(html.contains("{{"));
+  }
+
+  @Test
+  void yearlyEmailBody_NoLeftoverTokens() {
+    String html = builder.yearlyEmailBody("nicola", 2025, List.of(yearlyReport()));
+
+    assertTrue(html.contains("2025"));
+    assertFalse(html.contains("{{"));
+  }
+
+  @Test
+  void yearlyPdfHtml_IsRenderable() {
+    byte[] pdf =
+        new ReportPdfRenderer()
+            .render(builder.yearlyPdfHtml("nicola", 2025, List.of(yearlyReport())));
+    assertTrue(pdf.length > 500);
+  }
 }
