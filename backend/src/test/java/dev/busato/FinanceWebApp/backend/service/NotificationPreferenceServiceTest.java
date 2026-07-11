@@ -48,6 +48,8 @@ class NotificationPreferenceServiceTest {
     user.setNotifyTransactions(false);
     user.setNotifySubscriptions(true);
     user.setNotifyRecurringExecutions(false);
+    user.setMonthlyReportEnabled(false);
+    user.setYearlyReportEnabled(true);
     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
     Wallet wallet = new Wallet();
@@ -67,6 +69,8 @@ class NotificationPreferenceServiceTest {
     assertFalse(res.isTransactions());
     assertTrue(res.isSubscriptions());
     assertFalse(res.isRecurringExecutions());
+    assertFalse(res.isMonthlyReport());
+    assertTrue(res.isYearlyReport());
     assertEquals(1, res.getWalletMutes().size());
     assertEquals(walletId, res.getWalletMutes().get(0).getWalletId());
     assertEquals("Casa", res.getWalletMutes().get(0).getWalletName());
@@ -74,7 +78,7 @@ class NotificationPreferenceServiceTest {
   }
 
   @Test
-  void updatePreferences_persistsAllFour() {
+  void updatePreferences_persistsAllToggles() {
     User user = new User();
     user.setId(userId);
     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -86,12 +90,16 @@ class NotificationPreferenceServiceTest {
             .transactions(true)
             .subscriptions(false)
             .recurringExecutions(true)
+            .monthlyReport(true)
+            .yearlyReport(false)
             .build());
 
     assertFalse(user.isNotifyInvites());
     assertTrue(user.isNotifyTransactions());
     assertFalse(user.isNotifySubscriptions());
     assertTrue(user.isNotifyRecurringExecutions());
+    assertTrue(user.isMonthlyReportEnabled());
+    assertFalse(user.isYearlyReportEnabled());
     verify(userRepository).save(user);
   }
 

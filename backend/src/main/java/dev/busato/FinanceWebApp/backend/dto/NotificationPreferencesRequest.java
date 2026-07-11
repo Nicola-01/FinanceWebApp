@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** New values for the four global per-event-type notification toggles. */
+/** New values for the global per-event-type notification toggles and report opt-ins. */
 @Data
 @Builder
 @NoArgsConstructor
@@ -15,4 +15,6 @@ public class NotificationPreferencesRequest {
   private boolean transactions;
   private boolean subscriptions;
   private boolean recurringExecutions;
+  private boolean monthlyReport;
+  private boolean yearlyReport;
 }
