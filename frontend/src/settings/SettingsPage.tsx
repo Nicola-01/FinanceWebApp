@@ -10,6 +10,7 @@ import { useScrollSpy } from "./useScrollSpy";
 import { AccountSection } from "./sections/AccountSection";
 import { SecuritySection } from "./sections/SecuritySection";
 import { TokensSection } from "./sections/TokensSection";
+import { NotificationsSection } from "./sections/NotificationsSection";
 import { AboutSection } from "./sections/AboutSection";
 import { DeleteAccountSection } from "./sections/DeleteAccountSection";
 
@@ -140,6 +141,7 @@ const SettingsPage: React.FC = () => {
                   />
                 )}
                 {s.id === "tokens" && <TokensSection />}
+                {s.id === "notifications" && <NotificationsSection />}
                 {s.id === "about" && <AboutSection />}
                 {s.id === "delete-account" && <DeleteAccountSection />}
               </section>

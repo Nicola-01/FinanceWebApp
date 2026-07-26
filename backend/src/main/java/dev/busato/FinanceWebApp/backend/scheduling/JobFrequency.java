@@ -4,5 +4,7 @@ package dev.busato.FinanceWebApp.backend.scheduling;
 public enum JobFrequency {
   HOURLY,
   DAILY,
-  WEEKLY
+  WEEKLY,
+  MONTHLY,
+  YEARLY
 }

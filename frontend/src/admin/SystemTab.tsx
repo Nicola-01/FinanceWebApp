@@ -8,12 +8,15 @@ import {
   faCircleXmark,
   faClock,
   faDatabase,
+  faEnvelope,
   faGear,
   faPlay,
   faSpinner,
+  faStar,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
+import { buildSchedulePayload } from "./schedulePayload";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { Card } from "../components/ui/Card";
 import { getApiErrorTitle } from "../utils/apiError.ts";
@@ -37,10 +40,12 @@ interface ScheduledJobDTO {
   key: string;
   displayName: string;
   enabled: boolean;
-  frequency: string; // HOURLY | DAILY | WEEKLY
+  frequency: string; // HOURLY | DAILY | WEEKLY | MONTHLY | YEARLY
   hourOfDay: number;
   minuteOfHour: number;
   daysOfWeek: string[];
+  dayOfMonth: number | null;
+  monthOfYear: number | null;
   nextRunAt: string | null;
   recentRuns: JobRunDTO[];
 }
@@ -51,13 +56,36 @@ const JOB_ICONS: Record<string, IconDefinition> = {
   backup: faDatabase,
   subscriptions: faArrowsRotate,
   "demo-cleanup": faBroom,
+  "monthly-report": faEnvelope,
+  "yearly-report": faStar,
 };
 
 const FREQ_OPTIONS = [
   { value: "HOURLY", label: "Hourly" },
   { value: "DAILY", label: "Daily" },
   { value: "WEEKLY", label: "Weekly" },
+  { value: "MONTHLY", label: "Monthly" },
+  { value: "YEARLY", label: "Yearly" },
 ];
+
+const DOM_OPTIONS = Array.from({ length: 28 }, (_, i) => ({
+  value: String(i + 1),
+  label: String(i + 1),
+}));
+const MONTH_OPTIONS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+].map((label, i) => ({ value: String(i + 1), label }));
 
 const DAYS = [
   { token: "MON", label: "M" },
@@ -85,10 +113,12 @@ function scheduleSig(j: {
   hourOfDay: number;
   minuteOfHour: number;
   daysOfWeek: string[];
+  dayOfMonth: number | null;
+  monthOfYear: number | null;
 }): string {
   return `${j.frequency}|${j.hourOfDay}|${j.minuteOfHour}|${[...j.daysOfWeek]
     .sort()
-    .join(",")}`;
+    .join(",")}|${j.dayOfMonth ?? ""}|${j.monthOfYear ?? ""}`;
 }
 
 function formatCountdown(nextIso: string | null, now: number): string {
@@ -147,6 +177,10 @@ const JobCard: React.FC<{
   const [hourOfDay, setHourOfDay] = useState(job.hourOfDay);
   const [minuteOfHour, setMinuteOfHour] = useState(job.minuteOfHour);
   const [daysOfWeek, setDaysOfWeek] = useState<string[]>(job.daysOfWeek);
+  const [dayOfMonth, setDayOfMonth] = useState<number | null>(job.dayOfMonth);
+  const [monthOfYear, setMonthOfYear] = useState<number | null>(
+    job.monthOfYear,
+  );
 
   const [saving, setSaving] = useState(false);
   const [togglingEnabled, setTogglingEnabled] = useState(false);
@@ -161,6 +195,8 @@ const JobCard: React.FC<{
     setHourOfDay(job.hourOfDay);
     setMinuteOfHour(job.minuteOfHour);
     setDaysOfWeek(job.daysOfWeek);
+    setDayOfMonth(job.dayOfMonth);
+    setMonthOfYear(job.monthOfYear);
   }
 
   const draftSig = scheduleSig({
@@ -168,6 +204,8 @@ const JobCard: React.FC<{
     hourOfDay,
     minuteOfHour,
     daysOfWeek,
+    dayOfMonth,
+    monthOfYear,
   });
   const dirty = draftSig !== serverSig;
 
@@ -179,12 +217,17 @@ const JobCard: React.FC<{
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.put(`/admin/jobs/${job.key}/schedule`, {
-        frequency,
-        hourOfDay,
-        minuteOfHour,
-        daysOfWeek: frequency === "WEEKLY" ? daysOfWeek : [],
-      });
+      await api.put(
+        `/admin/jobs/${job.key}/schedule`,
+        buildSchedulePayload({
+          frequency,
+          hourOfDay,
+          minuteOfHour,
+          daysOfWeek,
+          dayOfMonth,
+          monthOfYear,
+        }),
+      );
       triggerToast("Schedule updated", true);
       onReload();
     } catch (err: unknown) {
@@ -224,6 +267,8 @@ const JobCard: React.FC<{
     setHourOfDay(job.hourOfDay);
     setMinuteOfHour(job.minuteOfHour);
     setDaysOfWeek(job.daysOfWeek);
+    setDayOfMonth(job.dayOfMonth);
+    setMonthOfYear(job.monthOfYear);
   };
 
   const icon = JOB_ICONS[job.key] ?? faGear;
@@ -275,6 +320,32 @@ const JobCard: React.FC<{
           options={FREQ_OPTIONS}
           width="w-28"
         />
+        {frequency === "MONTHLY" && (
+          <>
+            <span>on day</span>
+            <Select
+              value={String(dayOfMonth ?? 1)}
+              onChange={(v) => setDayOfMonth(Number(v))}
+              options={DOM_OPTIONS}
+            />
+          </>
+        )}
+        {frequency === "YEARLY" && (
+          <>
+            <span>on</span>
+            <Select
+              value={String(dayOfMonth ?? 1)}
+              onChange={(v) => setDayOfMonth(Number(v))}
+              options={DOM_OPTIONS}
+            />
+            <Select
+              value={String(monthOfYear ?? 1)}
+              onChange={(v) => setMonthOfYear(Number(v))}
+              options={MONTH_OPTIONS}
+              width="w-32"
+            />
+          </>
+        )}
         {frequency === "HOURLY" ? (
           <>
             <span>at minute</span>

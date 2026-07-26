@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>FinanceWebApp - Monthly Report</title>
+</head>
+<body style="margin:0; padding:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" style="padding:40px 20px;">
+    <tr>
+        <td align="center">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0"
+                   style="max-width:600px; border:1px solid #e2e8f0; border-top:4px solid #b829ff; border-radius:16px; overflow:hidden; margin:0 auto;">
+                <tr>
+                    <td align="center" style="padding:40px 30px 10px 30px;">
+                        <h1 style="font-size:24px; margin:0 0 8px 0; font-weight:700;">Your {{period}} report is ready</h1>
+                        <p style="color:#4a5568; font-size:15px; line-height:1.6; margin:0;">
+                            Hi <strong>{{username}}</strong>, here is a quick look at last month.
+                            The full report is attached as a PDF.
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:20px 30px 30px 30px;">
+                        {{highlights}}
+                    </td>
+                </tr>
+                <tr>
+                    <td align="center" style="background-color:rgba(0,0,0,0.03); padding:24px;">
+                        <p style="color:#718096; font-size:12px; margin:0;">
+                            You receive this because monthly reports are enabled in your
+                            <a href="{{appUrl}}/settings#notifications" style="color:#b829ff;">notification settings</a>.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

@@ -31,6 +31,21 @@ public interface ManagedJob {
   /** Default schedule used to seed the first {@link ScheduledJobConfig} row. */
   ScheduleDefaults defaults();
 
-  /** Default schedule values for seeding. {@code daysOfWeek} is a CSV (e.g. "MON,WED") or null. */
-  record ScheduleDefaults(JobFrequency frequency, int hour, int minute, String daysOfWeek) {}
+  /**
+   * Default schedule values for seeding. {@code daysOfWeek} is a CSV (e.g. "MON,WED") or null;
+   * {@code dayOfMonth}/{@code monthOfYear} apply to MONTHLY/YEARLY and may be null (= 1).
+   */
+  record ScheduleDefaults(
+      JobFrequency frequency,
+      int hour,
+      int minute,
+      String daysOfWeek,
+      Integer dayOfMonth,
+      Integer monthOfYear) {
+
+    /** Convenience constructor for HOURLY/DAILY/WEEKLY jobs. */
+    public ScheduleDefaults(JobFrequency frequency, int hour, int minute, String daysOfWeek) {
+      this(frequency, hour, minute, daysOfWeek, null, null);
+    }
+  }
 }

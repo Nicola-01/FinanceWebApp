@@ -32,7 +32,17 @@ class AdminJobControllerTest extends BaseWebMvcTest {
 
   private ScheduledJobDTO sampleDto() {
     return new ScheduledJobDTO(
-        "backup", "Database Backup", true, "DAILY", 3, 0, List.of(), Instant.now(), List.of());
+        "backup",
+        "Database Backup",
+        true,
+        "DAILY",
+        3,
+        0,
+        List.of(),
+        null,
+        null,
+        Instant.now(),
+        List.of());
   }
 
   @Test
@@ -51,7 +61,7 @@ class AdminJobControllerTest extends BaseWebMvcTest {
   @Test
   void updateSchedule_ShouldReturn200() throws Exception {
     UpdateScheduleRequest req =
-        new UpdateScheduleRequest(JobFrequency.WEEKLY, 4, 30, List.of("MON", "WED"));
+        new UpdateScheduleRequest(JobFrequency.WEEKLY, 4, 30, List.of("MON", "WED"), null, null);
     when(jobService.updateSchedule(eq("backup"), any())).thenReturn(sampleDto());
 
     mockMvc

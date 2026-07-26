@@ -14,6 +14,7 @@ import { usePWA } from "../utils/PWAContext.tsx";
 import { Menu } from "../components/ui/Menu.tsx";
 import { SETTINGS_SECTIONS } from "../settings/sections.ts";
 import { SyncStatusBadge } from "./SyncStatusBadge.tsx";
+import { NotificationBell } from "./notifications/NotificationBell.tsx";
 import { OfflineBanner } from "../components/ui/OfflineBanner.tsx";
 
 interface AppHeaderProps {
@@ -65,6 +66,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
         {/* Right cluster: sync badge + user dropdown (keeps the header justify-between). */}
         <div className="flex items-center gap-3">
           <SyncStatusBadge />
+          <NotificationBell />
 
           {/* User dropdown — quick links only */}
           <Menu align="right" width={224} className="z-[120]">

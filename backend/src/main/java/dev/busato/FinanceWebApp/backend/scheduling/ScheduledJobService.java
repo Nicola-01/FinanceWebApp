@@ -64,6 +64,8 @@ public class ScheduledJobService {
                 .hourOfDay(d.hour())
                 .minuteOfHour(d.minute())
                 .daysOfWeek(d.daysOfWeek())
+                .dayOfMonth(d.dayOfMonth())
+                .monthOfYear(d.monthOfYear())
                 .build());
         log.info("[Jobs] Seeded default config for '{}'", job.key());
       }
@@ -97,6 +99,8 @@ public class ScheduledJobService {
     cfg.setHourOfDay(req.hourOfDay());
     cfg.setMinuteOfHour(req.minuteOfHour());
     cfg.setDaysOfWeek(joinDays(req.daysOfWeek()));
+    cfg.setDayOfMonth(req.dayOfMonth());
+    cfg.setMonthOfYear(req.monthOfYear());
     configRepo.save(cfg);
     scheduleJob(key);
     log.info("[Jobs] Rescheduled '{}' → {}", key, toCron(cfg));
@@ -175,7 +179,25 @@ public class ScheduledJobService {
             (c.getDaysOfWeek() == null || c.getDaysOfWeek().isBlank()) ? "*" : c.getDaysOfWeek();
         yield String.format("0 %d %d * * %s", c.getMinuteOfHour(), c.getHourOfDay(), days);
       }
+      case MONTHLY ->
+          String.format(
+              "0 %d %d %d * *", c.getMinuteOfHour(), c.getHourOfDay(), dayOfMonthOrDefault(c));
+      case YEARLY ->
+          String.format(
+              "0 %d %d %d %d *",
+              c.getMinuteOfHour(),
+              c.getHourOfDay(),
+              dayOfMonthOrDefault(c),
+              monthOfYearOrDefault(c));
     };
+  }
+
+  private static int dayOfMonthOrDefault(ScheduledJobConfig c) {
+    return c.getDayOfMonth() == null ? 1 : c.getDayOfMonth();
+  }
+
+  private static int monthOfYearOrDefault(ScheduledJobConfig c) {
+    return c.getMonthOfYear() == null ? 1 : c.getMonthOfYear();
   }
 
   private Instant nextRun(ScheduledJobConfig cfg, ManagedJob job) {
@@ -208,6 +230,8 @@ public class ScheduledJobService {
         cfg.getHourOfDay(),
         cfg.getMinuteOfHour(),
         splitDays(cfg.getDaysOfWeek()),
+        cfg.getDayOfMonth(),
+        cfg.getMonthOfYear(),
         nextRun(cfg, job),
         runs);
   }

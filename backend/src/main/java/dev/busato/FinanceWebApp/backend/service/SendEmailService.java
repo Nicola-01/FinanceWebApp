@@ -110,6 +110,25 @@ public class SendEmailService {
   }
 
   /**
+   * Sends a periodic report: short HTML body + the full report attached as PDF. The body/subject
+   * are fully built by ReportHtmlBuilder (already escaped) — this method only ships them.
+   */
+  public void sendReportEmail(
+      String to, String subject, String bodyHtml, String attachmentName, byte[] pdfBytes)
+      throws MessagingException, UnsupportedEncodingException {
+    MimeMessage message = mailSender.createMimeMessage();
+    MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+    helper.setFrom("noreply@busato.dev", "FinanceWebApp");
+    helper.setTo(to);
+    helper.setSubject(subject);
+    helper.setText(bodyHtml, true);
+    helper.addAttachment(attachmentName, new ByteArrayResource(pdfBytes), "application/pdf");
+
+    mailSender.send(message);
+  }
+
+  /**
    * Notifies wallet members that a budget crossed one of its alert thresholds. {@code budgetName},
    * {@code walletName} and {@code currency} are user-controlled free text (see {@link
    * #renderBudgetAlertHtml}) and, like the wallet-invitation email above, are HTML-escaped before

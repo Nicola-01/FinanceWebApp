@@ -40,4 +40,10 @@ public class ScheduledJobConfig {
 
   /** CSV of day-of-week tokens ("MON,WED") for WEEKLY; null/blank otherwise. */
   private String daysOfWeek;
+
+  /** 1–28 day of month for MONTHLY/YEARLY; null otherwise (treated as 1). */
+  private Integer dayOfMonth;
+
+  /** 1–12 month for YEARLY; null otherwise (treated as 1 = January). */
+  private Integer monthOfYear;
 }

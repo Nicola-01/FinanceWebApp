@@ -209,4 +209,24 @@ class SendEmailServiceTest {
         "budget name should be HTML-escaped");
     assertTrue(html.contains("&lt;img src=x&gt;"), "currency should be HTML-escaped");
   }
+
+  @Test
+  void sendReportEmail_SendsMultipartWithPdfAttachment() throws Exception {
+    MimeMessage real =
+        new org.springframework.mail.javamail.JavaMailSenderImpl().createMimeMessage();
+    org.mockito.Mockito.when(mailSender.createMimeMessage()).thenReturn(real);
+
+    sendEmailService.sendReportEmail(
+        "user@example.com",
+        "Your June 2026 report",
+        "<p>hi</p>",
+        "report.pdf",
+        "%PDF-fake".getBytes());
+
+    verify(mailSender).send(real);
+    assertEquals("Your June 2026 report", real.getSubject());
+    // send() is mocked, so finalize the headers the way the real transport would.
+    real.saveChanges();
+    assertTrue(real.getContentType().toLowerCase().contains("multipart"));
+  }
 }

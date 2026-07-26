@@ -112,7 +112,7 @@ public interface PushGateway {           // seam over the library, mockable
 public void sendToUser(UUID userId, String payloadJson); // fans out to all the user's subscriptions, prunes 404/410
 ```
 
-- [ ] **Step 1: build.gradle + properties + env plumbing**
+- [x] **Step 1: build.gradle + properties + env plumbing**
 
 ```gradle
 implementation 'nl.martijndwars:web-push:5.1.1'
@@ -129,7 +129,7 @@ Root `.env`: add the three keys (generate once with `npx web-push generate-vapid
 Add the three vars to the backend service `environment` in both compose files, next to
 the `MAIL_*` entries.
 
-- [ ] **Step 2: Entity + repository**
+- [x] **Step 2: Entity + repository**
 
 ```java
 package dev.busato.FinanceWebApp.backend.model;
@@ -190,7 +190,7 @@ public interface PushSubscriptionRepository extends JpaRepository<PushSubscripti
 Also: `AccountDeletionService` must call `pushSubscriptionRepository.deleteAllByUserId`
 (add it where PATs are cleaned up).
 
-- [ ] **Step 3: Failing WebPushSender tests (Mockito, matching repo style)**
+- [x] **Step 3: Failing WebPushSender tests (Mockito, matching repo style)**
 
 ```java
 @ExtendWith(MockitoExtension.class)
@@ -247,7 +247,7 @@ class WebPushSenderTest {
 ```
 Run: `./gradlew test --tests "*.WebPushSenderTest"` → compile FAIL.
 
-- [ ] **Step 4: Implement gateway + sender**
+- [x] **Step 4: Implement gateway + sender**
 
 `PushGateway.java` — interface exactly as in *Interfaces* above.
 
@@ -344,7 +344,7 @@ public class WebPushSender {
 }
 ```
 
-- [ ] **Step 5: Run, format, commit**
+- [x] **Step 5: Run, format, commit**
 
 ```bash
 ./gradlew spotlessApply test
@@ -393,7 +393,7 @@ Push payload JSON (built with the existing Jackson `ObjectMapper` bean, injected
 URLs: transactions/subscriptions → `/dashboard/{walletId}?tab=transactions` /
 `?tab=subscriptions`; recurring → `?tab=subscriptions`; invite → `/dashboard`.
 
-- [ ] **Step 1: Failing tests**
+- [x] **Step 1: Failing tests**
 
 `NotificationCopyTest` (pure, exhaustive — pins the exact user-approved copy):
 ```java
@@ -419,7 +419,7 @@ persisted id>)` (capture the payload, assert it contains `"notificationId"`);
 is silent when nothing matches.
 Run → compile FAIL.
 
-- [ ] **Step 2: Implement**
+- [x] **Step 2: Implement**
 
 Entity (same Lombok/JPA style as `PushSubscription`; `body` is
 `@Column(columnDefinition = "TEXT")`; `type` is `@Enumerated(EnumType.STRING)
@@ -455,7 +455,7 @@ public class NotificationController {
 }
 ```
 
-- [ ] **Step 3: Run, format, commit**
+- [x] **Step 3: Run, format, commit**
 
 ```bash
 ./gradlew spotlessApply test
@@ -516,7 +516,7 @@ Preference endpoints live on a small `NotificationPreferenceService` (+ the exis
 `NotificationPreferencesController` under `/api/users/me/notification-preferences`, the
 wallet-mute mapping in `WalletController`, push endpoints in `PushController`).
 
-- [ ] **Step 1: Failing service tests** — cover: `getPreferences` maps the four booleans
+- [x] **Step 1: Failing service tests** — cover: `getPreferences` maps the four booleans
   and builds `walletMutes` from `findAllByUserIdAndStatus(userId, ACCEPTED)` (walletName
   from `access.getWallet().getName()`); `updatePreferences` persists all four;
   `setWalletMute` flips `notificationsMuted` on the caller's access row and throws
@@ -525,11 +525,11 @@ wallet-mute mapping in `WalletController`, push endpoints in `PushController`).
   new user with fresh keys); unsubscribe deletes only the caller's row.
   Run → compile FAIL.
 
-- [ ] **Step 2: Implement** entities/repo/DTOs/service/controllers per the interfaces.
+- [x] **Step 2: Implement** entities/repo/DTOs/service/controllers per the interfaces.
   `PushController.getPublicKey()` returns `webPushGateway.getPublicKey()` (empty string
   when unconfigured — the frontend reads that as "server has push disabled").
 
-- [ ] **Step 3: Run, format, commit**
+- [x] **Step 3: Run, format, commit**
 
 ```bash
 ./gradlew spotlessApply test
@@ -593,7 +593,7 @@ Dispatch rules (`onWalletActivity`):
 `notifyInvites`, build `NotificationCopy.walletInvite(...)`, notify. No mute check (the
 access row was just created as PENDING).
 
-- [ ] **Step 1: Failing dispatcher tests** (Mockito; call the listener methods directly —
+- [x] **Step 1: Failing dispatcher tests** (Mockito; call the listener methods directly —
   the async/after-commit plumbing is annotation config, not logic):
   - notifies every ACCEPTED member except the actor;
   - respects `notificationsMuted`;
@@ -602,9 +602,9 @@ access row was just created as PENDING).
   - invite event respects `notifyInvites` and targets only the invitee.
   Run → compile FAIL.
 
-- [ ] **Step 2: Implement** config, records, dispatcher.
+- [x] **Step 2: Implement** config, records, dispatcher.
 
-- [ ] **Step 3: Run, format, commit**
+- [x] **Step 3: Run, format, commit**
 
 ```bash
 ./gradlew spotlessApply test
@@ -651,7 +651,7 @@ listener only fires if the tx commits):
    (the inviter's username: load via `userRepository.findById(userId)` — the method
    already resolves wallet + invited user).
 
-- [ ] **Step 1: Failing tests** — per service, `ArgumentCaptor<Object>` on
+- [x] **Step 1: Failing tests** — per service, `ArgumentCaptor<Object>` on
   `eventPublisher.publishEvent(...)`:
   - create/update/delete transaction publishes the right type with actor + wallet fields;
   - bulk import publishes nothing;
@@ -662,11 +662,11 @@ listener only fires if the tx commits):
     synthetic (unknown-user) case.
   Run → FAIL.
 
-- [ ] **Step 2: Implement the publish calls.** Keep each to 3-5 lines; extract a private
+- [x] **Step 2: Implement the publish calls.** Keep each to 3-5 lines; extract a private
   helper per service (`publishActivity(type, wallet, actor, tag, amount, name)`) to stay
   DRY.
 
-- [ ] **Step 3: Full suite + coverage, format, commit**
+- [x] **Step 3: Full suite + coverage, format, commit**
 
 ```bash
 ./gradlew spotlessApply check
@@ -696,7 +696,7 @@ export function notificationTargetUrl(p: Pick<PushPayload, "url" | "notification
 // "/dashboard"                     → "/dashboard?notif=<id>"
 ```
 
-- [ ] **Step 1: deps + failing helper test**
+- [x] **Step 1: deps + failing helper test**
 
 ```bash
 cd frontend && npm install -D workbox-precaching workbox-routing workbox-strategies workbox-expiration workbox-cacheable-response
@@ -704,7 +704,7 @@ cd frontend && npm install -D workbox-precaching workbox-routing workbox-strateg
 Test `notificationTargetUrl` for both query cases + missing url fallback to
 `/dashboard`. Run: `npm test -- swPayload` → FAIL. Implement the tiny module → PASS.
 
-- [ ] **Step 2: vite.config.ts — switch strategies**
+- [x] **Step 2: vite.config.ts — switch strategies**
 
 Replace the `VitePWA({...})` options: keep `registerType: "prompt"`, `includeAssets`,
 `manifest` **unchanged**; DELETE the whole `workbox: {...}` block; ADD:
@@ -718,7 +718,7 @@ injectManifest: {
 },
 ```
 
-- [ ] **Step 3: write `src/sw.ts`** (replicates the two runtime-cache behaviors the old
+- [x] **Step 3: write `src/sw.ts`** (replicates the two runtime-cache behaviors the old
   generateSW config had, adds push):
 
 ```ts
@@ -804,7 +804,7 @@ self.addEventListener("notificationclick", (event) => {
 });
 ```
 
-- [ ] **Step 4: verify the build + SW output**
+- [x] **Step 4: verify the build + SW output**
 
 Run: `npm run build`
 Expected: build green; `dist/sw.js` exists and contains `notificationclick`;
@@ -814,7 +814,7 @@ complains about SW types, the `/// <reference lib="WebWorker" />` line plus the
 `declare let self` cast are the sanctioned fix — do not add `WebWorker` to the global
 tsconfig `lib`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend
@@ -856,14 +856,14 @@ export function usePushMessages(): void;
 //  → strip the param via history.replaceState (ack is fire-and-forget, errors ignored)
 ```
 
-- [ ] **Step 1: Failing tests** — `urlBase64ToUint8Array` round-trips a known vector;
+- [x] **Step 1: Failing tests** — `urlBase64ToUint8Array` round-trips a known vector;
   `keyToBase64` encodes an ArrayBuffer; `subscribeThisDevice` returns
   `"disabled-server"` when the public key is empty (mock api) and posts the subscription
   JSON on success (mock `navigator.serviceWorker.ready` + `pushManager.subscribe` with
   `vi.stubGlobal`); `usePushMessages` acks `?notif=` on mount and toasts on a simulated
   `PUSH_RECEIVED` message event.
 
-- [ ] **Step 2: Implement; mount in `App.tsx`** — add a tiny inner component (needs
+- [x] **Step 2: Implement; mount in `App.tsx`** — add a tiny inner component (needs
   Router context for `useNavigate`):
 ```tsx
 const PushMessagesBridge: React.FC = () => {
@@ -873,9 +873,9 @@ const PushMessagesBridge: React.FC = () => {
 // rendered next to <PWAPrompt /> inside the provider tree
 ```
 
-- [ ] **Step 3: Full gate** — `npm run lint && npm test && npm run build` → green.
+- [x] **Step 3: Full gate** — `npm run lint && npm test && npm run build` → green.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src
@@ -897,7 +897,7 @@ git commit -m "feat(frontend): push client, foreground toast bridge and click-ac
   `PUT /wallets/{id}/notification-mute` (Task 3), `Card`/`Toggle`/`Button` primitives,
   `triggerToast`.
 
-- [ ] **Step 1: sections.ts entry** (before `about`):
+- [x] **Step 1: sections.ts entry** (before `about`):
 ```ts
 { id: "notifications", label: "Notifications", icon: faBell,
   description: "Push notifications and activity alerts" },
@@ -905,13 +905,13 @@ git commit -m "feat(frontend): push client, foreground toast bridge and click-ac
 (`faBell` from `@fortawesome/free-solid-svg-icons`.) SettingsPage:
 `{s.id === "notifications" && <NotificationsSection />}`.
 
-- [ ] **Step 2: Failing component test** — mock `api` and `pushClient`; assert: renders
+- [x] **Step 2: Failing component test** — mock `api` and `pushClient`; assert: renders
   the three cards; device toggle calls `subscribeThisDevice`/`unsubscribeThisDevice`;
   a global toggle PUTs the four booleans; a wallet-mute toggle PUTs
   `/wallets/w1/notification-mute` with `{muted:true}`; `"unsupported"` enrollment
   renders the fallback copy instead of the toggle.
 
-- [ ] **Step 3: Implement `NotificationsSection`** — three `<Card>`s:
+- [x] **Step 3: Implement `NotificationsSection`** — three `<Card>`s:
   1. **This device** — status line + `Toggle` (`Enable push notifications on this
      device`). States: `unsupported` → muted copy `Push is not supported in this
      browser.`; `denied` → `Notifications are blocked — allow them in your browser
@@ -925,7 +925,7 @@ git commit -m "feat(frontend): push client, foreground toast bridge and click-ac
      `Mute this wallet` (checked = muted). Empty state: `You have no shared wallets yet.`
   All copy English; wallet accent NOT used here (global settings page → brand tokens).
 
-- [ ] **Step 4: Full gate + commit**
+- [x] **Step 4: Full gate + commit**
 
 ```bash
 npm run lint && npm test && npm run build
@@ -946,6 +946,16 @@ git commit -m "feat(frontend): notification settings section (device, global, pe
   DB or the Phase-2 center later); with the app focused the same event arrives as a
   toast instead. Toggle each preference + wallet mute and verify suppression. Record
   any deviation as a fix-task before Phase 2.
+
+> **Verification status (auto-checks done; interactive push pending user):** the
+> automatable parts pass — `./gradlew check` green (copy pinned byte-for-byte, actor never
+> self-notified, PAUSED/bulk silent, cron notifies all members respecting toggles, keyless
+> boot loads the full Spring context in the @SpringBootTest suite with push disabled) and
+> `npm run lint && npm test && npm run build` green with `dist/sw.js` containing
+> `notificationclick` and NOT precaching `config.js`. The **interactive closed-app flow**
+> (real VAPID keys → subscribe device → send from a 2nd user → receive system notification
+> → click opens the wallet + acks → foreground toast) must be run by hand in a browser; it
+> cannot be exercised headlessly here.
 
 ---
 
@@ -983,11 +993,11 @@ public long unreadCount(UUID userId);
 notifications older than 30 days (`deleteAllByCreatedAtBefore(now - 30d)`) and returns
 a short summary string — keeps never-opened histories bounded.
 
-- [ ] **Step 1: Failing tests** — list maps fields + `read` flag; `markAllRead` calls the
+- [x] **Step 1: Failing tests** — list maps fields + `read` flag; `markAllRead` calls the
   modifying query; `purgeRead` deletes read-only; cron job wiring test (defaults + run
   delegates and returns a message) mirroring an existing `CronJob` test.
-- [ ] **Step 2: Implement.**
-- [ ] **Step 3: `./gradlew spotlessApply check` → green; commit**
+- [x] **Step 2: Implement.**
+- [x] **Step 3: `./gradlew spotlessApply check` → green; commit**
 
 ```bash
 git add backend/src
@@ -1041,12 +1051,12 @@ UI:
   → `navigate(notification.url)` + close. Empty state: `You're all caught up.`
   No per-item buttons (user decision — reading IS opening the center).
 
-- [ ] **Step 1: Failing tests** (vi.useFakeTimers): open marks read + cancels purge;
+- [x] **Step 1: Failing tests** (vi.useFakeTimers): open marks read + cancels purge;
   close → advance 10 s → DELETE called + read items dropped; reopen at 9.9 s → no DELETE;
   bell dot rendered only with unread items; row click navigates.
-- [ ] **Step 2: Implement hook + components; mount `<NotificationBell />` in AppHeader.**
-- [ ] **Step 3: Full gate** — `npm run lint && npm test && npm run build` → green.
-- [ ] **Step 4: Commit**
+- [x] **Step 2: Implement hook + components; mount `<NotificationBell />` in AppHeader.**
+- [x] **Step 3: Full gate** — `npm run lint && npm test && npm run build` → green.
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src
@@ -1057,7 +1067,7 @@ git commit -m "feat(frontend): notification center with unread dot and read-then
 
 ### Task 12: docs
 
-- [ ] Update root `CLAUDE.md`: add Web Push to the backend architecture bullets (VAPID
+- [x] Update root `CLAUDE.md`: add Web Push to the backend architecture bullets (VAPID
   env vars, `push/` package, dispatcher) and the SW note in the frontend section
   (`injectManifest`, `src/sw.ts`). Update the MCP section only if tool behavior changed
   (it did not). Commit `docs: document web push notifications`.
@@ -1066,13 +1076,13 @@ git commit -m "feat(frontend): notification center with unread dot and read-then
 
 ## Self-review checklist (run after implementation)
 
-- [ ] Notification copy matches the approved format byte-for-byte (see Task 2 tests).
-- [ ] Actor never notifies themselves; PAUSED-subscription events are silent; bulk
+- [x] Notification copy matches the approved format byte-for-byte (see Task 2 tests).
+- [x] Actor never notifies themselves; PAUSED-subscription events are silent; bulk
       import is silent; cron events reach all members and respect their toggle.
-- [ ] Keyless boot (empty VAPID vars): backend starts, tests green, Settings shows
+- [x] Keyless boot (empty VAPID vars): backend starts, tests green, Settings shows
       "not configured on this server", nothing crashes.
-- [ ] SW still precaches the app shell, still never caches `config.js`, update-prompt
+- [x] SW still precaches the app shell, still never caches `config.js`, update-prompt
       (PWAPrompt) still works after the injectManifest migration.
 - [ ] Push click on closed app opens the right wallet tab and the notification is gone
       from the center; center read/10-s-purge behaves per spec.
-- [ ] `./gradlew check` and frontend lint/test/build green.
+- [x] `./gradlew check` and frontend lint/test/build green.

@@ -86,7 +86,19 @@ entities/DTOs.
   `scheduling/ScheduledJobService` stores each schedule in the DB (`ScheduledJobConfig`),
   records per-execution history (`JobRun`), reschedules live and supports run-on-demand from
   the admin System tab. Current jobs (`CronJob/`): subscription execution (materializes due
-  subscriptions on `nextExecutionDate`), encrypted DB backup (→ Cloudflare R2), demo cleanup.
+  subscriptions on `nextExecutionDate`), encrypted DB backup (→ Cloudflare R2), demo cleanup,
+  notification cleanup (drops notifications older than 30 days).
+- **Web Push (`push/` package):** VAPID push delivered with the app closed. Domain services
+  publish Spring events (`WalletActivityEvent`/`WalletInviteEvent`) after their JPA writes; an
+  `@Async @TransactionalEventListener(AFTER_COMMIT)` `NotificationDispatcher` (enabled by
+  `config/AsyncConfig`) resolves recipients (ACCEPTED members minus the actor, filtered by the
+  per-user global toggles on `User` + the per-wallet `WalletAccess.notificationsMuted`) and
+  hands each to `NotificationService`, which persists a `Notification` row **and** sends the push
+  via `WebPushSender` → the `PushGateway` seam over `nl.martijndwars:web-push` (dead 404/410
+  subscriptions are pruned; copy strings live in `push/NotificationCopy`). Requires the
+  `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` env vars — **empty by default, which
+  disables push** (tests and keyless dev boots keep working). Phase 2 adds a notification-center
+  history (`GET/POST/DELETE /api/notifications*`).
 - **Email:** SMTP via `MAIL_*` env vars. `mailing/EmailService` (plain messages) and
   `service/SendEmailService` (HTML/MIME with templates in `resources/templates/`) back
   registration, password reset, admin user invites, and wallet-member invites.
@@ -123,6 +135,13 @@ entities/DTOs.
   the server answers **409 "Stale Write"** rather than clobbering newer data, surfaced in the
   header **Sync Center** with **Keep mine / Take theirs** (`utils/offlineDb.ts`,
   `api/walletOps.ts`). Mutations route through `api/walletOps.ts`, not raw `api.*`.
+- **Web Push:** the service worker uses vite-plugin-pwa **`injectManifest`** with a custom
+  **`src/sw.ts`** (it replicates the old `generateSW` precache + runtime caching and adds
+  `push`/`notificationclick` handlers; `push/swPayload.ts` holds the testable helpers). The
+  client lives in `src/push/` (`pushClient.ts` device enroll/subscribe, `usePushMessages.ts`
+  foreground-toast bridge + `?notif=<id>` click-ack). Preferences are the **Notifications**
+  section in `/settings`; the Phase-2 in-app center is the bell in `header/notifications/`
+  (`useNotifications.ts` open→mark-read, close→10s-purge lifecycle; amber unread dot).
 - **Routing (`src/App.tsx`):** `/dashboard/:walletId?` and `/settings` (protected;
   `src/settings/SettingsPage.tsx` with scroll-spied sections), `/admin/dashboard/*`
   (ADMIN only), `/oauth/authorize` (OAuth consent page the MCP flow redirects to);
