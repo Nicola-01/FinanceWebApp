@@ -66,6 +66,8 @@ public class NotificationDispatcher {
           user.isNotifySubscriptions();
       case RECURRING_EXECUTED -> user.isNotifyRecurringExecutions();
       case WALLET_INVITE -> user.isNotifyInvites();
+      case MONTHLY_REPORT -> user.isMonthlyReportEnabled();
+      case YEARLY_REPORT -> user.isYearlyReportEnabled();
     };
   }
 
@@ -94,6 +96,8 @@ public class NotificationDispatcher {
               e.entityName(), e.amount(), e.currency(), e.walletName(), e.walletId());
       case WALLET_INVITE ->
           throw new IllegalArgumentException("WALLET_INVITE is not a wallet-activity event");
+      case MONTHLY_REPORT, YEARLY_REPORT ->
+          throw new IllegalArgumentException("Report notifications are not wallet-activity events");
     };
   }
 }

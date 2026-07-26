@@ -18,6 +18,8 @@ public class NotificationPreferencesResponse {
   private boolean transactions;
   private boolean subscriptions;
   private boolean recurringExecutions;
+  private boolean monthlyReport;
+  private boolean yearlyReport;
   private List<WalletMute> walletMutes;
 
   @Data

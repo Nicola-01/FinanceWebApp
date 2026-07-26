@@ -52,6 +52,8 @@ public class NotificationPreferenceService {
         .transactions(user.isNotifyTransactions())
         .subscriptions(user.isNotifySubscriptions())
         .recurringExecutions(user.isNotifyRecurringExecutions())
+        .monthlyReport(user.isMonthlyReportEnabled())
+        .yearlyReport(user.isYearlyReportEnabled())
         .walletMutes(mutes)
         .build();
   }
@@ -65,6 +67,8 @@ public class NotificationPreferenceService {
     user.setNotifyTransactions(request.isTransactions());
     user.setNotifySubscriptions(request.isSubscriptions());
     user.setNotifyRecurringExecutions(request.isRecurringExecutions());
+    user.setMonthlyReportEnabled(request.isMonthlyReport());
+    user.setYearlyReportEnabled(request.isYearlyReport());
     userRepository.save(user);
   }
 

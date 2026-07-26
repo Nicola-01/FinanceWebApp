@@ -127,4 +127,20 @@ class NotificationCopyTest {
             walletId);
     assertEquals("Untagged · 12.50 EUR · Casa", copy.body());
   }
+
+  @Test
+  void monthlyReportReadyCopy() {
+    var copy = NotificationCopy.monthlyReportReady("June 2026");
+    assertEquals("Your June 2026 report is ready", copy.title());
+    assertEquals("Your monthly summary was just emailed to you as a PDF.", copy.body());
+    assertEquals("/dashboard", copy.url());
+  }
+
+  @Test
+  void yearlyReportReadyCopy() {
+    var copy = NotificationCopy.yearlyReportReady(2025);
+    assertEquals("Your 2025 wrap-up is here 🎉", copy.title());
+    assertEquals("Your year in review was just emailed to you as a PDF.", copy.body());
+    assertEquals("/dashboard", copy.url());
+  }
 }

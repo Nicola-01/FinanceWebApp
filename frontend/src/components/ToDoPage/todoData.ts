@@ -238,7 +238,7 @@ const rawToDoData: ToDoItemInput[] = [
   {
     title: "Budgeting",
     description: "Budgeting features.",
-    status: "PLANNED",
+    status: "STARTED",
     subtasks: ["Budget Page", "Budget creation/tracking", "Budget alerts"],
   },
   {

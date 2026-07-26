@@ -12,5 +12,7 @@ public record ScheduledJobDTO(
     int hourOfDay,
     int minuteOfHour,
     List<String> daysOfWeek,
+    Integer dayOfMonth,
+    Integer monthOfYear,
     Instant nextRunAt,
     List<JobRunDTO> recentRuns) {}

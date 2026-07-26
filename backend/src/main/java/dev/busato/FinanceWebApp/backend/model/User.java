@@ -64,6 +64,16 @@ public class User implements UserDetails {
   @Builder.Default
   private boolean notifyRecurringExecutions = true;
 
+  /** Opt-in for the monthly summary report email + push (default on; demo users are excluded). */
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  @Builder.Default
+  private boolean monthlyReportEnabled = true;
+
+  /** Opt-in for the yearly wrap-up report email + push (default on; demo users are excluded). */
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  @Builder.Default
+  private boolean yearlyReportEnabled = true;
+
   @Column(updatable = false)
   private LocalDate createdAt; // Stores only YYYY-MM-DD
 

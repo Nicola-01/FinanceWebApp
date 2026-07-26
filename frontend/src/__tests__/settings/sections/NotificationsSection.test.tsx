@@ -41,6 +41,8 @@ function preferences(overrides = {}) {
       transactions: true,
       subscriptions: false,
       recurringExecutions: true,
+      monthlyReport: true,
+      yearlyReport: true,
       walletMutes: [{ walletId: "w1", walletName: "Casa", muted: false }],
       ...overrides,
     },
@@ -60,10 +62,11 @@ describe("NotificationsSection", () => {
     mockedGetEnrollment.mockResolvedValue("unsubscribed");
   });
 
-  it("renders the three cards", async () => {
+  it("renders all cards", async () => {
     render(<NotificationsSection />);
     expect(await screen.findByText("This device")).toBeInTheDocument();
     expect(screen.getByText("What you get notified about")).toBeInTheDocument();
+    expect(screen.getByText("Periodic reports")).toBeInTheDocument();
     expect(screen.getByText("Per-wallet")).toBeInTheDocument();
   });
 
@@ -94,7 +97,7 @@ describe("NotificationsSection", () => {
     expect(mockedUnsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it("a global toggle PUTs the four booleans", async () => {
+  it("a global toggle PUTs all the booleans", async () => {
     render(<NotificationsSection />);
     await screen.findByText("Casa");
 
@@ -110,6 +113,31 @@ describe("NotificationsSection", () => {
           transactions: true,
           subscriptions: true,
           recurringExecutions: true,
+          monthlyReport: true,
+          yearlyReport: true,
+        },
+      ),
+    );
+  });
+
+  it("a report toggle PUTs with that report flag flipped", async () => {
+    render(<NotificationsSection />);
+    await screen.findByText("Casa");
+
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Monthly report" }),
+    );
+
+    await waitFor(() =>
+      expect(mockedPut).toHaveBeenCalledWith(
+        "/users/me/notification-preferences",
+        {
+          invites: true,
+          transactions: true,
+          subscriptions: false,
+          recurringExecutions: true,
+          monthlyReport: false,
+          yearlyReport: true,
         },
       ),
     );
