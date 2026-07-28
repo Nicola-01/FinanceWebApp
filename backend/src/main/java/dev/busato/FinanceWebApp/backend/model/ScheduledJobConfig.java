@@ -26,7 +26,11 @@ public class ScheduledJobConfig {
   @Column(nullable = false)
   private boolean enabled;
 
-  @Enumerated(EnumType.STRING)
+  /**
+   * Persisted via {@link dev.busato.FinanceWebApp.backend.scheduling.JobFrequencyConverter} (not
+   * {@code @Enumerated}) so Hibernate does not generate a DB CHECK constraint pinned to today's
+   * enum constants — see the converter's javadoc for why.
+   */
   @Column(nullable = false)
   private JobFrequency frequency;
 

@@ -14,6 +14,18 @@ rm -f "$marker"                # consuma il marker: il prossimo turno riparte pu
 
 cd "$CLAUDE_PROJECT_DIR/backend" 2>/dev/null || exit 0
 
+# This hook runs as a fresh non-login shell, so it never sources ~/.bashrc — if JAVA_HOME
+# isn't already exported, fall back to autodetecting a JDK (JetBrains/IDE-managed or system).
+if [ -z "${JAVA_HOME:-}" ] && ! command -v java >/dev/null 2>&1; then
+  for candidate in "$HOME"/.jdks/*/ /usr/lib/jvm/*/; do
+    if [ -x "${candidate}bin/java" ]; then
+      JAVA_HOME="${candidate%/}"
+      export JAVA_HOME
+      break
+    fi
+  done
+fi
+
 out="$(./gradlew test --console=plain 2>&1)"
 status=$?
 
