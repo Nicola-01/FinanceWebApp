@@ -456,9 +456,11 @@ Re-check `git status` before starting any of these.
   file, ZERO tests): extract `StagedSubscriptionRowHeader.tsx` (:124–199),
   `StagedSubscriptionEditor.tsx` (:283–360), and a shared
   `wizardSteps/MissingTagResolver.tsx` — the amber reassign/create panel (:212–282) is
-  near-verbatim duplicated with `MissingTransactionTags.tsx:107–167`. Hoist
-  `toIsoDate`/`parseIsoDate` (re-declared in `SubscriptionCreateMode:18–22`) →
-  `wizardSteps/wizardDates.ts`. ADD TESTS.
+  near-verbatim duplicated with `MissingTransactionTags.tsx:107–167`. Replace
+  `toIsoDate`/`parseIsoDate` (re-declared in `SubscriptionCreateMode:18–22`) with the
+  shared, tested `utils/localDate.ts` (`toLocalIsoDate`/`parseLocalIsoDate`) — same
+  for the identical `todayKey` in `utils/currencies.ts` and `utils/exchangeRates.ts`.
+  ADD TESTS.
 - [ ] **6.6** `SubscriptionCreateMode.tsx` (191): share the `SubscriptionRequest`
   builder with `recommendedSubscriptions.toSubscriptionRequest` and
   `subscriptionPayload.ts` (5F.2).
@@ -500,6 +502,7 @@ Re-check `git status` before starting any of these.
 | F15 | `Login.tsx:122,127` ALL-CAPS demo copy vs sentence case everywhere; `ShareWalletModal:99` placeholder "mario.rossi@email.com" | auth/modals | Copy changes |
 | F16 | `StatisticsTab` uses effect-based zoom init while the codebase convention is render-time reconciliation | statistics | Pattern alignment, minor behavior risk |
 | F17 | No `components/ui/index.ts` barrel — every consumer deep-imports | components/ui | Adding one is easy but churns many imports; decide once |
+| F18 | `recommendedSubscriptions.ts:106` sends `startDate: new Date().toISOString().slice(0, 10)` — the UTC day, so a day early between local midnight and 02:00 in Italy | wizard subscriptionModes | Real off-by-one; fix = `toLocalIsoDate(new Date())` from `utils/localDate.ts` |
 
 ## Test-coverage gaps (add opportunistically DURING the tasks above)
 

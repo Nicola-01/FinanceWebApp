@@ -14,6 +14,7 @@ import { TransactionTypeToggle } from "./TransactionTypeToggle.tsx";
 import { TransactionMetadataInputs } from "./TransactionMetadataInputs.tsx";
 import CustomDatePicker from "../../components/DataPicker/CustomDatePicker.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
+import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
 
 export interface TransactionModalHandle {
   openModal: (tx?: Transaction) => void;
@@ -71,7 +72,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
           const exRate = tx.exchangeValue || 1;
           setExchangeRate(exRate.toString());
 
-          setDate(new Date(tx.transactionDate));
+          setDate(parseLocalIsoDate(tx.transactionDate));
           setSelectedTagName(tx.tag.name);
           setNotes(tx.notes || "");
         } else {
@@ -108,11 +109,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
           amount: Math.abs(Number(convertedAmount)),
           originalAmount: Math.abs(Number(amount)),
           type,
-          transactionDate: date
-            .toLocaleDateString()
-            .split("/")
-            .reverse()
-            .join("-"),
+          transactionDate: toLocalIsoDate(date),
           originalCurrency: currency,
           exchangeValue: Number(exchangeRate) || 1,
           tag: selectedTagName,
