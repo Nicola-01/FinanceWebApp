@@ -127,6 +127,35 @@ describe("SubscriptionModal", () => {
     });
   });
 
+  it("round-trips startDate and durationUntil as zero-padded local YYYY-MM-DD", async () => {
+    // Regression: startDate was built from toLocaleDateString() (locale-dependent,
+    // unpadded) and durationUntil from toISOString() (UTC, a day early east of UTC).
+    vi.mocked(api.put).mockClear();
+    vi.mocked(api.put).mockResolvedValue({ data: {} });
+    const ref = renderModal();
+    const sub = {
+      id: "sub-2",
+      name: "Gym",
+      type: "EXPENSE",
+      amount: 30,
+      startDate: "2026-09-10",
+      duration: "UNTIL",
+      durationUntil: "2026-10-09",
+      tag: { name: "Fun", icon: "tag", colorHex: "#fff" },
+    } as unknown as Subscription;
+    act(() => ref.current!.openModal(sub));
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: /save subscription/i }),
+    );
+
+    await waitFor(() => expect(api.put).toHaveBeenCalled());
+    expect(vi.mocked(api.put).mock.calls[0][1]).toMatchObject({
+      startDate: "2026-09-10",
+      durationUntil: "2026-10-09",
+    });
+  });
+
   it("shows the reminder toggle when creating a subscription", () => {
     const ref = renderModal();
     act(() => ref.current!.openModal());

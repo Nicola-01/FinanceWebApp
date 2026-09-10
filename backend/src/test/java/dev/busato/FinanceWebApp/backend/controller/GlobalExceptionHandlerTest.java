@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -26,6 +27,8 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mock.http.MockHttpInputMessage;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.BindingResult;
@@ -249,6 +252,25 @@ class GlobalExceptionHandlerTest {
     ProblemDetail problemDetail = response.getBody();
     assertEquals("Validation Error", problemDetail.getTitle());
     assertEquals("Invalid input data", problemDetail.getDetail());
+    assertEquals(URI.create("/api/test"), problemDetail.getInstance());
+    assertNotNull(problemDetail.getProperties().get("timestamp"));
+  }
+
+  @Test
+  void handleHttpMessageNotReadableException_Returns400WithoutLeakingParserDetails() {
+    HttpMessageNotReadableException ex =
+        new HttpMessageNotReadableException(
+            "JSON parse error: Cannot deserialize value of type `java.time.LocalDate` from String"
+                + " \"2026-10-9\"",
+            new MockHttpInputMessage(new byte[0]));
+
+    ResponseEntity<ProblemDetail> response =
+        exceptionHandler.handleHttpMessageNotReadableException(ex, request);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    ProblemDetail problemDetail = response.getBody();
+    assertEquals("Malformed Request", problemDetail.getTitle());
+    assertFalse(problemDetail.getDetail().contains("java.time"));
     assertEquals(URI.create("/api/test"), problemDetail.getInstance());
     assertNotNull(problemDetail.getProperties().get("timestamp"));
   }

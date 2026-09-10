@@ -17,6 +17,7 @@ import { TagPicker } from "../TransactionModal/TagPicker/TagPicker";
 import { ExchangeRateSection } from "../TransactionModal/ExchangeRateSection";
 import { SchedulingRules } from "./SchedulingRules";
 import { getApiErrorTitle } from "../../utils/apiError";
+import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
 
 export interface SubscriptionModalHandle {
   openModal: (sub?: Subscription, initialDate?: Date) => void;
@@ -92,7 +93,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           const exRate = sub.exchangeValue || 1;
           setExchangeRate(exRate.toString());
 
-          setStartDate(new Date(sub.startDate));
+          setStartDate(parseLocalIsoDate(sub.startDate));
           setSelectedTagName(sub.tag?.name || "");
           setNotes(sub.notes || "");
           setAutoExchangeRate(sub.autoExchangeRate ?? true);
@@ -103,7 +104,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setDuration(sub.duration || "FOREVER");
           setDurationTimes(sub.durationTimes || 1);
           setDurationUntil(
-            sub.durationUntil ? new Date(sub.durationUntil) : null,
+            sub.durationUntil ? parseLocalIsoDate(sub.durationUntil) : null,
           );
           setStatus(sub.status || "ACTIVE");
         } else {
@@ -161,18 +162,14 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           tag: selectedTagName,
           notes,
           status,
-          startDate: startDate
-            .toLocaleDateString()
-            .split("/")
-            .reverse()
-            .join("-"),
+          startDate: toLocalIsoDate(startDate),
           frequencyType,
           frequencyInterval,
           duration,
           durationTimes: duration === "TIMES" ? durationTimes : null,
           durationUntil:
             duration === "UNTIL" && durationUntil
-              ? durationUntil.toISOString().split("T")[0]
+              ? toLocalIsoDate(durationUntil)
               : null,
         };
 

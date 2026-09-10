@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  act,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
 import { createRef } from "react";
 import type { CurrencyCode } from "../../../utils/currencies";
 import type { Transaction, Wallet } from "../../../utils/types";
@@ -37,6 +43,7 @@ import {
   TransactionModal,
   type TransactionModalHandle,
 } from "../../../modals/TransactionModal/TransactionModal";
+import api from "../../../api/axiosConfig";
 
 const wallet: Wallet = {
   id: "w1",
@@ -89,5 +96,28 @@ describe("TransactionModal", () => {
     } as unknown as Transaction;
     act(() => ref.current!.openModal(tx));
     expect(screen.getByText("Edit Transaction")).toBeInTheDocument();
+  });
+
+  it("sends transactionDate as zero-padded YYYY-MM-DD, independent of locale", async () => {
+    // Regression: the date used to be built from toLocaleDateString(), so
+    // 10 Sep 2026 went out as "2026-10-9" under en-US and the backend 500'd.
+    vi.mocked(api.put).mockResolvedValue({ data: {} });
+    const ref = renderModal();
+    const tx = {
+      id: "t1",
+      name: "Coffee",
+      type: "EXPENSE",
+      amount: 3,
+      transactionDate: "2026-09-10",
+      tag: { name: "Food", icon: "tag", colorHex: "#fff" },
+    } as unknown as Transaction;
+    act(() => ref.current!.openModal(tx));
+
+    fireEvent.click(screen.getByRole("button", { name: "Save transaction" }));
+
+    await waitFor(() => expect(api.put).toHaveBeenCalled());
+    expect(vi.mocked(api.put).mock.calls[0][1]).toMatchObject({
+      transactionDate: "2026-09-10",
+    });
   });
 });
