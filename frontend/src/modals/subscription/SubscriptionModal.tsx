@@ -291,7 +291,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             </div>
           </div>
 
-          {/* 3. SCHEDULING RULES (Frequenza e Durata) */}
+          {/* 3. SCHEDULING RULES (frequency & duration) */}
           <SchedulingRules
             frequencyInterval={frequencyInterval}
             onFrequencyIntervalChange={setFrequencyInterval}

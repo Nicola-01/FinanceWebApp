@@ -56,7 +56,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
   return (
     <>
       <div className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">
-        {/* 1. IMPORTO (Invariato) */}
+        {/* 1. Amount */}
         <div className="text-center mt-2">
           {tx.amountPending ? (
             <p className="text-4xl font-app-mono text-app-muted">
@@ -75,8 +75,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
           )}
         </div>
 
-        {/* --- NUOVA SEZIONE CATEGORIA --- */}
-        {/* Posizionata FUORI dall'elenco "divide-y" per darle maggiore rilievo visivo, centrandola. */}
+        {/* Category: kept OUTSIDE the divide-y list so it stands out, centered. */}
         <div className="flex items-center gap-2 -mt-2">
           <TagBadge tag={tx.tag} forceShowParent={true} />
           {tx.subscriptionId && (
@@ -90,13 +89,12 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
           )}
         </div>
 
-        {/* 2. DETTAGLI: Uso divide-y per le righe automatiche, rimosso il padding generale.
-               Questa box ora contiene solo dettagli tecnici, SENZA la Categoria. */}
+        {/* 2. Details: divide-y separates the rows; category lives above. */}
         <div className="w-full bg-app-input border border-app-border rounded-2xl text-left flex flex-col divide-y divide-app-border">
-          {/* Nome */}
+          {/* Name */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
             <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
-              {/* W-5 text-center assicura che il testo sia perfettamente allineato indipendentemente dalla larghezza dell'icona. */}
+              {/* w-5 text-center keeps labels aligned regardless of icon width. */}
               <FontAwesomeIcon icon={faTag} className="w-5 text-center mr-2" />
               Name
             </span>
@@ -105,7 +103,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
             </span>
           </div>
 
-          {/* Data */}
+          {/* Date */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
             <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
               <FontAwesomeIcon
@@ -117,7 +115,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
             <span className="text-app-text font-medium">{formatedDate}</span>
           </div>
 
-          {/* Note (Mostrate solo se presenti) */}
+          {/* Notes (only when present) */}
           {tx.notes && (
             <div className="flex flex-col gap-3 p-5">
               <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center">
@@ -133,7 +131,7 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
             </div>
           )}
 
-          {/* Box Cambio Valuta (Integrato nell'elenco) */}
+          {/* Exchange-rate row */}
           {tx.originalCurrency && tx.originalCurrency !== wallet.currency && (
             <div className="p-4 sm:p-5">
               <ExchangeRateSection
