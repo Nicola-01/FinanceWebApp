@@ -172,21 +172,6 @@ export function clearLayout(tabId: string, walletId: string): void {
  *  callers (and tests) can cheaply detect no-ops.
  * ------------------------------------------------------------------ */
 
-/** Move a visible slot to the position of `overId` (drag reorder). */
-export function moveSlot(
-  layout: TabLayout,
-  activeId: string,
-  overId: string,
-): TabLayout {
-  const from = layout.slots.findIndex((s) => s.id === activeId);
-  const to = layout.slots.findIndex((s) => s.id === overId);
-  if (from === -1 || to === -1 || from === to) return layout;
-  const slots = [...layout.slots];
-  const [moved] = slots.splice(from, 1);
-  slots.splice(to, 0, moved);
-  return { ...layout, slots };
-}
-
 /**
  * Move a visible slot to `index` in the list WITHOUT it (0..slots.length-1).
  * The geometric drag reorder computes its target index over the *other* slots,
@@ -250,40 +235,6 @@ export function mergeSlots(
       .filter((s) => s.id !== sourceId)
       .map((s) => (s.id === targetId ? merged : s)),
   };
-}
-
-/**
- * Pop a widget out of a group into a standalone slot right after it.
- * A group left with one member dissolves back into a standalone slot.
- */
-export function popWidget(
-  layout: TabLayout,
-  slotId: string,
-  widgetId: string,
-): TabLayout {
-  const idx = layout.slots.findIndex((s) => s.id === slotId);
-  const slot = layout.slots[idx];
-  if (!slot || slot.widgets.length < 2 || !slot.widgets.includes(widgetId)) {
-    return layout;
-  }
-
-  const remaining = slot.widgets.filter((w) => w !== widgetId);
-  // Defensive: a corrupt slot repeating `widgetId` could empty out entirely;
-  // never commit an empty slot (reconcileLayout heals the store on next read).
-  if (remaining.length === 0) return layout;
-  const reduced: LayoutSlot =
-    remaining.length === 1
-      ? { id: remaining[0], widgets: remaining }
-      : {
-          id: slot.id,
-          widgets: remaining,
-          activeWidget:
-            slot.activeWidget === widgetId ? remaining[0] : slot.activeWidget,
-        };
-
-  const slots = [...layout.slots];
-  slots.splice(idx, 1, reduced, { id: widgetId, widgets: [widgetId] });
-  return { ...layout, slots };
 }
 
 /** Reorder a member within a group (Feature 3). No-op for standalone slots or unknown ids. */

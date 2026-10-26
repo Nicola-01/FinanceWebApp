@@ -142,28 +142,6 @@ export interface WalletDashboardData {
   tags: Tag[];
 }
 
-export interface SubscriptionRequestDTO {
-  name: string;
-  tag: string;
-  amount: number;
-  amountPending?: boolean;
-  originalAmount: number;
-  originalCurrency: string;
-  exchangeValue: number;
-  autoExchangeRate: boolean;
-  type: "INCOME" | "EXPENSE";
-  notes?: string;
-  status: "ACTIVE" | "PAUSED" | "COMPLETED";
-  startDate: string;
-  frequencyType: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
-  frequencyInterval: number;
-  monthlySpecificDay?: number;
-  lastWorkingDayOfMonth: boolean;
-  duration: "FOREVER" | "TIMES" | "UNTIL";
-  durationTimes?: number;
-  durationUntil?: string;
-}
-
 export interface WalletPermissionDto {
   walletId: string;
   permissions: string[];
@@ -191,5 +169,3 @@ export interface WalletPermState {
   read: boolean;
   write: boolean;
 }
-
-export type ThemeVariant = "default" | "oauth";

@@ -4,10 +4,8 @@ import {
   defaultLayout,
   hideSlot,
   mergeSlots,
-  moveSlot,
   moveSlotToIndex,
   nextGroupId,
-  popWidget,
   popWidgetTo,
   readLayout,
   reconcileLayout,
@@ -164,7 +162,7 @@ describe("read/write/clear", () => {
 
   it("round-trips a layout per tab+wallet key", () => {
     const l = defaultLayout(WIDGETS);
-    const moved = moveSlot(l, "d", "a");
+    const moved = moveSlotToIndex(l, "d", 0);
     writeLayout("categories", "w1", moved);
     expect(readLayout("categories", "w1", WIDGETS)).toEqual(moved);
     // A different wallet still gets the default.
@@ -182,30 +180,6 @@ describe("read/write/clear", () => {
     expect(readLayout("categories", "w1", WIDGETS)).toEqual(
       defaultLayout(WIDGETS),
     );
-  });
-});
-
-describe("moveSlot", () => {
-  it("moves the active slot to the over slot's position", () => {
-    const l = defaultLayout(WIDGETS);
-    expect(moveSlot(l, "d", "a").slots.map((s) => s.id)).toEqual([
-      "d",
-      "a",
-      "b",
-      "c",
-    ]);
-    expect(moveSlot(l, "a", "c").slots.map((s) => s.id)).toEqual([
-      "b",
-      "c",
-      "a",
-      "d",
-    ]);
-  });
-
-  it("is a no-op for unknown ids or self-drop", () => {
-    const l = defaultLayout(WIDGETS);
-    expect(moveSlot(l, "nope", "a")).toBe(l);
-    expect(moveSlot(l, "a", "a")).toBe(l);
   });
 });
 
@@ -300,49 +274,6 @@ describe("mergeSlots", () => {
     expect(mergeSlots(l, "a", "c", WIDGETS)).toBe(l); // half onto full
     expect(mergeSlots(l, "a", "a", WIDGETS)).toBe(l); // self
     expect(mergeSlots(l, "nope", "a", WIDGETS)).toBe(l);
-  });
-});
-
-describe("popWidget", () => {
-  it("pops a widget out right after the group; 2-member groups dissolve", () => {
-    const l: TabLayout = {
-      slots: [
-        { id: "group-1", widgets: ["a", "b"], activeWidget: "b" },
-        single("c"),
-      ],
-      hiddenSlots: [],
-    };
-    const popped = popWidget(l, "group-1", "b");
-    expect(popped.slots.map((s) => s.id)).toEqual(["a", "b", "c"]);
-    expect(popped.slots[0]).toEqual(single("a"));
-  });
-
-  it("keeps 3-member groups alive and fixes activeWidget", () => {
-    const l: TabLayout = {
-      slots: [{ id: "group-1", widgets: ["c", "d", "h"], activeWidget: "d" }],
-      hiddenSlots: [],
-    };
-    const popped = popWidget(l, "group-1", "d");
-    expect(popped.slots[0]).toEqual({
-      id: "group-1",
-      widgets: ["c", "h"],
-      activeWidget: "c",
-    });
-    expect(popped.slots[1]).toEqual(single("d"));
-  });
-
-  it("is a no-op on standalone slots or missing members", () => {
-    const l = defaultLayout(WIDGETS);
-    expect(popWidget(l, "a", "a")).toBe(l);
-    expect(popWidget(l, "group-9", "a")).toBe(l);
-  });
-
-  it("never commits an empty slot when a corrupt group repeats the popped widget", () => {
-    const l: TabLayout = {
-      slots: [{ id: "group-1", widgets: ["a", "a"] }],
-      hiddenSlots: [],
-    };
-    expect(popWidget(l, "group-1", "a")).toBe(l);
   });
 });
 

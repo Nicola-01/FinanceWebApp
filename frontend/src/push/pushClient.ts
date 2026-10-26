@@ -8,7 +8,7 @@ export type PushEnrollment =
   "subscribed" | "unsupported" | "denied" | "disabled-server" | "unsubscribed";
 
 /** True when the browser exposes both the Service Worker and Push APIs. */
-export function isPushSupported(): boolean {
+function isPushSupported(): boolean {
   return "serviceWorker" in navigator && "PushManager" in window;
 }
 

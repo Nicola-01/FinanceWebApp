@@ -10,18 +10,3 @@ export const ComingSoonBadge: React.FC<{ label?: string }> = ({
     {label}
   </Badge>
 );
-
-/**
- * Wraps a not-yet-available control block: dims it and blocks interaction, so
- * we can lay out the final UI now while the backend is still pending.
- */
-export const LockedBlock: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => (
-  <div
-    aria-disabled="true"
-    className="pointer-events-none select-none opacity-55 [&_input]:cursor-not-allowed"
-  >
-    {children}
-  </div>
-);
