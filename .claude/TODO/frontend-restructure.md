@@ -105,24 +105,24 @@ Any task touching `modals/wallet/**` or `api/axiosConfig.ts` lives in **Phase 6
 Each move: `git mv`, fix relative imports in file + importers, mirror-move the test,
 build green. One commit per bullet.
 
-- [ ] **2.1** `register/Register.tsx` → `auth/Register.tsx`; move
+- [x] **2.1** `register/Register.tsx` → `auth/Register.tsx`; move
   `__tests__/register/Register.test.tsx` → `__tests__/auth/`; update `App.tsx:14`;
   delete the now-empty `register/` folder.
-- [ ] **2.2** `components/DataPicker/` → `components/datePicker/` (it is a DATE picker —
+- [x] **2.2** `components/DataPicker/` → `components/datePicker/` (it is a DATE picker —
   fixes both the typo and the folder-case convention). Mirror `__tests__/components/DataPicker/`.
-- [ ] **2.3** Normalize modal folder case: `modals/Calendar/` → `modals/calendar/`,
+- [x] **2.3** Normalize modal folder case: `modals/Calendar/` → `modals/calendar/`,
   `modals/TransactionModal/` → `modals/transaction/`. Flatten the over-nested
   `TagPicker/TagPicker.tsx` → `modals/transaction/TagPicker.tsx`. Mirror tests.
-- [ ] **2.4** Normalize remaining `components/` case: `LandingPage/` → `landing/`,
+- [x] **2.4** Normalize remaining `components/` case: `LandingPage/` → `landing/`,
   `TagFilter/` + `TagSelector/` → merge into `components/tags/` (they share
   `useTagTree`/`TagRow`/`TagDropdownPanel` already), `ToDoPage/` → `todo/`. Mirror tests.
-- [ ] **2.5** `components/auth/` → `components/password/` (kills the confusing
+- [x] **2.5** `components/auth/` → `components/password/` (kills the confusing
   `components/auth` ↔ `src/auth` name clash; contents are password-rule UI shared by
   auth + register + settings).
-- [ ] **2.6** `utils/types.ts` → `types/domain.ts` (real domain model next to the other
+- [x] **2.6** `utils/types.ts` → `types/domain.ts` (real domain model next to the other
   `types/`; ~40 importers — mechanical sed + build). Update the re-export in
   `api/walletDataCache.ts`.
-- [ ] **2.7** Shared-but-buried components to shared homes (import-fix only, no rewrite):
+- [x] **2.7** Shared-but-buried components to shared homes (import-fix only, no rewrite):
   - `dashboard/statistics/SwitchableCard.tsx` → `components/ui/SwitchableCard.tsx`
     (already imported cross-feature by `layout/WidgetSlot`).
   - `dashboard/statistics/DateRangeBanner.tsx` → `dashboard/DateRangeBanner.tsx`
@@ -132,11 +132,13 @@ build green. One commit per bullet.
   - `modals/subscription/SchedulingRules.tsx` → `modals/common/SchedulingRules.tsx`
     (used by subscription modal + 2 wizard files).
   - (`ExchangeRateSection` moves in task 5F.1 together with its split.)
-- [ ] **2.8** Rename `dashboard/tag/CategoryCharts.tsx` → `TransactionPieChart.tsx`
+- [x] **2.8** Rename `dashboard/tag/CategoryCharts.tsx` → `TransactionPieChart.tsx`
   (file exports only `TransactionPieChart`; importers: `categoriesWidgets.tsx`,
   `components/landing/Features.tsx`).
-- [ ] **2.9** Move `SettingsSectionDef` type from `settings/SettingsNav.tsx:5-12` into
+- [x] **2.9** Move `SettingsSectionDef` type from `settings/SettingsNav.tsx:5-12` into
   `settings/sections.ts` (data owner) so the data file stops importing from a component.
+  _(Done 2026-10-27, one commit per bullet. 2.6: `api/walletDataCache.ts` only had a type
+  import, no re-export. CLAUDE.md / `frontend/style.md` referenced none of the moved paths.)_
 
 ## Phase 3 — English-only comment sweep (mechanical, zero behavior)
 
@@ -516,6 +518,7 @@ Re-check `git status` before starting any of these.
 | F21 | `frontend/refactor.ts` — one-off ts-morph file-move codemod from an old restructure; only consumer of the `ts-morph` devDependency | frontend root | Delete it + `ts-morph` once no longer wanted as a template |
 | F22 | npm deps flagged unused by knip: `react-date-range` (zero imports), `@types/react-color` (app uses `@uiw/react-color`), `autoprefixer` + `postcss` (no postcss config; Tailwind 4 via Vite plugin), `ts-morph` (see F21) | package.json | Dependency removal = lockfile change; confirm then drop |
 | F23 | After deleting `PatListView` (1.10), `TokenListItem`'s legacy `onClick`/`disabled`/`showCopy`/`onCopy` mode has no consumer (only its tests) — supersedes F11 | components/pat | Removing it means trimming TokenListItem tests too |
+| F24 | Phase 2 moves (2026-10-27) left old paths in other planning docs: `.claude/TODO/{interactive-onboarding,ui-redesign,i18n}.md`, `DEPLOY_FIX_TODO.md`, `frontend/TOAST_AUDIT_TODO.md`, `.claude/TODO/DONE/*` (e.g. `components/LandingPage/`, `TagSelector/`, `utils/types`) | docs | Historical/other-initiative docs; update when those plans are next picked up, or leave DONE/ as-is |
 
 ## Test-coverage gaps (add opportunistically DURING the tasks above)
 
