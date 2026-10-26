@@ -39,9 +39,8 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
 
   const { wallet } = useWalletContext();
 
-  // Mappa anno → giorno "yyyy-MM-dd" → sottoscrizioni, memoizzata sui 3 anni
-  // visibili. Sostituisce la vecchia cache stateful in useEffect: nessuno stato
-  // né setState-in-effect, e la logica è coperta da test unitari (buildYearsMap).
+  // year → day "yyyy-MM-dd" → subscriptions, memoized over the 3 visible years.
+  // Pure derivation (no state / setState-in-effect); covered by buildYearsMap tests.
   const yearsMap = useMemo(
     () =>
       buildYearsMap(subscriptions, [
@@ -52,8 +51,8 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
     [subscriptions, currentYear],
   );
 
-  // Generazione della griglia del calendario
-  const weekStartsOn = 1; // Lunedì come default variabile
+  // Calendar grid generation
+  const weekStartsOn = 1; // Monday
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart, { weekStartsOn });
@@ -93,7 +92,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem] p-4 sm:p-6 md:p-8 animate-[fadeIn_0.3s_ease-out]">
-      {/* Header Calendario */}
+      {/* Calendar header */}
       <div className="flex items-center justify-center sm:justify-start mb-3 sm:mb-6 w-full">
         <div className="w-full sm:max-w-xs m-auto">
           <CustomDatePicker
@@ -114,7 +113,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
         </div>
       </div>
 
-      {/* Intestazione Giorni (Lun, Mar, Mer...) */}
+      {/* Weekday header (Mon, Tue, Wed...) */}
       <div className="grid grid-cols-7 mb-1 sm:mb-2">
         {weekDays.map((wd) => (
           <div
@@ -126,7 +125,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
         ))}
       </div>
 
-      {/* Griglia dei Giorni */}
+      {/* Day grid */}
       <div className="grid grid-cols-7 grid-rows-6 gap-px sm:gap-1 md:gap-2 flex-1">
         {calendarDays.map((calendarDay, index) => {
           const dayStr = format(calendarDay, "yyyy-MM-dd");

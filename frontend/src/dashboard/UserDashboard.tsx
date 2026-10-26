@@ -62,14 +62,14 @@ const UserDashboard: React.FC = () => {
   // Execute on first load
   useEffect(() => {
     fetchData();
-    // Caricamento una tantum al mount: scarica tutti i wallet una sola volta.
-    // Il redirect sul wallet selezionato è gestito dall'effetto successivo.
+    // One-shot load on mount: fetch all wallets once.
+    // Redirecting to the selected wallet is handled by the next effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Risolve lo slug URL (`nome-<ultimi5uuid>`) verso un wallet della lista.
-  // 1) match esatto sull'id -> retrocompatibilità con vecchi link full-UUID.
-  // 2) match sul suffisso -> ultimo segmento dello slug == ultimi 5 char dell'id.
+  // Resolve the URL slug (`name-<last5uuid>`) to a wallet in the list.
+  // 1) exact id match -> backward compatibility with old full-UUID links.
+  // 2) suffix match -> last slug segment == last 5 chars of the id.
   const resolveWallet = (param: string | undefined): Wallet | null => {
     if (!param) return null;
     const exact = wallets.find((w) => w.id === param);
@@ -78,10 +78,10 @@ const UserDashboard: React.FC = () => {
     return wallets.find((w) => w.id.slice(-5) === suffix) || null;
   };
 
-  // Gestisce due casi sul cambio di walletId/lista:
-  // - il wallet risolto ha uno slug diverso dal param (vecchio UUID o nome
-  //   cambiato) -> riscrive l'URL nella forma canonica (replace).
-  // - il param non risolve alcun wallet (es. cancellato) -> naviga al primo.
+  // Handles two cases when walletId/list changes:
+  // - the resolved wallet's slug differs from the param (old UUID or renamed)
+  //   -> rewrite the URL in canonical form (replace).
+  // - the param resolves no wallet (e.g. deleted) -> navigate to the first one.
   useEffect(() => {
     if (loading || wallets.length === 0 || !walletId) return;
     const current = resolveWallet(walletId);
@@ -141,7 +141,7 @@ const UserDashboard: React.FC = () => {
 
       {/* Desktop: clip the overflow spilling out of the flex layout */}
       <div className="flex flex-col xl:flex-row flex-1 xl:overflow-hidden">
-        {/* La barra laterale prenderà xl:h-full e scorrerà da sola */}
+        {/* The sidebar takes xl:h-full and scrolls on its own */}
         <WalletsBar
           wallets={wallets}
           setWallets={setWallets}

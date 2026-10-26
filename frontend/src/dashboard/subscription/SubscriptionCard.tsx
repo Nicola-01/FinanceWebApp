@@ -14,7 +14,7 @@ interface SubscriptionCardProps {
   onClick?: () => void;
 }
 
-// HELPER: Formatta la frequenza ultra-compatta (es. "mo", "yr", "2 wk")
+// Ultra-compact frequency label (e.g. "mo", "yr", "2 wk").
 const formatCompactFrequency = (interval: number, type: string) => {
   const i = interval && interval > 1 ? `${interval} ` : "";
   switch (type.toUpperCase()) {
@@ -27,17 +27,17 @@ const formatCompactFrequency = (interval: number, type: string) => {
     case "DAILY":
       return `${i}d`;
     default:
-      return `${i}${type.toLowerCase().replace("ly", "")}`; // Fallback di sicurezza
+      return `${i}${type.toLowerCase().replace("ly", "")}`; // Fallback
   }
 };
 
-// HELPER: Calcola i giorni rimanenti fino al prossimo pagamento
+// Days left until the next payment.
 const getDaysLeft = (nextDateStr?: string | null) => {
   if (!nextDateStr) return null;
   const nextDate = new Date(nextDateStr);
   const today = new Date();
 
-  // Resettiamo gli orari per calcolare solo i giorni netti
+  // Zero the times so only whole days count.
   today.setHours(0, 0, 0, 0);
   nextDate.setHours(0, 0, 0, 0);
 
@@ -45,7 +45,7 @@ const getDaysLeft = (nextDateStr?: string | null) => {
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 };
 
-// HELPER: Calcola il colore in base alla vicinanza della data
+// Colour by how close the date is.
 const getDaysLeftColor = (days: number, isIncome: boolean) => {
   if (days > 7) return "text-app-muted opacity-90";
   if (days < 0) return "text-app-muted opacity-60";
@@ -110,7 +110,6 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
 }) => {
   const isIncome = subscription.type === "INCOME";
 
-  // Calcolo testi dinamici
   const frequencyText = formatCompactFrequency(
     subscription.frequencyInterval,
     subscription.frequencyType,
@@ -171,12 +170,12 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         </div>
       </div>
 
-      {/* SPAZIO CENTRALE (Se volessi aggiungere le note in futuro, andrebbero qui) */}
+      {/* Center spacer (room for notes in the future) */}
       <div className="flex-1 min-w-0" />
 
-      {/* 2. LATO DESTRO: Importo, Ricorrenza e Giorni Rimanenti */}
+      {/* 2. Right side: amount, recurrence and days left */}
       <div className="flex flex-col items-end justify-center shrink-0 pl-3 min-w-25">
-        {/* Riga 1: Importo + Valuta + Frequenza (es: -12.99 € / mo) */}
+        {/* Row 1: amount + currency + frequency (e.g. -12.99 € / mo) */}
         <div
           className={`text-right text-lg font-bold font-app-mono inline-flex items-baseline justify-end gap-1 ${isIncome ? "text-app-green" : "text-app-red"}`}
         >
@@ -204,7 +203,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           </span>
         </div>
 
-        {/* Riga 2: Giorni Rimanenti (Mostrato SOLO se l'abbonamento è ATTIVO e ha una data) */}
+        {/* Row 2: days left (only for ACTIVE subscriptions with a date) */}
         {subscription.status === "ACTIVE" && daysLeft !== null && (
           <span
             className={`text-xs font-medium mt-0.5 transition-colors duration-500 ${getDaysLeftColor(daysLeft, isIncome)}`}

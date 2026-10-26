@@ -139,7 +139,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
     didInitScroll.current = true;
   }, [loading, invitesLoading, invites.length]);
 
-  // --- 1. SINCRONIZZAZIONE ORDINE INIZIALE DA LOCAL STORAGE ---
+  // --- 1. Apply the saved wallet order from localStorage on load ---
   useEffect(() => {
     if (!loading && wallets.length > 0) {
       const savedOrderStr = localStorage.getItem("wallet_order");
@@ -148,7 +148,6 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
         try {
           const savedOrder = JSON.parse(savedOrderStr) as string[];
 
-          // Riordiniamo i wallet basandoci sugli ID salvati nel localStorage
           const sortedWallets = [...wallets].sort((a, b) => {
             const indexA = savedOrder.indexOf(a.id);
             const indexB = savedOrder.indexOf(b.id);
@@ -163,16 +162,15 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
           const currentIds = wallets.map((w) => w.id).join(",");
           const sortedIds = sortedWallets.map((w) => w.id).join(",");
 
-          // Creiamo la nuova stringa pulita per il localStorage
           const newOrderStr = JSON.stringify(sortedWallets.map((w) => w.id));
 
-          // 1. Aggiorniamo la UI SOLO se l'ordine degli elementi è diverso
+          // Only update state when the order actually changed.
           if (currentIds !== sortedIds) {
             setWallets(sortedWallets);
           }
 
-          // 2. Puliamo il Local Storage se ci sono disallineamenti
-          // (es. wallet eliminati o wallet nuovi aggiunti in coda)
+          // Rewrite the stored order when it drifted
+          // (e.g. deleted wallets, or new ones appended at the end).
           if (newOrderStr !== savedOrderStr) {
             localStorage.setItem("wallet_order", newOrderStr);
           }
@@ -212,7 +210,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
     }, 0);
   };
 
-  // --- 2. SALVATAGGIO ORDINE AL TERMINE DEL DRAG ---
+  // --- 2. Persist the order when a drag ends ---
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveId(null);
     disarmClickSuppress();

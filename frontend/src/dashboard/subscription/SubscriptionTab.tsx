@@ -68,7 +68,7 @@ export const SubscriptionTab = () => {
         />
       </div>
 
-      {/* Container Dinamico delle Viste */}
+      {/* Active view */}
       <div className="flex-1 relative">
         {isLoading ? (
           <div className="w-full">

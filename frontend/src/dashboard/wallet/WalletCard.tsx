@@ -173,7 +173,7 @@ export const WalletCardUI = forwardRef<
   },
 );
 
-// 2. IL COMPONENTE SMART (Gestisce la logica del Drag & Drop)
+// 2. Smart wrapper: owns the drag & drop logic.
 const WalletCard: React.FC<WalletProps> = ({ wallet, isSelected, onClick }) => {
   const {
     attributes,
@@ -185,7 +185,7 @@ const WalletCard: React.FC<WalletProps> = ({ wallet, isSelected, onClick }) => {
   } = useSortable({ id: wallet.id });
 
   const style = {
-    // IL FIX: Ora permettiamo di nuovo al segnaposto di muoversi e farsi spazio!
+    // Translate (not Transform) so the placeholder can move and make room.
     transform: CSS.Translate.toString(transform),
     transition,
   };

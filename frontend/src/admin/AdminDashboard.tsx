@@ -74,7 +74,7 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch asincrono al mount: gli setState avvengono dopo l'await, non in modo sincrono.
+    // Async fetch on mount: setState runs after the await, not synchronously.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
