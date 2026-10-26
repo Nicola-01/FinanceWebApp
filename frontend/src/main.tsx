@@ -4,7 +4,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { BrowserRouter } from "react-router-dom";
 
-// Dichiariamo una variabile globale per catturare l'evento il prima possibile (evitando race condition con React)
+// Global so the event is captured as early as possible (avoids a race with React).
 window._pwaInstallPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();

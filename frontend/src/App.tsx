@@ -3,7 +3,7 @@ import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import Login from "./auth/Login";
 import UserDashboard from "./dashboard/UserDashboard.tsx";
 import SettingsPage from "./settings/SettingsPage.tsx";
-import AdminDashboard from "./admin/AdminDashboard"; // Importa la pagina Admin
+import AdminDashboard from "./admin/AdminDashboard";
 import ProtectedRoute from "./utils/ProtectedRoute.tsx";
 import { ToastHost } from "./components/ui/ToastHost.tsx";
 import {

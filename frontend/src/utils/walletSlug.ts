@@ -1,19 +1,19 @@
 /**
- * Converte un nome wallet in uno slug URL-safe:
- * minuscolo, accenti rimossi, sequenze non-alfanumeriche -> singolo trattino,
- * trim dei trattini. Fallback "wallet" se il risultato è vuoto.
+ * Converts a wallet name into a URL-safe slug: lowercase, accents stripped,
+ * non-alphanumeric runs -> single dash, dashes trimmed. Falls back to "wallet"
+ * when the result is empty.
  */
 export function slugify(name: string): string {
   const slug = name
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "") // rimuove i diacritici
+    .replace(/[̀-ͯ]/g, "") // strip diacritics
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
   return slug || "wallet";
 }
 
-/** Slug canonico di un wallet: `nome-<ultimi5uuid>`. */
+/** Canonical wallet slug: `name-<last5uuid>`. */
 export function walletSlug(wallet: { id: string; name: string }): string {
   return `${slugify(wallet.name)}-${wallet.id.slice(-5)}`;
 }

@@ -3,9 +3,8 @@ import { getToken } from "./authHelper.ts";
 
 const ProtectedRoute = () => {
   const location = useLocation();
-  // Solo check se il token esiste nello storage.
-  // La validità (scadenza) viene gestita dall'interceptor Axios:
-  // quando un'API ritorna 401, l'interceptor chiama /auth/refresh automaticamente.
+  // Only checks that a token exists in storage. Expiry is handled by the Axios
+  // interceptor: on a 401 it calls /auth/refresh automatically.
   const hasToken = !!getToken();
   if (!hasToken) {
     localStorage.removeItem("mustChangePWD");

@@ -3,7 +3,7 @@
 @import "./theme-tokens.css";
 @tailwind utilities;
 
-/* Resetta html, body e root per occupare tutto lo schermo */
+/* Reset html, body and root to fill the whole screen */
 html,
 body,
 #root {
@@ -104,7 +104,7 @@ body,
   }
 }
 
-/* Utility per il testo sfumato */
+/* Gradient text utility */
 .text-gradient-neon {
   background: linear-gradient(90deg, #00ff7f, #00d4ff, #00ff7f);
   background-size: 200% auto;
@@ -145,7 +145,7 @@ body,
   }
 }
 
-/* Nasconde il watermark di MUI X Pro (Solo per progetti personali/sviluppo) */
+/* Hide the MUI X Pro watermark (personal/development projects only) */
 div[class*="Mui-license"],
 div[style*="pointer-events: none"][style*="z-index: 100000"],
 div:has(> a[href*="mui.com/r/x-license"]) {

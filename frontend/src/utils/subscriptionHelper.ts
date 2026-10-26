@@ -19,7 +19,7 @@ import {
 } from "date-fns";
 import type { Subscription } from "../types/domain";
 
-// OOttiene l'ultimo giorno lavorativo del mese
+// Last business day of the month.
 export const getLastWorkingDayOfMonth = (date: Date): Date => {
   let lastDay = lastDayOfMonth(date);
   while (isWeekend(lastDay)) {
@@ -28,7 +28,7 @@ export const getLastWorkingDayOfMonth = (date: Date): Date => {
   return lastDay;
 };
 
-// Applica le regole mensili (es. ultimo giorno lavorativo, giorno specifico)
+// Apply the monthly rules (e.g. last business day, specific day).
 export const applyMonthlyRules = (sub: Subscription, date: Date): Date => {
   if (sub.frequencyType !== "MONTHLY") return date;
 
@@ -45,7 +45,7 @@ export const applyMonthlyRules = (sub: Subscription, date: Date): Date => {
   return date;
 };
 
-// Avanza di un singolo intervallo in base alla frequenza
+// Advance by one interval according to the frequency.
 export const advanceByOneInterval = (
   sub: Subscription,
   currentDate: Date,
@@ -72,8 +72,8 @@ export const advanceByOneInterval = (
 };
 
 /**
- * Calcola le date in cui una subscription avrà luogo.
- * Limita il calcolo agli anni richiesti [targetStartYear, targetEndYear].
+ * Computes the dates on which a subscription occurs, limited to the
+ * requested years [targetStartYear, targetEndYear].
  */
 export const generateSubscriptionOccurrences = (
   sub: Subscription,
@@ -85,14 +85,14 @@ export const generateSubscriptionOccurrences = (
 
   let currentDate = parseISO(startStr);
 
-  // Al primo passaggio, applica subito le regole mensili se necessario
+  // Apply the monthly rules to the very first date too.
   if (sub.frequencyType === "MONTHLY") {
     currentDate = applyMonthlyRules(sub, currentDate);
   }
 
   const occurrences: Date[] = [];
 
-  // Bounds di generazione
+  // Generation bounds
   const minDate = new Date(targetStartYear, 0, 1);
   const maxDate = new Date(targetEndYear, 11, 31, 23, 59, 59, 999);
 
@@ -108,11 +108,11 @@ export const generateSubscriptionOccurrences = (
 
   let executedCount = 0;
 
-  // Prevenzione loop infiniti nel caso di configurazioni errate
+  // Guard against infinite loops on bad configurations.
   let loopGuard = 0;
   const maxLoopsLeft = 50000;
 
-  // Fast-Forward Optimization per saltare anni di esecuzioni (se siamo distanti anni e non ci sono limitazioni TIMES stringenti)
+  // Fast-forward over years of executions when far away and not bounded by TIMES.
   if (
     sub.frequencyType === "DAILY" &&
     maxTimes === Infinity &&
@@ -169,30 +169,26 @@ export const generateSubscriptionOccurrences = (
   }
 
   while (loopGuard++ < maxLoopsLeft) {
-    // Se si supera l'ultima data desiderata, fermati
     if (isAfter(currentDate, maxDate)) {
       break;
     }
 
-    // Se si supera la data di fine definita (UNTIL), fermati
     if (untilDate && isAfter(currentDate, untilDate)) {
       break;
     }
 
-    // Se rientra nel range target, aggiungila
     if (!isBefore(currentDate, minDate)) {
       occurrences.push(currentDate);
     }
 
     executedCount++;
 
-    // Se si supera il limite di esecuzioni (TIMES), fermati
     if (executedCount >= maxTimes) {
       break;
     }
 
     const nextDate = advanceByOneInterval(sub, currentDate);
-    // Previene blocco browser se la data non incrementa
+    // Avoid hanging the browser if the date doesn't advance.
     if (isSameDay(currentDate, nextDate)) {
       break;
     }
@@ -202,8 +198,8 @@ export const generateSubscriptionOccurrences = (
   return occurrences;
 };
 
-// Costruisce la mappa anno → (giorno "yyyy-MM-dd" → sottoscrizioni) per gli anni
-// richiesti. Funzione pura: nessuno stato/effetto React, quindi facilmente testabile.
+// Builds year → (day "yyyy-MM-dd" → subscriptions) for the requested years.
+// Pure function (no React state/effects), so it's easy to test.
 export const buildYearsMap = (
   subscriptions: Subscription[],
   years: number[],
@@ -214,7 +210,7 @@ export const buildYearsMap = (
     const yearOccurrences: Record<string, Subscription[]> = {};
 
     subscriptions.forEach((sub) => {
-      // 1. Transazioni storiche
+      // 1. Historical transactions
       if (sub.history) {
         sub.history.forEach((tx) => {
           const txDate = new Date(tx.transactionDate);
@@ -230,7 +226,7 @@ export const buildYearsMap = (
 
       if (sub.status === "COMPLETED") return;
 
-      // 2. Occorrenze future (solo da nextExecutionDate in poi)
+      // 2. Future occurrences (from nextExecutionDate on only)
       const dates = generateSubscriptionOccurrences(sub, y, y);
       dates.forEach((d) => {
         const dateStr = format(d, "yyyy-MM-dd");
