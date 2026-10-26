@@ -9,7 +9,7 @@ import {
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
-import { DateRangeBanner } from "../statistics/DateRangeBanner.tsx";
+import { DateRangeBanner } from "../DateRangeBanner.tsx";
 import { useTheme } from "../../utils/ThemeContext.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { CategoryManagerDrawer } from "./CategoryManagerDrawer.tsx";

@@ -20,7 +20,7 @@ vi.mock("../../../components/ui/AmountInput.tsx", () => ({
 vi.mock("../../../modals/transaction/ExchangeRateSection.tsx", () => ({
   ExchangeRateSection: () => <div />,
 }));
-vi.mock("../../../modals/transaction/TransactionTypeToggle.tsx", () => ({
+vi.mock("../../../components/ui/TransactionTypeToggle.tsx", () => ({
   TransactionTypeToggle: () => <div />,
 }));
 vi.mock("../../../modals/transaction/TransactionMetadataInputs.tsx", () => ({

@@ -7,7 +7,7 @@ import type { Transaction } from "../../../types/domain.ts";
 // Replace the heavy SwitchableCard shell (framer-motion, react-use, MUI-ish
 // Selector, WalletContext) with a light stub so we can drive OverviewTable's
 // own data-shaping (rows / cells / totals / tab + year switching) in isolation.
-vi.mock("../../../dashboard/statistics/SwitchableCard.tsx", () => ({
+vi.mock("../../../components/ui/SwitchableCard.tsx", () => ({
   SwitchableCard: (props: {
     tabs: { key: string; label: string; title: string }[];
     activeTab?: string;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Selector } from "../../components/ui/Selector";
+import { Selector } from "./Selector";
 
 interface Props {
   type: "EXPENSE" | "INCOME" | "";

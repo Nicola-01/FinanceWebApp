@@ -5,7 +5,7 @@ import { OverviewTable } from "./OverviewTable.tsx";
 import { StatisticsSummary } from "./StatisticsSummary.tsx";
 import { MonthlySnapshotChart } from "./MonthlySnapshotChart.tsx";
 import { CumulativeChart } from "./CumulativeChart.tsx";
-import { SwitchableCard } from "./SwitchableCard.tsx";
+import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import type { ZoomData } from "@mui/x-charts/internals";
 
 import { useTheme } from "../../utils/ThemeContext.tsx";

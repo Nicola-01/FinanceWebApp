@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { TransactionTypeToggle } from "../../../modals/transaction/TransactionTypeToggle";
+import { TransactionTypeToggle } from "../../../components/ui/TransactionTypeToggle";
 
 describe("TransactionTypeToggle", () => {
   it("calls setType('EXPENSE') when Expense is clicked", async () => {

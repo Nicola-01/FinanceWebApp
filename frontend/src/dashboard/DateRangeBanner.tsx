@@ -6,7 +6,7 @@ import {
   differenceInYears,
 } from "date-fns";
 import { it } from "date-fns/locale";
-import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { useWalletContext } from "./wallet/WalletContext.tsx";
 
 export const DateRangeBanner: React.FC = () => {
   const { filteredTransactions } = useWalletContext();

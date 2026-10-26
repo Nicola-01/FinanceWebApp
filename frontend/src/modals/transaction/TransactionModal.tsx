@@ -10,7 +10,7 @@ import type { Tag, Wallet, Transaction } from "../../types/domain.ts";
 import { TagPicker } from "./TagPicker.tsx";
 import { AmountInput } from "../../components/ui/AmountInput.tsx";
 import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
-import { TransactionTypeToggle } from "./TransactionTypeToggle.tsx";
+import { TransactionTypeToggle } from "../../components/ui/TransactionTypeToggle.tsx";
 import { TransactionMetadataInputs } from "./TransactionMetadataInputs.tsx";
 import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";

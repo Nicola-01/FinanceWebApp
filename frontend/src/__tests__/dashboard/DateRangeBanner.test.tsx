@@ -2,18 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { format } from "date-fns";
 import { it as itLocale } from "date-fns/locale";
-import type { Transaction } from "../../../types/domain.ts";
+import type { Transaction } from "../../types/domain.ts";
 
 const { ctx } = vi.hoisted(() => ({
   ctx: { filteredTransactions: [] as Transaction[] },
 }));
 
 // DateRangeBanner reads only `filteredTransactions` from the wallet context.
-vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
+vi.mock("../../dashboard/wallet/WalletContext.tsx", () => ({
   useWalletContext: () => ctx,
 }));
 
-import { DateRangeBanner } from "../../../dashboard/statistics/DateRangeBanner.tsx";
+import { DateRangeBanner } from "../../dashboard/DateRangeBanner.tsx";
 
 const tag = { name: "General", icon: "tag", colorHex: "#fff" };
 

@@ -12,10 +12,10 @@ import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { Input } from "../../components/ui/Input.tsx";
 import { Textarea } from "../../components/ui/Textarea";
 import { AmountInput } from "../../components/ui/AmountInput.tsx";
-import { TransactionTypeToggle } from "../transaction/TransactionTypeToggle";
+import { TransactionTypeToggle } from "../../components/ui/TransactionTypeToggle";
 import { TagPicker } from "../transaction/TagPicker";
 import { ExchangeRateSection } from "../transaction/ExchangeRateSection";
-import { SchedulingRules } from "./SchedulingRules";
+import { SchedulingRules } from "../common/SchedulingRules";
 import { getApiErrorTitle } from "../../utils/apiError";
 import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
 

@@ -3,12 +3,12 @@ import Button from "../../../../components/ui/Button";
 import { AmountInput } from "../../../../components/ui/AmountInput";
 import { TagTreePicker } from "../../../../components/tags/TagTreePicker";
 import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
-import { TransactionTypeToggle } from "../../../transaction/TransactionTypeToggle";
+import { TransactionTypeToggle } from "../../../../components/ui/TransactionTypeToggle";
 import {
   SchedulingRules,
   type DurationType,
   type FrequencyType,
-} from "../../../subscription/SchedulingRules";
+} from "../../../common/SchedulingRules";
 import { CURRENCY_META, type CurrencyCode } from "../../../../utils/currencies";
 import type {
   SubscriptionRequest,

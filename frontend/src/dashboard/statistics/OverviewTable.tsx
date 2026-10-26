@@ -7,7 +7,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { Transaction } from "../../types/domain.ts";
-import { SwitchableCard } from "./SwitchableCard.tsx";
+import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import { OverviewRow } from "./OverviewRow.tsx";
 
 const MONTHS = [

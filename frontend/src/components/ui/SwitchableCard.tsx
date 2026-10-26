@@ -3,8 +3,8 @@ import { useMedia, useClickAway } from "react-use";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence } from "framer-motion";
-import { useWalletContext } from "../wallet/WalletContext.tsx";
-import { Selector } from "../../components/ui/Selector.tsx";
+import { useWalletContext } from "../../dashboard/wallet/WalletContext.tsx";
+import { Selector } from "./Selector.tsx";
 
 export interface Tab {
   key: string;
