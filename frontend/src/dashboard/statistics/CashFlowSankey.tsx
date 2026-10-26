@@ -126,7 +126,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
   const savings = totalIncome - totalExpenses;
   if (savings > 0) addToNodeTotal("Savings", savings);
 
-  // --- ORDINAMENTO NODI DAL PIÙ GRANDE AL PIÙ PICCOLO ---
+  // --- Sort nodes largest to smallest ---
   const sortByTotalDesc = (a: NodeDef, b: NodeDef) =>
     (nodeTotals.get(b.id) || 0) - (nodeTotals.get(a.id) || 0);
 

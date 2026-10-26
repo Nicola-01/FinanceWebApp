@@ -88,9 +88,9 @@ describe("buildYearsMap", () => {
 
     const map = buildYearsMap([sub], [2025]);
 
-    // Occorrenza prima della nextExecutionDate: esclusa
+    // Occurrence before nextExecutionDate: excluded
     expect(map[2025]["2025-01-10"]).toBeUndefined();
-    // Occorrenza sulla nextExecutionDate: inclusa
+    // Occurrence on nextExecutionDate: included
     expect(map[2025]["2025-06-10"]?.map((s) => s.id)).toEqual(["s1"]);
   });
 

@@ -6,7 +6,7 @@ afterEach(() => {
   cleanup();
 });
 
-// jsdom non implementa matchMedia: forniamo uno stub minimale.
+// jsdom doesn't implement matchMedia: provide a minimal stub.
 if (typeof window !== "undefined" && !window.matchMedia) {
   window.matchMedia = (query: string) =>
     ({

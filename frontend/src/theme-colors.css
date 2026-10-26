@@ -14,7 +14,7 @@
   --bg-input: 255 255 255; /* white */
   --bg-hover: 243 244 246; /* gray-100 */
 
-  /* Colori di Accento Globale */
+  /* Global accent colours */
   --app-green: 34 197 94; /* green-500 */
   --app-red: 239 68 68; /* red-500 */
   --app-cyan: 6 182 212; /* cyan-500 */
@@ -136,7 +136,7 @@
   --bg-input: 24 24 27; /* zinc-900 */
   --bg-hover: 39 39 42; /* zinc-800 */
 
-  /* Colori di Accento Globale */
+  /* Global accent colours */
   --app-green: 34 197 94; /* green-500 */
   --app-red: 239 68 68; /* red-500 */
   --app-cyan: 6 182 212; /* cyan-500 */
