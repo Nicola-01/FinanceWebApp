@@ -11,7 +11,7 @@ import {
   type DeleteModalHandle,
 } from "./modals/common/DeleteModal";
 import { DeleteModalProvider } from "./modals/common/DeleteModalProvider";
-import Register from "./register/Register.tsx";
+import Register from "./auth/Register.tsx";
 import ForgotPassword from "./auth/ForgotPassword.tsx";
 import ResetPassword from "./auth/ResetPassword.tsx";
 import { initSync } from "./sync/replay";

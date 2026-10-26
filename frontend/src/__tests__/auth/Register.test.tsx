@@ -18,7 +18,7 @@ vi.mock("../../components/ui/ToastNotification", () => ({
   triggerToast: vi.fn(),
 }));
 
-import Register from "../../register/Register";
+import Register from "../../auth/Register";
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ui/ToastNotification";
 
