@@ -10,7 +10,7 @@ import {
   SubscriptionDetailsModal,
   type SubscriptionDetailsModalHandle,
 } from "../../modals/subscription/SubscriptionDetailsModal.tsx";
-import type { CurrencyCode } from "../../utils/currencies.ts";
+import type { CurrencyCode } from "../../utils/currencies/index.ts";
 import { SubscriptionCalendar } from "./SubscriptionCalendar.tsx";
 import { SubscriptionList } from "./SubscriptionList.tsx";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";

@@ -14,7 +14,7 @@ import * as walletOps from "../../api/walletOps.ts";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faReceipt } from "@fortawesome/free-solid-svg-icons";
-import type { CurrencyCode } from "../../utils/currencies.ts";
+import type { CurrencyCode } from "../../utils/currencies/index.ts";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
 

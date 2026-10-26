@@ -3,7 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleExclamation, faTags } from "@fortawesome/free-solid-svg-icons";
 import type { Transaction, Wallet } from "../../types/domain.ts";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
-import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
+import {
+  CURRENCY_META,
+  type CurrencyCode,
+} from "../../utils/currencies/index.ts";
 import api from "../../api/axiosConfig.ts";
 import Button from "../../components/ui/Button.tsx";
 import {

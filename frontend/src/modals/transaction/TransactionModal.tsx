@@ -3,7 +3,7 @@ import * as walletOps from "../../api/walletOps";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
-import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
+import { getCurrencySymbol, type CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Transaction } from "../../types/domain.ts";
 
 // Sub-components
@@ -138,7 +138,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
       }
     };
 
-    const currencySymbol = CURRENCY_META[currency]?.symbol || currency;
+    const currencySymbol = getCurrencySymbol(currency);
     const canSave =
       amount !== "" && Number(amount) !== 0 && selectedTagName !== "";
     const isEditing = !!editingTxId;

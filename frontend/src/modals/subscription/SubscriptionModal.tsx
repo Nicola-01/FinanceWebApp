@@ -3,7 +3,7 @@ import * as walletOps from "../../api/walletOps";
 import Button from "../../components/ui/Button.tsx";
 import Toggle from "../../components/ui/Toggle.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
-import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
+import { getCurrencySymbol, type CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Subscription } from "../../types/domain";
 
 // Sub-components reused from the transaction modal.
@@ -199,7 +199,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
       }
     };
 
-    const currencySymbol = CURRENCY_META[currency]?.symbol || currency;
+    const currencySymbol = getCurrencySymbol(currency);
     const canSave =
       (amountPending || (amount !== "" && Number(amount) !== 0)) &&
       selectedTagName !== "" &&

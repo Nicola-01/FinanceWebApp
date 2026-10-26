@@ -9,7 +9,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";
-import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
+import {
+  CURRENCY_META,
+  type CurrencyCode,
+} from "../../utils/currencies/index.ts";
 
 interface TransactionRowProps {
   transaction: Transaction;
