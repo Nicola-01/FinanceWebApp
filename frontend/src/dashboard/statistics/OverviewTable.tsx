@@ -10,21 +10,7 @@ import type { Transaction } from "../../types/domain.ts";
 import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import { OverviewRow } from "./OverviewRow.tsx";
 import { formatAmount } from "../../utils/format.ts";
-
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { MONTH_LABELS } from "../../utils/months.ts";
 
 type ViewMode = "monthly" | "yearly";
 
@@ -114,7 +100,7 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({
 
   const isMonthly = viewMode === "monthly";
   const columns = isMonthly
-    ? MONTHS.map((m, i) => ({ key: String(i), label: m }))
+    ? MONTH_LABELS.map((m, i) => ({ key: String(i), label: m }))
     : yearlyData.map((y) => ({ key: String(y.year), label: String(y.year) }));
 
   const dataItems = isMonthly ? monthlyData : yearlyData;

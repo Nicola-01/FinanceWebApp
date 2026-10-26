@@ -14,21 +14,7 @@ import type { Transaction } from "../../types/domain.ts";
 import { useTheme } from "../../utils/ThemeContext.tsx";
 import { buildMonthlyBuckets } from "./chartData";
 import type { ZoomData } from "@mui/x-charts/internals";
-
-const MONTH_LABELS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { MONTH_LABELS } from "../../utils/months.ts";
 
 const lightTheme = createTheme({
   palette: { mode: "light", background: { paper: "transparent" } },

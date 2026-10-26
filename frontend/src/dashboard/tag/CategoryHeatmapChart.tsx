@@ -6,21 +6,7 @@ import { Selector } from "../../components/ui/Selector.tsx";
 import { mainCategoryName } from "./categoryAgg.ts";
 import { useRecentMonthsZoom } from "./useRecentMonthsZoom.ts";
 import { formatAmount } from "../../utils/format.ts";
-
-const MONTH_LABELS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { MONTH_LABELS } from "../../utils/months.ts";
 
 const TOP_N = 8;
 
