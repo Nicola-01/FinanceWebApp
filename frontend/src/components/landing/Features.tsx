@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Calendar, Users, WifiOff } from "lucide-react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { TransactionPieChart } from "../../dashboard/tag/CategoryCharts.tsx";
+import { TransactionPieChart } from "../../dashboard/tag/TransactionPieChart.tsx";
 import { CashFlowSankey } from "../../dashboard/statistics/CashFlowSankey.tsx";
 import { WalletCardUI } from "../../dashboard/wallet/WalletCard";
 import MockTransactionRow from "./MockTransactionRow";

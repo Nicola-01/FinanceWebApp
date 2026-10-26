@@ -7,7 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { Transaction } from "../../types/domain.ts";
 import type { WidgetDef } from "../layout/widgetTypes.ts";
-import { TransactionPieChart } from "./CategoryCharts.tsx";
+import { TransactionPieChart } from "./TransactionPieChart.tsx";
 import { CategoryRanking } from "./CategoryRanking.tsx";
 import { CategoryTrendChart } from "./CategoryTrendChart.tsx";
 import { CategoryHeatmapChart } from "./CategoryHeatmapChart.tsx";
