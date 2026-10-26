@@ -1,15 +1,15 @@
 import React, { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLayerGroup } from "@fortawesome/free-solid-svg-icons";
-import type { Tag } from "../../../utils/types";
-import { TagTreePicker } from "../../../components/TagSelector/TagTreePicker.tsx";
-import { useWalletContext } from "../../../dashboard/wallet/WalletContext.tsx";
-import { CategoryManagerDrawer } from "../../../dashboard/tag/CategoryManagerDrawer.tsx";
+import type { Tag } from "../../utils/types";
+import { TagTreePicker } from "../../components/TagSelector/TagTreePicker.tsx";
+import { useWalletContext } from "../../dashboard/wallet/WalletContext.tsx";
+import { CategoryManagerDrawer } from "../../dashboard/tag/CategoryManagerDrawer.tsx";
 import {
   countTagUsage,
   orderTags,
   readSortMode,
-} from "../../../utils/tagOrder.ts";
+} from "../../utils/tagOrder.ts";
 
 interface TagPickerProps {
   tags: Tag[];

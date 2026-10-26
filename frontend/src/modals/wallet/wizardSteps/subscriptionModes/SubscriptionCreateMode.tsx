@@ -3,7 +3,7 @@ import Button from "../../../../components/ui/Button";
 import { AmountInput } from "../../../../components/ui/AmountInput";
 import { TagTreePicker } from "../../../../components/TagSelector/TagTreePicker";
 import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
-import { TransactionTypeToggle } from "../../../TransactionModal/TransactionTypeToggle";
+import { TransactionTypeToggle } from "../../../transaction/TransactionTypeToggle";
 import {
   SchedulingRules,
   type DurationType,

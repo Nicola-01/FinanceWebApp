@@ -12,7 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { Subscription, Wallet } from "../../utils/types";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
-import { ExchangeRateSection } from "../TransactionModal/ExchangeRateSection";
+import { ExchangeRateSection } from "../transaction/ExchangeRateSection";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 
 interface SubscriptionViewProps {

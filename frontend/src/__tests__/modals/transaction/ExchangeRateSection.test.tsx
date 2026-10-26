@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { ExchangeRateSection } from "../../../modals/TransactionModal/ExchangeRateSection";
+import { ExchangeRateSection } from "../../../modals/transaction/ExchangeRateSection";
 import type { CurrencyCode } from "../../../utils/currencies";
 
 vi.mock("../../../components/ui/ToastNotification", () => ({

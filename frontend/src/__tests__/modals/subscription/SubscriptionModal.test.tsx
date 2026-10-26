@@ -11,16 +11,16 @@ import type { CurrencyCode } from "../../../utils/currencies";
 import type { Subscription, Wallet } from "../../../utils/types";
 
 // Isolate from the heavy form children (shared with the transaction form).
-vi.mock("../../../modals/TransactionModal/TagPicker/TagPicker", () => ({
+vi.mock("../../../modals/transaction/TagPicker", () => ({
   TagPicker: () => <div />,
 }));
 vi.mock("../../../components/ui/AmountInput.tsx", () => ({
   AmountInput: () => <div />,
 }));
-vi.mock("../../../modals/TransactionModal/TransactionTypeToggle", () => ({
+vi.mock("../../../modals/transaction/TransactionTypeToggle", () => ({
   TransactionTypeToggle: () => <div />,
 }));
-vi.mock("../../../modals/TransactionModal/ExchangeRateSection", () => ({
+vi.mock("../../../modals/transaction/ExchangeRateSection", () => ({
   ExchangeRateSection: () => <div />,
 }));
 vi.mock("../../../components/datePicker/CustomDatePicker", () => ({

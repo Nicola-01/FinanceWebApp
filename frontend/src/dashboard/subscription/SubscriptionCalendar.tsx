@@ -16,7 +16,7 @@ import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import {
   CalendarDayDetailPanel,
   type DayDetailModalHandle,
-} from "../../modals/Calendar/CalendarDayDetailModal.tsx";
+} from "../../modals/calendar/CalendarDayDetailModal.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 
 interface SubscriptionCalendarProps {

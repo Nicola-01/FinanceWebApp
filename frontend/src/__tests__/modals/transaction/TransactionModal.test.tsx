@@ -11,24 +11,21 @@ import type { CurrencyCode } from "../../../utils/currencies";
 import type { Transaction, Wallet } from "../../../utils/types";
 
 // Isolate from the heavy form children (some are being refactored concurrently).
-vi.mock("../../../modals/TransactionModal/TagPicker/TagPicker.tsx", () => ({
+vi.mock("../../../modals/transaction/TagPicker.tsx", () => ({
   TagPicker: () => <div data-testid="tagpicker" />,
 }));
 vi.mock("../../../components/ui/AmountInput.tsx", () => ({
   AmountInput: () => <div />,
 }));
-vi.mock("../../../modals/TransactionModal/ExchangeRateSection.tsx", () => ({
+vi.mock("../../../modals/transaction/ExchangeRateSection.tsx", () => ({
   ExchangeRateSection: () => <div />,
 }));
-vi.mock("../../../modals/TransactionModal/TransactionTypeToggle.tsx", () => ({
+vi.mock("../../../modals/transaction/TransactionTypeToggle.tsx", () => ({
   TransactionTypeToggle: () => <div />,
 }));
-vi.mock(
-  "../../../modals/TransactionModal/TransactionMetadataInputs.tsx",
-  () => ({
-    TransactionMetadataInputs: () => <div />,
-  }),
-);
+vi.mock("../../../modals/transaction/TransactionMetadataInputs.tsx", () => ({
+  TransactionMetadataInputs: () => <div />,
+}));
 vi.mock("../../../components/datePicker/CustomDatePicker.tsx", () => ({
   default: () => <div />,
 }));
@@ -42,7 +39,7 @@ vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
 import {
   TransactionModal,
   type TransactionModalHandle,
-} from "../../../modals/TransactionModal/TransactionModal";
+} from "../../../modals/transaction/TransactionModal";
 import api from "../../../api/axiosConfig";
 
 const wallet: Wallet = {

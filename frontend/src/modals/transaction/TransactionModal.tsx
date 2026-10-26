@@ -7,7 +7,7 @@ import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Transaction } from "../../utils/types.ts";
 
 // Sub-components
-import { TagPicker } from "./TagPicker/TagPicker.tsx";
+import { TagPicker } from "./TagPicker.tsx";
 import { AmountInput } from "../../components/ui/AmountInput.tsx";
 import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
 import { TransactionTypeToggle } from "./TransactionTypeToggle.tsx";

@@ -5,7 +5,7 @@ import type { Transaction, Wallet } from "../../../utils/types";
 
 const { deleteObject } = vi.hoisted(() => ({ deleteObject: vi.fn() }));
 
-vi.mock("../../../modals/TransactionModal/TransactionView", () => ({
+vi.mock("../../../modals/transaction/TransactionView", () => ({
   TransactionView: () => <div data-testid="tx-view" />,
 }));
 vi.mock("../../../modals/common/DeleteModalContext", () => ({
@@ -23,14 +23,14 @@ vi.mock("../../../modals/subscription/SubscriptionModal.tsx", () => ({
 vi.mock("../../../components/ui/TagBadge.tsx", () => ({
   TagBadge: () => <div data-testid="tag-badge" />,
 }));
-vi.mock("../../../modals/TransactionModal/ExchangeRateSection.tsx", () => ({
+vi.mock("../../../modals/transaction/ExchangeRateSection.tsx", () => ({
   ExchangeRateSection: () => <div data-testid="exchange" />,
 }));
 
 import {
   TransactionDetailsModal,
   type TransactionDetailsModalHandle,
-} from "../../../modals/TransactionModal/TransactionDetailsModal";
+} from "../../../modals/transaction/TransactionDetailsModal";
 
 const wallet = (role: Wallet["userRole"] = "OWNER"): Wallet => ({
   id: "w1",
@@ -98,8 +98,8 @@ describe("TransactionDetailsModal", () => {
   // here via importActual to verify its pending-amount rendering.
   it("shows 'Amount pending' for a pending transaction", async () => {
     const { TransactionView } = await vi.importActual<
-      typeof import("../../../modals/TransactionModal/TransactionView")
-    >("../../../modals/TransactionModal/TransactionView");
+      typeof import("../../../modals/transaction/TransactionView")
+    >("../../../modals/transaction/TransactionView");
     render(
       <TransactionView
         tx={{ ...tx, amount: 0, amountPending: true } as unknown as Transaction}

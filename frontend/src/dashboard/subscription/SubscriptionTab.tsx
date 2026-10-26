@@ -17,11 +17,11 @@ import { FloatingActionButton } from "../../components/ui/FloatingActionButton.t
 import {
   TransactionDetailsModal,
   type TransactionDetailsModalHandle,
-} from "../../modals/TransactionModal/TransactionDetailsModal.tsx";
+} from "../../modals/transaction/TransactionDetailsModal.tsx";
 import {
   TransactionModal,
   type TransactionModalHandle,
-} from "../../modals/TransactionModal/TransactionModal.tsx";
+} from "../../modals/transaction/TransactionModal.tsx";
 import * as walletOps from "../../api/walletOps.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 

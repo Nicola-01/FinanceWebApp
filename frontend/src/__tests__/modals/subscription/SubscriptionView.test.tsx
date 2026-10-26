@@ -6,7 +6,7 @@ import { SubscriptionView } from "../../../modals/subscription/SubscriptionView"
 vi.mock("../../../components/ui/TagBadge.tsx", () => ({
   TagBadge: () => <div data-testid="tag-badge" />,
 }));
-vi.mock("../../../modals/TransactionModal/ExchangeRateSection", () => ({
+vi.mock("../../../modals/transaction/ExchangeRateSection", () => ({
   ExchangeRateSection: () => <div data-testid="exchange" />,
 }));
 
