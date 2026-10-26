@@ -144,14 +144,14 @@ build green. One commit per bullet.
 
 Translate Italian comments to English. No code changes in the same commit.
 
-- [ ] **3.1** Dashboard: `WalletsBar` (L142–215 area), `WalletCard` (L176,188),
+- [x] **3.1** Dashboard: `WalletsBar` (L142–215 area), `WalletCard` (L176,188),
   `WalletTabs` (L18), `UserDashboard` (L65–84,144), `TransactionsTable`
   (L15,57,67,96,112,141,152), all `dashboard/subscription/*` (heavy), `AdminDashboard.tsx:77`.
-- [ ] **3.2** Modals: `TransactionView.tsx` (L59–130, heaviest), `SubscriptionModal.tsx:271`.
-- [ ] **3.3** Components: `ui/AmountInput.tsx` (~25 comments), `datePicker/CustomDatePicker.tsx`
+- [x] **3.2** Modals: `TransactionView.tsx` (L59–130, heaviest), `SubscriptionModal.tsx:271`.
+- [x] **3.3** Components: `ui/AmountInput.tsx` (~25 comments), `datePicker/CustomDatePicker.tsx`
   (~12), `CalendarContainer.tsx` (45,110), `YearSelector.tsx:29`, `icon/Icon.tsx` (6–8,16),
   `icon/IconPickerButton.tsx:109`.
-- [ ] **3.4** Utils/root: `subscriptionHelper.ts` (~18, incl. typo "OOttiene"),
+- [x] **3.4** Utils/root: `subscriptionHelper.ts` (~18, incl. typo "OOttiene"),
   `walletSlug.ts`, `ProtectedRoute.tsx`, `mathEvaluator.ts`, `runtime-env.d.ts`,
   `main.tsx:7`, `index.css` (L6,107,148 — comments only, do NOT touch the watermark rule
   itself), `App.tsx:6`. (`api/axiosConfig.ts` Italian comments → Phase 6, in-flight.)
@@ -519,6 +519,7 @@ Re-check `git status` before starting any of these.
 | F22 | npm deps flagged unused by knip: `react-date-range` (zero imports), `@types/react-color` (app uses `@uiw/react-color`), `autoprefixer` + `postcss` (no postcss config; Tailwind 4 via Vite plugin), `ts-morph` (see F21) | package.json | Dependency removal = lockfile change; confirm then drop |
 | F23 | After deleting `PatListView` (1.10), `TokenListItem`'s legacy `onClick`/`disabled`/`showCopy`/`onCopy` mode has no consumer (only its tests) — supersedes F11 | components/pat | Removing it means trimming TokenListItem tests too |
 | F24 | Phase 2 moves (2026-10-27) left old paths in other planning docs: `.claude/TODO/{interactive-onboarding,ui-redesign,i18n}.md`, `DEPLOY_FIX_TODO.md`, `frontend/TOAST_AUDIT_TODO.md`, `.claude/TODO/DONE/*` (e.g. `components/LandingPage/`, `TagSelector/`, `utils/types`) | docs | Historical/other-initiative docs; update when those plans are next picked up, or leave DONE/ as-is |
+| F25 | Dead commented-out JSX: `{/*<CalendarIcon … />*/}` in `components/datePicker/CustomDatePicker.tsx` (~L320, left untouched by Phase 3) | datePicker | Delete it, or restore the icon (visual change) |
 
 ## Test-coverage gaps (add opportunistically DURING the tasks above)
 
