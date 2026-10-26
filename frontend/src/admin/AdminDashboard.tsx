@@ -125,7 +125,7 @@ const AdminDashboard: React.FC = () => {
         />
       </div>
 
-      <AppHeader page={{ text: "Admin", accent: "Panel" }} isAdmin={true} />
+      <AppHeader page={{ text: "Admin", accent: "Panel" }} />
 
       <AdminTabs />
 

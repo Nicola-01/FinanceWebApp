@@ -22,8 +22,6 @@ interface AppHeaderProps {
     text: string;
     accent: string;
   };
-  /** Kept for call-site compatibility (admin shell). No longer gates the menu. */
-  isAdmin?: boolean;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
