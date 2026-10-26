@@ -243,14 +243,6 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
             convertedAmount={convertedAmount}
             onConvertedAmountChange={setConvertedAmount}
           />
-
-          {/* 5. RECURRING TOGGLE */}
-          {/*{!isEditing && (*/}
-          {/*    <RecurringPaymentToggle*/}
-          {/*        isRecurring={isRecurring}*/}
-          {/*        setIsRecurring={setIsRecurring}*/}
-          {/*    />*/}
-          {/*)}*/}
         </div>
       </ResponsiveOverlay>
     );
