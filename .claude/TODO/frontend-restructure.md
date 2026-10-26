@@ -68,29 +68,37 @@ Any task touching `modals/wallet/**` or `api/axiosConfig.ts` lives in **Phase 6
 
 ## Phase 1 — Dead code removal (independent, low risk, do first)
 
-- [ ] **1.1** Delete `register/Register_old.tsx` (285 lines, zero references; also the
+- [x] **1.1** Delete `register/Register_old.tsx` (285 lines, zero references; also the
   worst Italian-comment/hand-rolled-input offender). No test exists for it.
-- [ ] **1.2** Delete `dashboard/wallet/WalletMenu.tsx` (64 lines, fully dead — only refs
+- [x] **1.2** Delete `dashboard/wallet/WalletMenu.tsx` (64 lines, fully dead — only refs
   are a commented import at `WalletDashboard.tsx:8` and a doc mention in
   `components/ui/Menu.tsx:13`; clean both up).
-- [ ] **1.3** `dashboard/transaction/TransactionsTab.tsx`: remove the hidden
+- [x] **1.3** `dashboard/transaction/TransactionsTab.tsx`: remove the hidden
   `TransactionModal` block (~L21–29) whose ref is never opened, plus the now-unused
   `transactionModalRef` and `TransactionModal`/`TransactionModalHandle`/`CurrencyCode`
   imports. (`TransactionsTable` renders its own modal + FAB.)
-- [ ] **1.4** Delete `modals/TransactionModal/RecurringPaymentToggle.tsx` (dead: only
+- [x] **1.4** Delete `modals/TransactionModal/RecurringPaymentToggle.tsx` (dead: only
   ref is the commented block `TransactionModal.tsx` ~L240–246 — remove that too) and its
   test `__tests__/modals/TransactionModal/RecurringPaymentToggle.test.tsx`.
-- [ ] **1.5** Remove dead commented blocks: `TransactionsTable.tsx` ~L104–107 (malformed
+- [x] **1.5** Remove dead commented blocks: `TransactionsTable.tsx` ~L104–107 (malformed
   `// @ ts-ignore` block), `header/AppHeader.tsx` ~L121–123, large commented icon groups
   in `utils/icons.ts` (~L62, 139–141, 344–348, 566, 598).
-- [ ] **1.6** Delete `src/App.css` (dead Vite boilerplate — imported nowhere).
-- [ ] **1.7** `dashboard/layout/useTabLayout.ts`: remove never-called interface methods
+- [x] **1.6** Delete `src/App.css` (dead Vite boilerplate — imported nowhere).
+- [x] **1.7** `dashboard/layout/useTabLayout.ts`: remove never-called interface methods
   `move`, `reorderSlot`, `pop` (+ impls) and the then-unused `moveSlot` import from
   `utils/tabLayout`. Keep `moveSlotToIndex`/`reorderSlotToIndex`/`popTo`.
-- [ ] **1.8** Un-export internals: `flattenTree` in `utils/tagOrder.ts` (internal-only);
+- [x] **1.8** Un-export internals: `flattenTree` in `utils/tagOrder.ts` (internal-only);
   `recentMonthsZoom` in `dashboard/tag/useRecentMonthsZoom.ts` (no external importer).
-- [ ] **1.9** `header/AppHeader.tsx`: drop the unused `isAdmin?` prop after checking the
+- [x] **1.9** `header/AppHeader.tsx`: drop the unused `isAdmin?` prop after checking the
   call sites still compile.
+  _(Done 2026-10-27. 1.5: the `// New icons` / `// Even more icons` labels in
+  `icons.ts` were kept — they label live imports; only commented-out code was removed.)_
+- [x] **1.10** (knip sweep, 2026-10-27) Deleted production-dead files + their tests:
+  `modals/pat/PatModal.tsx`, `modals/pat/PatListView.tsx`,
+  `modals/wallet/ShareWalletModal.tsx`, `modals/tags/CreateTagModal.tsx`; deleted
+  test-only `moveSlot`/`popWidget` (`utils/tabLayout`), unreferenced `LockedBlock`,
+  `SubscriptionRequestDTO`, `ThemeVariant`, `ModalView`; un-exported file-internal
+  `MEMBER_PREFIX`/`GROUPBODY_PREFIX`/`isSlotId`/`isPushSupported`.
 
 ## Phase 2 — Targeted moves & renames (do BEFORE splits so new files land in final homes)
 
@@ -503,6 +511,11 @@ Re-check `git status` before starting any of these.
 | F16 | `StatisticsTab` uses effect-based zoom init while the codebase convention is render-time reconciliation | statistics | Pattern alignment, minor behavior risk |
 | F17 | No `components/ui/index.ts` barrel — every consumer deep-imports | components/ui | Adding one is easy but churns many imports; decide once |
 | F18 | `recommendedSubscriptions.ts:106` sends `startDate: new Date().toISOString().slice(0, 10)` — the UTC day, so a day early between local midnight and 02:00 in Italy | wizard subscriptionModes | Real off-by-one; fix = `toLocalIsoDate(new Date())` from `utils/localDate.ts` |
+| F19 | ~45 components carry a redundant `export default X` next to the named export, never imported as default (knip "duplicate exports"; e.g. all `wizardSteps/*`, `ui/Badge`/`Card`/`Input`/…) | app-wide | Convention call: named-only vs dual export. Deleting is trivial but churns ~45 files |
+| F20 | Exported-but-unused **types** (knip): ui prop/variant types (`ButtonProps`, `BadgeVariant`, `ToggleProps`, `MenuItemProps`, …), `DatePickerValue`, `CellType`, `SwitchableCard.Tab`, `ImportResource`/`ImportReviewPhase`, `walletCreation` `WalletBasics`/`ResourceKey`, `TagOrigin`, `RecommendedSubscriptionTag`, `TagOrderStore`, `CacheItem`, `ReplayClassification`, `SlotRow`, `WalletPermissionDto` | various | Mostly public-API vocabulary of shared modules; un-exporting has no runtime gain |
+| F21 | `frontend/refactor.ts` — one-off ts-morph file-move codemod from an old restructure; only consumer of the `ts-morph` devDependency | frontend root | Delete it + `ts-morph` once no longer wanted as a template |
+| F22 | npm deps flagged unused by knip: `react-date-range` (zero imports), `@types/react-color` (app uses `@uiw/react-color`), `autoprefixer` + `postcss` (no postcss config; Tailwind 4 via Vite plugin), `ts-morph` (see F21) | package.json | Dependency removal = lockfile change; confirm then drop |
+| F23 | After deleting `PatListView` (1.10), `TokenListItem`'s legacy `onClick`/`disabled`/`showCopy`/`onCopy` mode has no consumer (only its tests) — supersedes F11 | components/pat | Removing it means trimming TokenListItem tests too |
 
 ## Test-coverage gaps (add opportunistically DURING the tasks above)
 
