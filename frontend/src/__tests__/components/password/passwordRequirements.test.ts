@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   getPasswordRequirements,
   isPasswordValid,
-} from "../../../components/auth/passwordRequirements";
+} from "../../../components/password/passwordRequirements";
 
 /** Looks up a single requirement's pass/fail state by its label prefix. */
 const passes = (

@@ -19,8 +19,8 @@ import Button from "../../components/ui/Button";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { PasswordInput } from "../../modals/auth/PasswordInput";
 import { ConfirmModal } from "../../modals/common/ConfirmModal";
-import { PasswordRequirements } from "../../components/auth/PasswordRequirements";
-import { isPasswordValid } from "../../components/auth/passwordRequirements";
+import { PasswordRequirements } from "../../components/password/PasswordRequirements";
+import { isPasswordValid } from "../../components/password/passwordRequirements";
 import { getApiErrorDetail } from "../../utils/apiError";
 import { ComingSoonBadge } from "../ComingSoon";
 

@@ -10,8 +10,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
-import { PasswordRequirements } from "../components/auth/PasswordRequirements.tsx";
-import { isPasswordValid } from "../components/auth/passwordRequirements.ts";
+import { PasswordRequirements } from "../components/password/PasswordRequirements.tsx";
+import { isPasswordValid } from "../components/password/passwordRequirements.ts";
 import { getApiErrorTitle } from "../utils/apiError";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
