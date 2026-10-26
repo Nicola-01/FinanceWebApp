@@ -1,4 +1,4 @@
-import type { Tag } from "./types";
+import type { Tag } from "../types/domain";
 
 /**
  * Client-side ordering for the category tree, mirroring the `wallet_order`

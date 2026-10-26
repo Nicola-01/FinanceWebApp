@@ -12,7 +12,7 @@ import {
   SubscriptionModal,
   type SubscriptionModalHandle,
 } from "../subscription/SubscriptionModal.tsx";
-import type { Transaction, Wallet } from "../../utils/types.ts";
+import type { Transaction, Wallet } from "../../types/domain.ts";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";

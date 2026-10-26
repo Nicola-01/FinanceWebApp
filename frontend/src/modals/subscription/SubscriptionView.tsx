@@ -10,7 +10,7 @@ import {
   faPause,
   faCheckDouble,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Subscription, Wallet } from "../../utils/types";
+import type { Subscription, Wallet } from "../../types/domain";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import { ExchangeRateSection } from "../transaction/ExchangeRateSection";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";

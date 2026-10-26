@@ -1,4 +1,4 @@
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 
 export interface MonthlyBucket {
   date: Date;

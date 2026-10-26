@@ -10,7 +10,7 @@ vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
 
 import { useInvitations } from "../../../dashboard/wallet/useInvitations";
 import api from "../../../api/axiosConfig";
-import type { Invitation } from "../../../utils/types";
+import type { Invitation } from "../../../types/domain";
 
 const apiGet = (api as unknown as { get: ReturnType<typeof vi.fn> }).get;
 const apiPost = (api as unknown as { post: ReturnType<typeof vi.fn> }).post;

@@ -4,7 +4,7 @@ import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
-import type { Tag, Wallet, Transaction } from "../../utils/types.ts";
+import type { Tag, Wallet, Transaction } from "../../types/domain.ts";
 
 // Sub-components
 import { TagPicker } from "./TagPicker.tsx";

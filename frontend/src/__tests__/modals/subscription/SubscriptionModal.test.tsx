@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import { createRef } from "react";
 import type { CurrencyCode } from "../../../utils/currencies";
-import type { Subscription, Wallet } from "../../../utils/types";
+import type { Subscription, Wallet } from "../../../types/domain";
 
 // Isolate from the heavy form children (shared with the transaction form).
 vi.mock("../../../modals/transaction/TagPicker", () => ({

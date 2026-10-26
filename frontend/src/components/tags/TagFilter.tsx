@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFilter } from "@fortawesome/free-solid-svg-icons";
-import type { Tag } from "../../utils/types.ts";
+import type { Tag } from "../../types/domain.ts";
 import { Checkbox, type CheckboxState } from "../ui/Checkbox.tsx";
 import { SearchInput } from "../ui/SearchInput.tsx";
 import { TagRow } from "./TagRow.tsx";

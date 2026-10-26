@@ -7,7 +7,7 @@ import {
   type CreateWalletWizardHandle,
 } from "../../modals/wallet/CreateWalletWizard.tsx";
 import WalletCard, { WalletCardUI } from "./WalletCard.tsx";
-import type { Wallet, Invitation } from "../../utils/types.ts";
+import type { Wallet, Invitation } from "../../types/domain.ts";
 import { useInvitations } from "./useInvitations";
 import { InvitesMobileInline, InvitesDesktopSection } from "./WalletInvites";
 import { InviteModal } from "../../modals/wallet/InviteModal";

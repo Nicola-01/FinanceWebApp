@@ -19,7 +19,7 @@ import { SchedulingRules } from "../../../subscription/SchedulingRules";
 import { findRecommendedTagWithParent } from "../recommendedTags";
 import { subscriptionTagUnresolved } from "./subscriptionTags";
 import { formatFrequency } from "./subscriptionSummary";
-import type { Tag } from "../../../../utils/types";
+import type { Tag } from "../../../../types/domain";
 import type {
   SubscriptionRequest,
   TagRequest,

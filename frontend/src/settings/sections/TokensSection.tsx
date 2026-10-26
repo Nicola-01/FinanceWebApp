@@ -11,7 +11,7 @@ import {
   faHandPointer,
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../../api/axiosConfig";
-import type { Wallet, PatToken, WalletPermState } from "../../utils/types";
+import type { Wallet, PatToken, WalletPermState } from "../../types/domain";
 import { Card } from "../../components/ui/Card";
 import { Badge as UiBadge } from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";

@@ -40,7 +40,7 @@ import {
   validateSubscriptions,
   type RowError,
 } from "./csvValidation.ts";
-import type { Tag } from "../../utils/types";
+import type { Tag } from "../../types/domain";
 
 /** Which resource an export/import action targets. */
 type Resource = "transactions" | "tags" | "subscriptions";

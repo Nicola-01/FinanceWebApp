@@ -13,7 +13,7 @@ import type {
   Tag,
   PatToken,
   Budget,
-} from "../../utils/types";
+} from "../../types/domain";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "./ModalDialog";

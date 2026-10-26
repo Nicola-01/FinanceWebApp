@@ -6,7 +6,7 @@ import {
   faChevronUp,
   faHashtag,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Tag } from "../../utils/types";
+import type { Tag } from "../../types/domain";
 import { Icon } from "../icon/Icon.tsx";
 import { TagRow, type TagRowTrailing } from "./TagRow.tsx";
 import { TagDropdownPanel } from "./TagDropdownPanel.tsx";

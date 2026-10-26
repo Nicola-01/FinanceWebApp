@@ -8,7 +8,7 @@ import {
   faEye,
   faEyeSlash,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Wallet, PatToken } from "../../utils/types";
+import type { Wallet, PatToken } from "../../types/domain";
 import { TokenActionButtons } from "./TokenActionButtons";
 import { TokenWalletBadges } from "./TokenWalletBadges";
 import { TokenLastUsedInfo } from "./TokenLastUsedInfo";

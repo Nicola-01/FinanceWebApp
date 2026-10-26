@@ -1,5 +1,5 @@
 import React from "react";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import {

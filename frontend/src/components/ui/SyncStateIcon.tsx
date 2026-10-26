@@ -1,6 +1,6 @@
 import React from "react";
 import { CloudAlert, CloudOff } from "lucide-react";
-import type { SyncState } from "../../utils/types";
+import type { SyncState } from "../../types/domain";
 
 interface SyncStateIconProps {
   state?: SyncState;

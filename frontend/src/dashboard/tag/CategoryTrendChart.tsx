@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { BarChartPro } from "@mui/x-charts-pro/BarChartPro";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 import {
   OTHER_COLOR,

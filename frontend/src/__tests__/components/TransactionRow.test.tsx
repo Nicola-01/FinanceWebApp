@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import { TransactionRow } from "../../dashboard/transaction/TransactionRow";
-import type { Transaction } from "../../utils/types";
+import type { Transaction } from "../../types/domain";
 
 function makeTransaction(overrides: Partial<Transaction> = {}): Transaction {
   return {

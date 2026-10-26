@@ -1,4 +1,4 @@
-import type { Transaction } from "../../utils/types";
+import type { Transaction } from "../../types/domain";
 
 /** Pending (amount-less) transactions, oldest first — the order the pinned rows render in. */
 export function selectPendingTransactions(

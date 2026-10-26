@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { format } from "date-fns";
 import { it as itLocale } from "date-fns/locale";
-import type { Transaction } from "../../../utils/types.ts";
+import type { Transaction } from "../../../types/domain.ts";
 
 const { ctx } = vi.hoisted(() => ({
   ctx: { filteredTransactions: [] as Transaction[] },

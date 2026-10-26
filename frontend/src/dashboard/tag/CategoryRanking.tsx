@@ -5,7 +5,7 @@ import {
   faEllipsis,
   faChevronDown,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { OTHER_COLOR } from "./categoryAgg.ts";
 

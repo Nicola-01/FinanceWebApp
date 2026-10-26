@@ -15,7 +15,7 @@ import {
   faRepeat,
   faCalendarDay,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Subscription, Transaction } from "../../utils/types";
+import type { Subscription, Transaction } from "../../types/domain";
 import { SubscriptionCard } from "../../dashboard/subscription/SubscriptionCard";
 import { ModalDialog } from "../common/ModalDialog";
 import Button from "../../components/ui/Button";

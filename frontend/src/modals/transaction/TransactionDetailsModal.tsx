@@ -4,7 +4,7 @@ import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { useDeleteModal } from "../common/DeleteModalContext";
-import type { Transaction, Wallet } from "../../utils/types.ts";
+import type { Transaction, Wallet } from "../../types/domain.ts";
 
 import { TransactionView } from "./TransactionView";
 

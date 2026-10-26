@@ -8,7 +8,7 @@ import {
 import { ModalDialog } from "../common/ModalDialog";
 import Button from "../../components/ui/Button";
 import { type IconKey, ICONS } from "../../utils/icons";
-import type { Invitation } from "../../utils/types";
+import type { Invitation } from "../../types/domain";
 
 export interface InviteModalProps {
   /** The invitation to respond to; `null` keeps the modal closed. */

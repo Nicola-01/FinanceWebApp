@@ -6,7 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 import { SwitchableCard } from "./SwitchableCard.tsx";
 import { OverviewRow } from "./OverviewRow.tsx";
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Tag } from "../../utils/types.ts";
+import type { Tag } from "../../types/domain.ts";
 
 export interface TagTreeSearchGroup {
   main: Tag;

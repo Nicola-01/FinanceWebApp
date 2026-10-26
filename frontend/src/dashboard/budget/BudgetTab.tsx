@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBullseye, faPlus } from "@fortawesome/free-solid-svg-icons";
-import type { Budget } from "../../utils/types";
+import type { Budget } from "../../types/domain";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { useBudgets } from "./useBudgets";
 import { BudgetCard } from "./BudgetCard";

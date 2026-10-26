@@ -1,7 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen, faEye, faBan } from "@fortawesome/free-solid-svg-icons";
-import type { Wallet, PatToken } from "../../utils/types";
+import type { Wallet, PatToken } from "../../types/domain";
 import { Icon } from "../icon/Icon";
 
 interface TokenWalletBadgesProps {

@@ -5,7 +5,7 @@ import { WalletDashboard } from "./wallet/WalletDashboard.tsx";
 import { DashboardBackground } from "./DashboardBackground.tsx";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
-import type { Wallet } from "../utils/types";
+import type { Wallet } from "../types/domain";
 import { useDeleteModal } from "../modals/common/DeleteModalContext";
 import { ConfirmModal } from "../modals/common/ConfirmModal.tsx";
 import { AppHeader } from "../header/AppHeader.tsx";

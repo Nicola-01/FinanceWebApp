@@ -8,7 +8,7 @@ import {
 } from "@testing-library/react";
 import { createRef } from "react";
 import type { CurrencyCode } from "../../../utils/currencies";
-import type { Transaction, Wallet } from "../../../utils/types";
+import type { Transaction, Wallet } from "../../../types/domain";
 
 // Isolate from the heavy form children (some are being refactored concurrently).
 vi.mock("../../../modals/transaction/TagPicker.tsx", () => ({

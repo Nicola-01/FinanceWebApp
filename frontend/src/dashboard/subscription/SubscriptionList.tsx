@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type { Subscription, Transaction } from "../../utils/types";
+import type { Subscription, Transaction } from "../../types/domain";
 import { SubscriptionCard } from "./SubscriptionCard";
 import { Badge } from "../../components/ui/Badge";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

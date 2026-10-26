@@ -1,4 +1,4 @@
-import type { Transaction, Wallet } from "../../utils/types.ts";
+import type { Transaction, Wallet } from "../../types/domain.ts";
 
 /**
  * Landing-page demo data.

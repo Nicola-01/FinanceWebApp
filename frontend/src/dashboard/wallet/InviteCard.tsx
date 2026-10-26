@@ -2,7 +2,7 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { type IconKey, ICONS } from "../../utils/icons";
-import type { Invitation } from "../../utils/types";
+import type { Invitation } from "../../types/domain";
 
 interface InviteCardProps {
   invite: Invitation;

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { PendingTransactionsPanel } from "../../../dashboard/transaction/PendingTransactionsPanel";
 import api from "../../../api/axiosConfig";
-import type { Transaction, Wallet } from "../../../utils/types";
+import type { Transaction, Wallet } from "../../../types/domain";
 
 vi.mock("../../../api/axiosConfig", () => ({
   default: { put: vi.fn().mockResolvedValue({ data: {} }) },

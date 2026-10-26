@@ -8,7 +8,7 @@ import {
 import UserRow from "./UserRow";
 import SearchInput from "../components/ui/SearchInput";
 import { Card } from "../components/ui/Card";
-import type { User } from "../utils/types.ts";
+import type { User } from "../types/domain.ts";
 
 type SortConfig = {
   key: keyof User;

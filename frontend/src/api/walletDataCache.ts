@@ -3,7 +3,7 @@
 // Fronts GET /api/wallets/{id}/dashboard so rapid wallet switching does not
 // burst the rate limit. Cache is lost on full page reload (offlineDb covers that).
 import api from "./axiosConfig";
-import type { WalletDashboardData } from "../utils/types";
+import type { WalletDashboardData } from "../types/domain";
 
 export type { WalletDashboardData };
 

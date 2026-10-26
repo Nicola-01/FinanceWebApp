@@ -8,7 +8,7 @@ import {
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { useDeleteModal } from "../common/DeleteModalContext";
-import type { Subscription, Wallet } from "../../utils/types";
+import type { Subscription, Wallet } from "../../types/domain";
 
 import { SubscriptionView } from "./SubscriptionView";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";

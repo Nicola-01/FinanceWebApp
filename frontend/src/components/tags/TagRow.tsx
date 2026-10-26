@@ -5,7 +5,7 @@ import {
   faChevronDown,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Tag } from "../../utils/types.ts";
+import type { Tag } from "../../types/domain.ts";
 import { Icon } from "../icon/Icon.tsx";
 import { Checkbox, type CheckboxState } from "../ui/Checkbox.tsx";
 

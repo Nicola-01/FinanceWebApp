@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { Heatmap } from "@mui/x-charts-pro/Heatmap";
 import { ChartZoomSlider } from "@mui/x-charts-pro/ChartZoomSlider";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { mainCategoryName } from "./categoryAgg.ts";
 import { useRecentMonthsZoom } from "./useRecentMonthsZoom.ts";

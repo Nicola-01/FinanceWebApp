@@ -10,7 +10,7 @@ import type {
   Tag,
   Transaction,
   WalletDashboardData,
-} from "../utils/types";
+} from "../types/domain";
 
 const stateOf = (op: PendingOp): SyncState =>
   op.status === "conflict"

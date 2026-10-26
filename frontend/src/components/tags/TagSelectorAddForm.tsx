@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faSpinner, faXmark } from "@fortawesome/free-solid-svg-icons";
-import type { Tag } from "../../utils/types";
+import type { Tag } from "../../types/domain";
 import { useWalletContext } from "../../dashboard/wallet/WalletContext.tsx";
 import { IconPickerButton } from "../icon/IconPickerButton.tsx";
 import type { IconKey } from "../../utils/icons.ts";

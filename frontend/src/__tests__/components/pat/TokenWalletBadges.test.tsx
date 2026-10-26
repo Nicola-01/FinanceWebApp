@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { PatToken, Wallet } from "../../../utils/types";
+import type { PatToken, Wallet } from "../../../types/domain";
 import { TokenWalletBadges } from "../../../components/pat/TokenWalletBadges";
 
 const token = (over: Partial<PatToken> = {}): PatToken => ({

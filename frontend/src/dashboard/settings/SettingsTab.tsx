@@ -11,7 +11,7 @@ import {
   faSpinner,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Wallet } from "../../utils/types";
+import type { Wallet } from "../../types/domain";
 import { ShareSettingsSection } from "./ShareSettingsSection.tsx";
 import { Card } from "../../components/ui/Card.tsx";
 import Button from "../../components/ui/Button.tsx";

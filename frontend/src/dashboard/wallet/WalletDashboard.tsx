@@ -2,7 +2,7 @@ import React from "react";
 import { TransactionsTab } from "../transaction/TransactionsTab";
 import { StatisticsTab } from "../statistics/StatisticsTab";
 import { SubscriptionTab } from "../subscription/SubscriptionTab";
-import type { Wallet } from "../../utils/types";
+import type { Wallet } from "../../types/domain";
 import { Icon } from "../../components/icon/Icon.tsx";
 import { WalletTabs } from "./WalletTabs.tsx";
 import { TagsTab } from "../tag/TagsTab.tsx";

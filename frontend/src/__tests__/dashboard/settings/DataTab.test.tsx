@@ -6,7 +6,7 @@ import type {
   Tag,
   Transaction,
   Wallet,
-} from "../../../utils/types";
+} from "../../../types/domain";
 
 // --- Mocks -----------------------------------------------------------------
 const { ctxRef } = vi.hoisted(() => ({

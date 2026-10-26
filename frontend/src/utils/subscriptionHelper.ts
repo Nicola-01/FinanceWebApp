@@ -17,7 +17,7 @@ import {
   differenceInMonths,
   differenceInYears,
 } from "date-fns";
-import type { Subscription } from "./types";
+import type { Subscription } from "../types/domain";
 
 // OOttiene l'ultimo giorno lavorativo del mese
 export const getLastWorkingDayOfMonth = (date: Date): Date => {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { PatToken } from "../../../utils/types";
+import type { PatToken } from "../../../types/domain";
 import { TokenActionButtons } from "../../../components/pat/TokenActionButtons";
 
 const token = (over: Partial<PatToken> = {}): PatToken => ({

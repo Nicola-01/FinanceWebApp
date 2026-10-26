@@ -1,7 +1,7 @@
 import React, { useState, useRef, forwardRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
-import type { Wallet } from "../../utils/types.ts";
+import type { Wallet } from "../../types/domain.ts";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { walletSlug } from "../../utils/walletSlug.ts";

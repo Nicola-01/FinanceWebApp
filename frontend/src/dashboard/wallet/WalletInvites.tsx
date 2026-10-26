@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Badge } from "../../components/ui/Badge";
 import { faEnvelope, faChevronUp } from "@fortawesome/free-solid-svg-icons";
-import type { Invitation } from "../../utils/types";
+import type { Invitation } from "../../types/domain";
 import { InviteCard } from "./InviteCard";
 
 interface ListProps {

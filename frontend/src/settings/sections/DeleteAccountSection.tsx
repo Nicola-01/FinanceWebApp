@@ -13,7 +13,7 @@ import { useDeleteModal } from "../../modals/common/DeleteModalContext";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { getApiErrorDetail } from "../../utils/apiError";
 import { getUserAuth } from "../../utils/authHelper";
-import type { User } from "../../utils/types";
+import type { User } from "../../types/domain";
 
 /**
  * Danger zone: permanent, GDPR account deletion via `DELETE /api/users/me`

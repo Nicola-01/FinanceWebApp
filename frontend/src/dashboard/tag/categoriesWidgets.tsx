@@ -5,7 +5,7 @@ import {
   faRankingStar,
   faTableCells,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 import type { WidgetDef } from "../layout/widgetTypes.ts";
 import { TransactionPieChart } from "./CategoryCharts.tsx";
 import { CategoryRanking } from "./CategoryRanking.tsx";

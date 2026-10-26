@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleExclamation, faTags } from "@fortawesome/free-solid-svg-icons";
-import type { Transaction, Wallet } from "../../utils/types.ts";
+import type { Transaction, Wallet } from "../../types/domain.ts";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
 import api from "../../api/axiosConfig.ts";

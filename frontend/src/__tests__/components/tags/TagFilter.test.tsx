@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Tag } from "../../../utils/types";
+import type { Tag } from "../../../types/domain";
 import { TagFilter } from "../../../components/tags/TagFilter";
 
 const tags = [

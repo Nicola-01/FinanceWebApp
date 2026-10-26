@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { WalletPermState } from "../../../utils/types";
+import type { WalletPermState } from "../../../types/domain";
 import { PatFormView } from "../../../modals/pat/PatFormView";
 
 const wp = (over: Partial<WalletPermState> = {}): WalletPermState => ({

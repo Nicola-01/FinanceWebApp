@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
 import Button from "./Button.tsx";
-import type { Wallet } from "../../utils/types.ts";
+import type { Wallet } from "../../types/domain.ts";
 
 interface FloatingActionButtonProps {
   wallet: Wallet;

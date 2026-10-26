@@ -1,5 +1,10 @@
 import { createContext, useContext } from "react";
-import type { Subscription, Tag, Transaction, Wallet } from "../../utils/types";
+import type {
+  Subscription,
+  Tag,
+  Transaction,
+  Wallet,
+} from "../../types/domain";
 import type {
   DateRangeValue,
   PresetType,

@@ -28,7 +28,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { Tag } from "../../utils/types.ts";
+import type { Tag } from "../../types/domain.ts";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { Badge } from "../../components/ui/Badge";
 import { Selector } from "../../components/ui/Selector.tsx";

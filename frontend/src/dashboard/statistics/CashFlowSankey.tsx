@@ -5,7 +5,7 @@ import {
   Unstable_SankeyChart as SankeyChart,
   type SankeyValueFormatterContext,
 } from "@mui/x-charts-pro/SankeyChart";
-import type { Transaction } from "../../utils/types";
+import type { Transaction } from "../../types/domain";
 import { useTheme } from "../../utils/ThemeContext";
 
 interface CashFlowSankeyProps {

@@ -7,7 +7,7 @@ import {
   type TransactionModalHandle,
 } from "../../modals/transaction/TransactionModal.tsx";
 import React, { useRef } from "react";
-import type { Tag, Transaction, Wallet } from "../../utils/types.ts";
+import type { Tag, Transaction, Wallet } from "../../types/domain.ts";
 import TransactionRow from "./TransactionRow.tsx";
 import { PendingTransactionsPanel } from "./PendingTransactionsPanel.tsx";
 import * as walletOps from "../../api/walletOps.ts";

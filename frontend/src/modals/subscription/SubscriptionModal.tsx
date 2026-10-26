@@ -4,7 +4,7 @@ import Button from "../../components/ui/Button.tsx";
 import Toggle from "../../components/ui/Toggle.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
-import type { Tag, Wallet, Subscription } from "../../utils/types";
+import type { Tag, Wallet, Subscription } from "../../types/domain";
 
 // Sub-components reused from the transaction modal.
 import CustomDatePicker from "../../components/datePicker/CustomDatePicker";

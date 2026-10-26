@@ -9,7 +9,7 @@ import {
   isSameDay,
   addDays,
 } from "date-fns";
-import type { Subscription, Transaction } from "../../utils/types";
+import type { Subscription, Transaction } from "../../types/domain";
 import { buildYearsMap } from "../../utils/subscriptionHelper";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";

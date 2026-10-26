@@ -7,7 +7,7 @@ import type {
   Transaction,
   Wallet,
   WalletDashboardData,
-} from "../../utils/types";
+} from "../../types/domain";
 import type {
   DateRangeValue,
   PresetType,

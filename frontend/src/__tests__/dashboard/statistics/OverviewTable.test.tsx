@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeAll } from "vitest";
 import React from "react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Transaction } from "../../../utils/types.ts";
+import type { Transaction } from "../../../types/domain.ts";
 
 // Replace the heavy SwitchableCard shell (framer-motion, react-use, MUI-ish
 // Selector, WalletContext) with a light stub so we can drive OverviewTable's

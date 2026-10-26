@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useInlineTagEdit } from "../../../dashboard/tag/useInlineTagEdit";
-import type { Tag } from "../../../utils/types";
+import type { Tag } from "../../../types/domain";
 
 const tag = (colorHex: string, icon = "tag"): Tag => ({
   name: "Food",

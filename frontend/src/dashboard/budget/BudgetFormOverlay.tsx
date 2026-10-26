@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
-import type { Budget, BudgetPayload, Tag } from "../../utils/types";
+import type { Budget, BudgetPayload, Tag } from "../../types/domain";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay";
 import { Input } from "../../components/ui/Input";
 import { CustomSelect } from "../../components/ui/CustomSelect";

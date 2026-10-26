@@ -2,7 +2,7 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { faTags, faChevronRight } from "@fortawesome/free-solid-svg-icons";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 
 /**
  * Faithful, **decoupled** replica of `dashboard/transaction/TransactionRow`

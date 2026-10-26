@@ -1,4 +1,4 @@
-import type { Budget } from "../../utils/types";
+import type { Budget } from "../../types/domain";
 
 /** Soft 400-tint status palette (house chart-colour rule: no saturated 500s). */
 export const STATUS_META: Record<

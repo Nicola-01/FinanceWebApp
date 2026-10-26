@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { WalletCardUI } from "../../../dashboard/wallet/WalletCard";
-import type { Wallet } from "../../../utils/types";
+import type { Wallet } from "../../../types/domain";
 
 const wallet: Wallet = {
   id: "abcde12345",

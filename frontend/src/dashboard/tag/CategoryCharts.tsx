@@ -5,7 +5,7 @@ import { styled } from "@mui/material/styles";
 import { useDrawingArea } from "@mui/x-charts/hooks";
 import { useTheme as useMuiTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 
 const hexToRgba = (hex: string, alpha: number): string => {
   if (!hex) return `rgba(0, 255, 127, ${alpha})`;

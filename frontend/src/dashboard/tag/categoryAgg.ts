@@ -1,4 +1,4 @@
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 
 /** Neutral grey used for the bucketed "Other" remainder across the category charts. */
 export const OTHER_COLOR = "#9ca3af";

@@ -13,7 +13,7 @@ import type {
   Wallet,
   WalletDashboardData,
   Transaction,
-} from "../../../utils/types";
+} from "../../../types/domain";
 import type { PendingOp } from "../../../utils/offlineDb";
 import type { DateRangeValue } from "../../../components/datePicker/CustomDatePicker";
 

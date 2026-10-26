@@ -7,7 +7,7 @@ import {
   advanceByOneInterval,
   generateSubscriptionOccurrences,
 } from "../../utils/subscriptionHelper";
-import type { Subscription, Tag, Transaction } from "../../utils/types";
+import type { Subscription, Tag, Transaction } from "../../types/domain";
 
 const makeSub = (over: Partial<Subscription>): Subscription => ({
   id: "s1",

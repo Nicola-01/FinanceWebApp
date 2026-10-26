@@ -1,7 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarAlt, faTags } from "@fortawesome/free-solid-svg-icons";
-import type { Subscription } from "../../utils/types";
+import type { Subscription } from "../../types/domain";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";

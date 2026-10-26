@@ -9,7 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { isTokenValid } from "../utils/authHelper";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
-import type { Wallet, WalletPermState } from "../utils/types";
+import type { Wallet, WalletPermState } from "../types/domain";
 import { PatFormView } from "../modals/pat/PatFormView";
 import Button from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";

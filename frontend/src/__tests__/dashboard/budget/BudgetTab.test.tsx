@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Budget, Wallet } from "../../../utils/types";
+import type { Budget, Wallet } from "../../../types/domain";
 
 const budgetsFixture: Budget[] = [
   {

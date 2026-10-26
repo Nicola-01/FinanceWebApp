@@ -7,7 +7,7 @@ import type {
   Transaction,
   Wallet,
   WalletDashboardData,
-} from "../../utils/types";
+} from "../../types/domain";
 
 const wallet: Wallet = {
   id: "w1",

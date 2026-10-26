@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, act, fireEvent } from "@testing-library/react";
 import { createRef } from "react";
-import type { Transaction, Wallet } from "../../../utils/types";
+import type { Transaction, Wallet } from "../../../types/domain";
 
 const { deleteObject } = vi.hoisted(() => ({ deleteObject: vi.fn() }));
 
