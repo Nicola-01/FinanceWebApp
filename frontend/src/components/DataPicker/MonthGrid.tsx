@@ -1,9 +1,8 @@
 import React from "react";
 import {
   startOfMonth,
-  endOfMonth,
   startOfWeek,
-  endOfWeek,
+  addDays,
   eachDayOfInterval,
   isBefore,
 } from "date-fns";
@@ -40,9 +39,9 @@ export default function MonthGrid({
   disableDaySelection,
 }: MonthGridProps) {
   const monthStart = startOfMonth(monthDate);
-  const monthEnd = endOfMonth(monthStart);
   const startDateGrid = startOfWeek(monthStart, { weekStartsOn });
-  const endDateGrid = endOfWeek(monthEnd, { weekStartsOn });
+  // Always 6 weeks: any month fits, and the grid height never jumps.
+  const endDateGrid = addDays(startDateGrid, 41);
   const days = eachDayOfInterval({ start: startDateGrid, end: endDateGrid });
 
   const handleDateClick = (day: Date) => {

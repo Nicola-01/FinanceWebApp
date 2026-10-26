@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { useTheme } from "../../utils/ThemeContext";
 import { createPortal } from "react-dom";
 import {
@@ -96,6 +96,26 @@ export default function CustomDatePicker({
       }
     }
   }, [isMobile, isOpen]);
+
+  // Shift the desktop popover horizontally so it stays inside the viewport and
+  // any clipping (overflow) ancestor, e.g. a modal body.
+  useLayoutEffect(() => {
+    const el = modalRef.current;
+    if (!isOpen || isMobile || !el) return;
+    const PAD = 8;
+    let minX = 0;
+    let maxX = window.innerWidth;
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      if (getComputedStyle(p).overflowX === "visible") continue;
+      const r = p.getBoundingClientRect();
+      minX = Math.max(minX, r.left);
+      maxX = Math.min(maxX, r.right);
+    }
+    const rect = el.getBoundingClientRect();
+    let dx = Math.min(0, maxX - PAD - rect.right);
+    if (rect.left + dx < minX + PAD) dx = minX + PAD - rect.left;
+    el.style.marginLeft = `${dx}px`;
+  }, [isOpen, isMobile]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
