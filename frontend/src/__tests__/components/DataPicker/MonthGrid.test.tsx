@@ -23,9 +23,17 @@ describe("MonthGrid", () => {
     render(<MonthGrid {...baseProps()} />);
     // Spot-check mid-month days that are unique to January (boundary days like
     // 1 and 31 also appear as leading/trailing adjacent-month cells).
-    ["5", "15", "25"].forEach((d) =>
+    ["12", "15", "25"].forEach((d) =>
       expect(screen.getByText(d)).toBeInTheDocument(),
     );
+  });
+
+  it("always renders 6 weeks, even for a 4-week month", () => {
+    // Feb 2021 starts on Monday and has 28 days: naturally only 4 rows.
+    const { container } = render(
+      <MonthGrid {...baseProps()} monthDate={new Date(2021, 1, 10)} />,
+    );
+    expect(container.firstElementChild!.children).toHaveLength(42);
   });
 
   it("switches to 'custom' and sets the start date on a first day click", async () => {
