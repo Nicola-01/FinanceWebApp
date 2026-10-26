@@ -105,7 +105,7 @@ export default function CalendarContainer({
   ];
 
   return (
-    <div className="flex flex-col w-full h-72">
+    <div className="flex flex-col w-full h-[21rem]">
       <style>{`
                 /* Nuove animazioni orizzontali */
                 @keyframes slideInNext { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
