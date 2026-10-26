@@ -27,7 +27,7 @@ interface TokenListItemProps {
   selected?: boolean; // this row is selected
   onLongPressSelect?: (t: PatToken) => void; // fire after a 500ms press-and-hold
   onToggleSelect?: (t: PatToken) => void; // fire on a QUICK click while selectionMode is true
-  // --- legacy: keep working for the (dead-but-tested) PatListView onClick mode ---
+  // --- legacy onClick mode: no remaining consumer, still covered by tests ---
   onClick?: (t: PatToken) => void;
   disabled?: boolean;
   showActions?: boolean;

@@ -181,8 +181,6 @@ export interface PatToken {
   paused: boolean;
 }
 
-export type ModalView = "list" | "create" | "edit" | "showToken";
-
 export interface WalletPermState {
   walletId: string;
   walletName: string;
