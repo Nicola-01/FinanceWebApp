@@ -105,11 +105,6 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     }
   };
 
-  // @ ts-ignore
-  // const onSuccessUpdate = async (updatedTransaction: Transaction) => {
-  //     onRefresh(); // Come sopra, ricarichiamo i dati aggiornati
-  // }
-
   return (
     <div className="flex flex-col flex-1 relative min-h-0">
       <div className="flex-1 overflow-auto pb-10 custom-scrollbar">

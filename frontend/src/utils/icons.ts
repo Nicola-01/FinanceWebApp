@@ -137,8 +137,6 @@ import {
   faRing,
   faPeopleGroup,
   // Even more icons
-  // faArrowRight, faArrowLeft, faArrowUp, faArrowDown, faChevronRight, faChevronLeft, faChevronUp, faChevronDown,
-  // faPlay, faPause, faStop, faBackward, faForward, faMap,
   faStar,
   faCircle,
   faSquare,
@@ -339,13 +337,6 @@ export const ICONS = {
   email: faEnvelope,
   lock: faLock,
   key: faKey,
-
-  // Navigation & Arrows
-  // arrowRight: faArrowRight, arrowLeft: faArrowLeft, arrowUp: faArrowUp, arrowDown: faArrowDown,
-  // chevronRight: faChevronRight, chevronLeft: faChevronLeft, chevronUp: faChevronUp, chevronDown: faChevronDown,
-
-  // Media & Controls
-  // play: faPlay, pause: faPause, stop: faStop, backward: faBackward, forward: faForward,
 
   // Shapes & Symbols
   star: faStar,
@@ -563,7 +554,6 @@ export const ICON_CATEGORIES: Record<string, IconKey[]> = {
     "lock",
     "key",
   ],
-  // "Navigation & Arrows": ['arrowRight', 'arrowLeft', 'arrowUp', 'arrowDown', 'chevronRight', 'chevronLeft', 'chevronUp', 'chevronDown'],
   "Shapes & Symbols": [
     "star",
     "circle",
@@ -595,7 +585,6 @@ export const ICON_CATEGORIES: Record<string, IconKey[]> = {
     "skull",
     "ghost",
   ],
-  // "Media & Controls": ['play', 'pause', 'stop', 'backward', 'forward'],
   "Family, Pets & Animals": [
     "baby",
     "pets",

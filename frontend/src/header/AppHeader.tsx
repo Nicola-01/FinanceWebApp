@@ -131,9 +131,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
                 </>
               )}
 
-              {/* <div className="px-3 pb-1 pt-1 text-[10px] font-bold uppercase tracking-wider text-app-muted">
-            Settings
-          </div> */}
               {SETTINGS_SECTIONS.filter((s) => !s.danger).map((s) => (
                 <Menu.Item
                   key={s.id}
