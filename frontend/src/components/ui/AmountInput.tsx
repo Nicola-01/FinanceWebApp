@@ -14,7 +14,7 @@ interface AmountInputProps {
 }
 
 // ============================================================================
-// METODI DI SUPPORTO ED EVALUATION
+// HELPERS & EVALUATION
 // ============================================================================
 const hasOperators = (val: string): boolean => {
   const withoutSign = val.replace(/^[+-]/, "");
@@ -25,29 +25,29 @@ const formatAmountString = (
   rawValue: string,
   defaultSign: "-" | "+",
 ): string => {
-  // 1. Sostituisce la virgola con il punto
+  // 1. Comma → dot
   let val = rawValue.replace(/,/g, ".");
 
-  // 2. Rimuove tutto ciò che non è consentito (numeri, punti, parentesi e operatori matematici)
+  // 2. Keep only digits, dots, parentheses and math operators
   val = val.replace(/[^0-9.+-/*%()]/g, "");
 
-  // 3. Aggiunge il segno di default se manca e c'è del testo
+  // 3. Prepend the default sign when there's text but no sign
   if (val.length > 0 && !/^[+-]/.test(val)) {
     val = defaultSign + val;
   }
 
-  // 4. Se NON è una formula matematica complessa, applichiamo la formattazione standard
+  // 4. Plain number (not a formula): apply standard formatting
   if (!hasOperators(val)) {
     const sign = val.startsWith("-") ? "-" : val.startsWith("+") ? "+" : "";
     let numPart = val.replace(/^[+-]/, "");
 
-    // Evita i punti multipli (tiene solo il primo)
+    // Keep only the first dot
     const dotParts = numPart.split(".");
     if (dotParts.length > 2) {
       numPart = dotParts[0] + "." + dotParts.slice(1).join("");
     }
 
-    // Limita a due cifre decimali
+    // Max two decimals
     if (numPart.includes(".")) {
       const [intPart, decPart] = numPart.split(".");
       numPart = intPart + "." + decPart.slice(0, 2);
@@ -60,7 +60,7 @@ const formatAmountString = (
 };
 
 // ============================================================================
-// COMPONENTE PRINCIPALE
+// MAIN COMPONENT
 // ============================================================================
 export const AmountInput = ({
   value,
@@ -89,25 +89,24 @@ export const AmountInput = ({
     else setTextSize("text-6xl");
   };
 
-  // Sincronizza il valore iniziale, i reset e le modifiche ESTERNE con l'input
-  // fisico (non-controllato). L'input riporta al parent la sola magnitudine
-  // (senza segno); quando quel valore rientra dall'esterno — es. la sezione del
-  // tasso di cambio che modifica l'importo — va riscritto qui, preservando il
-  // segno. Durante la digitazione dell'utente la magnitudine coincide già, così
-  // saltiamo la riscrittura e non spostiamo il cursore.
+  // Sync the initial value, resets and EXTERNAL changes into the uncontrolled
+  // <input>. The input reports only the unsigned magnitude to the parent; when
+  // that value comes back from outside (e.g. the exchange-rate section changing
+  // the amount) it is rewritten here, preserving the sign. While the user types
+  // the magnitude already matches, so we skip the rewrite and keep the caret.
   useEffect(() => {
     if (internalRef.current && value !== undefined) {
       if (value === "") {
         internalRef.current.value = "";
-        // Sincronizza lo stato di visualizzazione col reset dell'<input> non-controllato.
+        // Sync the display state with the uncontrolled <input> reset.
         setColor("text-app-muted opacity-40");
         setTextSize("text-6xl");
         setLiveResult(null);
       } else {
         const current = internalRef.current.value;
         const domMagnitude = current.replace(/^[+-]/, "");
-        // Riscrivi solo se il valore è cambiato dall'esterno (non è la nostra
-        // stessa digitazione, in cui magnitudine e `value` coincidono).
+        // Rewrite only on external changes (during our own typing the
+        // magnitude and `value` already match).
         if (domMagnitude !== value) {
           const sign = current.startsWith("+")
             ? "+"
@@ -125,10 +124,10 @@ export const AmountInput = ({
     }
   }, [value, type]);
 
-  // Gestione colori e cambio segno programmatico
+  // Colour + programmatic sign change
   useEffect(() => {
     if (type === "") {
-      // Colore derivato dal tipo, sincronizzato con l'<input> non-controllato.
+      // Colour derived from the type, kept in sync with the uncontrolled <input>.
       setColor("text-app-muted opacity-40");
       return;
     }
@@ -157,7 +156,7 @@ export const AmountInput = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Centralizziamo gli aggiornamenti di stato
+  // Single entry point for state updates.
   const updateAmountState = (rawVal: string, selectionStart?: number) => {
     const input = internalRef.current;
     if (!input) return;
@@ -204,7 +203,7 @@ export const AmountInput = ({
         currentSignType === "EXPENSE" ? "text-app-red" : "text-app-green",
       );
 
-      // Calcolo Live Preview se contiene operatori matematici
+      // Live preview when the value contains math operators
       if (hasOperators(cleanedValue)) {
         const res = evaluateMathExpression(cleanedValue);
         setLiveResult(res);
@@ -217,7 +216,7 @@ export const AmountInput = ({
     onAmountChange(magnitude);
   };
 
-  // Risoluzione dell'espressione matematica
+  // Resolve the math expression
   const handleResolve = () => {
     const input = internalRef.current;
     if (!input) return;
@@ -233,7 +232,7 @@ export const AmountInput = ({
     }
   };
 
-  // Gestione tasti speciali e blocco lettere
+  // Special keys + block letters
   const handleOnKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (
       e.key.length > 1 ||
@@ -248,7 +247,7 @@ export const AmountInput = ({
       return;
     }
 
-    // Scambio rapido del segno solo all'inizio
+    // Typing +/- at the start swaps the sign
     if (["-", "+"].includes(e.key)) {
       const input = e.currentTarget;
       const start = input.selectionStart || 0;
@@ -265,14 +264,13 @@ export const AmountInput = ({
       }
     }
 
-    // Se preme '=', risolve
     if (e.key === "=") {
       e.preventDefault();
       handleResolve();
       return;
     }
 
-    // Blocca caratteri non ammessi
+    // Block disallowed characters
     if (!/[0-9.,+\-*/%()]/.test(e.key)) {
       e.preventDefault();
     }
@@ -350,7 +348,7 @@ export const AmountInput = ({
         </span>
       </div>
 
-      {/* Toolbar Matematica Fluttuante — Solo Mobile */}
+      {/* Floating math toolbar — mobile only */}
       <AnimatePresence>
         {isMobile && isFocused && (
           <motion.div

@@ -42,7 +42,7 @@ export default function CalendarContainer({
   const [view, setView] = useState<ViewState>("calendar");
   const [direction, setDirection] = useState<"next" | "prev">("next");
 
-  // Adegua la vista al preset quando questo cambia (senza effetto)
+  // Re-align the view when the preset changes (derived during render, no effect)
   const [prevPreset, setPrevPreset] = useState(preset);
   if (prevPreset !== preset) {
     setPrevPreset(preset);
@@ -107,7 +107,7 @@ export default function CalendarContainer({
   return (
     <div className="flex flex-col w-full h-[21rem]">
       <style>{`
-                /* Nuove animazioni orizzontali */
+                /* Horizontal slide animations */
                 @keyframes slideInNext { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
                 @keyframes slideInPrev { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
                 .anim-next { animation: slideInNext 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards; }

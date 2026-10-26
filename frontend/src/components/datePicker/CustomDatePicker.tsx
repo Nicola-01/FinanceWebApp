@@ -92,7 +92,7 @@ export default function CustomDatePicker({
   useEffect(() => {
     if (isMobile && isOpen && mobileDialogRef.current) {
       if (!mobileDialogRef.current.open) {
-        mobileDialogRef.current.showModal(); // Lo invia nel Top Layer!
+        mobileDialogRef.current.showModal(); // Puts it in the top layer
       }
     }
   }, [isMobile, isOpen]);
@@ -151,8 +151,8 @@ export default function CustomDatePicker({
 
     switch (preset) {
       case "today":
-        // Derivazione dell'intervallo da preset+currentDate con jump imperativi:
-        // sincronizzazione legittima in effetto.
+        // Deriving the range from preset+currentDate with imperative jumps:
+        // a legitimate sync in an effect.
         setStartDate(today);
         setEndDate(null);
         jumpToToday();
@@ -202,12 +202,11 @@ export default function CustomDatePicker({
   // Auto-close on single-date selection
   useEffect(() => {
     if (!isRange && startDate && isOpen) {
-      // Auto-chiusura in risposta alla selezione di una data in un componente figlio.
       setIsOpen(false);
     }
-    // `isOpen` escluso di proposito: l'effetto deve reagire solo a una NUOVA
-    // selezione di data (startDate/isRange). Includere isOpen richiuderebbe il
-    // picker nell'istante stesso in cui viene aperto con una data già selezionata.
+    // `isOpen` deliberately excluded: react only to a NEW date selection
+    // (startDate/isRange). Including isOpen would close the picker the moment
+    // it opens with a date already selected.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, isRange]);
 
@@ -228,7 +227,6 @@ export default function CustomDatePicker({
         </span>
       );
 
-    // Aggiunta la visualizzazione del testo statico per "Last 30 Days"
     if (preset === "last30")
       return (
         <span className={`${textMain} font-medium text-sm flex-1 text-center`}>
@@ -315,15 +313,14 @@ export default function CustomDatePicker({
   };
 
   return (
-    // Contenitore principale flessibile per posizionare l'icona all'esterno
     <div
       className="relative w-full sm:max-w-sm min-w-0 font-sans flex items-center gap-3"
       ref={popoverRef}
     >
-      {/* Icona del Calendario fissa a sinistra */}
+      {/* Calendar icon pinned left (disabled) */}
       {/*<CalendarIcon className={`w-5 h-5 flex-shrink-0 ${isDark ? 'theme-text-muted' : 'theme-text-subtle'}`} />*/}
 
-      {/* Box Cliccabile */}
+      {/* Clickable trigger */}
       <div
         onClick={() => setIsOpen(!isOpen)}
         className={
@@ -337,7 +334,7 @@ export default function CustomDatePicker({
         </div>
       </div>
 
-      {/* Popover del Calendario */}
+      {/* Calendar popover */}
       {isOpen &&
         (() => {
           const popoverContent = (
@@ -393,7 +390,7 @@ export default function CustomDatePicker({
                 </div>
               )}
 
-              {/* CALENDARIO */}
+              {/* CALENDAR */}
               <div className="flex-1 p-4 overflow-hidden">
                 <CalendarContainer
                   currentDate={currentDate}
@@ -420,10 +417,10 @@ export default function CustomDatePicker({
                 ref={mobileDialogRef}
                 onClose={() => setIsOpen(false)}
                 onClick={(e) => {
-                  // Chiude il modale se si clicca sullo sfondo trasparente
+                  // Close when clicking the transparent backdrop
                   if (e.target === e.currentTarget) setIsOpen(false);
                 }}
-                // Rimuoviamo il vecchio div overlay e usiamo il backdrop nativo
+                // Native ::backdrop instead of an overlay div
                 className="m-0 p-0 w-full h-full max-w-none max-h-none theme-bg-transparent backdrop:theme-bg-backdrop-dark open:flex open:flex-col open:justify-end sm:hidden z-[100]"
               >
                 <div

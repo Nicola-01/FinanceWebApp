@@ -26,7 +26,7 @@ export default function YearSelector({
   const startYear = Math.floor(currentYear / 10) * 10 - 1;
   const years = Array.from({ length: 12 }, (_, i) => startYear + i);
 
-  // Stili dinamici per il tema
+  // Theme-dependent styles
   const btnNav = `p-2 rounded-md transition-colors ${isDark ? "theme-bg-neutral-dark hover:theme-bg-neutral theme-text-muted" : "theme-bg-inverse-muted hover:theme-bg-inverse-muted theme-text-subtle"}`;
   const textMain = isDark ? "theme-text-muted" : "theme-text-subtle";
 
