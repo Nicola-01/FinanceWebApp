@@ -4,7 +4,7 @@ import {
   faPlay,
   faCheckDouble,
 } from "@fortawesome/free-solid-svg-icons";
-import CustomDatePicker from "../../components/DataPicker/CustomDatePicker";
+import CustomDatePicker from "../../components/datePicker/CustomDatePicker";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { CustomSelect } from "../../components/ui/CustomSelect.tsx";
 

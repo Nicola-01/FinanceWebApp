@@ -12,7 +12,7 @@ import {
 import type { Subscription, Transaction } from "../../utils/types";
 import { buildYearsMap } from "../../utils/subscriptionHelper";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
-import CustomDatePicker from "../../components/DataPicker/CustomDatePicker.tsx";
+import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import {
   CalendarDayDetailPanel,
   type DayDetailModalHandle,

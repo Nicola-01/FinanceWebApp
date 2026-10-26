@@ -29,7 +29,7 @@ vi.mock(
     TransactionMetadataInputs: () => <div />,
   }),
 );
-vi.mock("../../../components/DataPicker/CustomDatePicker.tsx", () => ({
+vi.mock("../../../components/datePicker/CustomDatePicker.tsx", () => ({
   default: () => <div />,
 }));
 vi.mock("../../../api/axiosConfig", () => ({

@@ -12,7 +12,7 @@ import { AmountInput } from "../../components/ui/AmountInput.tsx";
 import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
 import { TransactionTypeToggle } from "./TransactionTypeToggle.tsx";
 import { TransactionMetadataInputs } from "./TransactionMetadataInputs.tsx";
-import CustomDatePicker from "../../components/DataPicker/CustomDatePicker.tsx";
+import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
 import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
 

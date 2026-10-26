@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import MonthSelector from "../../../components/DataPicker/MonthSelector";
-import type { MonthSelectorProps } from "../../../components/DataPicker/MonthSelector";
+import MonthSelector from "../../../components/datePicker/MonthSelector";
+import type { MonthSelectorProps } from "../../../components/datePicker/MonthSelector";
 
 // The month labels derive from `new Date()`; pin it mid-month so no month
 // rolls over (avoids ambiguous/duplicate abbreviations) and use fireEvent to

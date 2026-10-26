@@ -1,7 +1,7 @@
 import React from "react";
 import CustomDatePicker, {
   type DateRangeValue,
-} from "../../components/DataPicker/CustomDatePicker.tsx";
+} from "../../components/datePicker/CustomDatePicker.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { TagFilter } from "../../components/TagFilter/TagFilter.tsx";
 import { useTheme } from "../../utils/ThemeContext.tsx";

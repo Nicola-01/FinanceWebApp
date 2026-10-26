@@ -2,11 +2,11 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { subDays, isSameDay } from "date-fns";
-import CustomDatePicker from "../../../components/DataPicker/CustomDatePicker";
+import CustomDatePicker from "../../../components/datePicker/CustomDatePicker";
 import type {
   CustomDatePickerProps,
   DateRangeValue,
-} from "../../../components/DataPicker/CustomDatePicker";
+} from "../../../components/datePicker/CustomDatePicker";
 import { ThemeContext } from "../../../utils/ThemeContext";
 import type { ThemeContextType } from "../../../utils/ThemeContext";
 

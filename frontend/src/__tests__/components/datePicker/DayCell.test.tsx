@@ -2,8 +2,8 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { startOfMonth } from "date-fns";
-import DayCell from "../../../components/DataPicker/DayCell";
-import type { DayCellProps } from "../../../components/DataPicker/DayCell";
+import DayCell from "../../../components/datePicker/DayCell";
+import type { DayCellProps } from "../../../components/datePicker/DayCell";
 
 const baseProps = (): DayCellProps => ({
   day: new Date(2026, 0, 15),

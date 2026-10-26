@@ -10,7 +10,7 @@ import type {
 
 // The Start-date picker (revealed when a suggestion is selected) reads the
 // ThemeContext, which isn't provided here — stub it to a plain node.
-vi.mock("../../../../components/DataPicker/CustomDatePicker", () => ({
+vi.mock("../../../../components/datePicker/CustomDatePicker", () => ({
   default: () => <div />,
 }));
 

@@ -15,7 +15,7 @@ import type {
   Transaction,
 } from "../../../utils/types";
 import type { PendingOp } from "../../../utils/offlineDb";
-import type { DateRangeValue } from "../../../components/DataPicker/CustomDatePicker";
+import type { DateRangeValue } from "../../../components/datePicker/CustomDatePicker";
 
 vi.mock("../../../api/walletDataCache", () => ({
   peek: vi.fn(),

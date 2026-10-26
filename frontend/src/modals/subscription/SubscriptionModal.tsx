@@ -7,7 +7,7 @@ import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Subscription } from "../../utils/types";
 
 // Sub-components reused from the transaction modal.
-import CustomDatePicker from "../../components/DataPicker/CustomDatePicker";
+import CustomDatePicker from "../../components/datePicker/CustomDatePicker";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { Input } from "../../components/ui/Input.tsx";
 import { Textarea } from "../../components/ui/Textarea";

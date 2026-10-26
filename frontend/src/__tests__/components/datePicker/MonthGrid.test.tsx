@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import MonthGrid from "../../../components/DataPicker/MonthGrid";
-import type { MonthGridProps } from "../../../components/DataPicker/MonthGrid";
+import MonthGrid from "../../../components/datePicker/MonthGrid";
+import type { MonthGridProps } from "../../../components/datePicker/MonthGrid";
 
 const baseProps = (): MonthGridProps => ({
   monthDate: new Date(2026, 0, 15),

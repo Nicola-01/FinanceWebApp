@@ -14,7 +14,7 @@ import { Icon } from "../../../../components/icon/Icon";
 import { TagBadge } from "../../../../components/ui/TagBadge";
 import { TagTreePicker } from "../../../../components/TagSelector/TagTreePicker";
 import { AmountInput } from "../../../../components/ui/AmountInput";
-import CustomDatePicker from "../../../../components/DataPicker/CustomDatePicker";
+import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
 import { SchedulingRules } from "../../../subscription/SchedulingRules";
 import { findRecommendedTagWithParent } from "../recommendedTags";
 import { subscriptionTagUnresolved } from "./subscriptionTags";

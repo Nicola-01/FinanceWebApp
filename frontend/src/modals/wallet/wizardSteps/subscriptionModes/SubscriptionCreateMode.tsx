@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "../../../../components/ui/Button";
 import { AmountInput } from "../../../../components/ui/AmountInput";
 import { TagTreePicker } from "../../../../components/TagSelector/TagTreePicker";
-import CustomDatePicker from "../../../../components/DataPicker/CustomDatePicker";
+import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
 import { TransactionTypeToggle } from "../../../TransactionModal/TransactionTypeToggle";
 import {
   SchedulingRules,

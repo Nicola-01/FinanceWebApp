@@ -11,7 +11,7 @@ import type {
 import type {
   DateRangeValue,
   PresetType,
-} from "../../components/DataPicker/CustomDatePicker.tsx";
+} from "../../components/datePicker/CustomDatePicker.tsx";
 import * as walletOps from "../../api/walletOps";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle, isAbortError } from "../../utils/apiError";

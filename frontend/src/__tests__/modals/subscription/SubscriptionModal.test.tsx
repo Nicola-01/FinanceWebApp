@@ -23,7 +23,7 @@ vi.mock("../../../modals/TransactionModal/TransactionTypeToggle", () => ({
 vi.mock("../../../modals/TransactionModal/ExchangeRateSection", () => ({
   ExchangeRateSection: () => <div />,
 }));
-vi.mock("../../../components/DataPicker/CustomDatePicker", () => ({
+vi.mock("../../../components/datePicker/CustomDatePicker", () => ({
   default: () => <div />,
 }));
 vi.mock("../../../components/ui/Selector.tsx", () => ({

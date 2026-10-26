@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import YearSelector from "../../../components/DataPicker/YearSelector";
-import type { YearSelectorProps } from "../../../components/DataPicker/YearSelector";
+import YearSelector from "../../../components/datePicker/YearSelector";
+import type { YearSelectorProps } from "../../../components/datePicker/YearSelector";
 
 const baseProps = (): YearSelectorProps => ({
   currentDate: new Date(2026, 0, 1),

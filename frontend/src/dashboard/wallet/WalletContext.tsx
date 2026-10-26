@@ -3,7 +3,7 @@ import type { Subscription, Tag, Transaction, Wallet } from "../../utils/types";
 import type {
   DateRangeValue,
   PresetType,
-} from "../../components/DataPicker/CustomDatePicker.tsx";
+} from "../../components/datePicker/CustomDatePicker.tsx";
 import type { TabType } from "./walletTabs";
 
 export interface WalletContextType {
