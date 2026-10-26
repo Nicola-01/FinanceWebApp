@@ -9,6 +9,7 @@ import {
 import type { Transaction } from "../../types/domain.ts";
 import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import { OverviewRow } from "./OverviewRow.tsx";
+import { formatAmount } from "../../utils/format.ts";
 
 const MONTHS = [
   "Jan",
@@ -31,14 +32,6 @@ const TABS = [
   { key: "monthly", label: "Monthly", title: "Monthly Overview" },
   { key: "yearly", label: "Yearly", title: "Yearly Overview" },
 ];
-
-const formatAmount = (value: number): string => {
-  if (value === 0) return "—";
-  return value.toLocaleString("it-IT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
 
 interface MonthlyOverviewProps {
   transactions: Transaction[];
@@ -188,7 +181,9 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({
       <span
         className={`text-xs md:text-sm whitespace-nowrap ${isBold ? "font-bold" : "font-medium"} ${color}`}
       >
-        {hasData ? `${prefix}${formatAmount(value)}` : "—"}
+        {hasData
+          ? `${prefix}${formatAmount(value, { zeroAsDash: true })}`
+          : "—"}
       </span>
     );
   };

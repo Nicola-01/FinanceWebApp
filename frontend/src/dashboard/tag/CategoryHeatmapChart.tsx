@@ -5,6 +5,7 @@ import type { Transaction } from "../../types/domain.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { mainCategoryName } from "./categoryAgg.ts";
 import { useRecentMonthsZoom } from "./useRecentMonthsZoom.ts";
+import { formatAmount } from "../../utils/format.ts";
 
 const MONTH_LABELS = [
   "Jan",
@@ -22,12 +23,6 @@ const MONTH_LABELS = [
 ];
 
 const TOP_N = 8;
-
-const formatAmount = (value: number): string =>
-  value.toLocaleString("it-IT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 type FlowType = "EXPENSE" | "INCOME";
 

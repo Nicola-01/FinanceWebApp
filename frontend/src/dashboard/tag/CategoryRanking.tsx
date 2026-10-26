@@ -8,15 +8,10 @@ import {
 import type { Transaction } from "../../types/domain.ts";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { OTHER_COLOR } from "./categoryAgg.ts";
+import { formatAmount } from "../../utils/format.ts";
 
 const INITIAL_VISIBLE = 7;
 const STEP = 5;
-
-const formatAmount = (value: number): string =>
-  value.toLocaleString("it-IT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 interface RankItem {
   key: string;

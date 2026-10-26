@@ -1,4 +1,5 @@
 import React from "react";
+import { formatAmount } from "../../utils/format.ts";
 
 export type CellType = "income" | "expense" | "balance";
 
@@ -8,14 +9,6 @@ interface OverviewCellProps {
   isBold?: boolean;
   className?: string;
 }
-
-const formatAmount = (value: number): string => {
-  if (value === 0) return "—";
-  return value.toLocaleString("it-IT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
 
 export const OverviewCell: React.FC<OverviewCellProps> = ({
   value,
@@ -48,7 +41,9 @@ export const OverviewCell: React.FC<OverviewCellProps> = ({
       <span
         className={`text-xs md:text-sm whitespace-nowrap ${isBold ? "font-bold" : "font-medium"} ${color}`}
       >
-        {hasData ? `${prefix}${formatAmount(displayValue)}` : "—"}
+        {hasData
+          ? `${prefix}${formatAmount(displayValue, { zeroAsDash: true })}`
+          : "—"}
       </span>
     </td>
   );

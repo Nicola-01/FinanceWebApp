@@ -8,6 +8,7 @@ import {
   mainCategoryName,
 } from "./categoryAgg.ts";
 import { useRecentMonthsZoom } from "./useRecentMonthsZoom.ts";
+import { formatAmount } from "../../utils/format.ts";
 
 const MONTH_LABELS = [
   "Jan",
@@ -25,12 +26,6 @@ const MONTH_LABELS = [
 ];
 
 const TOP_N = 6;
-
-const formatAmount = (value: number): string =>
-  value.toLocaleString("it-IT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 type FlowType = "EXPENSE" | "INCOME";
 
