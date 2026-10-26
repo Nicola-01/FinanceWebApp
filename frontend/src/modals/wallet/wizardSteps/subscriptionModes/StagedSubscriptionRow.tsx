@@ -12,7 +12,7 @@ import Button from "../../../../components/ui/Button";
 import { CustomSelect } from "../../../../components/ui/CustomSelect";
 import { Icon } from "../../../../components/icon/Icon";
 import { TagBadge } from "../../../../components/ui/TagBadge";
-import { TagTreePicker } from "../../../../components/TagSelector/TagTreePicker";
+import { TagTreePicker } from "../../../../components/tags/TagTreePicker";
 import { AmountInput } from "../../../../components/ui/AmountInput";
 import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
 import { SchedulingRules } from "../../../subscription/SchedulingRules";

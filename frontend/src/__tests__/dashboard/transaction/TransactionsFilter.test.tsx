@@ -29,7 +29,7 @@ vi.mock("../../../utils/ThemeContext.tsx", () => ({
 vi.mock("../../../components/datePicker/CustomDatePicker.tsx", () => ({
   default: () => <div data-testid="date-picker" />,
 }));
-vi.mock("../../../components/TagFilter/TagFilter.tsx", () => ({
+vi.mock("../../../components/tags/TagFilter.tsx", () => ({
   TagFilter: ({ onChange }: { onChange: (s: string[]) => void }) => (
     <div>
       <button data-testid="pick-all" onClick={() => onChange(["A", "B"])}>

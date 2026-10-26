@@ -35,7 +35,7 @@ import { Selector } from "../../components/ui/Selector.tsx";
 import { Icon } from "../../components/icon/Icon.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { useDeleteModal } from "../../modals/common/DeleteModalContext.tsx";
-import { TagSelectorAddForm } from "../../components/TagSelector/TagSelectorAddForm.tsx";
+import { TagSelectorAddForm } from "../../components/tags/TagSelectorAddForm.tsx";
 import { CategoryParentRow } from "./CategoryParentRow.tsx";
 import { CategoryChildRow } from "./CategoryChildRow.tsx";
 import {

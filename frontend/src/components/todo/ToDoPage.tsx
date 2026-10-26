@@ -1,9 +1,9 @@
 import React from "react";
 
-import BackgroundBlobs from "../LandingPage/BackgroundBlobs";
-import Navbar from "../LandingPage/Navbar";
-import Footer from "../LandingPage/Footer";
-import { useLandingCta } from "../LandingPage/useLandingCta";
+import BackgroundBlobs from "../landing/BackgroundBlobs";
+import Navbar from "../landing/Navbar";
+import Footer from "../landing/Footer";
+import { useLandingCta } from "../landing/useLandingCta";
 import ToDoList from "./ToDoList";
 
 const ToDoPage: React.FC = () => {

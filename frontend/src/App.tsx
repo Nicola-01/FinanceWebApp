@@ -20,8 +20,8 @@ import { getUserAuth } from "./utils/authHelper.ts";
 import { PWAProvider } from "./utils/PWAProvider.tsx";
 import { PWAPrompt } from "./components/ui/PWAPrompt.tsx";
 import { usePushMessages } from "./push/usePushMessages.ts";
-import LandingPage from "./components/LandingPage/LandingPage.tsx";
-import ToDoPage from "./components/ToDoPage/ToDoPage.tsx";
+import LandingPage from "./components/landing/LandingPage.tsx";
+import ToDoPage from "./components/todo/ToDoPage.tsx";
 import OAuthConsent from "./auth/OAuthConsent.tsx";
 import AuthLayout from "./auth/AuthLayout.tsx";
 

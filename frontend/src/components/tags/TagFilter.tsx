@@ -4,9 +4,9 @@ import { faFilter } from "@fortawesome/free-solid-svg-icons";
 import type { Tag } from "../../utils/types.ts";
 import { Checkbox, type CheckboxState } from "../ui/Checkbox.tsx";
 import { SearchInput } from "../ui/SearchInput.tsx";
-import { TagRow } from "../TagSelector/TagRow.tsx";
-import { TagDropdownPanel } from "../TagSelector/TagDropdownPanel.tsx";
-import { useTagTree } from "../TagSelector/useTagTree.ts";
+import { TagRow } from "./TagRow.tsx";
+import { TagDropdownPanel } from "./TagDropdownPanel.tsx";
+import { useTagTree } from "./useTagTree.ts";
 
 interface TagFilterProps {
   tags: Tag[];

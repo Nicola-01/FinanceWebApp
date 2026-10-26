@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "../../../../components/ui/Button";
 import { AmountInput } from "../../../../components/ui/AmountInput";
-import { TagTreePicker } from "../../../../components/TagSelector/TagTreePicker";
+import { TagTreePicker } from "../../../../components/tags/TagTreePicker";
 import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
 import { TransactionTypeToggle } from "../../../transaction/TransactionTypeToggle";
 import {

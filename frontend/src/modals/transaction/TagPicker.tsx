@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLayerGroup } from "@fortawesome/free-solid-svg-icons";
 import type { Tag } from "../../utils/types";
-import { TagTreePicker } from "../../components/TagSelector/TagTreePicker.tsx";
+import { TagTreePicker } from "../../components/tags/TagTreePicker.tsx";
 import { useWalletContext } from "../../dashboard/wallet/WalletContext.tsx";
 import { CategoryManagerDrawer } from "../../dashboard/tag/CategoryManagerDrawer.tsx";
 import {

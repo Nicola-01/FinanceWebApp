@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Tag } from "../../../utils/types";
-import { TagFilter } from "../../../components/TagFilter/TagFilter";
+import { TagFilter } from "../../../components/tags/TagFilter";
 
 const tags = [
   { name: "Food", parentName: null },

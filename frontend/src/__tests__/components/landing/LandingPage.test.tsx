@@ -3,7 +3,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { ThemeContext } from "../../../utils/ThemeContext";
-import { GITHUB_URL } from "../../../components/LandingPage/landingDemoData";
+import { GITHUB_URL } from "../../../components/landing/landingDemoData";
 
 // Light framer-motion stub (BackgroundSpheres -> Sphere uses motion.div).
 vi.mock("framer-motion", () => {
@@ -36,7 +36,7 @@ vi.mock("framer-motion", () => {
 });
 
 // Features pulls in MUI x-charts / x-charts-pro (heavy SVG); stub it out.
-vi.mock("../../../components/LandingPage/Features", () => ({
+vi.mock("../../../components/landing/Features", () => ({
   default: () => <div data-testid="features" />,
 }));
 
@@ -46,7 +46,7 @@ vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));
 
-import LandingPage from "../../../components/LandingPage/LandingPage";
+import LandingPage from "../../../components/landing/LandingPage";
 
 const renderPage = () =>
   render(

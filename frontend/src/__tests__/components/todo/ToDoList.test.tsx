@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ToDoList from "../../../components/ToDoPage/ToDoList";
-import { todoData } from "../../../components/ToDoPage/todoData";
+import ToDoList from "../../../components/todo/ToDoList";
+import { todoData } from "../../../components/todo/todoData";
 
 describe("ToDoList", () => {
   it("renders a section for each status group present in the data", () => {
