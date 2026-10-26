@@ -5,7 +5,6 @@ import { SubscriptionTab } from "../subscription/SubscriptionTab";
 import type { Wallet } from "../../utils/types";
 import { Icon } from "../../components/icon/Icon.tsx";
 import { WalletTabs } from "./WalletTabs.tsx";
-// import { WalletMenu } from "./WalletMenu.tsx";
 import { TagsTab } from "../tag/TagsTab.tsx";
 import { BudgetTab } from "../budget/BudgetTab";
 import { SettingsTab } from "../settings/SettingsTab.tsx";

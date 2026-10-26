@@ -10,7 +10,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 /**
  * Anchored dropdown menu primitive — the shared "click-outside popover" pattern
- * previously hand-rolled in `AppHeader` and `WalletMenu`.
+ * previously hand-rolled in `AppHeader`.
  *
  * Compound API:
  *   <Menu align="right" width={192}>
