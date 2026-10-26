@@ -1,10 +1,4 @@
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import type {
   Transaction,
   User,
@@ -19,6 +13,7 @@ import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "./ModalDialog";
 import Button from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { useHoldToConfirm } from "../../hooks/useHoldToConfirm";
 
 /**
  * Delete confirmation friction, escalating with blast radius:
@@ -56,34 +51,6 @@ export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
   const [confirmationText, setConfirmationText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Press-and-hold progress (0 → 1) for levels 1 and 2.
-  const [progress, setProgress] = useState(0);
-  const rafRef = useRef<number | null>(null);
-  const startRef = useRef(0);
-
-  useImperativeHandle(ref, () => ({
-    deleteObject: (object, typeName, handleConfirmClick, lvl = 1) => {
-      setObjToDelete(object);
-      setItemType(typeName);
-      setOnConfirmCb(() => handleConfirmClick);
-
-      setLevel(lvl);
-      setConfirmationText("");
-      setProgress(0);
-      setIsDeleting(false);
-
-      dialogRef.current?.showModal();
-    },
-  }));
-
-  // Clean up any pending animation frame on unmount.
-  useEffect(
-    () => () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    },
-    [],
-  );
-
   const typingRequired = level === 2;
   const holdRequired = level >= 1;
   const nameOk = !typingRequired || confirmationText === objToDelete?.name;
@@ -96,32 +63,27 @@ export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
     if (dialogRef.current?.open) dialogRef.current?.close();
   };
 
-  const cancelHold = () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = null;
-  };
+  // Press-and-hold progress (0 → 1) for levels 1 and 2.
+  const { progress, startHold, endHold } = useHoldToConfirm(
+    HOLD_MS,
+    handleConfirm,
+    canConfirm,
+  );
 
-  const startHold = () => {
-    if (!canConfirm) return;
-    startRef.current = performance.now();
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - startRef.current) / HOLD_MS);
-      setProgress(p);
-      if (p >= 1) {
-        cancelHold();
-        setProgress(0);
-        handleConfirm();
-      } else {
-        rafRef.current = requestAnimationFrame(tick);
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
-  };
+  useImperativeHandle(ref, () => ({
+    deleteObject: (object, typeName, handleConfirmClick, lvl = 1) => {
+      setObjToDelete(object);
+      setItemType(typeName);
+      setOnConfirmCb(() => handleConfirmClick);
 
-  const endHold = () => {
-    cancelHold();
-    setProgress(0);
-  };
+      setLevel(lvl);
+      setConfirmationText("");
+      endHold();
+      setIsDeleting(false);
+
+      dialogRef.current?.showModal();
+    },
+  }));
 
   const handleCancel = () => dialogRef.current?.close();
 
