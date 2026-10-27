@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
-import { useMedia, useClickAway } from "react-use";
+import { useClickAway } from "react-use";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence } from "framer-motion";
@@ -43,7 +44,7 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const isMobile = useMedia("(max-width: 639px)", false);
+  const isMobile = useMediaQuery("(max-width: 639px)");
   const activeTab = controlledActiveTab ?? internalTab;
 
   const { wallet } = useWalletContext();
