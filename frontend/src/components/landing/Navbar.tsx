@@ -1,137 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, Sun, Moon } from "lucide-react";
 import Button from "../ui/Button";
-import GithubMark from "./GithubMark";
+import NavLinks from "./NavLinks";
+import { useActiveSection } from "./useActiveSection";
 import { useTheme } from "../../utils/ThemeContext";
-import { GITHUB_URL } from "./landingDemoData";
 
 interface NavbarProps {
   ctaLabel: string;
   onPrimaryCta: () => void;
 }
 
-const ACTIVE_COLOR = "var(--color-app-pink)";
 const SECTION_IDS = ["hero", "features"];
-
-/** Scroll-spy: returns the id of the section currently crossing the viewport. */
-const useActiveSection = (ids: string[], enabled: boolean): string | null => {
-  const [active, setActive] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!enabled) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) setActive(e.target.id);
-        });
-      },
-      { rootMargin: "-45% 0px -50% 0px", threshold: 0 },
-    );
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
-  }, [enabled, ids]);
-
-  // Derive (rather than setState in the effect) so a disabled spy reads null.
-  return enabled ? active : null;
-};
-
-interface NavLinksProps {
-  stacked?: boolean;
-  onNavigate?: () => void;
-  pathname: string;
-  activeSection: string | null;
-}
-
-const NavLinks: React.FC<NavLinksProps> = ({
-  stacked,
-  onNavigate,
-  pathname,
-  activeSection,
-}) => {
-  const navigate = useNavigate();
-
-  const linkClass = stacked ? "justify-start w-full" : "";
-  const activeCls = (active: boolean) => (active ? "bg-app-hover" : "");
-  const activeStyle = (active: boolean) =>
-    active ? { color: ACTIVE_COLOR } : undefined;
-
-  const isAbout = pathname === "/about";
-  const featuresActive = isAbout && activeSection === "features";
-  const homeActive = isAbout && !featuresActive;
-  const roadmapActive = pathname === "/ToDo";
-
-  const go = (path: string) => {
-    navigate(path);
-    onNavigate?.();
-  };
-
-  const goHome = () => {
-    if (isAbout) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      navigate("/about");
-    }
-    onNavigate?.();
-  };
-
-  const goFeatures = () => {
-    if (isAbout) {
-      document
-        .getElementById("features")
-        ?.scrollIntoView({ behavior: "smooth" });
-    } else {
-      navigate("/about");
-    }
-    onNavigate?.();
-  };
-
-  return (
-    <>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`${linkClass} ${activeCls(homeActive)}`}
-        style={activeStyle(homeActive)}
-        onClick={goHome}
-      >
-        Home
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`${linkClass} ${activeCls(featuresActive)}`}
-        style={activeStyle(featuresActive)}
-        onClick={goFeatures}
-      >
-        Features
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`${linkClass} ${activeCls(roadmapActive)}`}
-        style={activeStyle(roadmapActive)}
-        onClick={() => go("/ToDo")}
-      >
-        Roadmap
-      </Button>
-      <a
-        href={GITHUB_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={onNavigate}
-      >
-        <Button variant="ghost" size="sm" className={linkClass}>
-          <GithubMark className="w-4 h-4" />
-          GitHub
-        </Button>
-      </a>
-    </>
-  );
-};
 
 const Navbar: React.FC<NavbarProps> = ({ ctaLabel, onPrimaryCta }) => {
   const navigate = useNavigate();
