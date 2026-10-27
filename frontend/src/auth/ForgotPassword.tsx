@@ -1,14 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faEnvelope,
   faArrowLeft,
   faSpinner,
-  faCircleCheck,
   faPaperPlane,
-  faRotateRight,
-  faPenToSquare,
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
@@ -18,6 +15,8 @@ import { Input } from "../components/ui/Input";
 import { AuthCard } from "./AuthCard";
 import { AuthBrandLockup } from "./AuthBrandLockup";
 import { useShake } from "./useShake";
+import { useCooldown } from "./useCooldown";
+import { ForgotPasswordSent } from "./ForgotPasswordSent";
 
 const COOLDOWN_SECONDS = 60;
 
@@ -29,16 +28,7 @@ const ForgotPassword: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const { shake, triggerShake } = useShake();
-  const [cooldown, setCooldown] = useState(0);
-
-  // Cooldown timer
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const interval = setInterval(() => {
-      setCooldown((prev) => prev - 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [cooldown]);
+  const { cooldown, setCooldown } = useCooldown();
 
   // Send reset email
   const handleSubmit = useCallback(
@@ -69,7 +59,7 @@ const ForgotPassword: React.FC = () => {
         setLoading(false);
       }
     },
-    [email, triggerShake],
+    [email, triggerShake, setCooldown],
   );
 
   // Resend email
@@ -89,14 +79,7 @@ const ForgotPassword: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [email, cooldown]);
-
-  // Format cooldown as MM:SS
-  const formatCooldown = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
+  }, [email, cooldown, setCooldown]);
 
   return (
     <AuthCard shake={shake}>
@@ -151,62 +134,13 @@ const ForgotPassword: React.FC = () => {
         </>
       ) : (
         /* ========== EMAIL SENT / CONFIRMATION STATE ========== */
-        <>
-          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-[var(--r-card)] bg-app-green/15 text-app-green">
-            <FontAwesomeIcon icon={faCircleCheck} className="text-2xl" />
-          </div>
-          <h1 className="mb-1 text-2xl font-bold tracking-tight text-app-text">
-            Check your email
-          </h1>
-          <p className="mb-1 text-sm text-app-muted">
-            We've sent a password reset link to
-          </p>
-          <p className="mb-5 break-all text-sm font-semibold text-app-text">
-            {email}
-          </p>
-
-          <div className="mb-6 rounded-[var(--r-input)] border border-white/10 bg-white/[0.03] p-4">
-            <p className="text-xs leading-relaxed text-app-muted">
-              Didn't get it? Check your spam folder, or resend below. The link
-              is valid for <strong className="text-app-text">15 minutes</strong>
-              .
-            </p>
-          </div>
-
-          <Button
-            type="button"
-            variant="primary"
-            size="lg"
-            fullWidth
-            ripple
-            disabled={loading || cooldown > 0}
-            onClick={handleResend}
-          >
-            {loading ? (
-              <>
-                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                Sending…
-              </>
-            ) : cooldown > 0 ? (
-              <>Resend in {formatCooldown(cooldown)}</>
-            ) : (
-              <>
-                <FontAwesomeIcon icon={faRotateRight} />
-                Resend email
-              </>
-            )}
-          </Button>
-
-          {/* Let the user go back and fix a mistyped email */}
-          <button
-            type="button"
-            onClick={() => setEmailSent(false)}
-            className="mt-4 flex cursor-pointer items-center justify-center gap-2 self-center border-none bg-transparent text-sm text-app-muted transition-colors hover:text-app-text"
-          >
-            <FontAwesomeIcon icon={faPenToSquare} />
-            Use a different email
-          </button>
-        </>
+        <ForgotPasswordSent
+          email={email}
+          loading={loading}
+          cooldown={cooldown}
+          onResend={handleResend}
+          onChangeEmail={() => setEmailSent(false)}
+        />
       )}
 
       {/* Back to Login */}
