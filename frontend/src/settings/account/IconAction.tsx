@@ -2,7 +2,6 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
-// shortcut: local icon button until the planned ui/IconButton primitive (4.5) exists; swap then.
 export const IconAction: React.FC<{
   icon: IconDefinition;
   onClick: () => void;

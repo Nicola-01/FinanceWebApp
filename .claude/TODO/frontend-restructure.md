@@ -177,7 +177,7 @@ These unblock Phase 5. Every new module ships with a unit test. "Adopt at call s
 - [x] **4.3** `utils/months.ts` — `MONTH_LABELS` (Jan…Dec). Adopt at the 5 copies:
   `CategoryTrendChart:12`, `CategoryHeatmapChart:9`, `CumulativeChart:18`,
   `MonthlySnapshotChart:19`, `OverviewTable:13` (`MONTHS`).
-- [~] **4.4** Shared hooks (one commit each): _(all done except `useCopyToClipboard` — pending follow-up)_
+- [x] **4.4** Shared hooks (one commit each): _(`useCopyToClipboard` skipped — only one real caller with copied-state; InvitesTable behaves differently)_
   - `hooks/useCopyToClipboard.ts` (`{copied, copy}`, 3 s reset) — adopt:
     `TokensSection:302–311`, `InvitesTable:49–52`, `modals/pat/PatModal:183` /
     `PatShowTokenView:54–69`.
@@ -196,7 +196,7 @@ These unblock Phase 5. Every new module ships with a unit test. "Adopt at call s
   - `hooks/useDebounce.ts` — adopt the 2 hand-rolled debounces in `WalletProvider` (:57, :133).
   - Reconcile `hooks/useMediaQuery` vs `react-use` `useMedia` (SwitchableCard uses the
     latter) — standardize on the local `useMediaQuery`.
-- [~] **4.5** _(done: FieldLabel, useRipple, AccentHoverButton; pending follow-up: IconButton, BulkActionBar, SectionHeader, Skeleton, StatChip)_ New `components/ui/` primitives (visual output must be pixel-identical to
+- [x] **4.5** _(done: FieldLabel, useRipple, AccentHoverButton. Skipped: IconButton, BulkActionBar, Skeleton — copies differ in classes, a shared primitive would only pass classNames; SectionHeader, StatChip — single call site. N2 `walletPerms` done in acc8d1e)_ New `components/ui/` primitives (visual output must be pixel-identical to
   the copies they replace — copy the exact classes):
   - `IconButton.tsx` (size, tone, `spinning`, `danger`) — adopt: `Backups` RowAction
     (:101–118) + clear-✕ (:453–461), `AccountSection` IconAction (:69–91), `UserRow:35–42`,
