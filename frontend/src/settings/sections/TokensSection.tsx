@@ -23,6 +23,7 @@ import { useDeleteModal } from "../../modals/common/DeleteModalContext";
 import { TokenListItem } from "../../components/pat/TokenListItem";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { getApiErrorDetail } from "../../utils/apiError";
+import { useSelection } from "../../hooks/useSelection";
 
 type DialogView = "create" | "edit" | "showToken";
 type FilterKey = "all" | "manual" | "mcp";
@@ -57,7 +58,7 @@ export const TokensSection: React.FC = () => {
   const [pausingId, setPausingId] = useState<string | null>(null);
 
   // Multi-select for bulk actions (long-press to select).
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const { selected, setSelected, toggleOne, clearSelection } = useSelection();
   const [bulkConfirm, setBulkConfirm] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [bulkPausing, setBulkPausing] = useState(false);
@@ -106,6 +107,8 @@ export const TokensSection: React.FC = () => {
   useEffect(() => {
     fetchTokens();
     fetchWalletsMap();
+    // Mount-only fetch (useSelection's setter is stable but opaque to the linter).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const prepareWalletsForForm = async (existing?: PatToken) => {
@@ -243,19 +246,10 @@ export const TokensSection: React.FC = () => {
     }
   };
 
-  const toggleSelect = (token: PatToken) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(token.id)) next.delete(token.id);
-      else next.add(token.id);
-      return next;
-    });
-  };
+  const toggleSelect = (token: PatToken) => toggleOne(token.id);
 
   const selectAllFiltered = () =>
     setSelected(new Set(filtered.map((t) => t.id)));
-
-  const clearSelection = () => setSelected(new Set());
 
   const handleBulkDelete = async () => {
     const ids = [...selected];

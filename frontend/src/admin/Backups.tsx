@@ -23,6 +23,7 @@ import { AdminPageHeader } from "./AdminPageHeader.tsx";
 import Button from "../components/ui/Button";
 import { Checkbox, type CheckboxState } from "../components/ui/Checkbox.tsx";
 import { ConfirmModal } from "../modals/common/ConfirmModal.tsx";
+import { useSelection } from "../hooks/useSelection.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -135,7 +136,7 @@ const Backups: React.FC = () => {
 
   // Bulk selection (keys). Consumers always intersect with `entries`, so stale
   // keys left after a reload are harmless.
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const { selected, toggleOne, toggleAll, clearSelection } = useSelection();
   const [bulkBusy, setBulkBusy] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -223,23 +224,6 @@ const Backups: React.FC = () => {
   };
 
   // ── Selection ─────────────────────────────────────────────────────────────────
-
-  const toggleOne = (key: string) =>
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-
-  const toggleAll = () =>
-    setSelected((prev) => {
-      const selectedHere = entries.filter((e) => prev.has(e.key)).length;
-      if (selectedHere === entries.length) return new Set();
-      return new Set(entries.map((e) => e.key));
-    });
-
-  const clearSelection = () => setSelected(new Set());
 
   const selectedKeys = () =>
     entries.filter((e) => selected.has(e.key)).map((e) => e.key);
@@ -473,7 +457,7 @@ const Backups: React.FC = () => {
                   {entries.length > 0 && (
                     <Checkbox
                       state={headerState}
-                      onChange={toggleAll}
+                      onChange={() => toggleAll(entries.map((e) => e.key))}
                       size="sm"
                       aria-label="Select all backups"
                     />
