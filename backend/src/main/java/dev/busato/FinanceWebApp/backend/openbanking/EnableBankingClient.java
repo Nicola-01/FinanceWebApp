@@ -13,10 +13,13 @@ import java.nio.file.Path;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +27,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /** Thin client for the EnableBanking (PSD2) API, authenticating with a self-signed RS256 JWT. */
 @Slf4j
@@ -37,13 +39,16 @@ public class EnableBankingClient {
 
   private final RestClient restClient;
   private final EnableBankingProperties props;
+  private final Clock clock;
 
   private PrivateKey key;
   private String token;
   private Instant tokenExpiry = Instant.EPOCH;
 
-  public EnableBankingClient(RestClient.Builder builder, EnableBankingProperties props) {
+  public EnableBankingClient(
+      RestClient.Builder builder, EnableBankingProperties props, Clock clock) {
     this.props = props;
+    this.clock = clock;
     this.restClient = builder.baseUrl(props.apiUrl()).build();
   }
 
@@ -61,7 +66,7 @@ public class EnableBankingClient {
     Map<String, Object> body =
         Map.of(
             "access",
-            Map.of("valid_until", validUntil.toString()),
+            Map.of("valid_until", validUntil.truncatedTo(ChronoUnit.SECONDS).toString()),
             "aspsp",
             Map.of("name", aspsp.name(), "country", aspsp.country()),
             "state",
@@ -70,8 +75,7 @@ public class EnableBankingClient {
             redirectUrl,
             "psu_type",
             "personal");
-    RawAuth r = send(restClient.post().uri("/auth").body(body), RawAuth.class);
-    return r.url;
+    return required(send(restClient.post().uri("/auth").body(body), RawAuth.class)).url;
   }
 
   public EbSession createSession(String code) {
@@ -80,16 +84,27 @@ public class EnableBankingClient {
   }
 
   public EbSession getSession(String sessionId) {
-    return toSession(send(restClient.get().uri("/sessions/{id}", sessionId), RawSession.class));
+    return toSession(
+        required(send(restClient.get().uri("/sessions/{id}", sessionId), RawSession.class)));
   }
 
   public EbTransactionPage getTransactions(
       String accountUid, LocalDate dateFrom, String continuationKey, PsuContext psu) {
-    UriComponentsBuilder uri = UriComponentsBuilder.fromPath("/accounts/{uid}/transactions");
-    if (dateFrom != null) uri.queryParam("date_from", dateFrom);
-    if (continuationKey != null) uri.queryParam("continuation_key", continuationKey);
-    RestClient.RequestHeadersSpec<?> spec =
-        restClient.get().uri(uri.build(false).toUriString(), accountUid);
+    // Values go in as URI variables so they are strictly encoded (+, &, =, /, { ...).
+    Map<String, Object> vars = new HashMap<>();
+    vars.put("uid", accountUid);
+    StringBuilder tpl = new StringBuilder("/accounts/{uid}/transactions");
+    String sep = "?";
+    if (dateFrom != null) {
+      tpl.append(sep).append("date_from={from}");
+      vars.put("from", dateFrom.toString());
+      sep = "&";
+    }
+    if (continuationKey != null) {
+      tpl.append(sep).append("continuation_key={ck}");
+      vars.put("ck", continuationKey);
+    }
+    RestClient.RequestHeadersSpec<?> spec = restClient.get().uri(tpl.toString(), vars);
     if (psu != null) {
       spec =
           spec.header("Psu-Ip-Address", psu.ipAddress()).header("Psu-User-Agent", psu.userAgent());
@@ -136,8 +151,13 @@ public class EnableBankingClient {
         .body(type);
   }
 
+  private static <T> T required(T body) {
+    if (body == null) throw new EnableBankingException(502, "EnableBanking returned an empty body");
+    return body;
+  }
+
   private synchronized String jwt() {
-    Instant now = Instant.now();
+    Instant now = clock.instant().truncatedTo(ChronoUnit.SECONDS);
     if (token == null || now.isAfter(tokenExpiry.minusSeconds(REFRESH_MARGIN_SECONDS))) {
       tokenExpiry = now.plusSeconds(TOKEN_TTL_SECONDS);
       token =

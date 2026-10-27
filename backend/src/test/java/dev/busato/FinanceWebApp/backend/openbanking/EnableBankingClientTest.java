@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.headerDoesNotExist;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
@@ -17,7 +19,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,7 +57,8 @@ class EnableBankingClientTest {
     server = MockRestServiceServer.bindTo(b).build();
     return new EnableBankingClient(
         b,
-        new EnableBankingProperties("test-app", pem.toString(), "https://api.enablebanking.com"));
+        new EnableBankingProperties("test-app", pem.toString(), "https://api.enablebanking.com"),
+        Clock.systemUTC());
   }
 
   @Test
@@ -173,8 +179,8 @@ class EnableBankingClientTest {
     EnableBankingClient c =
         new EnableBankingClient(
             b,
-            new EnableBankingProperties(
-                "test-app", p1.toString(), "https://api.enablebanking.com"));
+            new EnableBankingProperties("test-app", p1.toString(), "https://api.enablebanking.com"),
+            Clock.systemUTC());
     AtomicReference<String> auth = new AtomicReference<>();
     server
         .expect(requestTo("https://api.enablebanking.com/aspsps?country=IT"))
@@ -192,7 +198,109 @@ class EnableBankingClientTest {
     EnableBankingClient c =
         new EnableBankingClient(
             RestClient.builder(),
-            new EnableBankingProperties("", "", "https://api.enablebanking.com"));
+            new EnableBankingProperties("", "", "https://api.enablebanking.com"),
+            Clock.systemUTC());
     assertThat(c.configured()).isFalse();
+  }
+
+  @Test
+  void continuationKeyIsStrictlyEncoded() {
+    EnableBankingClient c = client();
+    server
+        .expect(
+            requestTo(
+                "https://api.enablebanking.com/accounts/a/transactions?date_from=2026-01-01&continuation_key=a%2Bb%2Fc%3D%26d%7Bx%7D"))
+        .andRespond(withSuccess("{\"transactions\":[]}", MediaType.APPLICATION_JSON));
+    c.getTransactions("a", LocalDate.of(2026, 1, 1), "a+b/c=&d{x}", null);
+    server.verify();
+  }
+
+  @Test
+  void startAuthSendsBodyAndReturnsUrl() {
+    EnableBankingClient c = client();
+    server
+        .expect(requestTo("https://api.enablebanking.com/auth"))
+        .andExpect(method(HttpMethod.POST))
+        .andExpect(jsonPath("$.access.valid_until").value("2026-05-01T10:00:00Z"))
+        .andExpect(jsonPath("$.aspsp.name").value("UniCredit"))
+        .andExpect(jsonPath("$.aspsp.country").value("IT"))
+        .andExpect(jsonPath("$.state").value("st"))
+        .andExpect(jsonPath("$.redirect_url").value("https://app/cb"))
+        .andExpect(jsonPath("$.psu_type").value("personal"))
+        .andRespond(withSuccess("{\"url\":\"https://bank/auth\"}", MediaType.APPLICATION_JSON));
+    String url =
+        c.startAuth(
+            new Aspsp("UniCredit", "IT", null),
+            Instant.parse("2026-05-01T10:00:00.123456Z"),
+            "https://app/cb",
+            "st");
+    assertThat(url).isEqualTo("https://bank/auth");
+  }
+
+  @Test
+  void emptyBodyThrows() {
+    EnableBankingClient c = client();
+    server.expect(requestTo("https://api.enablebanking.com/sessions/s1")).andRespond(withSuccess());
+    assertThatThrownBy(() -> c.getSession("s1")).isInstanceOf(EnableBankingException.class);
+  }
+
+  @Test
+  void deleteSessionSendsDeleteAndSwallowsErrors() {
+    EnableBankingClient c = client();
+    server
+        .expect(requestTo("https://api.enablebanking.com/sessions/s1"))
+        .andExpect(method(HttpMethod.DELETE))
+        .andRespond(withStatus(HttpStatus.NO_CONTENT));
+    c.deleteSession("s1");
+    server.verify();
+
+    server.reset();
+    server
+        .expect(requestTo("https://api.enablebanking.com/sessions/s1"))
+        .andRespond(withStatus(HttpStatus.NOT_FOUND));
+    c.deleteSession("s1");
+    server.verify();
+  }
+
+  @Test
+  void jwtIsCachedAndRefreshedBeforeExpiry() {
+    var now =
+        new java.util.concurrent.atomic.AtomicReference<>(Instant.parse("2026-01-01T00:00:00Z"));
+    Clock clock =
+        new Clock() {
+          public java.time.ZoneId getZone() {
+            return ZoneOffset.UTC;
+          }
+
+          public Clock withZone(java.time.ZoneId z) {
+            return this;
+          }
+
+          public Instant instant() {
+            return now.get();
+          }
+        };
+    RestClient.Builder b = RestClient.builder();
+    server = MockRestServiceServer.bindTo(b).build();
+    EnableBankingClient c =
+        new EnableBankingClient(
+            b,
+            new EnableBankingProperties(
+                "test-app", pem.toString(), "https://api.enablebanking.com"),
+            clock);
+    java.util.List<String> tokens = new java.util.ArrayList<>();
+    for (int i = 0; i < 3; i++) {
+      server
+          .expect(requestTo("https://api.enablebanking.com/aspsps?country=IT"))
+          .andExpect(r -> tokens.add(r.getHeaders().getFirst("Authorization")))
+          .andRespond(withSuccess("{\"aspsps\":[]}", MediaType.APPLICATION_JSON));
+    }
+    c.listAspsps("IT");
+    now.set(now.get().plusSeconds(3600 - 301));
+    c.listAspsps("IT");
+    now.set(now.get().plusSeconds(2));
+    c.listAspsps("IT");
+    assertThat(tokens.get(1)).isEqualTo(tokens.get(0));
+    assertThat(tokens.get(2)).isNotEqualTo(tokens.get(0));
   }
 }
