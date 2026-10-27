@@ -110,11 +110,23 @@ class AccountDeletionServiceTest {
   }
 
   private void verifyAccountRowRemoved() {
+    verify(bankConnectionRepository).findByCreatedById(meId);
     verify(patRepository).deleteAllByUserId(meId);
     verify(pushSubscriptionRepository).deleteAllByUserId(meId);
     verify(emailChangeRepository).deleteByUserId(meId);
     verify(walletAccessRepository).deleteAllByUserId(meId);
     verify(userRepository).delete(me);
+  }
+
+  @Test
+  void deleteAccount_DropsConnectionsCreatedByUser() {
+    passwordOk();
+    var conn = new dev.busato.FinanceWebApp.backend.model.BankConnection();
+    when(bankConnectionRepository.findByCreatedById(meId)).thenReturn(List.of(conn));
+
+    accountDeletionService.deleteAccount(me, RAW_PASSWORD);
+
+    verify(bankConnectionRepository).deleteAll(List.of(conn));
   }
 
   // ==================== PASSWORD GUARD ====================
@@ -224,7 +236,7 @@ class AccountDeletionServiceTest {
     accountDeletionService.deleteAccount(me, RAW_PASSWORD);
 
     verify(subscriptionRepository).deleteAllByWalletId(w.getId());
-    verify(bankConnectionRepository).deleteAll(anyList());
+    verify(bankConnectionRepository, org.mockito.Mockito.times(2)).deleteAll(anyList());
     verify(walletRepository).delete(w);
     verify(walletAccessRepository, never()).save(any());
     verifyAccountRowRemoved();

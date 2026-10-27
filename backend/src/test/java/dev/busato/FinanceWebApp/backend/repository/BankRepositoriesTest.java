@@ -69,6 +69,7 @@ class BankRepositoriesTest {
     assertNotNull(found.get().getCreatedAt());
     assertEquals(1, connections.findByWalletId(wallet.getId()).size());
     assertEquals(1, connections.findByStatus(BankConnection.Status.PENDING).size());
+    assertEquals(1, connections.findByCreatedById(connection.getCreatedBy().getId()).size());
     assertEquals(1, links.findByConnectionWalletId(wallet.getId()).size());
   }
 

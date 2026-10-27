@@ -108,6 +108,9 @@ public class AccountDeletionService {
       }
     }
 
+    // Bank consent is personal: drop the user's connections even in wallets that survive
+    // (imported transactions stay), otherwise the createdBy FK blocks the user delete.
+    bankConnectionRepository.deleteAll(bankConnectionRepository.findByCreatedById(userId));
     patRepository.deleteAllByUserId(userId);
     pushSubscriptionRepository.deleteAllByUserId(userId);
     emailChangeRepository.deleteByUserId(userId);
