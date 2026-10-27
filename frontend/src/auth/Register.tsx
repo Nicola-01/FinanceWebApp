@@ -1,41 +1,39 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faUser,
   faLock,
   faEnvelope,
-  faEye,
-  faEyeSlash,
   faSpinner,
-  faCircleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { PasswordRequirements } from "../components/password/PasswordRequirements.tsx";
 import { isPasswordValid } from "../components/password/passwordRequirements.ts";
 import { getApiErrorTitle } from "../utils/apiError";
+import { AuthCard } from "./AuthCard";
+import { AuthBrandLockup } from "./AuthBrandLockup";
+import { AuthErrorCard } from "./AuthErrorCard";
+import { PasswordVisibilityToggle } from "./PasswordVisibilityToggle";
+import { useInviteToken } from "./useInviteToken";
+import { useShake } from "./useShake";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-
-interface RegisterInviteResponse {
-  email: string;
-  createdAt: string;
-  expiresAt: string;
-  status: string;
-}
 
 const Register: React.FC = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
 
-  // General states
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [inviteData, setInviteData] = useState<RegisterInviteResponse | null>(
-    null,
-  );
+  const { isLoading, error, inviteData } = useInviteToken(token, {
+    endpoint: "/auth/register",
+    validStatus: "PENDING",
+    missingTokenMessage: "No registration token provided in the URL.",
+    usedMessage: "This invitation has already been used or was revoked.",
+    invalidMessage: "Invalid or expired invitation link.",
+  });
+  const { shake, triggerShake } = useShake();
 
   // Form states
   const [username, setUsername] = useState("");
@@ -43,34 +41,6 @@ const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // 1. Verify the token when the page loads
-  useEffect(() => {
-    if (!token) {
-      setError("No registration token provided in the URL.");
-      setIsLoading(false);
-      return;
-    }
-
-    const verifyToken = async () => {
-      try {
-        // GET /auth/register/{token}
-        const res = await api.get(`/auth/register/${token}`);
-        setInviteData(res.data);
-
-        // If the status is not PENDING, the registration is not valid
-        if (res.data.status !== "PENDING") {
-          setError("This invitation has already been used or was revoked.");
-        }
-      } catch (err: unknown) {
-        setError(getApiErrorTitle(err, "Invalid or expired invitation link."));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    verifyToken();
-  }, [token]);
 
   // Derived flag to enable/disable the submit button
   const isFormValid =
@@ -82,16 +52,14 @@ const Register: React.FC = () => {
 
     // Frontend validation (fallback)
     if (username.trim().length < 3) {
-      setError("shake");
-      setTimeout(() => setError(""), 500);
+      triggerShake();
       return triggerToast(
         "Username must be at least 3 characters long.",
         false,
       );
     }
     if (!isPasswordValid(password, confirmPassword)) {
-      setError("shake");
-      setTimeout(() => setError(""), 500);
+      triggerShake();
       return triggerToast("Please meet all password requirements.", false);
     }
 
@@ -106,8 +74,7 @@ const Register: React.FC = () => {
       triggerToast("Registration successful! You can now log in.", true);
       navigate("/login");
     } catch (err: unknown) {
-      setError("shake");
-      setTimeout(() => setError(""), 500);
+      triggerShake();
       triggerToast(getApiErrorTitle(err, "Error during registration."), false);
     } finally {
       setIsSubmitting(false);
@@ -115,22 +82,8 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div
-      className={`relative z-10 flex w-full max-w-[400px] flex-col rounded-[var(--r-card)] border border-white/10 bg-[rgba(23,18,38,0.55)] p-7 shadow-[0_24px_60px_-26px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-9 ${
-        error === "shake" ? "animate-[shake_0.5s_ease-in-out]" : ""
-      }`}
-    >
-      {/* Brand lockup */}
-      <div className="mb-6 flex items-center gap-2.5">
-        <img
-          src="/icon.svg"
-          alt="Finance"
-          className="h-11 w-11 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
-        />
-        <span className="text-xl font-bold tracking-tight text-app-text">
-          Finance
-        </span>
-      </div>
+    <AuthCard shake={shake}>
+      <AuthBrandLockup />
 
       {/* STATE 1: LOADING */}
       {isLoading ? (
@@ -143,24 +96,12 @@ const Register: React.FC = () => {
           <p>Verifying invitation…</p>
         </div>
       ) : /* STATE 2: TOKEN ERROR */
-      error && error !== "shake" ? (
-        <div className="flex w-full flex-col items-center py-4 text-center">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-[var(--r-card)] bg-app-red/15 text-app-red">
-            <FontAwesomeIcon icon={faCircleExclamation} className="text-2xl" />
-          </div>
-          <h2 className="mb-2 text-xl font-bold text-app-text">
-            Registration failed
-          </h2>
-          <p className="mb-6 text-sm text-app-muted">{error}</p>
-          <Button
-            variant="secondary"
-            size="lg"
-            fullWidth
-            onClick={() => navigate("/login")}
-          >
-            Back to login
-          </Button>
-        </div>
+      error ? (
+        <AuthErrorCard
+          title="Registration failed"
+          message={error}
+          onBack={() => navigate("/login")}
+        />
       ) : (
         /* STATE 3: REGISTRATION FORM */
         <form onSubmit={handleRegister} className="flex flex-col" noValidate>
@@ -208,14 +149,10 @@ const Register: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               leadingIcon={<FontAwesomeIcon icon={faLock} />}
               rightSlot={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="flex items-center rounded-md p-2 text-app-muted transition-colors hover:text-app-text"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
-                </button>
+                <PasswordVisibilityToggle
+                  visible={showPassword}
+                  onToggle={() => setShowPassword(!showPassword)}
+                />
               }
             />
           </div>
@@ -257,7 +194,7 @@ const Register: React.FC = () => {
           </Button>
         </form>
       )}
-    </div>
+    </AuthCard>
   );
 };
 
