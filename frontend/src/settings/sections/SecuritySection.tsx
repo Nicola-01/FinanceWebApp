@@ -22,6 +22,7 @@ import { ConfirmModal } from "../../modals/common/ConfirmModal";
 import { PasswordRequirements } from "../../components/password/PasswordRequirements";
 import { isPasswordValid } from "../../components/password/passwordRequirements";
 import { getApiErrorDetail } from "../../utils/apiError";
+import { clearSession, setMustChangePWD } from "../../utils/authHelper";
 import { ComingSoonBadge } from "../ComingSoon";
 
 interface SecuritySectionProps {
@@ -108,7 +109,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
         confirmPassword: passwords.confirm,
       });
       triggerToast("Password updated successfully!", true);
-      localStorage.setItem("mustChangePWD", JSON.stringify(false));
+      setMustChangePWD(false);
       setPasswords({ old: "", new: "", confirm: "" });
       onPasswordChanged?.();
     } catch (err: unknown) {
@@ -125,9 +126,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({
     } catch {
       // Proceed with local logout even if the network call fails.
     }
-    localStorage.removeItem("jwtToken");
-    sessionStorage.removeItem("jwtToken");
-    localStorage.removeItem("mustChangePWD");
+    clearSession();
     window.location.href = "/login";
   };
 

@@ -6,6 +6,7 @@ import { faFlask, faSpinner, faCheck } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../utils/apiError";
+import { clearSession, setMustChangePWD, setToken } from "../utils/authHelper";
 import Button from "../components/ui/Button";
 
 const demoEnabled = import.meta.env.VITE_DEMO_ENABLED === "true";
@@ -22,9 +23,7 @@ const Login: React.FC = () => {
 
   // Clear tokens on component mount to ensure user is truly logged out
   useEffect(() => {
-    localStorage.removeItem("jwtToken");
-    sessionStorage.removeItem("jwtToken");
-    localStorage.removeItem("mustChangePWD");
+    clearSession();
   }, []);
 
   const handleTryDemo = async () => {
@@ -33,8 +32,8 @@ const Login: React.FC = () => {
       const response = await api.post("/auth/demo");
       const { token } = response.data;
 
-      localStorage.setItem("mustChangePWD", JSON.stringify(false));
-      sessionStorage.setItem("jwtToken", token);
+      setMustChangePWD(false);
+      setToken(token, false);
 
       navigate("/");
     } catch (err: unknown) {

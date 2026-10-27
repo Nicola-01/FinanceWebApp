@@ -7,7 +7,7 @@ import {
   faExclamationTriangle,
   faRobot,
 } from "@fortawesome/free-solid-svg-icons";
-import { isTokenValid } from "../utils/authHelper";
+import { getToken, isTokenValid } from "../utils/authHelper";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import type { Wallet, WalletPermState } from "../types/domain";
 import { PatFormView } from "../modals/pat/PatFormView";
@@ -145,8 +145,7 @@ const OAuthConsent = () => {
   const completeAuthorization = async (plainToken: string) => {
     // Use raw axios — OAuth endpoints are NOT under /api/
     const backendUrl = window.__ENV__?.apiUrl ?? import.meta.env.VITE_API_URL;
-    const token =
-      localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
+    const token = getToken();
     try {
       const res = await axios.post(
         `${backendUrl}/oauth/authorize`,
