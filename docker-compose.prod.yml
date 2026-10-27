@@ -23,6 +23,8 @@ services:
   # 2. Backend Service
   backend:
     image: ghcr.io/${GHCR_OWNER}/app-backend:${APP_TAG:-prod}
+    volumes:
+      - ./secrets:/run/secrets:ro
     container_name: finance_backend_prod
     restart: always
     ports:
@@ -59,6 +61,11 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@localhost}
+
+      # Open Banking (EnableBanking); leave empty to disable. Set the key path to /run/secrets/enablebanking.pem when mounting the PEM.
+      ENABLEBANKING_APP_ID: ${ENABLEBANKING_APP_ID:-}
+      ENABLEBANKING_PRIVATE_KEY_PATH: ${ENABLEBANKING_PRIVATE_KEY_PATH:-}
+      ENABLEBANKING_API_URL: ${ENABLEBANKING_API_URL:-https://api.enablebanking.com}
 
       DEMO_ENABLED: ${DEMO_ENABLED:-false}
 

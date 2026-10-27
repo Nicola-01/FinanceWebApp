@@ -29,6 +29,7 @@ services:
       - "8080:8080"
     volumes:
       - ./backend/src:/app/src
+      - ./secrets:/run/secrets:ro
     depends_on:
       db:
         # Wait for DB to start
@@ -65,6 +66,11 @@ services:
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
       VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@localhost}
+
+      # Open Banking (EnableBanking); leave empty to disable. Set the key path to /run/secrets/enablebanking.pem when mounting the PEM.
+      ENABLEBANKING_APP_ID: ${ENABLEBANKING_APP_ID:-}
+      ENABLEBANKING_PRIVATE_KEY_PATH: ${ENABLEBANKING_PRIVATE_KEY_PATH:-}
+      ENABLEBANKING_API_URL: ${ENABLEBANKING_API_URL:-https://api.enablebanking.com}
 
       DEMO_ENABLED: ${DEMO_ENABLED}
 
