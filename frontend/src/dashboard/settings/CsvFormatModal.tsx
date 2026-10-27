@@ -16,6 +16,7 @@ import {
   SUBSCRIPTION_COLUMNS,
   type CsvColumn,
 } from "./csvImport.ts";
+import { downloadCsv } from "./csvExport.ts";
 
 type Mode = "transactions" | "tags" | "subscriptions";
 
@@ -148,29 +149,6 @@ const SAMPLES: Record<Mode, SampleSpec> = {
   },
 };
 
-/** Same cell-quoting as DataTab's `downloadCsv` — every field double-quoted, comma-joined. */
-const buildCsv = (headers: string[], rows: string[][]): string =>
-  [headers, ...rows]
-    .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-
-const downloadSample = (spec: SampleSpec) => {
-  const csv = buildCsv(
-    spec.columns.map((c) => c.key),
-    spec.rows,
-  );
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", spec.filename);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
-
 interface CsvFormatModalProps {
   open: boolean;
   onClose: () => void;
@@ -215,7 +193,12 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
         <Button
           variant="secondary"
           fullWidth
-          onClick={() => downloadSample(spec)}
+          onClick={() =>
+            downloadCsv(
+              [spec.columns.map((c) => c.key), ...spec.rows],
+              spec.filename,
+            )
+          }
         >
           <FontAwesomeIcon icon={faDownload} />
           Download {mode} sample

@@ -18,9 +18,6 @@ import {
 } from "../../modals/common/ImportReviewModal.tsx";
 import api from "../../api/axiosConfig";
 import {
-  TRANSACTION_COLUMNS,
-  TAG_COLUMNS,
-  SUBSCRIPTION_COLUMNS,
   parseTransactionsCsv,
   parseTagsCsv,
   parseSubscriptionsCsv,
@@ -40,7 +37,12 @@ import {
   validateSubscriptions,
   type RowError,
 } from "./csvValidation.ts";
-import type { Tag } from "../../types/domain";
+import {
+  downloadCsv,
+  subscriptionsCsvRows,
+  tagsCsvRows,
+  transactionsCsvRows,
+} from "./csvExport.ts";
 
 /** Which resource an export/import action targets. */
 type Resource = "transactions" | "tags" | "subscriptions";
@@ -80,43 +82,6 @@ const toRecap = (data: BulkResponse): ImportRecap => ({
   autoCreatedTags: (data.autoCreatedTags ?? []).map((t) => t.name),
 });
 
-/**
- * Export order: alphabetical, grouped by parent — each parent immediately
- * followed by its own children (children alphabetical within the parent).
- */
-const sortTagsForExport = (tags: Tag[]): Tag[] =>
-  [...tags].sort((a, b) => {
-    const groupA = a.parentName || a.name;
-    const groupB = b.parentName || b.name;
-    const byGroup = groupA.localeCompare(groupB, undefined, {
-      sensitivity: "base",
-    });
-    if (byGroup !== 0) return byGroup;
-    // Same group: the parent (no parentName) comes before its children.
-    const childA = a.parentName ? 1 : 0;
-    const childB = b.parentName ? 1 : 0;
-    if (childA !== childB) return childA - childB;
-    return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
-  });
-
-const downloadCsv = (rows: (string | number)[][], filename: string) => {
-  const csvContent = rows
-    .map((row) =>
-      row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
-    )
-    .join("\n");
-
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", filename);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
 export const DataTab: React.FC = () => {
   const { wallet, tags, transactions, subscriptions, fetchData } =
     useWalletContext();
@@ -136,26 +101,10 @@ export const DataTab: React.FC = () => {
       return;
     }
 
-    const headers = TRANSACTION_COLUMNS.map((c) => c.key);
-    // Chronological order (oldest first).
-    const ordered = [...transactions].sort(
-      (a, b) =>
-        new Date(a.transactionDate).getTime() -
-        new Date(b.transactionDate).getTime(),
+    downloadCsv(
+      transactionsCsvRows(transactions),
+      `${wallet.name}_transactions.csv`,
     );
-    const rows = ordered.map((tx) => [
-      tx.transactionDate,
-      tx.name,
-      tx.tag.name,
-      tx.amount,
-      tx.type,
-      tx.notes || "",
-      tx.originalAmount || "",
-      tx.originalCurrency || "",
-      tx.exchangeValue || "",
-    ]);
-
-    downloadCsv([headers, ...rows], `${wallet.name}_transactions.csv`);
     triggerToast("Transactions exported successfully", true);
   };
 
@@ -165,15 +114,7 @@ export const DataTab: React.FC = () => {
       return;
     }
 
-    const headers = TAG_COLUMNS.map((c) => c.key);
-    const rows = sortTagsForExport(tags).map((tag) => [
-      tag.name,
-      tag.icon,
-      tag.colorHex,
-      tag.parentName || "",
-    ]);
-
-    downloadCsv([headers, ...rows], `${wallet.name}_tags.csv`);
+    downloadCsv(tagsCsvRows(tags), `${wallet.name}_tags.csv`);
     triggerToast("Tags exported successfully", true);
   };
 
@@ -183,29 +124,10 @@ export const DataTab: React.FC = () => {
       return;
     }
 
-    const headers = SUBSCRIPTION_COLUMNS.map((c) => c.key);
-    const rows = subscriptions.map((sub) => [
-      sub.name,
-      sub.tag?.name ?? "",
-      sub.amount,
-      sub.type,
-      sub.status,
-      sub.startDate,
-      sub.frequencyType,
-      sub.frequencyInterval,
-      sub.monthlySpecificDay ?? "",
-      String(sub.lastWorkingDayOfMonth),
-      sub.duration,
-      sub.durationTimes ?? "",
-      sub.durationUntil ?? "",
-      sub.originalAmount ?? "",
-      sub.originalCurrency ?? "",
-      sub.exchangeValue ?? "",
-      String(sub.autoExchangeRate),
-      sub.notes ?? "",
-    ]);
-
-    downloadCsv([headers, ...rows], `${wallet.name}_subscriptions.csv`);
+    downloadCsv(
+      subscriptionsCsvRows(subscriptions),
+      `${wallet.name}_subscriptions.csv`,
+    );
     triggerToast("Subscriptions exported successfully", true);
   };
 
