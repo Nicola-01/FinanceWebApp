@@ -6,14 +6,7 @@ import { useDrawingArea } from "@mui/x-charts/hooks";
 import { useTheme as useMuiTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import type { Transaction } from "../../types/domain.ts";
-
-const hexToRgba = (hex: string, alpha: number): string => {
-  if (!hex) return `rgba(0, 255, 127, ${alpha})`;
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
+import { hexToRgba } from "../../utils/color.ts";
 
 const StyledText = styled("text")(() => ({
   fill: "currentColor",
