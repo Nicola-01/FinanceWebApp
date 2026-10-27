@@ -22,6 +22,7 @@ vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));
 
+import { triggerToast } from "../../../components/ui/ToastNotification.tsx";
 import { BankAccountsSection } from "../../../dashboard/settings/BankAccountsSection";
 
 const wallet = (userRole: Wallet["userRole"]): Wallet => ({
@@ -105,8 +106,26 @@ describe("BankAccountsSection", () => {
     expect(screen.queryAllByRole("button")).toHaveLength(0);
   });
 
+  it.each([
+    [{ imported: 2, status: "ACTIVE" }, "Imported 2 transactions", true],
+    [{ imported: 1, status: "ACTIVE" }, "Imported 1 transaction", true],
+    [{ imported: 0, status: "ACTIVE" }, "Nothing new", true],
+    [
+      { imported: 0, status: "ERROR" },
+      "Sync stopped: connection is ERROR",
+      false,
+    ],
+  ])("Sync now toasts the result %#", async (result, message, ok) => {
+    bank.syncConnection.mockResolvedValue({ connectionId: "c1", ...result });
+    render(<BankAccountsSection />);
+    await userEvent.click(
+      await screen.findByRole("button", { name: /sync now/i }),
+    );
+    await waitFor(() => expect(triggerToast).toHaveBeenCalledWith(message, ok));
+  });
+
   it("Sync now calls the API and refreshes wallet data", async () => {
-    bank.syncConnection.mockResolvedValue({});
+    bank.syncConnection.mockResolvedValue({ imported: 0, status: "ACTIVE" });
     render(<BankAccountsSection />);
     await userEvent.click(
       await screen.findByRole("button", { name: /sync now/i }),

@@ -54,8 +54,14 @@ export const renewConnection = (id: string) =>
     .post<{ url: string }>(`/bank/connections/${id}/renew`)
     .then((r) => r.data);
 
+export interface SyncResult {
+  connectionId: string;
+  imported: number;
+  status: BankConnection["status"];
+}
+
 export const syncConnection = (id: string) =>
-  api.post(`/bank/connections/${id}/sync`).then((r) => r.data);
+  api.post<SyncResult>(`/bank/connections/${id}/sync`).then((r) => r.data);
 
 export const syncWalletIfStale = (walletId: string) =>
   api

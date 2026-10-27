@@ -35,6 +35,41 @@ describe("BankCallback", () => {
     expect(complete).toHaveBeenCalledWith("abc", "xyz");
   });
 
+  it("toasts success only for an ACTIVE link", async () => {
+    complete.mockResolvedValue({ walletId: "w9", status: "ACTIVE" });
+    renderAt("/bank/callback?code=abc&state=xyz");
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith("Bank linked successfully", true),
+    );
+  });
+
+  it("toasts the connection error when the link did not become ACTIVE", async () => {
+    complete.mockResolvedValue({
+      walletId: "w9",
+      status: "ERROR",
+      lastError: "This account is already linked in this wallet",
+    });
+    renderAt("/bank/callback?code=abc&state=xyz");
+    await waitFor(() =>
+      expect(screen.getByTestId("loc")).toHaveTextContent("/dashboard/w9"),
+    );
+    expect(toast).toHaveBeenCalledWith(
+      "This account is already linked in this wallet",
+      false,
+    );
+  });
+
+  it("falls back to a generic warning without lastError", async () => {
+    complete.mockResolvedValue({ walletId: "w9", status: "ERROR" });
+    renderAt("/bank/callback?code=abc&state=xyz");
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(
+        "The bank link needs attention",
+        false,
+      ),
+    );
+  });
+
   it("shows the bank error without calling the API", () => {
     renderAt("/bank/callback?error=access_denied");
     expect(screen.getByText(/access_denied/)).toBeInTheDocument();

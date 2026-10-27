@@ -169,13 +169,14 @@ export const ToCategorizePanel: React.FC<ToCategorizePanelProps> = ({
         );
       })}
       {transactions.length > COLLAPSED_COUNT && (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
+          className="self-start"
           onClick={() => setExpanded((e) => !e)}
-          className="self-start text-xs font-bold text-app-muted hover:text-app-text"
         >
           {expanded ? "Show less" : `Show all (${transactions.length})`}
-        </button>
+        </Button>
       )}
     </div>
   );

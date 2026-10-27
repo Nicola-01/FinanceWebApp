@@ -24,7 +24,11 @@ const BankCallback: React.FC = () => {
     }
     completeBankCallback(code, state)
       .then((c) => {
-        triggerToast("Bank linked successfully", true);
+        // The link is saved even when it ended in ERROR (e.g. no accounts): say why.
+        if (c.status === "ACTIVE")
+          triggerToast("Bank linked successfully", true);
+        else
+          triggerToast(c.lastError ?? "The bank link needs attention", false);
         navigate(`/dashboard/${c.walletId}`, { replace: true });
       })
       .catch((e) => {

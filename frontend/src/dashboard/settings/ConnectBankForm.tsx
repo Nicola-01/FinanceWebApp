@@ -10,6 +10,13 @@ import { toLocalIsoDate } from "../../utils/localDate";
 
 const COUNTRY = "IT";
 
+// The backend accepts at most two years of history, up to today.
+const minImportFrom = () => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 2);
+  return toLocalIsoDate(d);
+};
+
 const defaultImportFrom = () => {
   const d = new Date();
   d.setDate(d.getDate() - 90);
@@ -62,6 +69,8 @@ export const ConnectBankForm: React.FC<{ walletId: string }> = ({
         <FieldLabel>Import transactions from</FieldLabel>
         <Input
           type="date"
+          min={minImportFrom()}
+          max={toLocalIsoDate(new Date())}
           value={importFrom}
           onChange={(e) => setImportFrom(e.target.value)}
         />

@@ -86,7 +86,15 @@ export const BankAccountsSection: React.FC = () => {
 
   const sync = (c: BankConnection) =>
     run(async () => {
-      await syncConnection(c.id);
+      const r = await syncConnection(c.id);
+      if (r.status !== "ACTIVE")
+        triggerToast(`Sync stopped: connection is ${r.status}`, false);
+      else if (r.imported > 0)
+        triggerToast(
+          `Imported ${r.imported} transaction${r.imported === 1 ? "" : "s"}`,
+          true,
+        );
+      else triggerToast("Nothing new", true);
       await load();
       fetchData();
     }, "Sync failed");
@@ -189,7 +197,8 @@ export const BankAccountsSection: React.FC = () => {
         message={
           <>
             Unlink <strong>{unlinkTarget?.aspspName}</strong>? Imported
-            transactions are kept.
+            transactions are kept. Linking it again later re-imports
+            transactions from the chosen start date.
           </>
         }
         confirmLabel="Unlink"
