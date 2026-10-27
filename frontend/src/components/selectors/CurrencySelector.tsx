@@ -13,6 +13,7 @@ import {
   type CurrencyMeta,
 } from "../../utils/currencies";
 import SearchInput from "../ui/SearchInput";
+import { FieldLabel } from "../ui/FieldLabel";
 
 interface CurrencySelectorProps {
   value: CurrencyCode | string;
@@ -301,9 +302,7 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
 
   return (
     <div className="relative w-full text-left">
-      <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-        Currency
-      </label>
+      <FieldLabel>Currency</FieldLabel>
 
       <button
         ref={triggerRef}

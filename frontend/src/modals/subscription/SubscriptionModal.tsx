@@ -18,6 +18,7 @@ import { ExchangeRateSection } from "../transaction/ExchangeRateSection";
 import { SchedulingRules } from "../common/SchedulingRules";
 import { getApiErrorTitle } from "../../utils/apiError";
 import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
+import { FieldLabel } from "../../components/ui/FieldLabel";
 
 export interface SubscriptionModalHandle {
   openModal: (sub?: Subscription, initialDate?: Date) => void;
@@ -276,9 +277,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
               />
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                Start Date
-              </label>
+              <FieldLabel>Start Date</FieldLabel>
               <CustomDatePicker
                 isRange={false}
                 color={wallet.color}
@@ -312,9 +311,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           {/* 4. NAME & DESCRIPTION */}
           <div className="flex flex-col gap-4">
             <div>
-              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                Name
-              </label>
+              <FieldLabel>Name</FieldLabel>
               <Input
                 type="text"
                 placeholder="Name of the subscription (Optional)"
@@ -324,9 +321,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             </div>
 
             <div>
-              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                Description
-              </label>
+              <FieldLabel>Description</FieldLabel>
               <Textarea
                 placeholder="Any details... (Optional)"
                 value={notes}

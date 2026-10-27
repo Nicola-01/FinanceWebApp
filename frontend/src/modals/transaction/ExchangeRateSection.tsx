@@ -17,6 +17,7 @@ import { getExchangeRate } from "../../utils/exchangeRates";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import Toggle from "../../components/ui/Toggle.tsx";
 import { Selector } from "../../components/ui/Selector.tsx";
+import { FieldLabel } from "../../components/ui/FieldLabel";
 
 export interface UnifiedExchangeRateProps {
   mode: "view" | "edit" | "create";
@@ -389,9 +390,7 @@ export const ExchangeRateSection: React.FC<UnifiedExchangeRateProps> = ({
           {/* Recurring rate mode — subscriptions only. */}
           {onAutoExchangeRateChange && (
             <div>
-              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                Rate for future payments
-              </label>
+              <FieldLabel>Rate for future payments</FieldLabel>
               <Selector
                 size="sm"
                 value={autoExchangeRate ? "auto" : "fixed"}

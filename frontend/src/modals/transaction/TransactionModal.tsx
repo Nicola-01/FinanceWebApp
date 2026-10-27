@@ -15,6 +15,7 @@ import { TransactionMetadataInputs } from "./TransactionMetadataInputs.tsx";
 import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
 import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
+import { FieldLabel } from "../../components/ui/FieldLabel";
 
 export interface TransactionModalHandle {
   openModal: (tx?: Transaction) => void;
@@ -201,9 +202,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
               />
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                Date
-              </label>
+              <FieldLabel>Date</FieldLabel>
               <CustomDatePicker
                 isRange={false}
                 color={wallet.color}

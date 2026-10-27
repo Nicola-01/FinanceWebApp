@@ -11,6 +11,7 @@ import { Icon } from "../icon/Icon.tsx";
 import { TagRow, type TagRowTrailing } from "./TagRow.tsx";
 import { TagDropdownPanel } from "./TagDropdownPanel.tsx";
 import { useTagTree } from "./useTagTree.ts";
+import { FieldLabel } from "../ui/FieldLabel";
 
 export interface TagTreePickerProps {
   /** Flat tag list, already in display order; `parentName` links the tree. */
@@ -198,9 +199,9 @@ export const TagTreePicker: React.FC<TagTreePickerProps> = ({
   return (
     <div className="relative w-full" ref={dropdownRef}>
       {showLabel && (
-        <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
+        <FieldLabel>
           <FontAwesomeIcon icon={faHashtag} className="mr-2" /> Category *
-        </label>
+        </FieldLabel>
       )}
 
       {/* Trigger: labelled select showing the selected tag or a search input. */}

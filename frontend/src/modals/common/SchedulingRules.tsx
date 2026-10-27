@@ -7,6 +7,7 @@ import {
 import CustomDatePicker from "../../components/datePicker/CustomDatePicker";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { CustomSelect } from "../../components/ui/CustomSelect.tsx";
+import { FieldLabel } from "../../components/ui/FieldLabel";
 
 export type FrequencyType = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 export type DurationType = "FOREVER" | "TIMES" | "UNTIL";
@@ -60,9 +61,7 @@ export function SchedulingRules({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Repeat Every */}
         <div>
-          <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-            Repeat Every
-          </label>
+          <FieldLabel>Repeat Every</FieldLabel>
           <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:border-[var(--brand-1)] transition-colors h-12">
             <input
               type="number"
@@ -94,9 +93,7 @@ export function SchedulingRules({
 
         {/* Ends */}
         <div>
-          <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-            Ends
-          </label>
+          <FieldLabel>Ends</FieldLabel>
           <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:border-[var(--brand-1)] transition-colors h-12">
             <CustomSelect
               value={duration}
@@ -146,9 +143,7 @@ export function SchedulingRules({
 
       {showStatus && (
         <div>
-          <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-            Status
-          </label>
+          <FieldLabel>Status</FieldLabel>
           <Selector<SubscriptionStatus>
             value={status ?? "ACTIVE"}
             onChange={(val) => onStatusChange?.(val)}
