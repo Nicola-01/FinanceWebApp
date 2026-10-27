@@ -446,23 +446,23 @@ These unblock Phase 5. Every new module ships with a unit test. "Adopt at call s
 
 Re-check `git status` before starting any of these.
 
-- [ ] **6.1** `api/axiosConfig.ts` (221): translate Italian comments; split into
+- [x] **6.1** _(authHelper adopted; interceptors split skipped — single handler pair tested as a unit)_ `api/axiosConfig.ts` (221): translate Italian comments; split into
   `api/interceptors/authRefresh.ts` (refresh queue + 401 branch :49–148) and
   `api/interceptors/offline.ts` (GET-cache + offline queue :73–91, :150–215), keeping
   instance + request interceptor in `axiosConfig.ts`. Reconcile with the branch diff first.
-- [ ] **6.2** `modals/wallet/CreateWalletWizard.tsx` (390): extract
+- [x] **6.2** `modals/wallet/CreateWalletWizard.tsx` (390): extract
   `WalletCompletionScreen.tsx` (:82–181 + `outcomeSummary`/`RES_LABEL` :48–77);
   colocate `DEFAULT_DRAFT` with `walletCreation.ts`; optional `useWalletDraft()`
   (:232–244); remove commented `subtitle` :354.
-- [ ] **6.3** `wizardSteps/TagsStep.tsx` (301): extract pure `tagsStepModel.ts`
+- [x] **6.3** _(MOCK_SOURCE_WALLETS kept — user decision)_ `wizardSteps/TagsStep.tsx` (301): extract pure `tagsStepModel.ts`
   (`knownGroups`/`groupByParentKey` :70–79, `originOf` :83–93, `buildDisplayNodes`
   :166–202) + unit tests; remove the misleading `MOCK_SOURCE_WALLETS` default param
   (:53) and the `TEMP mock` export in `sourceWallets.ts:46–99` (real `fetchTagSources`
   exists and is passed by the wizard).
-- [ ] **6.4** `wizardSteps/StagedTagTree.tsx` (242): `buildTree` :48–72 →
+- [x] **6.4** _(buildTree → stagedTagTreeModel.ts (case-safe name); row components skipped)_ `wizardSteps/StagedTagTree.tsx` (242): `buildTree` :48–72 →
   `stagedTagTree.ts` (+ test); extract `StagedTagCategoryRow` / `StagedTagChildRow`
   (:120–175, :189–232); remove commented span :135–137 (in StagedSubscriptionRow).
-- [ ] **6.5** `subscriptionModes/StagedSubscriptionRow.tsx` (369, most complex wizard
+- [x] **6.5** `subscriptionModes/StagedSubscriptionRow.tsx` (369, most complex wizard
   file, ZERO tests): extract `StagedSubscriptionRowHeader.tsx` (:124–199),
   `StagedSubscriptionEditor.tsx` (:283–360), and a shared
   `wizardSteps/MissingTagResolver.tsx` — the amber reassign/create panel (:212–282) is
@@ -471,10 +471,10 @@ Re-check `git status` before starting any of these.
   shared, tested `utils/localDate.ts` (`toLocalIsoDate`/`parseLocalIsoDate`) — same
   for the identical `todayKey` in `utils/currencies.ts` and `utils/exchangeRates.ts`.
   ADD TESTS.
-- [ ] **6.6** `SubscriptionCreateMode.tsx` (191): share the `SubscriptionRequest`
+- [-] **6.6** _(skipped — the three builders produce different shapes; unifying would change payloads, see F18)_ `SubscriptionCreateMode.tsx` (191): share the `SubscriptionRequest`
   builder with `recommendedSubscriptions.toSubscriptionRequest` and
   `subscriptionPayload.ts` (5F.2).
-- [ ] **6.7** Wizard call-site adoptions skipped in Phases 4–5 (FieldLabel, useOutsideClick
+- [x] **6.7** Wizard call-site adoptions skipped in Phases 4–5 (FieldLabel, useOutsideClick
   in `BasicsStep`, ExchangeRateSection new path in `SubscriptionCreateMode`).
 
 ## Phase 7 — Proposed follow-ups (OUT OF SCOPE unless Nicola opts in)
