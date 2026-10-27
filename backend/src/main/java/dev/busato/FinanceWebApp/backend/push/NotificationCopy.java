@@ -81,6 +81,33 @@ public final class NotificationCopy {
         "/dashboard");
   }
 
+  public static Copy bankConsentExpiring(String bank, String wallet, long days, UUID walletId) {
+    return new Copy(
+        "Bank connection expiring",
+        "Your "
+            + bank
+            + " link on \""
+            + wallet
+            + "\" expires in "
+            + days
+            + " days. Renew it to keep importing.",
+        "/dashboard/" + walletId);
+  }
+
+  public static Copy bankConsentExpired(String bank, String wallet, UUID walletId) {
+    return new Copy(
+        "Bank connection expired",
+        "Your " + bank + " link on \"" + wallet + "\" has expired. Renew it to resume importing.",
+        "/dashboard/" + walletId);
+  }
+
+  public static Copy bankLinkPaused(String bank, String wallet, UUID walletId) {
+    return new Copy(
+        "Bank connection paused",
+        "Your " + bank + " link on \"" + wallet + "\" is paused. Renew it to resume importing.",
+        "/dashboard/" + walletId);
+  }
+
   /** Recap body: {@code "{name} · {amount} {currency} · {walletName}"}; null name → "Untagged". */
   private static String recap(String name, BigDecimal amount, String currency, String walletName) {
     String label = (name == null) ? "Untagged" : name;
