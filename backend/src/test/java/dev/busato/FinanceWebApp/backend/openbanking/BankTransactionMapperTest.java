@@ -129,4 +129,48 @@ class BankTransactionMapperTest {
     assertEquals(
         mapper.map(List.of(a)).get(0).externalId(), mapper.map(List.of(b)).get(0).externalId());
   }
+
+  private EbTransaction custom(BigDecimal amt, String ind, LocalDate booking, List<String> rem) {
+    return new EbTransaction(null, null, amt, "EUR", ind, "BOOK", booking, null, "X", "Y", rem);
+  }
+
+  @Test
+  void invalidRowsSkippedAndDoNotConsumeIndex() {
+    LocalDate d = LocalDate.of(2026, 1, 5);
+    var valid = custom(BigDecimal.TEN, "DBIT", d, null);
+    var out =
+        mapper.map(
+            List.of(
+                valid,
+                custom(null, "DBIT", d, null),
+                custom(BigDecimal.TEN, null, d, null),
+                custom(BigDecimal.TEN, "XXXX", d, null),
+                custom(BigDecimal.TEN, "DBIT", null, null),
+                valid));
+    assertEquals(2, out.size());
+    assertTrue(out.get(0).externalId().endsWith(":0"));
+    assertTrue(out.get(1).externalId().endsWith(":1"));
+  }
+
+  @Test
+  void hashDistinguishesRemittanceJoinAndIndicator() {
+    LocalDate d = LocalDate.of(2026, 1, 5);
+    String a =
+        mapper.map(List.of(custom(BigDecimal.TEN, "DBIT", d, List.of("a,b")))).get(0).externalId();
+    String b =
+        mapper
+            .map(List.of(custom(BigDecimal.TEN, "DBIT", d, List.of("a", "b"))))
+            .get(0)
+            .externalId();
+    String c =
+        mapper.map(List.of(custom(BigDecimal.TEN, "CRDT", d, List.of("a,b")))).get(0).externalId();
+    assertNotEquals(a, b);
+    assertNotEquals(a, c);
+  }
+
+  @Test
+  void nameCappedAt255() {
+    var r = row("A", null, "DBIT", "BOOK", "x".repeat(300), null);
+    assertEquals(255, mapper.map(List.of(r)).get(0).name().length());
+  }
 }

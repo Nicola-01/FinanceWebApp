@@ -12,9 +12,11 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /** Pure mapping from EnableBanking transaction rows to app transactions. */
+@Slf4j
 @Component
 public class BankTransactionMapper {
 
@@ -35,8 +37,19 @@ public class BankTransactionMapper {
     List<MappedTx> out = new ArrayList<>();
     for (EbTransaction r : rows) {
       if (!"BOOK".equals(r.status())) continue;
-      boolean debit = "DBIT".equals(r.creditDebitIndicator());
+      String ind = r.creditDebitIndicator();
+      boolean debit = "DBIT".equals(ind);
       LocalDate date = r.bookingDate() != null ? r.bookingDate() : r.valueDate();
+      String invalid =
+          r.amount() == null
+              ? "amount"
+              : !(debit || "CRDT".equals(ind))
+                  ? "creditDebitIndicator"
+                  : date == null ? "bookingDate/valueDate" : null;
+      if (invalid != null) {
+        log.warn("Skipping bank row with missing or invalid {}", invalid);
+        continue;
+      }
       List<String> rem = r.remittanceInformation() == null ? List.of() : r.remittanceInformation();
       String notes = rem.isEmpty() ? null : String.join("\n", rem);
 
@@ -46,11 +59,12 @@ public class BankTransactionMapper {
             sha256(
                 String.join(
                     "|",
-                    String.valueOf(date == null ? "" : date),
-                    r.amount() == null ? "" : r.amount().stripTrailingZeros().toPlainString(),
+                    date.toString(),
+                    ind,
+                    r.amount().stripTrailingZeros().toPlainString(),
                     nz(r.currency()),
                     nz(debit ? r.creditorName() : r.debtorName()),
-                    String.join(",", rem)));
+                    String.join("\n", rem)));
         id = "h:" + h + ":" + (seen.merge(h, 1, Integer::sum) - 1);
       }
 
@@ -64,7 +78,7 @@ public class BankTransactionMapper {
               id,
               name,
               notes,
-              r.amount() == null ? null : r.amount().abs(),
+              r.amount().abs(),
               r.currency(),
               debit ? Transaction.Type.EXPENSE : Transaction.Type.INCOME,
               date));
