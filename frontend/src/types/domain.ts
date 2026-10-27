@@ -43,6 +43,8 @@ export interface Transaction {
   tag: Tag;
   amount: number;
   amountPending?: boolean;
+  imported?: boolean;
+  needsReview?: boolean;
   originalAmount?: number;
   originalCurrency?: string;
   exchangeValue?: number;

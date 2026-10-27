@@ -6,6 +6,7 @@ import {
   faTags,
   faCommentAlt,
   faRepeat,
+  faBuildingColumns,
 } from "@fortawesome/free-solid-svg-icons";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";
@@ -66,8 +67,20 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
                 title="Recurring Payment"
               />
             )}
+            {transaction.imported && (
+              <FontAwesomeIcon
+                icon={faBuildingColumns}
+                className="text-[10px] sm:text-[11px] text-app-muted opacity-80 shrink-0"
+                title="Imported from bank"
+              />
+            )}
             <SyncStateIcon state={transaction.syncState} />
             <TagBadge tag={transaction.tag} />
+            {transaction.needsReview && (
+              <span className="rounded-full bg-app-input px-2 py-0.5 text-[10px] font-bold text-app-muted border border-app-border">
+                To categorize
+              </span>
+            )}
           </div>
         </div>
       </div>

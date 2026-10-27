@@ -9,6 +9,7 @@ import {
 import React, { useRef } from "react";
 import type { Tag, Transaction, Wallet } from "../../types/domain.ts";
 import TransactionRow from "./TransactionRow.tsx";
+import { ToCategorizePanel } from "./ToCategorizePanel.tsx";
 import { PendingTransactionsPanel } from "./PendingTransactionsPanel.tsx";
 import * as walletOps from "../../api/walletOps.ts";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
@@ -23,6 +24,7 @@ interface TransactionsTableProps {
   tags: Tag[];
   transactions: Transaction[];
   pendingTransactions: Transaction[];
+  toCategorize?: Transaction[];
   onRefresh: () => void;
   isLoading: boolean;
 }
@@ -51,6 +53,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   tags,
   transactions,
   pendingTransactions,
+  toCategorize = [],
   isLoading,
   onRefresh,
 }) => {
@@ -107,6 +110,16 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   return (
     <div className="flex flex-col flex-1 relative min-h-0">
       <div className="flex-1 overflow-auto pb-10 custom-scrollbar">
+        {!isLoading && (
+          <ToCategorizePanel
+            wallet={wallet}
+            tags={tags}
+            transactions={toCategorize}
+            onRefresh={onRefresh}
+            onOpenDetails={(tx) => detailsModalRef.current?.openModal(tx)}
+            onEdit={(tx) => transactionModalRef.current?.openModal(tx)}
+          />
+        )}
         {!isLoading && (
           <PendingTransactionsPanel
             wallet={wallet}
