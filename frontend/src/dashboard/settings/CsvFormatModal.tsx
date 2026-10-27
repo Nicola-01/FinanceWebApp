@@ -10,166 +10,8 @@ import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { Selector } from "../../components/ui/Selector.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { ICONS, type IconKey } from "../../utils/icons.ts";
-import {
-  TRANSACTION_COLUMNS,
-  TAG_COLUMNS,
-  SUBSCRIPTION_COLUMNS,
-  type CsvColumn,
-} from "./csvImport.ts";
-
-type Mode = "transactions" | "tags" | "subscriptions";
-
-interface SampleSpec {
-  filename: string;
-  columns: CsvColumn[];
-  rows: string[][];
-}
-
-/**
- * Example rows for each exportable CSV. The column definitions are imported
- * from `csvImport` — the single source of truth shared with the export/import
- * code — so a downloaded sample round-trips with a real export.
- */
-const SAMPLES: Record<Mode, SampleSpec> = {
-  transactions: {
-    filename: "transactions_sample.csv",
-    columns: TRANSACTION_COLUMNS,
-    rows: [
-      [
-        "2026-06-01",
-        "Monthly Salary",
-        "Salary",
-        "2500",
-        "INCOME",
-        "June paycheck",
-        "",
-        "",
-        "",
-      ],
-      [
-        "2026-06-03",
-        "Supermarket",
-        "Groceries",
-        "54.20",
-        "EXPENSE",
-        "Weekly shop",
-        "",
-        "",
-        "",
-      ],
-      [
-        "2026-06-10",
-        "Hotel Tokyo",
-        "Travel",
-        "120.25",
-        "EXPENSE",
-        "Business trip",
-        "18500",
-        "JPY",
-        "0.0065",
-      ],
-    ],
-  },
-  tags: {
-    filename: "tags_sample.csv",
-    columns: TAG_COLUMNS,
-    rows: [
-      ["Salary", "sack", "#34d399", ""],
-      ["Food", "dining", "#f87171", ""],
-      ["Groceries", "cart", "#fb923c", "Food"],
-      ["Travel", "plane", "#60a5fa", ""],
-    ],
-  },
-  subscriptions: {
-    filename: "subscriptions_sample.csv",
-    columns: SUBSCRIPTION_COLUMNS,
-    rows: [
-      [
-        "Netflix",
-        "Entertainment",
-        "12.99",
-        "EXPENSE",
-        "ACTIVE",
-        "2026-01-01",
-        "MONTHLY",
-        "1",
-        "1",
-        "false",
-        "FOREVER",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "false",
-        "Streaming plan",
-      ],
-      [
-        "Salary",
-        "Salary",
-        "2500",
-        "INCOME",
-        "ACTIVE",
-        "2026-01-31",
-        "MONTHLY",
-        "1",
-        "",
-        "true",
-        "FOREVER",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "false",
-        "Payday",
-      ],
-      [
-        "Gym",
-        "Health",
-        "30",
-        "EXPENSE",
-        "PAUSED",
-        "2026-02-01",
-        "MONTHLY",
-        "1",
-        "5",
-        "false",
-        "UNTIL",
-        "",
-        "2026-12-31",
-        "35",
-        "USD",
-        "0.92",
-        "true",
-        "",
-      ],
-    ],
-  },
-};
-
-/** Same cell-quoting as DataTab's `downloadCsv` — every field double-quoted, comma-joined. */
-const buildCsv = (headers: string[], rows: string[][]): string =>
-  [headers, ...rows]
-    .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","))
-    .join("\n");
-
-const downloadSample = (spec: SampleSpec) => {
-  const csv = buildCsv(
-    spec.columns.map((c) => c.key),
-    spec.rows,
-  );
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", spec.filename);
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
+import { downloadCsv } from "./csvExport.ts";
+import { SAMPLES, type Mode } from "./csvSamples.ts";
 
 interface CsvFormatModalProps {
   open: boolean;
@@ -215,7 +57,12 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
         <Button
           variant="secondary"
           fullWidth
-          onClick={() => downloadSample(spec)}
+          onClick={() =>
+            downloadCsv(
+              [spec.columns.map((c) => c.key), ...spec.rows],
+              spec.filename,
+            )
+          }
         >
           <FontAwesomeIcon icon={faDownload} />
           Download {mode} sample
