@@ -1,13 +1,8 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { createContext, useContext, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { useOutsideClick } from "../../hooks/useOutsideClick";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 
 /**
  * Anchored dropdown menu primitive — the shared "click-outside popover" pattern
@@ -65,14 +60,7 @@ const MenuRoot: React.FC<MenuProps> = ({
   const ref = useRef<HTMLDivElement>(null);
 
   useOutsideClick(ref, () => setOpen(false), open);
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
+  useEscapeKey(() => setOpen(false), open);
 
   const close = () => setOpen(false);
 
