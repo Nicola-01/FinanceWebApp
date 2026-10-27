@@ -1,0 +1,212 @@
+package dev.busato.FinanceWebApp.backend.openbanking;
+
+import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
+import dev.busato.FinanceWebApp.backend.model.BankConnection;
+import dev.busato.FinanceWebApp.backend.model.ImportedBankTransaction;
+import dev.busato.FinanceWebApp.backend.model.Tag;
+import dev.busato.FinanceWebApp.backend.model.Transaction;
+import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.model.WalletAccess;
+import dev.busato.FinanceWebApp.backend.openbanking.BankTransactionMapper.MappedTx;
+import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransaction;
+import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransactionPage;
+import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.PsuContext;
+import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
+import dev.busato.FinanceWebApp.backend.repository.ImportedBankTransactionRepository;
+import dev.busato.FinanceWebApp.backend.repository.TagRepository;
+import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
+import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
+import dev.busato.FinanceWebApp.backend.service.ExchangeRateService;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+
+/**
+ * Imports booked bank rows into wallets, idempotently. Each connection syncs in its own transaction
+ * holding a row lock on the connection, so concurrent syncs (cron + on-open) of the same connection
+ * run one after the other and the second sees the first's ledger rows. Never logs amounts,
+ * counterparties, IBANs or remittance text.
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class BankSyncService {
+
+  static final String REVIEW_TAG = "To categorize";
+  static final Duration ON_OPEN_THROTTLE = Duration.ofHours(2);
+  static final int LOOKBACK_DAYS = 5;
+
+  public record SyncResult(UUID connectionId, int imported, BankConnection.Status status) {}
+
+  private final EnableBankingClient client;
+  private final BankTransactionMapper mapper;
+  private final BankConnectionRepository connectionRepository;
+  private final ImportedBankTransactionRepository ledgerRepository;
+  private final TransactionRepository transactionRepository;
+  private final TagRepository tagRepository;
+  private final WalletAccessRepository walletAccessRepository;
+  private final ExchangeRateService exchangeRateService;
+  private final TransactionTemplate transactionTemplate;
+  private final Clock clock;
+
+  /** Syncs one connection in its own transaction (joins the caller's if one is open). */
+  public SyncResult syncConnection(BankConnection connection, PsuContext psu) {
+    return transactionTemplate.execute(tx -> doSync(connection.getId(), psu));
+  }
+
+  /** On-open sync: ACTIVE connections only, skipping those whose links all synced recently. */
+  public List<SyncResult> syncWalletIfStale(UUID walletId, PsuContext psu) {
+    Instant cutoff = clock.instant().minus(ON_OPEN_THROTTLE);
+    // Read inside a transaction: accounts are lazy and callers (cron, controller) may have none.
+    List<BankConnection> stale =
+        transactionTemplate.execute(
+            tx ->
+                connectionRepository.findByWalletId(walletId).stream()
+                    .filter(c -> c.getStatus() == BankConnection.Status.ACTIVE)
+                    .filter(
+                        c ->
+                            c.getAccounts().stream()
+                                .anyMatch(
+                                    l ->
+                                        l.getLastSyncedAt() == null
+                                            || !l.getLastSyncedAt().isAfter(cutoff)))
+                    .toList());
+    return stale.stream().map(c -> syncConnection(c, psu)).toList();
+  }
+
+  private SyncResult doSync(UUID connectionId, PsuContext psu) {
+    BankConnection c = connectionRepository.findByIdForUpdate(connectionId).orElseThrow();
+    if (c.getStatus() != BankConnection.Status.ACTIVE) return result(c, 0);
+    Instant now = clock.instant();
+
+    if (c.getValidUntil() != null && !now.isBefore(c.getValidUntil())) {
+      c.setStatus(BankConnection.Status.EXPIRED);
+      return result(c, 0);
+    }
+    boolean ownerStill =
+        walletAccessRepository
+            .findByWalletIdAndUserId(c.getWallet().getId(), c.getCreatedBy().getId())
+            .filter(a -> a.getRole() == WalletAccess.WalletRole.OWNER)
+            .filter(a -> a.getStatus() == WalletAccess.InvitationStatus.ACCEPTED)
+            .isPresent();
+    if (!ownerStill) {
+      c.setStatus(BankConnection.Status.PAUSED);
+      return result(c, 0);
+    }
+
+    int imported = 0;
+    for (BankAccountLink link : c.getAccounts()) {
+      List<EbTransaction> rows;
+      try {
+        rows = fetchAll(link, psu);
+      } catch (EnableBankingException e) {
+        int s = e.status();
+        if (s == 401 || s == 403) c.setStatus(BankConnection.Status.EXPIRED);
+        else if (s >= 400 && s < 500 && s != 429) c.setStatus(BankConnection.Status.ERROR);
+        c.setLastError(e.getMessage());
+        log.warn("Bank sync of connection {} failed with status {}", c.getId(), s);
+        // Earlier links' imports still commit; this link saved nothing (rows are fetched first).
+        return result(c, imported);
+      }
+      imported += importRows(c.getWallet(), link, mapper.map(rows), now);
+    }
+    c.setLastError(null);
+    if (imported > 0)
+      log.info("Imported {} bank transactions for connection {}", imported, c.getId());
+    return result(c, imported);
+  }
+
+  private List<EbTransaction> fetchAll(BankAccountLink link, PsuContext psu) {
+    LocalDate from = link.getImportFrom();
+    if (link.getLastSyncedAt() != null) {
+      LocalDate back =
+          LocalDate.ofInstant(link.getLastSyncedAt(), ZoneOffset.UTC).minusDays(LOOKBACK_DAYS);
+      if (from == null || back.isAfter(from)) from = back;
+    }
+    List<EbTransaction> rows = new ArrayList<>();
+    String key = null;
+    do {
+      EbTransactionPage page = client.getTransactions(link.getAccountUid(), from, key, psu);
+      rows.addAll(page.transactions());
+      key = page.continuationKey();
+    } while (key != null);
+    return rows;
+  }
+
+  private int importRows(Wallet wallet, BankAccountLink link, List<MappedTx> mapped, Instant now) {
+    Set<String> known = ledgerRepository.findExternalIdsByLinkId(link.getId());
+    Tag tag = null;
+    int n = 0;
+    for (MappedTx m : mapped) {
+      if (!known.add(m.externalId())) continue;
+      if (tag == null) tag = reviewTag(wallet);
+      String currency =
+          m.currency() != null
+              ? m.currency()
+              : link.getCurrency() != null ? link.getCurrency() : wallet.getCurrency();
+      BigDecimal amount = m.amount();
+      BigDecimal rate = null;
+      if (!currency.equals(wallet.getCurrency())) {
+        rate = exchangeRateService.getRate(currency, wallet.getCurrency()).orElse(null);
+        if (rate != null) amount = m.amount().multiply(rate).setScale(2, RoundingMode.HALF_UP);
+        else log.warn("No {}->{} rate; storing unconverted amount", currency, wallet.getCurrency());
+      }
+      transactionRepository.save(
+          Transaction.builder()
+              .wallet(wallet)
+              .tag(tag)
+              .name(m.name())
+              .notes(m.notes())
+              .amount(amount)
+              .originalAmount(m.amount())
+              .originalCurrency(currency)
+              .exchangeValue(rate)
+              .type(m.type())
+              .transactionDate(m.date())
+              .imported(true)
+              .needsReview(true)
+              .build());
+      ledgerRepository.save(
+          ImportedBankTransaction.builder()
+              .link(link)
+              .externalId(m.externalId())
+              .importedAt(now)
+              .build());
+      n++;
+    }
+    link.setLastSyncedAt(now);
+    link.setImportedCount(link.getImportedCount() + n);
+    return n;
+  }
+
+  /** Found by name each time: if the user renamed or deleted it, a fresh one is created. */
+  private Tag reviewTag(Wallet wallet) {
+    return tagRepository
+        .findByNameIgnoreCaseAndWalletId(REVIEW_TAG, wallet.getId())
+        .orElseGet(
+            () ->
+                tagRepository.save(
+                    Tag.builder()
+                        .name(REVIEW_TAG)
+                        .wallet(wallet)
+                        .icon("bank")
+                        .colorHex("#9CA3AF")
+                        .build()));
+  }
+
+  private static SyncResult result(BankConnection c, int imported) {
+    return new SyncResult(c.getId(), imported, c.getStatus());
+  }
+}
