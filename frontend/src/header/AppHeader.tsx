@@ -7,7 +7,7 @@ import {
   faUserCircle,
   faDownload,
 } from "@fortawesome/free-solid-svg-icons";
-import { getUserAuth } from "../utils/authHelper.ts";
+import { clearSession, getUserAuth } from "../utils/authHelper.ts";
 import api from "../api/axiosConfig.ts";
 import { ThemeSelector } from "../components/selectors/ThemeSelector";
 import { usePWA } from "../utils/PWAContext.tsx";
@@ -37,9 +37,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
     } catch {
       // Log out locally even if the network call fails.
     }
-    localStorage.removeItem("jwtToken");
-    sessionStorage.removeItem("jwtToken");
-    localStorage.removeItem("mustChangePWD");
+    clearSession();
     window.location.href = "/login";
   };
 

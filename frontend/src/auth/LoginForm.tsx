@@ -11,6 +11,7 @@ import {
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../utils/apiError";
+import { setMustChangePWD, setToken } from "../utils/authHelper";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Checkbox } from "../components/ui/Checkbox";
@@ -80,11 +81,10 @@ export const LoginForm: React.FC = () => {
 
       const { token, passwordMustChange } = response.data;
 
-      localStorage.setItem("mustChangePWD", JSON.stringify(passwordMustChange));
+      setMustChangePWD(passwordMustChange);
 
       // Store token based on 'Remember Me' preference
-      if (remember) localStorage.setItem("jwtToken", token);
-      else sessionStorage.setItem("jwtToken", token);
+      setToken(token, remember);
 
       navigate(returnTo);
     } catch (err: unknown) {

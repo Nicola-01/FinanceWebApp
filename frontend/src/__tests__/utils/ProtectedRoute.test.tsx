@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 
-vi.mock("../../utils/authHelper", () => ({ getToken: vi.fn() }));
+vi.mock("../../utils/authHelper", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../utils/authHelper")>()),
+  getToken: vi.fn(),
+}));
 
 import ProtectedRoute from "../../utils/ProtectedRoute";
 import { getToken } from "../../utils/authHelper";

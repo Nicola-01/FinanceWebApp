@@ -17,6 +17,7 @@ import { Input } from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { getApiErrorDetail } from "../../utils/apiError";
+import { replaceToken } from "../../utils/authHelper";
 
 /** Steps of the double-verification email-change flow. */
 type EmailStep = "idle" | "request" | "verify";
@@ -38,14 +39,6 @@ function formatDate(raw: string | null | undefined): string {
     undefined,
     { year: "numeric", month: "long", day: "numeric" },
   );
-}
-
-/** Persist a freshly-issued access token in whichever storage currently holds it. */
-function storeToken(token: string) {
-  const storage = localStorage.getItem("jwtToken")
-    ? localStorage
-    : sessionStorage;
-  storage.setItem("jwtToken", token);
 }
 
 const Row: React.FC<{
@@ -134,7 +127,7 @@ export const AccountSection: React.FC = () => {
     try {
       // Backend re-issues tokens (username is the JWT subject) — store the new one.
       const res = await api.put("/users/me/username", { username: name });
-      if (res.data?.token) storeToken(res.data.token);
+      if (res.data?.token) replaceToken(res.data.token);
       setProfile((p) => (p ? { ...p, username: name } : p));
       setEditingUsername(false);
       triggerToast("Username updated", true);
