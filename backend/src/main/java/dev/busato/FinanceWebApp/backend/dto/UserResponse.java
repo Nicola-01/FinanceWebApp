@@ -15,4 +15,5 @@ public class UserResponse {
   //    private List<WalletResponse> wallets;
   private int wallets;
   private int transactions;
+  private boolean openBankingEnabled;
 }

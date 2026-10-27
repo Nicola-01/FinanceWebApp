@@ -24,7 +24,9 @@ class UserMapperTest {
     user.setId(UUID.randomUUID());
     user.setUsername("test@example.com");
     user.setCreatedAt(LocalDate.now());
+    user.setOpenBankingEnabled(true);
     UserResponse response = userMapper.mapToResponse(user);
+    assertEquals(true, response.isOpenBankingEnabled());
     assertNotNull(response);
     assertEquals(user.getId(), response.getId());
     assertEquals(user.getUsername(), response.getName());

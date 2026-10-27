@@ -109,6 +109,20 @@ class AdminUserControllerTest extends BaseWebMvcTest {
   }
 
   @Test
+  void setOpenBanking_ShouldReturn204() throws Exception {
+    UUID userId = UUID.randomUUID();
+
+    mockMvc
+        .perform(
+            put("/api/admin/management/{id}/open-banking", userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"enabled\":true}"))
+        .andExpect(status().isNoContent());
+
+    verify(manageUserService).setOpenBankingEnabled(userId, true);
+  }
+
+  @Test
   void revokeInvite_ShouldReturn204() throws Exception {
     String email = "revoke@example.com";
 

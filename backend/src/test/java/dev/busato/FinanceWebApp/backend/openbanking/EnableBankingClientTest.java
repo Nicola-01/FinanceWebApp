@@ -245,6 +245,15 @@ class EnableBankingClientTest {
   }
 
   @Test
+  void createSessionEmptyBodyThrows() {
+    EnableBankingClient c = client();
+    server.expect(requestTo("https://api.enablebanking.com/sessions")).andRespond(withSuccess());
+    assertThatThrownBy(() -> c.createSession("code"))
+        .isInstanceOfSatisfying(
+            EnableBankingException.class, e -> assertThat(e.status()).isEqualTo(502));
+  }
+
+  @Test
   void deleteSessionSendsDeleteAndSwallowsErrors() {
     EnableBankingClient c = client();
     server

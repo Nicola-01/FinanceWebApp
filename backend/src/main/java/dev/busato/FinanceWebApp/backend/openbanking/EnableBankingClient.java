@@ -80,7 +80,8 @@ public class EnableBankingClient {
 
   public EbSession createSession(String code) {
     return toSession(
-        send(restClient.post().uri("/sessions").body(Map.of("code", code)), RawSession.class));
+        required(
+            send(restClient.post().uri("/sessions").body(Map.of("code", code)), RawSession.class)));
   }
 
   public EbSession getSession(String sessionId) {

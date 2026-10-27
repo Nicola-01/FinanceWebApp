@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface BankConnectionRepository extends JpaRepository<BankConnection, UUID> {
@@ -16,6 +17,11 @@ public interface BankConnectionRepository extends JpaRepository<BankConnection, 
   @Lock(LockModeType.PESSIMISTIC_WRITE)
   @Query("select c from BankConnection c where c.id = :id")
   Optional<BankConnection> findByIdForUpdate(UUID id);
+
+  /** Single-use consumption of an authorization state; returns the number of rows cleared. */
+  @Modifying
+  @Query("update BankConnection c set c.state = null where c.id = :id and c.state = :state")
+  int clearState(UUID id, String state);
 
   List<BankConnection> findByWalletId(UUID walletId);
 

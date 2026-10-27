@@ -28,6 +28,13 @@ public class AdminUserController {
     return ResponseEntity.noContent().build();
   }
 
+  @PutMapping("/{id}/open-banking")
+  public ResponseEntity<Void> setOpenBanking(
+      @PathVariable UUID id, @RequestBody UpdateEnabledRequest request) {
+    manageUserService.setOpenBankingEnabled(id, request.enabled());
+    return ResponseEntity.noContent().build();
+  }
+
   @GetMapping("/invites")
   public ResponseEntity<List<AdminInviteResponse>> getInvites() {
     return ResponseEntity.ok(manageUserService.getInvites());

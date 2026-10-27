@@ -46,6 +46,9 @@ public class BankConnection {
 
   private Instant validUntil;
 
+  /** Consent end requested by an authorization still in flight; becomes validUntil on callback. */
+  private Instant pendingValidUntil;
+
   /** Import start date chosen by the user; copied to each link once the session is created. */
   private LocalDate importFrom;
 
