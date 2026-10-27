@@ -86,4 +86,17 @@ class TransactionMapperTest {
 
     assertTrue(response.isAmountPending());
   }
+
+  @Test
+  void responseExposesImportedFlags() {
+    Transaction transaction = new Transaction();
+    transaction.setType(Transaction.Type.EXPENSE);
+    transaction.setImported(true);
+    transaction.setNeedsReview(true);
+
+    TransactionResponse response = transactionMapper.mapToResponse(transaction);
+
+    assertTrue(response.isImported());
+    assertTrue(response.isNeedsReview());
+  }
 }

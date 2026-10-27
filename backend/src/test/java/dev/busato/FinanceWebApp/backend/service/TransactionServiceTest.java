@@ -409,6 +409,50 @@ class TransactionServiceTest {
   }
 
   @Test
+  void tagChangeClearsNeedsReview() {
+    Tag old = new Tag();
+    old.setId(UUID.randomUUID());
+    Tag food = new Tag();
+    food.setId(UUID.randomUUID());
+    Transaction tx = new Transaction();
+    tx.setName("Imp");
+    tx.setTag(old);
+    tx.setNeedsReview(true);
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(tx));
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
+        .thenReturn(Optional.of(food));
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setTag("Food");
+
+    transactionService.updateTransaction(transactionId, request, walletId, userId);
+
+    assertFalse(tx.isNeedsReview());
+  }
+
+  @Test
+  void editWithoutTagChangeKeepsNeedsReview() {
+    Tag same = new Tag();
+    same.setId(UUID.randomUUID());
+    Transaction tx = new Transaction();
+    tx.setName("Imp");
+    tx.setTag(same);
+    tx.setNeedsReview(true);
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(tx));
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("To categorize", walletId))
+        .thenReturn(Optional.of(same));
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setTag("To categorize");
+    request.setName("Renamed");
+
+    transactionService.updateTransaction(transactionId, request, walletId, userId);
+
+    assertTrue(tx.isNeedsReview());
+    assertEquals("Renamed", tx.getName());
+  }
+
+  @Test
   void updateTransaction_ValidRequest_UpdatesTransaction() {
     TransactionRequest request = TransactionRequest.builder().build();
     request.setName("Updated Groceries");

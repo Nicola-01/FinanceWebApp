@@ -383,6 +383,10 @@ public class TransactionService {
           tagRepository
               .findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
               .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
+      // Re-categorizing an imported transaction resolves its review flag.
+      if (transaction.getTag() == null || !tag.getId().equals(transaction.getTag().getId())) {
+        transaction.setNeedsReview(false);
+      }
       transaction.setTag(tag);
     }
 
