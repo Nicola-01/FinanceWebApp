@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.service;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
+import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
 import dev.busato.FinanceWebApp.backend.repository.EmailChangeRequestRepository;
 import dev.busato.FinanceWebApp.backend.repository.PersonalAccessTokenRepository;
 import dev.busato.FinanceWebApp.backend.repository.PushSubscriptionRepository;
@@ -33,6 +34,7 @@ public class AccountDeletionService {
   private final WalletRepository walletRepository;
   private final WalletAccessRepository walletAccessRepository;
   private final SubscriptionRepository subscriptionRepository;
+  private final BankConnectionRepository bankConnectionRepository;
   private final PersonalAccessTokenRepository patRepository;
   private final EmailChangeRequestRepository emailChangeRepository;
   private final PushSubscriptionRepository pushSubscriptionRepository;
@@ -137,6 +139,7 @@ public class AccountDeletionService {
       // cascade, so remove them first; the wallet delete then cascades tags, transactions and
       // remaining access rows.
       subscriptionRepository.deleteAllByWalletId(wallet.getId());
+      bankConnectionRepository.deleteAll(bankConnectionRepository.findByWalletId(wallet.getId()));
       walletRepository.delete(wallet);
     }
   }
