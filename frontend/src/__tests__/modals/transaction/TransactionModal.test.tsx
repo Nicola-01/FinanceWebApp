@@ -17,7 +17,7 @@ vi.mock("../../../modals/transaction/TagPicker.tsx", () => ({
 vi.mock("../../../components/ui/AmountInput.tsx", () => ({
   AmountInput: () => <div />,
 }));
-vi.mock("../../../modals/transaction/ExchangeRateSection.tsx", () => ({
+vi.mock("../../../modals/common/exchangeRate/ExchangeRateSection.tsx", () => ({
   ExchangeRateSection: () => <div />,
 }));
 vi.mock("../../../components/ui/TransactionTypeToggle.tsx", () => ({

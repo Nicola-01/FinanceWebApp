@@ -6,7 +6,7 @@ import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import {
   CalendarDayDetailPanel,
   type DayDetailModalHandle,
-} from "../../modals/calendar/CalendarDayDetailModal.tsx";
+} from "../../modals/calendar/CalendarDayDetailPanel.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { buildCalendarGrid } from "./buildCalendarGrid";
 import { CalendarDayCell } from "./CalendarDayCell";
