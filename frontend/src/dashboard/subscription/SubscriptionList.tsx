@@ -10,6 +10,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  applyTransactionToSubscription,
+  getDaysLeft,
+} from "../../utils/subscriptionHelper";
 
 interface SubscriptionListProps {
   subscriptions: Subscription[];
@@ -70,22 +74,13 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const getDaysLeft = (dateStr: string) => {
-    const nextDate = new Date(dateStr);
-    nextDate.setHours(0, 0, 0, 0);
-    return Math.ceil(
-      (nextDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-    );
-  };
+  // NaN keeps a missing date out of both groups (as before the helper was shared).
+  const daysLeft = (s: Subscription) => getDaysLeft(s.nextExecutionDate) ?? NaN;
 
   // --- UPCOMING SUBSCRIPTIONS ---
   const activeSubs = subscriptions.filter((s) => s.status !== "COMPLETED");
-  const within7Days = activeSubs.filter(
-    (s) => getDaysLeft(s.nextExecutionDate) <= 7,
-  );
-  const within31Days = activeSubs.filter(
-    (s) => getDaysLeft(s.nextExecutionDate) > 7,
-  );
+  const within7Days = activeSubs.filter((s) => daysLeft(s) <= 7);
+  const within31Days = activeSubs.filter((s) => daysLeft(s) > 7);
   const completedSubs = subscriptions.filter((s) => s.status === "COMPLETED");
 
   within7Days.sort(
@@ -234,16 +229,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
                         className="opacity-60 saturate-50 hover:opacity-100 hover:saturate-100 transition-all duration-300"
                       >
                         <SubscriptionCard
-                          subscription={{
-                            ...sub,
-                            amount: tx.amount,
-                            originalAmount:
-                              tx.originalAmount ?? sub.originalAmount,
-                            originalCurrency:
-                              tx.originalCurrency ?? sub.originalCurrency,
-                            exchangeValue:
-                              tx.exchangeValue ?? sub.exchangeValue,
-                          }}
+                          subscription={applyTransactionToSubscription(sub, tx)}
                           date={tx.transactionDate}
                           onClick={() =>
                             onTransactionClick && onTransactionClick(tx)
@@ -268,16 +254,10 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
                             className="opacity-60 saturate-50 hover:opacity-100 hover:saturate-100 transition-all duration-300"
                           >
                             <SubscriptionCard
-                              subscription={{
-                                ...sub,
-                                amount: tx.amount,
-                                originalAmount:
-                                  tx.originalAmount ?? sub.originalAmount,
-                                originalCurrency:
-                                  tx.originalCurrency ?? sub.originalCurrency,
-                                exchangeValue:
-                                  tx.exchangeValue ?? sub.exchangeValue,
-                              }}
+                              subscription={applyTransactionToSubscription(
+                                sub,
+                                tx,
+                              )}
                               date={tx.transactionDate}
                               onClick={() =>
                                 onTransactionClick && onTransactionClick(tx)

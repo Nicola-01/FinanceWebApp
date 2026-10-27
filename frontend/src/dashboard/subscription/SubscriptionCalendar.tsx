@@ -10,7 +10,10 @@ import {
   addDays,
 } from "date-fns";
 import type { Subscription, Transaction } from "../../types/domain";
-import { buildYearsMap } from "../../utils/subscriptionHelper";
+import {
+  applyTransactionToSubscription,
+  buildYearsMap,
+} from "../../utils/subscriptionHelper";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import {
@@ -166,16 +169,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
                       tx.transactionDate === format(calendarDay, "yyyy-MM-dd"),
                   );
                   const displaySub = pastTx
-                    ? {
-                        ...sub,
-                        amount: pastTx.amount,
-                        originalAmount:
-                          pastTx.originalAmount ?? sub.originalAmount,
-                        originalCurrency:
-                          pastTx.originalCurrency ?? sub.originalCurrency,
-                        exchangeValue:
-                          pastTx.exchangeValue ?? sub.exchangeValue,
-                      }
+                    ? applyTransactionToSubscription(sub, pastTx)
                     : sub;
                   return (
                     <TagBadge
