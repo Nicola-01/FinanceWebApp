@@ -13,6 +13,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPiggyBank } from "@fortawesome/free-solid-svg-icons";
 import { getApiErrorTitle } from "../utils/apiError";
 import { walletSlug } from "../utils/walletSlug";
+import { readWalletOrder } from "../utils/walletOrder";
 
 const UserDashboard: React.FC = () => {
   const { walletId } = useParams<{ walletId: string }>();
@@ -34,19 +35,13 @@ const UserDashboard: React.FC = () => {
       if (!walletId && fetchedWallets.length > 0) {
         let targetId = fetchedWallets[0].id;
 
-        const savedOrderStr = localStorage.getItem("wallet_order");
-        if (savedOrderStr) {
-          try {
-            const savedOrder = JSON.parse(savedOrderStr) as string[];
+        const savedOrder = readWalletOrder();
+        if (savedOrder) {
+          const firstValidSavedId = savedOrder.find((savedId) =>
+            fetchedWallets.some((wallet) => wallet.id === savedId),
+          );
 
-            const firstValidSavedId = savedOrder.find((savedId) =>
-              fetchedWallets.some((wallet) => wallet.id === savedId),
-            );
-
-            if (firstValidSavedId) targetId = firstValidSavedId;
-          } catch (e) {
-            console.error("Error parsing wallet_order from localStorage", e);
-          }
+          if (firstValidSavedId) targetId = firstValidSavedId;
         }
         const target = fetchedWallets.find((w) => w.id === targetId);
         if (target)

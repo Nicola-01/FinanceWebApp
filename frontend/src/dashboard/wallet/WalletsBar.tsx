@@ -1,4 +1,9 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from "react";
+import {
+  readWalletOrder,
+  sortWalletsBySavedOrder,
+  writeWalletOrder,
+} from "../../utils/walletOrder.ts";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Badge } from "../../components/ui/Badge";
@@ -142,40 +147,25 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
   // --- 1. Apply the saved wallet order from localStorage on load ---
   useEffect(() => {
     if (!loading && wallets.length > 0) {
-      const savedOrderStr = localStorage.getItem("wallet_order");
+      const savedOrder = readWalletOrder();
 
-      if (savedOrderStr) {
-        try {
-          const savedOrder = JSON.parse(savedOrderStr) as string[];
+      if (savedOrder) {
+        const sortedWallets = sortWalletsBySavedOrder(wallets, savedOrder);
 
-          const sortedWallets = [...wallets].sort((a, b) => {
-            const indexA = savedOrder.indexOf(a.id);
-            const indexB = savedOrder.indexOf(b.id);
+        const currentIds = wallets.map((w) => w.id).join(",");
+        const sortedIds = sortedWallets.map((w) => w.id).join(",");
 
-            if (indexA === -1 && indexB === -1) return 0;
-            if (indexA === -1) return 1;
-            if (indexB === -1) return -1;
+        const newOrder = sortedWallets.map((w) => w.id);
 
-            return indexA - indexB;
-          });
+        // Only update state when the order actually changed.
+        if (currentIds !== sortedIds) {
+          setWallets(sortedWallets);
+        }
 
-          const currentIds = wallets.map((w) => w.id).join(",");
-          const sortedIds = sortedWallets.map((w) => w.id).join(",");
-
-          const newOrderStr = JSON.stringify(sortedWallets.map((w) => w.id));
-
-          // Only update state when the order actually changed.
-          if (currentIds !== sortedIds) {
-            setWallets(sortedWallets);
-          }
-
-          // Rewrite the stored order when it drifted
-          // (e.g. deleted wallets, or new ones appended at the end).
-          if (newOrderStr !== savedOrderStr) {
-            localStorage.setItem("wallet_order", newOrderStr);
-          }
-        } catch (e) {
-          console.error("Error parsing wallet_order from localStorage", e);
+        // Rewrite the stored order when it drifted
+        // (e.g. deleted wallets, or new ones appended at the end).
+        if (JSON.stringify(newOrder) !== JSON.stringify(savedOrder)) {
+          writeWalletOrder(newOrder);
         }
       }
     }
@@ -221,10 +211,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
         const oldIndex = items.findIndex((i) => i.id === active.id);
         const newIndex = items.findIndex((i) => i.id === over.id);
         const newArray = arrayMove(items, oldIndex, newIndex);
-        localStorage.setItem(
-          "wallet_order",
-          JSON.stringify(newArray.map((w) => w.id)),
-        );
+        writeWalletOrder(newArray.map((w) => w.id));
         return newArray;
       });
     }
