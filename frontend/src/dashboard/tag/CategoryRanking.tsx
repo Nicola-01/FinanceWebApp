@@ -9,53 +9,10 @@ import type { Transaction } from "../../types/domain.ts";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { OTHER_COLOR } from "./categoryAgg.ts";
 import { formatAmount } from "../../utils/format.ts";
+import { buildRanking, type RankItem } from "./categoryChartData.ts";
 
 const INITIAL_VISIBLE = 7;
 const STEP = 5;
-
-interface RankItem {
-  key: string;
-  name: string;
-  value: number;
-  color: string;
-  icon: string;
-}
-
-/**
- * Ranks the given transactions by their ACTUAL tag — the leaf assigned, or a parent tag used
- * directly on a transaction — NOT rolled up to the parent category. Each tag keeps its own
- * colour/icon. Sorted by amount, descending.
- */
-function buildRanking(txs: Transaction[]): {
-  items: RankItem[];
-  total: number;
-} {
-  const map = new Map<string, RankItem>();
-  let total = 0;
-
-  txs.forEach((tx) => {
-    total += tx.amount;
-    // Unique per actual tag: a child and a same-named tag under another parent stay distinct.
-    const key = tx.tag.parentName
-      ? `${tx.tag.parentName}/${tx.tag.name}`
-      : tx.tag.name;
-    const cur = map.get(key);
-    if (!cur) {
-      map.set(key, {
-        key,
-        name: tx.tag.name,
-        value: tx.amount,
-        color: tx.tag.colorHex,
-        icon: tx.tag.icon,
-      });
-    } else {
-      cur.value += tx.amount;
-    }
-  });
-
-  const items = Array.from(map.values()).sort((a, b) => b.value - a.value);
-  return { items, total };
-}
 
 const RankRow: React.FC<{
   item: RankItem;
