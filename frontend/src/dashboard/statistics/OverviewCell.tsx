@@ -3,18 +3,21 @@ import { formatAmount } from "../../utils/format.ts";
 
 export type CellType = "income" | "expense" | "balance";
 
-interface OverviewCellProps {
+interface OverviewCellContentProps {
   value: number;
   type: CellType;
   isBold?: boolean;
+}
+
+interface OverviewCellProps extends OverviewCellContentProps {
   className?: string;
 }
 
-export const OverviewCell: React.FC<OverviewCellProps> = ({
+/** The formatted value span, without the `<td>` wrapper. */
+export const OverviewCellContent: React.FC<OverviewCellContentProps> = ({
   value,
   type,
   isBold = false,
-  className = "",
 }) => {
   const hasData = value !== 0;
   let color = "text-app-muted/30";
@@ -37,14 +40,21 @@ export const OverviewCell: React.FC<OverviewCellProps> = ({
   }
 
   return (
-    <td className={`text-center px-1 py-3 ${className}`.trim()}>
-      <span
-        className={`text-xs md:text-sm whitespace-nowrap ${isBold ? "font-bold" : "font-medium"} ${color}`}
-      >
-        {hasData
-          ? `${prefix}${formatAmount(displayValue, { zeroAsDash: true })}`
-          : "—"}
-      </span>
-    </td>
+    <span
+      className={`text-xs md:text-sm whitespace-nowrap ${isBold ? "font-bold" : "font-medium"} ${color}`}
+    >
+      {hasData
+        ? `${prefix}${formatAmount(displayValue, { zeroAsDash: true })}`
+        : "—"}
+    </span>
   );
 };
+
+export const OverviewCell: React.FC<OverviewCellProps> = ({
+  className = "",
+  ...content
+}) => (
+  <td className={`text-center px-1 py-3 ${className}`.trim()}>
+    <OverviewCellContent {...content} />
+  </td>
+);
