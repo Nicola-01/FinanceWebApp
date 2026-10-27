@@ -115,7 +115,11 @@ public class BankSyncService {
         int s = e.status();
         if (s == 401 || s == 403) c.setStatus(BankConnection.Status.EXPIRED);
         else if (s >= 400 && s < 500 && s != 429) c.setStatus(BankConnection.Status.ERROR);
-        c.setLastError(e.getMessage());
+        // Fixed text: the exception message carries the request path (account uid).
+        c.setLastError(
+            s >= 400 && s < 500 && s != 429
+                ? "Bank rejected the request (HTTP " + s + ")"
+                : "Bank temporarily unavailable");
         log.warn("Bank sync of connection {} failed with status {}", c.getId(), s);
         // Earlier links' imports still commit; this link saved nothing (rows are fetched first).
         return result(c, imported);

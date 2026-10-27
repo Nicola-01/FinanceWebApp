@@ -264,12 +264,15 @@ class BankSyncServiceTest {
     SyncResult transientRes = service.syncConnection(conn, null);
     assertThat(transientRes.status()).isEqualTo(BankConnection.Status.ACTIVE);
     assertThat(connectionRepository.findById(conn.getId()).orElseThrow().getLastError())
-        .isNotNull();
+        .isEqualTo("Bank temporarily unavailable");
 
     doThrow(new EnableBankingException(400, "bad"))
         .when(client)
         .getTransactions(any(), any(), any(), any());
     assertThat(service.syncConnection(conn, null).status()).isEqualTo(BankConnection.Status.ERROR);
+    // fixed, non-identifying text: never the bank's message or the request path
+    assertThat(connectionRepository.findById(conn.getId()).orElseThrow().getLastError())
+        .isEqualTo("Bank rejected the request (HTTP 400)");
   }
 
   @Test

@@ -27,7 +27,12 @@ public class BankAccountLink {
   @EqualsAndHashCode.Exclude
   private BankConnection connection;
 
+  /** Session-scoped: replaced on every renew. */
   private String accountUid;
+
+  /** Stable across sessions; the key used to re-match the account on renew. */
+  private String identificationHash;
+
   private String displayName;
 
   /** Masked for display, e.g. "IT•••• 1234". */

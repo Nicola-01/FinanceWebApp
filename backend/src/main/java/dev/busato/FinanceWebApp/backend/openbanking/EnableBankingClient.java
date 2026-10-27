@@ -263,7 +263,8 @@ public class EnableBankingClient {
                             a.uid,
                             a.accountId == null ? null : a.accountId.iban,
                             a.name,
-                            a.currency))
+                            a.currency,
+                            a.identificationHash))
                 .toList();
     return new EbSession(r.sessionId, accounts);
   }
@@ -281,7 +282,11 @@ public class EnableBankingClient {
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   private record RawAccount(
-      String uid, @JsonProperty("account_id") RawIban accountId, String name, String currency) {}
+      String uid,
+      @JsonProperty("account_id") RawIban accountId,
+      String name,
+      String currency,
+      @JsonProperty("identification_hash") String identificationHash) {}
 
   @JsonIgnoreProperties(ignoreUnknown = true)
   private record RawSession(

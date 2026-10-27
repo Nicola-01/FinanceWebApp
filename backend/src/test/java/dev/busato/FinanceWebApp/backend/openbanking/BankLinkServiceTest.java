@@ -146,7 +146,29 @@ class BankLinkServiceTest {
   }
 
   static EbAccount account(String uid) {
-    return new EbAccount(uid, "IT60X0542811101000000123456", "Main", "EUR");
+    return account(uid, "hash-" + uid);
+  }
+
+  static EbAccount account(String uid, String hash) {
+    return new EbAccount(uid, "IT60X0542811101000000123456", "Main", "EUR", hash);
+  }
+
+  static EbTransactionPage page(String ref) {
+    return new EbTransactionPage(
+        List.of(
+            new EbTransaction(
+                ref,
+                null,
+                new BigDecimal("9.99"),
+                "EUR",
+                "DBIT",
+                "BOOK",
+                TODAY,
+                TODAY,
+                "Shop",
+                null,
+                List.of())),
+        null);
   }
 
   @Test
@@ -299,6 +321,111 @@ class BankLinkServiceTest {
     assertThat(res.validUntil()).isEqualTo(NOW.plus(Duration.ofDays(180)));
     assertThat(connectionRepository.findById(id).orElseThrow().getSessionId()).isEqualTo("s2");
     verify(client).deleteSession("s1");
+  }
+
+  @Test
+  void renewMatchesAccountsByIdentificationHashAcrossSessions() {
+    String state = connect();
+    when(client.createSession("c1")).thenReturn(new EbSession("s1", List.of(account("u1", "H"))));
+    when(client.getTransactions(eq("u1"), any(), any(), any())).thenReturn(page("r1"));
+    UUID id = service.callback(owner.getId(), new CallbackRequest("c1", state), null).id();
+    UUID linkId = connectionRepository.findById(id).orElseThrow().getAccounts().get(0).getId();
+    assertThat(transactionRepository.getAllByWalletId(wallet.getId())).hasSize(1);
+
+    // the new session exposes the same account under a new, session-scoped uid
+    String url = service.renew(owner.getId(), id).url();
+    String newState = url.substring(url.indexOf("state=") + 6);
+    when(client.createSession("c2")).thenReturn(new EbSession("s2", List.of(account("u2", "H"))));
+    when(client.getTransactions(eq("u2"), any(), any(), any())).thenReturn(page("r1"));
+    BankConnectionResponse res =
+        service.callback(owner.getId(), new CallbackRequest("c2", newState), null);
+
+    assertThat(res.accounts()).hasSize(1);
+    assertThat(res.accounts().get(0).id()).isEqualTo(linkId);
+    BankConnection c = connectionRepository.findById(id).orElseThrow();
+    assertThat(c.getAccounts().get(0).getAccountUid()).isEqualTo("u2");
+    // the row already imported through the old uid is not imported again
+    assertThat(service.sync(owner.getId(), id, null).imported()).isZero();
+    assertThat(transactionRepository.getAllByWalletId(wallet.getId())).hasSize(1);
+  }
+
+  @Test
+  void renewFallsBackToIbanWhenHashMissing() {
+    String state = connect();
+    when(client.createSession("c1")).thenReturn(new EbSession("s1", List.of(account("u1", null))));
+    UUID id = service.callback(owner.getId(), new CallbackRequest("c1", state), null).id();
+    String url = service.renew(owner.getId(), id).url();
+    when(client.createSession("c2")).thenReturn(new EbSession("s2", List.of(account("u9", null))));
+    service.callback(
+        owner.getId(), new CallbackRequest("c2", url.substring(url.indexOf("state=") + 6)), null);
+
+    BankConnection c = connectionRepository.findById(id).orElseThrow();
+    assertThat(c.getAccounts()).extracting("accountUid").containsExactly("u9");
+  }
+
+  @Test
+  void renewWithDifferentHashSameLastFourAddsSecondLink() {
+    String state = connect();
+    when(client.createSession("c1")).thenReturn(new EbSession("s1", List.of(account("u1", "H1"))));
+    UUID id = service.callback(owner.getId(), new CallbackRequest("c1", state), null).id();
+    String url = service.renew(owner.getId(), id).url();
+    when(client.createSession("c2"))
+        .thenReturn(new EbSession("s2", List.of(account("u1", "H1"), account("u2", "H2"))));
+    service.callback(
+        owner.getId(), new CallbackRequest("c2", url.substring(url.indexOf("state=") + 6)), null);
+
+    assertThat(connectionRepository.findById(id).orElseThrow().getAccounts())
+        .extracting("identificationHash")
+        .containsExactlyInAnyOrder("H1", "H2");
+  }
+
+  @Test
+  void coOwnerRenewTakesOverAndRevivesPausedConnection() {
+    String state = connect();
+    when(client.createSession("c1")).thenReturn(new EbSession("s1", List.of(account("u1"))));
+    UUID id = service.callback(owner.getId(), new CallbackRequest("c1", state), null).id();
+    User coOwner = user("link-coowner@example.com", true);
+    grant(coOwner, WalletAccess.WalletRole.OWNER);
+    connectionRepository.findById(id).orElseThrow().setStatus(BankConnection.Status.PAUSED);
+
+    String url = service.renew(coOwner.getId(), id).url();
+    String newState = url.substring(url.indexOf("state=") + 6);
+    when(client.createSession("c2")).thenReturn(new EbSession("s2", List.of(account("u1"))));
+    // only the user who started the renew may complete it
+    assertThatThrownBy(
+            () -> service.callback(owner.getId(), new CallbackRequest("c2", newState), null))
+        .isInstanceOf(PermissionDeniedException.class);
+    BankConnectionResponse res =
+        service.callback(coOwner.getId(), new CallbackRequest("c2", newState), null);
+
+    assertThat(res.status()).isEqualTo(BankConnection.Status.ACTIVE);
+    BankConnection c = connectionRepository.findById(id).orElseThrow();
+    assertThat(c.getCreatedBy().getId()).isEqualTo(coOwner.getId());
+    assertThat(c.getPendingInitiator()).isNull();
+  }
+
+  @Test
+  void callbackRequiresAcceptedOwner() {
+    String state = connect();
+    WalletAccess a =
+        walletAccessRepository.findByUserIdAndWalletId(owner.getId(), wallet.getId()).orElseThrow();
+    a.setStatus(WalletAccess.InvitationStatus.PENDING);
+    assertThatThrownBy(
+            () -> service.callback(owner.getId(), new CallbackRequest("code", state), null))
+        .isInstanceOf(PermissionDeniedException.class);
+  }
+
+  @Test
+  void syncWhenClientNotConfigured() {
+    String state = connect();
+    when(client.createSession("code")).thenReturn(new EbSession("s1", List.of(account("u1"))));
+    UUID id = service.callback(owner.getId(), new CallbackRequest("code", state), null).id();
+    connectionRepository.findById(id).orElseThrow().getAccounts().get(0).setLastSyncedAt(null);
+    when(client.configured()).thenReturn(false);
+
+    assertThatThrownBy(() -> service.sync(owner.getId(), id, null))
+        .isInstanceOf(OpenBankingDisabledException.class);
+    assertThat(service.syncIfStale(owner.getId(), wallet.getId(), null)).isEmpty();
   }
 
   @Test

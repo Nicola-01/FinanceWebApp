@@ -18,7 +18,13 @@ public final class EbDtos {
       String country,
       @JsonProperty("maximum_consent_validity") Long maximumConsentValidity) {}
 
-  public record EbAccount(String uid, String iban, String name, String currency) {}
+  /**
+   * {@code uid} is only valid within its session; {@code identificationHash} identifies the same
+   * account across sessions (EnableBanking: "can be used for matching accounts between multiple
+   * sessions").
+   */
+  public record EbAccount(
+      String uid, String iban, String name, String currency, String identificationHash) {}
 
   public record EbSession(String sessionId, List<EbAccount> accounts) {}
 

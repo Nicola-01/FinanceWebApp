@@ -5,6 +5,7 @@ import dev.busato.FinanceWebApp.backend.exceptions.PermissionDeniedException;
 import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
 import dev.busato.FinanceWebApp.backend.model.User;
+import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.BankConnectionResponse;
 import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.CallbackRequest;
 import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.ConnectRequest;
@@ -17,18 +18,17 @@ import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbSession;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.PsuContext;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
+import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import dev.busato.FinanceWebApp.backend.security.WalletSecurity;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -57,6 +57,7 @@ public class BankLinkService {
   private final BankConnectionRepository connectionRepository;
   private final UserRepository userRepository;
   private final WalletRepository walletRepository;
+  private final WalletAccessRepository walletAccessRepository;
   private final WalletSecurity walletSecurity;
   private final TransactionTemplate tx;
   private final Clock clock;
@@ -113,6 +114,7 @@ public class BankLinkService {
                     .aspspCountry(aspsp.country())
                     .state(state)
                     .pendingValidUntil(validUntil)
+                    .pendingInitiator(userId)
                     .importFrom(req.importFrom())
                     .status(BankConnection.Status.PENDING)
                     .build()));
@@ -129,9 +131,10 @@ public class BankLinkService {
     String url = client.startAuth(aspsp, validUntil, redirectUrl(), state);
     tx.executeWithoutResult(
         s -> {
-          BankConnection fresh = load(connectionId);
+          BankConnection fresh = lockForUpdate(connectionId);
           fresh.setState(state); // replaces (invalidates) any earlier outstanding state
           fresh.setPendingValidUntil(validUntil);
+          fresh.setPendingInitiator(userId);
         });
     return new UrlResponse(url);
   }
@@ -145,9 +148,15 @@ public class BankLinkService {
               BankConnection c =
                   connectionRepository
                       .findByState(req.state())
-                      .filter(x -> x.getCreatedBy().getId().equals(userId))
+                      .filter(x -> userId.equals(x.getPendingInitiator()))
                       .orElseThrow(() -> new PermissionDeniedException(BAD_STATE));
-              walletSecurity.isWalletOwner(userId, c.getWallet().getId());
+              boolean acceptedOwner =
+                  walletAccessRepository
+                      .findByWalletIdAndUserId(c.getWallet().getId(), userId)
+                      .filter(a -> a.getRole() == WalletAccess.WalletRole.OWNER)
+                      .filter(a -> a.getStatus() == WalletAccess.InvitationStatus.ACCEPTED)
+                      .isPresent();
+              if (!acceptedOwner) throw new PermissionDeniedException(BAD_STATE);
               requireFeature(userId);
               // Atomic compare-and-clear: of two concurrent callbacks only one gets a row.
               if (connectionRepository.clearState(c.getId(), req.state()) != 1)
@@ -173,24 +182,33 @@ public class BankLinkService {
     String oldSession =
         tx.execute(
             s -> {
-              BankConnection c = load(id);
+              BankConnection c = lockForUpdate(id);
               String previous = c.getSessionId();
+              // The initiator's consent now backs the connection (also revives a PAUSED one).
+              c.setCreatedBy(userRepository.getReferenceById(userId));
+              c.setPendingInitiator(null);
               c.setSessionId(session.sessionId());
               c.setValidUntil(c.getPendingValidUntil());
               c.setPendingValidUntil(null);
               c.setExpiryWarnedAt(null);
-              Map<String, BankAccountLink> byUid =
-                  c.getAccounts().stream()
-                      .collect(
-                          Collectors.toMap(BankAccountLink::getAccountUid, Function.identity()));
+              List<BankAccountLink> unmatched = new ArrayList<>(c.getAccounts());
               for (EbAccount a : found) {
-                if (byUid.containsKey(a.uid())) continue; // renew: keep link, counters, ledger
                 String masked = maskIban(a.iban());
+                BankAccountLink link = match(unmatched, a, masked);
+                if (link != null) {
+                  // renew: same account under a new session uid; keep id, counters, ledger
+                  unmatched.remove(link);
+                  link.setAccountUid(a.uid());
+                  if (a.identificationHash() != null)
+                    link.setIdentificationHash(a.identificationHash());
+                  continue;
+                }
                 c.getAccounts()
                     .add(
                         BankAccountLink.builder()
                             .connection(c)
                             .accountUid(a.uid())
+                            .identificationHash(a.identificationHash())
                             .displayName(
                                 a.name() != null ? a.name() : masked != null ? masked : "Account")
                             .maskedIban(masked)
@@ -218,11 +236,13 @@ public class BankLinkService {
   public SyncResult sync(UUID userId, UUID connectionId, PsuContext psu) {
     BankConnection c = load(connectionId);
     walletSecurity.hasWriteAccess(userId, c.getWallet().getId());
+    if (!client.configured()) throw new OpenBankingDisabledException();
     return syncService.syncConnection(c, psu);
   }
 
   public List<SyncResult> syncIfStale(UUID userId, UUID walletId, PsuContext psu) {
     walletSecurity.hasReadAccess(userId, walletId);
+    if (!client.configured()) return List.of();
     return syncService.syncWalletIfStale(walletId, psu);
   }
 
@@ -246,6 +266,34 @@ public class BankLinkService {
     String s = iban.replace(" ", "");
     if (s.length() < 8) return "••••";
     return s.substring(0, 2) + "•••• " + s.substring(s.length() - 4);
+  }
+
+  /**
+   * Existing link for a session account: by identification hash, then by masked IBAN when that is
+   * unambiguous among the remaining links, then by uid.
+   */
+  private static BankAccountLink match(List<BankAccountLink> links, EbAccount a, String masked) {
+    if (a.identificationHash() != null)
+      for (BankAccountLink l : links)
+        if (a.identificationHash().equals(l.getIdentificationHash())) return l;
+    // Fallbacks only where a hash is missing on either side: two different hashes are two accounts.
+    List<BankAccountLink> rest =
+        links.stream()
+            .filter(l -> a.identificationHash() == null || l.getIdentificationHash() == null)
+            .toList();
+    if (masked != null) {
+      List<BankAccountLink> same =
+          rest.stream().filter(l -> masked.equals(l.getMaskedIban())).toList();
+      if (same.size() == 1) return same.get(0);
+    }
+    for (BankAccountLink l : rest) if (Objects.equals(a.uid(), l.getAccountUid())) return l;
+    return null;
+  }
+
+  private BankConnection lockForUpdate(UUID connectionId) {
+    return connectionRepository
+        .findByIdForUpdate(connectionId)
+        .orElseThrow(() -> new PermissionDeniedException("Bank connection not accessible"));
   }
 
   private BankConnection load(UUID connectionId) {

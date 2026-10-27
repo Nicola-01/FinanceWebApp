@@ -156,11 +156,11 @@ class EnableBankingClientTest {
         .andExpect(r -> assertThat(r.getMethod()).isEqualTo(HttpMethod.POST))
         .andRespond(
             withSuccess(
-                "{\"session_id\":\"s\",\"accounts\":[],\"accounts_data\":[{\"uid\":\"u1\",\"account_id\":{\"iban\":\"IT00\"},\"currency\":\"EUR\"}]}",
+                "{\"session_id\":\"s\",\"accounts\":[],\"accounts_data\":[{\"uid\":\"u1\",\"identification_hash\":\"h1\",\"account_id\":{\"iban\":\"IT00\"},\"currency\":\"EUR\"}]}",
                 MediaType.APPLICATION_JSON));
     EbSession s = c.createSession("code");
     assertThat(s.sessionId()).isEqualTo("s");
-    assertThat(s.accounts()).containsExactly(new EbAccount("u1", "IT00", null, "EUR"));
+    assertThat(s.accounts()).containsExactly(new EbAccount("u1", "IT00", null, "EUR", "h1"));
   }
 
   @Test
