@@ -7,6 +7,7 @@ import type { Wallet, WalletPermState } from "../../types/domain";
 import api from "../../api/axiosConfig";
 import { getApiErrorDetail, isReplayError } from "../../utils/apiError";
 import type { OAuthParams } from "./useOAuthParams";
+import { applyPermissionLevel } from "../../modals/pat/walletPerms";
 
 /**
  * Consent-page flow: login/param/replay checks on mount, wallet permission
@@ -171,16 +172,7 @@ export function useOAuthAuthorize(params: OAuthParams) {
     walletId: string,
     level: "none" | "read" | "write",
   ) => {
-    setWalletPerms((prev) =>
-      prev.map((wp) => {
-        if (wp.walletId !== walletId) return wp;
-        if (level === "none")
-          return { ...wp, enabled: false, read: false, write: false };
-        if (level === "read")
-          return { ...wp, enabled: true, read: true, write: false };
-        return { ...wp, enabled: true, read: true, write: true };
-      }),
-    );
+    setWalletPerms((prev) => applyPermissionLevel(prev, walletId, level));
   };
 
   return {
