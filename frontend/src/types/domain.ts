@@ -8,6 +8,7 @@ export interface User {
   createdAt?: string;
   wallets?: number;
   transactions?: number;
+  openBankingEnabled?: boolean;
 }
 
 export interface Wallet {
@@ -43,6 +44,8 @@ export interface Transaction {
   tag: Tag;
   amount: number;
   amountPending?: boolean;
+  imported?: boolean;
+  needsReview?: boolean;
   originalAmount?: number;
   originalCurrency?: string;
   exchangeValue?: number;

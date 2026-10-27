@@ -23,6 +23,7 @@ import { usePushMessages } from "./push/usePushMessages.ts";
 import LandingPage from "./components/landing/LandingPage.tsx";
 import ToDoPage from "./components/todo/ToDoPage.tsx";
 import OAuthConsent from "./auth/OAuthConsent.tsx";
+import BankCallback from "./auth/BankCallback.tsx";
 import AuthLayout from "./auth/AuthLayout.tsx";
 
 const RootRedirect = () => {
@@ -88,6 +89,9 @@ const App: React.FC = () => {
 
               {/* Account & app settings (all authenticated users) */}
               <Route path="/settings" element={<SettingsPage />} />
+
+              {/* Return URL of the bank consent flow */}
+              <Route path="/bank/callback" element={<BankCallback />} />
 
               {/* Specific protected routes for ADMIN */}
               <Route element={<AdminRoute />}>

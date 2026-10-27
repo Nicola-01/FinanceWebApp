@@ -1,14 +1,20 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import Toggle from "../components/ui/Toggle.tsx";
 import type { User } from "../types/domain.ts";
 
 interface UserRowProps {
   user: User;
   onDelete: (user: User) => void;
+  onToggleOpenBanking: (user: User, enabled: boolean) => void;
 }
 
-const UserRow: React.FC<UserRowProps> = ({ user, onDelete }) => {
+const UserRow: React.FC<UserRowProps> = ({
+  user,
+  onDelete,
+  onToggleOpenBanking,
+}) => {
   // Format the join date as "25 Oct 2023"
   const formatDate = (dateString?: string) => {
     if (!dateString) return "-";
@@ -30,6 +36,13 @@ const UserRow: React.FC<UserRowProps> = ({ user, onDelete }) => {
       <td className="p-4.5 font-app-mono text-app-text">
         {" "}
         {user.transactions}{" "}
+      </td>
+      <td className="p-4.5">
+        <Toggle
+          checked={!!user.openBankingEnabled}
+          onChange={(next) => onToggleOpenBanking(user, next)}
+          aria-label={`Open Banking for ${user.name}`}
+        />
       </td>
       <td className="p-4.5">
         <button
