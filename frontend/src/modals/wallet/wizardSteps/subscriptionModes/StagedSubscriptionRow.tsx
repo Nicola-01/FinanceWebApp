@@ -1,22 +1,14 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faXmark,
-  faTriangleExclamation,
-  faPlus,
-  faChevronRight,
-  faChevronDown,
-} from "@fortawesome/free-solid-svg-icons";
-import Button from "../../../../components/ui/Button";
-import { CustomSelect } from "../../../../components/ui/CustomSelect";
-import { Icon } from "../../../../components/icon/Icon";
+import { faXmark, faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { TagBadge } from "../../../../components/ui/TagBadge";
 import { TagTreePicker } from "../../../../components/tags/TagTreePicker";
 import { AmountInput } from "../../../../components/ui/AmountInput";
 import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
 import { SchedulingRules } from "../../../common/SchedulingRules";
 import { findRecommendedTagWithParent } from "../recommendedTags";
+import { MissingTagActions, MissingTagChip } from "../MissingTagResolver";
 import { subscriptionTagUnresolved } from "./subscriptionTags";
 import { formatFrequency } from "./subscriptionSummary";
 import type { Tag } from "../../../../types/domain";
@@ -90,10 +82,6 @@ export function StagedSubscriptionRow({
     ? findRecommendedTagWithParent(sub.tag)
     : undefined;
   const parentName = recommended?.parent.name;
-  const tagIcon = recommended?.child.icon;
-  const tagColor = recommended?.child.colorHex;
-  const parentIcon = recommended?.parent.icon;
-  const parentColor = recommended?.parent.colorHex;
 
   // TagBadge resolves a parent from this list; the wizard has no WalletProvider.
   const contextTags: Tag[] = tags.map((t) => ({
@@ -102,19 +90,6 @@ export function StagedSubscriptionRow({
     colorHex: t.colorHex,
     parentName: t.parentName ?? null,
   }));
-
-  const tagOptions = [
-    { value: "", label: "Use an existing tag" },
-    ...tags.map((t) => ({
-      value: t.name,
-      label: (
-        <span className="flex items-center gap-2">
-          <Icon icon={t.icon} color={t.colorHex} />
-          {t.name}
-        </span>
-      ),
-    })),
-  ];
 
   return (
     <li className="px-3 py-2">
@@ -127,27 +102,9 @@ export function StagedSubscriptionRow({
           className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--r-sm)] py-1 text-left"
         >
           <span className="flex min-w-0 flex-1 flex-col gap-1">
-            {/* <span className="truncate text-sm text-app-text">
-              {sub.name || <span className="text-app-muted">(unnamed)</span>}
-            </span> */}
             <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
               {missing ? (
-                <span className="flex items-center gap-1 rounded-[var(--r-sm)] border border-app-yellow/40 bg-app-yellow/10 px-2 py-0.5 text-[11px] font-medium text-app-yellow">
-                  <FontAwesomeIcon
-                    icon={faTriangleExclamation}
-                    className="text-[10px]"
-                  />
-                  {sub.tag || "—"}
-                  {parentName && (
-                    <>
-                      <FontAwesomeIcon
-                        icon={faChevronRight}
-                        className="text-[8px] opacity-60"
-                      />
-                      <span className="opacity-80">{parentName}</span>
-                    </>
-                  )}
-                </span>
+                <MissingTagChip name={sub.tag || "—"} parentName={parentName} />
               ) : (
                 <TagBadge
                   tag={{
@@ -221,59 +178,16 @@ export function StagedSubscriptionRow({
                   ) : null}
                   .
                 </p>
-                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    aria-label={`Create tag ${sub.tag}`}
-                    onClick={onCreateTag}
-                  >
-                    <FontAwesomeIcon icon={faPlus} />
-                    <span className="inline-flex flex-wrap items-center justify-center gap-1">
-                      Create
-                      <span className="inline-flex items-center">
-                        &ldquo;
-                        {tagIcon && (
-                          <Icon
-                            icon={tagIcon}
-                            color={tagColor}
-                            className="mr-1 text-sm"
-                          />
-                        )}
-                        {sub.tag}&rdquo;
-                      </span>
-                      {parentName && (
-                        <>
-                          in
-                          <span className="inline-flex items-center">
-                            &ldquo;
-                            {parentIcon && (
-                              <Icon
-                                icon={parentIcon}
-                                color={parentColor}
-                                className="mr-1 text-sm"
-                              />
-                            )}
-                            {parentName}&rdquo;
-                          </span>
-                        </>
-                      )}
-                    </span>
-                  </Button>
-                  {tags.length > 0 && (
-                    <CustomSelect
-                      value=""
-                      onChange={(name) => {
-                        if (!name) return;
-                        onReassignTag(name);
-                      }}
-                      options={tagOptions}
-                      activeColor={accentColor}
-                      className="w-full rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3 py-2 text-sm text-app-text sm:w-56"
-                    />
-                  )}
-                </div>
+                <MissingTagActions
+                  name={sub.tag}
+                  recommended={recommended}
+                  tags={tags}
+                  placeholder="Use an existing tag"
+                  accentColor={accentColor}
+                  className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center"
+                  onCreate={onCreateTag}
+                  onReassign={onReassignTag}
+                />
               </div>
             ) : (
               <div
