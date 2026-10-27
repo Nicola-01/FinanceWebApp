@@ -1,10 +1,11 @@
-import React, { useState, useRef, forwardRef } from "react";
+import React, { useRef, forwardRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import type { Wallet } from "../../types/domain.ts";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { walletSlug } from "../../utils/walletSlug.ts";
+import { useRipple } from "../../components/ui/useRipple.ts";
 
 export interface WalletProps {
   wallet: Wallet;
@@ -22,9 +23,7 @@ export const WalletCardUI = forwardRef<
     { wallet, isSelected, onClick, isDragging, isOverlay, style, ...props },
     ref,
   ) => {
-    const [ripples, setRipples] = useState<
-      Array<{ x: number; y: number; id: number }>
-    >([]);
+    const { ripples, spawnRipple } = useRipple();
     // Remember how the last interaction started so the context-menu handler can
     // tell a mouse right-click (allow native menu) from a touch long-press
     // (which is the drag-reorder gesture — suppress the menu).
@@ -40,16 +39,7 @@ export const WalletCardUI = forwardRef<
       lastPointerType.current = e.pointerType;
       pointerDownPos.current = { x: e.clientX, y: e.clientY };
       if (isOverlay) return;
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      const newRipple = { x, y, id: Date.now() };
-      setRipples((prev) => [...prev, newRipple]);
-
-      setTimeout(() => {
-        setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
-      }, 600);
+      spawnRipple(e);
 
       if (props.onPointerDown) {
         props.onPointerDown(e);
