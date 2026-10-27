@@ -38,6 +38,7 @@ import { useDeleteModal } from "../../modals/common/DeleteModalContext.tsx";
 import { TagSelectorAddForm } from "../../components/tags/TagSelectorAddForm.tsx";
 import { CategoryParentRow } from "./CategoryParentRow.tsx";
 import { CategoryChildRow } from "./CategoryChildRow.tsx";
+import { AccentHoverButton } from "../../components/ui/AccentHoverButton.tsx";
 import {
   applyTagOrder,
   countTagUsage,
@@ -118,61 +119,43 @@ const AddCategoryButton: React.FC<{
   onClick: () => void;
   variant?: "main" | "sub";
 }> = ({ accentColor, label, onClick, variant = "main" }) => {
-  const [hover, setHover] = useState(false);
-
   if (variant === "sub") {
     return (
-      <button
-        type="button"
+      <AccentHoverButton
+        accentColor={accentColor}
+        hoverStyle={{ color: accentColor }}
         onClick={onClick}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
         className="flex items-center gap-2 self-start rounded-lg border border-dashed border-app-border/60 px-2.5 py-1.5 text-xs font-semibold text-app-muted transition-colors"
-        style={
-          hover
-            ? {
-                borderColor: accentColor,
-                backgroundColor: `${accentColor}14`,
-                color: accentColor,
-              }
-            : undefined
-        }
       >
         <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
         {label}
-      </button>
+      </AccentHoverButton>
     );
   }
 
   return (
-    <button
-      type="button"
+    <AccentHoverButton
+      accentColor={accentColor}
+      hoverStyle={{ color: "var(--color-app-text)" }}
       onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       className="flex w-full items-center gap-3 rounded-xl border border-dashed border-app-border/70 bg-transparent px-3 py-2.5 text-app-muted transition-colors"
-      style={
-        hover
-          ? {
-              borderColor: accentColor,
-              backgroundColor: `${accentColor}14`,
-              color: "var(--color-app-text)",
-            }
-          : undefined
-      }
     >
-      <span
-        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-app-input text-app-muted transition-colors"
-        style={
-          hover
-            ? { backgroundColor: `${accentColor}26`, color: accentColor }
-            : undefined
-        }
-      >
-        <FontAwesomeIcon icon={faPlus} className="text-sm" />
-      </span>
-      <span className="text-sm font-semibold">{label}</span>
-    </button>
+      {(hover) => (
+        <>
+          <span
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-app-input text-app-muted transition-colors"
+            style={
+              hover
+                ? { backgroundColor: `${accentColor}26`, color: accentColor }
+                : undefined
+            }
+          >
+            <FontAwesomeIcon icon={faPlus} className="text-sm" />
+          </span>
+          <span className="text-sm font-semibold">{label}</span>
+        </>
+      )}
+    </AccentHoverButton>
   );
 };
 
