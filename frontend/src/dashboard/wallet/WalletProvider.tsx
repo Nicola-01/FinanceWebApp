@@ -21,6 +21,7 @@ import {
   peek,
   invalidate,
 } from "../../api/walletDataCache";
+import { syncWalletIfStale } from "../../api/bankApi";
 import { applyPendingOps } from "../../sync/overlay";
 import { listOps, SYNC_QUEUE_CHANGED } from "../../sync/opsQueue";
 import type { PendingOp } from "../../utils/offlineDb";
@@ -231,6 +232,18 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     const onSynced = () => fetchData();
     window.addEventListener("offline-sync-complete", onSynced);
     return () => window.removeEventListener("offline-sync-complete", onSynced);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_wallet.id]);
+
+  // On open: pull fresh bank transactions in the background (server throttles via
+  // "if stale"), then reload only if something was imported. Errors are ignored.
+  useEffect(() => {
+    if (navigator.onLine === false) return;
+    syncWalletIfStale(_wallet.id)
+      .then((results) => {
+        if (results.some((r) => r.imported > 0)) fetchData();
+      })
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_wallet.id]);
 

@@ -18,11 +18,13 @@ type SortConfig = {
 interface UserDirectoryProps {
   users: User[];
   onDeleteClick: (user: User) => void; // Triggered when the trash icon is clicked
+  onToggleOpenBanking: (user: User, enabled: boolean) => void;
 }
 
 export const UserDirectory: React.FC<UserDirectoryProps> = ({
   users,
   onDeleteClick,
+  onToggleOpenBanking,
 }) => {
   // Local state for searching and sorting
   const [searchTerm, setSearchTerm] = useState("");
@@ -139,6 +141,9 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
                 />
               </th>
               <th className="sticky top-0 z-10 border-b border-app-border bg-app-card p-[18px] font-semibold text-app-muted">
+                Open Banking
+              </th>
+              <th className="sticky top-0 z-10 border-b border-app-border bg-app-card p-[18px] font-semibold text-app-muted">
                 Action
               </th>
             </tr>
@@ -146,7 +151,12 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
           <tbody>
             {processedUsers.length > 0 ? (
               processedUsers.map((user) => (
-                <UserRow key={user.id} user={user} onDelete={onDeleteClick} />
+                <UserRow
+                  key={user.id}
+                  user={user}
+                  onDelete={onDeleteClick}
+                  onToggleOpenBanking={onToggleOpenBanking}
+                />
               ))
             ) : (
               <tr>

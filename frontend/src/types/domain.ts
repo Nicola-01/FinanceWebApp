@@ -8,6 +8,7 @@ export interface User {
   createdAt?: string;
   wallets?: number;
   transactions?: number;
+  openBankingEnabled?: boolean;
 }
 
 export interface Wallet {
