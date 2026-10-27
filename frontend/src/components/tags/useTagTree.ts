@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useOutsideClick } from "../../hooks/useOutsideClick.ts";
 import type { Tag } from "../../types/domain.ts";
 
 export interface TagTreeSearchGroup {
@@ -23,19 +24,7 @@ export function useTagTree(tags: Tag[]) {
     setSearchQuery("");
   }, []);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        close();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, close]);
+  useOutsideClick(dropdownRef, close, isOpen);
 
   const rootTags = useMemo(() => tags.filter((t) => !t.parentName), [tags]);
 

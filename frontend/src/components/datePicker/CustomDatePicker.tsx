@@ -15,6 +15,7 @@ import {
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import CalendarContainer from "./CalendarContainer";
+import { useOutsideClick } from "../../hooks/useOutsideClick";
 
 export type DateRangeValue = { start: Date | null; end: Date | null };
 export type DatePickerValue = DateRangeValue | Date | null;
@@ -75,19 +76,12 @@ export default function CustomDatePicker({
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (popoverRef.current && !popoverRef.current.contains(target)) {
-        if (modalRef.current && modalRef.current.contains(target)) {
-          return;
-        }
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  useOutsideClick(popoverRef, (event) => {
+    if (modalRef.current && modalRef.current.contains(event.target as Node)) {
+      return;
+    }
+    setIsOpen(false);
+  });
 
   useEffect(() => {
     if (isMobile && isOpen && mobileDialogRef.current) {
