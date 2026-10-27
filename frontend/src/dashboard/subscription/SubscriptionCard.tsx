@@ -9,102 +9,18 @@ import {
   CURRENCY_META,
   type CurrencyCode,
 } from "../../utils/currencies/index.ts";
-import { differenceInMonths, differenceInYears } from "date-fns";
+import {
+  formatCompactFrequency,
+  getDaysLeft,
+  getDaysLeftColor,
+  getDaysLeftText,
+} from "../../utils/subscriptionHelper";
 
 interface SubscriptionCardProps {
   subscription: Subscription;
   date: string;
   onClick?: () => void;
 }
-
-// Ultra-compact frequency label (e.g. "mo", "yr", "2 wk").
-const formatCompactFrequency = (interval: number, type: string) => {
-  const i = interval && interval > 1 ? `${interval} ` : "";
-  switch (type.toUpperCase()) {
-    case "MONTHLY":
-      return `${i}mo`;
-    case "YEARLY":
-      return `${i}yr`;
-    case "WEEKLY":
-      return `${i}wk`;
-    case "DAILY":
-      return `${i}d`;
-    default:
-      return `${i}${type.toLowerCase().replace("ly", "")}`; // Fallback
-  }
-};
-
-// Days left until the next payment.
-const getDaysLeft = (nextDateStr?: string | null) => {
-  if (!nextDateStr) return null;
-  const nextDate = new Date(nextDateStr);
-  const today = new Date();
-
-  // Zero the times so only whole days count.
-  today.setHours(0, 0, 0, 0);
-  nextDate.setHours(0, 0, 0, 0);
-
-  const diffTime = nextDate.getTime() - today.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-};
-
-// Colour by how close the date is.
-const getDaysLeftColor = (days: number, isIncome: boolean) => {
-  if (days > 7) return "text-app-muted opacity-90";
-  if (days < 0) return "text-app-muted opacity-60";
-
-  if (!isIncome) {
-    if (days >= 4) return "text-app-yellow";
-    if (days >= 2) return "text-app-yellow";
-    return "text-app-red";
-  } else {
-    if (days >= 4) return "text-app-green/40";
-    if (days >= 2) return "text-app-green/70";
-    return "text-app-green";
-  }
-};
-
-const getDaysLeftText = (days: number, dateStr?: string | null) => {
-  if (days === 0) return "Today";
-  if (days === 1) return "Tomorrow";
-  if (days === -1) return "Yesterday";
-
-  if (!dateStr) {
-    return days > 1 ? `${days} days left` : `${Math.abs(days)} days ago`;
-  }
-
-  const targetDate = new Date(dateStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  targetDate.setHours(0, 0, 0, 0);
-
-  const isPast = days < 0;
-  const laterDate = isPast ? today : targetDate;
-  const earlierDate = isPast ? targetDate : today;
-
-  const months = differenceInMonths(laterDate, earlierDate);
-  const years = differenceInYears(laterDate, earlierDate);
-
-  const suffix = isPast ? "ago" : "left";
-
-  if (months < 1) {
-    return `${Math.abs(days)} days ${suffix}`;
-  }
-
-  if (years < 1) {
-    return months === 1 ? `1 month ${suffix}` : `${months} months ${suffix}`;
-  }
-
-  const remainingMonths = months % 12;
-  if (remainingMonths === 0) {
-    return years === 1 ? `1 year ${suffix}` : `${years} years ${suffix}`;
-  }
-
-  const yearText = years === 1 ? "1 year" : `${years} years`;
-  const monthText =
-    remainingMonths === 1 ? "1 month" : `${remainingMonths} months`;
-  return `${yearText} and ${monthText} ${suffix}`;
-};
 
 export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   subscription,
