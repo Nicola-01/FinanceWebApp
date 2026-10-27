@@ -1,3 +1,5 @@
+import { toLocalIsoDate } from "./localDate";
+
 /**
  * Frankfurter exchange-rate access, cached once per local day.
  *
@@ -24,12 +26,7 @@ interface CachedFxRate extends FxRate {
 }
 
 /** Today's local date as YYYY-MM-DD (not UTC — matches the user's day). */
-const todayKey = (): string => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate(),
-  ).padStart(2, "0")}`;
-};
+const todayKey = (): string => toLocalIsoDate(new Date());
 
 const cacheKey = (base: string, quote: string): string =>
   `fx_rate_${base}_${quote}`;

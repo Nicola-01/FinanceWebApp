@@ -20,6 +20,7 @@ import { findRecommendedTagWithParent } from "../recommendedTags";
 import { subscriptionTagUnresolved } from "./subscriptionTags";
 import { formatFrequency } from "./subscriptionSummary";
 import type { Tag } from "../../../../types/domain";
+import { parseLocalIsoDate, toLocalIsoDate } from "../../../../utils/localDate";
 import type {
   SubscriptionRequest,
   TagRequest,
@@ -27,15 +28,9 @@ import type {
 
 const tagKey = (s: string) => s.trim().toLowerCase();
 
-/** Local YYYY-MM-DD (no UTC shift, unlike `toISOString`). */
-const toIsoDate = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate(),
-  ).padStart(2, "0")}`;
-
-/** Parse a wallet-local YYYY-MM-DD back to a Date at local midnight. */
+/** Parse an optional wallet-local YYYY-MM-DD back to a Date at local midnight. */
 const parseIsoDate = (s?: string): Date | null =>
-  s ? new Date(`${s}T00:00:00`) : null;
+  s ? parseLocalIsoDate(s) : null;
 
 export interface StagedSubscriptionRowProps {
   /** The single staged subscription this row renders. */
@@ -324,7 +319,7 @@ export function StagedSubscriptionRow({
                         }
                         onChange={(val) => {
                           if (val instanceof Date)
-                            onEdit({ startDate: toIsoDate(val) });
+                            onEdit({ startDate: toLocalIsoDate(val) });
                         }}
                         triggerClassName="w-full h-full border-0 bg-transparent shadow-none px-3 py-2 text-app-text font-bold focus:outline-none"
                       />
@@ -347,14 +342,14 @@ export function StagedSubscriptionRow({
                     if (d === "TIMES" && sub.durationTimes == null)
                       patch.durationTimes = 1;
                     if (d === "UNTIL" && !sub.durationUntil)
-                      patch.durationUntil = toIsoDate(new Date());
+                      patch.durationUntil = toLocalIsoDate(new Date());
                     onEdit(patch);
                   }}
                   durationTimes={sub.durationTimes ?? 1}
                   onDurationTimesChange={(v) => onEdit({ durationTimes: v })}
                   durationUntil={parseIsoDate(sub.durationUntil)}
                   onDurationUntilChange={(d) =>
-                    onEdit({ durationUntil: toIsoDate(d) })
+                    onEdit({ durationUntil: toLocalIsoDate(d) })
                   }
                 />
               </div>

@@ -10,16 +10,11 @@ import {
   type FrequencyType,
 } from "../../../common/SchedulingRules";
 import { CURRENCY_META, type CurrencyCode } from "../../../../utils/currencies";
+import { toLocalIsoDate } from "../../../../utils/localDate";
 import type {
   SubscriptionRequest,
   TagRequest,
 } from "../../../../dashboard/settings/csvImport";
-
-/** Local YYYY-MM-DD (no UTC shift, unlike `toISOString`). */
-const toIsoDate = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate(),
-  ).padStart(2, "0")}`;
 
 const FIELD_LABEL =
   "mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted";
@@ -82,7 +77,7 @@ export function SubscriptionCreateMode({
       amount: parsedAmount,
       type,
       status: "ACTIVE",
-      startDate: toIsoDate(startDate),
+      startDate: toLocalIsoDate(startDate),
       frequencyType,
       frequencyInterval: Math.max(1, frequencyInterval),
       lastWorkingDayOfMonth: false,
@@ -91,7 +86,7 @@ export function SubscriptionCreateMode({
     };
     if (duration === "TIMES") sub.durationTimes = Math.max(1, durationTimes);
     if (duration === "UNTIL" && durationUntil)
-      sub.durationUntil = toIsoDate(durationUntil);
+      sub.durationUntil = toLocalIsoDate(durationUntil);
     onAdd(sub);
     // Reset the whole form back to its defaults so the next subscription starts clean.
     setTagName("");
