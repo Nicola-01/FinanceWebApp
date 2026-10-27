@@ -24,6 +24,7 @@ import { AdminPageHeader } from "./AdminPageHeader.tsx";
 import Button from "../components/ui/Button";
 import Toggle from "../components/ui/Toggle";
 import { CustomSelect } from "../components/ui/CustomSelect.tsx";
+import { useNow } from "../hooks/useNow.ts";
 
 // ─── Types (mirror the backend DTOs) ────────────────────────────────────────
 
@@ -486,7 +487,8 @@ const JobCard: React.FC<{
 const SystemTab: React.FC = () => {
   const [jobs, setJobs] = useState<ScheduledJobDTO[]>([]);
   const [loading, setLoading] = useState(true);
-  const [now, setNow] = useState(() => Date.now());
+  // One shared ticker drives every card's countdown.
+  const now = useNow();
 
   const loadJobs = useCallback(async () => {
     try {
@@ -502,12 +504,6 @@ const SystemTab: React.FC = () => {
   useEffect(() => {
     loadJobs();
   }, [loadJobs]);
-
-  // One shared ticker drives every card's countdown.
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const content = useMemo(() => {
     if (loading) {

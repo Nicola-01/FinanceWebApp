@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useNow } from "../hooks/useNow.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faClock, faCopy, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
@@ -24,12 +25,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({
   invites,
   onRevoke,
 }) => {
-  const [now, setNow] = useState(() => Date.now());
-
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const now = useNow();
 
   const getTimeRemaining = (expiresAt: string) => {
     const total = new Date(expiresAt).getTime() - now;
