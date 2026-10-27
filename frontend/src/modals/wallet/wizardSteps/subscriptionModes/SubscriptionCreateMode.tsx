@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "../../../../components/ui/Button";
+import { FieldLabel } from "../../../../components/ui/FieldLabel";
 import { AmountInput } from "../../../../components/ui/AmountInput";
 import { TagTreePicker } from "../../../../components/tags/TagTreePicker";
 import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
@@ -15,9 +16,6 @@ import type {
   SubscriptionRequest,
   TagRequest,
 } from "../../../../dashboard/settings/csvImport";
-
-const FIELD_LABEL =
-  "mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted";
 
 export interface SubscriptionCreateModeProps {
   /** Tags staged in the previous step — the only tags a custom subscription can use. */
@@ -136,7 +134,7 @@ export function SubscriptionCreateMode({
           />
         </div>
         <div>
-          <label className={FIELD_LABEL}>Start Date</label>
+          <FieldLabel>Start Date</FieldLabel>
           <CustomDatePicker
             key={resetNonce}
             isRange={false}

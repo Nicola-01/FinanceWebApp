@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWallet } from "@fortawesome/free-solid-svg-icons";
 import { Input } from "../../../components/ui/Input";
@@ -7,6 +7,8 @@ import { IconColorSelector } from "../../../components/icon/IconColorSelector";
 import { CurrencySelector } from "../../../components/selectors/CurrencySelector";
 import { ICONS, type IconKey } from "../../../utils/icons";
 import { WizardStepHeader } from "./WizardStepHeader";
+import { useOutsideClick } from "../../../hooks/useOutsideClick";
+import { FieldLabel } from "../../../components/ui/FieldLabel";
 
 export interface WalletBasicsValue {
   name: string;
@@ -31,18 +33,15 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  // Close the icon/colour popover on an outside click.
-  useEffect(() => {
-    if (!showSelectors) return;
-    const onDown = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (buttonRef.current?.contains(t) || selectorRef.current?.contains(t))
-        return;
-      setShowSelectors(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [showSelectors]);
+  // Close the icon/colour popover on an outside click (the trigger toggles it itself).
+  useOutsideClick(
+    selectorRef,
+    (e) => {
+      if (!buttonRef.current?.contains(e.target as Node))
+        setShowSelectors(false);
+    },
+    showSelectors,
+  );
 
   const set = (patch: Partial<WalletBasicsValue>) =>
     onChange({ ...value, ...patch });
@@ -91,9 +90,9 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
       </div>
 
       <div>
-        <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
+        <FieldLabel>
           Wallet Name <span className="text-app-red">*</span>
-        </label>
+        </FieldLabel>
         <Input
           type="text"
           placeholder="e.g. Personal Savings"
@@ -106,9 +105,7 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
       </div>
 
       <div>
-        <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-          Description
-        </label>
+        <FieldLabel>Description</FieldLabel>
         <Textarea
           placeholder="What is this wallet for?  (optional)"
           value={value.description}

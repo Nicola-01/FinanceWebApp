@@ -1,5 +1,6 @@
 import { TagTreePicker } from "../../../../components/tags/TagTreePicker";
 import { AmountInput } from "../../../../components/ui/AmountInput";
+import { FieldLabel } from "../../../../components/ui/FieldLabel";
 import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
 import { SchedulingRules } from "../../../common/SchedulingRules";
 import { durationChangePatch, parseIsoDate } from "./stagedSubscriptionEdits";
@@ -56,9 +57,7 @@ export function StagedSubscriptionEditor({
         />
 
         <div>
-          <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-            Start date
-          </label>
+          <FieldLabel>Start date</FieldLabel>
           <div className="flex h-12 rounded-xl border border-app-border bg-app-input shadow-inner transition-colors focus-within:border-[var(--brand-1)]">
             <CustomDatePicker
               isRange={false}
