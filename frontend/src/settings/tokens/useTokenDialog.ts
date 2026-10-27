@@ -4,6 +4,7 @@ import type { Wallet, PatToken, WalletPermState } from "../../types/domain";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { getApiErrorDetail } from "../../utils/apiError";
 import type { DialogView } from "./tokenHelpers";
+import { applyPermissionLevel } from "../../modals/pat/walletPerms";
 
 /**
  * Create / edit / show-once dialog state for a PAT. `onSaved` refreshes the
@@ -70,18 +71,7 @@ export function useTokenDialog(onSaved: () => void) {
     walletId: string,
     level: "none" | "read" | "write",
   ) => {
-    setWalletPerms((prev) =>
-      prev.map((w) =>
-        w.walletId === walletId
-          ? {
-              ...w,
-              enabled: level !== "none",
-              read: level !== "none",
-              write: level === "write",
-            }
-          : w,
-      ),
-    );
+    setWalletPerms((prev) => applyPermissionLevel(prev, walletId, level));
   };
 
   const handleSubmit = async () => {
