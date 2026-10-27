@@ -69,6 +69,23 @@ public class GlobalExceptionHandler {
     return buildErrorResponse(ex, HttpStatus.FORBIDDEN, "Permission Denied", request);
   }
 
+  @ExceptionHandler(OpenBankingDisabledException.class)
+  public ResponseEntity<ProblemDetail> handleOpenBankingDisabledException(
+      OpenBankingDisabledException ex, HttpServletRequest request) {
+    return buildErrorResponse(ex, HttpStatus.FORBIDDEN, "Open Banking Disabled", request);
+  }
+
+  // Explicit status (e.g. 400 for a bad bank request); otherwise the catch-all below turns it 500.
+  @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+  public ResponseEntity<ProblemDetail> handleResponseStatusException(
+      org.springframework.web.server.ResponseStatusException ex, HttpServletRequest request) {
+    ProblemDetail problemDetail =
+        ProblemDetail.forStatusAndDetail(ex.getStatusCode(), ex.getReason());
+    problemDetail.setInstance(URI.create(request.getRequestURI()));
+    problemDetail.setProperty("timestamp", LocalDateTime.now());
+    return ResponseEntity.status(ex.getStatusCode()).body(problemDetail);
+  }
+
   @ExceptionHandler(UnauthorizedAccessException.class)
   public ResponseEntity<ProblemDetail> handleUnauthorizedAccessException(
       UnauthorizedAccessException ex, HttpServletRequest request) {

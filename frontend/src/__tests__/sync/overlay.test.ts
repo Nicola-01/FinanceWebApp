@@ -156,6 +156,32 @@ describe("applyPendingOps", () => {
     expect(result.transactions.find((t) => t.id === "tx2")).toBe(tx2);
   });
 
+  it("3b. a tag change clears needsReview, a same-tag update keeps it", () => {
+    const data = buildData();
+    data.transactions = [{ ...tx1, needsReview: true }, tx2];
+
+    const retagged = applyPendingOps(data, [
+      makeOp({
+        entityType: "transaction",
+        entityKey: "tx1",
+        op: "update",
+        payload: { tag: "Snacks" },
+      }),
+    ]).transactions.find((t) => t.id === "tx1");
+    expect(retagged?.tag).toEqual(snacksTag);
+    expect(retagged?.needsReview).toBe(false);
+
+    const sameTag = applyPendingOps(data, [
+      makeOp({
+        entityType: "transaction",
+        entityKey: "tx1",
+        op: "update",
+        payload: { tag: "Food", amount: 5 },
+      }),
+    ]).transactions.find((t) => t.id === "tx1");
+    expect(sameTag?.needsReview).toBe(true);
+  });
+
   it("4. transaction delete removes the row", () => {
     const data = buildData();
     const op = makeOp({

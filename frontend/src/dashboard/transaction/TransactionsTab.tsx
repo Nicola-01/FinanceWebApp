@@ -1,6 +1,7 @@
 import React from "react";
 import { TransactionsTable } from "./TransactionsTable.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { selectToCategorize } from "../wallet/toCategorize";
 
 export const TransactionsTab: React.FC = () => {
   const {
@@ -8,6 +9,7 @@ export const TransactionsTab: React.FC = () => {
     isLoading,
     tags,
     fetchData,
+    transactions,
     filteredTransactions,
     pendingTransactions,
   } = useWalletContext();
@@ -22,6 +24,7 @@ export const TransactionsTab: React.FC = () => {
             tags={tags}
             transactions={filteredTransactions}
             pendingTransactions={pendingTransactions}
+            toCategorize={selectToCategorize(transactions)}
             onRefresh={onRefresh}
             isLoading={isLoading}
           />

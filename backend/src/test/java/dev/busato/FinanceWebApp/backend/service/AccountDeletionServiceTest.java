@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.when;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
+import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
 import dev.busato.FinanceWebApp.backend.repository.EmailChangeRequestRepository;
 import dev.busato.FinanceWebApp.backend.repository.PersonalAccessTokenRepository;
 import dev.busato.FinanceWebApp.backend.repository.PushSubscriptionRepository;
@@ -38,6 +40,7 @@ class AccountDeletionServiceTest {
   @Mock private WalletRepository walletRepository;
   @Mock private WalletAccessRepository walletAccessRepository;
   @Mock private SubscriptionRepository subscriptionRepository;
+  @Mock private BankConnectionRepository bankConnectionRepository;
   @Mock private PersonalAccessTokenRepository patRepository;
   @Mock private EmailChangeRequestRepository emailChangeRepository;
   @Mock private PushSubscriptionRepository pushSubscriptionRepository;
@@ -107,11 +110,23 @@ class AccountDeletionServiceTest {
   }
 
   private void verifyAccountRowRemoved() {
+    verify(bankConnectionRepository).findByCreatedById(meId);
     verify(patRepository).deleteAllByUserId(meId);
     verify(pushSubscriptionRepository).deleteAllByUserId(meId);
     verify(emailChangeRepository).deleteByUserId(meId);
     verify(walletAccessRepository).deleteAllByUserId(meId);
     verify(userRepository).delete(me);
+  }
+
+  @Test
+  void deleteAccount_DropsConnectionsCreatedByUser() {
+    passwordOk();
+    var conn = new dev.busato.FinanceWebApp.backend.model.BankConnection();
+    when(bankConnectionRepository.findByCreatedById(meId)).thenReturn(List.of(conn));
+
+    accountDeletionService.deleteAccount(me, RAW_PASSWORD);
+
+    verify(bankConnectionRepository).deleteAll(List.of(conn));
   }
 
   // ==================== PASSWORD GUARD ====================
@@ -221,6 +236,7 @@ class AccountDeletionServiceTest {
     accountDeletionService.deleteAccount(me, RAW_PASSWORD);
 
     verify(subscriptionRepository).deleteAllByWalletId(w.getId());
+    verify(bankConnectionRepository, org.mockito.Mockito.times(2)).deleteAll(anyList());
     verify(walletRepository).delete(w);
     verify(walletAccessRepository, never()).save(any());
     verifyAccountRowRemoved();

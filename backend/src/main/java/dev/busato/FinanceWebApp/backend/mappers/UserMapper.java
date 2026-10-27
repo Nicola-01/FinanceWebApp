@@ -13,6 +13,7 @@ public class UserMapper {
         .id(user.getId())
         .name(user.getUsername())
         .createdAt(user.getCreatedAt())
+        .openBankingEnabled(user.isOpenBankingEnabled())
         .build();
   }
 

@@ -13,11 +13,18 @@ const user: User = {
   transactions: 12,
 };
 
-const renderRow = (onDelete: (u: User) => void) =>
+const renderRow = (
+  onDelete: (u: User) => void,
+  onToggleOpenBanking: (u: User, enabled: boolean) => void = vi.fn(),
+) =>
   render(
     <table>
       <tbody>
-        <UserRow user={user} onDelete={onDelete} />
+        <UserRow
+          user={user}
+          onDelete={onDelete}
+          onToggleOpenBanking={onToggleOpenBanking}
+        />
       </tbody>
     </table>,
   );
@@ -38,5 +45,14 @@ describe("UserRow", () => {
     await userEv.click(screen.getByTitle("Delete User"));
     expect(onDelete).toHaveBeenCalledTimes(1);
     expect(onDelete).toHaveBeenCalledWith(user);
+  });
+
+  it("toggles Open Banking for the user", async () => {
+    const toggle = vi.fn();
+    renderRow(vi.fn(), toggle);
+    await userEvent.click(
+      screen.getByRole("switch", { name: /open banking/i }),
+    );
+    expect(toggle).toHaveBeenCalledWith(user, true);
   });
 });

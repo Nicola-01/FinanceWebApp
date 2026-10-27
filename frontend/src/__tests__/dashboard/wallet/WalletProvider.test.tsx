@@ -23,6 +23,10 @@ vi.mock("../../../api/walletDataCache", () => ({
   refreshWalletData: vi.fn(),
   invalidate: vi.fn(),
 }));
+const { syncStale } = vi.hoisted(() => ({
+  syncStale: vi.fn(() => Promise.resolve([] as { imported: number }[])),
+}));
+vi.mock("../../../api/bankApi", () => ({ syncWalletIfStale: syncStale }));
 vi.mock("../../../components/ui/ToastNotification", () => ({
   triggerToast: vi.fn(),
 }));
@@ -43,7 +47,11 @@ vi.mock("../../../sync/opsQueue", () => ({
 
 import { WalletProvider } from "../../../dashboard/wallet/WalletProvider";
 import { useWalletContext } from "../../../dashboard/wallet/WalletContext";
-import { peek, getWalletData } from "../../../api/walletDataCache";
+import {
+  peek,
+  getWalletData,
+  refreshWalletData,
+} from "../../../api/walletDataCache";
 
 const mockedPeek = peek as unknown as ReturnType<typeof vi.fn>;
 const mockedGet = getWalletData as unknown as ReturnType<typeof vi.fn>;
@@ -112,6 +120,32 @@ describe("WalletProvider data loading", () => {
       vi.advanceTimersByTime(500);
     });
     expect(mockedGet).not.toHaveBeenCalled();
+  });
+
+  it("on open: stale-syncs the wallet and force-refreshes only when rows were imported", async () => {
+    const refresh = refreshWalletData as unknown as ReturnType<typeof vi.fn>;
+    refresh.mockResolvedValue(cachedData);
+    mockedPeek.mockReturnValue(cachedData);
+
+    syncStale.mockResolvedValueOnce([{ imported: 0 }]);
+    renderProvider();
+    await act(async () => {});
+    expect(syncStale).toHaveBeenCalledWith("w1");
+    expect(refresh).not.toHaveBeenCalled();
+    cleanup();
+
+    syncStale.mockResolvedValueOnce([{ imported: 2 }]);
+    renderProvider();
+    await act(async () => {});
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it("on open: swallows sync errors", async () => {
+    mockedPeek.mockReturnValue(cachedData);
+    syncStale.mockRejectedValueOnce(new Error("boom"));
+    renderProvider();
+    await act(async () => {});
+    expect(screen.getByTestId("name").textContent).toBe("Cached Wallet One");
   });
 
   it("cache miss + settled 250ms: fetches exactly once", async () => {

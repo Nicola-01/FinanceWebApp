@@ -27,6 +27,8 @@ public class TransactionMapper {
         .type(transaction.getType().toString())
         .notes(transaction.getNotes())
         .updatedAt(transaction.getUpdatedAt())
+        .imported(transaction.isImported())
+        .needsReview(transaction.isNeedsReview())
         .build();
   }
 }

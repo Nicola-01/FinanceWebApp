@@ -54,6 +54,18 @@ public class Transaction {
   @Builder.Default
   private boolean amountPending = false;
 
+  /** Created by the Open Banking import rather than typed by the user. */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean imported = false;
+
+  /** Imported row the user has not yet confirmed (category/amount to check). */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean needsReview = false;
+
   @Column(nullable = false, precision = 19, scale = 2)
   private BigDecimal originalAmount;
 

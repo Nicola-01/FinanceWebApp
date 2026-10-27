@@ -30,4 +30,7 @@ public class TransactionResponse {
   private LocalDate transactionDate;
 
   private Instant updatedAt;
+
+  private boolean imported;
+  private boolean needsReview;
 }

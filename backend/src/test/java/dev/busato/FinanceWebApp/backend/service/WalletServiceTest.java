@@ -18,6 +18,7 @@ import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
+import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
@@ -51,6 +52,7 @@ class WalletServiceTest {
   @Mock private TagRepository tagRepository;
   @Mock private TagMapper tagMapper;
   @Mock private SubscriptionRepository subscriptionRepository;
+  @Mock private BankConnectionRepository bankConnectionRepository;
 
   @InjectMocks private WalletService walletService;
 
@@ -227,8 +229,9 @@ class WalletServiceTest {
 
     // Subscriptions must be dropped BEFORE the wallet delete, otherwise their FK to the wallet's
     // tags makes the cascade blow up (regression guard for the wallet-deletion 500).
-    InOrder inOrder = inOrder(subscriptionRepository, walletRepository);
+    InOrder inOrder = inOrder(subscriptionRepository, bankConnectionRepository, walletRepository);
     inOrder.verify(subscriptionRepository).deleteAllByWalletId(walletId);
+    inOrder.verify(bankConnectionRepository).deleteAll(anyList());
     inOrder.verify(walletRepository).delete(wallet);
   }
 

@@ -20,7 +20,7 @@ DB and one root `.env`.
 - `docs/superpowers/` — implementation plans and specs written by the superpowers workflow.
 - `.claude/TODO/` — active implementation plans/TODOs (e.g. `frontend-restructure.md`); completed ones move to `DONE/`.
 - `graphify-out/` — generated knowledge graph (see **graphify** below); not app code.
-- `OpenBanking/` — standalone EnableBanking/PSD2 experiment (Python script + certs); not wired into the apps.
+- `OpenBanking/` — the original standalone EnableBanking/PSD2 experiment script (+ certs); the app integration lives in `backend/.../openbanking`.
 
 ## Common commands
 
@@ -99,6 +99,14 @@ entities/DTOs.
   `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` env vars — **empty by default, which
   disables push** (tests and keyless dev boots keep working). Phase 2 adds a notification-center
   history (`GET/POST/DELETE /api/notifications*`).
+- **Open Banking (`openbanking/` package):** EnableBanking (PSD2) import of bank transactions into a
+  wallet. An RS256-JWT API client + link service (`/api/bank/*`, callback links an account to a wallet)
+  and a sync service; imports land as to-categorize Transactions and the ledger table
+  `imported_bank_transactions` makes re-syncs idempotent. `bank-sync` is a `ManagedJob` (HOURLY, with an
+  8h per-account self-throttle; `available()` is false when unconfigured). Env: `ENABLEBANKING_APP_ID`,
+  `ENABLEBANKING_PRIVATE_KEY_PATH` (PEM mounted from `./secrets/`, git-ignored), `ENABLEBANKING_API_URL`
+  — **empty by default, which disables the feature** (`GET /api/bank/wallets/{id}` → `enabled:false`).
+  Per-user admin toggle `User.openBankingEnabled` gates access.
 - **Email:** SMTP via `MAIL_*` env vars. `mailing/EmailService` (plain messages) and
   `service/SendEmailService` (HTML/MIME with templates in `resources/templates/`) back
   registration, password reset, admin user invites, and wallet-member invites.
@@ -142,6 +150,9 @@ entities/DTOs.
   foreground-toast bridge + `?notif=<id>` click-ack). Preferences are the **Notifications**
   section in `/settings`; the Phase-2 in-app center is the bell in `header/notifications/`
   (`useNotifications.ts` open→mark-read, close→10s-purge lifecycle; amber unread dot).
+- **Open Banking UI:** a "To categorize" panel above the transaction list (`WalletContext` triggers
+  `sync-if-stale` on wallet open), a **Bank accounts** section in wallet settings' Data tab (link/unlink,
+  sync now), and the `/bank/callback` route that finishes the EnableBanking redirect.
 - **Routing (`src/App.tsx`):** `/dashboard/:walletId?` and `/settings` (protected;
   `src/settings/SettingsPage.tsx` with scroll-spied sections), `/admin/dashboard/*`
   (ADMIN only), `/oauth/authorize` (OAuth consent page the MCP flow redirects to);

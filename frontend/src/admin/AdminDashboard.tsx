@@ -23,6 +23,7 @@ interface UsersPageProps {
   users: User[];
   invites: AdminInvite[];
   onDeleteClick: (user: User) => void;
+  onToggleOpenBanking: (user: User, enabled: boolean) => void;
   onRevoke: (email: string) => void;
   onInviteCreated: () => void;
 }
@@ -31,6 +32,7 @@ const UsersPage: React.FC<UsersPageProps> = ({
   users,
   invites,
   onDeleteClick,
+  onToggleOpenBanking,
   onRevoke,
   onInviteCreated,
 }) => {
@@ -45,7 +47,11 @@ const UsersPage: React.FC<UsersPageProps> = ({
       <AdminStats users={users} pendingInvites={pendingInvites} />
       <CreateInviteForm onInviteCreated={onInviteCreated} />
       <InvitesTable invites={invites} onRevoke={onRevoke} />
-      <UserDirectory users={users} onDeleteClick={onDeleteClick} />
+      <UserDirectory
+        users={users}
+        onDeleteClick={onDeleteClick}
+        onToggleOpenBanking={onToggleOpenBanking}
+      />
     </div>
   );
 };
@@ -86,6 +92,22 @@ const AdminDashboard: React.FC = () => {
       triggerToast("Deleted!", true);
     } catch (err: unknown) {
       triggerToast(getApiErrorTitle(err, "Error deleting."), false);
+    }
+  };
+
+  const handleToggleOpenBanking = async (user: User, enabled: boolean) => {
+    try {
+      await api.put(`/admin/management/${user.id}/open-banking`, { enabled });
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id ? { ...u, openBankingEnabled: enabled } : u,
+        ),
+      );
+    } catch (err: unknown) {
+      triggerToast(
+        getApiErrorTitle(err, "Error updating Open Banking."),
+        false,
+      );
     }
   };
 
@@ -138,6 +160,7 @@ const AdminDashboard: React.FC = () => {
               <UsersPage
                 users={users}
                 invites={invites}
+                onToggleOpenBanking={handleToggleOpenBanking}
                 onDeleteClick={(u: User) =>
                   deleteModalRef.current?.deleteObject(
                     u,

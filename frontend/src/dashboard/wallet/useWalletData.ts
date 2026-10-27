@@ -13,6 +13,7 @@ import {
   refreshWalletData,
   peek,
 } from "../../api/walletDataCache";
+import { syncWalletIfStale } from "../../api/bankApi";
 import { listOps, SYNC_QUEUE_CHANGED } from "../../sync/opsQueue";
 import type { PendingOp } from "../../utils/offlineDb";
 
@@ -119,6 +120,22 @@ export function useWalletData(_wallet: Wallet) {
     const onSynced = () => fetchData();
     window.addEventListener("offline-sync-complete", onSynced);
     return () => window.removeEventListener("offline-sync-complete", onSynced);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [_wallet.id]);
+
+  // On open: pull fresh bank transactions in the background (server throttles via
+  // "if stale"), then reload only if something was imported. Errors are ignored.
+  useEffect(() => {
+    if (navigator.onLine === false) return;
+    let cancelled = false;
+    syncWalletIfStale(_wallet.id)
+      .then((results) => {
+        if (!cancelled && results.some((r) => r.imported > 0)) fetchData();
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_wallet.id]);
 

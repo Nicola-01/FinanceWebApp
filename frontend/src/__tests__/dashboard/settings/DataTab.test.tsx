@@ -27,6 +27,9 @@ vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
 vi.mock("../../../api/axiosConfig", () => ({
   default: { post: vi.fn() },
 }));
+vi.mock("../../../dashboard/settings/BankAccountsSection.tsx", () => ({
+  BankAccountsSection: () => null,
+}));
 vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));

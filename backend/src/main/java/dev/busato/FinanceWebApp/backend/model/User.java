@@ -82,6 +82,11 @@ public class User implements UserDetails {
     this.createdAt = LocalDate.now();
   }
 
+  /** Admin-granted flag enabling the Open Banking import feature for this user. */
+  @Column(nullable = false, columnDefinition = "boolean default false")
+  @Builder.Default
+  private boolean openBankingEnabled = false;
+
   @Builder.Default
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   @ToString.Exclude

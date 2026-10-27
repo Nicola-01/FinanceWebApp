@@ -40,4 +40,9 @@ public class ApplicationConfig {
   public Clock clock() {
     return Clock.systemUTC();
   }
+
+  @Bean
+  public dev.busato.FinanceWebApp.backend.openbanking.Sleeper sleeper() {
+    return Thread::sleep;
+  }
 }

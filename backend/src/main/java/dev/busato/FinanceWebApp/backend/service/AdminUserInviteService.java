@@ -71,6 +71,15 @@ public class AdminUserInviteService {
 
   @Transactional
   @PreAuthorize("hasRole('ADMIN')")
+  public void setOpenBankingEnabled(UUID id, boolean enabled) {
+    userRepository
+        .findById(id)
+        .orElseThrow(() -> new UserNotFoundException(id))
+        .setOpenBankingEnabled(enabled);
+  }
+
+  @Transactional
+  @PreAuthorize("hasRole('ADMIN')")
   public void deleteUser(UUID id) {
     User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
     accountDeletionService.deleteUserAsAdmin(user);
