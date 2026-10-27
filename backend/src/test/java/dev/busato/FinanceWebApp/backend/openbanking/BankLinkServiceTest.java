@@ -499,4 +499,89 @@ class BankLinkServiceTest {
     assertThat(BankLinkService.maskIban(null)).isNull();
     assertThat(BankLinkService.maskIban("IT12")).isEqualTo("••••");
   }
+
+  @Test
+  void manualSyncRetriesErrorButNotExpired() {
+    String state = connect();
+    when(client.createSession("code")).thenReturn(new EbSession("s1", List.of(account("u1"))));
+    UUID id = service.callback(owner.getId(), new CallbackRequest("code", state), null).id();
+    BankConnection c = connectionRepository.findById(id).orElseThrow();
+
+    c.setStatus(BankConnection.Status.ERROR);
+    assertThat(service.sync(owner.getId(), id, null).status())
+        .isEqualTo(BankConnection.Status.ACTIVE);
+
+    c.setStatus(BankConnection.Status.EXPIRED);
+    assertThat(service.sync(owner.getId(), id, null).status())
+        .isEqualTo(BankConnection.Status.EXPIRED);
+  }
+
+  @Test
+  void syncRequiresTheCallersFlag() {
+    String state = connect();
+    when(client.createSession("code")).thenReturn(new EbSession("s1", List.of(account("u1"))));
+    UUID id = service.callback(owner.getId(), new CallbackRequest("code", state), null).id();
+    connectionRepository.findById(id).orElseThrow().getAccounts().get(0).setLastSyncedAt(null);
+    owner.setOpenBankingEnabled(false);
+    userRepository.save(owner);
+
+    assertThatThrownBy(() -> service.sync(owner.getId(), id, null))
+        .isInstanceOf(OpenBankingDisabledException.class);
+    assertThat(service.syncIfStale(owner.getId(), wallet.getId(), null)).isEmpty();
+    verify(client, times(1)).getTransactions(anyString(), any(), any(), any());
+  }
+
+  @Test
+  void syncIfStaleOnlySyncsTheCallersOwnLinks() {
+    String state = connect();
+    when(client.createSession("code")).thenReturn(new EbSession("s1", List.of(account("u1"))));
+    UUID id = service.callback(owner.getId(), new CallbackRequest("code", state), null).id();
+    connectionRepository.findById(id).orElseThrow().getAccounts().get(0).setLastSyncedAt(null);
+
+    assertThat(service.syncIfStale(editor.getId(), wallet.getId(), null)).isEmpty();
+    assertThat(service.syncIfStale(owner.getId(), wallet.getId(), null)).hasSize(1);
+  }
+
+  @Test
+  void accountLinkedByAnotherConnectionIsSkipped() {
+    String s1 = connect();
+    when(client.createSession("c1")).thenReturn(new EbSession("s1", List.of(account("u1", "H"))));
+    service.callback(owner.getId(), new CallbackRequest("c1", s1), null);
+
+    // same account only: nothing to link
+    String s2 = connect();
+    when(client.createSession("c2")).thenReturn(new EbSession("s2", List.of(account("u2", "H"))));
+    BankConnectionResponse dup =
+        service.callback(owner.getId(), new CallbackRequest("c2", s2), null);
+    assertThat(dup.status()).isEqualTo(BankConnection.Status.ERROR);
+    assertThat(dup.accounts()).isEmpty();
+    assertThat(connectionRepository.findById(dup.id()).orElseThrow().getLastError())
+        .isEqualTo("This account is already linked in this wallet");
+
+    // same account plus a new one: only the new one is linked
+    String s3 = connect();
+    when(client.createSession("c3"))
+        .thenReturn(new EbSession("s3", List.of(account("u3", "H"), account("u4", "H4"))));
+    BankConnectionResponse mixed =
+        service.callback(owner.getId(), new CallbackRequest("c3", s3), null);
+    assertThat(mixed.status()).isEqualTo(BankConnection.Status.ACTIVE);
+    assertThat(connectionRepository.findById(mixed.id()).orElseThrow().getAccounts())
+        .extracting("identificationHash")
+        .containsExactly("H4");
+  }
+
+  @Test
+  void initialSyncFailureStillReturnsTheLinkedConnection() {
+    String state = connect();
+    when(client.createSession("code")).thenReturn(new EbSession("s1", List.of(account("u1"))));
+    when(client.getTransactions(eq("u1"), any(), any(), any()))
+        .thenThrow(new IllegalStateException("boom"));
+
+    BankConnectionResponse res =
+        service.callback(owner.getId(), new CallbackRequest("code", state), null);
+
+    assertThat(res.accounts()).hasSize(1);
+    assertThat(connectionRepository.findById(res.id()).orElseThrow().getSessionId())
+        .isEqualTo("s1");
+  }
 }

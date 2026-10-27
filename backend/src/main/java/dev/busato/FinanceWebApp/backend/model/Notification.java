@@ -32,9 +32,8 @@ public class Notification {
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private NotificationType type;
+  private NotificationType type; // mapped by NotificationTypeConverter (no CHECK constraint)
 
   /**
    * Wallet the event happened in; null for account-level notifications (e.g. invites land here).

@@ -190,7 +190,7 @@ class BankLinkControllerTest extends BaseIntegrationTest {
                 .validUntil(Instant.now().plusSeconds(3600))
                 .status(BankConnection.Status.ACTIVE)
                 .build());
-    when(syncService.syncWalletIfStale(eq(wallet.getId()), any()))
+    when(syncService.syncWalletIfStale(eq(wallet.getId()), eq(owner.getId()), any()))
         .thenReturn(List.of(new SyncResult(c.getId(), 3, BankConnection.Status.ACTIVE)));
     when(syncService.syncConnection(any(), any()))
         .thenReturn(new SyncResult(c.getId(), 1, BankConnection.Status.ACTIVE));
@@ -204,7 +204,8 @@ class BankLinkControllerTest extends BaseIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].imported").value(3));
     verify(syncService)
-        .syncWalletIfStale(wallet.getId(), new PsuContext("203.0.113.7", "TestAgent/1.0"));
+        .syncWalletIfStale(
+            wallet.getId(), owner.getId(), new PsuContext("203.0.113.7", "TestAgent/1.0"));
 
     mockMvc
         .perform(

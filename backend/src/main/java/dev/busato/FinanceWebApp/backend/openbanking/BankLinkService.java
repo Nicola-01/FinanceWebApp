@@ -16,6 +16,7 @@ import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.Aspsp;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbAccount;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbSession;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.PsuContext;
+import dev.busato.FinanceWebApp.backend.repository.BankAccountLinkRepository;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
@@ -28,8 +29,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -41,6 +45,7 @@ import org.springframework.web.server.ResponseStatusException;
  * and unlink. Authorization is checked here through {@link WalletSecurity}; bank calls run outside
  * DB transactions. Never exposes or logs session ids, state or authorization codes.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BankLinkService {
@@ -55,6 +60,7 @@ public class BankLinkService {
   private final EnableBankingClient client;
   private final BankSyncService syncService;
   private final BankConnectionRepository connectionRepository;
+  private final BankAccountLinkRepository linkRepository;
   private final UserRepository userRepository;
   private final WalletRepository walletRepository;
   private final WalletAccessRepository walletAccessRepository;
@@ -191,6 +197,15 @@ public class BankLinkService {
               c.setValidUntil(c.getPendingValidUntil());
               c.setPendingValidUntil(null);
               c.setExpiryWarnedAt(null);
+              // An account already imported by another connection of this wallet would be
+              // imported twice (separate ledgers), so it is not linked again.
+              Set<String> linkedElsewhere =
+                  linkRepository.findByConnectionWalletId(c.getWallet().getId()).stream()
+                      .filter(l -> !l.getConnection().getId().equals(id))
+                      .map(BankAccountLink::getIdentificationHash)
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toSet());
+              boolean duplicate = false;
               List<BankAccountLink> unmatched = new ArrayList<>(c.getAccounts());
               for (EbAccount a : found) {
                 String masked = maskIban(a.iban());
@@ -201,6 +216,10 @@ public class BankLinkService {
                   link.setAccountUid(a.uid());
                   if (a.identificationHash() != null)
                     link.setIdentificationHash(a.identificationHash());
+                  continue;
+                }
+                if (linkedElsewhere.contains(a.identificationHash())) {
+                  duplicate = true;
                   continue;
                 }
                 c.getAccounts()
@@ -218,7 +237,10 @@ public class BankLinkService {
               }
               if (c.getAccounts().isEmpty()) {
                 c.setStatus(BankConnection.Status.ERROR);
-                c.setLastError("The bank returned no accounts");
+                c.setLastError(
+                    duplicate
+                        ? "This account is already linked in this wallet"
+                        : "The bank returned no accounts");
               } else {
                 c.setStatus(BankConnection.Status.ACTIVE);
                 c.setLastError(null);
@@ -229,21 +251,33 @@ public class BankLinkService {
       client.deleteSession(oldSession);
 
     BankConnection c = load(id);
-    if (c.getStatus() == BankConnection.Status.ACTIVE) syncService.syncConnection(c, psu);
+    try {
+      if (c.getStatus() == BankConnection.Status.ACTIVE) syncService.syncConnection(c, psu);
+    } catch (RuntimeException e) {
+      // The link is committed; the connection's status/lastError tell the user what happened.
+      log.warn("Initial bank sync of connection {} failed", id, e);
+    }
     return tx.execute(s -> BankConnectionResponse.of(load(id)));
   }
 
   public SyncResult sync(UUID userId, UUID connectionId, PsuContext psu) {
     BankConnection c = load(connectionId);
     walletSecurity.hasWriteAccess(userId, c.getWallet().getId());
-    if (!client.configured()) throw new OpenBankingDisabledException();
+    requireFeature(userId);
+    // A manual sync retries an ERROR connection; EXPIRED/PAUSED need a renew instead.
+    tx.executeWithoutResult(
+        s -> {
+          BankConnection fresh = lockForUpdate(connectionId);
+          if (fresh.getStatus() == BankConnection.Status.ERROR && !fresh.getAccounts().isEmpty())
+            fresh.setStatus(BankConnection.Status.ACTIVE);
+        });
     return syncService.syncConnection(c, psu);
   }
 
   public List<SyncResult> syncIfStale(UUID userId, UUID walletId, PsuContext psu) {
     walletSecurity.hasReadAccess(userId, walletId);
-    if (!client.configured()) return List.of();
-    return syncService.syncWalletIfStale(walletId, psu);
+    if (!featureEnabled(userId)) return List.of();
+    return syncService.syncWalletIfStale(walletId, userId, psu);
   }
 
   /** Deletes the connection, its links and ledger; imported transactions stay in the wallet. */

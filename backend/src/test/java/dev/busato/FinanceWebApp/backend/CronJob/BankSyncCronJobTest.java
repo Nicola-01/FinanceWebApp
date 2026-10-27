@@ -48,7 +48,7 @@ class BankSyncCronJobTest {
   @Mock private EnableBankingClient client;
 
   private BankSyncCronJob job;
-  private final User owner = User.builder().id(UUID.randomUUID()).build();
+  private final User owner = User.builder().id(UUID.randomUUID()).openBankingEnabled(true).build();
   private final Wallet wallet = Wallet.builder().id(UUID.randomUUID()).name("Home").build();
 
   @BeforeEach
@@ -68,6 +68,7 @@ class BankSyncCronJobTest {
         BankConnection.builder()
             .id(UUID.randomUUID())
             .wallet(wallet)
+            .createdBy(owner)
             .aspspName("Intesa")
             .status(BankConnection.Status.ACTIVE)
             .validUntil(validUntil)
@@ -147,25 +148,23 @@ class BankSyncCronJobTest {
   }
 
   @Test
-  void notifiesOnceAtExpiry() {
+  void statusTransitionsAreNotNotifiedByTheCron() {
+    // BankSyncService notifies transitions itself, after its transaction commits
     BankConnection c = conn(null, NOW.minusSeconds(1));
     active(c);
-    owners();
     when(syncService.syncConnection(c, null)).thenReturn(res(c, 0, BankConnection.Status.EXPIRED));
     job.run();
-    verify(notifications, times(1))
-        .notifyUser(eq(owner), eq(NotificationType.BANK_CONNECTION), eq(wallet.getId()), any());
-    verify(connections, never()).markExpiryWarned(any(), any());
+    verify(notifications, never()).notifyUser(any(), any(), any(), any());
   }
 
   @Test
-  void notifiesOnPause() {
-    BankConnection c = conn(null, null);
+  void skipsConnectionsOfLinkersWithoutTheFlag() {
+    BankConnection c = conn(null, NOW.plus(Duration.ofDays(2)));
+    c.setCreatedBy(User.builder().id(UUID.randomUUID()).openBankingEnabled(false).build());
     active(c);
-    owners();
-    when(syncService.syncConnection(c, null)).thenReturn(res(c, 0, BankConnection.Status.PAUSED));
-    job.run();
-    verify(notifications, times(1)).notifyUser(eq(owner), any(), any(), any());
+    assertEquals("Synced 0 connection(s), imported 0", job.run());
+    verify(syncService, never()).syncConnection(any(), any());
+    verify(notifications, never()).notifyUser(any(), any(), any(), any());
   }
 
   @Test

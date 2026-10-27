@@ -108,6 +108,17 @@ public final class NotificationCopy {
         "/dashboard/" + walletId);
   }
 
+  public static Copy bankLinkError(String bank, String wallet, UUID walletId) {
+    return new Copy(
+        "Bank connection error",
+        "Your "
+            + bank
+            + " link on \""
+            + wallet
+            + "\" stopped importing. Try \"Sync now\" or renew it.",
+        "/dashboard/" + walletId);
+  }
+
   /** Recap body: {@code "{name} · {amount} {currency} · {walletName}"}; null name → "Untagged". */
   private static String recap(String name, BigDecimal amount, String currency, String walletName) {
     String label = (name == null) ? "Untagged" : name;

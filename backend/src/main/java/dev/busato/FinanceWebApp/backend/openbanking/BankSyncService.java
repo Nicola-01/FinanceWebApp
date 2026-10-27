@@ -3,20 +3,24 @@ package dev.busato.FinanceWebApp.backend.openbanking;
 import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
 import dev.busato.FinanceWebApp.backend.model.ImportedBankTransaction;
+import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
+import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.openbanking.BankTransactionMapper.MappedTx;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransaction;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransactionPage;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.PsuContext;
+import dev.busato.FinanceWebApp.backend.push.NotificationCopy;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
 import dev.busato.FinanceWebApp.backend.repository.ImportedBankTransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.service.ExchangeRateService;
+import dev.busato.FinanceWebApp.backend.service.NotificationService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
@@ -58,16 +62,36 @@ public class BankSyncService {
   private final TagRepository tagRepository;
   private final WalletAccessRepository walletAccessRepository;
   private final ExchangeRateService exchangeRateService;
+  private final NotificationService notificationService;
   private final TransactionTemplate transactionTemplate;
   private final Clock clock;
 
-  /** Syncs one connection in its own transaction (joins the caller's if one is open). */
+  /** A status change away from ACTIVE, with what the owners must be told once it commits. */
+  private record Transition(List<User> owners, UUID walletId, NotificationCopy.Copy copy) {}
+
+  private record Outcome(SyncResult result, Transition transition) {}
+
+  /**
+   * Syncs one connection in its own transaction (joins the caller's if one is open); owners are
+   * notified of an EXPIRED/PAUSED/ERROR transition after that transaction returns.
+   */
   public SyncResult syncConnection(BankConnection connection, PsuContext psu) {
-    return transactionTemplate.execute(tx -> doSync(connection.getId(), psu));
+    Outcome o = transactionTemplate.execute(tx -> doSync(connection.getId(), psu));
+    Transition t = o.transition();
+    if (t != null)
+      t.owners()
+          .forEach(
+              u ->
+                  notificationService.notifyUser(
+                      u, NotificationType.BANK_CONNECTION, t.walletId(), t.copy()));
+    return o.result();
   }
 
-  /** On-open sync: ACTIVE connections only, skipping those whose links all synced recently. */
-  public List<SyncResult> syncWalletIfStale(UUID walletId, PsuContext psu) {
+  /**
+   * On-open sync: ACTIVE connections linked by the caller only (no unattended calls on another
+   * member's consent; the cron covers those), skipping those whose links all synced recently.
+   */
+  public List<SyncResult> syncWalletIfStale(UUID walletId, UUID callerId, PsuContext psu) {
     Instant cutoff = clock.instant().minus(ON_OPEN_THROTTLE);
     // Read inside a transaction: accounts are lazy and callers (cron, controller) may have none.
     List<BankConnection> stale =
@@ -75,6 +99,8 @@ public class BankSyncService {
             tx ->
                 connectionRepository.findByWalletId(walletId).stream()
                     .filter(c -> c.getStatus() == BankConnection.Status.ACTIVE)
+                    .filter(c -> c.getCreatedBy().getId().equals(callerId))
+                    .filter(c -> c.getCreatedBy().isOpenBankingEnabled())
                     .filter(
                         c ->
                             c.getAccounts().stream()
@@ -86,9 +112,34 @@ public class BankSyncService {
     return stale.stream().map(c -> syncConnection(c, psu)).toList();
   }
 
-  private SyncResult doSync(UUID connectionId, PsuContext psu) {
+  private Outcome doSync(UUID connectionId, PsuContext psu) {
     BankConnection c = connectionRepository.findByIdForUpdate(connectionId).orElseThrow();
-    if (c.getStatus() != BankConnection.Status.ACTIVE) return result(c, 0);
+    if (c.getStatus() != BankConnection.Status.ACTIVE) return new Outcome(result(c, 0), null);
+    SyncResult r = sync(c, psu);
+    return new Outcome(r, r.status() == BankConnection.Status.ACTIVE ? null : transition(c));
+  }
+
+  private Transition transition(BankConnection c) {
+    String bank = c.getAspspName();
+    String name = c.getWallet().getName();
+    UUID walletId = c.getWallet().getId();
+    NotificationCopy.Copy copy =
+        switch (c.getStatus()) {
+          case EXPIRED -> NotificationCopy.bankConsentExpired(bank, name, walletId);
+          case PAUSED -> NotificationCopy.bankLinkPaused(bank, name, walletId);
+          default -> NotificationCopy.bankLinkError(bank, name, walletId);
+        };
+    List<User> owners =
+        walletAccessRepository
+            .findAllByWalletIdAndStatus(walletId, WalletAccess.InvitationStatus.ACCEPTED)
+            .stream()
+            .filter(a -> a.getRole() == WalletAccess.WalletRole.OWNER)
+            .map(WalletAccess::getUser)
+            .toList();
+    return new Transition(owners, walletId, copy);
+  }
+
+  private SyncResult sync(BankConnection c, PsuContext psu) {
     Instant now = clock.instant();
 
     if (c.getValidUntil() != null && !now.isBefore(c.getValidUntil())) {
@@ -153,9 +204,9 @@ public class BankSyncService {
     Set<String> known = ledgerRepository.findExternalIdsByLinkId(link.getId());
     Tag tag = null;
     int n = 0;
+    boolean skipped = false;
     for (MappedTx m : mapped) {
       if (!known.add(m.externalId())) continue;
-      if (tag == null) tag = reviewTag(wallet);
       String currency =
           m.currency() != null
               ? m.currency()
@@ -164,9 +215,15 @@ public class BankSyncService {
       BigDecimal rate = null;
       if (!currency.equals(wallet.getCurrency())) {
         rate = exchangeRateService.getRate(currency, wallet.getCurrency()).orElse(null);
-        if (rate != null) amount = m.amount().multiply(rate).setScale(2, RoundingMode.HALF_UP);
-        else log.warn("No {}->{} rate; storing unconverted amount", currency, wallet.getCurrency());
+        if (rate == null) {
+          // No ledger row either, so a later sync imports it once a rate is available.
+          log.warn("No {}->{} rate; skipping a bank row", currency, wallet.getCurrency());
+          skipped = true;
+          continue;
+        }
+        amount = m.amount().multiply(rate).setScale(2, RoundingMode.HALF_UP);
       }
+      if (tag == null) tag = reviewTag(wallet);
       transactionRepository.save(
           Transaction.builder()
               .wallet(wallet)
@@ -190,7 +247,8 @@ public class BankSyncService {
               .build());
       n++;
     }
-    link.setLastSyncedAt(now);
+    // A skipped row keeps the sync window where it was, so the next sync fetches it again.
+    if (!skipped) link.setLastSyncedAt(now);
     link.setImportedCount(link.getImportedCount() + n);
     return n;
   }

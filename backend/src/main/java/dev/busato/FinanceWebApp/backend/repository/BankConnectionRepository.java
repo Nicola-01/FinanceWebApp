@@ -33,7 +33,7 @@ public interface BankConnectionRepository extends JpaRepository<BankConnection, 
   List<BankConnection> findByStatus(BankConnection.Status status);
 
   /** Eagerly loads what the cron job reads, since it runs outside any transaction. */
-  @EntityGraph(attributePaths = {"accounts", "wallet"})
+  @EntityGraph(attributePaths = {"accounts", "wallet", "createdBy"})
   List<BankConnection> findDetailedByStatus(BankConnection.Status status);
 
   @Modifying

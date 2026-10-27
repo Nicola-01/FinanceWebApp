@@ -21,8 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Hourly tick that syncs due bank connections and alerts wallet owners about consent expiry/pause.
- * Deliberately not {@code @Transactional}: {@link BankSyncService} manages its own transactions.
+ * Hourly tick that syncs due bank connections and warns wallet owners 7 days before consent expiry
+ * (status-change notifications are sent by {@link BankSyncService}). Deliberately not
+ * {@code @Transactional}: {@link BankSyncService} manages its own transactions.
  */
 @Slf4j
 @Component
@@ -67,6 +68,8 @@ public class BankSyncCronJob implements ManagedJob {
     int failed = 0;
     for (BankConnection c :
         connectionRepository.findDetailedByStatus(BankConnection.Status.ACTIVE)) {
+      // Admin revoked the feature for the linker: leave the connection untouched.
+      if (!c.getCreatedBy().isOpenBankingEnabled()) continue;
       try {
         BankConnection.Status status = BankConnection.Status.ACTIVE;
         if (due(c, now)) {
@@ -75,11 +78,7 @@ public class BankSyncCronJob implements ManagedJob {
           imported += r.imported();
           status = r.status();
         }
-        if (status == BankConnection.Status.EXPIRED) {
-          notifyOwners(c, NotificationCopy.bankConsentExpired(bank(c), wallet(c), walletId(c)));
-        } else if (status == BankConnection.Status.PAUSED) {
-          notifyOwners(c, NotificationCopy.bankLinkPaused(bank(c), wallet(c), walletId(c)));
-        } else if (status == BankConnection.Status.ACTIVE
+        if (status == BankConnection.Status.ACTIVE
             && c.getExpiryWarnedAt() == null
             && c.getValidUntil() != null
             && !c.getValidUntil().isAfter(now.plus(WARN_BEFORE))) {

@@ -6,11 +6,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
+import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
@@ -25,6 +27,7 @@ import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import dev.busato.FinanceWebApp.backend.service.ExchangeRateService;
+import dev.busato.FinanceWebApp.backend.service.NotificationService;
 import dev.busato.FinanceWebApp.backend.service.R2StorageService;
 import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import java.math.BigDecimal;
@@ -68,6 +71,7 @@ class BankSyncServiceTest {
   @MockitoBean ExchangeRateService exchangeRateService;
   @MockitoBean SendEmailService sendEmailService;
   @MockitoBean R2StorageService r2StorageService;
+  @MockitoBean NotificationService notificationService;
 
   @Autowired BankSyncService service;
   @Autowired UserRepository userRepository;
@@ -90,6 +94,7 @@ class BankSyncServiceTest {
     owner.setEmail("bank-owner@example.com");
     owner.setPassword("password");
     owner.setRole(User.Role.USER);
+    owner.setOpenBankingEnabled(true);
     owner = userRepository.save(owner);
 
     wallet = new Wallet();
@@ -289,7 +294,7 @@ class BankSyncServiceTest {
     link.setLastSyncedAt(NOW.minus(Duration.ofHours(1)));
     connectionRepository.save(conn);
 
-    assertThat(service.syncWalletIfStale(wallet.getId(), null)).isEmpty();
+    assertThat(service.syncWalletIfStale(wallet.getId(), owner.getId(), null)).isEmpty();
     verify(client, never()).getTransactions(any(), any(), any(), any());
   }
 
@@ -299,8 +304,103 @@ class BankSyncServiceTest {
     connectionRepository.save(conn);
     bankReturns(row("r1", "1.00", "EUR", null));
 
-    List<SyncResult> res = service.syncWalletIfStale(wallet.getId(), null);
+    List<SyncResult> res = service.syncWalletIfStale(wallet.getId(), owner.getId(), null);
 
     assertThat(res).singleElement().extracting(SyncResult::imported).isEqualTo(1);
+  }
+
+  void verifyOwnerNotified(int times) {
+    verify(notificationService, times(times))
+        .notifyUser(
+            org.mockito.ArgumentMatchers.argThat(u -> u.getId().equals(owner.getId())),
+            eq(NotificationType.BANK_CONNECTION),
+            eq(wallet.getId()),
+            any());
+  }
+
+  @Test
+  void transitionsNotifyOwnersOnce() {
+    conn.setValidUntil(NOW.minusSeconds(1));
+    connectionRepository.save(conn);
+
+    service.syncConnection(conn, null);
+    service.syncConnection(conn, null); // already EXPIRED: no second transition
+
+    verifyOwnerNotified(1);
+  }
+
+  @Test
+  void clientErrorNotifiesButTransientDoesNot() {
+    when(client.getTransactions(any(), any(), any(), any()))
+        .thenThrow(new EnableBankingException(503, "down"));
+    service.syncConnection(conn, null);
+    verifyOwnerNotified(0);
+
+    doThrow(new EnableBankingException(400, "bad"))
+        .when(client)
+        .getTransactions(any(), any(), any(), any());
+    service.syncConnection(conn, null);
+    verifyOwnerNotified(1);
+  }
+
+  @Test
+  void onOpenTransitionNotifies() {
+    access.setRole(WalletAccess.WalletRole.EDITOR);
+    walletAccessRepository.save(access);
+    User other = new User();
+    other.setUsername("bank-coowner@example.com");
+    other.setEmail("bank-coowner@example.com");
+    other.setPassword("password");
+    other = userRepository.save(other);
+    WalletAccess co = new WalletAccess();
+    co.setId(new WalletAccess.WalletAccessId(other.getId(), wallet.getId()));
+    co.setRole(WalletAccess.WalletRole.OWNER);
+    co.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+    co.setUser(other);
+    co.setWallet(wallet);
+    walletAccessRepository.save(co);
+
+    List<SyncResult> res = service.syncWalletIfStale(wallet.getId(), owner.getId(), null);
+
+    assertThat(res)
+        .singleElement()
+        .extracting(SyncResult::status)
+        .isEqualTo(BankConnection.Status.PAUSED);
+    // the remaining (co-)owner is told; the demoted linker is no longer an owner
+    UUID otherId = other.getId();
+    verify(notificationService)
+        .notifyUser(
+            org.mockito.ArgumentMatchers.argThat(u -> u.getId().equals(otherId)),
+            eq(NotificationType.BANK_CONNECTION),
+            eq(wallet.getId()),
+            any());
+    verifyOwnerNotified(0);
+  }
+
+  @Test
+  void onOpenSkipsOtherMembersAndFlaglessLinkers() {
+    assertThat(service.syncWalletIfStale(wallet.getId(), UUID.randomUUID(), null)).isEmpty();
+    owner.setOpenBankingEnabled(false);
+    userRepository.save(owner);
+    assertThat(service.syncWalletIfStale(wallet.getId(), owner.getId(), null)).isEmpty();
+    verify(client, never()).getTransactions(any(), any(), any(), any());
+    assertThat(connectionRepository.findById(conn.getId()).orElseThrow().getStatus())
+        .isEqualTo(BankConnection.Status.ACTIVE);
+  }
+
+  @Test
+  void missingRateSkipsRowUntilRateAvailable() {
+    when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.empty());
+    bankReturns(row("r1", "10", "USD", null), row("r2", "3.00", "EUR", null));
+
+    assertThat(service.syncConnection(conn, null).imported()).isEqualTo(1);
+    assertThat(ledgerRepository.findExternalIdsByLinkId(link.getId())).hasSize(1);
+    // the window is not advanced, so the next sync refetches from the same start date
+    assertThat(link.getLastSyncedAt()).isNull();
+
+    when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.of(new BigDecimal("0.9")));
+    assertThat(service.syncConnection(conn, null).imported()).isEqualTo(1);
+    assertThat(walletTxs()).hasSize(2);
+    verify(client, times(2)).getTransactions("acc-1", LocalDate.of(2026, 10, 1), null, null);
   }
 }
