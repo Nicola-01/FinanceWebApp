@@ -15,6 +15,9 @@ import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../utils/apiError";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import { AuthCard } from "./AuthCard";
+import { AuthBrandLockup } from "./AuthBrandLockup";
+import { useShake } from "./useShake";
 
 const COOLDOWN_SECONDS = 60;
 
@@ -25,7 +28,7 @@ const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const [shake, setShake] = useState(false);
+  const { shake, triggerShake } = useShake();
   const [cooldown, setCooldown] = useState(0);
 
   // Cooldown timer
@@ -44,8 +47,7 @@ const ForgotPassword: React.FC = () => {
 
       // Validate email
       if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        setShake(true);
-        setTimeout(() => setShake(false), 500);
+        triggerShake();
         triggerToast("Please enter a valid email address.", false);
         return;
       }
@@ -58,8 +60,7 @@ const ForgotPassword: React.FC = () => {
         setCooldown(COOLDOWN_SECONDS);
         triggerToast("Reset email sent successfully!", true);
       } catch (err: unknown) {
-        setShake(true);
-        setTimeout(() => setShake(false), 500);
+        triggerShake();
         triggerToast(
           getApiErrorTitle(err, "Failed to send reset email."),
           false,
@@ -68,7 +69,7 @@ const ForgotPassword: React.FC = () => {
         setLoading(false);
       }
     },
-    [email],
+    [email, triggerShake],
   );
 
   // Resend email
@@ -98,22 +99,8 @@ const ForgotPassword: React.FC = () => {
   };
 
   return (
-    <div
-      className={`relative z-10 flex w-full max-w-[400px] flex-col rounded-[var(--r-card)] border border-white/10 bg-[rgba(23,18,38,0.55)] p-7 shadow-[0_24px_60px_-26px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-9 ${
-        shake ? "animate-[shake_0.5s_ease-in-out]" : ""
-      }`}
-    >
-      {/* Brand lockup */}
-      <div className="mb-6 flex items-center gap-2.5">
-        <img
-          src="/icon.svg"
-          alt="Finance"
-          className="h-11 w-11 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
-        />
-        <span className="text-xl font-bold tracking-tight text-app-text">
-          Finance
-        </span>
-      </div>
+    <AuthCard shake={shake}>
+      <AuthBrandLockup />
 
       {!emailSent ? (
         /* ========== EMAIL INPUT STATE ========== */
@@ -231,7 +218,7 @@ const ForgotPassword: React.FC = () => {
         <FontAwesomeIcon icon={faArrowLeft} />
         Back to login
       </button>
-    </div>
+    </AuthCard>
   );
 };
 

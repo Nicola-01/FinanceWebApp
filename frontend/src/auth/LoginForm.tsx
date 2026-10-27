@@ -2,8 +2,6 @@ import React, { useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faEye,
-  faEyeSlash,
   faLock,
   faTriangleExclamation,
   faUser,
@@ -15,6 +13,10 @@ import { setMustChangePWD, setToken } from "../utils/authHelper";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Checkbox } from "../components/ui/Checkbox";
+import { AUTH_GLASS_CARD, shakeClass } from "./authCardClass";
+import { AuthBrandLockup } from "./AuthBrandLockup";
+import { PasswordVisibilityToggle } from "./PasswordVisibilityToggle";
+import { useShake } from "./useShake";
 
 interface Requirements {
   username?: string;
@@ -28,10 +30,11 @@ export const LoginForm: React.FC = () => {
 
   // Component states
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [require, setRequire] = useState<Requirements>({});
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+
+  const { shake, triggerShake, clearShake } = useShake();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,7 +48,7 @@ export const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    clearShake();
 
     const requirements: Requirements = {};
     let isValid = true;
@@ -66,8 +69,7 @@ export const LoginForm: React.FC = () => {
     // If validation fails, trigger shake animation and abort
     if (!isValid) {
       setLoading(false);
-      setError("shake");
-      setTimeout(() => setError(""), 500);
+      triggerShake();
       return;
     }
 
@@ -89,8 +91,7 @@ export const LoginForm: React.FC = () => {
       navigate(returnTo);
     } catch (err: unknown) {
       // Error handling & shake animation
-      setError("shake");
-      setTimeout(() => setError(""), 500);
+      triggerShake();
 
       const title = getApiErrorTitle(err, "Connection Error.");
       triggerToast(title, false);
@@ -103,23 +104,11 @@ export const LoginForm: React.FC = () => {
   return (
     <div className="relative z-10 flex w-full max-w-[400px] flex-col">
       <form
-        className={`flex w-full flex-col rounded-[var(--r-card)] border border-white/10 bg-[rgba(23,18,38,0.55)] p-7 shadow-[0_24px_60px_-26px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-9 ${
-          error ? "animate-[shake_0.5s_ease-in-out]" : ""
-        }`}
+        className={`flex w-full flex-col ${AUTH_GLASS_CARD} ${shakeClass(shake)}`}
         onSubmit={handleSubmit}
         noValidate
       >
-        {/* Brand lockup */}
-        <div className="mb-6 flex items-center gap-2.5">
-          <img
-            src="/icon.svg"
-            alt="Finance"
-            className="h-11 w-11 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
-          />
-          <span className="text-xl font-bold tracking-tight text-app-text">
-            Finance
-          </span>
-        </div>
+        <AuthBrandLockup />
 
         <h1 className="mb-1 text-2xl font-bold tracking-tight text-app-text">
           Welcome back
@@ -158,14 +147,10 @@ export const LoginForm: React.FC = () => {
             invalid={!!require.password}
             leadingIcon={<FontAwesomeIcon icon={faLock} />}
             rightSlot={
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="flex items-center rounded-md p-2 text-app-muted transition-colors hover:text-app-text"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
-              </button>
+              <PasswordVisibilityToggle
+                visible={showPassword}
+                onToggle={() => setShowPassword(!showPassword)}
+              />
             }
           />
           {require.password && (
