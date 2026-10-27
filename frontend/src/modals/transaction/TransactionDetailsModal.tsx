@@ -1,10 +1,16 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { useDeleteModal } from "../common/DeleteModalContext";
 import type { Transaction, Wallet } from "../../types/domain.ts";
+import type { CurrencyCode } from "../../utils/currencies";
+import { useWalletContext } from "../../dashboard/wallet/WalletContext.tsx";
+import {
+  SubscriptionModal,
+  type SubscriptionModalHandle,
+} from "../subscription/SubscriptionModal.tsx";
 
 import { TransactionView } from "./TransactionView";
 
@@ -23,6 +29,8 @@ export const TransactionDetailsModal = forwardRef<
   Props
 >(({ wallet, handleDeleteSuccess, onEditRequest }, ref) => {
   const deleteModalRef = useDeleteModal();
+  const { subscriptions, tags, fetchData } = useWalletContext();
+  const subscriptionModalRef = useRef<SubscriptionModalHandle>(null);
 
   const [open, setOpen] = useState(false);
   const [tx, setTx] = useState<Transaction | null>(null);
@@ -57,6 +65,13 @@ export const TransactionDetailsModal = forwardRef<
     }
   };
 
+  const handleOpenSubscription = (subscriptionId: string) => {
+    const sub = subscriptions.find((s) => s.id === subscriptionId);
+    if (sub) {
+      subscriptionModalRef.current?.openModal(sub);
+    }
+  };
+
   const canEdit = !!tx && wallet.userRole !== "VIEWER";
   const footer = canEdit ? (
     <div className="flex items-center gap-3">
@@ -85,14 +100,29 @@ export const TransactionDetailsModal = forwardRef<
   ) : undefined;
 
   return (
-    <ResponsiveOverlay
-      open={open}
-      onClose={handleClose}
-      title="Transaction"
-      accentColor={wallet.color}
-      footer={footer}
-    >
-      {tx && <TransactionView tx={tx} wallet={wallet} />}
-    </ResponsiveOverlay>
+    <>
+      <ResponsiveOverlay
+        open={open}
+        onClose={handleClose}
+        title="Transaction"
+        accentColor={wallet.color}
+        footer={footer}
+      >
+        {tx && (
+          <TransactionView
+            tx={tx}
+            wallet={wallet}
+            onOpenSubscription={handleOpenSubscription}
+          />
+        )}
+      </ResponsiveOverlay>
+      <SubscriptionModal
+        ref={subscriptionModalRef}
+        wallet={wallet}
+        tags={tags}
+        baseCurrency={wallet.currency as CurrencyCode}
+        onSuccess={() => fetchData()}
+      />
+    </>
   );
 });
