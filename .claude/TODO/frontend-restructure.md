@@ -161,23 +161,23 @@ Translate Italian comments to English. No code changes in the same commit.
 These unblock Phase 5. Every new module ships with a unit test. "Adopt at call sites"
 = mechanical replacement, identical behavior.
 
-- [ ] **4.1** `utils/format.ts` — `formatAmount(value)` (the exact current
+- [x] **4.1** `utils/format.ts` — `formatAmount(value)` (the exact current
   `toLocaleString("it-IT", {min/max FractionDigits:2})` body, with the `0 → "—"` guard as
   an option). Adopt at the 7 identical copies: `statistics/OverviewCell:12`,
   `OverviewTable:35`, `StatisticsSummary:11`, `tag/CategoryHeatmapChart:26`,
   `CategoryRanking:15`, `CategoryTrendChart:29`, `TransactionPieChart` (inline ~L190).
   Keep `it-IT` for now (locale decision → Findings F8).
-- [ ] **4.2** `utils/currencies.ts`: add `getCurrencySymbol(code)` =
+- [x] **4.2** `utils/currencies.ts`: add `getCurrencySymbol(code)` =
   `CURRENCY_META[code]?.symbol ?? code`; adopt at the ~9 inline copies (SubscriptionCreateMode:67,
   SubscriptionsStep:65, SubscriptionView:72, SubscriptionModal:189, TransactionModal:134,
   TransactionView:67, SubscriptionCard:187, TagsTab:39, TransactionRow:90). Then split the
   file: `utils/currencies/meta.ts` (types + `CURRENCY_META` + `MAIN_CURRENCY_CODES` +
   `getCurrencySymbol`), `catalogue.ts` (Frankfurter fetch+cache), `preferred.ts`
   (preferred-FX prefs), barrel `index.ts` so importers don't churn.
-- [ ] **4.3** `utils/months.ts` — `MONTH_LABELS` (Jan…Dec). Adopt at the 5 copies:
+- [x] **4.3** `utils/months.ts` — `MONTH_LABELS` (Jan…Dec). Adopt at the 5 copies:
   `CategoryTrendChart:12`, `CategoryHeatmapChart:9`, `CumulativeChart:18`,
   `MonthlySnapshotChart:19`, `OverviewTable:13` (`MONTHS`).
-- [ ] **4.4** Shared hooks (one commit each):
+- [x] **4.4** Shared hooks (one commit each):
   - `hooks/useCopyToClipboard.ts` (`{copied, copy}`, 3 s reset) — adopt:
     `TokensSection:302–311`, `InvitesTable:49–52`, `modals/pat/PatModal:183` /
     `PatShowTokenView:54–69`.
@@ -196,7 +196,7 @@ These unblock Phase 5. Every new module ships with a unit test. "Adopt at call s
   - `hooks/useDebounce.ts` — adopt the 2 hand-rolled debounces in `WalletProvider` (:57, :133).
   - Reconcile `hooks/useMediaQuery` vs `react-use` `useMedia` (SwitchableCard uses the
     latter) — standardize on the local `useMediaQuery`.
-- [ ] **4.5** New `components/ui/` primitives (visual output must be pixel-identical to
+- [x] **4.5** New `components/ui/` primitives (visual output must be pixel-identical to
   the copies they replace — copy the exact classes):
   - `IconButton.tsx` (size, tone, `spinning`, `danger`) — adopt: `Backups` RowAction
     (:101–118) + clear-✕ (:453–461), `AccountSection` IconAction (:69–91), `UserRow:35–42`,
@@ -214,27 +214,27 @@ These unblock Phase 5. Every new module ships with a unit test. "Adopt at call s
   - `AccentHoverButton.tsx` — the hover-accent inline-style button hand-rolled 3× :
     `CategoryManagerDrawer` AddCategoryButton (:115–177), `layout/HiddenTray` TrayChip
     (:15–48), drawer `ChildDropZone`. (Consumed by task 5A.1.)
-- [ ] **4.6** `utils/walletOrder.ts` — `readWalletOrder / sortWalletsBySavedOrder /
+- [x] **4.6** `utils/walletOrder.ts` — `readWalletOrder / sortWalletsBySavedOrder /
   writeWalletOrder` (localStorage `wallet_order`); dedupe `UserDashboard:37–50` and
   `WalletsBar:143–184,215–233` (identical `console.error` included).
-- [ ] **4.7** `utils/session.ts` — `clearSession()`; dedupe the localStorage/session
+- [x] **4.7** `utils/session.ts` — `clearSession()`; dedupe the localStorage/session _(done in `utils/authHelper.ts`, not a new `utils/session.ts`; axiosConfig left to 6.1)_
   teardown ×3: `SecuritySection` handleSignOutAll, `DeleteAccountSection:46–49`,
   `auth/Login.tsx:25–27`. THEN centralize token storage in `utils/authHelper.ts`
   (`getToken/setToken/clearToken`, `mustChangePWD` accessors) and adopt at the 13 files
   reading the `"jwtToken"` literal directly (grep for it; skip `api/axiosConfig.ts` —
   in-flight, Phase 6).
-- [ ] **4.8** `utils/color.ts` — move `hexToRgba` from `tag/TransactionPieChart:10–15`
+- [x] **4.8** `utils/color.ts` — move `hexToRgba` from `tag/TransactionPieChart:10–15`
   and `toHex()` + `FALLBACK_HEX` from `selectors/ColorSelector:30–61`.
-- [ ] **4.9** `utils/parseCsv.ts` — move the generic RFC-4180 `parseCsv` out of
+- [x] **4.9** `utils/parseCsv.ts` — move the generic RFC-4180 `parseCsv` out of
   `dashboard/settings/csvImport.ts:118–193` (no domain knowledge in it).
-- [ ] **4.10** Extend `utils/subscriptionHelper.ts` (already tested): move the 4 pure
+- [x] **4.10** Extend `utils/subscriptionHelper.ts` (already tested): move the 4 pure
   helpers from `SubscriptionCard:16–103` (`formatCompactFrequency`, `getDaysLeft`,
   `getDaysLeftColor`, `getDaysLeftText`); unify the second `getDaysLeft`
   (`SubscriptionList:73`); add `applyTransactionToSubscription(sub, tx)` deduping the
   merge written 3× (`SubscriptionCalendar:169–180`, `SubscriptionList:237–246, 271–280`).
-- [ ] **4.11** `utils/recentMonthsZoom.ts` — unify the "recent 12 months" zoom math
+- [x] **4.11** `utils/recentMonthsZoom.ts` — unify the "recent 12 months" zoom math
   duplicated between `tag/useRecentMonthsZoom.ts` and `StatisticsTab:50–74`.
-- [ ] **4.12** Split `utils/tabLayout.ts` (378) into `utils/tabLayout/{types,storage,mutations}.ts`
+- [x] **4.12** Split `utils/tabLayout.ts` (378) into `utils/tabLayout/{types,storage,mutations}.ts` _(no `index.ts` barrel: 7 importers rewritten to `/types`, `/storage`, `/mutations`)_
   + barrel `index.ts` (types L11–35; storage L37–167; the 11 pure mutations L176–378).
   Existing test file splits naturally along the same seams.
 
