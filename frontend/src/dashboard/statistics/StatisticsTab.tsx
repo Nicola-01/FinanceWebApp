@@ -10,6 +10,7 @@ import type { ZoomData } from "@mui/x-charts/internals";
 
 import { useTheme } from "../../utils/ThemeContext.tsx";
 import { buildMonthlyBuckets } from "./chartData";
+import { recentMonthsZoom } from "../../utils/recentMonthsZoom.ts";
 
 const lightTheme = createTheme({
   palette: { mode: "light", background: { paper: "#ffffff" } },
@@ -53,13 +54,7 @@ export const StatisticsTab: React.FC = () => {
       transactions &&
       transactions.length > 0
     ) {
-      const buckets = buildMonthlyBuckets(transactions);
-      const totalMonths = buckets.length;
-      if (totalMonths > 12) {
-        const startPercent = ((totalMonths - 12) / totalMonths) * 100;
-        return [{ axisId: "x-axis", start: startPercent, end: 100 }];
-      }
-      return [{ axisId: "x-axis", start: 0, end: 100 }];
+      return recentMonthsZoom(buildMonthlyBuckets(transactions).length);
     }
     return null;
   }, [transactions, wallet.id, zoomInitializedForWallet]);
