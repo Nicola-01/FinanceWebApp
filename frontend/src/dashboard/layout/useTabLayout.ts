@@ -1,19 +1,20 @@
 import { useState } from "react";
 import {
-  clearLayout,
-  defaultLayout,
   hideSlot,
   mergeSlots,
   moveSlotToIndex,
   popWidgetTo,
-  readLayout,
   reorderMember,
   setActiveWidget,
   showSlot,
+} from "../../utils/tabLayout/mutations";
+import {
+  clearLayout,
+  defaultLayout,
+  readLayout,
   writeLayout,
-  type LayoutWidgetMeta,
-  type TabLayout,
-} from "../../utils/tabLayout";
+} from "../../utils/tabLayout/storage";
+import type { LayoutWidgetMeta, TabLayout } from "../../utils/tabLayout/types";
 
 export interface TabLayoutApi {
   layout: TabLayout;

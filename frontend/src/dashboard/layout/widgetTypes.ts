@@ -1,6 +1,6 @@
 import type React from "react";
 import type { IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import type { LayoutWidgetMeta } from "../../utils/tabLayout";
+import type { LayoutWidgetMeta } from "../../utils/tabLayout/types";
 
 /**
  * One widget a customizable tab can display. `render` receives the tab's data
