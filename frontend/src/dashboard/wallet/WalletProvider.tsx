@@ -27,6 +27,7 @@ import type { PendingOp } from "../../utils/offlineDb";
 import { WalletContext } from "./WalletContext.tsx";
 import { VALID_TABS, type TabType } from "./walletTabs";
 import { selectPendingTransactions } from "./pendingTransactions";
+import { useDebounce } from "../../hooks/useDebounce";
 
 interface WalletProviderProps {
   _wallet: Wallet;
@@ -57,11 +58,7 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>("");
   // The input stays bound to `searchQuery` (instant); filtering is driven by a
   // debounced copy so typing stays smooth on large transaction lists.
-  const [debouncedQuery, setDebouncedQuery] = useState<string>("");
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedQuery(searchQuery), 200);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
+  const debouncedQuery = useDebounce(searchQuery, 200);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get("tab") as TabType;
