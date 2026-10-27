@@ -8,8 +8,10 @@ vi.mock("../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));
 
+import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import BankCallback from "../../auth/BankCallback";
 
+const toast = triggerToast as unknown as ReturnType<typeof vi.fn>;
 const Where = () => <div data-testid="loc">{useLocation().pathname}</div>;
 const renderAt = (url: string) =>
   render(
@@ -38,5 +40,22 @@ describe("BankCallback", () => {
     expect(screen.getByText(/access_denied/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /back/i })).toBeInTheDocument();
     expect(complete).not.toHaveBeenCalled();
+  });
+
+  it("errors without calling the API when code/state are missing", async () => {
+    renderAt("/bank/callback?code=abc");
+    await waitFor(() =>
+      expect(screen.getByTestId("loc")).toHaveTextContent("/dashboard"),
+    );
+    expect(complete).not.toHaveBeenCalled();
+    expect(toast).toHaveBeenCalledWith("Invalid bank callback", false);
+  });
+
+  it("reports an API failure", async () => {
+    complete.mockRejectedValue(new Error("boom"));
+    renderAt("/bank/callback?code=a&state=b");
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith(expect.any(String), false),
+    );
   });
 });

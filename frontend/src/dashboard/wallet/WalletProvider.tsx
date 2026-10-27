@@ -239,11 +239,15 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
   // "if stale"), then reload only if something was imported. Errors are ignored.
   useEffect(() => {
     if (navigator.onLine === false) return;
+    let cancelled = false;
     syncWalletIfStale(_wallet.id)
       .then((results) => {
-        if (results.some((r) => r.imported > 0)) fetchData();
+        if (!cancelled && results.some((r) => r.imported > 0)) fetchData();
       })
       .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [_wallet.id]);
 

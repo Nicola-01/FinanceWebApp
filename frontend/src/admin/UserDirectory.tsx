@@ -160,7 +160,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="p-5 text-center text-app-muted">
+                <td colSpan={6} className="p-5 text-center text-app-muted">
                   No users found.
                 </td>
               </tr>

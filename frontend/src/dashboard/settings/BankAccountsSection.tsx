@@ -14,6 +14,7 @@ import { Badge, type BadgeTone } from "../../components/ui/Badge.tsx";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../../utils/apiError.ts";
+import { ConfirmModal } from "../../modals/common/ConfirmModal.tsx";
 import { ConnectBankForm } from "./ConnectBankForm.tsx";
 
 const DAY = 86_400_000;
@@ -44,16 +45,19 @@ export const BankAccountsSection: React.FC = () => {
   const [enabled, setEnabled] = useState(false);
   const [connections, setConnections] = useState<BankConnection[]>([]);
   const [linking, setLinking] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [unlinkTarget, setUnlinkTarget] = useState<BankConnection | null>(null);
+  const [unlinking, setUnlinking] = useState(false);
 
   const load = useCallback(
     () =>
       getWalletBank(wallet.id)
         .then((r) => {
+          setLoadFailed(false);
           setEnabled(r.enabled);
           setConnections(r.connections);
         })
-        // Bank data is optional: on failure the section just stays hidden.
-        .catch(() => setEnabled(false)),
+        .catch(() => setLoadFailed(true)),
     [wallet.id],
   );
 
@@ -61,6 +65,12 @@ export const BankAccountsSection: React.FC = () => {
     load();
   }, [load]);
 
+  if (loadFailed)
+    return (
+      <p className="mb-6 text-sm text-app-muted">
+        Could not load bank accounts.
+      </p>
+    );
   if (!enabled) return null;
 
   const isOwner = wallet.userRole === "OWNER";
@@ -87,15 +97,15 @@ export const BankAccountsSection: React.FC = () => {
       window.location.assign(url);
     }, "Could not renew consent");
 
-  const unlink = (c: BankConnection) => {
-    if (
-      !window.confirm(`Unlink ${c.aspspName}? Imported transactions are kept.`)
-    )
-      return;
-    return run(async () => {
-      await deleteConnection(c.id);
+  const confirmUnlink = async () => {
+    if (!unlinkTarget) return;
+    setUnlinking(true);
+    await run(async () => {
+      await deleteConnection(unlinkTarget.id);
       await load();
     }, "Could not unlink bank");
+    setUnlinking(false);
+    setUnlinkTarget(null);
   };
 
   return (
@@ -153,7 +163,11 @@ export const BankAccountsSection: React.FC = () => {
                   </Button>
                 )}
                 {isOwner && (
-                  <Button size="sm" variant="danger" onClick={() => unlink(c)}>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => setUnlinkTarget(c)}
+                  >
                     Unlink
                   </Button>
                 )}
@@ -169,6 +183,20 @@ export const BankAccountsSection: React.FC = () => {
           </div>
         )}
       </div>
+      <ConfirmModal
+        open={!!unlinkTarget}
+        title="Unlink bank"
+        message={
+          <>
+            Unlink <strong>{unlinkTarget?.aspspName}</strong>? Imported
+            transactions are kept.
+          </>
+        }
+        confirmLabel="Unlink"
+        busy={unlinking}
+        onConfirm={confirmUnlink}
+        onCancel={() => setUnlinkTarget(null)}
+      />
       <ResponsiveOverlay
         open={linking}
         onClose={() => setLinking(false)}

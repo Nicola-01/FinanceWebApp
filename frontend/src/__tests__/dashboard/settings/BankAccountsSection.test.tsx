@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Wallet } from "../../../types/domain";
 
@@ -53,6 +53,17 @@ const conn = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // ConfirmModal portals into #modal-root; jsdom lacks the <dialog> API.
+  document.getElementById("modal-root")?.remove();
+  const root = document.createElement("div");
+  root.id = "modal-root";
+  document.body.appendChild(root);
+  HTMLDialogElement.prototype.showModal ??= function () {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close ??= function () {
+    this.removeAttribute("open");
+  };
   ctxRef.current = { wallet: wallet("OWNER"), fetchData: vi.fn() };
   bank.getWalletBank.mockResolvedValue({ enabled: true, connections: [conn] });
 });
@@ -102,5 +113,30 @@ describe("BankAccountsSection", () => {
     );
     await waitFor(() => expect(bank.syncConnection).toHaveBeenCalledWith("c1"));
     await waitFor(() => expect(ctxRef.current.fetchData).toHaveBeenCalled());
+  });
+
+  it("Unlink confirms, deletes and reloads the list", async () => {
+    bank.deleteConnection.mockResolvedValue(undefined);
+    render(<BankAccountsSection />);
+    await userEvent.click(
+      await screen.findByRole("button", { name: /^unlink$/i }),
+    );
+    expect(bank.deleteConnection).not.toHaveBeenCalled();
+    const modal = within(document.getElementById("modal-root")!);
+    await userEvent.click(
+      await modal.findByRole("button", { name: /^unlink$/i }),
+    );
+    await waitFor(() =>
+      expect(bank.deleteConnection).toHaveBeenCalledWith("c1"),
+    );
+    await waitFor(() => expect(bank.getWalletBank).toHaveBeenCalledTimes(2));
+  });
+
+  it("shows an inline message when loading fails", async () => {
+    bank.getWalletBank.mockRejectedValue(new Error("x"));
+    render(<BankAccountsSection />);
+    expect(
+      await screen.findByText(/could not load bank accounts/i),
+    ).toBeInTheDocument();
   });
 });
