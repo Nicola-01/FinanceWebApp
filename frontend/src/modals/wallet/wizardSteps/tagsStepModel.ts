@@ -12,7 +12,7 @@ import {
   type RecommendedTagGroup,
 } from "./recommendedTags";
 import type { SourceWallet } from "./sourceWallets";
-import type { StagedTagNode } from "./StagedTagTree";
+import type { StagedTagNode } from "./stagedTagTreeModel";
 import type { TagRequest } from "../../../dashboard/settings/csvImport";
 
 export const keyOf = (name: string) => name.trim().toLowerCase();
