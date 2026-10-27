@@ -42,5 +42,11 @@ public class BankAccountLink {
   private LocalDate importFrom;
   private Instant lastSyncedAt;
 
+  /** Last bank call for this link, successful or not: the base of every sync throttle. */
+  private Instant lastAttemptAt;
+
+  /** Earliest date of rows skipped for a missing FX rate; the next sync refetches from here. */
+  private LocalDate retryFrom;
+
   @Builder.Default private int importedCount = 0;
 }

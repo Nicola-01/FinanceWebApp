@@ -79,12 +79,25 @@ public class BankSyncService {
     Outcome o = transactionTemplate.execute(tx -> doSync(connection.getId(), psu));
     Transition t = o.transition();
     if (t != null)
-      t.owners()
-          .forEach(
-              u ->
-                  notificationService.notifyUser(
-                      u, NotificationType.BANK_CONNECTION, t.walletId(), t.copy()));
+      for (User u : t.owners()) {
+        // The sync already committed: a failed alert must not report it (or the rest) as failed.
+        try {
+          notificationService.notifyUser(
+              u, NotificationType.BANK_CONNECTION, t.walletId(), t.copy());
+        } catch (RuntimeException e) {
+          log.warn("Bank status alert for connection {} failed", connection.getId(), e);
+        }
+      }
     return o.result();
+  }
+
+  /**
+   * Whether a link last called the bank at or before {@code cutoff}. Based on the last attempt, not
+   * the last success, so failures and skipped rows don't turn every tick into a bank call.
+   */
+  public static boolean attemptedBefore(BankAccountLink l, Instant cutoff) {
+    Instant last = l.getLastAttemptAt() != null ? l.getLastAttemptAt() : l.getLastSyncedAt();
+    return last == null || !last.isAfter(cutoff);
   }
 
   /**
@@ -101,13 +114,7 @@ public class BankSyncService {
                     .filter(c -> c.getStatus() == BankConnection.Status.ACTIVE)
                     .filter(c -> c.getCreatedBy().getId().equals(callerId))
                     .filter(c -> c.getCreatedBy().isOpenBankingEnabled())
-                    .filter(
-                        c ->
-                            c.getAccounts().stream()
-                                .anyMatch(
-                                    l ->
-                                        l.getLastSyncedAt() == null
-                                            || !l.getLastSyncedAt().isAfter(cutoff)))
+                    .filter(c -> c.getAccounts().stream().anyMatch(l -> attemptedBefore(l, cutoff)))
                     .toList());
     return stale.stream().map(c -> syncConnection(c, psu)).toList();
   }
@@ -157,6 +164,9 @@ public class BankSyncService {
       return result(c, 0);
     }
 
+    // Stamp every link up front: a failure part-way backs the whole connection off until the next
+    // due tick instead of retrying the untried links (and the failing one) every hour.
+    c.getAccounts().forEach(l -> l.setLastAttemptAt(now));
     int imported = 0;
     for (BankAccountLink link : c.getAccounts()) {
       List<EbTransaction> rows;
@@ -190,6 +200,8 @@ public class BankSyncService {
           LocalDate.ofInstant(link.getLastSyncedAt(), ZoneOffset.UTC).minusDays(LOOKBACK_DAYS);
       if (from == null || back.isAfter(from)) from = back;
     }
+    if (link.getRetryFrom() != null && (from == null || link.getRetryFrom().isBefore(from)))
+      from = link.getRetryFrom();
     List<EbTransaction> rows = new ArrayList<>();
     String key = null;
     do {
@@ -204,7 +216,7 @@ public class BankSyncService {
     Set<String> known = ledgerRepository.findExternalIdsByLinkId(link.getId());
     Tag tag = null;
     int n = 0;
-    boolean skipped = false;
+    LocalDate retryFrom = null;
     for (MappedTx m : mapped) {
       if (!known.add(m.externalId())) continue;
       String currency =
@@ -216,9 +228,9 @@ public class BankSyncService {
       if (!currency.equals(wallet.getCurrency())) {
         rate = exchangeRateService.getRate(currency, wallet.getCurrency()).orElse(null);
         if (rate == null) {
-          // No ledger row either, so a later sync imports it once a rate is available.
+          // No ledger row either: retryFrom brings it back into a later sync's window.
           log.warn("No {}->{} rate; skipping a bank row", currency, wallet.getCurrency());
-          skipped = true;
+          if (retryFrom == null || m.date().isBefore(retryFrom)) retryFrom = m.date();
           continue;
         }
         amount = m.amount().multiply(rate).setScale(2, RoundingMode.HALF_UP);
@@ -247,8 +259,8 @@ public class BankSyncService {
               .build());
       n++;
     }
-    // A skipped row keeps the sync window where it was, so the next sync fetches it again.
-    if (!skipped) link.setLastSyncedAt(now);
+    link.setLastSyncedAt(now);
+    link.setRetryFrom(retryFrom);
     link.setImportedCount(link.getImportedCount() + n);
     return n;
   }

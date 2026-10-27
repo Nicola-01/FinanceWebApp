@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import dev.busato.FinanceWebApp.backend.exceptions.OpenBankingDisabledException;
 import dev.busato.FinanceWebApp.backend.exceptions.PermissionDeniedException;
+import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
@@ -536,7 +537,9 @@ class BankLinkServiceTest {
     String state = connect();
     when(client.createSession("code")).thenReturn(new EbSession("s1", List.of(account("u1"))));
     UUID id = service.callback(owner.getId(), new CallbackRequest("code", state), null).id();
-    connectionRepository.findById(id).orElseThrow().getAccounts().get(0).setLastSyncedAt(null);
+    BankAccountLink linked = connectionRepository.findById(id).orElseThrow().getAccounts().get(0);
+    linked.setLastSyncedAt(null);
+    linked.setLastAttemptAt(null);
 
     assertThat(service.syncIfStale(editor.getId(), wallet.getId(), null)).isEmpty();
     assertThat(service.syncIfStale(owner.getId(), wallet.getId(), null)).hasSize(1);

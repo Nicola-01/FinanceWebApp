@@ -102,8 +102,7 @@ public class BankSyncCronJob implements ManagedJob {
   private boolean due(BankConnection c, Instant now) {
     Instant cutoff = now.minus(UNATTENDED_INTERVAL);
     List<BankAccountLink> links = c.getAccounts();
-    return links.stream()
-        .anyMatch(l -> l.getLastSyncedAt() == null || !l.getLastSyncedAt().isAfter(cutoff));
+    return links.stream().anyMatch(l -> BankSyncService.attemptedBefore(l, cutoff));
   }
 
   private void notifyOwners(BankConnection c, NotificationCopy.Copy copy) {

@@ -395,12 +395,53 @@ class BankSyncServiceTest {
 
     assertThat(service.syncConnection(conn, null).imported()).isEqualTo(1);
     assertThat(ledgerRepository.findExternalIdsByLinkId(link.getId())).hasSize(1);
-    // the window is not advanced, so the next sync refetches from the same start date
-    assertThat(link.getLastSyncedAt()).isNull();
+    // the sync still counts as done (no hourly re-polling); the skipped row's date is remembered
+    assertThat(link.getLastSyncedAt()).isEqualTo(NOW);
+    assertThat(link.getRetryFrom()).isEqualTo(DAY);
 
     when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.of(new BigDecimal("0.9")));
     assertThat(service.syncConnection(conn, null).imported()).isEqualTo(1);
     assertThat(walletTxs()).hasSize(2);
-    verify(client, times(2)).getTransactions("acc-1", LocalDate.of(2026, 10, 1), null, null);
+    assertThat(link.getRetryFrom()).isNull();
+    // the retry reaches back past the 5-day lookback (10-22) to the skipped row's day
+    verify(client).getTransactions("acc-1", LocalDate.of(2026, 10, 1), null, null);
+    verify(client).getTransactions("acc-1", DAY, null, null);
+  }
+
+  @Test
+  void skippedRowDoesNotMakeTheLinkDueAgain() {
+    when(exchangeRateService.getRate("USD", "EUR")).thenReturn(Optional.empty());
+    bankReturns(row("r1", "10", "USD", null));
+    service.syncConnection(conn, null);
+
+    assertThat(service.syncWalletIfStale(wallet.getId(), owner.getId(), null)).isEmpty();
+    verify(client, times(1)).getTransactions(any(), any(), any(), any());
+  }
+
+  @Test
+  void transientErrorBacksOffInsteadOfRetryingEveryTick() {
+    when(client.getTransactions(any(), any(), any(), any()))
+        .thenThrow(new EnableBankingException(503, "down"));
+    service.syncConnection(conn, null);
+
+    // the failed attempt counts for the throttle, but the window still starts where it was
+    assertThat(link.getLastAttemptAt()).isEqualTo(NOW);
+    assertThat(link.getLastSyncedAt()).isNull();
+    assertThat(service.syncWalletIfStale(wallet.getId(), owner.getId(), null)).isEmpty();
+    verify(client, times(1)).getTransactions(any(), any(), any(), any());
+  }
+
+  @Test
+  void failedAlertDoesNotFailTheCommittedSync() {
+    conn.setValidUntil(NOW.minusSeconds(1));
+    connectionRepository.save(conn);
+    doThrow(new RuntimeException("push down"))
+        .when(notificationService)
+        .notifyUser(any(), any(), any(), any());
+
+    assertThat(service.syncConnection(conn, null).status())
+        .isEqualTo(BankConnection.Status.EXPIRED);
+    assertThat(connectionRepository.findById(conn.getId()).orElseThrow().getStatus())
+        .isEqualTo(BankConnection.Status.EXPIRED);
   }
 }

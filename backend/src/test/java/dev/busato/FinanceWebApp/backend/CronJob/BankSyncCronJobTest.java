@@ -124,6 +124,15 @@ class BankSyncCronJobTest {
   }
 
   @Test
+  void recentFailedAttemptIsNotRetriedHourly() {
+    BankConnection c = conn(NOW.minus(Duration.ofDays(2)), null);
+    c.getAccounts().get(0).setLastAttemptAt(NOW.minus(Duration.ofHours(1)));
+    active(c);
+    job.run();
+    verify(syncService, never()).syncConnection(any(), any());
+  }
+
+  @Test
   void neverSyncedLinkIsDue() {
     BankConnection c = conn(null, null);
     active(c);
