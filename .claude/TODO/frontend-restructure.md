@@ -242,14 +242,14 @@ These unblock Phase 5. Every new module ships with a unit test. "Adopt at call s
 
 ### 5A — dashboard/tag
 
-- [ ] **5A.1** Split `CategoryManagerDrawer.tsx` (704 — biggest file in the app) into:
+- [x] **5A.1** Split `CategoryManagerDrawer.tsx` (704 — biggest file in the app) into:
   `categoryDnd.ts` (pure: `CONTAINER_PREFIX` :52, `nestedCollisionDetection` :71–83,
   `resolveTargetParent` :292–297), `useCategoryTreeDnd.ts` (drag state machine :222–231,
   :268–274, :299–456), `useCategoryTree.ts` (derived tree + sort + sync :195–277),
   `ChildDropZone.tsx` (:86–108), `CategoryDragOverlay.tsx` (:641–700),
   `CategoryTreeList.tsx` (:538–639); AddCategoryButton (:115–177) → consume
   `ui/AccentHoverButton` (4.5). Drawer shrinks to ~120-line shell. Unit-test `categoryDnd.ts`.
-- [ ] **5A.2** Chart dedup (needs 4.1/4.3): new `tag/ChartCard.tsx` (bare/card shell +
+- [x] **5A.2** Chart dedup (needs 4.1/4.3): new `tag/ChartCard.tsx` (bare/card shell +
   title + shared "No data available" empty state), `tag/ChartLegend.tsx` (swatch row),
   `tag/FlowTypeToggle.tsx` (Income/Expense `Selector` wrapper). Move the `buildTrend` /
   `buildHeatmap` / `buildRanking` data-shapers into `categoryAgg.ts` (or sibling
@@ -259,80 +259,80 @@ These unblock Phase 5. Every new module ships with a unit test. "Adopt at call s
 
 ### 5B — dashboard/statistics
 
-- [ ] **5B.1** `OverviewTable.tsx` (321): extract `useOverviewData.ts` (:52–161 — years,
+- [x] **5B.1** `OverviewTable.tsx` (321): extract `useOverviewData.ts` (:52–161 — years,
   monthly buckets/totals, yearly columns, auto-scroll effect); make `OverviewCell` expose
   a wrapper-less `OverviewCellContent` and delete the duplicated `renderValueCell`
   (:163–194); optional `OverviewOverlayColumns.tsx` (:233–266).
-- [ ] **5B.2** Unify `CumulativeChart.tsx` (217) + `MonthlySnapshotChart.tsx` (207) —
+- [x] **5B.2** Unify `CumulativeChart.tsx` (217) + `MonthlySnapshotChart.tsx` (207) —
   ~80% identical: new `statistics/MonthlyChart.tsx` (shared surface/axis/tooltip/legend)
   + `statistics/chartTheme.ts` (the two MUI themes, tooltip `sx`, series colors). The two
   files collapse to ~40-line dataset-shapers. Highest-value statistics dedup.
-- [ ] **5B.3** `CashFlowSankey.tsx` (312): move the pure node/link builder (:40–195) to
+- [x] **5B.3** `CashFlowSankey.tsx` (312): move the pure node/link builder (:40–195) to
   `sankeyData.ts` + unit test; translate the 2 Italian comments (:129, :177). Chart JSX stays.
-- [ ] **5B.4** `StatisticsTab.tsx`: consume `utils/recentMonthsZoom` (4.11).
+- [x] **5B.4** `StatisticsTab.tsx`: consume `utils/recentMonthsZoom` (4.11).
 
 ### 5C — dashboard/layout
 
-- [ ] **5C.1** `WidgetGrid.tsx` (436): extract `useWidgetGridDnd.ts` — ALL drag
+- [x] **5C.1** `WidgetGrid.tsx` (436): extract `useWidgetGridDnd.ts` — ALL drag
   state/refs (:84–123), derivations (:125–153), handlers (:155–350). Grid becomes ~120
   lines of DndContext/grid/DragOverlay JSX. Do NOT fragment the JSX or the geometry
   modules (`slotPlacement`, `popPlacement`, `mergeAwareCollision` are already well-factored).
   Move pure `eventPointer` (:47–53) into `popPlacement.ts` or `layout/dndPointer.ts`.
-- [ ] **5C.2** (optional) `WidgetSlot.tsx` (237): extract `GroupEditHeader.tsx`
+- [-] **5C.2** _(skipped — optional, WidgetSlot not touched)_ (optional) `WidgetSlot.tsx` (237): extract `GroupEditHeader.tsx`
   (:120–163) + `SlotEditOverlay.tsx` (:185–218) only if touched anyway.
 
 ### 5D — dashboard/settings (CSV)
 
-- [ ] **5D.1** New `dashboard/settings/csvExport.ts` (pure, tested): `downloadCsv`
+- [x] **5D.1** New `dashboard/settings/csvExport.ts` (pure, tested): `downloadCsv`
   (DataTab :102–118), `sortTagsForExport` (:87–100), the three inline export row-builders
   (:139–156, :168–174, :186–206), and `buildCsv`+`downloadSample` from
   `CsvFormatModal:152–172` — single source for cell-quoting + Blob download (currently
   duplicated across the two files).
-- [ ] **5D.2** `DataTab.tsx` (454): extract `useCsvImport.ts` (review state + types
+- [x] **5D.2** `DataTab.tsx` (454): extract `useCsvImport.ts` (review state + types
   :52–74, `toRecap` :77–81, `buildJob` :220–268, `submitJob` :272–288, `requestImport` /
   `handleFileSelected` :290–325 + file-input refs). DataTab becomes a ~140-line shell;
   optionally one `CsvActionPanel` for the near-identical Export/Import panels (:376–450).
-- [ ] **5D.3** `CsvFormatModal.tsx` (398): extract `csvSamples.ts` (the `SAMPLES` data
+- [x] **5D.3** `CsvFormatModal.tsx` (398): extract `csvSamples.ts` (the `SAMPLES` data
   literal :22–149) and consume `csvExport.ts`. Component keeps the reference-sheet JSX.
-- [ ] **5D.4** `csvImport.ts`: consume `utils/parseCsv` (4.9); keep the rest whole.
-- [ ] **5D.5** (optional) `ShareSettingsSection.tsx` (217): extract `useWalletMembers.ts`
+- [x] **5D.4** `csvImport.ts`: consume `utils/parseCsv` (4.9); keep the rest whole.
+- [-] **5D.5** _(skipped — optional, ShareSettingsSection 217 lines)_ (optional) `ShareSettingsSection.tsx` (217): extract `useWalletMembers.ts`
   (fetch/invite/remove/role :34–109) if touched.
 
 ### 5E — dashboard core (wallet / transaction / subscription / root)
 
-- [ ] **5E.1** `WalletProvider.tsx` (292): split into `useWalletData.ts` (load/fetch/
+- [x] **5E.1** `WalletProvider.tsx` (292): split into `useWalletData.ts` (load/fetch/
   cache/abort :112–180), `useTransactionFilters.ts` (filter state + debounce via 4.4 +
   `filteredTransactions` :46–100), `useWalletMutations.ts` (tag/wallet CRUD handlers
   :182–260). Provider becomes a thin composer; `WalletContext.tsx` unchanged; existing
   provider test keeps passing.
-- [ ] **5E.2** `WalletsBar.tsx` (354): extract `walletBarSkeletons.tsx` (WalletSkeleton
+- [x] **5E.2** `WalletsBar.tsx` (354): extract `walletBarSkeletons.tsx` (WalletSkeleton
   :41–49 + AddWalletTile :52–69 → or consume `ui/Skeleton` from 4.5),
   `useWalletDragReorder.ts` (sensors, activeId, drag handlers, click-suppression
   :83–103/:200–213); consume `utils/walletOrder` (4.6). Bar stays as the shell.
-- [ ] **5E.3** `UserDashboard.tsx` (218): extract `useWalletRouting.ts` (slug resolution
+- [x] **5E.3** `UserDashboard.tsx` (218): extract `useWalletRouting.ts` (slug resolution
   + canonical redirects :73–96) and `useWalletDeletion.ts` (delete/quit + ConfirmModal
   wiring :100–125); consume `utils/walletOrder` (4.6).
-- [ ] **5E.4** `TransactionsTable.tsx` (196): extract `groupTransactionsByDate.ts`
+- [x] **5E.4** `TransactionsTable.tsx` (196): extract `groupTransactionsByDate.ts`
   (grouping/sorting/`formatDateHeader` :58–91, pure + tested) and consume `ui/Skeleton`.
-- [ ] **5E.5** Subscriptions: `SubscriptionList.tsx` (350) → `useSubscriptionGroups.ts`
+- [x] **5E.5** Subscriptions: `SubscriptionList.tsx` (350) → `useSubscriptionGroups.ts`
   (data prep :70–150) + `PastSubscriptionsSection.tsx` (:211–311) + consume
   `ui/SectionHeader` (4.5) + `subscriptionHelper` (4.10). `SubscriptionCard.tsx` (209) →
   helpers already moved by 4.10, card stays. `SubscriptionCalendar.tsx` (222) →
   `buildCalendarGrid.ts` (:56–77, pure + tested) + `CalendarDayCell.tsx` (:144–208,
   consume `applyTransactionToSubscription`). `SubscriptionTab.tsx` (163) → consume
   `ui/Skeleton` for :72–94.
-- [ ] **5E.6** `WalletCard.tsx`: consume `ui/useRipple` (4.5); rest stays.
+- [x] **5E.6** `WalletCard.tsx`: consume `ui/useRipple` (4.5); rest stays.
 
 ### 5F — modals (non-wizard)
 
-- [ ] **5F.1** `ExchangeRateSection.tsx` (425, hottest modal file) — split AND move to
+- [x] **5F.1** `ExchangeRateSection.tsx` (425, hottest modal file) — split AND move to
   `modals/common/exchangeRate/`: `useExchangeRate.ts` (fetch effect :95–126, auto-rate
   state, `restoreAutoRate` :181–189, 3-way binding handlers :154–178 — pure-ish, tested),
   `ExchangeRateConversionCard.tsx` (:215–334), `ForeignCurrencyToggleCard.tsx`
   (:342–424 + `handleToggleStar` :86–91). Update the 4 import sites (TransactionModal,
   SubscriptionModal, both Views; the wizard import updates in Phase 6). Remove the stray
   `console.error` :117.
-- [ ] **5F.2** TransactionModal ↔ SubscriptionModal dedup (~70% identical — biggest
+- [x] **5F.2** TransactionModal ↔ SubscriptionModal dedup (~70% identical — biggest
   modal win, HIGHER RISK, do after 5F.1): extract `modals/common/useAmountEntryForm.ts`
   (shared state block, `openModal` reset branches, `handleSave` payload build incl. the
   shared date-string logic, `currencySymbol`/`canSave`) and, if clean,
@@ -342,83 +342,83 @@ These unblock Phase 5. Every new module ships with a unit test. "Adopt at call s
   refs elsewhere). Also extract the pure payload builder `subscriptionPayload.ts`
   (SubModal :138–166). Both existing modal test files must keep passing unchanged —
   they are the behavior spec for this task.
-- [ ] **5F.3** `PatModal.tsx` (350): extract `usePatTokens.ts` (state :32–52 + all
+- [-] **5F.3** _(obsolete — PatModal deleted in Phase 1)_ `PatModal.tsx` (350): extract `usePatTokens.ts` (state :32–52 + all
   data/actions :69–226 incl. `setPermission`); modal becomes shell + view switch (~120).
   Hoist `setPermission` to `modals/pat/walletPerms.ts` — it is duplicated verbatim in
   `TokensSection:159–175` and `OAuthConsent:188–202` (consumed by 5I.2/5I.4).
-- [ ] **5F.4** `ImportReviewModal.tsx` (251): split bodies `ImportReviewConfirmBody`
+- [x] **5F.4** `ImportReviewModal.tsx` (251): split bodies `ImportReviewConfirmBody`
   (:172–205) / `ImportReviewRecapBody` (:206–246); consume `ui/StatChip` (4.5).
-- [ ] **5F.5** `DeleteModal` + `ConfirmModal`: consume `useHoldToConfirm` (4.4).
-- [ ] **5F.6** `calendar/CalendarDayDetailModal.tsx` (244): extract `useDayNavigation.ts`
+- [x] **5F.5** `DeleteModal` + `ConfirmModal`: consume `useHoldToConfirm` (4.4).
+- [x] **5F.6** `calendar/CalendarDayDetailModal.tsx` (244): extract `useDayNavigation.ts`
   (prev/next/keyboard/swipe :85–126), `CalendarDayNavHeader.tsx` (:163–190),
   `CalendarDaySubscriptionList.tsx` (:204–238, consume `applyTransactionToSubscription`).
   Rename file to match its export (`CalendarDayDetailPanel`).
-- [ ] **5F.7** `wallet/InviteModal.tsx` (209): extract pure `inviteCopy.ts`
+- [x] **5F.7** `wallet/InviteModal.tsx` (209): extract pure `inviteCopy.ts`
   (`roleCapability` :25–64, `formatInvitedAt` :67–75) + unit test. (File is NOT in the
   in-flight set — safe.)
-- [ ] **5F.8** `transaction/TransactionView.tsx` (155): lift the nested
+- [x] **5F.8** `transaction/TransactionView.tsx` (155): lift the nested
   `SubscriptionModal` (:146–152) to the parent via an `onOpenSubscription` callback;
   extract shared `modals/common/DetailRow.tsx` used by both `TransactionView` and
   `SubscriptionView` (duplicated icon+label+value `divide-y` markup).
 
 ### 5G — components/ui hot spots
 
-- [ ] **5G.1** `ui/AmountInput.tsx` (397): extract `utils/amountFormat.ts` (pure
+- [x] **5G.1** `ui/AmountInput.tsx` (397): extract `utils/amountFormat.ts` (pure
   `hasOperators` :19–22 + `formatAmountString` :24–60 — pairs with `mathEvaluator`),
   `ui/useAmountInput.ts` (uncontrolled-sync effects :98–158, `updateAmountState`
   :161–218, resolve/key/blur/focus handlers :221–309, display state :78–83),
   `ui/AmountMathToolbar.tsx` (mobile operator toolbar :353–394). Shell drops to ~80 lines.
-- [ ] **5G.2** `ui/Wizard.tsx` (316): extract `ui/WizardStepper.tsx` (rail :141–250 +
+- [x] **5G.2** `ui/Wizard.tsx` (316): extract `ui/WizardStepper.tsx` (rail :141–250 +
   `NODE_BASE` :54–56); optional `ui/WizardFooter.tsx` (:271–311 + :126–131). State
   machine stays in `Wizard.tsx`.
-- [ ] **5G.3** Shared dropdown plumbing: `ui/useDismiss.ts` (outside-click + Esc,
+- [-] **5G.3** _(skipped — 4.4 hooks already cover components/ui dropdowns; a third hook adds nothing)_ Shared dropdown plumbing: `ui/useDismiss.ts` (outside-click + Esc,
   builds on 4.4) consumed by `CustomSelect` (:37–48), `Menu` (:66–81), `CurrencySelector`,
   `IconPickerButton`, `CustomDatePicker`, `useTagTree` (:26–38).
 
 ### 5H — components (pickers/selectors/landing/pat)
 
-- [ ] **5H.1** `datePicker/CustomDatePicker.tsx` (438): extract `datePresets.ts`
+- [x] **5H.1** `datePicker/CustomDatePicker.tsx` (438): extract `datePresets.ts`
   (`PresetType`/`DateRangeValue`/`DatePickerValue` + `mainPresets` — breaks the type
   back-import cycle from CalendarContainer/DayCell/MonthGrid), `useDatePicker.ts`
   (mobile detection :100–105, outside-click :78–90 → 4.4, dialog `showModal` :92–98,
   preset→range effect :121–161, auto-close :183–192), `DatePickerTrigger.tsx`
   (:194–295), `DatePickerSidebar.tsx` (:325–374), `DatePickerSurface.tsx` (:397–435).
-- [ ] **5H.2** `selectors/CurrencySelector.tsx` (412): extract `useCurrencyList.ts`
+- [x] **5H.2** `selectors/CurrencySelector.tsx` (412): extract `useCurrencyList.ts`
   (hydration + memo lists :46–132), `useCurrencyDropdown.ts` (positioning/popover/
   keyboard :96–207), `CurrencyOptionRow.tsx` (:209–291), `CurrencyDropdownPanel.tsx`
   (:349–409). Trigger + composition stays.
-- [ ] **5H.3** `selectors/ColorSelector.tsx` (246): consume `utils/color.toHex` (4.8);
+- [-] **5H.3** _(skipped — ColorSelector 212 lines and cohesive after 4.8)_ `selectors/ColorSelector.tsx` (246): consume `utils/color.toHex` (4.8);
   extract `colorPresets.ts` (:10–26); optional `ColorAdvancedPanel.tsx` (:191–243).
-- [ ] **5H.4** `pat/TokenListItem.tsx` (236): extract `useLongPressSelect.ts` (:39–41,
+- [x] **5H.4** `pat/TokenListItem.tsx` (236): extract `useLongPressSelect.ts` (:39–41,
   :68–109); optional `TokenPrefixReveal.tsx` (:163–208).
-- [ ] **5H.5** `tags/TagTreePicker.tsx` (286): extract `TagPickerTrigger.tsx` (:206–275).
+- [x] **5H.5** `tags/TagTreePicker.tsx` (286): extract `TagPickerTrigger.tsx` (:206–275).
   (Its hand-rolled search input vs `SearchInput` → Findings F13, visual-risk.)
-- [ ] **5H.6** `landing/Navbar.tsx` (237): extract `useActiveSection.ts` (:18–40 —
+- [x] **5H.6** `landing/Navbar.tsx` (237): extract `useActiveSection.ts` (:18–40 —
   generic scroll-spy; note `settings/useScrollSpy` exists, reuse if compatible) and
   `NavLinks.tsx` (:42–134).
 
 ### 5I — settings / admin / auth
 
-- [ ] **5I.1** `admin/Backups.tsx` (666): split into `admin/backups/`:
+- [x] **5I.1** `admin/Backups.tsx` (666): split into `admin/backups/`:
   `backupFormat.ts` (pure :43–97 + unit test), `types.ts` (:29–39), `useBackups.ts`
   (load/run/upload/download/confirm/delete :176–322), `BackupsToolbar.tsx` (:344–409),
   `BackupsTable.tsx` + `BackupRow.tsx` (:466–606), `backupConfirmCopy.ts` (:608–661);
   consume `IconButton`/`useSelection`/`BulkActionBar` (4.4/4.5).
-- [ ] **5I.2** `settings/sections/TokensSection.tsx` (579): split into `settings/tokens/`:
+- [x] **5I.2** `settings/sections/TokensSection.tsx` (579): split into `settings/tokens/`:
   `tokenHelpers.tsx` (types + `isMcpToken` + local Badge → rename `TokenTypeBadge`
   :27–46), `useTokens.ts` (fetch/CRUD/bulk :76–300), `TokenDialog.tsx` (:334–373,
   :531–560), `TokenFilterPills.tsx` (:378–397); consume `useSelection`/`BulkActionBar`/
   `useCopyToClipboard`/`walletPerms` (4.4/4.5/5F.3).
-- [ ] **5I.3** `admin/SystemTab.tsx` (486): split into `admin/system/`: `types.ts`
+- [x] **5I.3** `admin/SystemTab.tsx` (486): split into `admin/system/`: `types.ts`
   (:27–46), `jobSchedule.ts` (consts + pure helpers :48–119 + unit test), promote the
   local boxed `Select` (:123–135) → `components/ui/BoxedSelect.tsx`, `JobCard.tsx`
   (the 273-line inline component :139–411) + `useJobSchedule.ts` (:146–227) +
   `WeekdayPicker.tsx` (:304–326) + `JobRunHistory.tsx` (:369–408); consume `useNow` (4.4).
-- [ ] **5I.4** `auth/OAuthConsent.tsx` (358): extract `auth/oauth/useOAuthParams.ts`,
+- [x] **5I.4** `auth/OAuthConsent.tsx` (358): extract `auth/oauth/useOAuthParams.ts`,
   `useOAuthAuthorize.ts` (:80–186; keep the deliberate raw-axios call :147–164 isolated
   there — OAuth endpoints are not under `/api`), `OAuthErrorState.tsx` (:207–250, same
   layout ×2); consume `walletPerms` (5F.3).
-- [ ] **5I.5** Auth-shell dedup (LoginForm/ForgotPassword/ResetPassword/Register are
+- [x] **5I.5** Auth-shell dedup (LoginForm/ForgotPassword/ResetPassword/Register are
   ~60% duplicated shell — the glass-card class string is byte-identical ×4):
   `auth/AuthCard.tsx` (card + shake prop), `auth/AuthBrandLockup.tsx`,
   `auth/useShake.ts`, `auth/PasswordVisibilityToggle.tsx` (already solved in
@@ -426,20 +426,20 @@ These unblock Phase 5. Every new module ships with a unit test. "Adopt at call s
   shared `InviteResponse` type (identical verify-on-mount flow Reset:45–68 /
   Register:48–73), `auth/AuthErrorCard.tsx` (Reset:130–145 / Register:146–163).
   Adopt in all four screens; all four existing test files must keep passing unchanged.
-- [ ] **5I.6** `auth/ForgotPassword.tsx` (238): extract `ForgotPasswordSent.tsx`
+- [x] **5I.6** `auth/ForgotPassword.tsx` (238): extract `ForgotPasswordSent.tsx`
   (:165–223) + `useCooldown.ts` (:32–38, :93–98).
-- [ ] **5I.7** `settings/sections/AccountSection.tsx` (421): split into
+- [x] **5I.7** `settings/sections/AccountSection.tsx` (421): split into
   `settings/account/`: `AccountRow.tsx` (Row :51–91), `UsernameRow.tsx` (:97–146,
   :235–271), `EmailChangeRow.tsx` + `useEmailChange.ts` (double-OTP flow :102–224,
   :274–400), `OtpInput.tsx` (:338–364); `storeToken` → `utils/authHelper` (4.7);
   `formatDate` → consolidate with the copies in `AboutSection:8–19` / `UserRow:13–21`
   ONLY where output is identical (locale divergence → Findings F7); IconAction →
   `ui/IconButton`.
-- [ ] **5I.8** `settings/sections/SecuritySection.tsx` (270): extract
+- [x] **5I.8** `settings/sections/SecuritySection.tsx` (270): extract
   `settings/security/MfaMethods.tsx` (data-driven :36–83 + :214–238),
   `ChangePasswordCard.tsx` (:91–212), `SignOutEverywhereCard.tsx` (:121–132, :240–267 —
   consume `utils/session` 4.7).
-- [ ] **5I.9** `admin/UserDirectory.tsx` (163): extract a generic `useTableSort.ts`
+- [-] **5I.9** _(skipped — single call site with User-specific defaults)_ `admin/UserDirectory.tsx` (163): extract a generic `useTableSort.ts`
   (:32–75) if trivial; otherwise leave.
 
 ## Phase 6 — DEFERRED until `feature/atomic-wallet-creation` merges ⚠️
