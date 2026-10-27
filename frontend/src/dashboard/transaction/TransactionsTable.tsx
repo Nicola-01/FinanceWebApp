@@ -17,6 +17,10 @@ import { faReceipt } from "@fortawesome/free-solid-svg-icons";
 import type { CurrencyCode } from "../../utils/currencies/index.ts";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
+import {
+  formatDateHeader,
+  groupTransactionsByDate,
+} from "./groupTransactionsByDate.ts";
 
 interface TransactionsTableProps {
   wallet: Wallet;
@@ -57,40 +61,8 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
   const transactionModalRef = useRef<TransactionModalHandle>(null);
 
-  const groupedTransactions = transactions.reduce(
-    (acc, tx) => {
-      if (!acc[tx.transactionDate]) acc[tx.transactionDate] = [];
-      acc[tx.transactionDate].push(tx);
-      return acc;
-    },
-    {} as Record<string, Transaction[]>,
-  );
-
-  // Newest date first.
-  const sortedDates = Object.keys(groupedTransactions).sort(
-    (a, b) => new Date(b).getTime() - new Date(a).getTime(),
-  );
-
-  const formatDateHeader = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const formatedDate = date.toLocaleDateString("en-GB", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-
-    if (date.toDateString() === today.toDateString())
-      return `Today - ${formatedDate}`;
-    if (date.toDateString() === yesterday.toDateString())
-      return `Yesterday - ${formatedDate}`;
-
-    return formatedDate;
-  };
+  const { groups: groupedTransactions, sortedDates } =
+    groupTransactionsByDate(transactions);
 
   const onSuccessDelete = async (id: string) => {
     try {
