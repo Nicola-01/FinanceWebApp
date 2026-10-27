@@ -1,22 +1,8 @@
 import React from "react";
 import { Card } from "../../components/ui/Card";
+import { formatLongLocalDate } from "../../utils/longDate";
 
 const REPO_URL = "https://github.com/Nicola-01/FinanceWebApp/";
-
-// Formats "YYYY-MM-DD" without a time component, avoiding the UTC shift you'd get
-// from `new Date("2026-07-02")`.
-function formatBuildDate(raw: string): string {
-  if (!raw) return "Unknown";
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
-  if (!match) return raw;
-  const [, y, m, d] = match;
-  const dateObj = new Date(Number(y), Number(m) - 1, Number(d));
-  return dateObj.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
 
 /** GitHub mark (inlined — the free-brands icon set isn't installed). */
 const GithubMark: React.FC<{ className?: string }> = ({ className }) => (
@@ -35,7 +21,7 @@ export const AboutSection: React.FC = () => {
   // Version + date are injected at runtime into window.__ENV__ by /config.js.
   const appVersion = window.__ENV__?.version || "Local Development";
   const rawDate = window.__ENV__?.date || "";
-  const parsedDate = rawDate ? formatBuildDate(rawDate) : "Unknown";
+  const parsedDate = rawDate ? formatLongLocalDate(rawDate) : "Unknown";
 
   return (
     <Card>

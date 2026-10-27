@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { getApiErrorTitle } from "../../utils/apiError";
-import type { Budget, BudgetPayload } from "../../utils/types";
+import type { Budget, BudgetPayload } from "../../types/domain";
 
 /**
  * Budget list + CRUD for one wallet. Colocated with the Budget tab (the only

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildMonthlyBuckets } from "../../../dashboard/statistics/chartData";
-import type { Transaction } from "../../../utils/types.ts";
+import type { Transaction } from "../../../types/domain.ts";
 
 // NOTE: Despite its file name, chartData.ts exports the pure
 // data-shaping helper `buildMonthlyBuckets` (no range-selector UI lives here).

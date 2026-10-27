@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { Subscription, Wallet } from "../../../utils/types";
+import type { Subscription, Wallet } from "../../../types/domain";
 import { SubscriptionView } from "../../../modals/subscription/SubscriptionView";
 
 vi.mock("../../../components/ui/TagBadge.tsx", () => ({
   TagBadge: () => <div data-testid="tag-badge" />,
 }));
-vi.mock("../../../modals/TransactionModal/ExchangeRateSection", () => ({
+vi.mock("../../../modals/common/exchangeRate/ExchangeRateSection", () => ({
   ExchangeRateSection: () => <div data-testid="exchange" />,
 }));
 

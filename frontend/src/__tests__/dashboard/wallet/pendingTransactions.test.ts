@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { selectPendingTransactions } from "../../../dashboard/wallet/pendingTransactions";
-import type { Transaction } from "../../../utils/types";
+import type { Transaction } from "../../../types/domain";
 
 const tx = (over: Partial<Transaction>): Transaction => ({
   id: "t1",

@@ -1,16 +1,12 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { createContext, useContext, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { useOutsideClick } from "../../hooks/useOutsideClick";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
 
 /**
  * Anchored dropdown menu primitive — the shared "click-outside popover" pattern
- * previously hand-rolled in `AppHeader` and `WalletMenu`.
+ * previously hand-rolled in `AppHeader`.
  *
  * Compound API:
  *   <Menu align="right" width={192}>
@@ -63,22 +59,8 @@ const MenuRoot: React.FC<MenuProps> = ({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node))
-        setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  useOutsideClick(ref, () => setOpen(false), open);
+  useEscapeKey(() => setOpen(false), open);
 
   const close = () => setOpen(false);
 

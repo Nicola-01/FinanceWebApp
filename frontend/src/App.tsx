@@ -3,7 +3,7 @@ import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import Login from "./auth/Login";
 import UserDashboard from "./dashboard/UserDashboard.tsx";
 import SettingsPage from "./settings/SettingsPage.tsx";
-import AdminDashboard from "./admin/AdminDashboard"; // Importa la pagina Admin
+import AdminDashboard from "./admin/AdminDashboard";
 import ProtectedRoute from "./utils/ProtectedRoute.tsx";
 import { ToastHost } from "./components/ui/ToastHost.tsx";
 import {
@@ -11,7 +11,7 @@ import {
   type DeleteModalHandle,
 } from "./modals/common/DeleteModal";
 import { DeleteModalProvider } from "./modals/common/DeleteModalProvider";
-import Register from "./register/Register.tsx";
+import Register from "./auth/Register.tsx";
 import ForgotPassword from "./auth/ForgotPassword.tsx";
 import ResetPassword from "./auth/ResetPassword.tsx";
 import { initSync } from "./sync/replay";
@@ -20,8 +20,8 @@ import { getUserAuth } from "./utils/authHelper.ts";
 import { PWAProvider } from "./utils/PWAProvider.tsx";
 import { PWAPrompt } from "./components/ui/PWAPrompt.tsx";
 import { usePushMessages } from "./push/usePushMessages.ts";
-import LandingPage from "./components/LandingPage/LandingPage.tsx";
-import ToDoPage from "./components/ToDoPage/ToDoPage.tsx";
+import LandingPage from "./components/landing/LandingPage.tsx";
+import ToDoPage from "./components/todo/ToDoPage.tsx";
 import OAuthConsent from "./auth/OAuthConsent.tsx";
 import AuthLayout from "./auth/AuthLayout.tsx";
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
-import type { Budget } from "../../utils/types";
+import type { Budget } from "../../types/domain";
 import { STATUS_META, barPercent, periodLabel } from "./budgetLogic";
 
 interface BudgetCardProps {

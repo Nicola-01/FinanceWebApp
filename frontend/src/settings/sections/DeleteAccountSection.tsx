@@ -12,8 +12,8 @@ import { PasswordInput } from "../../modals/auth/PasswordInput";
 import { useDeleteModal } from "../../modals/common/DeleteModalContext";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { getApiErrorDetail } from "../../utils/apiError";
-import { getUserAuth } from "../../utils/authHelper";
-import type { User } from "../../utils/types";
+import { clearSession, getUserAuth } from "../../utils/authHelper";
+import type { User } from "../../types/domain";
 
 /**
  * Danger zone: permanent, GDPR account deletion via `DELETE /api/users/me`
@@ -43,9 +43,7 @@ export const DeleteAccountSection: React.FC = () => {
       await api.delete("/users/me", { data: { password } });
       triggerToast("Your account has been deleted.", true);
       // Same teardown as logout — the session is gone server-side.
-      localStorage.removeItem("jwtToken");
-      sessionStorage.removeItem("jwtToken");
-      localStorage.removeItem("mustChangePWD");
+      clearSession();
       window.location.href = "/login";
     } catch (err: unknown) {
       // Modal closes itself afterwards; the password stays filled so the user

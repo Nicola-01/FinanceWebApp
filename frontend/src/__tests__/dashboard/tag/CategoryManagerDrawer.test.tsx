@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import type { Tag, Wallet } from "../../../utils/types";
+import type { Tag, Wallet } from "../../../types/domain";
 
 vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
   useWalletContext: vi.fn(),

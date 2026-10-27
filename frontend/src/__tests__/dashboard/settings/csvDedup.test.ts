@@ -9,7 +9,7 @@ import type {
   TagRequest,
   SubscriptionRequest,
 } from "../../../dashboard/settings/csvImport";
-import type { Subscription, Tag, Transaction } from "../../../utils/types";
+import type { Subscription, Tag, Transaction } from "../../../types/domain";
 
 // --- Fixture builders -------------------------------------------------------
 

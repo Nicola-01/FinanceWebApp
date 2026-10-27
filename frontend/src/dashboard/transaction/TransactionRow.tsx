@@ -1,5 +1,5 @@
 import React from "react";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import {
@@ -9,7 +9,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";
-import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
+import {
+  CURRENCY_META,
+  type CurrencyCode,
+} from "../../utils/currencies/index.ts";
 
 interface TransactionRowProps {
   transaction: Transaction;

@@ -16,7 +16,6 @@ export const WalletTabs: React.FC = () => {
   const { activeTab, setActiveTab, wallet } = useWalletContext();
   const walletColor = wallet.color;
 
-  // Aggiunta la proprietà "icon" per ogni tab
   const tabs: { id: TabType; label: string; icon: IconDefinition }[] = [
     { id: "transactions", label: "Transactions", icon: faReceipt },
     { id: "subscription", label: "Subscriptions", icon: faCalendarDays },
@@ -42,7 +41,6 @@ export const WalletTabs: React.FC = () => {
           className={getTabClass(tab.id)}
           style={{ color: activeTab === tab.id ? walletColor : "" }}
         >
-          {/* Render dell'icona */}
           <FontAwesomeIcon
             icon={tab.icon}
             className={`text-lg ${activeTab === tab.id ? "" : "opacity-60 group-hover:opacity-100"}`}

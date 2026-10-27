@@ -1,15 +1,6 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-
-export interface SettingsSectionDef {
-  id: string;
-  label: string;
-  icon: IconDefinition;
-  description?: string;
-  /** Renders the section header (and nav accent) in the danger colour. */
-  danger?: boolean;
-}
+import type { SettingsSectionDef } from "./sections";
 
 interface SettingsNavProps {
   sections: SettingsSectionDef[];

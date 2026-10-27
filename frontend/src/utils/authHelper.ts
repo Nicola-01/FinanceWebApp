@@ -12,11 +12,53 @@ export interface DecodedToken {
   iat: number; // Issued at timestamp
 }
 
+const TOKEN_KEY = "jwtToken";
+const MUST_CHANGE_KEY = "mustChangePWD";
+
 /**
  * Retrieves the raw token from storage
  */
 export const getToken = (): string | null => {
-  return localStorage.getItem("jwtToken") || sessionStorage.getItem("jwtToken");
+  return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+};
+
+/** Stores a freshly issued token: localStorage when remembered, else sessionStorage. */
+export const setToken = (token: string, remember: boolean): void => {
+  (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
+};
+
+/** Persist a freshly-issued access token in whichever storage currently holds it. */
+export const replaceToken = (token: string): void => {
+  (localStorage.getItem(TOKEN_KEY) ? localStorage : sessionStorage).setItem(
+    TOKEN_KEY,
+    token,
+  );
+};
+
+/** Forced password-change flag; unreadable values count as `false`. */
+export const getMustChangePWD = (): boolean => {
+  try {
+    return (
+      JSON.parse(localStorage.getItem(MUST_CHANGE_KEY) || "false") === true
+    );
+  } catch {
+    return false;
+  }
+};
+
+export const setMustChangePWD = (value: boolean): void => {
+  localStorage.setItem(MUST_CHANGE_KEY, JSON.stringify(value));
+};
+
+export const clearMustChangePWD = (): void => {
+  localStorage.removeItem(MUST_CHANGE_KEY);
+};
+
+/** Local logout: drop the token from both storages and the forced-password flag. */
+export const clearSession = (): void => {
+  localStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  clearMustChangePWD();
 };
 
 /**

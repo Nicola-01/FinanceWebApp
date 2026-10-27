@@ -10,7 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Tag } from "../../utils/types.ts";
+import type { Tag } from "../../types/domain.ts";
 import { IconPickerButton } from "../../components/icon/IconPickerButton.tsx";
 import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";
 import { useInlineTagEdit } from "./useInlineTagEdit.ts";

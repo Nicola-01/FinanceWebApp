@@ -11,7 +11,7 @@ import { WidgetGrid } from "../../../dashboard/layout/WidgetGrid";
 import { useTabLayout } from "../../../dashboard/layout/useTabLayout";
 import { useWalletContext } from "../../../dashboard/wallet/WalletContext.tsx";
 import type { WidgetDef } from "../../../dashboard/layout/widgetTypes";
-import type { TabLayout } from "../../../utils/tabLayout";
+import type { TabLayout } from "../../../utils/tabLayout/types";
 import type { Active, ClientRect, DroppableContainer } from "@dnd-kit/core";
 
 const mockedCtx = useWalletContext as unknown as ReturnType<typeof vi.fn>;

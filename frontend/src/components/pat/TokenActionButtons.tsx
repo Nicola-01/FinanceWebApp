@@ -6,7 +6,7 @@ import {
   faPause,
   faPlay,
 } from "@fortawesome/free-solid-svg-icons";
-import type { PatToken } from "../../utils/types";
+import type { PatToken } from "../../types/domain";
 
 interface TokenActionButtonsProps {
   token: PatToken;

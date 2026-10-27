@@ -1,18 +1,12 @@
 import React, { useMemo } from "react";
 import { TrendingUp, TrendingDown, Scale } from "lucide-react";
-import type { Transaction } from "../../utils/types.ts";
+import type { Transaction } from "../../types/domain.ts";
 import { buildMonthlyBuckets } from "./chartData.ts";
+import { formatAmount } from "../../utils/format.ts";
 
 interface StatisticsSummaryProps {
   transactions: Transaction[];
 }
-
-/** Formats a number with grouped thousands and 2 decimals (matches the Overview table). */
-const formatAmount = (value: number): string =>
-  value.toLocaleString("it-IT", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 interface SummaryCardProps {
   label: string;

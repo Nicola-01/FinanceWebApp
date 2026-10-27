@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { OverviewCell } from "../../../dashboard/statistics/OverviewCell.tsx";
+import {
+  OverviewCell,
+  OverviewCellContent,
+} from "../../../dashboard/statistics/OverviewCell.tsx";
 
 // Mirror the component's own formatting so assertions stay correct regardless
 // of the runner's ICU locale data (component and test share the exact call).
@@ -59,5 +62,17 @@ describe("OverviewCell", () => {
     renderCell({ value: 10, type: "income", isBold: true });
     const span = screen.getByText(`+${fmt(10)}`);
     expect(span.className).toContain("font-bold");
+  });
+});
+
+describe("OverviewCellContent", () => {
+  it("renders the bare span (no td) with bold weight", () => {
+    const { container } = render(
+      <OverviewCellContent value={-20} type="balance" isBold />,
+    );
+    const span = screen.getByText(`-${fmt(20)}`);
+    expect(span.className).toContain("font-bold");
+    expect(span.className).toContain("text-app-red");
+    expect(container.querySelector("td")).toBeNull();
   });
 });

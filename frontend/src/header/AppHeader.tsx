@@ -7,7 +7,7 @@ import {
   faUserCircle,
   faDownload,
 } from "@fortawesome/free-solid-svg-icons";
-import { getUserAuth } from "../utils/authHelper.ts";
+import { clearSession, getUserAuth } from "../utils/authHelper.ts";
 import api from "../api/axiosConfig.ts";
 import { ThemeSelector } from "../components/selectors/ThemeSelector";
 import { usePWA } from "../utils/PWAContext.tsx";
@@ -22,8 +22,6 @@ interface AppHeaderProps {
     text: string;
     accent: string;
   };
-  /** Kept for call-site compatibility (admin shell). No longer gates the menu. */
-  isAdmin?: boolean;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
@@ -39,9 +37,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
     } catch {
       // Log out locally even if the network call fails.
     }
-    localStorage.removeItem("jwtToken");
-    sessionStorage.removeItem("jwtToken");
-    localStorage.removeItem("mustChangePWD");
+    clearSession();
     window.location.href = "/login";
   };
 
@@ -131,9 +127,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
                 </>
               )}
 
-              {/* <div className="px-3 pb-1 pt-1 text-[10px] font-bold uppercase tracking-wider text-app-muted">
-            Settings
-          </div> */}
               {SETTINGS_SECTIONS.filter((s) => !s.danger).map((s) => (
                 <Menu.Item
                   key={s.id}

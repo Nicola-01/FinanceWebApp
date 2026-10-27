@@ -3,21 +3,24 @@ import * as walletOps from "../../api/walletOps";
 import Button from "../../components/ui/Button.tsx";
 import Toggle from "../../components/ui/Toggle.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
-import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
-import type { Tag, Wallet, Subscription } from "../../utils/types";
+import type { CurrencyCode } from "../../utils/currencies";
+import type { Tag, Wallet, Subscription } from "../../types/domain";
 
 // Sub-components reused from the transaction modal.
-import CustomDatePicker from "../../components/DataPicker/CustomDatePicker";
+import CustomDatePicker from "../../components/datePicker/CustomDatePicker";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { Input } from "../../components/ui/Input.tsx";
 import { Textarea } from "../../components/ui/Textarea";
 import { AmountInput } from "../../components/ui/AmountInput.tsx";
-import { TransactionTypeToggle } from "../TransactionModal/TransactionTypeToggle";
-import { TagPicker } from "../TransactionModal/TagPicker/TagPicker";
-import { ExchangeRateSection } from "../TransactionModal/ExchangeRateSection";
-import { SchedulingRules } from "./SchedulingRules";
+import { TransactionTypeToggle } from "../../components/ui/TransactionTypeToggle";
+import { TagPicker } from "../transaction/TagPicker";
+import { ExchangeRateSection } from "../common/exchangeRate/ExchangeRateSection";
+import { SchedulingRules } from "../common/SchedulingRules";
 import { getApiErrorTitle } from "../../utils/apiError";
-import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
+import { parseLocalIsoDate } from "../../utils/localDate";
+import { FieldLabel } from "../../components/ui/FieldLabel";
+import { useAmountEntryForm } from "../common/useAmountEntryForm";
+import { buildSchedulePayload } from "./subscriptionPayload";
 
 export interface SubscriptionModalHandle {
   openModal: (sub?: Subscription, initialDate?: Date) => void;
@@ -39,17 +42,12 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
     // Full row kept while editing so we can read its updatedAt (offline
     // precondition for the queued update op).
     const [editingSub, setEditingSub] = useState<Subscription | null>(null);
-    const [type, setType] = useState<"EXPENSE" | "INCOME" | "">("");
-    const [name, setName] = useState("");
-    const [amount, setAmount] = useState<string>("");
+    const form = useAmountEntryForm(baseCurrency);
+    const { type, setType, name, setName, notes, setNotes } = form;
+    const { selectedTagName, setSelectedTagName } = form;
     // Reminder mode: no fixed amount — the user fills it in each occurrence.
     const [amountPending, setAmountPending] = useState(false);
-    const [convertedAmount, setConvertedAmount] = useState<string>("0");
-    const [currency, setCurrency] = useState<CurrencyCode>(baseCurrency);
-    const [exchangeRate, setExchangeRate] = useState<string>("1");
     const [startDate, setStartDate] = useState<Date>(new Date());
-    const [notes, setNotes] = useState("");
-    const [selectedTagName, setSelectedTagName] = useState<string>("");
     // Foreign-currency rate mode: true = use each day's live rate at execution.
     const [autoExchangeRate, setAutoExchangeRate] = useState(true);
 
@@ -78,24 +76,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           // --- EDIT MODE ---
           setEditingSubId(sub.id);
           setEditingSub(sub);
-          setType(sub.type);
-          setName(sub.name || "");
-
-          const origCurrency = sub.originalCurrency || baseCurrency;
-          setCurrency(origCurrency as CurrencyCode);
-
-          const origAmount = sub.originalAmount || sub.amount;
-          setAmount(origAmount.toString());
-
-          setConvertedAmount(sub.amount.toString());
+          form.reset(sub);
           setAmountPending(sub.amountPending ?? false);
-
-          const exRate = sub.exchangeValue || 1;
-          setExchangeRate(exRate.toString());
-
           setStartDate(parseLocalIsoDate(sub.startDate));
-          setSelectedTagName(sub.tag?.name || "");
-          setNotes(sub.notes || "");
           setAutoExchangeRate(sub.autoExchangeRate ?? true);
 
           // Subscription-specific fields
@@ -113,16 +96,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setEditingSub(null);
           // Open neutral (no type preselected) — matches New Transaction; the
           // type is set as soon as the user enters an amount (sign-driven).
-          setType("");
-          setName("");
-          setAmount("");
+          form.reset();
           setAmountPending(false);
-          setConvertedAmount("0");
-          setCurrency(baseCurrency);
-          setExchangeRate("1");
           setStartDate(initialDate || new Date());
-          setSelectedTagName("");
-          setNotes("");
           setAutoExchangeRate(true);
 
           // Reset subscription-specific fields
@@ -138,7 +114,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
     }));
 
     const handleSave = async () => {
-      if (!amountPending && (!amount || Number(amount) === 0))
+      if (!amountPending && !form.hasAmount)
         return triggerToast("Please enter a valid amount.", false);
       if (!selectedTagName)
         return triggerToast("Please select a category.", false);
@@ -146,31 +122,20 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
 
       setLoading(true);
       try {
-        const finalName =
-          name.trim().length > 0 ? name.trim() : selectedTagName;
-
         // Payload mapped to SubscriptionRequest.java
         const payload = {
-          name: finalName,
-          amount: amountPending ? 0 : Math.abs(Number(convertedAmount)),
-          originalAmount: amountPending ? 0 : Math.abs(Number(amount)),
+          ...form.buildBasePayload(amountPending),
           amountPending,
-          type,
-          originalCurrency: currency,
-          exchangeValue: Number(exchangeRate) || 1,
           autoExchangeRate,
-          tag: selectedTagName,
-          notes,
-          status,
-          startDate: toLocalIsoDate(startDate),
-          frequencyType,
-          frequencyInterval,
-          duration,
-          durationTimes: duration === "TIMES" ? durationTimes : null,
-          durationUntil:
-            duration === "UNTIL" && durationUntil
-              ? toLocalIsoDate(durationUntil)
-              : null,
+          ...buildSchedulePayload({
+            status,
+            startDate,
+            frequencyType,
+            frequencyInterval,
+            duration,
+            durationTimes,
+            durationUntil,
+          }),
         };
 
         if (editingSubId) {
@@ -199,9 +164,8 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
       }
     };
 
-    const currencySymbol = CURRENCY_META[currency]?.symbol || currency;
     const canSave =
-      (amountPending || (amount !== "" && Number(amount) !== 0)) &&
+      (amountPending || form.hasAmount) &&
       selectedTagName !== "" &&
       type !== "";
     const isEditing = !!editingSubId;
@@ -239,19 +203,12 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           <div className="flex flex-col items-center justify-center py-2">
             {!amountPending && (
               <AmountInput
-                value={amount}
+                value={form.amount}
                 type={type}
                 setType={setType}
-                currencySymbol={currencySymbol}
+                currencySymbol={form.currencySymbol}
                 autoFocus={!isEditing}
-                onAmountChange={(val) => {
-                  setAmount(val);
-                  if (currency !== baseCurrency && exchangeRate)
-                    setConvertedAmount(
-                      (Number(val) * Number(exchangeRate)).toFixed(2),
-                    );
-                  else setConvertedAmount(val);
-                }}
+                onAmountChange={form.handleAmountChange}
               />
             )}
             <TransactionTypeToggle type={type} setType={setType} />
@@ -276,9 +233,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
               />
             </div>
             <div>
-              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                Start Date
-              </label>
+              <FieldLabel>Start Date</FieldLabel>
               <CustomDatePicker
                 isRange={false}
                 color={wallet.color}
@@ -291,7 +246,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             </div>
           </div>
 
-          {/* 3. SCHEDULING RULES (Frequenza e Durata) */}
+          {/* 3. SCHEDULING RULES (frequency & duration) */}
           <SchedulingRules
             frequencyInterval={frequencyInterval}
             onFrequencyIntervalChange={setFrequencyInterval}
@@ -312,9 +267,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           {/* 4. NAME & DESCRIPTION */}
           <div className="flex flex-col gap-4">
             <div>
-              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                Name
-              </label>
+              <FieldLabel>Name</FieldLabel>
               <Input
                 type="text"
                 placeholder="Name of the subscription (Optional)"
@@ -324,9 +277,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             </div>
 
             <div>
-              <label className="mb-2 ml-1 block text-xs font-medium uppercase tracking-wider text-app-muted">
-                Description
-              </label>
+              <FieldLabel>Description</FieldLabel>
               <Textarea
                 placeholder="Any details... (Optional)"
                 value={notes}
@@ -345,15 +296,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             walletId={wallet.id}
             autoExchangeRate={autoExchangeRate}
             onAutoExchangeRateChange={setAutoExchangeRate}
-            baseCurrency={baseCurrency}
-            selectedCurrency={currency}
-            onCurrencyChange={setCurrency}
-            originalAmount={amount}
-            onOriginalAmountChange={setAmount}
-            exchangeRate={exchangeRate}
-            onExchangeRateChange={setExchangeRate}
-            convertedAmount={convertedAmount}
-            onConvertedAmountChange={setConvertedAmount}
+            {...form.exchangeRateProps}
           />
         </div>
       </ResponsiveOverlay>

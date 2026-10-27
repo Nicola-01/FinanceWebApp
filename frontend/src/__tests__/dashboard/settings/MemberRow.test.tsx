@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
-import type { WalletMember } from "../../../utils/types";
+import type { WalletMember } from "../../../types/domain";
 
 // getUserAuth decodes the JWT from storage; mock it so we can drive the
 // "is this row the current user?" branch deterministically.

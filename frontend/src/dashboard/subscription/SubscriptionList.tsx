@@ -1,15 +1,12 @@
 import React, { useState } from "react";
-import type { Subscription, Transaction } from "../../utils/types";
+import type { Subscription, Transaction } from "../../types/domain";
 import { SubscriptionCard } from "./SubscriptionCard";
 import { Badge } from "../../components/ui/Badge";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faRepeat,
-  faChevronDown,
-  faChevronUp,
-} from "@fortawesome/free-solid-svg-icons";
+import { faRepeat } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
-import { motion, AnimatePresence } from "framer-motion";
+import { groupSubscriptions, monthKeyOf } from "./subscriptionGroups";
+import { PastSubscriptionsSection } from "./PastSubscriptionsSection";
 
 interface SubscriptionListProps {
   subscriptions: Subscription[];
@@ -67,63 +64,15 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
     );
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const getDaysLeft = (dateStr: string) => {
-    const nextDate = new Date(dateStr);
-    nextDate.setHours(0, 0, 0, 0);
-    return Math.ceil(
-      (nextDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-    );
-  };
-
-  // --- UPCOMING SUBSCRIPTIONS ---
-  const activeSubs = subscriptions.filter((s) => s.status !== "COMPLETED");
-  const within7Days = activeSubs.filter(
-    (s) => getDaysLeft(s.nextExecutionDate) <= 7,
-  );
-  const within31Days = activeSubs.filter(
-    (s) => getDaysLeft(s.nextExecutionDate) > 7,
-  );
-  const completedSubs = subscriptions.filter((s) => s.status === "COMPLETED");
-
-  within7Days.sort(
-    (a, b) =>
-      new Date(a.nextExecutionDate).getTime() -
-      new Date(b.nextExecutionDate).getTime(),
-  );
-  within31Days.sort(
-    (a, b) =>
-      new Date(a.nextExecutionDate).getTime() -
-      new Date(b.nextExecutionDate).getTime(),
-  );
-
-  // --- PAST SUBSCRIPTIONS ---
-  const pastTransactions: { sub: Subscription; tx: Transaction }[] = [];
-  subscriptions.forEach((sub) => {
-    if (sub.history) {
-      sub.history.forEach((tx) => {
-        pastTransactions.push({ sub, tx });
-      });
-    }
-  });
-
-  const groupedPastSubs: Record<
-    string,
-    { sub: Subscription; tx: Transaction }[]
-  > = {};
-  pastTransactions.forEach(({ sub, tx }) => {
-    const d = new Date(tx.transactionDate);
-    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    if (!groupedPastSubs[monthKey]) groupedPastSubs[monthKey] = [];
-    groupedPastSubs[monthKey].push({ sub, tx });
-  });
-
-  const sortedMonthKeys = Object.keys(groupedPastSubs).sort((a, b) =>
-    b.localeCompare(a),
-  );
-  const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+  const {
+    within7Days,
+    within31Days,
+    completedSubs,
+    groupedPastSubs,
+    sortedMonthKeys,
+    hasPast,
+  } = groupSubscriptions(subscriptions);
+  const currentMonthKey = monthKeyOf(new Date());
 
   const toggleMonth = (monthKey: string) => {
     setExpandedMonths((prev) => ({
@@ -137,17 +86,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
     return monthKey === currentMonthKey;
   };
 
-  const formatMonthLabel = (monthKey: string) => {
-    const [year, month] = monthKey.split("-");
-    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-    return new Intl.DateTimeFormat("en-US", {
-      month: "long",
-      year: "numeric",
-    }).format(date);
-  };
-
   const hasUpcoming = within7Days.length > 0 || within31Days.length > 0;
-  const hasPast = pastTransactions.length > 0;
 
   return (
     <div className="animate-[fadeIn_0.3s_ease-out] flex flex-col gap-10 pb-10">
@@ -206,121 +145,15 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
       {hasPast && (
         <section className="flex flex-col gap-6">
           <SectionHeader title="Paid" color={wallet.color} />
-
-          <AnimatePresence initial={false}>
-            {sortedMonthKeys.slice(0, visibleMonthsCount).map((monthKey) => {
-              const subs = groupedPastSubs[monthKey].sort(
-                (a, b) => b.tx.amount - a.tx.amount,
-              );
-              const expanded = isExpanded(monthKey);
-              const hiddenCount = subs.length - 3;
-
-              return (
-                <motion.div
-                  key={monthKey}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex flex-col gap-3"
-                >
-                  <h4 className="text-sm font-bold text-app-muted capitalize ml-1">
-                    {formatMonthLabel(monthKey)}
-                  </h4>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {subs.slice(0, 3).map(({ sub, tx }) => (
-                      <div
-                        key={`past-${tx.id}`}
-                        className="opacity-60 saturate-50 hover:opacity-100 hover:saturate-100 transition-all duration-300"
-                      >
-                        <SubscriptionCard
-                          subscription={{
-                            ...sub,
-                            amount: tx.amount,
-                            originalAmount:
-                              tx.originalAmount ?? sub.originalAmount,
-                            originalCurrency:
-                              tx.originalCurrency ?? sub.originalCurrency,
-                            exchangeValue:
-                              tx.exchangeValue ?? sub.exchangeValue,
-                          }}
-                          date={tx.transactionDate}
-                          onClick={() =>
-                            onTransactionClick && onTransactionClick(tx)
-                          }
-                        />
-                      </div>
-                    ))}
-                  </div>
-
-                  <AnimatePresence initial={false}>
-                    {expanded && hiddenCount > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-hidden"
-                      >
-                        {subs.slice(3).map(({ sub, tx }) => (
-                          <div
-                            key={`past-${tx.id}`}
-                            className="opacity-60 saturate-50 hover:opacity-100 hover:saturate-100 transition-all duration-300"
-                          >
-                            <SubscriptionCard
-                              subscription={{
-                                ...sub,
-                                amount: tx.amount,
-                                originalAmount:
-                                  tx.originalAmount ?? sub.originalAmount,
-                                originalCurrency:
-                                  tx.originalCurrency ?? sub.originalCurrency,
-                                exchangeValue:
-                                  tx.exchangeValue ?? sub.exchangeValue,
-                              }}
-                              date={tx.transactionDate}
-                              onClick={() =>
-                                onTransactionClick && onTransactionClick(tx)
-                              }
-                            />
-                          </div>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  {hiddenCount > 0 && (
-                    <button
-                      onClick={() => toggleMonth(monthKey)}
-                      className="self-center md:self-start mt-2 px-4 py-1.5 rounded-full bg-app-surface border border-app-border text-xs font-bold text-app-muted hover:text-app-text hover:bg-app-hover transition-colors flex items-center gap-2"
-                    >
-                      {expanded ? (
-                        <>
-                          Show less <FontAwesomeIcon icon={faChevronUp} />
-                        </>
-                      ) : (
-                        <>
-                          Show {hiddenCount} more{" "}
-                          <FontAwesomeIcon icon={faChevronDown} />
-                        </>
-                      )}
-                    </button>
-                  )}
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-
-          {sortedMonthKeys.length > visibleMonthsCount && (
-            <div className="flex justify-center mt-4">
-              <button
-                onClick={() => setVisibleMonthsCount((prev) => prev + 12)}
-                className="px-6 py-2 rounded-full bg-app-surface border border-app-border text-sm font-bold text-app-text hover:bg-app-hover transition-colors flex items-center gap-2"
-              >
-                Load more past months <FontAwesomeIcon icon={faChevronDown} />
-              </button>
-            </div>
-          )}
+          <PastSubscriptionsSection
+            groupedPastSubs={groupedPastSubs}
+            sortedMonthKeys={sortedMonthKeys}
+            visibleMonthsCount={visibleMonthsCount}
+            onLoadMore={() => setVisibleMonthsCount((prev) => prev + 12)}
+            isExpanded={isExpanded}
+            onToggleMonth={toggleMonth}
+            onTransactionClick={onTransactionClick}
+          />
         </section>
       )}
 

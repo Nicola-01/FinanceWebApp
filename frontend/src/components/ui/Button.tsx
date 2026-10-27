@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
+import { useRipple } from "./useRipple";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -50,12 +51,6 @@ const ACCENT =
   "text-white shadow-[0_12px_26px_-14px_rgba(0,0,0,0.7)] hover:-translate-y-0.5 " +
   "hover:brightness-[1.07] hover:shadow-[0_18px_38px_-16px_rgba(0,0,0,0.85)] active:translate-y-0";
 
-interface RippleItem {
-  x: number;
-  y: number;
-  id: number;
-}
-
 const Button: React.FC<ButtonProps> = ({
   variant = "primary",
   size = "md",
@@ -69,17 +64,7 @@ const Button: React.FC<ButtonProps> = ({
   onPointerDown,
   ...props
 }) => {
-  const [ripples, setRipples] = useState<RippleItem[]>([]);
-  // Track pending ripple-cleanup timers so they can be cancelled on unmount —
-  // otherwise a late setState fires after teardown ("window is not defined").
-  const rippleTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  useEffect(
-    () => () => {
-      rippleTimers.current.forEach(clearTimeout);
-      rippleTimers.current = [];
-    },
-    [],
-  );
+  const { ripples, spawnRipple } = useRipple();
   const useAccent = Boolean(accentColor);
   const color =
     rippleColor ??
@@ -88,20 +73,7 @@ const Button: React.FC<ButtonProps> = ({
       : "rgba(139,92,246,0.35)");
 
   const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (ripple && !props.disabled) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const item: RippleItem = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-        id: Date.now(),
-      };
-      setRipples((prev) => [...prev, item]);
-      const timer = setTimeout(() => {
-        setRipples((prev) => prev.filter((r) => r.id !== item.id));
-        rippleTimers.current = rippleTimers.current.filter((t) => t !== timer);
-      }, 600);
-      rippleTimers.current.push(timer);
-    }
+    if (ripple && !props.disabled) spawnRipple(e);
     onPointerDown?.(e);
   };
 

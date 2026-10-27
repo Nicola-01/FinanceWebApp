@@ -7,10 +7,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useSortable } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
-import { SwitchableCard } from "../statistics/SwitchableCard.tsx";
+import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import { GroupEditGrid } from "./GroupEditGrid.tsx";
 import type { WidgetDef } from "./widgetTypes.ts";
-import type { LayoutSlot, WidgetSpan } from "../../utils/tabLayout";
+import type { LayoutSlot, WidgetSpan } from "../../utils/tabLayout/types";
 
 const mergeZoneId = (slotId: string) => `merge:${slotId}`;
 

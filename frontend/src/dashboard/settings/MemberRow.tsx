@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faCheck } from "@fortawesome/free-solid-svg-icons";
-import type { WalletMember } from "../../utils/types";
+import type { WalletMember } from "../../types/domain";
 import { getUserAuth } from "../../utils/authHelper.ts";
 import { RoleSelector } from "../../components/ui/RoleSelector.tsx";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";

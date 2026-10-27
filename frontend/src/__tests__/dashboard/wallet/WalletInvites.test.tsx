@@ -5,7 +5,7 @@ import {
   InvitesBadge,
   InvitesDesktopSection,
 } from "../../../dashboard/wallet/WalletInvites";
-import type { Invitation } from "../../../utils/types";
+import type { Invitation } from "../../../types/domain";
 
 const makeInvite = (id: string): Invitation => ({
   walletOwner: "Alice",

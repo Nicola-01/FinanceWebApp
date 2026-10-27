@@ -6,7 +6,7 @@ import {
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
 import { StatCard } from "./StatCard.tsx";
-import type { User } from "../utils/types.ts";
+import type { User } from "../types/domain.ts";
 
 interface AdminStatsProps {
   users: User[];

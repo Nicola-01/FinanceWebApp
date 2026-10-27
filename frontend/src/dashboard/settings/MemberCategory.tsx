@@ -1,6 +1,6 @@
 import React from "react";
 import { MemberRow } from "./MemberRow";
-import type { WalletMember } from "../../utils/types";
+import type { WalletMember } from "../../types/domain";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 
 interface MemberCategoryProps {

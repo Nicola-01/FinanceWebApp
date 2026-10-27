@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import type { Tag } from "../../../utils/types";
+import type { Tag } from "../../../types/domain";
 import { TagBadge } from "../../../components/ui/TagBadge";
 
 // TagBadge resolves a parent tag from a tag list. Outside a WalletProvider it

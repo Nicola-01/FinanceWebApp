@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { FloatingActionButton } from "../../../components/ui/FloatingActionButton";
-import type { Wallet } from "../../../utils/types";
+import type { Wallet } from "../../../types/domain";
 
 const wallet: Wallet = {
   id: "w1",

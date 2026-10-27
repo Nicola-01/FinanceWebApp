@@ -5,8 +5,8 @@ import {
 } from "@dnd-kit/core";
 
 export const MERGE_PREFIX = "merge:";
-export const MEMBER_PREFIX = "member:";
-export const GROUPBODY_PREFIX = "groupbody:";
+const MEMBER_PREFIX = "member:";
+const GROUPBODY_PREFIX = "groupbody:";
 
 /** Sortable id for a group member tile: `member:<groupId>:<widgetId>`. */
 export const memberId = (groupId: string, widgetId: string) =>
@@ -29,7 +29,7 @@ export function parseMemberId(
 }
 
 /** A real grid slot (not a merge zone, member tile, or group-body droppable). */
-export const isSlotId = (id: string) =>
+const isSlotId = (id: string) =>
   !id.startsWith(MERGE_PREFIX) &&
   !id.startsWith(MEMBER_PREFIX) &&
   !id.startsWith(GROUPBODY_PREFIX);

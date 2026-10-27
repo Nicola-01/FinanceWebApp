@@ -7,7 +7,7 @@ import {
   type RecommendedSubscription,
 } from "./recommendedSubscriptions";
 import { formatFrequency } from "./subscriptionSummary";
-import type { Tag } from "../../../../utils/types";
+import type { Tag } from "../../../../types/domain";
 import type { SubscriptionRequest } from "../../../../dashboard/settings/csvImport";
 
 export interface RecommendedSubscriptionPickerProps {

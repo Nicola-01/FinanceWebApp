@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronLeft, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
+import { useEscapeKey } from "../../hooks/useEscapeKey.ts";
 import { registerOverlay } from "../../utils/overlayHistory.ts";
 
 export interface ResponsiveOverlayProps {
@@ -56,14 +57,7 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
   }, [onClose]);
 
   // Close on Escape.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  useEscapeKey(onClose, open);
 
   // Lock body scroll while open.
   useEffect(() => {

@@ -10,9 +10,10 @@ import {
   faPause,
   faCheckDouble,
 } from "@fortawesome/free-solid-svg-icons";
-import type { Subscription, Wallet } from "../../utils/types";
+import type { Subscription, Wallet } from "../../types/domain";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
-import { ExchangeRateSection } from "../TransactionModal/ExchangeRateSection";
+import { DetailRow } from "../common/DetailRow";
+import { ExchangeRateSection } from "../common/exchangeRate/ExchangeRateSection";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 
 interface SubscriptionViewProps {
@@ -90,22 +91,19 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
       {/* DETAILS */}
       <div className="w-full bg-app-input/40 border border-app-border rounded-2xl text-left flex flex-col divide-y divide-app-border">
         {/* Name */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
-          <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
-            <FontAwesomeIcon icon={faTag} className="w-5 text-center mr-2" />
-            Name
-          </span>
+        <DetailRow icon={faTag} label="Name">
           <span className="text-app-text font-medium sm:text-right truncate">
             {sub.name}
           </span>
-        </div>
+        </DetailRow>
 
         {/* Frequency */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5 bg-app-input">
-          <span className="text-app-sky text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
-            <FontAwesomeIcon icon={faRepeat} className="w-5 text-center mr-2" />
-            Frequency
-          </span>
+        <DetailRow
+          icon={faRepeat}
+          label="Frequency"
+          labelColorClass="text-app-sky"
+          className="bg-app-input"
+        >
           <div className="flex flex-col sm:items-end">
             <span className="text-app-text font-medium">
               {getFrequencyText()}
@@ -124,32 +122,21 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
               <span className="text-app-muted text-xs">Forever</span>
             )}
           </div>
-        </div>
+        </DetailRow>
 
         {/* Next Date */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
-          <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
-            <FontAwesomeIcon icon={faClock} className="w-5 text-center mr-2" />
-            Next Run
-          </span>
+        <DetailRow icon={faClock} label="Next Run">
           <span className="text-app-text font-medium">
             {formatDate(sub.nextExecutionDate)}
           </span>
-        </div>
+        </DetailRow>
 
         {/* Start Date */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-5">
-          <span className="text-app-muted text-xs font-bold uppercase tracking-wider flex items-center shrink-0">
-            <FontAwesomeIcon
-              icon={faCalendarAlt}
-              className="w-5 text-center mr-2"
-            />
-            Started On
-          </span>
+        <DetailRow icon={faCalendarAlt} label="Started On">
           <span className="text-app-text font-medium">
             {formatDate(sub.startDate)}
           </span>
-        </div>
+        </DetailRow>
 
         {/* Description (Only if present) — backed by the notes field. */}
         {sub.notes && (

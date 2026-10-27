@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import type { ComponentProps } from "react";
 import { render, screen } from "@testing-library/react";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
-import type { WalletMember } from "../../../utils/types";
+import type { WalletMember } from "../../../types/domain";
 import { MemberCategory } from "../../../dashboard/settings/MemberCategory";
 
 // getUserAuth reads a JWT from storage; in tests none exists, so it returns

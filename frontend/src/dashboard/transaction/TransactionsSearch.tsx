@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { SearchInput } from "../../components/ui/SearchInput.tsx";
+import { useOutsideClick } from "../../hooks/useOutsideClick.ts";
 
 interface TransactionsSearchProps {
   /** Current search text (controlled). */
@@ -25,18 +26,7 @@ const TransactionsSearch: React.FC<TransactionsSearchProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const popoverInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+  useOutsideClick(dropdownRef, () => setIsOpen(false), isOpen);
 
   // Focus the field as soon as the popover opens.
   useEffect(() => {

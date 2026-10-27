@@ -5,7 +5,7 @@ import {
   periodLabel,
   validateThresholds,
 } from "../../../dashboard/budget/budgetLogic";
-import type { Budget } from "../../../utils/types";
+import type { Budget } from "../../../types/domain";
 
 const base: Budget = {
   id: "b1",

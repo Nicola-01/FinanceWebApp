@@ -8,22 +8,22 @@ import {
 } from "@testing-library/react";
 import { createRef } from "react";
 import type { CurrencyCode } from "../../../utils/currencies";
-import type { Subscription, Wallet } from "../../../utils/types";
+import type { Subscription, Wallet } from "../../../types/domain";
 
 // Isolate from the heavy form children (shared with the transaction form).
-vi.mock("../../../modals/TransactionModal/TagPicker/TagPicker", () => ({
+vi.mock("../../../modals/transaction/TagPicker", () => ({
   TagPicker: () => <div />,
 }));
 vi.mock("../../../components/ui/AmountInput.tsx", () => ({
   AmountInput: () => <div />,
 }));
-vi.mock("../../../modals/TransactionModal/TransactionTypeToggle", () => ({
+vi.mock("../../../components/ui/TransactionTypeToggle", () => ({
   TransactionTypeToggle: () => <div />,
 }));
-vi.mock("../../../modals/TransactionModal/ExchangeRateSection", () => ({
+vi.mock("../../../modals/common/exchangeRate/ExchangeRateSection", () => ({
   ExchangeRateSection: () => <div />,
 }));
-vi.mock("../../../components/DataPicker/CustomDatePicker", () => ({
+vi.mock("../../../components/datePicker/CustomDatePicker", () => ({
   default: () => <div />,
 }));
 vi.mock("../../../components/ui/Selector.tsx", () => ({

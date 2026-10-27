@@ -4,6 +4,12 @@ import {
   getDecodedToken,
   isTokenValid,
   getUserAuth,
+  setToken,
+  replaceToken,
+  getMustChangePWD,
+  setMustChangePWD,
+  clearMustChangePWD,
+  clearSession,
 } from "../../utils/authHelper";
 import { makeJwt } from "../../test/testUtils";
 
@@ -33,6 +39,71 @@ describe("authHelper", () => {
       localStorage.setItem("jwtToken", "local-token");
       sessionStorage.setItem("jwtToken", "session-token");
       expect(getToken()).toBe("local-token");
+    });
+  });
+
+  describe("setToken", () => {
+    it("stores in localStorage when remembered", () => {
+      setToken("t", true);
+      expect(localStorage.getItem("jwtToken")).toBe("t");
+      expect(sessionStorage.getItem("jwtToken")).toBeNull();
+    });
+    it("stores in sessionStorage when not remembered", () => {
+      setToken("t", false);
+      expect(sessionStorage.getItem("jwtToken")).toBe("t");
+      expect(localStorage.getItem("jwtToken")).toBeNull();
+    });
+  });
+
+  describe("replaceToken", () => {
+    it("overwrites the localStorage token when one is there", () => {
+      localStorage.setItem("jwtToken", "old");
+      replaceToken("new");
+      expect(localStorage.getItem("jwtToken")).toBe("new");
+      expect(sessionStorage.getItem("jwtToken")).toBeNull();
+    });
+    it("falls back to sessionStorage otherwise", () => {
+      replaceToken("new");
+      expect(sessionStorage.getItem("jwtToken")).toBe("new");
+      expect(localStorage.getItem("jwtToken")).toBeNull();
+    });
+  });
+
+  describe("mustChangePWD accessors", () => {
+    it("defaults to false when unset", () => {
+      expect(getMustChangePWD()).toBe(false);
+    });
+    it("round-trips through setMustChangePWD as JSON", () => {
+      setMustChangePWD(true);
+      expect(localStorage.getItem("mustChangePWD")).toBe("true");
+      expect(getMustChangePWD()).toBe(true);
+      setMustChangePWD(false);
+      expect(getMustChangePWD()).toBe(false);
+    });
+    it("treats invalid JSON and non-true values as false", () => {
+      localStorage.setItem("mustChangePWD", "{not json");
+      expect(getMustChangePWD()).toBe(false);
+      localStorage.setItem("mustChangePWD", '"true"');
+      expect(getMustChangePWD()).toBe(false);
+    });
+    it("clearMustChangePWD removes the key", () => {
+      setMustChangePWD(true);
+      clearMustChangePWD();
+      expect(localStorage.getItem("mustChangePWD")).toBeNull();
+    });
+  });
+
+  describe("clearSession", () => {
+    it("drops the token from both storages and the mustChangePWD flag", () => {
+      localStorage.setItem("jwtToken", "a");
+      sessionStorage.setItem("jwtToken", "b");
+      localStorage.setItem("mustChangePWD", "true");
+      localStorage.setItem("other", "keep");
+      clearSession();
+      expect(localStorage.getItem("jwtToken")).toBeNull();
+      expect(sessionStorage.getItem("jwtToken")).toBeNull();
+      expect(localStorage.getItem("mustChangePWD")).toBeNull();
+      expect(localStorage.getItem("other")).toBe("keep");
     });
   });
 

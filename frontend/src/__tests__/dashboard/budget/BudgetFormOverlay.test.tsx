@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BudgetFormOverlay } from "../../../dashboard/budget/BudgetFormOverlay";
-import type { Tag } from "../../../utils/types";
+import type { Tag } from "../../../types/domain";
 
 const tags: Tag[] = [
   { name: "Food", icon: "utensils", colorHex: "#34d399" },

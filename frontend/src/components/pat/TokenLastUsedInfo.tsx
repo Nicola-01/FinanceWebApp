@@ -1,6 +1,6 @@
 import React from "react";
 import { format } from "date-fns";
-import type { PatToken } from "../../utils/types";
+import type { PatToken } from "../../types/domain";
 
 interface TokenLastUsedInfoProps {
   token: PatToken;

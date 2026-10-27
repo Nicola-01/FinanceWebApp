@@ -6,7 +6,16 @@ import {
   faInfoCircle,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import type { SettingsSectionDef } from "./SettingsNav";
+import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+
+export interface SettingsSectionDef {
+  id: string;
+  label: string;
+  icon: IconDefinition;
+  description?: string;
+  /** Renders the section header (and nav accent) in the danger colour. */
+  danger?: boolean;
+}
 
 /**
  * Single source of truth for the settings sections — consumed by both the

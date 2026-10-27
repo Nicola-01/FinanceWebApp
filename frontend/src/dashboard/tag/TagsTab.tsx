@@ -8,8 +8,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
-import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies.ts";
-import { DateRangeBanner } from "../statistics/DateRangeBanner.tsx";
+import { getCurrencySymbol } from "../../utils/currencies/index.ts";
+import { DateRangeBanner } from "../DateRangeBanner.tsx";
 import { useTheme } from "../../utils/ThemeContext.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { CategoryManagerDrawer } from "./CategoryManagerDrawer.tsx";
@@ -35,8 +35,7 @@ export const TagsTab: React.FC = () => {
   const [managerOpen, setManagerOpen] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  const currencySymbol =
-    CURRENCY_META[wallet.currency as CurrencyCode]?.symbol ?? wallet.currency;
+  const currencySymbol = getCurrencySymbol(wallet.currency);
 
   const layoutApi = useTabLayout(
     CATEGORIES_TAB_ID,

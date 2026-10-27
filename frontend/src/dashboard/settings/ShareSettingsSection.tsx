@@ -10,7 +10,7 @@ import {
   faSpinner,
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
-import type { WalletMember } from "../../utils/types";
+import type { WalletMember } from "../../types/domain";
 import { Card } from "../../components/ui/Card.tsx";
 import { ConfirmModal } from "../../modals/common/ConfirmModal.tsx";
 

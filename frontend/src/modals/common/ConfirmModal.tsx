@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "./ModalDialog";
 import Button from "../../components/ui/Button";
+import { useHoldToConfirm } from "../../hooks/useHoldToConfirm";
 
 export interface ConfirmModalProps {
   open: boolean;
@@ -49,9 +50,6 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onCancel,
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [progress, setProgress] = useState(0);
-  const rafRef = useRef<number | null>(null);
-  const startRef = useRef(0);
 
   // Sync the native <dialog> with the controlled `open` prop.
   useEffect(() => {
@@ -61,40 +59,11 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     if (!open && d.open) d.close();
   }, [open]);
 
-  // Clean up any pending animation frame on unmount.
-  useEffect(
-    () => () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    },
-    [],
+  const { progress, startHold, endHold } = useHoldToConfirm(
+    holdMs,
+    onConfirm,
+    !busy,
   );
-
-  const cancelHold = () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    rafRef.current = null;
-  };
-
-  const startHold = () => {
-    if (busy) return;
-    startRef.current = performance.now();
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - startRef.current) / holdMs);
-      setProgress(p);
-      if (p >= 1) {
-        cancelHold();
-        setProgress(0);
-        onConfirm();
-      } else {
-        rafRef.current = requestAnimationFrame(tick);
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
-  };
-
-  const endHold = () => {
-    cancelHold();
-    setProgress(0);
-  };
 
   const t = TONES[tone];
 

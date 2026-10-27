@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { AccentHoverButton } from "../../components/ui/AccentHoverButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEyeSlash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import type { WidgetDef } from "./widgetTypes.ts";
-import type { LayoutSlot } from "../../utils/tabLayout";
+import type { LayoutSlot } from "../../utils/tabLayout/types";
 
 interface TrayChipProps {
   label: string;
@@ -18,32 +18,25 @@ const TrayChip: React.FC<TrayChipProps> = ({
   accentColor,
   onShow,
 }) => {
-  const [hover, setHover] = useState(false);
   return (
-    <button
-      type="button"
+    <AccentHoverButton
+      accentColor={accentColor}
       aria-label={`Show ${label}`}
       onClick={onShow}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
       className="flex items-center gap-2 rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm font-medium text-app-text shadow-sm transition-colors"
-      style={
-        hover
-          ? {
-              borderColor: accentColor,
-              backgroundColor: `${accentColor}14`,
-            }
-          : undefined
-      }
     >
-      <FontAwesomeIcon icon={icon} className="text-xs text-app-muted" />
-      {label}
-      <FontAwesomeIcon
-        icon={faPlus}
-        className="text-[10px]"
-        style={{ color: hover ? accentColor : "var(--color-app-muted)" }}
-      />
-    </button>
+      {(hover) => (
+        <>
+          <FontAwesomeIcon icon={icon} className="text-xs text-app-muted" />
+          {label}
+          <FontAwesomeIcon
+            icon={faPlus}
+            className="text-[10px]"
+            style={{ color: hover ? accentColor : "var(--color-app-muted)" }}
+          />
+        </>
+      )}
+    </AccentHoverButton>
   );
 };
 

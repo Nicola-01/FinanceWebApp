@@ -1,6 +1,6 @@
 import type React from "react";
 import { useContext } from "react";
-import type { Tag } from "../../utils/types.ts";
+import type { Tag } from "../../types/domain.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { faChevronRight, faTags } from "@fortawesome/free-solid-svg-icons";

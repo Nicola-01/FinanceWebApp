@@ -13,16 +13,7 @@ import { TokensSection } from "./sections/TokensSection";
 import { NotificationsSection } from "./sections/NotificationsSection";
 import { AboutSection } from "./sections/AboutSection";
 import { DeleteAccountSection } from "./sections/DeleteAccountSection";
-
-function readMustChange(): boolean {
-  try {
-    return (
-      JSON.parse(localStorage.getItem("mustChangePWD") || "false") === true
-    );
-  } catch {
-    return false;
-  }
-}
+import { getMustChangePWD } from "../utils/authHelper";
 
 /**
  * Scroll-spy activation line — mirrors the sections' scroll-margin-top
@@ -38,7 +29,7 @@ const SettingsPage: React.FC = () => {
   const activeId = useScrollSpy(SETTINGS_SECTION_IDS, spyOffset);
 
   // Forced password-change mode (mustChangePWD): show only Security, blocking.
-  const [forced, setForced] = useState(readMustChange);
+  const [forced, setForced] = useState(getMustChangePWD);
 
   const scrollTo = useCallback((id: string) => {
     const el = document.getElementById(id);

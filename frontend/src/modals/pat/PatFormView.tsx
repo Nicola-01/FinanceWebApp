@@ -1,5 +1,5 @@
 import React from "react";
-import type { WalletPermState } from "../../utils/types";
+import type { WalletPermState } from "../../types/domain";
 import { WalletPermissionSelector } from "../../components/pat/WalletPermissionSelector";
 import { Input } from "../../components/ui/Input";
 import Button from "../../components/ui/Button";

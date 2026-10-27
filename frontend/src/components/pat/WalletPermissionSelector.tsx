@@ -2,7 +2,7 @@ import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faPen, faBan } from "@fortawesome/free-solid-svg-icons";
 import { Icon } from "../icon/Icon.tsx";
-import type { WalletPermState } from "../../utils/types";
+import type { WalletPermState } from "../../types/domain";
 import { Selector } from "../ui/Selector.tsx";
 
 interface WalletPermissionSelectorProps {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorDetail } from "../../utils/apiError";
-import type { Invitation } from "../../utils/types";
+import type { Invitation } from "../../types/domain";
 
 /**
  * Loads the current user's PENDING wallet invitations and exposes accept/reject.

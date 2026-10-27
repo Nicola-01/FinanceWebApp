@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import type { Tag } from "../../utils/types.ts";
+import type { Tag } from "../../types/domain.ts";
 import type { IconKey } from "../../utils/icons.ts";
 
 /**

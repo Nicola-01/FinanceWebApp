@@ -1,22 +1,26 @@
 import {
   TransactionDetailsModal,
   type TransactionDetailsModalHandle,
-} from "../../modals/TransactionModal/TransactionDetailsModal.tsx";
+} from "../../modals/transaction/TransactionDetailsModal.tsx";
 import {
   TransactionModal,
   type TransactionModalHandle,
-} from "../../modals/TransactionModal/TransactionModal.tsx";
+} from "../../modals/transaction/TransactionModal.tsx";
 import React, { useRef } from "react";
-import type { Tag, Transaction, Wallet } from "../../utils/types.ts";
+import type { Tag, Transaction, Wallet } from "../../types/domain.ts";
 import TransactionRow from "./TransactionRow.tsx";
 import { PendingTransactionsPanel } from "./PendingTransactionsPanel.tsx";
 import * as walletOps from "../../api/walletOps.ts";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faReceipt } from "@fortawesome/free-solid-svg-icons"; // Aggiunta icona per l'empty state
-import type { CurrencyCode } from "../../utils/currencies.ts";
+import { faReceipt } from "@fortawesome/free-solid-svg-icons";
+import type { CurrencyCode } from "../../utils/currencies/index.ts";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
+import {
+  formatDateHeader,
+  groupTransactionsByDate,
+} from "./groupTransactionsByDate.ts";
 
 interface TransactionsTableProps {
   wallet: Wallet;
@@ -57,58 +61,20 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
   const transactionModalRef = useRef<TransactionModalHandle>(null);
 
-  // Raggruppamento per Data
-  const groupedTransactions = transactions.reduce(
-    (acc, tx) => {
-      if (!acc[tx.transactionDate]) acc[tx.transactionDate] = [];
-      acc[tx.transactionDate].push(tx);
-      return acc;
-    },
-    {} as Record<string, Transaction[]>,
-  );
-
-  // Ordiniamo le date in ordine decrescente
-  const sortedDates = Object.keys(groupedTransactions).sort(
-    (a, b) => new Date(b).getTime() - new Date(a).getTime(),
-  );
-
-  const formatDateHeader = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    const formatedDate = date.toLocaleDateString("en-GB", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-
-    if (date.toDateString() === today.toDateString())
-      return `Today - ${formatedDate}`;
-    if (date.toDateString() === yesterday.toDateString())
-      return `Yesterday - ${formatedDate}`;
-
-    return formatedDate;
-  };
+  const { groups: groupedTransactions, sortedDates } =
+    groupTransactionsByDate(transactions);
 
   const onSuccessDelete = async (id: string) => {
     try {
       const row = transactions.find((t) => t.id === id);
       await walletOps.deleteTransaction(wallet.id, id, row?.updatedAt ?? null);
-      onRefresh(); // Più sicuro chiamare il refresh dal padre che mutare l'array localmente
+      onRefresh(); // Safer to let the parent refetch than to mutate the array locally
       return true;
     } catch (err: unknown) {
       triggerToast(getApiErrorTitle(err, "Error deleting transaction"), false);
       return false;
     }
   };
-
-  // @ ts-ignore
-  // const onSuccessUpdate = async (updatedTransaction: Transaction) => {
-  //     onRefresh(); // Come sopra, ricarichiamo i dati aggiornati
-  // }
 
   return (
     <div className="flex flex-col flex-1 relative min-h-0">
@@ -121,7 +87,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
             onOpenDetails={(tx) => detailsModalRef.current?.openModal(tx)}
           />
         )}
-        {/* 1. STATO DI CARICAMENTO */}
+        {/* 1. Loading state */}
         {isLoading ? (
           <>
             <div className="mb-6">
@@ -133,7 +99,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
               </div>
             </div>
           </>
-        ) : /* 2. STATO VUOTO (Nessuna transazione) - Migliorato visivamente */
+        ) : /* 2. Empty state (no transactions) */
         transactions.length === 0 && pendingTransactions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-app-muted">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-app-input">
@@ -150,7 +116,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
             </p>
           </div>
         ) : (
-          /* 3. STATO CON DATI */
+          /* 3. Data state */
           sortedDates.map((date) => (
             <div key={date} className="mb-6">
               <div className="mb-4 mt-2 flex items-center gap-4">
@@ -161,7 +127,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 <div className="h-px flex-1 bg-app-border rounded-full"></div>
               </div>
 
-              {/* RIMOSSO IL GAP-2 PER ATTACCARE GLI ELEMENTI */}
+              {/* No gap: rows sit flush against each other */}
               <div className="flex flex-col">
                 {groupedTransactions[date].map((tx, index, array) => (
                   <TransactionRow

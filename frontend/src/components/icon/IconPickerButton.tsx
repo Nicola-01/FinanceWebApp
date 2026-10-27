@@ -106,7 +106,7 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
               onClick={() => onToggle(false)}
             />
             <div
-              ref={popupRef} // Assegna il ref al contenitore del popup
+              ref={popupRef}
               className="fixed z-[110]"
               style={{ top: coords.top, left: coords.left }}
             >

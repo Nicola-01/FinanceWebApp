@@ -1,4 +1,4 @@
-import type { Tag } from "./types";
+import type { Tag } from "../types/domain";
 
 /**
  * Client-side ordering for the category tree, mirroring the `wallet_order`
@@ -200,7 +200,7 @@ export function sortTree(
 }
 
 /** Flatten a tree into an ordered flat list: `[parent, ...children]` per group. */
-export function flattenTree(nodes: TagTreeNode[]): Tag[] {
+function flattenTree(nodes: TagTreeNode[]): Tag[] {
   const out: Tag[] = [];
   for (const n of nodes) {
     out.push(n.parent, ...n.children);

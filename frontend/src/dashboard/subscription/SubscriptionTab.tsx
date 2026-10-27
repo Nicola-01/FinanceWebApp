@@ -10,18 +10,18 @@ import {
   SubscriptionDetailsModal,
   type SubscriptionDetailsModalHandle,
 } from "../../modals/subscription/SubscriptionDetailsModal.tsx";
-import type { CurrencyCode } from "../../utils/currencies.ts";
+import type { CurrencyCode } from "../../utils/currencies/index.ts";
 import { SubscriptionCalendar } from "./SubscriptionCalendar.tsx";
 import { SubscriptionList } from "./SubscriptionList.tsx";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
 import {
   TransactionDetailsModal,
   type TransactionDetailsModalHandle,
-} from "../../modals/TransactionModal/TransactionDetailsModal.tsx";
+} from "../../modals/transaction/TransactionDetailsModal.tsx";
 import {
   TransactionModal,
   type TransactionModalHandle,
-} from "../../modals/TransactionModal/TransactionModal.tsx";
+} from "../../modals/transaction/TransactionModal.tsx";
 import * as walletOps from "../../api/walletOps.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 
@@ -68,7 +68,7 @@ export const SubscriptionTab = () => {
         />
       </div>
 
-      {/* Container Dinamico delle Viste */}
+      {/* Active view */}
       <div className="flex-1 relative">
         {isLoading ? (
           <div className="w-full">

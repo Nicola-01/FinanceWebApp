@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { Wallet, WalletMember } from "../../../utils/types";
+import type { Wallet, WalletMember } from "../../../types/domain";
 
 // --- Mocks -----------------------------------------------------------------
 const { walletRef } = vi.hoisted(() => ({

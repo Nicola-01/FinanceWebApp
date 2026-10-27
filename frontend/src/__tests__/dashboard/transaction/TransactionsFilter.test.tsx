@@ -26,10 +26,10 @@ vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
 vi.mock("../../../utils/ThemeContext.tsx", () => ({
   useTheme: () => ({ resolvedTheme: "light" }),
 }));
-vi.mock("../../../components/DataPicker/CustomDatePicker.tsx", () => ({
+vi.mock("../../../components/datePicker/CustomDatePicker.tsx", () => ({
   default: () => <div data-testid="date-picker" />,
 }));
-vi.mock("../../../components/TagFilter/TagFilter.tsx", () => ({
+vi.mock("../../../components/tags/TagFilter.tsx", () => ({
   TagFilter: ({ onChange }: { onChange: (s: string[]) => void }) => (
     <div>
       <button data-testid="pick-all" onClick={() => onChange(["A", "B"])}>

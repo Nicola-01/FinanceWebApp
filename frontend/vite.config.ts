@@ -96,6 +96,8 @@ export default defineConfig(({ mode }) => {
           // config.js is generated at runtime by the container — never precache it.
           globIgnores: ["config.js", "**/config.js"],
         },
+        // Without this no SW registers under `vite` dev, so serviceWorker.ready never resolves and push enrollment hangs.
+        devOptions: { enabled: true, type: "module" },
       }),
     ],
     server: {

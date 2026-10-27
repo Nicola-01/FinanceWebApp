@@ -11,7 +11,7 @@ import {
   peek,
   invalidate,
 } from "../../api/walletDataCache";
-import type { WalletDashboardData } from "../../utils/types";
+import type { WalletDashboardData } from "../../types/domain";
 
 const mockedGet = api.get as unknown as ReturnType<typeof vi.fn>;
 

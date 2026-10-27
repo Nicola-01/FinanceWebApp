@@ -1,33 +1,24 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from "react";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  readWalletOrder,
+  sortWalletsBySavedOrder,
+  writeWalletOrder,
+} from "../../utils/walletOrder.ts";
 import { Badge } from "../../components/ui/Badge";
 import {
   CreateWalletWizard,
   type CreateWalletWizardHandle,
 } from "../../modals/wallet/CreateWalletWizard.tsx";
 import WalletCard, { WalletCardUI } from "./WalletCard.tsx";
-import type { Wallet, Invitation } from "../../utils/types.ts";
+import type { Wallet, Invitation } from "../../types/domain.ts";
 import { useInvitations } from "./useInvitations";
 import { InvitesMobileInline, InvitesDesktopSection } from "./WalletInvites";
 import { InviteModal } from "../../modals/wallet/InviteModal";
+import { AddWalletTile, WalletSkeleton } from "./WalletBarTiles";
+import { useWalletDragReorder } from "./useWalletDragReorder";
 
-import {
-  DndContext,
-  closestCenter,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  DragOverlay,
-  type DragEndEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  rectSortingStrategy,
-} from "@dnd-kit/sortable";
+import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 
 interface WalletsAreaProps {
   wallets: Wallet[];
@@ -38,36 +29,6 @@ interface WalletsAreaProps {
   onRefreshAll: () => void;
 }
 
-const WalletSkeleton = () => (
-  <div className="flex items-center gap-4 p-4 rounded-2xl border border-app-border bg-app-input animate-pulse shrink-0 w-[260px] xl:w-full">
-    <div className="h-12 w-12 rounded-full bg-app-surface shrink-0"></div>
-    <div className="flex flex-1 flex-col min-w-0 gap-2">
-      <div className="h-4 w-3/4 rounded bg-app-surface"></div>
-      <div className="h-5 w-10 rounded-md bg-app-surface mt-0.5"></div>
-    </div>
-  </div>
-);
-
-/** Dashed "Add New Wallet" tile — reused for the mobile row and the desktop footer. */
-const AddWalletTile: React.FC<{ onClick: () => void; className?: string }> = ({
-  onClick,
-  className = "",
-}) => (
-  <button
-    onClick={onClick}
-    className={`cursor-pointer group flex items-center gap-4 p-4 rounded-2xl border border-dashed border-app-border bg-app-input/60 transition-all hover:bg-app-input hover:border-[var(--brand-1)]/50 shrink-0 text-left ${className}`}
-  >
-    <div className="flex justify-center items-center w-12 h-12 rounded-full bg-app-surface text-xl text-app-muted group-hover:text-[var(--brand-1)] transition-colors shrink-0">
-      <FontAwesomeIcon icon={faPlus} />
-    </div>
-    <div className="flex flex-col min-w-0">
-      <h4 className="m-0 text-sm font-bold text-app-muted group-hover:text-app-text transition-colors truncate">
-        Add New Wallet
-      </h4>
-    </div>
-  </button>
-);
-
 export const WalletsBar: React.FC<WalletsAreaProps> = ({
   wallets,
   setWallets,
@@ -77,30 +38,15 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
   onRefreshAll,
 }) => {
   const walletModal = useRef<CreateWalletWizardHandle>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const {
+    activeId,
+    sensors,
+    handleDragStart,
+    handleDragEnd,
+    handleDragCancel,
+  } = useWalletDragReorder(setWallets);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const didInitScroll = useRef(false);
-  // The wallet cards are real <a> links (so mouse users get open-in-new-tab via
-  // middle/right-click). dnd-kit leaves a synthetic `click` behind on drag
-  // release, and that click would navigate — turning a reorder into a page
-  // load. This flag lets us swallow exactly that one trailing click.
-  const suppressNextClick = useRef(false);
-
-  // Kill the trailing click in the capture phase, on `document`, BEFORE it can
-  // reach any wallet-card link (or React's own handlers). It fires wherever the
-  // pointer was released, so a per-card guard can't catch it reliably — this
-  // one is authoritative because it's armed by dnd-kit's own drag lifecycle.
-  useEffect(() => {
-    const onClickCapture = (e: MouseEvent) => {
-      if (suppressNextClick.current) {
-        suppressNextClick.current = false;
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    };
-    document.addEventListener("click", onClickCapture, true);
-    return () => document.removeEventListener("click", onClickCapture, true);
-  }, []);
 
   const {
     invites,
@@ -139,98 +85,32 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
     didInitScroll.current = true;
   }, [loading, invitesLoading, invites.length]);
 
-  // --- 1. SINCRONIZZAZIONE ORDINE INIZIALE DA LOCAL STORAGE ---
+  // Apply the saved wallet order from localStorage on load.
   useEffect(() => {
     if (!loading && wallets.length > 0) {
-      const savedOrderStr = localStorage.getItem("wallet_order");
+      const savedOrder = readWalletOrder();
 
-      if (savedOrderStr) {
-        try {
-          const savedOrder = JSON.parse(savedOrderStr) as string[];
+      if (savedOrder) {
+        const sortedWallets = sortWalletsBySavedOrder(wallets, savedOrder);
 
-          // Riordiniamo i wallet basandoci sugli ID salvati nel localStorage
-          const sortedWallets = [...wallets].sort((a, b) => {
-            const indexA = savedOrder.indexOf(a.id);
-            const indexB = savedOrder.indexOf(b.id);
+        const currentIds = wallets.map((w) => w.id).join(",");
+        const sortedIds = sortedWallets.map((w) => w.id).join(",");
 
-            if (indexA === -1 && indexB === -1) return 0;
-            if (indexA === -1) return 1;
-            if (indexB === -1) return -1;
+        const newOrder = sortedWallets.map((w) => w.id);
 
-            return indexA - indexB;
-          });
+        // Only update state when the order actually changed.
+        if (currentIds !== sortedIds) {
+          setWallets(sortedWallets);
+        }
 
-          const currentIds = wallets.map((w) => w.id).join(",");
-          const sortedIds = sortedWallets.map((w) => w.id).join(",");
-
-          // Creiamo la nuova stringa pulita per il localStorage
-          const newOrderStr = JSON.stringify(sortedWallets.map((w) => w.id));
-
-          // 1. Aggiorniamo la UI SOLO se l'ordine degli elementi è diverso
-          if (currentIds !== sortedIds) {
-            setWallets(sortedWallets);
-          }
-
-          // 2. Puliamo il Local Storage se ci sono disallineamenti
-          // (es. wallet eliminati o wallet nuovi aggiunti in coda)
-          if (newOrderStr !== savedOrderStr) {
-            localStorage.setItem("wallet_order", newOrderStr);
-          }
-        } catch (e) {
-          console.error("Error parsing wallet_order from localStorage", e);
+        // Rewrite the stored order when it drifted
+        // (e.g. deleted wallets, or new ones appended at the end).
+        if (JSON.stringify(newOrder) !== JSON.stringify(savedOrder)) {
+          writeWalletOrder(newOrder);
         }
       }
     }
   }, [wallets, loading, setWallets]);
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250,
-        tolerance: 5,
-      },
-    }),
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
-    // A real drag started (activation threshold met) → arm the click swallow.
-    suppressNextClick.current = true;
-  };
-
-  // Disarm as a fallback: the browser fires the trailing `click` synchronously
-  // right after `mouseup` (so onClickCapture consumes the flag first); this
-  // clears it for the no-click case so a later genuine click isn't eaten.
-  const disarmClickSuppress = () => {
-    setTimeout(() => {
-      suppressNextClick.current = false;
-    }, 0);
-  };
-
-  // --- 2. SALVATAGGIO ORDINE AL TERMINE DEL DRAG ---
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null);
-    disarmClickSuppress();
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      setWallets((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
-        const newArray = arrayMove(items, oldIndex, newIndex);
-        localStorage.setItem(
-          "wallet_order",
-          JSON.stringify(newArray.map((w) => w.id)),
-        );
-        return newArray;
-      });
-    }
-  };
 
   const handleCreate = (walletId: string) => {
     onRefreshAll();
@@ -245,10 +125,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onDragCancel={() => {
-        setActiveId(null);
-        disarmClickSuppress();
-      }}
+      onDragCancel={handleDragCancel}
     >
       <aside
         className="

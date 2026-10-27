@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   CURRENCY_META,
   getCurrencies,
+  getCurrencySymbol,
   getPreferredForeignCurrency,
   setPreferredForeignCurrency,
   type CurrencyMeta,
@@ -111,5 +112,15 @@ describe("preferred foreign currency", () => {
     setPreferredForeignCurrency("w1", null);
     expect(getPreferredForeignCurrency("w1")).toBeNull();
     expect(getPreferredForeignCurrency("w2")).toBe("JPY");
+  });
+});
+
+describe("getCurrencySymbol", () => {
+  it("returns the curated symbol", () => {
+    expect(getCurrencySymbol("EUR")).toBe("€");
+  });
+
+  it("falls back to the code for non-curated currencies", () => {
+    expect(getCurrencySymbol("AED")).toBe("AED");
   });
 });
