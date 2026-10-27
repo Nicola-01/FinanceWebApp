@@ -6,13 +6,14 @@ import { DashboardBackground } from "./DashboardBackground.tsx";
 import api from "../api/axiosConfig";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import type { Wallet } from "../types/domain";
-import { useDeleteModal } from "../modals/common/DeleteModalContext";
 import { ConfirmModal } from "../modals/common/ConfirmModal.tsx";
 import { AppHeader } from "../header/AppHeader.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPiggyBank } from "@fortawesome/free-solid-svg-icons";
-import { getApiErrorTitle } from "../utils/apiError";
 import { walletSlug } from "../utils/walletSlug";
+import { readWalletOrder } from "../utils/walletOrder";
+import { useWalletRouting } from "./useWalletRouting";
+import { useWalletDeletion } from "./useWalletDeletion";
 
 const UserDashboard: React.FC = () => {
   const { walletId } = useParams<{ walletId: string }>();
@@ -34,19 +35,13 @@ const UserDashboard: React.FC = () => {
       if (!walletId && fetchedWallets.length > 0) {
         let targetId = fetchedWallets[0].id;
 
-        const savedOrderStr = localStorage.getItem("wallet_order");
-        if (savedOrderStr) {
-          try {
-            const savedOrder = JSON.parse(savedOrderStr) as string[];
+        const savedOrder = readWalletOrder();
+        if (savedOrder) {
+          const firstValidSavedId = savedOrder.find((savedId) =>
+            fetchedWallets.some((wallet) => wallet.id === savedId),
+          );
 
-            const firstValidSavedId = savedOrder.find((savedId) =>
-              fetchedWallets.some((wallet) => wallet.id === savedId),
-            );
-
-            if (firstValidSavedId) targetId = firstValidSavedId;
-          } catch (e) {
-            console.error("Error parsing wallet_order from localStorage", e);
-          }
+          if (firstValidSavedId) targetId = firstValidSavedId;
         }
         const target = fetchedWallets.find((w) => w.id === targetId);
         if (target)
@@ -67,62 +62,10 @@ const UserDashboard: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Resolve the URL slug (`name-<last5uuid>`) to a wallet in the list.
-  // 1) exact id match -> backward compatibility with old full-UUID links.
-  // 2) suffix match -> last slug segment == last 5 chars of the id.
-  const resolveWallet = (param: string | undefined): Wallet | null => {
-    if (!param) return null;
-    const exact = wallets.find((w) => w.id === param);
-    if (exact) return exact;
-    const suffix = param.split("-").pop();
-    return wallets.find((w) => w.id.slice(-5) === suffix) || null;
-  };
+  const selectedWallet = useWalletRouting(wallets, loading, walletId);
 
-  // Handles two cases when walletId/list changes:
-  // - the resolved wallet's slug differs from the param (old UUID or renamed)
-  //   -> rewrite the URL in canonical form (replace).
-  // - the param resolves no wallet (e.g. deleted) -> navigate to the first one.
-  useEffect(() => {
-    if (loading || wallets.length === 0 || !walletId) return;
-    const current = resolveWallet(walletId);
-    if (current) {
-      const canonical = walletSlug(current);
-      if (walletId !== canonical)
-        navigate(`/dashboard/${canonical}`, { replace: true });
-    } else {
-      navigate(`/dashboard/${walletSlug(wallets[0])}`, { replace: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [walletId, wallets, loading, navigate]);
-
-  const selectedWallet = resolveWallet(walletId);
-
-  const deleteModalRef = useDeleteModal();
-  const [quitTarget, setQuitTarget] = useState<Wallet | null>(null);
-  const [isQuitting, setIsQuitting] = useState(false);
-
-  // Same DELETE endpoint backs both flows: for an OWNER it deletes the wallet,
-  // for a non-owner the backend treats it as leaving. Only the copy differs.
-  const handleConfirmDelete = async (
-    idToDelete: string,
-    successMsg = "Deleted!",
-  ) => {
-    try {
-      await api.delete(`/wallets/${idToDelete}`);
-      setWallets((prev) => prev.filter((w) => w.id !== idToDelete));
-      triggerToast(successMsg, true);
-    } catch (err: unknown) {
-      triggerToast(getApiErrorTitle(err, "Error deleting."), false);
-    }
-  };
-
-  const confirmQuit = async () => {
-    if (!quitTarget) return;
-    setIsQuitting(true);
-    await handleConfirmDelete(quitTarget.id, "You left the wallet");
-    setIsQuitting(false);
-    setQuitTarget(null);
-  };
+  const { quitTarget, isQuitting, confirmQuit, cancelQuit, requestDelete } =
+    useWalletDeletion(setWallets);
 
   function handleChangeWallet(id: string) {
     const w = wallets.find((wallet) => wallet.id === id);
@@ -159,19 +102,7 @@ const UserDashboard: React.FC = () => {
               _wallet={selectedWallet}
               key={selectedWallet.id}
               onWalletUpdate={fetchData}
-              onWalletDelete={() => {
-                if (selectedWallet.userRole === "OWNER") {
-                  deleteModalRef.current?.deleteObject(
-                    selectedWallet,
-                    "wallet",
-                    async () => await handleConfirmDelete(selectedWallet.id),
-                    2,
-                  );
-                } else {
-                  // Non-owners quit (leave) the wallet — not a destructive delete.
-                  setQuitTarget(selectedWallet);
-                }
-              }}
+              onWalletDelete={() => requestDelete(selectedWallet)}
             />
           ) : (
             <div className="flex h-full min-h-[50vh] items-center justify-center text-app-muted">
@@ -209,7 +140,7 @@ const UserDashboard: React.FC = () => {
         tone="danger"
         busy={isQuitting}
         onConfirm={confirmQuit}
-        onCancel={() => setQuitTarget(null)}
+        onCancel={cancelQuit}
       />
     </div>
   );

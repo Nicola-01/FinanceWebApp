@@ -23,6 +23,12 @@ import {
 } from "./recommendedTags";
 import { MOCK_SOURCE_WALLETS, type SourceWallet } from "./sourceWallets";
 import type { TagRequest } from "../../../dashboard/settings/csvImport";
+import {
+  buildDisplayNodes,
+  indexGroupsByParent,
+  keyOf,
+  originOf,
+} from "./tagsStepModel";
 
 export interface TagsStepProps {
   value: TagRequest[];
@@ -31,8 +37,6 @@ export interface TagsStepProps {
   /** The user's other wallets, offered as tag sources (defaults to a mock). */
   sourceWallets?: SourceWallet[];
 }
-
-const keyOf = (name: string) => name.trim().toLowerCase();
 
 type TagMode = "recommended" | "wallet" | "csv" | "create";
 
@@ -67,30 +71,11 @@ export function TagsStep({
   // Every category the user can pick from (presets + each source wallet's),
   // indexed by parent name — the source of truth for deriving a category's
   // struck-out children and their canonical order.
-  const knownGroups: RecommendedTagGroup[] = [
+  const groupByParentKey = indexGroupsByParent([
     ...RECOMMENDED_TAG_GROUPS,
     ...sourceWallets.flatMap((w) => w.groups),
     ...groupTagRequests(csvTags),
-  ];
-  const groupByParentKey = new Map<string, RecommendedTagGroup>();
-  knownGroups.forEach((g) => {
-    const k = keyOf(g.parent.name);
-    if (!groupByParentKey.has(k)) groupByParentKey.set(k, g);
-  });
-
-  // Where a staged tag came from — a preset (Recommended), one of the user's
-  // wallets (its name), a CSV upload, or manual create.
-  const originOf = (name: string): StagedTagNode["origin"] => {
-    const k = keyOf(name);
-    const matches = (g: RecommendedTagGroup) =>
-      keyOf(g.parent.name) === k || g.children.some((c) => keyOf(c.name) === k);
-    if (RECOMMENDED_TAG_GROUPS.some(matches))
-      return { label: "Recommended", icon: faWandMagicSparkles };
-    const w = sourceWallets.find((sw) => sw.groups.some(matches));
-    if (w) return { label: w.name, icon: faWallet };
-    if (originOverrides[k] === "csv") return { label: "CSV", icon: faFileCsv };
-    return { label: "Custom", icon: faPlus };
-  };
+  ]);
 
   const removeCategory = (parentName: string) => {
     const k = keyOf(parentName);
@@ -163,42 +148,11 @@ export function TagsStep({
     onChange([...value, tag]);
   };
 
-  // Staged tree data = active tags plus the struck-out (excluded) children of
-  // any still-staged category. Children of a known category are emitted in their
-  // canonical (definition) order so striking one doesn't shuffle it to the end.
-  // Derived, so `value` stays backend-clean.
-  const activeByName = new Map(value.map((t) => [keyOf(t.name), t]));
-  const displayNodes: StagedTagNode[] = [];
-  const emitted = new Set<string>();
-  value.forEach((t) => {
-    const k = keyOf(t.name);
-    if (emitted.has(k)) return;
-    const group = groupByParentKey.get(k);
-    if (group && keyOf(group.parent.name) === k) {
-      displayNodes.push(t);
-      emitted.add(k);
-      group.children.forEach((c) => {
-        const ck = keyOf(c.name);
-        displayNodes.push(
-          activeByName.get(ck) ?? {
-            name: c.name,
-            icon: c.icon,
-            colorHex: c.colorHex,
-            parentName: group.parent.name,
-            excluded: true,
-          },
-        );
-        emitted.add(ck);
-      });
-      return;
-    }
-    displayNodes.push(t);
-    emitted.add(k);
-  });
+  const displayNodes = buildDisplayNodes(value, groupByParentKey);
   // Tag each node with its provenance for the staged-tree badge.
   const nodesWithOrigin: StagedTagNode[] = displayNodes.map((n) => ({
     ...n,
-    origin: originOf(n.name),
+    origin: originOf(n.name, sourceWallets, originOverrides),
   }));
 
   return (

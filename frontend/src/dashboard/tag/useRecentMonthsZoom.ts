@@ -1,20 +1,6 @@
 import { useState } from "react";
 import type { ZoomData } from "@mui/x-charts/internals";
-
-// How many trailing months the zoom slider frames by default.
-const RECENT_MONTHS = 12;
-
-/** Zoom that frames the most recent `RECENT_MONTHS` of `monthCount` months on "x-axis". */
-const recentMonthsZoom = (monthCount: number): ZoomData[] => [
-  {
-    axisId: "x-axis",
-    start:
-      monthCount > RECENT_MONTHS
-        ? ((monthCount - RECENT_MONTHS) / monthCount) * 100
-        : 0,
-    end: 100,
-  },
-];
+import { recentMonthsZoom } from "../../utils/recentMonthsZoom.ts";
 
 /**
  * Controlled zoom state for a month-based x-axis (id "x-axis") that preselects the most

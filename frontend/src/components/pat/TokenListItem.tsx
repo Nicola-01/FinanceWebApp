@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Badge } from "../ui/Badge";
 import {
@@ -12,6 +12,7 @@ import type { Wallet, PatToken } from "../../types/domain";
 import { TokenActionButtons } from "./TokenActionButtons";
 import { TokenWalletBadges } from "./TokenWalletBadges";
 import { TokenLastUsedInfo } from "./TokenLastUsedInfo";
+import { useLongPressSelect } from "./useLongPressSelect";
 
 interface TokenListItemProps {
   token: PatToken;
@@ -34,11 +35,6 @@ interface TokenListItemProps {
   showCopy?: boolean;
   onCopy?: (prefix: string) => void;
 }
-
-/** Press-and-hold duration before a row enters selection mode. */
-const LONG_PRESS_MS = 500;
-/** Pointer travel (px) that cancels an in-progress long-press. */
-const MOVE_TOLERANCE_PX = 8;
 
 export const TokenListItem: React.FC<TokenListItemProps> = ({
   token,
@@ -65,48 +61,12 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
 
   const [revealed, setRevealed] = useState(false);
 
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressFired = useRef(false);
-  const pressStart = useRef<{ x: number; y: number } | null>(null);
-
-  const clearLongPress = useCallback(() => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-    pressStart.current = null;
-  }, []);
-
-  useEffect(() => clearLongPress, [clearLongPress]);
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    // Presses that begin on an interactive control must not arm selection.
-    if ((e.target as HTMLElement).closest("button")) return;
-    longPressFired.current = false;
-    pressStart.current = { x: e.clientX, y: e.clientY };
-    longPressTimer.current = setTimeout(() => {
-      longPressFired.current = true;
-      onLongPressSelect?.(token);
-    }, LONG_PRESS_MS);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!pressStart.current) return;
-    const dx = Math.abs(e.clientX - pressStart.current.x);
-    const dy = Math.abs(e.clientY - pressStart.current.y);
-    if (dx > MOVE_TOLERANCE_PX || dy > MOVE_TOLERANCE_PX) clearLongPress();
-  };
-
-  const handleRowClick = (e: React.MouseEvent) => {
-    // Clicks bubbling up from the action/reveal/copy buttons are ignored here.
-    if ((e.target as HTMLElement).closest("button")) return;
-    if (longPressFired.current) {
-      // Swallow the click synthesized right after a successful long-press.
-      longPressFired.current = false;
-      return;
-    }
-    if (selectionMode) onToggleSelect?.(token);
-  };
+  const longPressHandlers = useLongPressSelect(
+    () => onLongPressSelect?.(token),
+    () => {
+      if (selectionMode) onToggleSelect?.(token);
+    },
+  );
 
   const Wrapper = isButtonVariant ? "button" : "div";
   const wrapperProps = isButtonVariant
@@ -115,15 +75,7 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
         disabled,
         type: "button" as const,
       }
-    : {
-        onPointerDown: handlePointerDown,
-        onPointerMove: handlePointerMove,
-        onPointerUp: clearLongPress,
-        onPointerLeave: clearLongPress,
-        onPointerCancel: clearLongPress,
-        onClick: handleRowClick,
-        onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
-      };
+    : longPressHandlers;
 
   return (
     <Wrapper

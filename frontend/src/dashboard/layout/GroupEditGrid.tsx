@@ -8,7 +8,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { WidgetDef } from "./widgetTypes.ts";
-import type { WidgetSpan } from "../../utils/tabLayout";
+import type { WidgetSpan } from "../../utils/tabLayout/types";
 import { groupBodyId, memberId } from "./mergeAwareCollision.ts";
 
 /** How much the live `bare` chart is scaled down to read as a faithful miniature. */

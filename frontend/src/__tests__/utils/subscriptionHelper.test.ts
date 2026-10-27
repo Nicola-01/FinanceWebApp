@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { isWeekend, format, lastDayOfMonth } from "date-fns";
 import {
   buildYearsMap,
@@ -6,6 +6,11 @@ import {
   applyMonthlyRules,
   advanceByOneInterval,
   generateSubscriptionOccurrences,
+  formatCompactFrequency,
+  getDaysLeft,
+  getDaysLeftColor,
+  getDaysLeftText,
+  applyTransactionToSubscription,
 } from "../../utils/subscriptionHelper";
 import type { Subscription, Tag, Transaction } from "../../types/domain";
 
@@ -226,5 +231,82 @@ describe("generateSubscriptionOccurrences", () => {
   it("returns nothing when there is no start date", () => {
     const sub = makeSub({ startDate: "", nextExecutionDate: "" });
     expect(generateSubscriptionOccurrences(sub, 2025, 2025)).toEqual([]);
+  });
+});
+
+describe("formatCompactFrequency", () => {
+  it("abbreviates each frequency, prefixing intervals above 1", () => {
+    expect(formatCompactFrequency(1, "MONTHLY")).toBe("mo");
+    expect(formatCompactFrequency(2, "yearly")).toBe("2 yr");
+    expect(formatCompactFrequency(3, "WEEKLY")).toBe("3 wk");
+    expect(formatCompactFrequency(0, "DAILY")).toBe("d");
+    expect(formatCompactFrequency(2, "HOURLY")).toBe("2 hour");
+  });
+});
+
+describe("days-left helpers", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2025, 0, 31, 18, 30)); // late on a month end
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("getDaysLeft counts whole local days and returns null without a date", () => {
+    expect(getDaysLeft(null)).toBeNull();
+    expect(getDaysLeft("")).toBeNull();
+    expect(getDaysLeft("2025-01-31T23:59:00")).toBe(0);
+    expect(getDaysLeft("2025-02-01T00:01:00")).toBe(1);
+    expect(getDaysLeft("2025-03-03T08:00:00")).toBe(31);
+    expect(getDaysLeft("2025-01-30T08:00:00")).toBe(-1);
+  });
+
+  it("getDaysLeftColor picks by proximity and direction", () => {
+    expect(getDaysLeftColor(8, false)).toBe("text-app-muted opacity-90");
+    expect(getDaysLeftColor(-1, true)).toBe("text-app-muted opacity-60");
+    expect(getDaysLeftColor(5, false)).toBe("text-app-yellow");
+    expect(getDaysLeftColor(2, false)).toBe("text-app-yellow");
+    expect(getDaysLeftColor(1, false)).toBe("text-app-red");
+    expect(getDaysLeftColor(4, true)).toBe("text-app-green/40");
+    expect(getDaysLeftColor(3, true)).toBe("text-app-green/70");
+    expect(getDaysLeftColor(0, true)).toBe("text-app-green");
+  });
+
+  it("getDaysLeftText uses relative words, days, months and years", () => {
+    expect(getDaysLeftText(0)).toBe("Today");
+    expect(getDaysLeftText(1)).toBe("Tomorrow");
+    expect(getDaysLeftText(-1)).toBe("Yesterday");
+    expect(getDaysLeftText(5)).toBe("5 days left");
+    expect(getDaysLeftText(-5)).toBe("5 days ago");
+    // date-fns counts Jan 31 -> Feb 28 (month end to month end) as a full month.
+    expect(getDaysLeftText(28, "2025-02-28T08:00:00")).toBe("1 month left");
+    expect(getDaysLeftText(27, "2025-02-27T08:00:00")).toBe("27 days left");
+    expect(getDaysLeftText(31, "2025-03-03T08:00:00")).toBe("1 month left");
+    expect(getDaysLeftText(-92, "2024-10-31T08:00:00")).toBe("3 months ago");
+    expect(getDaysLeftText(365, "2026-01-31T08:00:00")).toBe("1 year left");
+    expect(getDaysLeftText(-791, "2022-12-01T08:00:00")).toBe(
+      "2 years and 1 month ago",
+    );
+  });
+});
+
+describe("applyTransactionToSubscription", () => {
+  it("overlays the transaction amount and falls back per currency field", () => {
+    const sub = makeSub({});
+    const tx = {
+      ...makeTx("2025-01-10"),
+      amount: 12,
+      originalAmount: 13,
+    } as Transaction;
+
+    expect(applyTransactionToSubscription(sub, tx)).toEqual({
+      ...sub,
+      amount: 12,
+      originalAmount: 13,
+      originalCurrency: "EUR",
+      exchangeValue: 1,
+    });
+    expect(sub.amount).toBe(10);
   });
 });

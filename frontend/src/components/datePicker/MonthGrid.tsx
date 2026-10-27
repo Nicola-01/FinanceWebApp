@@ -7,7 +7,7 @@ import {
   isBefore,
 } from "date-fns";
 import DayCell from "./DayCell";
-import type { PresetType } from "./CustomDatePicker";
+import type { PresetType } from "./datePresets";
 
 export interface MonthGridProps {
   monthDate: Date;

@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getUserAuth } from "../../utils/authHelper";
+import {
+  getUserAuth,
+  setMustChangePWD,
+  setToken,
+} from "../../utils/authHelper";
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
@@ -42,8 +46,8 @@ export const useLandingCta = (): LandingCta => {
     try {
       const response = await api.post("/auth/demo");
       const { token } = response.data;
-      localStorage.setItem("mustChangePWD", JSON.stringify(false));
-      sessionStorage.setItem("jwtToken", token);
+      setMustChangePWD(false);
+      setToken(token, false);
       navigate("/dashboard");
       window.location.reload(); // apply auth state
     } catch (err: unknown) {

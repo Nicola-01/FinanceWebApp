@@ -47,3 +47,12 @@ export function popInsertionIndex(boxes: Box[], x: number, y: number): number {
   }
   return index;
 }
+
+/** Client pointer coords from a drag's activator event (mouse/touch), or null (keyboard). */
+export function eventPointer(e: Event): { x: number; y: number } | null {
+  if ("clientX" in e && typeof (e as MouseEvent).clientX === "number") {
+    return { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
+  }
+  const touch = (e as TouchEvent).touches?.[0];
+  return touch ? { x: touch.clientX, y: touch.clientY } : null;
+}

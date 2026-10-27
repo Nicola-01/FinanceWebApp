@@ -1,313 +1,55 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus,
-  faShieldAlt,
-  faPen,
   faPlug,
   faTrash,
   faPause,
   faPlay,
   faHandPointer,
 } from "@fortawesome/free-solid-svg-icons";
-import api from "../../api/axiosConfig";
-import type { Wallet, PatToken, WalletPermState } from "../../types/domain";
 import { Card } from "../../components/ui/Card";
-import { Badge as UiBadge } from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
-import { ModalDialog } from "../../modals/common/ModalDialog";
-import { PatFormView } from "../../modals/pat/PatFormView";
-import { PatShowTokenView } from "../../modals/pat/PatShowTokenView";
 import { ConfirmModal } from "../../modals/common/ConfirmModal";
 import { useDeleteModal } from "../../modals/common/DeleteModalContext";
 import { TokenListItem } from "../../components/pat/TokenListItem";
-import { triggerToast } from "../../components/ui/ToastNotification";
-import { getApiErrorDetail } from "../../utils/apiError";
-import { useSelection } from "../../hooks/useSelection";
-
-type DialogView = "create" | "edit" | "showToken";
-type FilterKey = "all" | "manual" | "mcp";
-
-// An OAuth/MCP-issued token is just a PAT whose name the consent flow prefixes
-// with "OAuth:". Until the backend stores a real `source`/`clientName`, this
-// name heuristic is the only signal distinguishing MCP connections from manual
-// tokens.
-const isMcpToken = (t: PatToken) =>
-  t.name.trim().toLowerCase().startsWith("oauth:");
-
-const Badge: React.FC<{ mcp: boolean }> = ({ mcp }) =>
-  mcp ? (
-    <UiBadge variant="subtle" tone="purple" uppercase className="shrink-0">
-      MCP
-    </UiBadge>
-  ) : (
-    <UiBadge variant="subtle" tone="neutral" uppercase className="shrink-0">
-      Manual
-    </UiBadge>
-  );
+import {
+  filterTokens,
+  isMcpToken,
+  type FilterKey,
+} from "../tokens/tokenHelpers";
+import { TokenTypeBadge } from "../tokens/TokenTypeBadge";
+import { TokenFilterPills } from "../tokens/TokenFilterPills";
+import { TokenDialog } from "../tokens/TokenDialog";
+import { useTokens } from "../tokens/useTokens";
+import { useTokenDialog } from "../tokens/useTokenDialog";
 
 export const TokensSection: React.FC = () => {
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const deleteModalRef = useDeleteModal();
-
-  const [tokens, setTokens] = useState<PatToken[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [walletsMap, setWalletsMap] = useState<Record<string, Wallet>>({});
   const [filter, setFilter] = useState<FilterKey>("all");
-  const [revokingId, setRevokingId] = useState<string | null>(null);
-  const [pausingId, setPausingId] = useState<string | null>(null);
 
-  // Multi-select for bulk actions (long-press to select).
-  const { selected, setSelected, toggleOne, clearSelection } = useSelection();
-  const [bulkConfirm, setBulkConfirm] = useState(false);
-  const [bulkDeleting, setBulkDeleting] = useState(false);
-  const [bulkPausing, setBulkPausing] = useState(false);
-
-  // Dialog (create / edit / show-once) state.
-  const [view, setView] = useState<DialogView>("create");
-  const [tokenIdToEdit, setTokenIdToEdit] = useState<string | null>(null);
-  const [tokenName, setTokenName] = useState("");
-  const [walletPerms, setWalletPerms] = useState<WalletPermState[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [generatedToken, setGeneratedToken] = useState("");
-  const [copied, setCopied] = useState(false);
-
-  // ─── Data ─────────────────────────────────────────────────────────────────
-
-  const fetchTokens = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get("/tokens");
-      const list: PatToken[] = res.data;
-      setTokens(list);
-      // Drop any selected ids that no longer exist.
-      setSelected(
-        (prev) =>
-          new Set([...prev].filter((id) => list.some((t) => t.id === id))),
-      );
-    } catch (err: unknown) {
-      triggerToast(getApiErrorDetail(err, "Failed to load tokens"), false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchWalletsMap = async () => {
-    try {
-      const wRes = await api.get("/wallets");
-      const fetched: Wallet[] = wRes.data;
-      const map: Record<string, Wallet> = {};
-      fetched.forEach((w) => (map[w.id] = w));
-      setWalletsMap(map);
-    } catch {
-      /* silently ignore — names just fall back to ids */
-    }
-  };
-
-  useEffect(() => {
-    fetchTokens();
-    fetchWalletsMap();
-    // Mount-only fetch (useSelection's setter is stable but opaque to the linter).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const prepareWalletsForForm = async (existing?: PatToken) => {
-    try {
-      const wRes = await api.get("/wallets");
-      const fetched: Wallet[] = wRes.data;
-      setWalletPerms(
-        fetched.map((w) => {
-          const perm = existing?.walletPermissions.find(
-            (wp) => wp.walletId === w.id,
-          );
-          return {
-            walletId: w.id,
-            walletName: w.name,
-            walletIcon: w.icon,
-            walletColor: w.color,
-            userRole: w.userRole,
-            enabled: !!perm,
-            read: true,
-            write: perm ? perm.permissions.includes("WRITE") : false,
-          };
-        }),
-      );
-    } catch {
-      triggerToast("Failed to load wallets", false);
-    }
-  };
-
-  // ─── Actions ──────────────────────────────────────────────────────────────
-
-  const openCreate = () => {
-    setTokenIdToEdit(null);
-    setTokenName("");
-    setWalletPerms([]);
-    setGeneratedToken("");
-    setCopied(false);
-    setView("create");
-    prepareWalletsForForm();
-    dialogRef.current?.showModal();
-  };
-
-  const openEdit = (token: PatToken) => {
-    setTokenIdToEdit(token.id);
-    setTokenName(token.name);
-    setWalletPerms([]);
-    setView("edit");
-    prepareWalletsForForm(token);
-    dialogRef.current?.showModal();
-  };
-
-  const setPermission = (
-    walletId: string,
-    level: "none" | "read" | "write",
-  ) => {
-    setWalletPerms((prev) =>
-      prev.map((w) =>
-        w.walletId === walletId
-          ? {
-              ...w,
-              enabled: level !== "none",
-              read: level !== "none",
-              write: level === "write",
-            }
-          : w,
-      ),
-    );
-  };
-
-  const handleSubmit = async () => {
-    if (!tokenName.trim()) {
-      triggerToast("Please enter a token name", false);
-      return;
-    }
-    const selected = walletPerms.filter((w) => w.enabled);
-    if (selected.length === 0) {
-      triggerToast("Select at least one wallet", false);
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const payload = {
-        name: tokenName.trim(),
-        walletPermissions: selected.map((w) => ({
-          walletId: w.walletId,
-          permissions: [
-            ...(w.read ? ["READ"] : []),
-            ...(w.write ? ["WRITE"] : []),
-          ],
-        })),
-      };
-      if (view === "edit" && tokenIdToEdit) {
-        await api.put(`/tokens/${tokenIdToEdit}`, payload);
-        triggerToast("Token permissions updated!", true);
-        dialogRef.current?.close();
-        fetchTokens();
-      } else {
-        const res = await api.post("/tokens", payload);
-        setGeneratedToken(res.data.plainToken);
-        setCopied(false);
-        setView("showToken");
-        triggerToast("Token created successfully!", true);
-      }
-    } catch (err: unknown) {
-      triggerToast(getApiErrorDetail(err, "Failed to save token"), false);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleRevoke = async (tokenId: string) => {
-    setRevokingId(tokenId);
-    try {
-      await api.delete(`/tokens/${tokenId}`);
-      setTokens((prev) => prev.filter((t) => t.id !== tokenId));
-      triggerToast("Access revoked", true);
-    } catch (err: unknown) {
-      triggerToast(getApiErrorDetail(err, "Failed to revoke token"), false);
-    } finally {
-      setRevokingId(null);
-    }
-  };
-
-  const handlePauseToggle = async (token: PatToken) => {
-    setPausingId(token.id);
-    const action = token.paused ? "resume" : "pause";
-    try {
-      const res = await api.post(`/tokens/${token.id}/${action}`);
-      const updated: PatToken = res.data;
-      setTokens((prev) => prev.map((t) => (t.id === token.id ? updated : t)));
-      triggerToast(updated.paused ? "Token paused" : "Token resumed", true);
-    } catch (err: unknown) {
-      triggerToast(getApiErrorDetail(err, "Failed to update token"), false);
-    } finally {
-      setPausingId(null);
-    }
-  };
-
-  const toggleSelect = (token: PatToken) => toggleOne(token.id);
-
-  const selectAllFiltered = () =>
-    setSelected(new Set(filtered.map((t) => t.id)));
-
-  const handleBulkDelete = async () => {
-    const ids = [...selected];
-    if (ids.length === 0) return;
-    setBulkDeleting(true);
-    try {
-      await api.post("/tokens/bulk-delete", { ids });
-      setTokens((prev) => prev.filter((t) => !selected.has(t.id)));
-      triggerToast(
-        ids.length === 1 ? "Token deleted" : `${ids.length} tokens deleted`,
-        true,
-      );
-      clearSelection();
-      setBulkConfirm(false);
-    } catch (err: unknown) {
-      triggerToast(getApiErrorDetail(err, "Failed to delete tokens"), false);
-    } finally {
-      setBulkDeleting(false);
-    }
-  };
-
-  const handleBulkPause = async (paused: boolean) => {
-    const ids = [...selected];
-    if (!ids.length) return;
-    setBulkPausing(true);
-    try {
-      const res = await api.post("/tokens/bulk-pause", { ids, paused });
-      const map = new Map((res.data as PatToken[]).map((t) => [t.id, t]));
-      setTokens((prev) => prev.map((t) => map.get(t.id) ?? t));
-      // Keep the selection so the user can chain another bulk action.
-      triggerToast(
-        `${ids.length} ${ids.length === 1 ? "token" : "tokens"} ${
-          paused ? "paused" : "resumed"
-        }`,
-        true,
-      );
-    } catch (err: unknown) {
-      triggerToast(getApiErrorDetail(err, "Failed to update tokens"), false);
-    } finally {
-      setBulkPausing(false);
-    }
-  };
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(generatedToken);
-      setCopied(true);
-      triggerToast("Token copied to clipboard!", true);
-      setTimeout(() => setCopied(false), 3000);
-    } catch {
-      triggerToast("Failed to copy", false);
-    }
-  };
-
-  const handleCloseClick = () => {
-    dialogRef.current?.close();
-    if (view === "showToken") fetchTokens();
-  };
+  const {
+    tokens,
+    loading,
+    walletsMap,
+    revokingId,
+    pausingId,
+    selected,
+    clearSelection,
+    bulkConfirm,
+    setBulkConfirm,
+    bulkDeleting,
+    bulkPausing,
+    fetchTokens,
+    handleRevoke,
+    handlePauseToggle,
+    toggleSelect,
+    selectAll,
+    handleBulkDelete,
+    handleBulkPause,
+  } = useTokens();
+  const dialog = useTokenDialog(fetchTokens);
+  const { openCreate, openEdit } = dialog;
 
   // ─── Derived ──────────────────────────────────────────────────────────────
 
@@ -315,9 +57,9 @@ export const TokensSection: React.FC = () => {
 
   const mcpCount = tokens.filter(isMcpToken).length;
   const manualCount = tokens.length - mcpCount;
-  const filtered = tokens.filter((t) =>
-    filter === "all" ? true : filter === "mcp" ? isMcpToken(t) : !isMcpToken(t),
-  );
+  const filtered = filterTokens(tokens, filter);
+
+  const selectAllFiltered = () => selectAll(filtered);
 
   const FILTERS: { key: FilterKey; label: string; count: number }[] = [
     { key: "all", label: "All", count: tokens.length },
@@ -325,70 +67,14 @@ export const TokensSection: React.FC = () => {
     { key: "mcp", label: "MCP", count: mcpCount },
   ];
 
-  const dialogTitle =
-    view === "create" ? (
-      <>
-        <FontAwesomeIcon icon={faPlus} className="text-app-green" /> New token
-      </>
-    ) : view === "edit" ? (
-      <>
-        <FontAwesomeIcon icon={faPen} className="text-app-yellow" /> Edit
-        permissions
-      </>
-    ) : (
-      <>
-        <FontAwesomeIcon icon={faShieldAlt} className="text-app-yellow" /> Token
-        created
-      </>
-    );
-
-  const submitDisabled =
-    isSubmitting ||
-    !tokenName.trim() ||
-    walletPerms.filter((w) => w.enabled).length === 0;
-
-  const dialogFooter =
-    view === "create" || view === "edit" ? (
-      <Button
-        variant="primary"
-        fullWidth
-        ripple
-        onClick={handleSubmit}
-        disabled={submitDisabled}
-      >
-        {isSubmitting
-          ? view === "edit"
-            ? "Saving…"
-            : "Generating…"
-          : view === "edit"
-            ? "Save changes"
-            : "Generate token"}
-      </Button>
-    ) : undefined;
-
   return (
     <>
       <Card>
-        {/* Toolbar: filter pills */}
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1 rounded-[var(--r-input)] border border-app-border bg-app-input p-1">
-            {FILTERS.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setFilter(f.key)}
-                className={`rounded-[var(--r-sm)] px-3 py-1.5 text-xs font-bold transition-colors ${
-                  filter === f.key
-                    ? "bg-app-surface text-app-text"
-                    : "text-app-muted hover:text-app-text"
-                }`}
-              >
-                {f.label}
-                <span className="ml-1.5 text-app-muted">{f.count}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <TokenFilterPills
+          filters={FILTERS}
+          filter={filter}
+          onChange={setFilter}
+        />
 
         {/* Bulk action bar — always visible while there are tokens; actions
             stay disabled until at least one row is long-press-selected. */}
@@ -487,7 +173,7 @@ export const TokensSection: React.FC = () => {
                 key={token.id}
                 token={token}
                 walletsMap={walletsMap}
-                badge={<Badge mcp={isMcpToken(token)} />}
+                badge={<TokenTypeBadge mcp={isMcpToken(token)} />}
                 onEdit={openEdit}
                 onDelete={(t) =>
                   deleteModalRef.current?.deleteObject(
@@ -522,36 +208,7 @@ export const TokensSection: React.FC = () => {
         )}
       </Card>
 
-      {/* Create / edit / show-once dialog */}
-      <ModalDialog
-        ref={dialogRef}
-        className="max-w-[560px]"
-        title={dialogTitle}
-        footer={dialogFooter}
-        onCloseClick={handleCloseClick}
-        showClose={true}
-      >
-        {(view === "create" || view === "edit") && (
-          <PatFormView
-            isEdit={view === "edit"}
-            tokenName={tokenName}
-            setTokenName={setTokenName}
-            walletPerms={walletPerms}
-            setPermission={setPermission}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            hideSubmit
-          />
-        )}
-        {view === "showToken" && (
-          <PatShowTokenView
-            generatedToken={generatedToken}
-            copied={copied}
-            onCopy={handleCopy}
-            onDone={handleCloseClick}
-          />
-        )}
-      </ModalDialog>
+      <TokenDialog dialog={dialog} />
 
       {/* Bulk-delete confirmation */}
       <ConfirmModal

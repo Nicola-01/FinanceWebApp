@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   boxContains,
+  eventPointer,
   popInsertionIndex,
   type Box,
 } from "../../../dashboard/layout/popPlacement";
@@ -80,5 +81,22 @@ describe("popInsertionIndex", () => {
       prev = idx;
     }
     expect(prev).toBe(2);
+  });
+});
+
+describe("eventPointer", () => {
+  it("reads client coords from a mouse event", () => {
+    expect(
+      eventPointer(new MouseEvent("mousedown", { clientX: 3, clientY: 4 })),
+    ).toEqual({ x: 3, y: 4 });
+  });
+
+  it("reads the first touch of a touch event", () => {
+    const e = { touches: [{ clientX: 5, clientY: 6 }] } as unknown as Event;
+    expect(eventPointer(e)).toEqual({ x: 5, y: 6 });
+  });
+
+  it("returns null for a keyboard event", () => {
+    expect(eventPointer(new KeyboardEvent("keydown"))).toBeNull();
   });
 });
