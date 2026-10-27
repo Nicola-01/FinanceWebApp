@@ -3,6 +3,7 @@ import { Wheel, ShadeSlider, hexToHsva, hsvaToHex } from "@uiw/react-color";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { getRecentColors, pushRecentColor } from "../../utils/recentColors";
+import { toHex } from "../../utils/color";
 
 // 12 presets in chromatic order (rainbow). Concrete hex so the wheel, the hex
 // field and the recents all stay hex-consistent. The three that used to be CSS
@@ -24,41 +25,6 @@ const COLOR_PRESETS = [
 
 // Presets are never remembered as "recent" colours.
 const PRESET_SET = new Set(COLOR_PRESETS.map((c) => c.toLowerCase()));
-
-const FALLBACK_HEX = "#8b5cf6";
-
-/** Resolve any CSS colour string (hex, rgb(), var(--x), named) to `#rrggbb`. */
-function toHex(input: string): string {
-  const value = (input || "").trim();
-  const short = /^#([0-9a-f]{3})$/i.exec(value);
-  if (short) {
-    return (
-      "#" +
-      short[1]
-        .split("")
-        .map((c) => c + c)
-        .join("")
-        .toLowerCase()
-    );
-  }
-  if (/^#([0-9a-f]{6})$/i.test(value)) return value.toLowerCase();
-
-  if (typeof document === "undefined") return FALLBACK_HEX;
-  try {
-    const el = document.createElement("span");
-    el.style.color = value;
-    el.style.display = "none";
-    document.body.appendChild(el);
-    const computed = getComputedStyle(el).color; // "rgb(r, g, b)"
-    document.body.removeChild(el);
-    const parts = computed.match(/\d+(\.\d+)?/g);
-    if (!parts || parts.length < 3) return FALLBACK_HEX;
-    const [r, g, b] = parts.map((n) => Math.round(parseFloat(n)));
-    return "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("");
-  } catch {
-    return FALLBACK_HEX;
-  }
-}
 
 interface ColorSelectorProps {
   value: string;
