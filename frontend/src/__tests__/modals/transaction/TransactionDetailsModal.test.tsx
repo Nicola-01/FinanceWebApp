@@ -23,7 +23,7 @@ vi.mock("../../../modals/subscription/SubscriptionModal.tsx", () => ({
 vi.mock("../../../components/ui/TagBadge.tsx", () => ({
   TagBadge: () => <div data-testid="tag-badge" />,
 }));
-vi.mock("../../../modals/transaction/ExchangeRateSection.tsx", () => ({
+vi.mock("../../../modals/common/exchangeRate/ExchangeRateSection.tsx", () => ({
   ExchangeRateSection: () => <div data-testid="exchange" />,
 }));
 

@@ -14,7 +14,7 @@ import { Textarea } from "../../components/ui/Textarea";
 import { AmountInput } from "../../components/ui/AmountInput.tsx";
 import { TransactionTypeToggle } from "../../components/ui/TransactionTypeToggle";
 import { TagPicker } from "../transaction/TagPicker";
-import { ExchangeRateSection } from "../transaction/ExchangeRateSection";
+import { ExchangeRateSection } from "../common/exchangeRate/ExchangeRateSection";
 import { SchedulingRules } from "../common/SchedulingRules";
 import { getApiErrorTitle } from "../../utils/apiError";
 import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";

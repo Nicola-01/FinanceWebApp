@@ -14,7 +14,7 @@ import {
 } from "../subscription/SubscriptionModal.tsx";
 import type { Transaction, Wallet } from "../../types/domain.ts";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
-import { ExchangeRateSection } from "./ExchangeRateSection.tsx";
+import { ExchangeRateSection } from "../common/exchangeRate/ExchangeRateSection.tsx";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 
 interface TransactionViewProps {
