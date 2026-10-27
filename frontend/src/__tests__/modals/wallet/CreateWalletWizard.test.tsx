@@ -8,6 +8,12 @@ vi.mock("../../../modals/wallet/walletCreation", () => ({
   createWalletFromDraft: (...args: unknown[]) => createWalletFromDraft(...args),
 }));
 
+// openModal() fires fetchTagSources(); left real, it hits the offline cache
+// (no IndexedDB in jsdom) and logs after the test ends, flaking teardown.
+vi.mock("../../../modals/wallet/wizardSteps/sourceWallets", () => ({
+  fetchTagSources: () => Promise.resolve([]),
+}));
+
 // Trivial doubles for the step leaves: each exposes a button that mutates its
 // draft slice, so the container's gating/navigation can be driven directly.
 type Obj = Record<string, unknown>;
