@@ -39,10 +39,11 @@ const relativeTime = (iso?: string) => {
   return `${Math.round(mins / 1440)} d ago`;
 };
 
-/** Bank connections for the active wallet; renders nothing unless the server says it is enabled. */
+/** Bank connections for the active wallet; explains how to get access when not enabled. */
 export const BankAccountsSection: React.FC = () => {
   const { wallet, fetchData } = useWalletContext();
-  const [enabled, setEnabled] = useState(false);
+  // null until the first load answers, so nothing flashes before we know.
+  const [enabled, setEnabled] = useState<boolean | null>(null);
   const [connections, setConnections] = useState<BankConnection[]>([]);
   const [linking, setLinking] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -65,13 +66,23 @@ export const BankAccountsSection: React.FC = () => {
     load();
   }, [load]);
 
-  if (loadFailed)
-    return (
-      <p className="mb-6 text-sm text-app-muted">
-        Could not load bank accounts.
-      </p>
+  const notice = (text: string) => (
+    <Card
+      title="Bank accounts"
+      subtitle="Import transactions automatically from your bank"
+      icon={faBuildingColumns}
+      iconColor={wallet.color}
+    >
+      <p className="text-sm text-app-muted">{text}</p>
+    </Card>
+  );
+
+  if (loadFailed) return notice("Could not load bank accounts.");
+  if (enabled === null) return null;
+  if (!enabled)
+    return notice(
+      "Open Banking is not enabled for your account. Ask an admin to turn it on.",
     );
-  if (!enabled) return null;
 
   const isOwner = wallet.userRole === "OWNER";
   const canSync = isOwner || wallet.userRole === "EDITOR";
@@ -122,7 +133,6 @@ export const BankAccountsSection: React.FC = () => {
       subtitle="Import transactions automatically from your bank"
       icon={faBuildingColumns}
       iconColor={wallet.color}
-      className="mb-6"
     >
       <div className="flex flex-col gap-3">
         {connections.map((c) => {

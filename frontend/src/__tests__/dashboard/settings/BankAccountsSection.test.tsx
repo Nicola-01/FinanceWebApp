@@ -70,11 +70,24 @@ beforeEach(() => {
 });
 
 describe("BankAccountsSection", () => {
-  it("renders nothing when not enabled", async () => {
-    bank.getWalletBank.mockResolvedValue({ enabled: false, connections: [] });
+  it("renders nothing while loading", () => {
+    bank.getWalletBank.mockReturnValue(new Promise(() => {}));
     const { container } = render(<BankAccountsSection />);
-    await waitFor(() => expect(bank.getWalletBank).toHaveBeenCalled());
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("explains how to get access when not enabled", async () => {
+    bank.getWalletBank.mockResolvedValue({ enabled: false, connections: [] });
+    render(<BankAccountsSection />);
+    expect(
+      await screen.findByText(
+        "Open Banking is not enabled for your account. Ask an admin to turn it on.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Bank accounts")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /link bank/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("OWNER sees link, renew, sync and unlink", async () => {
