@@ -1,6 +1,6 @@
 import React from "react";
 import { format, isSameMonth, isSameDay, isAfter, isBefore } from "date-fns";
-import type { PresetType } from "./CustomDatePicker";
+import type { PresetType } from "./datePresets";
 
 export interface DayCellProps {
   day: Date;

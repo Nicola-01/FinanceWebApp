@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import MonthGrid from "./MonthGrid";
 import MonthSelector from "./MonthSelector";
 import YearSelector from "./YearSelector";
-import type { PresetType } from "./CustomDatePicker";
+import type { PresetType } from "./datePresets";
 
 export interface CalendarContainerProps {
   currentDate: Date;
