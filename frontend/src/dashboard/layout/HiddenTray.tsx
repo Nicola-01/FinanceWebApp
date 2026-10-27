@@ -2,7 +2,7 @@ import { AccentHoverButton } from "../../components/ui/AccentHoverButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEyeSlash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import type { WidgetDef } from "./widgetTypes.ts";
-import type { LayoutSlot } from "../../utils/tabLayout";
+import type { LayoutSlot } from "../../utils/tabLayout/types";
 
 interface TrayChipProps {
   label: string;

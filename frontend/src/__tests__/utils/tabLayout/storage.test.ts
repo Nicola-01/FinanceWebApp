@@ -1,0 +1,179 @@
+import { describe, it, expect, beforeEach } from "vitest";
+import { moveSlotToIndex } from "../../../utils/tabLayout/mutations";
+import {
+  clearLayout,
+  defaultLayout,
+  readLayout,
+  reconcileLayout,
+  writeLayout,
+} from "../../../utils/tabLayout/storage";
+import type {
+  LayoutWidgetMeta,
+  TabLayout,
+} from "../../../utils/tabLayout/types";
+
+const WIDGETS: LayoutWidgetMeta[] = [
+  { id: "a", span: "half" },
+  { id: "b", span: "half" },
+  { id: "c", span: "full" },
+  { id: "d", span: "full" },
+  { id: "h", span: "full", hiddenByDefault: true },
+];
+
+const single = (id: string) => ({ id, widgets: [id] });
+
+describe("defaultLayout", () => {
+  it("puts non-default-hidden widgets in slots, hiddenByDefault in hiddenSlots", () => {
+    const l = defaultLayout(WIDGETS);
+    expect(l.slots.map((s) => s.id)).toEqual(["a", "b", "c", "d"]);
+    expect(l.hiddenSlots.map((s) => s.id)).toEqual(["h"]);
+    expect(l.slots.every((s) => s.widgets.length === 1)).toBe(true);
+  });
+});
+
+describe("reconcileLayout", () => {
+  it("returns the default layout for garbage input", () => {
+    expect(reconcileLayout(null, WIDGETS)).toEqual(defaultLayout(WIDGETS));
+    expect(reconcileLayout("nope", WIDGETS)).toEqual(defaultLayout(WIDGETS));
+    expect(reconcileLayout({ slots: 3 }, WIDGETS)).toEqual(
+      defaultLayout(WIDGETS),
+    );
+  });
+
+  it("drops widgets that are no longer registered and dissolves empty slots", () => {
+    const stored: TabLayout = {
+      slots: [single("gone"), { id: "group-1", widgets: ["a", "zombie"] }],
+      hiddenSlots: [],
+    };
+    const l = reconcileLayout(stored, WIDGETS);
+    // "gone"/"zombie" dropped; group-1 left with only "a" becomes standalone;
+    // missing b/c/d appended visible, h appended hidden.
+    expect(l.slots.map((s) => s.id)).toEqual(["a", "b", "c", "d"]);
+    expect(l.hiddenSlots.map((s) => s.id)).toEqual(["h"]);
+  });
+
+  it("keeps a stored group intact and preserves its activeWidget", () => {
+    const stored: TabLayout = {
+      slots: [
+        { id: "group-1", widgets: ["a", "b"], activeWidget: "b" },
+        single("c"),
+        single("d"),
+      ],
+      hiddenSlots: [single("h")],
+    };
+    const l = reconcileLayout(stored, WIDGETS);
+    expect(l.slots[0]).toEqual({
+      id: "group-1",
+      widgets: ["a", "b"],
+      activeWidget: "b",
+    });
+  });
+
+  it("deduplicates a widget that appears in two slots (first wins)", () => {
+    const stored: TabLayout = {
+      slots: [single("a"), { id: "group-1", widgets: ["a", "b"] }],
+      hiddenSlots: [],
+    };
+    const l = reconcileLayout(stored, WIDGETS);
+    const ids = l.slots.flatMap((s) => s.widgets);
+    expect(ids.filter((w) => w === "a")).toHaveLength(1);
+    // group-1 keeps only "b" -> dissolves to standalone
+    expect(l.slots.find((s) => s.widgets.includes("b"))?.id).toBe("b");
+  });
+
+  it("splits a mixed-span group: first member's span wins, others pop out standalone", () => {
+    const stored: TabLayout = {
+      slots: [{ id: "group-1", widgets: ["a", "c", "b"] }],
+      hiddenSlots: [],
+    };
+    const l = reconcileLayout(stored, WIDGETS);
+    expect(l.slots[0]).toEqual({ id: "group-1", widgets: ["a", "b"] });
+    expect(l.slots[1]).toEqual(single("c"));
+  });
+
+  it("keeps hidden groups intact in hiddenSlots", () => {
+    const stored: TabLayout = {
+      slots: [single("c"), single("d")],
+      hiddenSlots: [{ id: "group-2", widgets: ["a", "b"] }],
+    };
+    const l = reconcileLayout(stored, WIDGETS);
+    expect(l.hiddenSlots.map((s) => s.id)).toEqual(["group-2", "h"]);
+  });
+
+  it("deduplicates a widget repeated inside a single slot", () => {
+    const l = reconcileLayout(
+      {
+        slots: [
+          { id: "group-1", widgets: ["a", "a", "b"] },
+          single("c"),
+          single("d"),
+        ],
+        hiddenSlots: [],
+      },
+      WIDGETS,
+    );
+    expect(l.slots[0]).toEqual({ id: "group-1", widgets: ["a", "b"] });
+
+    // A slot reduced to a single member by the dedupe dissolves to standalone.
+    const dissolved = reconcileLayout(
+      { slots: [{ id: "a", widgets: ["a", "a"] }], hiddenSlots: [] },
+      WIDGETS,
+    );
+    expect(dissolved.slots[0]).toEqual(single("a"));
+  });
+
+  it("renames a duplicated group id so slot ids stay unique", () => {
+    const l = reconcileLayout(
+      {
+        slots: [
+          { id: "group-1", widgets: ["a", "b"] },
+          { id: "group-1", widgets: ["c", "d"] },
+        ],
+        hiddenSlots: [],
+      },
+      WIDGETS,
+    );
+    const ids = l.slots.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(l.slots[0]).toEqual({ id: "group-1", widgets: ["a", "b"] });
+    expect(l.slots[1].widgets).toEqual(["c", "d"]);
+    expect(l.slots[1].id).toMatch(/^group-\d+$/);
+    expect(l.slots[1].id).not.toBe("group-1");
+  });
+
+  it("renames group ids that do not follow the group-<n> pattern", () => {
+    // A group id colliding with a widget id would break keys/dnd ids.
+    const l = reconcileLayout(
+      { slots: [{ id: "a", widgets: ["c", "d"] }], hiddenSlots: [] },
+      WIDGETS,
+    );
+    expect(l.slots[0].id).toMatch(/^group-\d+$/);
+    expect(l.slots[0].widgets).toEqual(["c", "d"]);
+  });
+});
+
+describe("read/write/clear", () => {
+  beforeEach(() => localStorage.clear());
+
+  it("round-trips a layout per tab+wallet key", () => {
+    const l = defaultLayout(WIDGETS);
+    const moved = moveSlotToIndex(l, "d", 0);
+    writeLayout("categories", "w1", moved);
+    expect(readLayout("categories", "w1", WIDGETS)).toEqual(moved);
+    // A different wallet still gets the default.
+    expect(readLayout("categories", "w2", WIDGETS)).toEqual(l);
+  });
+
+  it("clearLayout removes the stored layout", () => {
+    writeLayout("categories", "w1", defaultLayout(WIDGETS));
+    clearLayout("categories", "w1");
+    expect(localStorage.getItem("tab_layout_categories_w1")).toBeNull();
+  });
+
+  it("falls back to default on unparsable JSON", () => {
+    localStorage.setItem("tab_layout_categories_w1", "{broken");
+    expect(readLayout("categories", "w1", WIDGETS)).toEqual(
+      defaultLayout(WIDGETS),
+    );
+  });
+});

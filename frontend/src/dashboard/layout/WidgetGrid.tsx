@@ -21,7 +21,8 @@ import {
 } from "@dnd-kit/sortable";
 import { LayoutGroup } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { moveSlotToIndex, type TabLayout } from "../../utils/tabLayout";
+import { moveSlotToIndex } from "../../utils/tabLayout/mutations";
+import type { TabLayout } from "../../utils/tabLayout/types";
 import type { TabLayoutApi } from "./useTabLayout.ts";
 import type { WidgetDef } from "./widgetTypes.ts";
 import { HiddenTray } from "./HiddenTray.tsx";
