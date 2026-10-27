@@ -3,7 +3,7 @@ import * as walletOps from "../../api/walletOps";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
-import { getCurrencySymbol, type CurrencyCode } from "../../utils/currencies";
+import type { CurrencyCode } from "../../utils/currencies";
 import type { Tag, Wallet, Transaction } from "../../types/domain.ts";
 
 // Sub-components
@@ -16,6 +16,7 @@ import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
 import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
 import { FieldLabel } from "../../components/ui/FieldLabel";
+import { useAmountEntryForm } from "../common/useAmountEntryForm";
 
 export interface TransactionModalHandle {
   openModal: (tx?: Transaction) => void;
@@ -39,16 +40,11 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
     // Full row kept while editing so we can read its updatedAt (offline
     // precondition for the queued update op).
     const [editingTx, setEditingTx] = useState<Transaction | null>(null);
-    const [type, setType] = useState<"EXPENSE" | "INCOME" | "">("");
-    const [name, setName] = useState("");
-    const [amount, setAmount] = useState<string>("");
-    const [convertedAmount, setConvertedAmount] = useState<string>("0");
-    const [currency, setCurrency] = useState<CurrencyCode>(baseCurrency);
-    const [exchangeRate, setExchangeRate] = useState<string>("1");
+    const form = useAmountEntryForm(baseCurrency);
+    const { type, setType, name, setName, notes, setNotes } = form;
+    const { selectedTagName, setSelectedTagName } = form;
     const [date, setDate] = useState<Date>(new Date());
-    const [notes, setNotes] = useState("");
     const [loading, setLoading] = useState(false);
-    const [selectedTagName, setSelectedTagName] = useState<string>("");
     const [resetKey, setResetKey] = useState(0);
 
     useImperativeHandle(ref, () => ({
@@ -59,62 +55,30 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
           // --- EDIT MODE ---
           setEditingTxId(tx.id);
           setEditingTx(tx);
-          setType(tx.type);
-          setName(tx.name || "");
-
-          const origCurrency = tx.originalCurrency || baseCurrency;
-          setCurrency(origCurrency as CurrencyCode);
-
-          const origAmount = tx.originalAmount || tx.amount;
-          setAmount(origAmount.toString());
-
-          setConvertedAmount(tx.amount.toString());
-
-          const exRate = tx.exchangeValue || 1;
-          setExchangeRate(exRate.toString());
-
+          form.reset(tx);
           setDate(parseLocalIsoDate(tx.transactionDate));
-          setSelectedTagName(tx.tag.name);
-          setNotes(tx.notes || "");
         } else {
           // --- CREATE MODE ---
           setEditingTxId(null);
           setEditingTx(null);
-          setType("");
-          setName("");
-          setAmount("");
-          setConvertedAmount("0");
-          setCurrency(baseCurrency);
-          setExchangeRate("1");
+          form.reset();
           setDate(new Date());
-          setSelectedTagName("");
-          setNotes("");
         }
         setOpen(true);
       },
     }));
 
     const handleSave = async () => {
-      if (!amount || Number(amount) === 0)
+      if (!form.hasAmount)
         return triggerToast("Please enter a valid amount.", false);
       if (!selectedTagName)
         return triggerToast("Please select a category.", false);
 
       setLoading(true);
       try {
-        const finalName =
-          name.trim().length > 0 ? name.trim() : selectedTagName;
-
         const payload = {
-          name: finalName,
-          amount: Math.abs(Number(convertedAmount)),
-          originalAmount: Math.abs(Number(amount)),
-          type,
+          ...form.buildBasePayload(),
           transactionDate: toLocalIsoDate(date),
-          originalCurrency: currency,
-          exchangeValue: Number(exchangeRate) || 1,
-          tag: selectedTagName,
-          notes,
         };
 
         if (editingTxId)
@@ -139,9 +103,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
       }
     };
 
-    const currencySymbol = getCurrencySymbol(currency);
-    const canSave =
-      amount !== "" && Number(amount) !== 0 && selectedTagName !== "";
+    const canSave = form.hasAmount && selectedTagName !== "";
     const isEditing = !!editingTxId;
 
     const footer = (
@@ -175,19 +137,12 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
           {/* 1. AMOUNT AREA */}
           <div className="flex flex-col items-center justify-center py-2">
             <AmountInput
-              value={amount}
+              value={form.amount}
               type={type}
               setType={setType}
-              currencySymbol={currencySymbol}
+              currencySymbol={form.currencySymbol}
               autoFocus={!isEditing}
-              onAmountChange={(val) => {
-                setAmount(val);
-                if (currency !== baseCurrency && exchangeRate)
-                  setConvertedAmount(
-                    (Number(val) * Number(exchangeRate)).toFixed(2),
-                  );
-                else setConvertedAmount(val);
-              }}
+              onAmountChange={form.handleAmountChange}
             />
             <TransactionTypeToggle type={type} setType={setType} />
           </div>
@@ -232,15 +187,7 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
             mode={isEditing ? "edit" : "create"}
             accentColor={wallet.color}
             walletId={wallet.id}
-            baseCurrency={baseCurrency}
-            selectedCurrency={currency}
-            onCurrencyChange={setCurrency}
-            originalAmount={amount}
-            onOriginalAmountChange={setAmount}
-            exchangeRate={exchangeRate}
-            onExchangeRateChange={setExchangeRate}
-            convertedAmount={convertedAmount}
-            onConvertedAmountChange={setConvertedAmount}
+            {...form.exchangeRateProps}
           />
         </div>
       </ResponsiveOverlay>
