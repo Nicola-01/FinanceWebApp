@@ -9,6 +9,7 @@ import api from "../../../api/axiosConfig";
 import {
   useNotifications,
   PURGE_DELAY_MS,
+  POLL_INTERVAL_MS,
   type AppNotification,
 } from "../../../header/notifications/useNotifications";
 
@@ -69,6 +70,31 @@ describe("useNotifications", () => {
     expect(mockedGet).toHaveBeenCalledWith("/notifications");
     expect(result.current.notifications).toHaveLength(2);
     expect(result.current.unreadCount).toBe(2);
+  });
+
+  it("polls while visible and refreshes when the tab regains focus", async () => {
+    renderHook(() => useNotifications());
+    await flush();
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      vi.advanceTimersByTime(POLL_INTERVAL_MS);
+    });
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+
+    const state = vi.spyOn(document, "visibilityState", "get");
+    state.mockReturnValue("hidden");
+    await act(async () => {
+      vi.advanceTimersByTime(POLL_INTERVAL_MS);
+    });
+    expect(mockedGet).toHaveBeenCalledTimes(2);
+
+    state.mockReturnValue("visible");
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+    expect(mockedGet).toHaveBeenCalledTimes(3);
+    state.mockRestore();
   });
 
   it("openCenter marks everything read and cancels any pending purge", async () => {
