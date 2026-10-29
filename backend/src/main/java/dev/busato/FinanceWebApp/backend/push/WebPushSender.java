@@ -22,7 +22,10 @@ public class WebPushSender {
 
   @Transactional
   public void sendToUser(UUID userId, String payloadJson) {
-    if (!pushGateway.isConfigured()) return;
+    if (!pushGateway.isConfigured()) {
+      log.info("Push skipped for user {}: VAPID keys not configured", userId);
+      return;
+    }
     for (PushSubscription sub : pushSubscriptionRepository.findAllByUserId(userId)) {
       try {
         int status =
@@ -30,6 +33,11 @@ public class WebPushSender {
         if (status == 404 || status == 410) {
           // Push service says this subscription is dead — prune it.
           pushSubscriptionRepository.delete(sub);
+        } else if (status >= 300) {
+          // e.g. 403 = VAPID key mismatch with the key the device subscribed with.
+          log.warn("Push rejected with HTTP {} for endpoint {}", status, sub.getEndpoint());
+        } else {
+          log.debug("Push accepted with HTTP {} for endpoint {}", status, sub.getEndpoint());
         }
       } catch (Exception e) {
         log.warn("Push send failed for endpoint {}: {}", sub.getEndpoint(), e.getMessage());

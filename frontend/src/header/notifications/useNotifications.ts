@@ -16,6 +16,9 @@ export interface AppNotification {
 /** Grace period after closing the center before read notifications are purged. */
 export const PURGE_DELAY_MS = 10_000;
 
+/** How often a visible tab re-fetches the notification list. */
+export const POLL_INTERVAL_MS = 30_000;
+
 export interface UseNotifications {
   notifications: AppNotification[];
   /** Derived count of unread notifications (drives the bell dot). */
@@ -62,6 +65,24 @@ export function useNotifications(): UseNotifications {
     navigator.serviceWorker.addEventListener("message", onMessage);
     return () =>
       navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, [refresh]);
+
+  // Live updates without depending on push enrollment: poll while the tab is
+  // visible and refresh as soon as it comes back to the foreground.
+  // shortcut: polling, not server push; switch to SSE if the interval feels slow.
+  useEffect(() => {
+    const visible = () => document.visibilityState === "visible";
+    const timer = setInterval(() => {
+      if (visible()) void refresh();
+    }, POLL_INTERVAL_MS);
+    const onVisibility = () => {
+      if (visible()) void refresh();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [refresh]);
 
   // Never leak the purge timer.
