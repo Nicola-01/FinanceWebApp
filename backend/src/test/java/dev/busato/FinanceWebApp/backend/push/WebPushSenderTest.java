@@ -2,6 +2,7 @@ package dev.busato.FinanceWebApp.backend.push;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -48,6 +49,18 @@ class WebPushSenderTest {
     webPushSender.sendToUser(userId, "{}");
 
     verify(pushSubscriptionRepository).delete(dead);
+  }
+
+  @Test
+  void keepsSubscriptionOnOtherRejections() throws Exception {
+    UUID userId = UUID.randomUUID();
+    when(pushGateway.isConfigured()).thenReturn(true);
+    when(pushSubscriptionRepository.findAllByUserId(userId)).thenReturn(List.of(sub("e1")));
+    when(pushGateway.send(any(), any(), any(), any())).thenReturn(403);
+
+    webPushSender.sendToUser(userId, "{}");
+
+    verify(pushSubscriptionRepository, never()).delete(any());
   }
 
   @Test
