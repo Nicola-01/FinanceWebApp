@@ -24,7 +24,8 @@ services:
   backend:
     image: ghcr.io/${GHCR_OWNER}/app-backend:${APP_TAG:-prod}
     volumes:
-      - ./secrets:/run/secrets:ro
+      # Outside the workspace: checkout deletes ./secrets, orphaning the mount of a running container.
+      - /home/deployer/secrets:/run/secrets:ro
     container_name: finance_backend_prod
     restart: always
     ports:
