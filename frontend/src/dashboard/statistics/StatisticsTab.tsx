@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { isCategorised } from "../wallet/toCategorize.ts";
 import { OverviewTable } from "./OverviewTable.tsx";
 import { StatisticsSummary } from "./StatisticsSummary.tsx";
 import { MonthlySnapshotChart } from "./MonthlySnapshotChart.tsx";
@@ -38,7 +39,9 @@ const CHART_TABS = [
 ];
 
 export const StatisticsTab: React.FC = () => {
-  const { transactions, wallet } = useWalletContext();
+  const { transactions: all, wallet } = useWalletContext();
+  // Bank imports join the statistics only once they've been categorised.
+  const transactions = useMemo(() => all.filter(isCategorised), [all]);
   const { resolvedTheme } = useTheme();
   const [chartMode, setChartMode] = useState<ChartMode>("snapshot");
   const [zoomData, setZoomData] = useState<ZoomData[]>([

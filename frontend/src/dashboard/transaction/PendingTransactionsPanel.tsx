@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleExclamation, faTags } from "@fortawesome/free-solid-svg-icons";
 import type { Transaction, Wallet } from "../../types/domain.ts";
@@ -19,6 +19,7 @@ import { getApiErrorTitle } from "../../utils/apiError";
 interface PendingRowProps {
   wallet: Wallet;
   transaction: Transaction;
+  focused: boolean;
   onFilled: () => void;
   onOpenDetails: (tx: Transaction) => void;
 }
@@ -26,10 +27,15 @@ interface PendingRowProps {
 const PendingTransactionRow: React.FC<PendingRowProps> = ({
   wallet,
   transaction,
+  focused,
   onFilled,
   onOpenDetails,
 }) => {
   const [value, setValue] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (focused) inputRef.current?.focus();
+  }, [focused]);
   // Seed the direction from the reminder's inherited type; the user can flip it.
   const [type, setType] = useState<AmountType>(transaction.type);
   const [saving, setSaving] = useState(false);
@@ -66,7 +72,7 @@ const PendingTransactionRow: React.FC<PendingRowProps> = ({
   return (
     <div
       onClick={() => onOpenDetails(transaction)}
-      className="flex items-center justify-between gap-3 p-4 rounded-2xl cursor-pointer transition-all hover:brightness-110"
+      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl cursor-pointer transition-all hover:brightness-110"
       style={{
         backgroundColor: `${wallet.color}0d`,
         border: `1px solid ${wallet.color}40`,
@@ -85,20 +91,21 @@ const PendingTransactionRow: React.FC<PendingRowProps> = ({
           <span className="text-base font-bold text-app-text truncate">
             {transaction.name}
           </span>
-          <span className="text-xs font-medium text-app-muted">
+          <span className="text-xs font-medium text-app-muted whitespace-nowrap">
             {formattedDate}
           </span>
         </div>
       </div>
 
       <div
-        className="flex items-center gap-2 shrink-0"
+        className="flex items-center gap-2 shrink-0 w-full sm:w-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {canEdit ? (
           <>
-            <div className="w-52">
+            <div className="flex-1 min-w-0 sm:w-52 sm:flex-none">
               <NumberInput
+                ref={inputRef}
                 placeholder={`0.00 ${symbol}`}
                 value={value}
                 onChange={setValue}
@@ -132,6 +139,8 @@ const PendingTransactionRow: React.FC<PendingRowProps> = ({
 interface PendingTransactionsPanelProps {
   wallet: Wallet;
   pendingTransactions: Transaction[];
+  /** Id of the row whose amount input should take focus (notification deep link). */
+  focusId?: string | null;
   onFilled: () => void;
   onOpenDetails: (tx: Transaction) => void;
 }
@@ -142,7 +151,7 @@ interface PendingTransactionsPanelProps {
  */
 export const PendingTransactionsPanel: React.FC<
   PendingTransactionsPanelProps
-> = ({ wallet, pendingTransactions, onFilled, onOpenDetails }) => {
+> = ({ wallet, pendingTransactions, focusId, onFilled, onOpenDetails }) => {
   if (pendingTransactions.length === 0) return null;
 
   return (
@@ -162,6 +171,7 @@ export const PendingTransactionsPanel: React.FC<
           key={tx.id}
           wallet={wallet}
           transaction={tx}
+          focused={String(tx.id) === focusId}
           onFilled={onFilled}
           onOpenDetails={onOpenDetails}
         />

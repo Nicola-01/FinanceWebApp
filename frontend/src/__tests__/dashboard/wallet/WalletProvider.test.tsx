@@ -108,6 +108,38 @@ describe("WalletProvider data loading", () => {
     expect(mockedGet).not.toHaveBeenCalled();
   });
 
+  it("fetchData refreshes in the background without flipping isLoading", async () => {
+    const refresh = refreshWalletData as unknown as ReturnType<typeof vi.fn>;
+    let resolve!: (d: WalletDashboardData) => void;
+    refresh.mockReturnValue(new Promise((r) => (resolve = r)));
+    mockedPeek.mockReturnValue(cachedData);
+    function Probe() {
+      const { isLoading, fetchData } = useWalletContext();
+      return (
+        <button data-testid="loading" onClick={() => fetchData()}>
+          {String(isLoading)}
+        </button>
+      );
+    }
+    render(
+      <MemoryRouter>
+        <WalletProvider
+          _wallet={wallet}
+          onWalletDelete={() => {}}
+          onWalletUpdate={() => {}}
+        >
+          <Probe />
+        </WalletProvider>
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByTestId("loading"));
+    expect(refresh).toHaveBeenCalled();
+    expect(screen.getByTestId("loading").textContent).toBe("false");
+    await act(async () => resolve(cachedData));
+    expect(screen.getByTestId("loading").textContent).toBe("false");
+    refresh.mockReset();
+  });
+
   it("cache miss + skipped before 250ms: never fetches (debounce)", () => {
     mockedPeek.mockReturnValue(null);
     mockedGet.mockResolvedValue(cachedData);

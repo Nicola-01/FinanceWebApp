@@ -6,6 +6,7 @@ import {
   faSignOutAlt,
   faUserCircle,
   faDownload,
+  faBell,
 } from "@fortawesome/free-solid-svg-icons";
 import { clearSession, getUserAuth } from "../utils/authHelper.ts";
 import api from "../api/axiosConfig.ts";
@@ -15,6 +16,8 @@ import { Menu } from "../components/ui/Menu.tsx";
 import { SETTINGS_SECTIONS } from "../settings/sections.ts";
 import { SyncStatusBadge } from "./SyncStatusBadge.tsx";
 import { NotificationBell } from "./notifications/NotificationBell.tsx";
+import { NotificationCenterOverlay } from "./notifications/NotificationCenterOverlay.tsx";
+import { useNotifications } from "./notifications/useNotifications.ts";
 import { OfflineBanner } from "../components/ui/OfflineBanner.tsx";
 
 interface AppHeaderProps {
@@ -22,12 +25,16 @@ interface AppHeaderProps {
     text: string;
     accent: string;
   };
+  /** Selected wallet's colour, used to tint wallet-agnostic panels (notification center). */
+  accentColor?: string;
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ page, accentColor }) => {
   const navigate = useNavigate();
   const user = getUserAuth();
   const { installPrompt, installApp } = usePWA();
+  const notif = useNotifications();
+  const hasUnread = notif.unreadCount > 0;
 
   // Immediate, single-device logout — no confirmation modal. "Sign out from all
   // devices" lives in Settings → Security.
@@ -43,15 +50,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
 
   return (
     <>
-      <header className="top-0 z-[120] flex h-16 w-full items-center justify-between border-b border-app-border bg-app-bg/80 px-6 backdrop-blur-md">
+      <header className="top-0 z-[120] flex h-16 w-full items-center justify-between gap-3 border-b border-app-border bg-app-bg/80 px-4 backdrop-blur-md sm:px-6">
         {/* Logo & app name */}
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <img
             src="/icon.svg"
             alt="Finance App Logo"
-            className="h-10 w-10 object-contain"
+            className="h-10 w-10 shrink-0 object-contain"
           />
-          <h2 className="m-0 text-2xl font-bold capitalize tracking-wide text-app-text">
+          <h2 className="m-0 truncate text-2xl font-bold capitalize tracking-wide text-app-text">
             {page.text}
             <span className="ml-1 bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)] bg-clip-text text-transparent">
               {page.accent}
@@ -60,9 +67,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
         </div>
 
         {/* Right cluster: sync badge + user dropdown (keeps the header justify-between). */}
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           <SyncStatusBadge />
-          <NotificationBell />
+          {/* Phones: the bell moves into the profile menu to keep the title. */}
+          <NotificationBell
+            unreadCount={notif.unreadCount}
+            onOpen={notif.openCenter}
+            className="hidden sm:block"
+          />
 
           {/* User dropdown — quick links only */}
           <Menu align="right" width={224} className="z-[120]">
@@ -72,18 +84,28 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
                   onClick={toggle}
                   aria-expanded={open}
                   aria-haspopup="menu"
-                  className={`flex items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all duration-300 ${
+                  aria-label="Profile menu"
+                  className={`flex items-center gap-2.5 rounded-full border px-1.5 py-1.5 sm:px-3 transition-all duration-300 ${
                     open
                       ? "border-app-border bg-app-input shadow-sm"
                       : "border-transparent hover:bg-app-input"
                   }`}
                 >
-                  <FontAwesomeIcon
-                    icon={faUserCircle}
-                    className={`text-2xl transition-colors ${open ? "text-[var(--brand-1)]" : "text-app-muted"}`}
-                  />
+                  <span className="relative flex">
+                    <FontAwesomeIcon
+                      icon={faUserCircle}
+                      className={`text-2xl transition-colors ${open ? "text-[var(--brand-1)]" : "text-app-muted"}`}
+                    />
+                    {hasUnread && (
+                      <span
+                        aria-hidden
+                        data-testid="profile-unread-dot"
+                        className="pointer-events-none absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-400 sm:hidden"
+                      />
+                    )}
+                  </span>
                   <span
-                    className={`text-sm font-semibold tracking-wide transition-colors ${
+                    className={`hidden text-sm font-semibold tracking-wide transition-colors sm:inline ${
                       open ? "text-app-text" : "text-app-muted"
                     }`}
                   >
@@ -91,7 +113,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
                   </span>
                   <FontAwesomeIcon
                     icon={faChevronDown}
-                    className={`ml-1 text-[10px] transition-transform duration-300 ${
+                    className={`ml-1 hidden text-[10px] transition-transform duration-300 sm:inline ${
                       open ? "rotate-180 text-app-text" : "text-app-muted"
                     }`}
                   />
@@ -112,6 +134,25 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
                     </span>
                   )}
                 </div>
+              </div>
+
+              {/* Phones only: stands in for the header bell. */}
+              <div className="sm:hidden">
+                <Menu.Item
+                  icon={faBell}
+                  onClick={notif.openCenter}
+                  trailing={
+                    hasUnread && (
+                      <span
+                        aria-hidden
+                        className="h-2 w-2 shrink-0 rounded-full bg-amber-400"
+                      />
+                    )
+                  }
+                >
+                  Notification center
+                </Menu.Item>
+                <Menu.Divider />
               </div>
 
               {installPrompt && (
@@ -154,6 +195,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page }) => {
           </Menu>
         </div>
       </header>
+
+      <NotificationCenterOverlay
+        open={notif.open}
+        onClose={notif.closeCenter}
+        notifications={notif.notifications}
+        accentColor={accentColor}
+      />
 
       <OfflineBanner />
     </>

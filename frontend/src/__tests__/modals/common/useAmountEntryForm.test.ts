@@ -48,6 +48,18 @@ describe("useAmountEntryForm", () => {
     });
   });
 
+  it("leaves the tag empty for a row still to categorise", () => {
+    const { result } = renderHook(() => useAmountEntryForm("EUR"));
+    act(() =>
+      result.current.reset({
+        ...row,
+        tag: { name: "To categorise" },
+        needsReview: true,
+      }),
+    );
+    expect(result.current.selectedTagName).toBe("");
+  });
+
   it("falls back to the tag name, amount and rate 1 when fields are missing", () => {
     const { result } = renderHook(() => useAmountEntryForm("EUR"));
     act(() =>

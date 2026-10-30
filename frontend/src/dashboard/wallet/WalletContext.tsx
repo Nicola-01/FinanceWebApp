@@ -17,6 +17,11 @@ export interface WalletContextType {
   subscriptions: Subscription[];
   filteredTransactions: Transaction[];
   pendingTransactions: Transaction[];
+  /** Imports still on the "To categorise" placeholder, across every period. */
+  toCategorise: Transaction[];
+  /** True while the list shows only `toCategorise` (auto-off once it empties). */
+  onlyToCategorise: boolean;
+  setOnlyToCategorise: (on: boolean) => void;
   tags: Tag[];
   isLoading: boolean;
   selectedTags: string[] | null;

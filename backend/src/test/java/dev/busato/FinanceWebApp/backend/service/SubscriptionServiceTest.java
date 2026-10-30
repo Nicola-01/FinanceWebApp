@@ -192,6 +192,45 @@ class SubscriptionServiceTest {
   }
 
   @Test
+  void processDueSubscriptions_ReminderDue_PublishesRecurringExecutedWithNullAmount() {
+    mockWallet.setName("Casa");
+    mockWallet.setCurrency("EUR");
+    Subscription sub =
+        Subscription.builder()
+            .wallet(mockWallet)
+            .name("Electricity")
+            .amountPending(true)
+            .amount(BigDecimal.ZERO)
+            .originalAmount(BigDecimal.ZERO)
+            .type(Subscription.Type.EXPENSE)
+            .status(Subscription.Status.ACTIVE)
+            .frequencyType(Subscription.Frequency.MONTHLY)
+            .frequencyInterval(1)
+            .duration(Subscription.Duration.FOREVER)
+            .startDate(LocalDate.of(2024, 1, 15))
+            .nextExecutionDate(LocalDate.of(2024, 2, 15))
+            .executedTimes(0)
+            .build();
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(any(), any()))
+        .thenReturn(List.of(sub));
+    UUID txId = UUID.randomUUID();
+    when(transactionRepository.save(any(Transaction.class)))
+        .thenAnswer(
+            inv -> {
+              Transaction t = inv.getArgument(0);
+              t.setId(txId);
+              return t;
+            });
+
+    subscriptionService.processDueSubscriptions();
+
+    ArgumentCaptor<WalletActivityEvent> captor = ArgumentCaptor.forClass(WalletActivityEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    assertNull(captor.getValue().amount());
+    assertEquals(txId, captor.getValue().entityId());
+  }
+
+  @Test
   void createSubscription_NoOriginalAmount_DefaultsToAmountOnSubscriptionAndGeneratedTransaction() {
     SubscriptionRequest request = SubscriptionRequest.builder().build();
     request.setName("Spotify");

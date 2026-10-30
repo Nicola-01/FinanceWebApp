@@ -1,6 +1,8 @@
 package dev.busato.FinanceWebApp.backend.config;
 
 import dev.busato.FinanceWebApp.backend.model.User;
+import dev.busato.FinanceWebApp.backend.openbanking.BankSyncService;
+import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,9 +25,18 @@ public class DataInitializer implements CommandLineRunner {
 
   private final UserRepository userRepository;
   private final PasswordEncoder passwordEncoder;
+  private final TagRepository tagRepository;
 
   @Override
   public void run(String... args) throws Exception {
+    // shortcut: idempotent no-op once every legacy review tag is upgraded; drop after rollout.
+    try {
+      tagRepository.upgradeLegacyPlaceholders(
+          BankSyncService.LEGACY_REVIEW_TAG, BankSyncService.REVIEW_TAG);
+    } catch (RuntimeException e) {
+      // A wallet already holding both names would hit the unique key; never block boot on it.
+      System.out.println("Skipped legacy review-tag upgrade: " + e.getMessage());
+    }
     if (userRepository.count() == 0) {
       System.out.println("No users found in the database. Creating default ADMIN user...");
 

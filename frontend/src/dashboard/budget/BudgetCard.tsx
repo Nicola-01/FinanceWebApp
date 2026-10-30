@@ -1,7 +1,14 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEllipsisVertical,
+  faPenToSquare,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import type { Budget } from "../../types/domain";
+import Badge from "../../components/ui/Badge";
+import Button from "../../components/ui/Button";
+import { Menu } from "../../components/ui/Menu";
 import { STATUS_META, barPercent, periodLabel } from "./budgetLogic";
 
 interface BudgetCardProps {
@@ -36,12 +43,42 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
             {budget.rollover && " · Rollover"}
           </p>
         </div>
-        <span
-          className="shrink-0 text-xs font-bold px-2 py-1 rounded-[var(--r-sm)]"
-          style={{ color: meta.color, backgroundColor: `${meta.color}1a` }}
-        >
-          {meta.label}
-        </span>
+        <div className="flex shrink-0 items-center gap-1">
+          <Badge size="md" shape="square" color={meta.color}>
+            {meta.label}
+          </Badge>
+          {canEdit && (
+            <Menu width={176}>
+              <Menu.Trigger>
+                {({ open, toggle }) => (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Actions for ${budget.name}`}
+                    aria-haspopup="menu"
+                    aria-expanded={open}
+                    onClick={toggle}
+                  >
+                    <FontAwesomeIcon icon={faEllipsisVertical} />
+                  </Button>
+                )}
+              </Menu.Trigger>
+              <Menu.Content>
+                <Menu.Item icon={faPenToSquare} onClick={() => onEdit(budget)}>
+                  Edit
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item
+                  icon={faTrash}
+                  tone="danger"
+                  onClick={() => onDelete(budget)}
+                >
+                  Delete
+                </Menu.Item>
+              </Menu.Content>
+            </Menu>
+          )}
+        </div>
       </div>
 
       <div className="h-2 rounded-full bg-app-input overflow-hidden">
@@ -70,27 +107,6 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
         <p className="text-xs text-app-muted">
           Not active in the current period.
         </p>
-      )}
-
-      {canEdit && (
-        <div className="flex justify-end gap-1">
-          <button
-            type="button"
-            aria-label={`Edit ${budget.name}`}
-            onClick={() => onEdit(budget)}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-app-muted transition-colors hover:bg-app-input hover:text-app-yellow"
-          >
-            <FontAwesomeIcon icon={faPenToSquare} className="text-xs" />
-          </button>
-          <button
-            type="button"
-            aria-label={`Delete ${budget.name}`}
-            onClick={() => onDelete(budget)}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-app-muted transition-colors hover:bg-app-red/10 hover:text-app-red"
-          >
-            <FontAwesomeIcon icon={faTrash} className="text-xs" />
-          </button>
-        </div>
       )}
     </div>
   );

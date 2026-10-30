@@ -4,6 +4,16 @@ import { formatAmountString, hasOperators } from "../../utils/amountFormat.ts";
 
 type AmountType = "EXPENSE" | "INCOME" | "";
 
+// The leading sign is the transaction type, so it applies to the whole
+// formula: "-(8+5" means -(8+5) = -13. Unclosed parentheses are auto-closed.
+export const evaluateSignedAmount = (val: string): number | null => {
+  const body = val.replace(/^[+-]/, "");
+  const open =
+    (body.match(/\(/g)?.length ?? 0) - (body.match(/\)/g)?.length ?? 0);
+  const result = evaluateMathExpression(body + ")".repeat(Math.max(0, open)));
+  return result === null ? null : val.startsWith("-") ? -result : result;
+};
+
 interface UseAmountInputArgs {
   value?: string;
   type: AmountType;
@@ -157,7 +167,7 @@ export function useAmountInput({
 
       // Live preview when the value contains math operators
       if (hasOperators(cleanedValue)) {
-        const res = evaluateMathExpression(cleanedValue);
+        const res = evaluateSignedAmount(cleanedValue);
         setLiveResult(res);
       } else {
         setLiveResult(null);
@@ -174,7 +184,7 @@ export function useAmountInput({
     if (!input) return;
 
     const val = input.value;
-    const result = evaluateMathExpression(val);
+    const result = evaluateSignedAmount(val);
     if (result !== null) {
       const formattedResult = Math.abs(result).toFixed(2);
       const newSign = result < 0 ? "-" : "+";

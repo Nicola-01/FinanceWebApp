@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import dev.busato.FinanceWebApp.backend.dto.BudgetStatusResponse;
 import dev.busato.FinanceWebApp.backend.model.Budget;
 import dev.busato.FinanceWebApp.backend.model.BudgetAlertLog;
+import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
@@ -14,6 +15,7 @@ import dev.busato.FinanceWebApp.backend.repository.BudgetAlertLogRepository;
 import dev.busato.FinanceWebApp.backend.repository.BudgetRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.service.BudgetService;
+import dev.busato.FinanceWebApp.backend.service.NotificationService;
 import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -33,6 +35,7 @@ class BudgetAlertCronJobTest {
   @Mock private WalletAccessRepository walletAccessRepository;
   @Mock private BudgetService budgetService;
   @Mock private SendEmailService sendEmailService;
+  @Mock private NotificationService notificationService;
 
   private BudgetAlertCronJob job;
   private Budget budget;
@@ -46,7 +49,8 @@ class BudgetAlertCronJobTest {
             alertLogRepository,
             walletAccessRepository,
             budgetService,
-            sendEmailService);
+            sendEmailService,
+            notificationService);
     wallet = new Wallet();
     wallet.setId(UUID.randomUUID());
     wallet.setName("W");
@@ -79,7 +83,7 @@ class BudgetAlertCronJobTest {
         .build();
   }
 
-  private void memberWithEmail(String email, WalletAccess.InvitationStatus status) {
+  private WalletAccess memberWithEmail(String email, WalletAccess.InvitationStatus status) {
     User u = new User();
     u.setEmail(email);
     u.setUsername(email);
@@ -94,6 +98,61 @@ class BudgetAlertCronJobTest {
     when(walletAccessRepository.findAllByWalletIdAndStatus(
             wallet.getId(), WalletAccess.InvitationStatus.ACCEPTED))
         .thenReturn(status == WalletAccess.InvitationStatus.ACCEPTED ? List.of(a) : List.of());
+    return a;
+  }
+
+  private void oneUnloggedCrossing() throws Exception {
+    when(budgetRepository.findAllWithWalletAndTag()).thenReturn(List.of(budget));
+    when(budgetService.computeStatus(eq(budget), any())).thenReturn(status(List.of(80), true));
+    when(alertLogRepository.existsByBudgetIdAndPeriodKeyAndThreshold(
+            eq(budget.getId()), anyString(), eq(80)))
+        .thenReturn(false);
+  }
+
+  @Test
+  void crossedThreshold_pushesToMembersWithBudgetAlertsOn() throws Exception {
+    oneUnloggedCrossing();
+    WalletAccess member =
+        memberWithEmail("owner@example.com", WalletAccess.InvitationStatus.ACCEPTED);
+
+    job.run();
+
+    verify(notificationService)
+        .notifyUser(
+            eq(member.getUser()),
+            eq(NotificationType.BUDGET_ALERT),
+            eq(wallet.getId()),
+            argThat(c -> c.body().contains("Food budget") && c.url().endsWith("?tab=budget")));
+  }
+
+  @Test
+  void mutedOrBudgetsOff_getEmailButNoPush() throws Exception {
+    oneUnloggedCrossing();
+    WalletAccess member =
+        memberWithEmail("owner@example.com", WalletAccess.InvitationStatus.ACCEPTED);
+    member.setNotifyBudgets(false);
+
+    job.run();
+    member.setNotifyBudgets(true);
+    member.setNotificationsMuted(true);
+    job.run();
+
+    verify(sendEmailService, times(2)).sendBudgetAlert(any(), any(), anyInt(), anyList());
+    verify(notificationService, never()).notifyUser(any(), any(), any(), any());
+  }
+
+  @Test
+  void pushFailure_stillLogsTheAlert() throws Exception {
+    oneUnloggedCrossing();
+    memberWithEmail("owner@example.com", WalletAccess.InvitationStatus.ACCEPTED);
+    doThrow(new RuntimeException("push down"))
+        .when(notificationService)
+        .notifyUser(any(), any(), any(), any());
+
+    String result = job.run();
+
+    verify(alertLogRepository).save(any(BudgetAlertLog.class));
+    assertTrue(result.startsWith("1 budget alert(s) sent"));
   }
 
   @Test

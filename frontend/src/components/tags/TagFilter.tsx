@@ -13,6 +13,8 @@ interface TagFilterProps {
   selectedTags: string[];
   color?: string;
   onChange: (selectedTags: string[]) => void;
+  /** Extra control rendered above the search field (e.g. a mode toggle). */
+  topSlot?: React.ReactNode;
 }
 
 /**
@@ -26,6 +28,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({
   selectedTags,
   color = "var(--color-app-green)",
   onChange,
+  topSlot,
 }) => {
   const {
     isOpen,
@@ -255,14 +258,17 @@ export const TagFilter: React.FC<TagFilterProps> = ({
         <TagDropdownPanel
           className="right-0 mt-4 w-72"
           searchSlot={
-            <SearchInput
-              ref={searchInputRef}
-              value={searchQuery}
-              onChange={setSearchQuery}
-              color={color}
-              placeholder="Search tags..."
-              aria-label="Search tags"
-            />
+            <div className="flex flex-col gap-2">
+              {topSlot}
+              <SearchInput
+                ref={searchInputRef}
+                value={searchQuery}
+                onChange={setSearchQuery}
+                color={color}
+                placeholder="Search tags..."
+                aria-label="Search tags"
+              />
+            </div>
           }
         >
           {list()}

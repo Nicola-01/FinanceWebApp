@@ -166,6 +166,7 @@ public class WalletService {
     if (!walletIds.isEmpty()) {
       tagsByWallet =
           tagRepository.getTagsByWalletIdIn(walletIds).stream()
+              .filter(tag -> !tag.isPlaceholder())
               .collect(
                   Collectors.groupingBy(
                       tag -> tag.getWallet().getId(),

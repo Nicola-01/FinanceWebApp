@@ -17,12 +17,15 @@ interface TransactionViewProps {
   wallet: Wallet;
   /** Opens the subscription that generated this transaction (owned by the parent). */
   onOpenSubscription?: (subscriptionId: string) => void;
+  /** Replaces the tag badge, e.g. a picker to file a "To categorise" import in place. */
+  categorySlot?: React.ReactNode;
 }
 
 export const TransactionView: React.FC<TransactionViewProps> = ({
   tx,
   wallet,
   onOpenSubscription,
+  categorySlot,
 }) => {
   const isIncome = tx.type === "INCOME";
 
@@ -66,8 +69,8 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
       </div>
 
       {/* Category: kept OUTSIDE the divide-y list so it stands out, centered. */}
-      <div className="flex items-center gap-2 -mt-2">
-        <TagBadge tag={tx.tag} forceShowParent={true} />
+      <div className="flex w-full items-center justify-center gap-2 -mt-2">
+        {categorySlot ?? <TagBadge tag={tx.tag} forceShowParent={true} />}
         {tx.subscriptionId && (
           <span
             onClick={handleOpenSubscription}

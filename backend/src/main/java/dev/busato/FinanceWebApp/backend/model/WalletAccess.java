@@ -51,6 +51,19 @@ public class WalletAccess {
   @Column(nullable = false, columnDefinition = "boolean default false")
   private boolean notificationsMuted = false;
 
+  // Per-event-type opt-outs for this wallet (all default ON); only consulted while unmuted.
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  private boolean notifyTransactions = true;
+
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  private boolean notifySubscriptions = true;
+
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  private boolean notifyRecurringExecutions = true;
+
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  private boolean notifyBudgets = true;
+
   @PrePersist
   void onCreate() {
     if (status == null) {

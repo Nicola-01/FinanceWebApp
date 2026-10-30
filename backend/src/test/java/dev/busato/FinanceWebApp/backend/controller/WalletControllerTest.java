@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import dev.busato.FinanceWebApp.backend.dto.WalletFullRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletFullResponse;
+import dev.busato.FinanceWebApp.backend.dto.WalletNotificationPrefsRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
 import dev.busato.FinanceWebApp.backend.service.WalletProvisioningService;
@@ -40,17 +41,21 @@ class WalletControllerTest extends BaseWebMvcTest {
       notificationPreferenceService;
 
   @Test
-  void setNotificationMute_ShouldReturn204AndDelegate() throws Exception {
+  void setNotificationPreferences_ShouldReturn204AndDelegate() throws Exception {
     UUID walletId = UUID.randomUUID();
 
     mockMvc
         .perform(
-            put("/api/wallets/{walletID}/notification-mute", walletId)
+            put("/api/wallets/{walletID}/notification-preferences", walletId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"muted\":true}"))
+                .content("{\"muted\":true,\"transactions\":false}"))
         .andExpect(status().isNoContent());
 
-    verify(notificationPreferenceService).setWalletMute(mockUser.getId(), walletId, true);
+    verify(notificationPreferenceService)
+        .setWalletPreferences(
+            mockUser.getId(),
+            walletId,
+            WalletNotificationPrefsRequest.builder().muted(true).transactions(false).build());
   }
 
   @Test

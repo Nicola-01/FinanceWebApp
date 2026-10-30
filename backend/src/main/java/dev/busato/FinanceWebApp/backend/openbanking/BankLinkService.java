@@ -69,8 +69,9 @@ public class BankLinkService {
   private final Clock clock;
   private final Sleeper sleeper;
 
-  @Value("${application.frontend.url}")
-  private String frontendUrl;
+  // EnableBanking only accepts https redirects, so local dev can override this.
+  @Value("${application.enablebanking.redirect-url}")
+  private String redirectUrl;
 
   public boolean featureEnabled(UUID userId) {
     // Re-read: the admin may have toggled the flag after the principal was loaded.
@@ -357,6 +358,6 @@ public class BankLinkService {
   }
 
   private String redirectUrl() {
-    return frontendUrl + "/bank/callback";
+    return redirectUrl;
   }
 }

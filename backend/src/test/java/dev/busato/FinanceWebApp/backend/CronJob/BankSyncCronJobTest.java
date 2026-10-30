@@ -108,6 +108,34 @@ class BankSyncCronJobTest {
   }
 
   @Test
+  void syncedBeforeLastSlotIsDue() {
+    // 08:30Z = 09:30 Rome, before the 10:00 slot
+    BankConnection c = conn(NOW.minus(Duration.ofMinutes(90)), null);
+    active(c);
+    when(syncService.syncConnection(c, null)).thenReturn(res(c, 0, BankConnection.Status.ACTIVE));
+    job.run();
+    verify(syncService).syncConnection(c, null);
+  }
+
+  @Test
+  void lastSlotPicksMostRecentRomeHour() {
+    // CET (UTC+1): 14:59 Rome -> 10:00 Rome; 15:00 -> 15:00; 09:00 Rome -> yesterday 23:00
+    assertEquals(
+        Instant.parse("2026-10-27T09:00:00Z"),
+        BankSyncCronJob.lastSlot(Instant.parse("2026-10-27T13:59:00Z")));
+    assertEquals(
+        Instant.parse("2026-10-27T14:00:00Z"),
+        BankSyncCronJob.lastSlot(Instant.parse("2026-10-27T14:00:00Z")));
+    assertEquals(
+        Instant.parse("2026-10-26T22:00:00Z"),
+        BankSyncCronJob.lastSlot(Instant.parse("2026-10-27T08:00:00Z")));
+    // CEST (UTC+2): 23:30 Rome -> 23:00 Rome
+    assertEquals(
+        Instant.parse("2026-07-01T21:00:00Z"),
+        BankSyncCronJob.lastSlot(Instant.parse("2026-07-01T21:30:00Z")));
+  }
+
+  @Test
   void runSyncsActiveOnly() {
     BankConnection c = conn(NOW.minus(Duration.ofHours(9)), null);
     active(c);
@@ -116,8 +144,9 @@ class BankSyncCronJobTest {
   }
 
   @Test
-  void skipsConnectionsSyncedWithin8h() {
-    BankConnection c = conn(NOW.minus(Duration.ofHours(2)), null);
+  void skipsConnectionsSyncedSinceLastSlot() {
+    // NOW is 11:00 Rome; last slot 10:00 Rome = 09:00Z
+    BankConnection c = conn(NOW.minus(Duration.ofMinutes(30)), null);
     active(c);
     assertEquals("Synced 0 connection(s), imported 0", job.run());
     verify(syncService, never()).syncConnection(any(), any());
@@ -126,7 +155,7 @@ class BankSyncCronJobTest {
   @Test
   void recentFailedAttemptIsNotRetriedHourly() {
     BankConnection c = conn(NOW.minus(Duration.ofDays(2)), null);
-    c.getAccounts().get(0).setLastAttemptAt(NOW.minus(Duration.ofHours(1)));
+    c.getAccounts().get(0).setLastAttemptAt(NOW.minus(Duration.ofMinutes(30)));
     active(c);
     job.run();
     verify(syncService, never()).syncConnection(any(), any());
@@ -143,7 +172,7 @@ class BankSyncCronJobTest {
 
   @Test
   void warnsOnceSevenDaysBefore() {
-    BankConnection c = conn(NOW.minus(Duration.ofHours(1)), NOW.plus(Duration.ofDays(5)));
+    BankConnection c = conn(NOW.minus(Duration.ofMinutes(30)), NOW.plus(Duration.ofDays(5)));
     active(c);
     owners();
     job.run();

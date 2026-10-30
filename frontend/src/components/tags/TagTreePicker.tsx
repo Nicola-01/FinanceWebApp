@@ -16,6 +16,11 @@ export interface TagTreePickerProps {
   selectedTagName: string;
   onSelectTag: (tagName: string) => void;
   showLabel?: boolean;
+  /**
+   * Dropdown placement/width. Default: left-aligned, at least the trigger's width and
+   * 20rem (capped to the viewport), so a half-width form column still gets a usable list.
+   */
+  dropdownClassName?: string;
   /** Called on each fresh open (e.g. to re-read a persisted sort order). */
   onOpen?: () => void;
   /**
@@ -40,6 +45,7 @@ export const TagTreePicker: React.FC<TagTreePickerProps> = ({
   selectedTagName,
   onSelectTag,
   showLabel = true,
+  dropdownClassName = "left-0 mt-1 w-full min-w-[min(20rem,calc(100vw-2rem))]",
   onOpen,
   footerSlot,
   children,
@@ -217,7 +223,7 @@ export const TagTreePicker: React.FC<TagTreePickerProps> = ({
       />
 
       {isOpen && (
-        <TagDropdownPanel className="mt-1 w-full" headerSlot={backHeader}>
+        <TagDropdownPanel className={dropdownClassName} headerSlot={backHeader}>
           {list()}
         </TagDropdownPanel>
       )}

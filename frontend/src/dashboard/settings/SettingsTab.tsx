@@ -17,6 +17,7 @@ import { Card } from "../../components/ui/Card.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { Input } from "../../components/ui/Input.tsx";
 import { DataTab } from "./DataTab.tsx";
+import { WalletNotificationsCard } from "./WalletNotificationsCard.tsx";
 
 export const SettingsTab: React.FC = () => {
   const { wallet, handleUpdateWallet, onWalletDelete } = useWalletContext();
@@ -109,6 +110,9 @@ export const SettingsTab: React.FC = () => {
 
       {/* MEMBERS & SHARING */}
       <ShareSettingsSection />
+
+      {/* NOTIFICATIONS — the caller's own per-wallet preferences */}
+      <WalletNotificationsCard />
 
       {/* DATA MANAGEMENT */}
       <DataTab />

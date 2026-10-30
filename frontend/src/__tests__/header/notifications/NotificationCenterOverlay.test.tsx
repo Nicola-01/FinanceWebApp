@@ -98,4 +98,22 @@ describe("NotificationCenterOverlay", () => {
     );
     expect(screen.getByText("You're all caught up.")).toBeInTheDocument();
   });
+  it("tints the header with the wallet colour, violet when none is selected", () => {
+    const accentBar = () =>
+      document.querySelector<HTMLElement>("span.h-6.w-1\\.5");
+    const { rerender } = render(
+      <NotificationCenterOverlay open onClose={() => {}} notifications={[]} />,
+    );
+    expect(accentBar()?.style.backgroundColor).toBe("var(--brand-1)");
+
+    rerender(
+      <NotificationCenterOverlay
+        open
+        onClose={() => {}}
+        notifications={[]}
+        accentColor="#22c55e"
+      />,
+    );
+    expect(accentBar()?.style.backgroundColor).toBe("rgb(34, 197, 94)");
+  });
 });

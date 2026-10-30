@@ -1,5 +1,20 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+// The date picker reads ThemeContext, not provided here — stub it with a
+// button that emits a fixed range.
+vi.mock("../../../components/datePicker/CustomDatePicker", () => ({
+  default: ({ onChange }: { onChange: (v: unknown) => void }) => (
+    <button
+      type="button"
+      onClick={() =>
+        onChange({ start: new Date(2026, 7, 1), end: new Date(2026, 7, 15) })
+      }
+    >
+      pick range
+    </button>
+  ),
+}));
+
 import { BudgetFormOverlay } from "../../../dashboard/budget/BudgetFormOverlay";
 import type { Tag } from "../../../types/domain";
 
@@ -21,6 +36,7 @@ describe("BudgetFormOverlay", () => {
         initial={null}
         tags={tags}
         accentColor="#7c3aed"
+        currency="EUR"
         onClose={onClose}
         onSubmit={onSubmit}
       />,
@@ -33,14 +49,62 @@ describe("BudgetFormOverlay", () => {
     expect(screen.getByText("100%")).toBeInTheDocument();
   });
 
-  it("shows date-range fields only for the custom period", () => {
+  it("swaps rollover for the date range on the custom period", async () => {
     renderForm();
-    expect(screen.queryByLabelText(/end date/i)).not.toBeInTheDocument();
-    // switch period to Custom range — CustomSelect renders its current value as
-    // clickable text (trigger) and its options as clickable text (buttons).
-    fireEvent.click(screen.getByText(/monthly/i));
-    fireEvent.click(screen.getByText(/custom range/i));
-    expect(screen.getByLabelText(/end date/i)).toBeInTheDocument();
+    const rollover = /roll over unused budget/i;
+    expect(screen.getByRole("switch", { name: rollover })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Custom" }));
+    expect(screen.queryByRole("switch", { name: rollover })).toBeNull();
+    // Custom range without dates can't be submitted.
+    fireEvent.change(screen.getByLabelText(/name/i), {
+      target: { value: "Trip" },
+    });
+    fireEvent.change(screen.getByLabelText(/limit/i), {
+      target: { value: "500" },
+    });
+    const submit = screen.getByRole("button", { name: /create budget/i });
+    expect(submit).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: /pick range/i }));
+    fireEvent.click(submit);
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          periodType: "CUSTOM",
+          startDate: "2026-08-01",
+          endDate: "2026-08-15",
+        }),
+      ),
+    );
+  });
+
+  it("adds a new threshold on blur and cancels on Escape", () => {
+    renderForm();
+    fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+    let input = screen.getByLabelText(/new alert threshold/i);
+    fireEvent.change(input, { target: { value: "50" } });
+    fireEvent.blur(input);
+    expect(screen.getByText("50%")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+    input = screen.getByLabelText(/new alert threshold/i);
+    fireEvent.change(input, { target: { value: "60" } });
+    fireEvent.keyDown(input, { key: "Escape" });
+    expect(screen.queryByText("60%")).toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("requires a category when scoped to one", () => {
+    renderForm();
+    fireEvent.change(screen.getByLabelText(/name/i), {
+      target: { value: "Food only" },
+    });
+    fireEvent.change(screen.getByLabelText(/limit/i), {
+      target: { value: "200" },
+    });
+    const submit = screen.getByRole("button", { name: /create budget/i });
+    expect(submit).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: /one category/i }));
+    expect(submit).toBeDisabled();
   });
 
   it("submits a whole-wallet monthly budget payload", async () => {
@@ -82,15 +146,17 @@ describe("BudgetFormOverlay", () => {
     expect(screen.getAllByText("80%")).toHaveLength(1);
     expect(screen.getAllByText("100%")).toHaveLength(1);
 
-    // Try to add 80 again via the threshold input + Add button
-    fireEvent.change(screen.getByLabelText(/new alert threshold/i), {
-      target: { value: "80" },
-    });
+    // The input only exists once "Add" is pressed, and takes the focus.
+    expect(screen.queryByLabelText(/new alert threshold/i)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: /^add$/i }));
+    const input = screen.getByLabelText(/new alert threshold/i);
+    expect(input).toHaveFocus();
 
-    // Should still have exactly one 80% chip (duplicate was rejected)
+    // Adding 80 again is rejected, and Enter folds back into "Add".
+    fireEvent.change(input, { target: { value: "80" } });
+    fireEvent.keyDown(input, { key: "Enter" });
     expect(screen.getAllByText("80%")).toHaveLength(1);
-    // The input should be cleared
-    expect(screen.getByLabelText(/new alert threshold/i)).toHaveValue(null);
+    expect(screen.queryByLabelText(/new alert threshold/i)).toBeNull();
+    expect(screen.getByRole("button", { name: /^add$/i })).toBeInTheDocument();
   });
 });

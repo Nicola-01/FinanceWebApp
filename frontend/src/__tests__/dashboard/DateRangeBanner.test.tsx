@@ -43,6 +43,15 @@ describe("DateRangeBanner", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("leaves rows still to categorise out of the count", () => {
+    ctx.filteredTransactions = [
+      tx("2024-03-15T12:00:00"),
+      { ...tx("2024-03-15T12:00:00"), needsReview: true },
+    ];
+    render(<DateRangeBanner />);
+    expect(screen.getByText("1 transaction")).toBeInTheDocument();
+  });
+
   it("shows 'same day' and a singular count for a single transaction", () => {
     ctx.filteredTransactions = [tx("2024-03-15T12:00:00")];
     render(<DateRangeBanner />);

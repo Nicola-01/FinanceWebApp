@@ -22,7 +22,8 @@ public final class NotificationCopy {
       BigDecimal amount,
       String currency,
       String walletName,
-      UUID walletId) {
+      UUID walletId,
+      UUID transactionId) {
     String title =
         switch (type) {
           case TRANSACTION_CREATED -> "New transaction by @" + actorUsername;
@@ -30,7 +31,23 @@ public final class NotificationCopy {
           case TRANSACTION_DELETED -> "Transaction deleted by @" + actorUsername;
           default -> throw new IllegalArgumentException("Not a transaction type: " + type);
         };
-    return new Copy(title, recap(tagName, amount, currency, walletName), transactionUrl(walletId));
+    // A deleted transaction has nothing to open: link the tab instead.
+    UUID target = type == NotificationType.TRANSACTION_DELETED ? null : transactionId;
+    return new Copy(
+        title, recap(tagName, amount, currency, walletName), transactionUrl(walletId, target));
+  }
+
+  public static Copy bankTransactionImported(
+      String txName,
+      BigDecimal amount,
+      String currency,
+      String walletName,
+      UUID walletId,
+      UUID transactionId) {
+    return new Copy(
+        "New bank transaction",
+        recap(txName, amount, currency, walletName),
+        transactionUrl(walletId, transactionId));
   }
 
   public static Copy subscriptionActivity(
@@ -51,8 +68,19 @@ public final class NotificationCopy {
     return new Copy(title, recap(tagName, amount, currency, walletName), subscriptionUrl(walletId));
   }
 
+  /** A null amount is a reminder: ask for the amount and open that transaction to fill it. */
   public static Copy recurringExecuted(
-      String txName, BigDecimal amount, String currency, String walletName, UUID walletId) {
+      String txName,
+      BigDecimal amount,
+      String currency,
+      String walletName,
+      UUID walletId,
+      UUID transactionId) {
+    if (amount == null)
+      return new Copy(
+          "Recurring reminder: amount needed",
+          (txName == null ? "Untagged" : txName) + " · " + walletName,
+          transactionUrl(walletId, transactionId));
     return new Copy(
         "Recurring transaction executed",
         recap(txName, amount, currency, walletName),
@@ -79,6 +107,14 @@ public final class NotificationCopy {
         "Your " + year + " wrap-up is here 🎉",
         "Your year in review was just emailed to you as a PDF.",
         "/dashboard");
+  }
+
+  public static Copy budgetAlert(
+      String budgetName, int threshold, String walletName, UUID walletId) {
+    return new Copy(
+        threshold >= 100 ? "Budget limit reached" : "Budget at " + threshold + "%",
+        "\"" + budgetName + "\" reached " + threshold + "% of its limit in " + walletName,
+        "/dashboard/" + walletId + "?tab=budget");
   }
 
   public static Copy bankConsentExpiring(String bank, String wallet, long days, UUID walletId) {
@@ -125,8 +161,10 @@ public final class NotificationCopy {
     return label + " · " + amount + " " + currency + " · " + walletName;
   }
 
-  private static String transactionUrl(UUID walletId) {
-    return "/dashboard/" + walletId + "?tab=transactions";
+  /** {@code ?tx=<id>} makes the dashboard open that transaction; null → just the tab. */
+  private static String transactionUrl(UUID walletId, UUID transactionId) {
+    String url = "/dashboard/" + walletId + "?tab=transactions";
+    return transactionId == null ? url : url + "&tx=" + transactionId;
   }
 
   private static String subscriptionUrl(UUID walletId) {

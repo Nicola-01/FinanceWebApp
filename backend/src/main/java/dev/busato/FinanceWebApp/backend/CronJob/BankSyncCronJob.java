@@ -15,6 +15,9 @@ import dev.busato.FinanceWebApp.backend.service.NotificationService;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +33,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BankSyncCronJob implements ManagedJob {
 
-  static final Duration UNATTENDED_INTERVAL = Duration.ofHours(8);
+  // Unattended syncs at these local hours: 4/day, the PSD2 cap for access without the user present.
+  static final List<Integer> SLOT_HOURS = List.of(10, 15, 19, 23);
+  static final ZoneId SLOT_ZONE = ZoneId.of("Europe/Rome");
   private static final Duration WARN_BEFORE = Duration.ofDays(7);
 
   private final BankConnectionRepository connectionRepository;
@@ -100,9 +105,20 @@ public class BankSyncCronJob implements ManagedJob {
   }
 
   private boolean due(BankConnection c, Instant now) {
-    Instant cutoff = now.minus(UNATTENDED_INTERVAL);
+    Instant cutoff = lastSlot(now);
     List<BankAccountLink> links = c.getAccounts();
     return links.stream().anyMatch(l -> BankSyncService.attemptedBefore(l, cutoff));
+  }
+
+  /** The most recent slot start at or before {@code now}. */
+  static Instant lastSlot(Instant now) {
+    ZonedDateTime local = now.atZone(SLOT_ZONE);
+    ZonedDateTime day = local.truncatedTo(ChronoUnit.DAYS);
+    for (int i = SLOT_HOURS.size() - 1; i >= 0; i--) {
+      ZonedDateTime slot = day.withHour(SLOT_HOURS.get(i));
+      if (!slot.isAfter(local)) return slot.toInstant();
+    }
+    return day.minusDays(1).withHour(SLOT_HOURS.get(SLOT_HOURS.size() - 1)).toInstant();
   }
 
   private void notifyOwners(BankConnection c, NotificationCopy.Copy copy) {

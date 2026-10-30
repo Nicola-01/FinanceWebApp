@@ -3,10 +3,24 @@ import { render, screen, act, fireEvent } from "@testing-library/react";
 import { createRef } from "react";
 import type { Transaction, Wallet } from "../../../types/domain";
 
-const { deleteObject } = vi.hoisted(() => ({ deleteObject: vi.fn() }));
+const { deleteObject, fetchData, categoriseTransaction } = vi.hoisted(() => ({
+  deleteObject: vi.fn(),
+  fetchData: vi.fn(),
+  categoriseTransaction: vi.fn(),
+}));
 
 vi.mock("../../../modals/transaction/TransactionView", () => ({
-  TransactionView: () => <div data-testid="tx-view" />,
+  TransactionView: ({ categorySlot }: { categorySlot?: React.ReactNode }) => (
+    <div data-testid="tx-view">{categorySlot}</div>
+  ),
+}));
+vi.mock("../../../modals/transaction/TagPicker.tsx", () => ({
+  TagPicker: ({ onSelectTag }: { onSelectTag: (n: string) => void }) => (
+    <button onClick={() => onSelectTag("Food")}>pick-tag</button>
+  ),
+}));
+vi.mock("../../../dashboard/transaction/categoriseTransaction.ts", () => ({
+  categoriseTransaction,
 }));
 vi.mock("../../../modals/common/DeleteModalContext", () => ({
   useDeleteModal: () => ({ current: { deleteObject } }),
@@ -15,7 +29,7 @@ vi.mock("../../../modals/common/DeleteModalContext", () => ({
 // "Amount pending" test) — harmless to the other tests, which use the
 // mocked TransactionView above and never touch these modules.
 vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
-  useWalletContext: () => ({ subscriptions: [], tags: [], fetchData: vi.fn() }),
+  useWalletContext: () => ({ subscriptions: [], tags: [], fetchData }),
 }));
 vi.mock("../../../modals/subscription/SubscriptionModal.tsx", () => ({
   SubscriptionModal: () => null,
@@ -58,7 +72,31 @@ function renderModal(role: Wallet["userRole"] = "OWNER") {
 }
 
 describe("TransactionDetailsModal", () => {
-  beforeEach(() => deleteObject.mockReset());
+  beforeEach(() => vi.clearAllMocks());
+
+  it("files a to-categorise transaction from the picker, without the edit form", async () => {
+    categoriseTransaction.mockResolvedValue(true);
+    const ref = renderModal("OWNER");
+    const review = { ...tx, needsReview: true } as Transaction;
+    act(() => ref.current!.openModal(review));
+    await act(async () => fireEvent.click(screen.getByText("pick-tag")));
+    expect(categoriseTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "w1" }),
+      review,
+      "Food",
+    );
+    expect(fetchData).toHaveBeenCalled();
+  });
+
+  it("shows no picker for a categorised transaction or a viewer", () => {
+    const ref = renderModal("VIEWER");
+    act(() =>
+      ref.current!.openModal({ ...tx, needsReview: true } as Transaction),
+    );
+    expect(screen.queryByText("pick-tag")).toBeNull();
+    act(() => ref.current!.openModal(tx));
+    expect(screen.queryByText("pick-tag")).toBeNull();
+  });
 
   it("is closed initially", () => {
     renderModal();

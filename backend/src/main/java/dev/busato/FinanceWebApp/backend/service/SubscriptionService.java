@@ -255,7 +255,8 @@ public class SubscriptionService {
             actorUsername,
             sub.getTag() != null ? sub.getTag().getName() : null,
             sub.getAmount(),
-            sub.getName()));
+            sub.getName(),
+            null));
   }
 
   /**
@@ -324,6 +325,7 @@ public class SubscriptionService {
     if (tagName == null || tagName.isBlank()) return null;
     return tagRepository
         .findByNameIgnoreCaseAndWalletId(tagName, walletId)
+        .filter(t -> !t.isPlaceholder())
         .orElseThrow(() -> new TagNotFoundException(tagName, walletId));
   }
 
@@ -640,8 +642,10 @@ public class SubscriptionService {
                 null,
                 null,
                 null,
-                resolvedAmount,
-                generatedName));
+                // null amount marks a reminder awaiting its amount (see WalletActivityEvent)
+                pending ? null : resolvedAmount,
+                generatedName,
+                transaction.getId()));
       }
     }
 

@@ -92,7 +92,9 @@ entities/DTOs.
   publish Spring events (`WalletActivityEvent`/`WalletInviteEvent`) after their JPA writes; an
   `@Async @TransactionalEventListener(AFTER_COMMIT)` `NotificationDispatcher` (enabled by
   `config/AsyncConfig`) resolves recipients (ACCEPTED members minus the actor, filtered by the
-  per-user global toggles on `User` + the per-wallet `WalletAccess.notificationsMuted`) and
+  per-wallet `WalletAccess` prefs: `notificationsMuted` master switch + `notifyTransactions`/
+  `notifySubscriptions`/`notifyRecurringExecutions`/`notifyBudgets` — the last read by the
+  `budget-alerts` job, which pushes `BUDGET_ALERT` next to its email; invites/reports stay global on `User`) and
   hands each to `NotificationService`, which persists a `Notification` row **and** sends the push
   via `WebPushSender` → the `PushGateway` seam over `nl.martijndwars:web-push` (dead 404/410
   subscriptions are pruned; copy strings live in `push/NotificationCopy`). Requires the
@@ -101,9 +103,10 @@ entities/DTOs.
   history (`GET/POST/DELETE /api/notifications*`).
 - **Open Banking (`openbanking/` package):** EnableBanking (PSD2) import of bank transactions into a
   wallet. An RS256-JWT API client + link service (`/api/bank/*`, callback links an account to a wallet)
-  and a sync service; imports land as to-categorize Transactions and the ledger table
+  and a sync service; imports land as to-categorize Transactions (each new one after the first backfill
+  publishes a `BANK_TRANSACTION_IMPORTED` push, gated by `notifyTransactions`, deep-linking `?tx=<id>`) and the ledger table
   `imported_bank_transactions` makes re-syncs idempotent. `bank-sync` is a `ManagedJob` (HOURLY, with an
-  8h per-account self-throttle; `available()` is false when unconfigured). Env: `ENABLEBANKING_APP_ID`,
+  fixed per-account slots at 10/15/19/23 Europe/Rome — 4/day, the PSD2 unattended cap; `available()` is false when unconfigured). Env: `ENABLEBANKING_APP_ID`,
   `ENABLEBANKING_PRIVATE_KEY_PATH` (PEM mounted from `./secrets/`, git-ignored), `ENABLEBANKING_API_URL`
   — **empty by default, which disables the feature** (`GET /api/bank/wallets/{id}` → `enabled:false`).
   Per-user admin toggle `User.openBankingEnabled` gates access.
@@ -150,7 +153,8 @@ entities/DTOs.
   foreground-toast bridge + `?notif=<id>` click-ack). Preferences are the **Notifications**
   section in `/settings`; the Phase-2 in-app center is the bell in `header/notifications/`
   (`useNotifications.ts` open→mark-read, close→10s-purge lifecycle; amber unread dot).
-- **Open Banking UI:** a "To categorize" panel above the transaction list (`WalletContext` triggers
+- **Open Banking UI:** a "To categorise" toggle on the Transactions tab that lists only the imports still on the hidden
+  placeholder tag, ignoring the period filter (`WalletContext` triggers
   `sync-if-stale` on wallet open), a **Bank accounts** section in wallet settings' Data tab (link/unlink,
   sync now), and the `/bank/callback` route that finishes the EnableBanking redirect.
 - **Routing (`src/App.tsx`):** `/dashboard/:walletId?` and `/settings` (protected;

@@ -39,7 +39,7 @@ public class NotificationDispatcher {
       // Never notify the actor of their own action (actorId is null for cron events → skip nobody).
       if (event.actorId() != null && event.actorId().equals(memberId)) continue;
       if (access.isNotificationsMuted()) continue;
-      if (!passesGlobalPreference(access.getUser(), event.type())) continue;
+      if (!passesPreference(access, event.type())) continue;
       notificationService.notifyUser(
           access.getUser(), event.type(), event.walletId(), buildCopy(event));
     }
@@ -58,13 +58,18 @@ public class NotificationDispatcher {
         NotificationCopy.walletInvite(event.inviterUsername(), event.walletName()));
   }
 
-  private boolean passesGlobalPreference(User user, NotificationType type) {
+  private boolean passesPreference(WalletAccess access, NotificationType type) {
+    User user = access.getUser();
     return switch (type) {
-      case TRANSACTION_CREATED, TRANSACTION_UPDATED, TRANSACTION_DELETED ->
-          user.isNotifyTransactions();
+      case TRANSACTION_CREATED,
+              TRANSACTION_UPDATED,
+              TRANSACTION_DELETED,
+              BANK_TRANSACTION_IMPORTED ->
+          access.isNotifyTransactions();
       case SUBSCRIPTION_CREATED, SUBSCRIPTION_UPDATED, SUBSCRIPTION_DELETED ->
-          user.isNotifySubscriptions();
-      case RECURRING_EXECUTED -> user.isNotifyRecurringExecutions();
+          access.isNotifySubscriptions();
+      case RECURRING_EXECUTED -> access.isNotifyRecurringExecutions();
+      case BUDGET_ALERT -> access.isNotifyBudgets();
       case WALLET_INVITE -> user.isNotifyInvites();
       case MONTHLY_REPORT -> user.isMonthlyReportEnabled();
       case YEARLY_REPORT -> user.isYearlyReportEnabled();
@@ -82,7 +87,11 @@ public class NotificationDispatcher {
               e.amount(),
               e.currency(),
               e.walletName(),
-              e.walletId());
+              e.walletId(),
+              e.entityId());
+      case BANK_TRANSACTION_IMPORTED ->
+          NotificationCopy.bankTransactionImported(
+              e.entityName(), e.amount(), e.currency(), e.walletName(), e.walletId(), e.entityId());
       case SUBSCRIPTION_CREATED, SUBSCRIPTION_UPDATED, SUBSCRIPTION_DELETED ->
           NotificationCopy.subscriptionActivity(
               e.type(),
@@ -94,10 +103,10 @@ public class NotificationDispatcher {
               e.walletId());
       case RECURRING_EXECUTED ->
           NotificationCopy.recurringExecuted(
-              e.entityName(), e.amount(), e.currency(), e.walletName(), e.walletId());
+              e.entityName(), e.amount(), e.currency(), e.walletName(), e.walletId(), e.entityId());
       case WALLET_INVITE ->
           throw new IllegalArgumentException("WALLET_INVITE is not a wallet-activity event");
-      case MONTHLY_REPORT, YEARLY_REPORT, BANK_CONNECTION ->
+      case MONTHLY_REPORT, YEARLY_REPORT, BANK_CONNECTION, BUDGET_ALERT ->
           throw new IllegalArgumentException("Report notifications are not wallet-activity events");
     };
   }

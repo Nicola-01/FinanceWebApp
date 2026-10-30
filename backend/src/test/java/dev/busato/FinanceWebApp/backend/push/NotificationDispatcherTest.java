@@ -36,14 +36,14 @@ class NotificationDispatcherTest {
   private final UUID actorId = UUID.randomUUID();
   private final UUID otherId = UUID.randomUUID();
 
-  private User member(UUID userId, boolean muted, Consumer<User> prefs) {
+  private User member(UUID userId, boolean muted, Consumer<WalletAccess> prefs) {
     User u = new User();
     u.setId(userId);
-    prefs.accept(u);
     WalletAccess wa = new WalletAccess();
     wa.setId(new WalletAccess.WalletAccessId(userId, walletId));
     wa.setUser(u);
     wa.setNotificationsMuted(muted);
+    prefs.accept(wa);
     accessByUser.put(userId, wa);
     return u;
   }
@@ -68,6 +68,7 @@ class NotificationDispatcherTest {
         "actor",
         "Food",
         new BigDecimal("12.50"),
+        null,
         null);
   }
 
@@ -95,8 +96,41 @@ class NotificationDispatcherTest {
   }
 
   @Test
+  void bankImportNotifiesMembersWithTransactionDeepLink() {
+    UUID txId = UUID.randomUUID();
+    User a = member(actorId, false, u -> {});
+    User muted = member(otherId, false, u -> u.setNotifyTransactions(false));
+    membersAre(a, muted);
+
+    dispatcher.onWalletActivity(
+        new WalletActivityEvent(
+            NotificationType.BANK_TRANSACTION_IMPORTED,
+            walletId,
+            "Casa",
+            "EUR",
+            null,
+            null,
+            null,
+            new BigDecimal("4.20"),
+            "Coop",
+            txId));
+
+    verify(notificationService)
+        .notifyUser(
+            eq(a),
+            eq(NotificationType.BANK_TRANSACTION_IMPORTED),
+            eq(walletId),
+            eq(
+                new NotificationCopy.Copy(
+                    "New bank transaction",
+                    "Coop · 4.20 EUR · Casa",
+                    "/dashboard/" + walletId + "?tab=transactions&tx=" + txId)));
+    verify(notificationService, never()).notifyUser(eq(muted), any(), any(), any());
+  }
+
+  @Test
   void respectsTransactionsToggle() {
-    User other = member(otherId, false, u -> u.setNotifyTransactions(false));
+    User other = member(otherId, false, a -> a.setNotifyTransactions(false));
     membersAre(other);
 
     dispatcher.onWalletActivity(txEvent(actorId));
@@ -106,7 +140,7 @@ class NotificationDispatcherTest {
 
   @Test
   void respectsSubscriptionsToggle() {
-    User other = member(otherId, false, u -> u.setNotifySubscriptions(false));
+    User other = member(otherId, false, a -> a.setNotifySubscriptions(false));
     membersAre(other);
 
     dispatcher.onWalletActivity(
@@ -119,6 +153,7 @@ class NotificationDispatcherTest {
             "actor",
             "Food",
             new BigDecimal("9.99"),
+            null,
             null));
 
     verify(notificationService, never()).notifyUser(any(), any(), any(), any());
@@ -126,7 +161,7 @@ class NotificationDispatcherTest {
 
   @Test
   void respectsRecurringToggle() {
-    User other = member(otherId, false, u -> u.setNotifyRecurringExecutions(false));
+    User other = member(otherId, false, a -> a.setNotifyRecurringExecutions(false));
     membersAre(other);
 
     dispatcher.onWalletActivity(
@@ -139,7 +174,8 @@ class NotificationDispatcherTest {
             null,
             null,
             new BigDecimal("9.99"),
-            "Netflix"));
+            "Netflix",
+            null));
 
     verify(notificationService, never()).notifyUser(any(), any(), any(), any());
   }
@@ -160,7 +196,8 @@ class NotificationDispatcherTest {
             null,
             null,
             new BigDecimal("9.99"),
-            "Netflix"));
+            "Netflix",
+            null));
 
     verify(notificationService)
         .notifyUser(eq(a), eq(NotificationType.RECURRING_EXECUTED), eq(walletId), any());

@@ -6,6 +6,7 @@ import { applyPendingOps } from "../../sync/overlay";
 import { WalletContext } from "./WalletContext.tsx";
 import { VALID_TABS, type TabType } from "./walletTabs";
 import { selectPendingTransactions } from "./pendingTransactions";
+import { selectToCategorize } from "./toCategorize";
 import {
   filterTransactions,
   useTransactionFilters,
@@ -38,6 +39,8 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     searchQuery,
     setSearchQuery,
     debouncedQuery,
+    onlyToCategorise,
+    setOnlyToCategorise,
   } = useTransactionFilters();
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -106,6 +109,11 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
     [transactions],
   );
 
+  const toCategorise = useMemo(
+    () => selectToCategorize(overlaid.transactions),
+    [overlaid.transactions],
+  );
+
   const { handleAddTag, handleUpdateTag, handleDeleteTag, handleUpdateWallet } =
     useWalletMutations({ wallet, tags, setWallet, setTags, onWalletUpdate });
 
@@ -116,6 +124,9 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({
         transactions: overlaid.transactions,
         filteredTransactions,
         pendingTransactions,
+        toCategorise,
+        onlyToCategorise: onlyToCategorise && toCategorise.length > 0,
+        setOnlyToCategorise,
         subscriptions: overlaid.subscriptions,
         tags: overlaid.tags,
         isLoading,

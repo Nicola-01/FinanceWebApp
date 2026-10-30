@@ -84,7 +84,7 @@ public class ReportAggregator {
   /** Root-parent category name; transactions without a tag land in "Uncategorized". */
   static String rootCategory(Transaction t) {
     Tag tag = t.getTag();
-    if (tag == null) return "Uncategorized";
+    if (tag == null || tag.isPlaceholder()) return "Uncategorized";
     while (tag.getParent() != null) tag = tag.getParent();
     return tag.getName();
   }

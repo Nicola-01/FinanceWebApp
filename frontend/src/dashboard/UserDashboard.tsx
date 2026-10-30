@@ -80,7 +80,10 @@ const UserDashboard: React.FC = () => {
       <DashboardBackground fixed />
 
       {/* The header takes its fixed slot at the top */}
-      <AppHeader page={{ text: "My", accent: "Wallet" }} />
+      <AppHeader
+        page={{ text: "My", accent: "Wallet" }}
+        accentColor={selectedWallet?.color}
+      />
 
       {/* Desktop: clip the overflow spilling out of the flex layout */}
       <div className="flex flex-col xl:flex-row flex-1 xl:overflow-hidden">

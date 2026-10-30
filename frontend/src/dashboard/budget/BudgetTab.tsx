@@ -84,6 +84,7 @@ export const BudgetTab: React.FC = () => {
         initial={editing}
         tags={tags}
         accentColor={wallet.color}
+        currency={wallet.currency}
         onClose={closeForm}
         onSubmit={editing ? (p) => updateBudget(editing.id, p) : createBudget}
       />

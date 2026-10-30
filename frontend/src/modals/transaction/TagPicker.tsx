@@ -16,6 +16,7 @@ interface TagPickerProps {
   showLabel?: boolean;
   selectedTagName: string;
   onSelectTag: (tagName: string) => void;
+  dropdownClassName?: string;
 }
 
 /**
@@ -29,6 +30,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({
   selectedTagName,
   onSelectTag,
   showLabel = true,
+  dropdownClassName,
 }) => {
   // Accent everything (trigger, selection, ancestor) with the wallet's colour.
   const { wallet, transactions } = useWalletContext();
@@ -53,6 +55,7 @@ export const TagPicker: React.FC<TagPickerProps> = ({
       selectedTagName={selectedTagName}
       onSelectTag={onSelectTag}
       showLabel={showLabel}
+      dropdownClassName={dropdownClassName}
       onOpen={() => setSortMode(readSortMode(wallet.id))}
       footerSlot={({ currentParentName }) => (
         // Categories are created / organized in the manager drawer.

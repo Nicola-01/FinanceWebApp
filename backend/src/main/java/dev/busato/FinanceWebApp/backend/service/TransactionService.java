@@ -194,6 +194,7 @@ public class TransactionService {
       tag =
           tagRepository
               .findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
+              .filter(t -> !t.isPlaceholder())
               .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
 
     requireNonNegativeAmount(request.getAmount());
@@ -244,7 +245,8 @@ public class TransactionService {
             actorUsername,
             transaction.getTag() != null ? transaction.getTag().getName() : null,
             transaction.getAmount(),
-            transaction.getName()));
+            transaction.getName(),
+            transaction.getId()));
   }
 
   /** Builds (without persisting) a new transaction entity for the bulk-create path. */
@@ -382,6 +384,8 @@ public class TransactionService {
       Tag tag =
           tagRepository
               .findByNameIgnoreCaseAndWalletId(request.getTag(), walletId)
+              // The placeholder can be kept (an unchanged edit) but never newly assigned.
+              .filter(t -> !t.isPlaceholder() || t.equals(transaction.getTag()))
               .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
       // Re-categorizing an imported transaction resolves its review flag.
       if (transaction.getTag() == null || !tag.getId().equals(transaction.getTag().getId())) {

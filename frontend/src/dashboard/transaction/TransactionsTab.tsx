@@ -1,7 +1,6 @@
 import React from "react";
 import { TransactionsTable } from "./TransactionsTable.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
-import { selectToCategorize } from "../wallet/toCategorize";
 
 export const TransactionsTab: React.FC = () => {
   const {
@@ -9,9 +8,10 @@ export const TransactionsTab: React.FC = () => {
     isLoading,
     tags,
     fetchData,
-    transactions,
     filteredTransactions,
     pendingTransactions,
+    toCategorise,
+    onlyToCategorise,
   } = useWalletContext();
   const onRefresh = () => fetchData();
 
@@ -22,9 +22,11 @@ export const TransactionsTab: React.FC = () => {
           <TransactionsTable
             wallet={wallet}
             tags={tags}
-            transactions={filteredTransactions}
-            pendingTransactions={pendingTransactions}
-            toCategorize={selectToCategorize(transactions)}
+            // Review mode ignores the period, tag and search filters.
+            transactions={
+              onlyToCategorise ? toCategorise : filteredTransactions
+            }
+            pendingTransactions={onlyToCategorise ? [] : pendingTransactions}
             onRefresh={onRefresh}
             isLoading={isLoading}
           />

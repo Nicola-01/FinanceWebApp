@@ -111,6 +111,18 @@ class BankTransactionMapperTest {
   }
 
   @Test
+  void dropsNotesThatRepeatTheName() {
+    MappedTx sameAsCreditor =
+        mapper.map(List.of(row("A", null, "DBIT", "BOOK", "OpenAI", List.of("OPENAI ")))).get(0);
+    assertEquals("OpenAI", sameAsCreditor.name());
+    assertNull(sameAsCreditor.notes());
+    MappedTx singleLine =
+        mapper.map(List.of(row("B", null, "DBIT", "BOOK", null, List.of("OpenAI")))).get(0);
+    assertEquals("OpenAI", singleLine.name());
+    assertNull(singleLine.notes());
+  }
+
+  @Test
   void hashIgnoresAmountScale() {
     var a = row(null, null, "DBIT", "BOOK", "X", null);
     var b =

@@ -31,28 +31,21 @@ class NotificationPreferencesControllerTest extends BaseWebMvcTest {
         .thenReturn(
             NotificationPreferencesResponse.builder()
                 .invites(true)
-                .transactions(false)
-                .subscriptions(true)
-                .recurringExecutions(true)
-                .walletMutes(List.of())
+                .monthlyReport(false)
+                .wallets(List.of())
                 .build());
 
     mockMvc
         .perform(get("/api/users/me/notification-preferences"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.invites").value(true))
-        .andExpect(jsonPath("$.transactions").value(false));
+        .andExpect(jsonPath("$.monthlyReport").value(false));
   }
 
   @Test
   void updatePreferences_Returns204AndDelegates() throws Exception {
     NotificationPreferencesRequest request =
-        NotificationPreferencesRequest.builder()
-            .invites(true)
-            .transactions(true)
-            .subscriptions(false)
-            .recurringExecutions(true)
-            .build();
+        NotificationPreferencesRequest.builder().invites(true).monthlyReport(true).build();
 
     mockMvc
         .perform(

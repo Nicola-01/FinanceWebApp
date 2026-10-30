@@ -43,8 +43,9 @@ describe("formatAmountString", () => {
     expect(formatAmountString("7.", "-")).toBe("-7.");
   });
 
-  it("leaves formulas untouched (no decimal clamping)", () => {
-    expect(formatAmountString("1.234+2", "-")).toBe("-1.234+2");
+  it("wraps formulas after the sign without clamping decimals", () => {
+    expect(formatAmountString("1.234+2", "-")).toBe("-(1.234+2");
+    expect(formatAmountString("-(8+5", "-")).toBe("-(8+5");
     expect(formatAmountString("(2*3)", "+")).toBe("+(2*3)");
   });
 });

@@ -72,6 +72,8 @@ public class BankTransactionMapper {
       if (name == null || name.isBlank()) name = rem.isEmpty() ? null : rem.get(0);
       name = name == null || name.isBlank() ? "Bank transaction" : name.trim();
       if (name.length() > 255) name = name.substring(0, 255);
+      // Banks often repeat the counterparty as the only remittance line: don't echo it as a note.
+      if (notes != null && notes.trim().equalsIgnoreCase(name)) notes = null;
 
       out.add(
           new MappedTx(
