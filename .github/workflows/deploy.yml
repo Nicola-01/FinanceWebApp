@@ -261,8 +261,6 @@ jobs:
       - name: Setup environment variables
         run: |
           cp /home/deployer/.env .
-          # ./secrets is git-ignored, so checkout wipes it on every deploy.
-          if [ -d /home/deployer/secrets ]; then cp -r /home/deployer/secrets .; fi
           # GHCR/Docker richiedono il nome repository tutto minuscolo (owner incluso).
           echo "GHCR_OWNER=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> .env
           echo "APP_TAG=${{ github.ref == 'refs/heads/demo' && 'demo' || 'prod' }}" >> .env
