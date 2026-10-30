@@ -11,6 +11,8 @@ export interface AmountEntrySource {
   exchangeValue?: number;
   notes?: string;
   tag?: { name: string } | null;
+  /** Still on the "To categorise" placeholder, which is not a pickable category. */
+  needsReview?: boolean;
 }
 
 /**
@@ -36,7 +38,7 @@ export function useAmountEntryForm(baseCurrency: CurrencyCode) {
       setAmount((src.originalAmount || src.amount).toString());
       setConvertedAmount(src.amount.toString());
       setExchangeRate((src.exchangeValue || 1).toString());
-      setSelectedTagName(src.tag?.name || "");
+      setSelectedTagName(src.needsReview ? "" : src.tag?.name || "");
       setNotes(src.notes || "");
     } else {
       setType("");

@@ -22,7 +22,8 @@ class NotificationCopyTest {
             new BigDecimal("12.50"),
             "EUR",
             "Casa",
-            walletId);
+            walletId,
+            null);
     assertEquals("New transaction by @nicola", copy.title());
     assertEquals("Food · 12.50 EUR · Casa", copy.body());
     assertEquals("/dashboard/" + walletId + "?tab=transactions", copy.url());
@@ -39,7 +40,8 @@ class NotificationCopyTest {
                 new BigDecimal("12.50"),
                 "EUR",
                 "Casa",
-                walletId)
+                walletId,
+                null)
             .title());
     assertEquals(
         "Transaction deleted by @nicola",
@@ -50,8 +52,39 @@ class NotificationCopyTest {
                 new BigDecimal("12.50"),
                 "EUR",
                 "Casa",
-                walletId)
+                walletId,
+                null)
             .title());
+  }
+
+  @Test
+  void transactionCopyDeepLinksExceptOnDelete() {
+    UUID txId = UUID.randomUUID();
+    BigDecimal amount = new BigDecimal("12.50");
+    assertEquals(
+        "/dashboard/" + walletId + "?tab=transactions&tx=" + txId,
+        NotificationCopy.transactionActivity(
+                Notification.NotificationType.TRANSACTION_UPDATED,
+                "nicola",
+                "Food",
+                amount,
+                "EUR",
+                "Casa",
+                walletId,
+                txId)
+            .url());
+    assertEquals(
+        "/dashboard/" + walletId + "?tab=transactions",
+        NotificationCopy.transactionActivity(
+                Notification.NotificationType.TRANSACTION_DELETED,
+                "nicola",
+                "Food",
+                amount,
+                "EUR",
+                "Casa",
+                walletId,
+                txId)
+            .url());
   }
 
   @Test
@@ -100,10 +133,20 @@ class NotificationCopyTest {
   void recurringExecutedCopy() {
     var copy =
         NotificationCopy.recurringExecuted(
-            "Netflix", new BigDecimal("9.99"), "EUR", "Casa", walletId);
+            "Netflix", new BigDecimal("9.99"), "EUR", "Casa", walletId, UUID.randomUUID());
     assertEquals("Recurring transaction executed", copy.title());
     assertEquals("Netflix · 9.99 EUR · Casa", copy.body());
     assertEquals("/dashboard/" + walletId + "?tab=subscriptions", copy.url());
+  }
+
+  @Test
+  void recurringReminderCopyAsksForAmountAndOpensTransaction() {
+    UUID txId = UUID.randomUUID();
+    var copy =
+        NotificationCopy.recurringExecuted("Electricity", null, "EUR", "Casa", walletId, txId);
+    assertEquals("Recurring reminder: amount needed", copy.title());
+    assertEquals("Electricity · Casa", copy.body());
+    assertEquals("/dashboard/" + walletId + "?tab=transactions&tx=" + txId, copy.url());
   }
 
   @Test
@@ -124,7 +167,8 @@ class NotificationCopyTest {
             new BigDecimal("12.50"),
             "EUR",
             "Casa",
-            walletId);
+            walletId,
+            null);
     assertEquals("Untagged · 12.50 EUR · Casa", copy.body());
   }
 
@@ -142,5 +186,17 @@ class NotificationCopyTest {
     assertEquals("Your 2025 wrap-up is here 🎉", copy.title());
     assertEquals("Your year in review was just emailed to you as a PDF.", copy.body());
     assertEquals("/dashboard", copy.url());
+  }
+
+  @Test
+  void budgetAlertCopy() {
+    UUID walletId = UUID.randomUUID();
+    NotificationCopy.Copy warn = NotificationCopy.budgetAlert("Food", 80, "Casa", walletId);
+    assertEquals("Budget at 80%", warn.title());
+    assertEquals("\"Food\" reached 80% of its limit in Casa", warn.body());
+    assertEquals("/dashboard/" + walletId + "?tab=budget", warn.url());
+    assertEquals(
+        "Budget limit reached",
+        NotificationCopy.budgetAlert("Food", 100, "Casa", walletId).title());
   }
 }

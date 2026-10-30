@@ -48,9 +48,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/config/DataInitializer.java": {
-    "mtime": 1783117815.1093955,
-    "seen": 1793094932.3314571,
-    "ast_hash": "baaf3a186886095b595d1ede0825f639",
+    "mtime": 1793314817.8724856,
+    "seen": 1793315013.7547846,
+    "ast_hash": "49f7601efe392fbc82880335038e9baf",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/config/SecurityConfig.java": {
@@ -126,9 +126,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/controller/WalletController.java": {
-    "mtime": 1793055011.1115048,
-    "seen": 1793094932.331468,
-    "ast_hash": "710324b81d5503c8366ca72a69c35142",
+    "mtime": 1793315132.1114573,
+    "seen": 1793318706.8629608,
+    "ast_hash": "b0f751bab29e558f1b75cad679ca48ae",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/dto/AdminInviteRequest.java": {
@@ -414,9 +414,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/model/Tag.java": {
-    "mtime": 1793055011.1136394,
-    "seen": 1793094932.3315146,
-    "ast_hash": "e339021800b9b707ddfade97127a18d5",
+    "mtime": 1793314801.572196,
+    "seen": 1793315013.7577293,
+    "ast_hash": "7eb0b4a91dbeac55cc8b929c4234e67d",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/model/Transaction.java": {
@@ -426,9 +426,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/model/User.java": {
-    "mtime": 1793096896.3850744,
-    "seen": 1793097707.192769,
-    "ast_hash": "de86bdb1411a1239967b5644a81c8ebb",
+    "mtime": 1793315132.1111367,
+    "seen": 1793318706.8652682,
+    "ast_hash": "9449e7ed24d4aaefb08f3c95f7eddb42",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/model/Wallet.java": {
@@ -438,9 +438,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/model/WalletAccess.java": {
-    "mtime": 1793055011.1137905,
-    "seen": 1793094932.3315167,
-    "ast_hash": "8d5339cfde8f44275c500adbb0915be5",
+    "mtime": 1793317741.9415548,
+    "seen": 1793318706.865295,
+    "ast_hash": "70bc1990c2388b381c2d533d9cf5831a",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/repository/ManageUserRepository.java": {
@@ -468,9 +468,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/repository/TagRepository.java": {
-    "mtime": 1793055011.1146312,
-    "seen": 1793094932.3315322,
-    "ast_hash": "575deac0604910e03d8174ab1db41093",
+    "mtime": 1793314891.5434365,
+    "seen": 1793315013.7588892,
+    "ast_hash": "20abc78f137f0aedb96f4c8ee5f1cbbd",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/repository/TransactionRepository.java": {
@@ -582,21 +582,21 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/service/SubscriptionService.java": {
-    "mtime": 1793055011.1151128,
-    "seen": 1793094932.3315482,
-    "ast_hash": "784ad71a0be608ef103adef9022ef20e",
+    "mtime": 1793319646.060168,
+    "seen": 1793319718.5942914,
+    "ast_hash": "a8406c5372343b2b58085cfa63385952",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/service/TagService.java": {
-    "mtime": 1793055011.1151128,
-    "seen": 1793094932.3315487,
-    "ast_hash": "1d405a88396f30b48db9abeff4dea124",
+    "mtime": 1793314801.5727062,
+    "seen": 1793315013.7596824,
+    "ast_hash": "d76322f636538ca97a806e960e72f8ad",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/service/TransactionService.java": {
-    "mtime": 1793096896.386437,
-    "seen": 1793097707.1944537,
-    "ast_hash": "8f581921e68cda91e4d26f2e3dc0d16a",
+    "mtime": 1793318538.5634859,
+    "seen": 1793318706.8671908,
+    "ast_hash": "89f8c6bc18919f46bfcae64b7bbdd2f6",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/service/UserService.java": {
@@ -606,9 +606,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/service/WalletService.java": {
-    "mtime": 1793096896.386536,
-    "seen": 1793097707.1945343,
-    "ast_hash": "d8058bc1f18148f7fd6763f784fa1d5c",
+    "mtime": 1793314801.5729408,
+    "seen": 1793315013.7597637,
+    "ast_hash": "3e4836295280f2afa4d59a2dc20dd07d",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/BackendApplicationTests.java": {
@@ -624,9 +624,9 @@
     "semantic_hash": ""
   },
   "frontend/eslint.config.js": {
-    "mtime": 1783117815.1176357,
-    "seen": 1793094932.3315954,
-    "ast_hash": "08d4616261bed375ee403843cbe10d71",
+    "mtime": 1793315645.1455212,
+    "seen": 1793318706.8695514,
+    "ast_hash": "67cb66d3bbaf2b279551bc4e29228f37",
     "semantic_hash": ""
   },
   "frontend/package.json": {
@@ -732,9 +732,9 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/UserDashboard.tsx": {
-    "mtime": 1793097577.8765018,
-    "seen": 1793097707.200943,
-    "ast_hash": "dfa93dc711b40ac476af2d27eca60149",
+    "mtime": 1793316001.0597363,
+    "seen": 1793318706.8757734,
+    "ast_hash": "8d687571dc8f5362fc70e06447c65209",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/settings/DataTab.tsx": {
@@ -762,9 +762,9 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/settings/SettingsTab.tsx": {
-    "mtime": 1793058064.5178945,
-    "seen": 1793094932.3317828,
-    "ast_hash": "442536696fd36f2b02fa498633286254",
+    "mtime": 1793315268.5544832,
+    "seen": 1793318706.8761213,
+    "ast_hash": "096c613d0f47fd9a2e8ed8d12f24116c",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/settings/ShareSettingsSection.tsx": {
@@ -810,9 +810,9 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/statistics/StatisticsTab.tsx": {
-    "mtime": 1793097577.8772337,
-    "seen": 1793097707.2012563,
-    "ast_hash": "787b720abb430dc7c6b5548f63e6fb30",
+    "mtime": 1793316900.949243,
+    "seen": 1793318706.876387,
+    "ast_hash": "5a72b5a8e0c2dece367084ccda12abf1",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/subscription/SubscriptionCalendar.tsx": {
@@ -840,21 +840,21 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/tag/TagsTab.tsx": {
-    "mtime": 1793058958.1116388,
-    "seen": 1793094932.331803,
-    "ast_hash": "0d0726a0f341041088f401ddb971f4e1",
+    "mtime": 1793316900.9487424,
+    "seen": 1793318706.8768091,
+    "ast_hash": "c8e0f81bead0109ed974a33bd74e5644",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/transaction/TransactionRow.tsx": {
-    "mtime": 1793096896.395423,
-    "seen": 1793097707.2014265,
-    "ast_hash": "c51c7b9df4bda737649cbee6cf91b4e1",
+    "mtime": 1793317412.3610876,
+    "seen": 1793318706.8769898,
+    "ast_hash": "35c64052231c8ed04b31a76730e3488f",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/transaction/TransactionsFilter.tsx": {
-    "mtime": 1793057975.5966237,
-    "seen": 1793094932.331809,
-    "ast_hash": "7867feb53e64b8428de2572170a8fbbf",
+    "mtime": 1793317831.5270648,
+    "seen": 1793318706.876991,
+    "ast_hash": "bdcff2caf500545c5b0145a40a6b6668",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/transaction/TransactionsSearch.tsx": {
@@ -864,15 +864,15 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/transaction/TransactionsTab.tsx": {
-    "mtime": 1793096896.395423,
-    "seen": 1793097707.2014632,
-    "ast_hash": "3f7d0f1535632db4b0888391e88b76cf",
+    "mtime": 1793316304.1011906,
+    "seen": 1793318706.8770096,
+    "ast_hash": "60f01acf181c44dc3285bb9cc4f3ea72",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/transaction/TransactionsTable.tsx": {
-    "mtime": 1793097577.8799224,
-    "seen": 1793097707.2014642,
-    "ast_hash": "c14acb187965d3e990df868dcf40fec6",
+    "mtime": 1793319671.239367,
+    "seen": 1793319718.605274,
+    "ast_hash": "a2404b00255c3e97c1d16ea44dd4c78c",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/wallet/WalletCard.tsx": {
@@ -882,9 +882,9 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/wallet/WalletContext.tsx": {
-    "mtime": 1793058066.7969537,
-    "seen": 1793094932.3318138,
-    "ast_hash": "9284432a8d339bd581e7e4b385522ba2",
+    "mtime": 1793316269.447362,
+    "seen": 1793318706.877116,
+    "ast_hash": "be620008a7742af1ced8c51d404aeb1f",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/wallet/WalletDashboard.tsx": {
@@ -906,9 +906,9 @@
     "semantic_hash": ""
   },
   "frontend/src/header/AppHeader.tsx": {
-    "mtime": 1793097577.8806403,
-    "seen": 1793097707.2016358,
-    "ast_hash": "154154c193191c0e3eb578a241c7aa84",
+    "mtime": 1793316410.7915366,
+    "seen": 1793318706.8772964,
+    "ast_hash": "4e29395717e739970b1a03fe4cb64816",
     "semantic_hash": ""
   },
   "frontend/src/hooks/useMobileMath.ts": {
@@ -990,9 +990,9 @@
     "semantic_hash": "eec85c9d7c6b599801557f1afd86672c"
   },
   "frontend/vite.config.ts": {
-    "mtime": 1793058036.1771617,
-    "seen": 1793094932.3319004,
-    "ast_hash": "5c51ba898c93d30ab584cff30d379eb7",
+    "mtime": 1793306882.303088,
+    "seen": 1793315013.7733026,
+    "ast_hash": "d15a43f25a7fadfa0a4a4a81872f614f",
     "semantic_hash": ""
   },
   "package.json": {
@@ -1044,15 +1044,15 @@
     "semantic_hash": "721f2fcef8bea903554549b17723d943"
   },
   "docker-compose.prod.yml": {
-    "mtime": 1793096896.3879166,
-    "seen": 1793097707.2039084,
-    "ast_hash": "4ecadeaa0dece14a459c6548064aa2b6",
+    "mtime": 1793225694.6295261,
+    "seen": 1793315013.7740862,
+    "ast_hash": "9a6332aaa46a052262bb2fda098ec0bc",
     "semantic_hash": ""
   },
   "docker-compose.yml": {
-    "mtime": 1793096896.387986,
-    "seen": 1793097707.2039094,
-    "ast_hash": "c3dcf16034ed3cb45d28615aeb102eaa",
+    "mtime": 1793225694.6294677,
+    "seen": 1793315013.774087,
+    "ast_hash": "3a6ee5bb14e7a47572fab3c0024f629d",
     "semantic_hash": ""
   },
   "frontend/README.md": {
@@ -1224,9 +1224,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/ui/AmountInput.tsx": {
-    "mtime": 1793097577.8761563,
-    "seen": 1793097707.2003803,
-    "ast_hash": "12a516288f52726b5b90f55f77517b83",
+    "mtime": 1793319424.2573993,
+    "seen": 1793319718.6031945,
+    "ast_hash": "86dcddc92312c22ea8ef3ded468d08da",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/Collapse.tsx": {
@@ -1356,9 +1356,9 @@
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/controller/WalletControllerTest.java": {
-    "mtime": 1793055011.1169648,
-    "seen": 1793094932.331565,
-    "ast_hash": "7c41011b4ca61bf257b3c8e1a6647990",
+    "mtime": 1793315157.675927,
+    "seen": 1793318706.867955,
+    "ast_hash": "f7ac20d7543bc70ab73cf2b36d376061",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/integration/IdorIntegrationTest.java": {
@@ -1428,21 +1428,21 @@
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/service/SubscriptionServiceTest.java": {
-    "mtime": 1793055011.1192873,
-    "seen": 1793094932.3315914,
-    "ast_hash": "757511441804c4f362da89f299d7058c",
+    "mtime": 1793319658.3746648,
+    "seen": 1793319718.5966878,
+    "ast_hash": "d4fc8aa2231073c332ab48e2613383e6",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/service/TagServiceTest.java": {
-    "mtime": 1793055011.1192873,
-    "seen": 1793094932.3315918,
-    "ast_hash": "77878581fc6bb4b10bd24919861f16fc",
+    "mtime": 1793314850.4381592,
+    "seen": 1793315013.7620497,
+    "ast_hash": "007571dc89228903a59934da41374d10",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/service/TransactionServiceTest.java": {
-    "mtime": 1793096896.3873632,
-    "seen": 1793097707.1965687,
-    "ast_hash": "58e0a68517c8f807231c28c27997b62c",
+    "mtime": 1793314860.4440465,
+    "seen": 1793315013.7620506,
+    "ast_hash": "4b65d0241c14b219dc9da2fb49865178",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/service/UserServiceTest.java": {
@@ -1722,9 +1722,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/ui/Input.tsx": {
-    "mtime": 1783117815.1279473,
-    "seen": 1793094932.3317602,
-    "ast_hash": "c7f171fa4d32d2a63ecafafca8af85ee",
+    "mtime": 1793317355.1213589,
+    "seen": 1793318706.8753693,
+    "ast_hash": "b8a927edf0e56e6e71369332f262379a",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/ToastHost.tsx": {
@@ -1740,9 +1740,9 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/wallet/WalletProvider.tsx": {
-    "mtime": 1793097605.0487626,
-    "seen": 1793097707.201558,
-    "ast_hash": "6eb1f0fab6f685773305d943ade741b7",
+    "mtime": 1793316286.0011044,
+    "seen": 1793318706.8771517,
+    "ast_hash": "a5e70c580aa33718d8a722fa68996f08",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/wallet/walletTabs.ts": {
@@ -1806,9 +1806,9 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793096896.3839393,
-    "seen": 1793097707.2036834,
-    "ast_hash": "f9561ce6edcb92a13127b24b39ed8a83",
+    "mtime": 1793318670.2068598,
+    "seen": 1793318706.8804314,
+    "ast_hash": "dc606cdd180b5b25a2af8ec1396c8242",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-07-03-wallet-data-unifier-cache.md": {
@@ -2028,9 +2028,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/components/ui/AmountInput.test.tsx": {
-    "mtime": 1793055011.1229088,
-    "seen": 1793094932.3316212,
-    "ast_hash": "fa5eae4fcbc02e44567e1f8d14f831ef",
+    "mtime": 1793319580.4708529,
+    "seen": 1793319718.5978043,
+    "ast_hash": "59a393c892c018948dacd4a4416a0cc1",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/components/ui/Button.test.tsx": {
@@ -2154,9 +2154,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/transaction/TransactionsFilter.test.tsx": {
-    "mtime": 1793057975.5876234,
-    "seen": 1793094932.3316507,
-    "ast_hash": "db250648305a4a368de6446fdb09d7c9",
+    "mtime": 1793317851.9135714,
+    "seen": 1793318706.8715818,
+    "ast_hash": "ec984cde4644ccfa86aa7cdde80b9824",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/transaction/TransactionsSearch.test.tsx": {
@@ -2166,9 +2166,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/wallet/WalletProvider.test.tsx": {
-    "mtime": 1793096896.3888981,
-    "seen": 1793097707.1984384,
-    "ast_hash": "c2717d0b6c0ba2e6d9341af1398079f5",
+    "mtime": 1793319043.8904798,
+    "seen": 1793319718.5991445,
+    "ast_hash": "c960bc0ad386e98e1e5f55f5b33022b6",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/hooks/useMobileMath.test.ts": {
@@ -3222,9 +3222,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/CronJob/BudgetAlertCronJob.java": {
-    "mtime": 1793055011.1107838,
-    "seen": 1793094932.3314517,
-    "ast_hash": "998de4527f1d8f24a14442d37ee23e02",
+    "mtime": 1793317769.34141,
+    "seen": 1793318706.8621871,
+    "ast_hash": "c1e862ae1c54edb6524fea5406821617",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/CronJob/MonthlyReportCronJob.java": {
@@ -3288,15 +3288,15 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/dto/NotificationPreferencesRequest.java": {
-    "mtime": 1793055011.1115048,
-    "seen": 1793094932.3314757,
-    "ast_hash": "6c7aadaaf4b2f4bb1369184eee9d2f02",
+    "mtime": 1793315132.1112115,
+    "seen": 1793318706.8633285,
+    "ast_hash": "cab7e896c07d7803f3969e9576f90bb8",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/dto/NotificationPreferencesResponse.java": {
-    "mtime": 1793055011.1115048,
-    "seen": 1793094932.3314764,
-    "ast_hash": "b4369686bc46dcd95517ff635ac6a567",
+    "mtime": 1793317741.941729,
+    "seen": 1793318706.8633292,
+    "ast_hash": "97685f8645d5ed8352bdfc27feaeb90e",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/dto/NotificationResponse.java": {
@@ -3315,12 +3315,6 @@
     "mtime": 1793055011.1115048,
     "seen": 1793094932.331487,
     "ast_hash": "7f4515b9d452c9b27818f0616ac2a1d6",
-    "semantic_hash": ""
-  },
-  "backend/src/main/java/dev/busato/FinanceWebApp/backend/dto/WalletMuteRequest.java": {
-    "mtime": 1793055011.1115048,
-    "seen": 1793094932.331494,
-    "ast_hash": "ee93130372b2f9eeef386b4d5b2fecdb",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/exceptions/BudgetConflictException.java": {
@@ -3360,9 +3354,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/model/Notification.java": {
-    "mtime": 1793096896.384832,
-    "seen": 1793097707.192606,
-    "ast_hash": "1502d54fe08823873e54f3db02c6231f",
+    "mtime": 1793318538.5632672,
+    "seen": 1793318706.8650608,
+    "ast_hash": "eba4aa28f7f16ea62249db26d7be0a6a",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/model/PushSubscription.java": {
@@ -3384,15 +3378,15 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/push/NotificationCopy.java": {
-    "mtime": 1793096896.3859026,
-    "seen": 1793097707.1929166,
-    "ast_hash": "86c378f57a3f27673c145f5729226928",
+    "mtime": 1793319646.0604925,
+    "seen": 1793319718.5927267,
+    "ast_hash": "c8ae3b3f0d67b33f05fbc82dcaa650b8",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/push/NotificationDispatcher.java": {
-    "mtime": 1793096896.3859918,
-    "seen": 1793097707.1929178,
-    "ast_hash": "f3827bace9e2bbd00f073808cb099175",
+    "mtime": 1793319646.060393,
+    "seen": 1793319718.5927281,
+    "ast_hash": "b7376c3183ad40d31102f667d2483a91",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/push/PushGateway.java": {
@@ -3402,9 +3396,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/push/WalletActivityEvent.java": {
-    "mtime": 1793055011.1139174,
-    "seen": 1793094932.33152,
-    "ast_hash": "8f608145419cf9b53f52a2cd4ae6efa3",
+    "mtime": 1793319646.0603101,
+    "seen": 1793319718.5927572,
+    "ast_hash": "4540eaef1de453cb8bd0cc5996a91f7a",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/push/WalletInviteEvent.java": {
@@ -3420,9 +3414,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/push/WebPushSender.java": {
-    "mtime": 1793055011.1139174,
-    "seen": 1793094932.3315215,
-    "ast_hash": "b4997b4bbaa83a94c53a25914cee353a",
+    "mtime": 1793306512.0846786,
+    "seen": 1793315013.7582686,
+    "ast_hash": "daa992943c850bcc55d5a82fc6555b18",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/report/CategoryTotal.java": {
@@ -3444,9 +3438,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/report/ReportAggregator.java": {
-    "mtime": 1793055011.114181,
-    "seen": 1793094932.3315237,
-    "ast_hash": "27d0b1d5113885b471c9fd4f8b1b48d3",
+    "mtime": 1793314801.5729985,
+    "seen": 1793315013.758348,
+    "ast_hash": "0d23f8eee2afe4582ed5c7cc6d7fd2a9",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/report/ReportHtmlBuilder.java": {
@@ -3528,9 +3522,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/service/NotificationPreferenceService.java": {
-    "mtime": 1793055011.1151128,
-    "seen": 1793094932.331545,
-    "ast_hash": "a1e1975879d00e586b182e7e5a6be23a",
+    "mtime": 1793317741.9418297,
+    "seen": 1793318706.8670082,
+    "ast_hash": "4210f83d37ad57081e1f3eecd854f7c9",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/service/NotificationService.java": {
@@ -3540,9 +3534,9 @@
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/CronJob/BudgetAlertCronJobTest.java": {
-    "mtime": 1793055011.1162302,
-    "seen": 1793094932.3315525,
-    "ast_hash": "8a6c4a271c0b9adaae32c1cac0751776",
+    "mtime": 1793317769.36041,
+    "seen": 1793318706.86735,
+    "ast_hash": "1ae5934c4d47667fb53c84428393f3b6",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/CronJob/MonthlyReportCronJobTest.java": {
@@ -3570,9 +3564,9 @@
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/controller/NotificationPreferencesControllerTest.java": {
-    "mtime": 1793055011.1162302,
-    "seen": 1793094932.3315606,
-    "ast_hash": "fc030f7f380c7f33c3e9c9909169380c",
+    "mtime": 1793315157.637927,
+    "seen": 1793318706.8677692,
+    "ast_hash": "b865b0b39b0cc4512a64e686ae5c4ab2",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/controller/PushControllerTest.java": {
@@ -3600,21 +3594,21 @@
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/push/NotificationCopyTest.java": {
-    "mtime": 1793055011.1175406,
-    "seen": 1793094932.3315744,
-    "ast_hash": "1bf996422c07f62c5ca9ed4f10efbb8c",
+    "mtime": 1793319695.475545,
+    "seen": 1793319718.5958471,
+    "ast_hash": "a8d7a799060cb5fa745d2ad614b715ac",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/push/NotificationDispatcherTest.java": {
-    "mtime": 1793055011.1176934,
-    "seen": 1793094932.3315752,
-    "ast_hash": "77ce8ceef4b2e089fbec23cb18c24bb6",
+    "mtime": 1793318563.250722,
+    "seen": 1793318706.8685293,
+    "ast_hash": "59c5112608c92364ec70934270f6b623",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/push/WebPushSenderTest.java": {
-    "mtime": 1793055011.1176934,
-    "seen": 1793094932.3315759,
-    "ast_hash": "f11fd54315bd7f1db64bc62b1f13c204",
+    "mtime": 1793306512.0847716,
+    "seen": 1793315013.7612197,
+    "ast_hash": "4500e54e61a396d20bbaa6c803afcf77",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/report/ReportAggregatorTest.java": {
@@ -3660,9 +3654,9 @@
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/service/NotificationPreferenceServiceTest.java": {
-    "mtime": 1793055011.1192873,
-    "seen": 1793094932.3315876,
-    "ast_hash": "d62ac9b16034e5cad699ea97ef31945c",
+    "mtime": 1793317759.954561,
+    "seen": 1793318706.8691573,
+    "ast_hash": "3f912dea6be5d92b5048cf1f2c144785",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/service/NotificationServiceTest.java": {
@@ -3870,9 +3864,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/components/ui/useAmountInput.test.tsx": {
-    "mtime": 1793097577.868246,
-    "seen": 1793097707.197823,
-    "ast_hash": "3bc01a083957d08a4af745ba25beb7e1",
+    "mtime": 1793319580.470668,
+    "seen": 1793319718.598176,
+    "ast_hash": "c4a339dd9af2e483090ac76c44059b30",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/components/ui/useRipple.test.ts": {
@@ -3882,21 +3876,21 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/DateRangeBanner.test.tsx": {
-    "mtime": 1793058123.8554318,
-    "seen": 1793094932.3316326,
-    "ast_hash": "856bb96d78a9783c56d628e77263c53a",
+    "mtime": 1793316915.0222661,
+    "seen": 1793318706.8709142,
+    "ast_hash": "e323e2fbfb24e8c512dac68b32cae537",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/budget/BudgetFormOverlay.test.tsx": {
-    "mtime": 1793058064.4448926,
-    "seen": 1793094932.331633,
-    "ast_hash": "602e5673f9dbcae9375991292da1a41e",
+    "mtime": 1793317394.7901375,
+    "seen": 1793318706.8709157,
+    "ast_hash": "21e232d1dbc3856d814001cfe33981aa",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/budget/BudgetTab.test.tsx": {
-    "mtime": 1793058064.4448926,
-    "seen": 1793094932.3316336,
-    "ast_hash": "2d41272044ac7c99e1920518af3859b7",
+    "mtime": 1793317047.111599,
+    "seen": 1793318706.8709161,
+    "ast_hash": "387166b0816ed31b7885c88351747faf",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/budget/budgetLogic.test.ts": {
@@ -3990,9 +3984,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/transaction/PendingTransactionsPanel.test.tsx": {
-    "mtime": 1793058064.4468927,
-    "seen": 1793094932.3316503,
-    "ast_hash": "95979a3a8b5a036705efb0cd9d9c67b1",
+    "mtime": 1793319677.4206846,
+    "seen": 1793319718.5989141,
+    "ast_hash": "7adacc0d594e7b10ace36407f5a56dd6",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/transaction/groupTransactionsByDate.test.ts": {
@@ -4020,9 +4014,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/wallet/useTransactionFilters.test.ts": {
-    "mtime": 1793097577.869445,
-    "seen": 1793097707.198479,
-    "ast_hash": "939b37c420ce1c622a78bfdcc369e083",
+    "mtime": 1793315980.3445647,
+    "seen": 1793318706.871776,
+    "ast_hash": "d63494dfd10f6de5d105af1154ee2ead",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/dashboard/wallet/useWalletDragReorder.test.ts": {
@@ -4044,15 +4038,15 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/header/notifications/NotificationBell.test.tsx": {
-    "mtime": 1793055011.1249256,
-    "seen": 1793094932.3316586,
-    "ast_hash": "500b342360fab1eeb6a4462ae5e9c6b1",
+    "mtime": 1793316368.8973637,
+    "seen": 1793318706.8718343,
+    "ast_hash": "30651869a2bad8865a3fb3ff52710c4a",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/header/notifications/NotificationCenterOverlay.test.tsx": {
-    "mtime": 1793055011.1249719,
-    "seen": 1793094932.331659,
-    "ast_hash": "43b6be6d88795e262a8a1904a8d70a14",
+    "mtime": 1793316018.2401884,
+    "seen": 1793318706.8718355,
+    "ast_hash": "13d97fd3272f144dfb197c4b9a288411",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/header/notifications/useNotifications.test.tsx": {
@@ -4134,9 +4128,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/modals/common/useAmountEntryForm.test.ts": {
-    "mtime": 1793097577.8702002,
-    "seen": 1793097707.1987617,
-    "ast_hash": "32009f0c4f8d6e03cb2ee1f3128b8d3e",
+    "mtime": 1793314933.7380865,
+    "seen": 1793315013.7649539,
+    "ast_hash": "3e0ede2835b2fdc6224f61639cfca1fd",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/modals/pat/walletPerms.test.ts": {
@@ -4152,9 +4146,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/modals/transaction/TransactionDetailsModal.test.tsx": {
-    "mtime": 1793097577.8706162,
-    "seen": 1793097707.198828,
-    "ast_hash": "bbe6dd7dd515038b27e434aa9226e137",
+    "mtime": 1793317201.3975601,
+    "seen": 1793318706.8722806,
+    "ast_hash": "699d838316485da5a0ec0f7adf0fbae3",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/modals/transaction/TransactionModal.test.tsx": {
@@ -4230,9 +4224,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/settings/sections/NotificationsSection.test.tsx": {
-    "mtime": 1793055011.1291058,
-    "seen": 1793094932.3316886,
-    "ast_hash": "44e153699e34c232539d2ad7de0645f7",
+    "mtime": 1793317831.8682644,
+    "seen": 1793318706.8727956,
+    "ast_hash": "166b52f3415aeb3a0cc5cc38ce95c9a8",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/settings/tokens/tokenHelpers.test.ts": {
@@ -4266,9 +4260,9 @@
     "semantic_hash": ""
   },
   "frontend/src/__tests__/utils/amountFormat.test.ts": {
-    "mtime": 1793097577.8713427,
-    "seen": 1793097707.199254,
-    "ast_hash": "396e1b03ceb8ac5893855098c9f55980",
+    "mtime": 1793319580.4705224,
+    "seen": 1793319718.6007478,
+    "ast_hash": "9fd6ba519d77954d4d0f1bcac8e53bb0",
     "semantic_hash": ""
   },
   "frontend/src/__tests__/utils/color.test.ts": {
@@ -4506,9 +4500,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/datePicker/CustomDatePicker.tsx": {
-    "mtime": 1793097577.8746083,
-    "seen": 1793097707.1997156,
-    "ast_hash": "dcd65094a66f76024c9bcc4dc4e86307",
+    "mtime": 1793317309.081619,
+    "seen": 1793318706.8742125,
+    "ast_hash": "d72b53ee086c1b8498bc6e9b2a18f784",
     "semantic_hash": ""
   },
   "frontend/src/components/datePicker/DatePickerSidebar.tsx": {
@@ -4518,9 +4512,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/datePicker/DatePickerSurface.tsx": {
-    "mtime": 1793097577.8746579,
-    "seen": 1793097707.199717,
-    "ast_hash": "4a42dc60e46eecf57b8846f58218006b",
+    "mtime": 1793317309.0815136,
+    "seen": 1793318706.8742313,
+    "ast_hash": "64587416de410471380d192664e91864",
     "semantic_hash": ""
   },
   "frontend/src/components/datePicker/DatePickerTrigger.tsx": {
@@ -4722,9 +4716,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/tags/TagFilter.tsx": {
-    "mtime": 1793058064.4738934,
-    "seen": 1793094932.3317494,
-    "ast_hash": "2461f2f7467a183a4487075b79ed11e5",
+    "mtime": 1793317831.526938,
+    "seen": 1793318706.8750327,
+    "ast_hash": "07427e3cecd6bfe97773f48f19a178bf",
     "semantic_hash": ""
   },
   "frontend/src/components/tags/TagPickerTrigger.tsx": {
@@ -4746,9 +4740,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/tags/TagTreePicker.tsx": {
-    "mtime": 1793097577.875969,
-    "seen": 1793097707.2003067,
-    "ast_hash": "5c704a55d14a98b662d244e3ccbfb8f0",
+    "mtime": 1793318847.5239477,
+    "seen": 1793319718.603104,
+    "ast_hash": "31dcdb9225b0befe060090edbba2997b",
     "semantic_hash": ""
   },
   "frontend/src/components/tags/useTagTree.ts": {
@@ -4836,9 +4830,9 @@
     "semantic_hash": ""
   },
   "frontend/src/components/ui/useAmountInput.ts": {
-    "mtime": 1793097577.8765018,
-    "seen": 1793097707.20089,
-    "ast_hash": "7e656969949bc92aa66d258484297610",
+    "mtime": 1793319580.7230866,
+    "seen": 1793319718.603764,
+    "ast_hash": "6d97aec28987e8abd544d12941f945e9",
     "semantic_hash": ""
   },
   "frontend/src/components/ui/useRipple.ts": {
@@ -4848,27 +4842,27 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/DateRangeBanner.tsx": {
-    "mtime": 1793058123.862432,
-    "seen": 1793094932.3317719,
-    "ast_hash": "257138b8e0f49e45f0bae078338cfa50",
+    "mtime": 1793316900.948984,
+    "seen": 1793318706.8757727,
+    "ast_hash": "9005718ebd806781553653a6e69adec3",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/budget/BudgetCard.tsx": {
-    "mtime": 1793058064.5158944,
-    "seen": 1793094932.331773,
-    "ast_hash": "dd589bf0b89309a83e1d260beecdd1cf",
+    "mtime": 1793317047.362253,
+    "seen": 1793318706.8757741,
+    "ast_hash": "b7e1fcd5526a5877f390b6e6bf0f9a8a",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/budget/BudgetFormOverlay.tsx": {
-    "mtime": 1793058064.5158944,
-    "seen": 1793094932.3317735,
-    "ast_hash": "e83418ef7eb1d9ab596771aa12e03d99",
+    "mtime": 1793317465.299659,
+    "seen": 1793318706.8757749,
+    "ast_hash": "caccabc173d599dc6f16d65dbb56b298",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/budget/BudgetTab.tsx": {
-    "mtime": 1793058064.5168946,
-    "seen": 1793094932.331774,
-    "ast_hash": "559fc30589a34dfabe6866636d393297",
+    "mtime": 1793317024.1346517,
+    "seen": 1793318706.8757758,
+    "ast_hash": "dc79e2357f6b9aeba3faf2a628ff3c78",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/budget/budgetLogic.ts": {
@@ -5022,9 +5016,9 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/transaction/PendingTransactionsPanel.tsx": {
-    "mtime": 1793058958.1963923,
-    "seen": 1793094932.331808,
-    "ast_hash": "a0ddd9557e03aeacd8bfcefa27c9cd47",
+    "mtime": 1793319671.2395177,
+    "seen": 1793319718.6051836,
+    "ast_hash": "fea1ed349bd8f6bac6c56aeb9ba20d60",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/transaction/groupTransactionsByDate.ts": {
@@ -5058,15 +5052,15 @@
     "semantic_hash": ""
   },
   "frontend/src/dashboard/wallet/useTransactionFilters.ts": {
-    "mtime": 1793097577.8806403,
-    "seen": 1793097707.2016144,
-    "ast_hash": "c127ac694fb234d7395813afe849d864",
+    "mtime": 1793316269.4470932,
+    "seen": 1793318706.8772237,
+    "ast_hash": "c9ff49b2fb39fbe6f0944666867d01d0",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/wallet/useWalletData.ts": {
-    "mtime": 1793097605.0609353,
-    "seen": 1793097707.201615,
-    "ast_hash": "c41c07ddb63180af663b37645b6dbf74",
+    "mtime": 1793318967.0695992,
+    "seen": 1793319718.6055934,
+    "ast_hash": "93076ad67b1f50b710c020841d0a3ae2",
     "semantic_hash": ""
   },
   "frontend/src/dashboard/wallet/useWalletDragReorder.ts": {
@@ -5094,15 +5088,15 @@
     "semantic_hash": ""
   },
   "frontend/src/header/notifications/NotificationBell.tsx": {
-    "mtime": 1793055011.1354527,
-    "seen": 1793094932.3318222,
-    "ast_hash": "5990f530f107cd9e01a2d12cf28f2909",
+    "mtime": 1793316381.795826,
+    "seen": 1793318706.8773298,
+    "ast_hash": "9f079d8944beb23f389be12f943feff5",
     "semantic_hash": ""
   },
   "frontend/src/header/notifications/NotificationCenterOverlay.tsx": {
-    "mtime": 1793055011.1364994,
-    "seen": 1793094932.3318224,
-    "ast_hash": "07d6e6baaaaf6153087a620fa5b6c5f6",
+    "mtime": 1793316001.0610576,
+    "seen": 1793318706.8773308,
+    "ast_hash": "b98dace4e7b96601f14842744c740342",
     "semantic_hash": ""
   },
   "frontend/src/header/notifications/useNotifications.ts": {
@@ -5226,9 +5220,9 @@
     "semantic_hash": ""
   },
   "frontend/src/modals/common/useAmountEntryForm.ts": {
-    "mtime": 1793097577.8814511,
-    "seen": 1793097707.2020698,
-    "ast_hash": "00e19f1d505af0b13c0361e41176113f",
+    "mtime": 1793314921.9478939,
+    "seen": 1793315013.7711666,
+    "ast_hash": "25adab6b2efbfee7f25f11c515f2baee",
     "semantic_hash": ""
   },
   "frontend/src/modals/pat/walletPerms.ts": {
@@ -5244,15 +5238,15 @@
     "semantic_hash": ""
   },
   "frontend/src/modals/transaction/TagPicker.tsx": {
-    "mtime": 1793058064.5598958,
-    "seen": 1793094932.3318417,
-    "ast_hash": "2dc4e1e8d55518d5124515737cdf932a",
+    "mtime": 1793318699.3499918,
+    "seen": 1793318706.8780155,
+    "ast_hash": "05ff274f5433a4aed475c5322876315e",
     "semantic_hash": ""
   },
   "frontend/src/modals/transaction/TransactionDetailsModal.tsx": {
-    "mtime": 1793097577.8814511,
-    "seen": 1793097707.2021472,
-    "ast_hash": "8ebdd484a3ac8926ba9f2d3d6e86fdd2",
+    "mtime": 1793317176.7624035,
+    "seen": 1793318706.8780162,
+    "ast_hash": "b671b826033ebdffed6c9c20e69940d4",
     "semantic_hash": ""
   },
   "frontend/src/modals/transaction/TransactionMetadataInputs.tsx": {
@@ -5268,9 +5262,9 @@
     "semantic_hash": ""
   },
   "frontend/src/modals/transaction/TransactionView.tsx": {
-    "mtime": 1793097577.8814511,
-    "seen": 1793097707.2021666,
-    "ast_hash": "cf746952ad89b00c0d1ce35f46519f9b",
+    "mtime": 1793317176.7621622,
+    "seen": 1793318706.878052,
+    "ast_hash": "26e11d4e69cbe501385c7f733603bd56",
     "semantic_hash": ""
   },
   "frontend/src/modals/wallet/WalletCompletionScreen.tsx": {
@@ -5376,9 +5370,9 @@
     "semantic_hash": ""
   },
   "frontend/src/settings/sections/NotificationsSection.tsx": {
-    "mtime": 1793055011.139822,
-    "seen": 1793094932.3318713,
-    "ast_hash": "96e21528fed540a4240c5116f8e915f4",
+    "mtime": 1793315307.5431716,
+    "seen": 1793318706.879036,
+    "ast_hash": "387aead64dd3231efbff41fb864c283e",
     "semantic_hash": ""
   },
   "frontend/src/settings/security/ChangePasswordCard.tsx": {
@@ -5466,9 +5460,9 @@
     "semantic_hash": ""
   },
   "frontend/src/utils/amountFormat.ts": {
-    "mtime": 1793097577.884531,
-    "seen": 1793097707.2029068,
-    "ast_hash": "dc3463f34df2eb709606d12f9e62f9a2",
+    "mtime": 1793319574.1291394,
+    "seen": 1793319718.607986,
+    "ast_hash": "1262af20189ff6ad8b1944460c4380bc",
     "semantic_hash": ""
   },
   "frontend/src/utils/color.ts": {
@@ -5748,9 +5742,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/CronJob/BankSyncCronJob.java": {
-    "mtime": 1793096896.3840718,
-    "seen": 1793097707.1897788,
-    "ast_hash": "65cf1f57fcc0fafdc7feae5ed18ae2ea",
+    "mtime": 1793318337.1093998,
+    "seen": 1793318706.862185,
+    "ast_hash": "920d51b41010adb8e88254aae6ec891f",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/config/NotificationTypeConstraintCleanup.java": {
@@ -5802,21 +5796,21 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/openbanking/BankLinkService.java": {
-    "mtime": 1793096896.3852623,
-    "seen": 1793097707.1928256,
-    "ast_hash": "ea683ee4272ac4254b0372030e5cb601",
+    "mtime": 1793225694.6292436,
+    "seen": 1793315013.7578938,
+    "ast_hash": "640517c84cc098a502d15095128bf97c",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/openbanking/BankSyncService.java": {
-    "mtime": 1793096896.3854609,
-    "seen": 1793097707.1928263,
-    "ast_hash": "03cf25fa21c80a127f9670aa1018e897",
+    "mtime": 1793318572.89461,
+    "seen": 1793318706.865385,
+    "ast_hash": "b6e43dd31aad22309c803e26e264bb58",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/openbanking/BankTransactionMapper.java": {
-    "mtime": 1793096896.3854609,
-    "seen": 1793097707.1928275,
-    "ast_hash": "52f113f5961d746aa82f1c34662107f0",
+    "mtime": 1793316803.2770886,
+    "seen": 1793318706.8653855,
+    "ast_hash": "79c1b7f2d3ed6fea93fe2f28f019ff84",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/openbanking/EbDtos.java": {
@@ -5826,9 +5820,9 @@
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/openbanking/EnableBankingClient.java": {
-    "mtime": 1793096896.3854609,
-    "seen": 1793097707.1928287,
-    "ast_hash": "1e8a6521a7e9df30c9548693c151ba12",
+    "mtime": 1793225489.4118557,
+    "seen": 1793315013.7579503,
+    "ast_hash": "339b41e9ebcabaebe05511c0df181696",
     "semantic_hash": ""
   },
   "backend/src/main/java/dev/busato/FinanceWebApp/backend/openbanking/EnableBankingException.java": {
@@ -5868,9 +5862,9 @@
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/CronJob/BankSyncCronJobTest.java": {
-    "mtime": 1793096896.3867078,
-    "seen": 1793097707.1945896,
-    "ast_hash": "33993726ae848e08b057dc78d77bec3d",
+    "mtime": 1793318347.7611089,
+    "seen": 1793318706.8673491,
+    "ast_hash": "e755eae543f64c455bfa074fe4209514",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/config/NotificationTypeConstraintCleanupTest.java": {
@@ -5892,15 +5886,15 @@
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/openbanking/BankSyncServiceTest.java": {
-    "mtime": 1793096896.3871717,
-    "seen": 1793097707.1955955,
-    "ast_hash": "8fb26774882f1454e67f6dba8fc44034",
+    "mtime": 1793318572.91461,
+    "seen": 1793318706.868396,
+    "ast_hash": "f3b25ee8545ed2abeea88a5903ec3212",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/openbanking/BankTransactionMapperTest.java": {
-    "mtime": 1793096896.3873,
-    "seen": 1793097707.195596,
-    "ast_hash": "a907afe284d7e3abaad42cc3bacb3940",
+    "mtime": 1793316803.2772205,
+    "seen": 1793318706.868397,
+    "ast_hash": "19ca432c56aa36c785598883de8a65b9",
     "semantic_hash": ""
   },
   "backend/src/test/java/dev/busato/FinanceWebApp/backend/openbanking/EnableBankingClientTest.java": {
@@ -5939,16 +5933,10 @@
     "ast_hash": "90948fc4d7bd221352953eafadedd2a1",
     "semantic_hash": ""
   },
-  "frontend/src/__tests__/dashboard/transaction/ToCategorizePanel.test.tsx": {
-    "mtime": 1793096896.3888626,
-    "seen": 1793097707.198334,
-    "ast_hash": "fb0d5ef4d8e54bed1825d7bd78ecaa7d",
-    "semantic_hash": ""
-  },
   "frontend/src/__tests__/dashboard/wallet/toCategorize.test.ts": {
-    "mtime": 1793096896.3888981,
-    "seen": 1793097707.1984584,
-    "ast_hash": "dcddf60c1f91f0b6944a32632aaa28c1",
+    "mtime": 1793318566.0964465,
+    "seen": 1793318706.871756,
+    "ast_hash": "70769446c18afe778c8beb7cb6120cf7",
     "semantic_hash": ""
   },
   "frontend/src/api/bankApi.ts": {
@@ -5975,16 +5963,106 @@
     "ast_hash": "5828fe5969b15f03dd7ca59856a6801c",
     "semantic_hash": ""
   },
-  "frontend/src/dashboard/transaction/ToCategorizePanel.tsx": {
-    "mtime": 1793096896.395423,
-    "seen": 1793097707.2014253,
-    "ast_hash": "b543a6f8f23415cf73b39913dc0bd703",
+  "frontend/src/dashboard/wallet/toCategorize.ts": {
+    "mtime": 1793318548.9840949,
+    "seen": 1793318706.877205,
+    "ast_hash": "621d8aed2dc6f7ca344b82202b74ff5d",
     "semantic_hash": ""
   },
-  "frontend/src/dashboard/wallet/toCategorize.ts": {
-    "mtime": 1793096896.3960242,
-    "seen": 1793097707.2015953,
-    "ast_hash": "0ea05cc1659685dcefff42adc52d0887",
+  "backend/src/main/java/dev/busato/FinanceWebApp/backend/dto/WalletNotificationPrefsRequest.java": {
+    "mtime": 1793317741.9416413,
+    "seen": 1793318706.864172,
+    "ast_hash": "ef73b547def15b81c611239cf6849a95",
+    "semantic_hash": ""
+  },
+  "frontend/skills-lock.json": {
+    "mtime": 1793315430.6727514,
+    "seen": 1793318706.869594,
+    "ast_hash": "6610acb2cd3ec23113a208af2a5887ad",
+    "semantic_hash": ""
+  },
+  "frontend/src/__tests__/dashboard/settings/WalletNotificationsCard.test.tsx": {
+    "mtime": 1793317831.87919,
+    "seen": 1793318706.871172,
+    "ast_hash": "859608e5eaa3b42db0377867c274f540",
+    "semantic_hash": ""
+  },
+  "frontend/src/__tests__/dashboard/transaction/ToCategoriseActions.test.tsx": {
+    "mtime": 1793318565.8227894,
+    "seen": 1793318706.87158,
+    "ast_hash": "65cb5fe2883414695a046ef06e521b22",
+    "semantic_hash": ""
+  },
+  "frontend/src/__tests__/dashboard/transaction/TransactionRow.test.tsx": {
+    "mtime": 1793316845.5188982,
+    "seen": 1793318706.8715808,
+    "ast_hash": "5ceb7b391ec7313e1926c98df433e69c",
+    "semantic_hash": ""
+  },
+  "frontend/src/__tests__/dashboard/transaction/TransactionsTab.test.tsx": {
+    "mtime": 1793316286.0576882,
+    "seen": 1793318706.871602,
+    "ast_hash": "30f75e0c4f7b50cd2ea8cb404668cef8",
+    "semantic_hash": ""
+  },
+  "frontend/src/__tests__/dashboard/transaction/useTransactionDeepLink.test.tsx": {
+    "mtime": 1793318633.7399216,
+    "seen": 1793318706.8716223,
+    "ast_hash": "5faeee3e0dc6b52b2df86f5e6363895a",
+    "semantic_hash": ""
+  },
+  "frontend/src/__tests__/header/AppHeader.test.tsx": {
+    "mtime": 1793316411.675461,
+    "seen": 1793318706.8718154,
+    "ast_hash": "f78355f188d3fbb250940347700f3b1d",
+    "semantic_hash": ""
+  },
+  "frontend/src/__tests__/push/walletNotifications.test.ts": {
+    "mtime": 1793317815.1105895,
+    "seen": 1793318706.8727744,
+    "ast_hash": "aaa0ffaab321d757ebbee36a0d67aa75",
+    "semantic_hash": ""
+  },
+  "frontend/src/dashboard/settings/WalletNotificationsCard.tsx": {
+    "mtime": 1793315268.541365,
+    "seen": 1793318706.8761394,
+    "ast_hash": "d78a1aae8867812524162f3e6a3d6dc4",
+    "semantic_hash": ""
+  },
+  "frontend/src/dashboard/transaction/ToCategoriseActions.tsx": {
+    "mtime": 1793318699.3500729,
+    "seen": 1793318706.8769891,
+    "ast_hash": "48251814212be9cb12f99731779f59d3",
+    "semantic_hash": ""
+  },
+  "frontend/src/dashboard/transaction/categoriseTransaction.ts": {
+    "mtime": 1793317160.5356832,
+    "seen": 1793318706.8770106,
+    "ast_hash": "7d219e9f2ef6b1bb16ab20567dc8969a",
+    "semantic_hash": ""
+  },
+  "frontend/src/dashboard/transaction/useTransactionDeepLink.ts": {
+    "mtime": 1793318620.3676333,
+    "seen": 1793318706.8770294,
+    "ast_hash": "a5879f6e5215e771aeff86a757ca5133",
+    "semantic_hash": ""
+  },
+  "frontend/src/push/WalletNotificationOptions.tsx": {
+    "mtime": 1793315216.4622784,
+    "seen": 1793318706.878741,
+    "ast_hash": "6b3005bfe4deeb7ecb6b8942d5de18a5",
+    "semantic_hash": ""
+  },
+  "frontend/src/push/walletNotifications.ts": {
+    "mtime": 1793317815.1103873,
+    "seen": 1793318706.8787901,
+    "ast_hash": "58b50cb58edecdc43191b0829f6701b3",
+    "semantic_hash": ""
+  },
+  "frontend/src/__tests__/components/tags/TagTreePicker.test.tsx": {
+    "mtime": 1793318847.5240326,
+    "seen": 1793319718.5977645,
+    "ast_hash": "ecc2619d84dd350d96d5f7310939956a",
     "semantic_hash": ""
   }
 }

@@ -13,6 +13,8 @@ import {
 } from "../subscription/SubscriptionModal.tsx";
 
 import { TransactionView } from "./TransactionView";
+import { TagPicker } from "./TagPicker.tsx";
+import { categoriseTransaction } from "../../dashboard/transaction/categoriseTransaction.ts";
 
 export interface TransactionDetailsModalHandle {
   openModal: (transaction: Transaction) => void;
@@ -73,6 +75,24 @@ export const TransactionDetailsModal = forwardRef<
   };
 
   const canEdit = !!tx && wallet.userRole !== "VIEWER";
+
+  // A bank import still on the placeholder is filed straight from here, no edit form.
+  const categorySlot =
+    canEdit && tx.needsReview ? (
+      <div className="w-full max-w-xs">
+        <TagPicker
+          tags={tags}
+          showLabel={false}
+          selectedTagName=""
+          onSelectTag={async (tagName) => {
+            if (await categoriseTransaction(wallet, tx, tagName)) {
+              handleClose();
+              fetchData();
+            }
+          }}
+        />
+      </div>
+    ) : undefined;
   const footer = canEdit ? (
     <div className="flex items-center gap-3">
       <Button
@@ -113,6 +133,7 @@ export const TransactionDetailsModal = forwardRef<
             tx={tx}
             wallet={wallet}
             onOpenSubscription={handleOpenSubscription}
+            categorySlot={categorySlot}
           />
         )}
       </ResponsiveOverlay>

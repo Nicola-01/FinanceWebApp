@@ -14,6 +14,7 @@ import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransaction;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransactionPage;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.PsuContext;
 import dev.busato.FinanceWebApp.backend.push.NotificationCopy;
+import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
 import dev.busato.FinanceWebApp.backend.repository.ImportedBankTransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -48,7 +50,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 @RequiredArgsConstructor
 public class BankSyncService {
 
-  static final String REVIEW_TAG = "To categorize";
+  public static final String REVIEW_TAG = "To categorise";
+
+  /** Name of the review tag before it became a placeholder; upgraded at boot. */
+  public static final String LEGACY_REVIEW_TAG = "To categorize";
+
   static final Duration ON_OPEN_THROTTLE = Duration.ofHours(2);
   static final int LOOKBACK_DAYS = 5;
 
@@ -63,6 +69,7 @@ public class BankSyncService {
   private final WalletAccessRepository walletAccessRepository;
   private final ExchangeRateService exchangeRateService;
   private final NotificationService notificationService;
+  private final ApplicationEventPublisher eventPublisher;
   private final TransactionTemplate transactionTemplate;
   private final Clock clock;
 
@@ -217,6 +224,8 @@ public class BankSyncService {
     Tag tag = null;
     int n = 0;
     LocalDate retryFrom = null;
+    // The first sync backfills history: notifying each of those rows would flood the members.
+    boolean notify = link.getLastSyncedAt() != null;
     for (MappedTx m : mapped) {
       if (!known.add(m.externalId())) continue;
       String currency =
@@ -236,21 +245,35 @@ public class BankSyncService {
         amount = m.amount().multiply(rate).setScale(2, RoundingMode.HALF_UP);
       }
       if (tag == null) tag = reviewTag(wallet);
-      transactionRepository.save(
-          Transaction.builder()
-              .wallet(wallet)
-              .tag(tag)
-              .name(m.name())
-              .notes(m.notes())
-              .amount(amount)
-              .originalAmount(m.amount())
-              .originalCurrency(currency)
-              .exchangeValue(rate)
-              .type(m.type())
-              .transactionDate(m.date())
-              .imported(true)
-              .needsReview(true)
-              .build());
+      Transaction saved =
+          transactionRepository.save(
+              Transaction.builder()
+                  .wallet(wallet)
+                  .tag(tag)
+                  .name(m.name())
+                  .notes(m.notes())
+                  .amount(amount)
+                  .originalAmount(m.amount())
+                  .originalCurrency(currency)
+                  .exchangeValue(rate)
+                  .type(m.type())
+                  .transactionDate(m.date())
+                  .imported(true)
+                  .needsReview(true)
+                  .build());
+      if (notify)
+        eventPublisher.publishEvent(
+            new WalletActivityEvent(
+                NotificationType.BANK_TRANSACTION_IMPORTED,
+                wallet.getId(),
+                wallet.getName(),
+                wallet.getCurrency(),
+                null,
+                null,
+                null,
+                amount,
+                m.name(),
+                saved.getId()));
       ledgerRepository.save(
           ImportedBankTransaction.builder()
               .link(link)
@@ -277,6 +300,7 @@ public class BankSyncService {
                         .wallet(wallet)
                         .icon("bank")
                         .colorHex("#9CA3AF")
+                        .placeholder(true)
                         .build()));
   }
 

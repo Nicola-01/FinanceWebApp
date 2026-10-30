@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.service;
 import dev.busato.FinanceWebApp.backend.dto.NotificationPreferencesRequest;
 import dev.busato.FinanceWebApp.backend.dto.NotificationPreferencesResponse;
 import dev.busato.FinanceWebApp.backend.dto.PushSubscriptionRequest;
+import dev.busato.FinanceWebApp.backend.dto.WalletNotificationPrefsRequest;
 import dev.busato.FinanceWebApp.backend.exceptions.UserNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.PushSubscription;
@@ -19,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Reads and writes the three preference layers behind the Settings → Notifications section: the
- * caller's global per-event-type toggles, their per-wallet mute flags, and their per-device push
- * subscriptions.
+ * caller's global toggles, their per-wallet preferences (mute + event types), and their per-device
+ * push subscriptions.
  */
 @Service
 @RequiredArgsConstructor
@@ -30,57 +31,60 @@ public class NotificationPreferenceService {
   private final WalletAccessRepository walletAccessRepository;
   private final PushSubscriptionRepository pushSubscriptionRepository;
 
-  /** The caller's global toggles + one mute entry per accepted wallet membership. */
+  /** The caller's global toggles + one preferences entry per accepted wallet membership. */
   @Transactional(readOnly = true)
   public NotificationPreferencesResponse getPreferences(UUID userId) {
     User user =
         userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
-    List<NotificationPreferencesResponse.WalletMute> mutes =
+    List<NotificationPreferencesResponse.WalletPrefs> wallets =
         walletAccessRepository
             .findAllByUserIdAndStatus(userId, WalletAccess.InvitationStatus.ACCEPTED)
             .stream()
             .map(
                 a ->
-                    NotificationPreferencesResponse.WalletMute.builder()
+                    NotificationPreferencesResponse.WalletPrefs.builder()
                         .walletId(a.getWallet().getId())
                         .walletName(a.getWallet().getName())
                         .muted(a.isNotificationsMuted())
+                        .transactions(a.isNotifyTransactions())
+                        .subscriptions(a.isNotifySubscriptions())
+                        .recurringExecutions(a.isNotifyRecurringExecutions())
+                        .budgets(a.isNotifyBudgets())
                         .build())
             .toList();
     return NotificationPreferencesResponse.builder()
         .invites(user.isNotifyInvites())
-        .transactions(user.isNotifyTransactions())
-        .subscriptions(user.isNotifySubscriptions())
-        .recurringExecutions(user.isNotifyRecurringExecutions())
         .monthlyReport(user.isMonthlyReportEnabled())
         .yearlyReport(user.isYearlyReportEnabled())
-        .walletMutes(mutes)
+        .wallets(wallets)
         .build();
   }
 
-  /** Persists all four global toggles for the caller. */
+  /** Persists the caller's global toggles (invites + report opt-ins). */
   @Transactional
   public void updatePreferences(UUID userId, NotificationPreferencesRequest request) {
     User user =
         userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
     user.setNotifyInvites(request.isInvites());
-    user.setNotifyTransactions(request.isTransactions());
-    user.setNotifySubscriptions(request.isSubscriptions());
-    user.setNotifyRecurringExecutions(request.isRecurringExecutions());
     user.setMonthlyReportEnabled(request.isMonthlyReport());
     user.setYearlyReportEnabled(request.isYearlyReport());
     userRepository.save(user);
   }
 
-  /** Flips the mute flag on the caller's ACCEPTED membership; 404 if they are not a member. */
+  /** Updates the caller's ACCEPTED membership preferences; 404 if they are not a member. */
   @Transactional
-  public void setWalletMute(UUID userId, UUID walletId, boolean muted) {
+  public void setWalletPreferences(
+      UUID userId, UUID walletId, WalletNotificationPrefsRequest request) {
     WalletAccess access =
         walletAccessRepository
             .findByWalletIdAndUserId(walletId, userId)
             .filter(a -> a.getStatus() == WalletAccess.InvitationStatus.ACCEPTED)
             .orElseThrow(() -> new WalletNotFoundException(walletId));
-    access.setNotificationsMuted(muted);
+    access.setNotificationsMuted(request.isMuted());
+    access.setNotifyTransactions(request.isTransactions());
+    access.setNotifySubscriptions(request.isSubscriptions());
+    access.setNotifyRecurringExecutions(request.isRecurringExecutions());
+    access.setNotifyBudgets(request.isBudgets());
     walletAccessRepository.save(access);
   }
 

@@ -8,6 +8,8 @@ interface NotificationCenterOverlayProps {
   open: boolean;
   onClose: () => void;
   notifications: AppNotification[];
+  /** Selected wallet's colour; violet brand accent when no wallet is selected. */
+  accentColor?: string;
 }
 
 /**
@@ -18,7 +20,7 @@ interface NotificationCenterOverlayProps {
  */
 export const NotificationCenterOverlay: React.FC<
   NotificationCenterOverlayProps
-> = ({ open, onClose, notifications }) => {
+> = ({ open, onClose, notifications, accentColor }) => {
   const navigate = useNavigate();
 
   const handleRowClick = (n: AppNotification) => {
@@ -32,6 +34,7 @@ export const NotificationCenterOverlay: React.FC<
       onClose={onClose}
       title="Notifications"
       width={420}
+      accentColor={accentColor ?? "var(--brand-1)"}
     >
       {notifications.length === 0 ? (
         <p className="py-10 text-center text-sm text-app-muted">

@@ -38,12 +38,19 @@ function preferences(overrides = {}) {
   return {
     data: {
       invites: true,
-      transactions: true,
-      subscriptions: false,
-      recurringExecutions: true,
       monthlyReport: true,
       yearlyReport: true,
-      walletMutes: [{ walletId: "w1", walletName: "Casa", muted: false }],
+      wallets: [
+        {
+          walletId: "w1",
+          walletName: "Casa",
+          muted: false,
+          transactions: true,
+          subscriptions: false,
+          recurringExecutions: true,
+          budgets: true,
+        },
+      ],
       ...overrides,
     },
   };
@@ -65,9 +72,8 @@ describe("NotificationsSection", () => {
   it("renders all cards", async () => {
     render(<NotificationsSection />);
     expect(await screen.findByText("This device")).toBeInTheDocument();
-    expect(screen.getByText("What you get notified about")).toBeInTheDocument();
+    expect(screen.getByText("Wallets")).toBeInTheDocument();
     expect(screen.getByText("Periodic reports")).toBeInTheDocument();
-    expect(screen.getByText("Per-wallet")).toBeInTheDocument();
   });
 
   it("device toggle calls subscribeThisDevice when enabling", async () => {
@@ -97,25 +103,18 @@ describe("NotificationsSection", () => {
     expect(mockedUnsubscribe).toHaveBeenCalledTimes(1);
   });
 
-  it("a global toggle PUTs all the booleans", async () => {
+  it("the invitations toggle PUTs all the global booleans", async () => {
     render(<NotificationsSection />);
     await screen.findByText("Casa");
 
     await userEvent.click(
-      screen.getByRole("switch", { name: "Subscriptions in shared wallets" }),
+      screen.getByRole("switch", { name: "Wallet invitations" }),
     );
 
     await waitFor(() =>
       expect(mockedPut).toHaveBeenCalledWith(
         "/users/me/notification-preferences",
-        {
-          invites: true,
-          transactions: true,
-          subscriptions: true,
-          recurringExecutions: true,
-          monthlyReport: true,
-          yearlyReport: true,
-        },
+        { invites: false, monthlyReport: true, yearlyReport: true },
       ),
     );
   });
@@ -131,30 +130,95 @@ describe("NotificationsSection", () => {
     await waitFor(() =>
       expect(mockedPut).toHaveBeenCalledWith(
         "/users/me/notification-preferences",
-        {
-          invites: true,
-          transactions: true,
-          subscriptions: false,
-          recurringExecutions: true,
-          monthlyReport: false,
-          yearlyReport: true,
-        },
+        { invites: true, monthlyReport: false, yearlyReport: true },
       ),
     );
   });
 
-  it("a wallet-mute toggle PUTs the mute state for that wallet", async () => {
+  it("turning a wallet off mutes it and hides the expand button", async () => {
     render(<NotificationsSection />);
     await screen.findByText("Casa");
 
     await userEvent.click(
-      screen.getByRole("switch", { name: "Mute this wallet" }),
+      screen.getByRole("switch", { name: "Notifications for Casa" }),
     );
 
     await waitFor(() =>
-      expect(mockedPut).toHaveBeenCalledWith("/wallets/w1/notification-mute", {
-        muted: true,
+      expect(mockedPut).toHaveBeenCalledWith(
+        "/wallets/w1/notification-preferences",
+        {
+          muted: true,
+          transactions: true,
+          subscriptions: false,
+          recurringExecutions: true,
+          budgets: true,
+        },
+      ),
+    );
+    expect(
+      screen.queryByRole("button", { name: "Options for Casa" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("turning a muted wallet on enables every event type and expands it", async () => {
+    mockedGet.mockResolvedValue(
+      preferences({
+        wallets: [
+          {
+            walletId: "w1",
+            walletName: "Casa",
+            muted: true,
+            transactions: false,
+            subscriptions: false,
+            recurringExecutions: false,
+            budgets: false,
+          },
+        ],
       }),
+    );
+    render(<NotificationsSection />);
+    await screen.findByText("Casa");
+
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Notifications for Casa" }),
+    );
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      "/wallets/w1/notification-preferences",
+      {
+        muted: false,
+        transactions: true,
+        subscriptions: true,
+        recurringExecutions: true,
+        budgets: true,
+      },
+    );
+    expect(screen.getByRole("switch", { name: "Subscriptions" })).toBeChecked();
+  });
+
+  it("an enabled wallet expands to its event toggles", async () => {
+    render(<NotificationsSection />);
+    await screen.findByText("Casa");
+    expect(
+      screen.queryByRole("switch", { name: "Transactions" }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Options for Casa" }),
+    );
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Recurring executions" }),
+    );
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      "/wallets/w1/notification-preferences",
+      {
+        muted: false,
+        transactions: true,
+        subscriptions: false,
+        recurringExecutions: false,
+        budgets: true,
+      },
     );
   });
 

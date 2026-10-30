@@ -6,10 +6,9 @@ import {
   TransactionModal,
   type TransactionModalHandle,
 } from "../../modals/transaction/TransactionModal.tsx";
-import React, { useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import type { Tag, Transaction, Wallet } from "../../types/domain.ts";
 import TransactionRow from "./TransactionRow.tsx";
-import { ToCategorizePanel } from "./ToCategorizePanel.tsx";
 import { PendingTransactionsPanel } from "./PendingTransactionsPanel.tsx";
 import * as walletOps from "../../api/walletOps.ts";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
@@ -22,13 +21,14 @@ import {
   formatDateHeader,
   groupTransactionsByDate,
 } from "./groupTransactionsByDate.ts";
+import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { useTransactionDeepLink } from "./useTransactionDeepLink.ts";
 
 interface TransactionsTableProps {
   wallet: Wallet;
   tags: Tag[];
   transactions: Transaction[];
   pendingTransactions: Transaction[];
-  toCategorize?: Transaction[];
   onRefresh: () => void;
   isLoading: boolean;
 }
@@ -57,12 +57,24 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   tags,
   transactions,
   pendingTransactions,
-  toCategorize = [],
   isLoading,
   onRefresh,
 }) => {
   const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
   const transactionModalRef = useRef<TransactionModalHandle>(null);
+
+  // Search every wallet transaction, not just this filtered list: a notified row may sit
+  // outside the selected period.
+  const { transactions: allTransactions } = useWalletContext();
+  // A reminder awaiting its amount lands on its pinned input, not the read-only details.
+  const [focusPendingId, setFocusPendingId] = useState<string | null>(null);
+  useTransactionDeepLink(
+    allTransactions,
+    useCallback((tx: Transaction) => {
+      if (tx.amountPending) setFocusPendingId(String(tx.id));
+      else detailsModalRef.current?.openModal(tx);
+    }, []),
+  );
 
   const { groups: groupedTransactions, sortedDates } =
     groupTransactionsByDate(transactions);
@@ -83,19 +95,10 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
     <div className="flex flex-col flex-1 relative min-h-0">
       <div className="flex-1 overflow-auto pb-10 custom-scrollbar">
         {!isLoading && (
-          <ToCategorizePanel
-            wallet={wallet}
-            tags={tags}
-            transactions={toCategorize}
-            onRefresh={onRefresh}
-            onOpenDetails={(tx) => detailsModalRef.current?.openModal(tx)}
-            onEdit={(tx) => transactionModalRef.current?.openModal(tx)}
-          />
-        )}
-        {!isLoading && (
           <PendingTransactionsPanel
             wallet={wallet}
             pendingTransactions={pendingTransactions}
+            focusId={focusPendingId}
             onFilled={onRefresh}
             onOpenDetails={(tx) => detailsModalRef.current?.openModal(tx)}
           />

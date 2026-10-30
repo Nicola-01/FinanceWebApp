@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import dev.busato.FinanceWebApp.backend.dto.NotificationPreferencesRequest;
 import dev.busato.FinanceWebApp.backend.dto.NotificationPreferencesResponse;
 import dev.busato.FinanceWebApp.backend.dto.PushSubscriptionRequest;
+import dev.busato.FinanceWebApp.backend.dto.WalletNotificationPrefsRequest;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.model.PushSubscription;
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -41,13 +42,10 @@ class NotificationPreferenceServiceTest {
   private final UUID userId = UUID.randomUUID();
 
   @Test
-  void getPreferences_mapsBooleansAndBuildsWalletMutes() {
+  void getPreferences_mapsBooleansAndBuildsWalletPrefs() {
     User user = new User();
     user.setId(userId);
     user.setNotifyInvites(true);
-    user.setNotifyTransactions(false);
-    user.setNotifySubscriptions(true);
-    user.setNotifyRecurringExecutions(false);
     user.setMonthlyReportEnabled(false);
     user.setYearlyReportEnabled(true);
     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -59,6 +57,9 @@ class NotificationPreferenceServiceTest {
     WalletAccess access = new WalletAccess();
     access.setWallet(wallet);
     access.setNotificationsMuted(true);
+    access.setNotifyTransactions(false);
+    access.setNotifyRecurringExecutions(false);
+    access.setNotifyBudgets(false);
     when(walletAccessRepository.findAllByUserIdAndStatus(
             userId, WalletAccess.InvitationStatus.ACCEPTED))
         .thenReturn(List.of(access));
@@ -66,15 +67,17 @@ class NotificationPreferenceServiceTest {
     NotificationPreferencesResponse res = service.getPreferences(userId);
 
     assertTrue(res.isInvites());
-    assertFalse(res.isTransactions());
-    assertTrue(res.isSubscriptions());
-    assertFalse(res.isRecurringExecutions());
     assertFalse(res.isMonthlyReport());
     assertTrue(res.isYearlyReport());
-    assertEquals(1, res.getWalletMutes().size());
-    assertEquals(walletId, res.getWalletMutes().get(0).getWalletId());
-    assertEquals("Casa", res.getWalletMutes().get(0).getWalletName());
-    assertTrue(res.getWalletMutes().get(0).isMuted());
+    assertEquals(1, res.getWallets().size());
+    NotificationPreferencesResponse.WalletPrefs w = res.getWallets().get(0);
+    assertEquals(walletId, w.getWalletId());
+    assertEquals("Casa", w.getWalletName());
+    assertTrue(w.isMuted());
+    assertFalse(w.isTransactions());
+    assertTrue(w.isSubscriptions());
+    assertFalse(w.isRecurringExecutions());
+    assertFalse(w.isBudgets());
   }
 
   @Test
@@ -87,38 +90,45 @@ class NotificationPreferenceServiceTest {
         userId,
         NotificationPreferencesRequest.builder()
             .invites(false)
-            .transactions(true)
-            .subscriptions(false)
-            .recurringExecutions(true)
             .monthlyReport(true)
             .yearlyReport(false)
             .build());
 
     assertFalse(user.isNotifyInvites());
-    assertTrue(user.isNotifyTransactions());
-    assertFalse(user.isNotifySubscriptions());
-    assertTrue(user.isNotifyRecurringExecutions());
     assertTrue(user.isMonthlyReportEnabled());
     assertFalse(user.isYearlyReportEnabled());
     verify(userRepository).save(user);
   }
 
   @Test
-  void setWalletMute_flipsFlagOnAcceptedAccess() {
+  void setWalletPreferences_writesAllFlagsOnAcceptedAccess() {
     UUID walletId = UUID.randomUUID();
     WalletAccess access = new WalletAccess();
     access.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
     when(walletAccessRepository.findByWalletIdAndUserId(walletId, userId))
         .thenReturn(Optional.of(access));
 
-    service.setWalletMute(userId, walletId, true);
+    service.setWalletPreferences(
+        userId,
+        walletId,
+        WalletNotificationPrefsRequest.builder()
+            .muted(true)
+            .transactions(false)
+            .subscriptions(true)
+            .recurringExecutions(false)
+            .budgets(true)
+            .build());
 
     assertTrue(access.isNotificationsMuted());
+    assertFalse(access.isNotifyTransactions());
+    assertTrue(access.isNotifySubscriptions());
+    assertFalse(access.isNotifyRecurringExecutions());
+    assertTrue(access.isNotifyBudgets());
     verify(walletAccessRepository).save(access);
   }
 
   @Test
-  void setWalletMute_throwsWhenNoAcceptedAccess() {
+  void setWalletPreferences_throwsWhenNoAcceptedAccess() {
     UUID walletId = UUID.randomUUID();
     WalletAccess pending = new WalletAccess();
     pending.setStatus(WalletAccess.InvitationStatus.PENDING);
@@ -126,7 +136,10 @@ class NotificationPreferenceServiceTest {
         .thenReturn(Optional.of(pending));
 
     assertThrows(
-        WalletNotFoundException.class, () -> service.setWalletMute(userId, walletId, true));
+        WalletNotFoundException.class,
+        () ->
+            service.setWalletPreferences(
+                userId, walletId, WalletNotificationPrefsRequest.builder().muted(true).build()));
   }
 
   @Test

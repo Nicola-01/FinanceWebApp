@@ -29,6 +29,26 @@ describe("filterTransactions", () => {
   ];
   const ids = (r: Transaction[]) => r.map((t) => t.id);
 
+  it("keeps to-categorise rows unless specific categories are selected", () => {
+    const review = tx({
+      id: "r",
+      tag: { name: "To categorise" } as Tag,
+      needsReview: true,
+    });
+    const all = filterTransactions([review], tags, {
+      selectedTags: null,
+      dateRange: none,
+      query: "",
+    });
+    expect(ids(all)).toEqual(["r"]);
+    const narrowed = filterTransactions([review], tags, {
+      selectedTags: ["Food"],
+      dateRange: none,
+      query: "",
+    });
+    expect(narrowed).toEqual([]);
+  });
+
   it("falls back to all tags and always drops pending rows", () => {
     const r = filterTransactions(list, tags, {
       selectedTags: null,

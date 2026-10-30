@@ -8,6 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { isCategorised } from "../wallet/toCategorize.ts";
 import { getCurrencySymbol } from "../../utils/currencies/index.ts";
 import { DateRangeBanner } from "../DateRangeBanner.tsx";
 import { useTheme } from "../../utils/ThemeContext.tsx";
@@ -44,7 +45,7 @@ export const TagsTab: React.FC = () => {
   );
 
   const ctx: CategoriesWidgetCtx = {
-    transactions: filteredTransactions,
+    transactions: filteredTransactions.filter(isCategorised),
     currencyCode: wallet.currency,
     currencySymbol,
   };

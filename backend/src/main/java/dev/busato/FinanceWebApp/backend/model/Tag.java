@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -44,6 +45,14 @@ public class Tag {
   @ManyToOne
   @JoinColumn(name = "parent_id")
   private Tag parent;
+
+  /**
+   * System "To categorise" holder for imported bank rows: hidden from tag lists and charts, and
+   * never assignable by users.
+   */
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean placeholder = false;
 
   /** Server-side last-write timestamp; optimistic precondition for offline replays. */
   @UpdateTimestamp @Column private Instant updatedAt;

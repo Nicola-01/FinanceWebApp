@@ -369,6 +369,16 @@ point there. Conventions that apply to EVERY step:
   if it reuses `AnimateBackground` — decide during build with the standing
   "consult on subjective UI" rule).
 
+## Open Banking interaction (open question)
+
+- [ ] **OB.1 Server-side bank import vs E2EE.** Open Banking sync
+  (`docs/superpowers/specs/2026-10-27-open-banking-design.md`) writes imported
+  transactions **server-side** (cron + on-app-open), which is impossible for an E2EE
+  wallet (server holds no wallet key). v1 of Open Banking only allows linking
+  **plaintext** wallets. Decide before Phase 7 (migration): either block migrating a
+  wallet with active bank links, or move import client-side (server fetches raw bank
+  data into a short-lived staging area, the client encrypts and commits on next open).
+
 ## Cross-cutting wrap-up (after each phase, verify)
 
 - [ ] **W.1** `./gradlew check` green (Spotless + 90 % coverage) on every backend

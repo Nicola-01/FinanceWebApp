@@ -140,6 +140,14 @@ public class EnableBankingClient {
         .onStatus(
             HttpStatusCode::isError,
             (req, res) -> {
+              // Body only goes to the log: the exception message is surfaced in the UI.
+              String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+              log.warn(
+                  "EnableBanking {} {} -> {}: {}",
+                  req.getMethod(),
+                  req.getURI().getPath(),
+                  res.getStatusCode(),
+                  body.length() > 1000 ? body.substring(0, 1000) : body);
               throw new EnableBankingException(
                   res.getStatusCode().value(),
                   "EnableBanking "

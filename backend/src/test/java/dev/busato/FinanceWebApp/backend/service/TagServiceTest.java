@@ -65,7 +65,8 @@ class TagServiceTest {
     Tag tag2 = new Tag();
     tag2.setName("A-Tag");
 
-    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(tag1, tag2));
+    when(tagRepository.getTagsByWalletIdAndPlaceholderFalse(walletId))
+        .thenReturn(List.of(tag1, tag2));
 
     TagResponse response1 = TagResponse.builder().build();
     response1.setName("Z-Tag");

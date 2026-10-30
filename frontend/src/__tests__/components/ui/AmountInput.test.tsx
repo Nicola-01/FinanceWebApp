@@ -80,15 +80,24 @@ describe("AmountInput", () => {
     const { input } = setup("EXPENSE");
     fireEvent.change(input, { target: { value: "10+5" } });
     expect(screen.getByText("Preview:")).toBeInTheDocument();
-    expect(screen.getByText(/-5\.00\s*€/)).toBeInTheDocument();
+    expect(screen.getByText(/-15\.00\s*€/)).toBeInTheDocument();
   });
 
   it("resolves the expression on Enter", () => {
     const { input, onAmountChange } = setup("EXPENSE");
     fireEvent.change(input, { target: { value: "10+5" } });
     fireEvent.keyDown(input, { key: "Enter" });
-    expect(input.value).toBe("-5.00");
-    expect(lastAmount(onAmountChange)).toBe("5.00");
+    expect(input.value).toBe("-15.00");
+    expect(lastAmount(onAmountChange)).toBe("15.00");
+  });
+
+  it("applies the leading sign to the whole formula", () => {
+    const { input } = setup("EXPENSE");
+    fireEvent.change(input, { target: { value: "-8+5" } });
+    expect(input.value).toBe("-(8+5");
+    expect(screen.getByText(/-13\.00\s*€/)).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: "-8-10" } });
+    expect(screen.getByText(/\+2\.00\s*€/)).toBeInTheDocument();
   });
 
   it("blocks letters but allows digits on key press", () => {

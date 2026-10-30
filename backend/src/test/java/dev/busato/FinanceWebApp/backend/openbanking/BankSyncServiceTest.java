@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
 import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
+import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
@@ -20,8 +21,10 @@ import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.openbanking.BankSyncService.SyncResult;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransaction;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransactionPage;
+import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
 import dev.busato.FinanceWebApp.backend.repository.ImportedBankTransactionRepository;
+import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
@@ -48,11 +51,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@RecordApplicationEvents
 class BankSyncServiceTest {
 
   static final Instant NOW = Instant.parse("2026-10-27T10:00:00Z");
@@ -74,12 +80,14 @@ class BankSyncServiceTest {
   @MockitoBean NotificationService notificationService;
 
   @Autowired BankSyncService service;
+  @Autowired ApplicationEvents events;
   @Autowired UserRepository userRepository;
   @Autowired WalletRepository walletRepository;
   @Autowired WalletAccessRepository walletAccessRepository;
   @Autowired BankConnectionRepository connectionRepository;
   @Autowired ImportedBankTransactionRepository ledgerRepository;
   @Autowired TransactionRepository transactionRepository;
+  @Autowired TagRepository tagRepository;
 
   User owner;
   Wallet wallet;
@@ -160,6 +168,20 @@ class BankSyncServiceTest {
   }
 
   @Test
+  void upgradesLegacyReviewTagToPlaceholder() {
+    Tag legacy =
+        tagRepository.save(Tag.builder().name("To categorize").wallet(wallet).icon("bank").build());
+
+    assertThat(tagRepository.upgradeLegacyPlaceholders("To categorize", "To categorise"))
+        .isEqualTo(1);
+
+    Tag upgraded = tagRepository.findById(legacy.getId()).orElseThrow();
+    assertThat(upgraded.getName()).isEqualTo("To categorise");
+    assertThat(upgraded.isPlaceholder()).isTrue();
+    assertThat(tagRepository.upgradeLegacyPlaceholders("To categorize", "To categorise")).isZero();
+  }
+
+  @Test
   void importsBookedRowsUntagged() {
     bankReturns(row("r1", "12.50", "EUR", null), row("r2", "3.00", "EUR", null));
 
@@ -172,10 +194,12 @@ class BankSyncServiceTest {
     assertThat(txs)
         .allSatisfy(
             t -> {
-              assertThat(t.getTag().getName()).isEqualTo("To categorize");
+              assertThat(t.getTag().getName()).isEqualTo("To categorise");
+              assertThat(t.getTag().isPlaceholder()).isTrue();
               assertThat(t.isImported()).isTrue();
               assertThat(t.isNeedsReview()).isTrue();
             });
+    assertThat(tagRepository.getTagsByWalletIdAndPlaceholderFalse(wallet.getId())).isEmpty();
     assertThat(ledgerRepository.findExternalIdsByLinkId(link.getId())).hasSize(2);
     assertThat(link.getImportedCount()).isEqualTo(2);
     assertThat(link.getLastSyncedAt()).isEqualTo(NOW);
@@ -194,6 +218,31 @@ class BankSyncServiceTest {
     service.syncConnection(conn, null);
 
     verify(client).getTransactions("acc-1", LocalDate.of(2026, 10, 22), null, null);
+  }
+
+  @Test
+  void newImportsAfterTheBackfillPublishOneEventEach() {
+    bankReturns(row("r1", "12.50", "EUR", null));
+    service.syncConnection(conn, null);
+    assertThat(events.stream(WalletActivityEvent.class)).isEmpty(); // backfill stays silent
+
+    bankReturns(row("r1", "12.50", "EUR", null), row("r2", "3.00", "EUR", null));
+    service.syncConnection(conn, null);
+
+    Transaction r2 =
+        walletTxs().stream()
+            .filter(t -> t.getAmount().compareTo(new BigDecimal("3.00")) == 0)
+            .findFirst()
+            .orElseThrow();
+    assertThat(events.stream(WalletActivityEvent.class))
+        .singleElement()
+        .satisfies(
+            e -> {
+              assertThat(e.type()).isEqualTo(NotificationType.BANK_TRANSACTION_IMPORTED);
+              assertThat(e.walletId()).isEqualTo(wallet.getId());
+              assertThat(e.entityId()).isEqualTo(r2.getId());
+              assertThat(e.actorId()).isNull();
+            });
   }
 
   @Test

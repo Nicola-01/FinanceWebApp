@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Budget, Wallet } from "../../../types/domain";
 
@@ -105,5 +105,33 @@ describe("BudgetTab", () => {
     });
     render(<BudgetTab />);
     expect(screen.getByText(/no budgets yet/i)).toBeInTheDocument();
+  });
+
+  it("opens edit and delete from the card's action menu", () => {
+    const deleteObject = vi.fn();
+    mockedDelete.mockReturnValue({ current: { deleteObject } });
+    render(<BudgetTab />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /actions for food budget/i }),
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: /delete/i }));
+    expect(deleteObject).toHaveBeenCalled();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /actions for food budget/i }),
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: /edit/i }));
+    expect(screen.getByText(/edit budget/i)).toBeInTheDocument();
+  });
+
+  it("hides the action menu from viewers", () => {
+    mockContext.mockReturnValue({
+      wallet: { ...wallet, userRole: "VIEWER" },
+      tags: [],
+    });
+    render(<BudgetTab />);
+    expect(
+      screen.queryByRole("button", { name: /actions for/i }),
+    ).not.toBeInTheDocument();
   });
 });

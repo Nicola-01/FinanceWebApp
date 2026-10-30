@@ -3,7 +3,9 @@ package dev.busato.FinanceWebApp.backend.CronJob;
 import dev.busato.FinanceWebApp.backend.dto.BudgetStatusResponse;
 import dev.busato.FinanceWebApp.backend.model.Budget;
 import dev.busato.FinanceWebApp.backend.model.BudgetAlertLog;
+import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
+import dev.busato.FinanceWebApp.backend.push.NotificationCopy;
 import dev.busato.FinanceWebApp.backend.repository.BudgetAlertLogRepository;
 import dev.busato.FinanceWebApp.backend.repository.BudgetRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
@@ -11,6 +13,7 @@ import dev.busato.FinanceWebApp.backend.scheduling.JobFrequency;
 import dev.busato.FinanceWebApp.backend.scheduling.ManagedJob;
 import dev.busato.FinanceWebApp.backend.service.BudgetPeriods;
 import dev.busato.FinanceWebApp.backend.service.BudgetService;
+import dev.busato.FinanceWebApp.backend.service.NotificationService;
 import dev.busato.FinanceWebApp.backend.service.SendEmailService;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,9 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Emails wallet members when a budget crosses one of its alert thresholds. One email per (budget,
- * period, threshold), deduplicated via {@link BudgetAlertLog}. Default schedule: hourly (editable
- * in the admin System tab).
+ * Emails wallet members (and pushes to those whose per-wallet prefs allow it) when a budget crosses
+ * one of its alert thresholds. One alert per (budget, period, threshold), deduplicated via {@link
+ * BudgetAlertLog}. Default schedule: hourly (editable in the admin System tab).
  */
 @Slf4j
 @Component
@@ -35,6 +38,7 @@ public class BudgetAlertCronJob implements ManagedJob {
   private final WalletAccessRepository walletAccessRepository;
   private final BudgetService budgetService;
   private final SendEmailService sendEmailService;
+  private final NotificationService notificationService;
 
   @Override
   public String key() {
@@ -72,7 +76,8 @@ public class BudgetAlertCronJob implements ManagedJob {
             budget.getId(), resolution.periodKey(), threshold)) continue;
         try {
           sendEmailService.sendBudgetAlert(
-              budget.getWallet(), resolution.status(), threshold, resolution.recipients());
+              budget.getWallet(), resolution.status(), threshold, resolution.recipientEmails());
+          pushAlert(budget, resolution, threshold);
           alertLogRepository.save(
               BudgetAlertLog.builder()
                   .budget(budget)
@@ -103,15 +108,38 @@ public class BudgetAlertCronJob implements ManagedJob {
     BudgetStatusResponse status = budgetService.computeStatus(budget, today);
     if (!status.isActive() || status.getCrossedThresholds().isEmpty()) return null;
 
-    List<String> recipients = acceptedMemberEmails(budget.getWallet().getId());
-    if (recipients.isEmpty()) return null;
+    List<WalletAccess> members = acceptedMembers(budget.getWallet().getId());
+    if (members.isEmpty()) return null;
 
     String periodKey = BudgetPeriods.currentPeriod(budget, today).key();
-    return new BudgetResolution(status, recipients, periodKey);
+    return new BudgetResolution(status, members, periodKey);
   }
 
   private record BudgetResolution(
-      BudgetStatusResponse status, List<String> recipients, String periodKey) {}
+      BudgetStatusResponse status, List<WalletAccess> members, String periodKey) {
+    List<String> recipientEmails() {
+      return members.stream().map(a -> a.getUser().getEmail()).toList();
+    }
+  }
+
+  /** Push is best-effort: a failure must not re-send the email next run, so it is only logged. */
+  private void pushAlert(Budget budget, BudgetResolution resolution, int threshold) {
+    NotificationCopy.Copy copy =
+        NotificationCopy.budgetAlert(
+            resolution.status().getName(),
+            threshold,
+            budget.getWallet().getName(),
+            budget.getWallet().getId());
+    for (WalletAccess member : resolution.members()) {
+      if (member.isNotificationsMuted() || !member.isNotifyBudgets()) continue;
+      try {
+        notificationService.notifyUser(
+            member.getUser(), NotificationType.BUDGET_ALERT, budget.getWallet().getId(), copy);
+      } catch (Exception e) {
+        log.warn("[BudgetAlertCronJob] Failed to push alert for budget {}", budget.getId(), e);
+      }
+    }
+  }
 
   /**
    * Uses the EAGER (user-fetching) query rather than {@code findAllByWalletId}: this job runs on
@@ -119,11 +147,8 @@ public class BudgetAlertCronJob implements ManagedJob {
    * a lazy {@code a.getUser()} would throw {@link org.hibernate.LazyInitializationException} once
    * the Hibernate session backing the query result is closed.
    */
-  private List<String> acceptedMemberEmails(UUID walletId) {
-    return walletAccessRepository
-        .findAllByWalletIdAndStatus(walletId, WalletAccess.InvitationStatus.ACCEPTED)
-        .stream()
-        .map(a -> a.getUser().getEmail())
-        .toList();
+  private List<WalletAccess> acceptedMembers(UUID walletId) {
+    return walletAccessRepository.findAllByWalletIdAndStatus(
+        walletId, WalletAccess.InvitationStatus.ACCEPTED);
   }
 }

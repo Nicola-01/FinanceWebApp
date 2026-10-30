@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import fs from "fs";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 
@@ -104,6 +105,16 @@ export default defineConfig(({ mode }) => {
       allowedHosts: allowedHosts.length > 0 ? allowedHosts : true,
       host: true,
       port: 5173,
+      // Opt-in local HTTPS (EnableBanking only accepts https redirect URIs).
+      https:
+        env.DEV_HTTPS === "true"
+          ? {
+              key: fs.readFileSync(`${envDirectory}/secrets/dev-https/key.pem`),
+              cert: fs.readFileSync(
+                `${envDirectory}/secrets/dev-https/cert.pem`,
+              ),
+            }
+          : undefined,
     },
     envDir: envDirectory,
   };

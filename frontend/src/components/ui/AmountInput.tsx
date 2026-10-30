@@ -11,6 +11,7 @@ interface AmountInputProps {
   setType: (type: "EXPENSE" | "INCOME" | "") => void;
   onAmountChange: (value: string) => void;
   autoFocus?: boolean;
+  "aria-label"?: string;
 }
 
 export const AmountInput = ({
@@ -21,6 +22,7 @@ export const AmountInput = ({
   setType,
   onAmountChange,
   autoFocus = true,
+  "aria-label": ariaLabel,
 }: AmountInputProps) => {
   const { isMobile, keyboardHeight } = useMobileMath();
   const {
@@ -39,7 +41,7 @@ export const AmountInput = ({
   } = useAmountInput({ value, type, setType, onAmountChange, autoFocus });
 
   return (
-    <div className="relative flex flex-col items-center justify-center w-full">
+    <div className="relative flex flex-col items-center justify-center w-full pt-9">
       {/* Live Preview Bubble */}
       <AnimatePresence>
         {liveResult !== null && (
@@ -47,7 +49,7 @@ export const AmountInput = ({
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute -top-10 left-1/2 -translate-x-1/2 bg-app-surface/95 backdrop-blur-md border border-app-border rounded-full px-4 py-1 text-sm font-app-mono shadow-2xl flex items-center gap-1.5 z-50 whitespace-nowrap"
+            className="absolute top-0 left-1/2 -translate-x-1/2 bg-app-surface/95 backdrop-blur-md border border-app-border rounded-full px-4 py-1 text-sm font-app-mono shadow-2xl flex items-center gap-1.5 z-50 whitespace-nowrap"
           >
             <span className="text-app-muted text-xs">Preview:</span>
             <span
@@ -63,6 +65,7 @@ export const AmountInput = ({
       <div className="flex h-18.75 items-center justify-center gap-2">
         <input
           ref={internalRef}
+          aria-label={ariaLabel}
           className={`font-amount font-app-mono w-[280px] theme-bg-transparent text-center outline-none transition-all duration-200 placeholder:text-app-muted/30 ${textSize} ${color || "text-app-muted opacity-40"}`}
           type="text"
           inputMode="decimal"

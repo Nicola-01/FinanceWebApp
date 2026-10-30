@@ -50,6 +50,19 @@ describe("PendingTransactionsPanel", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("focuses the amount input of the deep-linked row", () => {
+    render(
+      <PendingTransactionsPanel
+        wallet={wallet}
+        pendingTransactions={[pendingTx]}
+        focusId="t1"
+        onFilled={vi.fn()}
+        onOpenDetails={vi.fn()}
+      />,
+    );
+    expect(screen.getByLabelText("Amount for Salary")).toHaveFocus();
+  });
+
   it("submits the amount to the fill endpoint and notifies the parent", async () => {
     const onFilled = vi.fn();
     render(

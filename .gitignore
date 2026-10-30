@@ -58,3 +58,7 @@ docs/superpowers/
 
 # Local secrets (EnableBanking PEM etc.)
 secrets/
+
+frontend/.agents/
+
+frontend/.claude/skills/

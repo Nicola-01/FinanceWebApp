@@ -47,22 +47,10 @@ public class User implements UserDetails {
   @Builder.Default
   private int tokenVersion = 0;
 
-  // --- Global notification preferences (all default ON; per-event-type opt-out) ---
+  // --- Global notification preferences (default ON; activity toggles live on WalletAccess) ---
   @Column(nullable = false, columnDefinition = "boolean default true")
   @Builder.Default
   private boolean notifyInvites = true;
-
-  @Column(nullable = false, columnDefinition = "boolean default true")
-  @Builder.Default
-  private boolean notifyTransactions = true;
-
-  @Column(nullable = false, columnDefinition = "boolean default true")
-  @Builder.Default
-  private boolean notifySubscriptions = true;
-
-  @Column(nullable = false, columnDefinition = "boolean default true")
-  @Builder.Default
-  private boolean notifyRecurringExecutions = true;
 
   /** Opt-in for the monthly summary report email + push (default on; demo users are excluded). */
   @Column(nullable = false, columnDefinition = "boolean default true")

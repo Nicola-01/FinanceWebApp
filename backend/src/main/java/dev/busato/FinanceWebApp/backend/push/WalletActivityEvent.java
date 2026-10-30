@@ -10,7 +10,9 @@ import java.util.UUID;
  *
  * @param tagName nullable — the copy renders "Untagged" when absent
  * @param actorId nullable — null for cron/recurring events, meaning "no actor to exclude"
+ * @param amount null on RECURRING_EXECUTED means a reminder transaction still awaiting its amount
  * @param entityName subscription/transaction name; used by the RECURRING_EXECUTED copy
+ * @param entityId nullable — the transaction id, for a notification that deep-links to it
  */
 public record WalletActivityEvent(
     Notification.NotificationType type,
@@ -21,4 +23,5 @@ public record WalletActivityEvent(
     String actorUsername,
     String tagName,
     BigDecimal amount,
-    String entityName) {}
+    String entityName,
+    UUID entityId) {}

@@ -3,7 +3,7 @@ package dev.busato.FinanceWebApp.backend.controller;
 import dev.busato.FinanceWebApp.backend.dto.WalletDashboardResponse;
 import dev.busato.FinanceWebApp.backend.dto.WalletFullRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletFullResponse;
-import dev.busato.FinanceWebApp.backend.dto.WalletMuteRequest;
+import dev.busato.FinanceWebApp.backend.dto.WalletNotificationPrefsRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletRequest;
 import dev.busato.FinanceWebApp.backend.dto.WalletResponse;
 import dev.busato.FinanceWebApp.backend.dto.WalletTagsResponse;
@@ -80,13 +80,13 @@ public class WalletController {
     return ResponseEntity.ok(walletService.updateWallet(walletID, request, user.getId()));
   }
 
-  /** Mutes/unmutes notifications for the caller's own membership in this wallet. */
-  @PutMapping("/{walletID}/notification-mute")
-  public ResponseEntity<Void> setNotificationMute(
+  /** Sets the notification preferences of the caller's own membership in this wallet. */
+  @PutMapping("/{walletID}/notification-preferences")
+  public ResponseEntity<Void> setNotificationPreferences(
       @PathVariable UUID walletID,
-      @RequestBody WalletMuteRequest request,
+      @RequestBody WalletNotificationPrefsRequest request,
       @AuthenticationPrincipal User user) {
-    notificationPreferenceService.setWalletMute(user.getId(), walletID, request.isMuted());
+    notificationPreferenceService.setWalletPreferences(user.getId(), walletID, request);
     return ResponseEntity.noContent().build();
   }
 }

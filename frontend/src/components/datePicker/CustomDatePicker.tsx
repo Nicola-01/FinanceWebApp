@@ -97,7 +97,7 @@ export default function CustomDatePicker({
       {isOpen && (
         <DatePickerSurface
           isMobile={isMobile}
-          isRange={isRange}
+          withSidebar={isRange && !hideSidebar}
           isDark={isDark}
           mobileDialogRef={mobileDialogRef}
           modalRef={modalRef}

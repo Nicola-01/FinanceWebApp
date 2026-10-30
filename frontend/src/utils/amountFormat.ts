@@ -45,6 +45,8 @@ export const formatAmountString = (
     }
 
     val = sign + numPart;
+  } else if (/^[+-][\d.]/.test(val)) {
+    val = val[0] + "(" + val.slice(1);
   }
 
   return val;

@@ -94,8 +94,8 @@ describe("useAmountInput", () => {
     fireEvent.change(input, { target: { value: "5" } });
     input.setSelectionRange(2, 2);
     fireEvent.click(screen.getByText("plus"));
-    expect(input.value).toBe("-5+");
-    expect(onAmountChange).toHaveBeenLastCalledWith("5+");
+    expect(input.value).toBe("-(5+");
+    expect(onAmountChange).toHaveBeenLastCalledWith("(5+");
   });
 
   it("rewrites the input on external value changes, keeping the sign", () => {

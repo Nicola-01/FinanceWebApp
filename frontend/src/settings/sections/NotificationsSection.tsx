@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import api from "../../api/axiosConfig";
+import Button from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import Toggle from "../../components/ui/Toggle";
 import { triggerToast } from "../../components/ui/ToastNotification";
@@ -9,40 +12,21 @@ import {
   unsubscribeThisDevice,
   type PushEnrollment,
 } from "../../push/pushClient";
+import { WalletNotificationOptions } from "../../push/WalletNotificationOptions";
+import {
+  saveWalletNotificationPrefs,
+  setWalletEnabled,
+  type WalletNotificationPrefs,
+  type WalletPrefsEntry,
+} from "../../push/walletNotifications";
 
-type PrefKey =
-  | "invites"
-  | "transactions"
-  | "subscriptions"
-  | "recurringExecutions"
-  | "monthlyReport"
-  | "yearlyReport";
+type PrefKey = "invites" | "monthlyReport" | "yearlyReport";
 
-interface NotificationPrefs {
-  invites: boolean;
-  transactions: boolean;
-  subscriptions: boolean;
-  recurringExecutions: boolean;
-  monthlyReport: boolean;
-  yearlyReport: boolean;
-}
-
-interface WalletMute {
-  walletId: string;
-  walletName: string;
-  muted: boolean;
-}
+type NotificationPrefs = Record<PrefKey, boolean>;
 
 interface PreferencesResponse extends NotificationPrefs {
-  walletMutes: WalletMute[];
+  wallets: WalletPrefsEntry[];
 }
-
-const GLOBAL_PREFS: { key: PrefKey; label: string }[] = [
-  { key: "invites", label: "Wallet invitations" },
-  { key: "transactions", label: "Transactions in shared wallets" },
-  { key: "subscriptions", label: "Subscriptions in shared wallets" },
-  { key: "recurringExecutions", label: "Recurring executions" },
-];
 
 const REPORT_PREFS: { key: PrefKey; label: string; hint: string }[] = [
   {
@@ -56,10 +40,9 @@ const REPORT_PREFS: { key: PrefKey; label: string; hint: string }[] = [
 /**
  * Settings → Notifications: cards managing all notification preferences —
  *  1. this device's browser subscription (enroll / unenroll),
- *  2. global per-event-type toggles (invites / transactions / subscriptions /
- *     recurring executions),
- *  3. periodic report opt-ins (each gates both the email and its push),
- *  4. per-wallet mute switches.
+ *  2. per-wallet switches (plus the global invitations toggle); an enabled
+ *     wallet expands into its per-event-type options,
+ *  3. periodic report opt-ins (each gates both the email and its push).
  * Outside a wallet, so it uses the brand tokens (no per-wallet accent).
  */
 export const NotificationsSection: React.FC = () => {
@@ -67,7 +50,8 @@ export const NotificationsSection: React.FC = () => {
   const [deviceBusy, setDeviceBusy] = useState(false);
 
   const [prefs, setPrefs] = useState<NotificationPrefs | null>(null);
-  const [walletMutes, setWalletMutes] = useState<WalletMute[]>([]);
+  const [wallets, setWallets] = useState<WalletPrefsEntry[]>([]);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
   useEffect(() => {
     void getEnrollment().then(setEnrollment);
@@ -77,16 +61,13 @@ export const NotificationsSection: React.FC = () => {
         const res = await api.get<PreferencesResponse>(
           "/users/me/notification-preferences",
         );
-        const { walletMutes: mutes, ...rest } = res.data;
+        const { wallets: entries, ...rest } = res.data;
         setPrefs({
           invites: rest.invites,
-          transactions: rest.transactions,
-          subscriptions: rest.subscriptions,
-          recurringExecutions: rest.recurringExecutions,
           monthlyReport: rest.monthlyReport,
           yearlyReport: rest.yearlyReport,
         });
-        setWalletMutes(mutes ?? []);
+        setWallets(entries ?? []);
       } catch {
         triggerToast("Failed to load notification preferences", false);
       }
@@ -135,19 +116,27 @@ export const NotificationsSection: React.FC = () => {
     }
   };
 
-  // ─── Per-wallet mute (optimistic + revert) ─────────────────────────────────
+  // ─── Per-wallet preferences (optimistic + revert) ──────────────────────────
 
-  const handleMuteToggle = async (walletId: string, next: boolean) => {
-    const previous = walletMutes;
-    setWalletMutes((prev) =>
-      prev.map((w) => (w.walletId === walletId ? { ...w, muted: next } : w)),
+  const handleWalletChange = async (
+    walletId: string,
+    next: WalletNotificationPrefs,
+  ) => {
+    const previous = wallets;
+    setWallets((prev) =>
+      prev.map((w) => (w.walletId === walletId ? { ...w, ...next } : w)),
     );
     try {
-      await api.put(`/wallets/${walletId}/notification-mute`, { muted: next });
+      await saveWalletNotificationPrefs(walletId, next);
     } catch {
-      setWalletMutes(previous);
+      setWallets(previous);
       triggerToast("Could not update wallet notifications", false);
     }
+  };
+
+  const handleWalletToggle = (w: WalletPrefsEntry, enabled: boolean) => {
+    setExpanded(enabled ? w.walletId : null);
+    void handleWalletChange(w.walletId, setWalletEnabled(w, enabled));
   };
 
   const deviceDisabled =
@@ -194,25 +183,74 @@ export const NotificationsSection: React.FC = () => {
         )}
       </Card>
 
-      {/* 2. Global per-event-type preferences */}
-      <Card title="What you get notified about">
+      {/* 2. Per-wallet preferences */}
+      <Card title="Wallets">
         <div className="flex flex-col divide-y divide-app-border">
-          {GLOBAL_PREFS.map((pref) => (
-            <div
-              key={pref.key}
-              className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
-            >
-              <span className="text-sm font-medium text-app-text">
-                {pref.label}
+          <div className="flex items-center justify-between gap-4 pb-3">
+            <div className="min-w-0">
+              <span className="block text-sm font-medium text-app-text">
+                Wallet invitations
               </span>
-              <Toggle
-                checked={prefs ? prefs[pref.key] : false}
-                onChange={(nextVal) => handlePrefToggle(pref.key, nextVal)}
-                disabled={!prefs}
-                aria-label={pref.label}
-              />
+              <span className="text-xs text-app-muted">
+                When someone invites you to a wallet
+              </span>
             </div>
-          ))}
+            <Toggle
+              checked={prefs ? prefs.invites : false}
+              onChange={(nextVal) => handlePrefToggle("invites", nextVal)}
+              disabled={!prefs}
+              aria-label="Wallet invitations"
+            />
+          </div>
+
+          {wallets.length === 0 ? (
+            <p className="pt-3 text-sm text-app-muted">
+              You have no wallets yet.
+            </p>
+          ) : (
+            wallets.map((w) => {
+              const enabled = !w.muted;
+              const isOpen = enabled && expanded === w.walletId;
+              return (
+                <div key={w.walletId} className="py-3 last:pb-0">
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-app-text">
+                      {w.walletName}
+                    </span>
+                    {enabled && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setExpanded(isOpen ? null : w.walletId)}
+                        aria-expanded={isOpen}
+                        aria-label={`Options for ${w.walletName}`}
+                      >
+                        <FontAwesomeIcon
+                          icon={faChevronDown}
+                          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                        />
+                      </Button>
+                    )}
+                    <Toggle
+                      checked={enabled}
+                      onChange={(nextVal) => handleWalletToggle(w, nextVal)}
+                      aria-label={`Notifications for ${w.walletName}`}
+                    />
+                  </div>
+                  {isOpen && (
+                    <div className="mt-3 rounded-[var(--r-input)] border border-app-border bg-app-surface px-4 py-3">
+                      <WalletNotificationOptions
+                        prefs={w}
+                        onChange={(next) =>
+                          void handleWalletChange(w.walletId, next)
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       </Card>
 
@@ -242,33 +280,6 @@ export const NotificationsSection: React.FC = () => {
             </div>
           ))}
         </div>
-      </Card>
-
-      {/* 4. Per-wallet mute */}
-      <Card title="Per-wallet">
-        {walletMutes.length === 0 ? (
-          <p className="text-sm text-app-muted">
-            You have no shared wallets yet.
-          </p>
-        ) : (
-          <div className="flex flex-col divide-y divide-app-border">
-            {walletMutes.map((w) => (
-              <div
-                key={w.walletId}
-                className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
-              >
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-app-text">
-                  {w.walletName}
-                </span>
-                <Toggle
-                  checked={w.muted}
-                  onChange={(nextVal) => handleMuteToggle(w.walletId, nextVal)}
-                  label="Mute this wallet"
-                />
-              </div>
-            ))}
-          </div>
-        )}
       </Card>
     </div>
   );

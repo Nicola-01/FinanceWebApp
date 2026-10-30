@@ -7,9 +7,11 @@ import {
 } from "date-fns";
 import { it } from "date-fns/locale";
 import { useWalletContext } from "./wallet/WalletContext.tsx";
+import { isCategorised } from "./wallet/toCategorize.ts";
 
 export const DateRangeBanner: React.FC = () => {
-  const { filteredTransactions } = useWalletContext();
+  const { filteredTransactions: all } = useWalletContext();
+  const filteredTransactions = useMemo(() => all.filter(isCategorised), [all]);
 
   const info = useMemo(() => {
     if (filteredTransactions.length === 0) return null;

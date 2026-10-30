@@ -7,6 +7,8 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   rightSlot?: React.ReactNode;
   /** Red border for validation errors. */
   invalid?: boolean;
+  /** `sm` = compact chip-height field (inline editors). Default `md`. */
+  inputSize?: "sm" | "md";
 }
 
 /**
@@ -15,10 +17,21 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
  * dark tokens from the wrapper.
  */
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ leadingIcon, rightSlot, invalid, className = "", ...props }, ref) => {
+  (
+    {
+      leadingIcon,
+      rightSlot,
+      invalid,
+      inputSize = "md",
+      className = "",
+      ...props
+    },
+    ref,
+  ) => {
+    const sm = inputSize === "sm";
     return (
       <div
-        className={`relative flex items-center rounded-[var(--r-input)] border bg-app-input/70 transition-colors duration-200 ${
+        className={`relative flex items-center ${sm ? "rounded-[var(--r-sm)]" : "rounded-[var(--r-input)]"} border bg-app-input/70 transition-colors duration-200 ${
           invalid
             ? "border-app-red"
             : "border-app-border focus-within:border-[var(--brand-1)] focus-within:ring-1 focus-within:ring-[var(--brand-1)]/50"
@@ -31,9 +44,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
-          className={`w-full bg-transparent py-2.5 text-app-text outline-none placeholder:text-app-muted ${
-            leadingIcon ? "pl-10" : "pl-3.5"
-          } ${rightSlot ? "pr-11" : "pr-3.5"} ${className}`}
+          className={`w-full bg-transparent text-app-text outline-none placeholder:text-app-muted ${
+            sm ? "py-1.5 text-xs" : "py-2.5"
+          } ${leadingIcon ? "pl-10" : sm ? "pl-2.5" : "pl-3.5"} ${
+            rightSlot ? (sm ? "pr-6" : "pr-11") : sm ? "pr-2.5" : "pr-3.5"
+          } ${className}`}
           {...props}
         />
         {rightSlot && (

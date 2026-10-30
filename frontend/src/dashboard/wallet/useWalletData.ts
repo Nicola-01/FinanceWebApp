@@ -74,10 +74,11 @@ export function useWalletData(_wallet: Wallet) {
   const runLoad = async (
     fetcher: () => Promise<WalletDashboardData>,
     signal?: AbortSignal,
+    showSkeleton = true,
   ) => {
     if (!_wallet?.id) return;
     try {
-      setIsLoading(true);
+      if (showSkeleton) setIsLoading(true);
       const data = await fetcher();
       applyData(data);
     } catch (err: unknown) {
@@ -96,9 +97,11 @@ export function useWalletData(_wallet: Wallet) {
   const loadData = (signal?: AbortSignal) =>
     runLoad(() => getWalletData(_wallet.id, signal), signal);
 
-  // Forced reload (exposed on context; used by children after a mutation).
+  // Forced reload (exposed on context; used by children after a mutation). Runs in
+  // the background: data is already on screen, so swapping it for a skeleton would
+  // flash the whole list (e.g. after categorising one import).
   const fetchData = (signal?: AbortSignal) =>
-    runLoad(() => refreshWalletData(_wallet.id, signal), signal);
+    runLoad(() => refreshWalletData(_wallet.id, signal), signal, false);
 
   // Load the pending-ops queue for the active wallet and keep it in sync: any
   // enqueue/replay dispatches SYNC_QUEUE_CHANGED, which re-reads the queue.

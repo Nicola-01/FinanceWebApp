@@ -18,6 +18,8 @@ export function useTransactionFilters() {
   // The input stays bound to `searchQuery` (instant); filtering is driven by a
   // debounced copy so typing stays smooth on large transaction lists.
   const debouncedQuery = useDebounce(searchQuery, 200);
+  // Review mode: list only the imports still to categorise, ignoring every other filter.
+  const [onlyToCategorise, setOnlyToCategorise] = useState(false);
 
   return {
     selectedTags,
@@ -29,6 +31,8 @@ export function useTransactionFilters() {
     searchQuery,
     setSearchQuery,
     debouncedQuery,
+    onlyToCategorise,
+    setOnlyToCategorise,
   };
 }
 
@@ -57,7 +61,11 @@ export function filterTransactions(
   return transactions.filter((tx) => {
     // Pending (amount-less) rows live only in the pinned panel, never in the normal list.
     if (tx.amountPending) return false;
-    if (!currentActiveTags.includes(tx.tag.name)) return false;
+    // The "To categorise" placeholder is never among `tags`: show those rows unless the user
+    // narrowed the list to specific categories.
+    if (tx.needsReview) {
+      if (selectedTags !== null) return false;
+    } else if (!currentActiveTags.includes(tx.tag.name)) return false;
 
     // Free-text search over the transaction name, its tag and notes.
     if (q) {

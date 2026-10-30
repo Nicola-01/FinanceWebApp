@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 
 export interface DatePickerSurfaceProps {
   isMobile: boolean;
-  isRange: boolean;
+  /** Range picker with the preset sidebar — sized wider to fit both columns. */
+  withSidebar: boolean;
   isDark: boolean;
   mobileDialogRef: React.RefObject<HTMLDialogElement | null>;
   modalRef: React.RefObject<HTMLDivElement | null>;
@@ -21,7 +22,7 @@ const borderMain = "border-app-border";
  */
 export default function DatePickerSurface({
   isMobile,
-  isRange,
+  withSidebar,
   isDark,
   mobileDialogRef,
   modalRef,
@@ -65,7 +66,7 @@ export default function DatePickerSurface({
   return (
     <div
       ref={modalRef}
-      className={`absolute ${positionClasses} ${alignClasses} transform rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] ${isRange ? "w-[380px] sm:w-auto sm:min-w-[550px]" : "w-[320px]"} overflow-hidden ${bgMain} ${borderMain}`}
+      className={`absolute ${positionClasses} ${alignClasses} transform rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] ${withSidebar ? "w-[380px] sm:w-auto sm:min-w-[550px]" : "w-[320px]"} overflow-hidden ${bgMain} ${borderMain}`}
     >
       {children}
     </div>

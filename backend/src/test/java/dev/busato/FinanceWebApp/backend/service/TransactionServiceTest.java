@@ -17,6 +17,7 @@ import dev.busato.FinanceWebApp.backend.dto.TransactionFillRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionRequest;
 import dev.busato.FinanceWebApp.backend.dto.TransactionResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
+import dev.busato.FinanceWebApp.backend.exceptions.TagNotFoundException;
 import dev.busato.FinanceWebApp.backend.exceptions.WalletNotFoundException;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.mappers.TransactionMapper;
@@ -431,19 +432,36 @@ class TransactionServiceTest {
   }
 
   @Test
+  void updateCannotAssignPlaceholderTag() {
+    Tag placeholder = Tag.builder().id(UUID.randomUUID()).placeholder(true).build();
+    Transaction tx = new Transaction();
+    tx.setName("Groceries");
+    tx.setTag(Tag.builder().id(UUID.randomUUID()).build());
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(tx));
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("To categorise", walletId))
+        .thenReturn(Optional.of(placeholder));
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setTag("To categorise");
+
+    assertThrows(
+        TagNotFoundException.class,
+        () -> transactionService.updateTransaction(transactionId, request, walletId, userId));
+  }
+
+  @Test
   void editWithoutTagChangeKeepsNeedsReview() {
-    Tag same = new Tag();
-    same.setId(UUID.randomUUID());
+    Tag same = Tag.builder().id(UUID.randomUUID()).placeholder(true).build();
     Transaction tx = new Transaction();
     tx.setName("Imp");
     tx.setTag(same);
     tx.setNeedsReview(true);
     when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
         .thenReturn(Optional.of(tx));
-    when(tagRepository.findByNameIgnoreCaseAndWalletId("To categorize", walletId))
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("To categorise", walletId))
         .thenReturn(Optional.of(same));
     TransactionRequest request = TransactionRequest.builder().build();
-    request.setTag("To categorize");
+    request.setTag("To categorise");
     request.setName("Renamed");
 
     transactionService.updateTransaction(transactionId, request, walletId, userId);

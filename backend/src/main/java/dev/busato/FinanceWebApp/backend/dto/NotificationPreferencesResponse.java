@@ -7,7 +7,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** The caller's global notification toggles plus one mute flag per accepted wallet membership. */
+/**
+ * The caller's global notification toggles plus the per-wallet preferences of each accepted
+ * membership.
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -15,20 +18,21 @@ import lombok.NoArgsConstructor;
 public class NotificationPreferencesResponse {
 
   private boolean invites;
-  private boolean transactions;
-  private boolean subscriptions;
-  private boolean recurringExecutions;
   private boolean monthlyReport;
   private boolean yearlyReport;
-  private List<WalletMute> walletMutes;
+  private List<WalletPrefs> wallets;
 
   @Data
   @Builder
   @NoArgsConstructor
   @AllArgsConstructor
-  public static class WalletMute {
+  public static class WalletPrefs {
     private UUID walletId;
     private String walletName;
     private boolean muted;
+    private boolean transactions;
+    private boolean subscriptions;
+    private boolean recurringExecutions;
+    private boolean budgets;
   }
 }
