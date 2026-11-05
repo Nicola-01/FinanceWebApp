@@ -4,6 +4,7 @@
 // through the matching bulk import endpoint.
 
 import { parseCsv } from "../../utils/parseCsv";
+import type { Weekday } from "../../types/domain";
 
 /** One documented CSV column: its exact header and a short human hint. */
 export interface CsvColumn {
@@ -54,6 +55,9 @@ export interface SubscriptionRequest {
   frequencyInterval: number;
   monthlySpecificDay?: number;
   lastWorkingDayOfMonth: boolean;
+  monthlyWorkingDay?: number;
+  monthlyWeekday?: Weekday;
+  monthlyWeekdayOrdinal?: number;
   duration: DurationType;
   durationTimes?: number;
   durationUntil?: string;
@@ -97,7 +101,11 @@ export const SUBSCRIPTION_COLUMNS: CsvColumn[] = [
   { key: "StartDate", hint: "ISO date — YYYY-MM-DD" },
   { key: "FrequencyType", hint: "DAILY, WEEKLY, MONTHLY or YEARLY" },
   { key: "FrequencyInterval", hint: "Every N periods" },
-  { key: "MonthlySpecificDay", hint: "Day of month 1–31", optional: true },
+  {
+    key: "MonthlySpecificDay",
+    hint: "Day of month 1–31, or -1 (last) … -28 from the end",
+    optional: true,
+  },
   { key: "LastWorkingDayOfMonth", hint: "true or false" },
   { key: "Duration", hint: "FOREVER, TIMES or UNTIL" },
   { key: "DurationTimes", hint: "Occurrences when TIMES", optional: true },
@@ -107,6 +115,17 @@ export const SUBSCRIPTION_COLUMNS: CsvColumn[] = [
   { key: "ExchangeValue", hint: "Rate to wallet currency", optional: true },
   { key: "AutoExchangeRate", hint: "true or false" },
   { key: "Notes", hint: "Free text", optional: true },
+  {
+    key: "MonthlyWorkingDay",
+    hint: "Nth working day 1–20, or -1 (last) … -20",
+    optional: true,
+  },
+  { key: "MonthlyWeekday", hint: "MONDAY … SUNDAY", optional: true },
+  {
+    key: "MonthlyWeekdayOrdinal",
+    hint: "With MonthlyWeekday: 1–4, or -1 (last) … -4",
+    optional: true,
+  },
 ];
 
 // --- Cell coercion helpers --------------------------------------------------
@@ -188,6 +207,15 @@ export function rowToSubscriptionRequest(row: string[]): SubscriptionRequest {
   const monthlySpecificDay = optionalNumber(row[8]);
   if (monthlySpecificDay !== undefined)
     req.monthlySpecificDay = monthlySpecificDay;
+  const monthlyWorkingDay = optionalNumber(row[18]);
+  if (monthlyWorkingDay !== undefined)
+    req.monthlyWorkingDay = monthlyWorkingDay;
+  const monthlyWeekday = optionalTrimmed(row[19]);
+  if (monthlyWeekday !== undefined)
+    req.monthlyWeekday = monthlyWeekday.toUpperCase() as Weekday;
+  const monthlyWeekdayOrdinal = optionalNumber(row[20]);
+  if (monthlyWeekdayOrdinal !== undefined)
+    req.monthlyWeekdayOrdinal = monthlyWeekdayOrdinal;
   const durationTimes = optionalNumber(row[11]);
   if (durationTimes !== undefined) req.durationTimes = durationTimes;
   const durationUntil = optionalTrimmed(row[12]);

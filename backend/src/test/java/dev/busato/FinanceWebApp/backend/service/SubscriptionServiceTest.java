@@ -29,6 +29,7 @@ import dev.busato.FinanceWebApp.backend.repository.UserRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -351,10 +352,7 @@ class SubscriptionServiceTest {
 
     Subscription saved = captor.getValue();
     // Last day of Mar 2024 is Mar 31 (Sunday), so last working day is Mar 29 (Friday)
-    assertEquals(
-        LocalDate.of(2024, 3, 1),
-        saved.getNextExecutionDate()); // Code bug: applyMonthlyRules not applied for future start
-    // dates
+    assertEquals(LocalDate.of(2024, 3, 29), saved.getNextExecutionDate());
   }
 
   @Test
@@ -1238,6 +1236,145 @@ class SubscriptionServiceTest {
     Subscription saved = captor.getValue();
     // Feb 2024 has 29 days (leap year), so 31 should be capped to 29
     assertEquals(LocalDate.of(2024, 2, 29), saved.getNextExecutionDate());
+  }
+
+  // ==================== advanced monthly rules ====================
+
+  /** Creates a monthly subscription (clock fixed at 2024-02-15) and returns its next date. */
+  private LocalDate nextDateFor(
+      LocalDate start, java.util.function.Consumer<SubscriptionRequest> rule) {
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setName("Rule");
+    request.setAmount(new BigDecimal("100.00"));
+    request.setType("INCOME");
+    request.setFrequencyType("MONTHLY");
+    request.setFrequencyInterval(1);
+    request.setStartDate(start);
+    request.setDuration("FOREVER");
+    rule.accept(request);
+
+    lenient().when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    lenient()
+        .when(subscriptionRepository.save(any(Subscription.class)))
+        .thenAnswer(i -> i.getArgument(0));
+    lenient()
+        .when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+    verify(subscriptionRepository, atLeastOnce()).save(captor.capture());
+    return captor.getValue().getNextExecutionDate();
+  }
+
+  @Test
+  void createSubscription_SecondTuesday_SkipsPastOccurrenceToNextMonth() {
+    // Feb 13 is already past, so the next 2nd Tuesday is March 12
+    assertEquals(
+        LocalDate.of(2024, 3, 12),
+        nextDateFor(
+            LocalDate.of(2024, 2, 1),
+            r -> {
+              r.setMonthlyWeekday(DayOfWeek.TUESDAY);
+              r.setMonthlyWeekdayOrdinal(2);
+            }));
+  }
+
+  @Test
+  void createSubscription_LastFriday() {
+    assertEquals(
+        LocalDate.of(2024, 2, 23),
+        nextDateFor(
+            LocalDate.of(2024, 2, 1),
+            r -> {
+              r.setMonthlyWeekday(DayOfWeek.FRIDAY);
+              r.setMonthlyWeekdayOrdinal(-1);
+            }));
+  }
+
+  @Test
+  void createSubscription_SecondToLastDay() {
+    // Feb 2024 has 29 days
+    assertEquals(
+        LocalDate.of(2024, 2, 28),
+        nextDateFor(LocalDate.of(2024, 2, 1), r -> r.setMonthlySpecificDay(-2)));
+  }
+
+  @Test
+  void createSubscription_LastWorkingDay_FutureStartSnapsToRule() {
+    // March 31 2024 is a Sunday → Friday 29
+    assertEquals(
+        LocalDate.of(2024, 3, 29),
+        nextDateFor(LocalDate.of(2024, 3, 1), r -> r.setMonthlyWorkingDay(-1)));
+  }
+
+  @Test
+  void createSubscription_FirstWorkingDay_SkipsWeekend() {
+    // June 1 2024 is a Saturday → Monday 3
+    assertEquals(
+        LocalDate.of(2024, 6, 3),
+        nextDateFor(LocalDate.of(2024, 6, 1), r -> r.setMonthlyWorkingDay(1)));
+  }
+
+  @Test
+  void createSubscription_RuleBeforeFutureStart_MovesToNextMonth() {
+    // 1st Monday of March (4th) precedes the start date → April 1
+    assertEquals(
+        LocalDate.of(2024, 4, 1),
+        nextDateFor(
+            LocalDate.of(2024, 3, 20),
+            r -> {
+              r.setMonthlyWeekday(DayOfWeek.MONDAY);
+              r.setMonthlyWeekdayOrdinal(1);
+            }));
+  }
+
+  @Test
+  void createSubscription_InvalidMonthlyRules_Throw() {
+    LocalDate start = LocalDate.of(2024, 3, 1);
+    assertThrows(
+        IllegalArgumentException.class, () -> nextDateFor(start, r -> r.setMonthlySpecificDay(0)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> nextDateFor(start, r -> r.setMonthlySpecificDay(-29)));
+    assertThrows(
+        IllegalArgumentException.class, () -> nextDateFor(start, r -> r.setMonthlyWorkingDay(21)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> nextDateFor(start, r -> r.setMonthlyWeekday(DayOfWeek.MONDAY)));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            nextDateFor(
+                start,
+                r -> {
+                  r.setMonthlyWeekday(DayOfWeek.MONDAY);
+                  r.setMonthlyWeekdayOrdinal(5);
+                }));
+  }
+
+  @Test
+  void updateSubscription_ChangingWeekdayRule_RecalculatesNextDate() {
+    Subscription existing = baseMonthlySub();
+    when(subscriptionRepository.findByIdAndWalletId(existing.getId(), walletId))
+        .thenReturn(Optional.of(existing));
+    when(subscriptionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setFrequencyType("MONTHLY");
+    request.setFrequencyInterval(1);
+    request.setDuration("FOREVER");
+    request.setMonthlyWeekday(DayOfWeek.MONDAY);
+    request.setMonthlyWeekdayOrdinal(-1);
+
+    subscriptionService.updateSubscription(existing.getId(), request, walletId, userId);
+
+    // Last Monday of February 2024 is the 26th
+    assertEquals(LocalDate.of(2024, 2, 26), existing.getNextExecutionDate());
+    assertEquals(DayOfWeek.MONDAY, existing.getMonthlyWeekday());
   }
 
   // ==================== reminder (amount-less) subscriptions ====================

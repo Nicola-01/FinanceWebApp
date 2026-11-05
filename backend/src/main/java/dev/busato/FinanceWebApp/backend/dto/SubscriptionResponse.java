@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.dto;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -32,6 +33,9 @@ public class SubscriptionResponse {
   private int frequencyInterval;
   private Integer monthlySpecificDay;
   private boolean lastWorkingDayOfMonth;
+  private Integer monthlyWorkingDay;
+  private DayOfWeek monthlyWeekday;
+  private Integer monthlyWeekdayOrdinal;
 
   private String duration;
   private Integer durationTimes;

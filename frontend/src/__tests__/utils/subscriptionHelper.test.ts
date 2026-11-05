@@ -3,6 +3,8 @@ import { isWeekend, format, lastDayOfMonth } from "date-fns";
 import {
   buildYearsMap,
   getLastWorkingDayOfMonth,
+  getNthWorkingDayOfMonth,
+  getNthWeekdayOfMonth,
   applyMonthlyRules,
   advanceByOneInterval,
   generateSubscriptionOccurrences,
@@ -308,5 +310,57 @@ describe("applyTransactionToSubscription", () => {
       exchangeValue: 1,
     });
     expect(sub.amount).toBe(10);
+  });
+});
+
+describe("advanced monthly rules", () => {
+  const ymd = (d: Date) => format(d, "yyyy-MM-dd");
+
+  it("nth weekday: 2nd Tuesday, last Friday, 2nd to last Monday", () => {
+    const nov = new Date(2026, 10, 15);
+    expect(ymd(getNthWeekdayOfMonth(nov, "TUESDAY", 2))).toBe("2026-11-10");
+    expect(ymd(getNthWeekdayOfMonth(nov, "FRIDAY", -1))).toBe("2026-11-27");
+    expect(ymd(getNthWeekdayOfMonth(nov, "MONDAY", -2))).toBe("2026-11-23");
+  });
+
+  it("nth working day skips weekends from either end", () => {
+    // Oct 31 2026 is a Saturday → last working day Fri 30
+    expect(ymd(getNthWorkingDayOfMonth(new Date(2026, 9, 5), -1))).toBe(
+      "2026-10-30",
+    );
+    // Nov 1 2026 is a Sunday → 1st working day Mon 2, 2nd Tue 3
+    expect(ymd(getNthWorkingDayOfMonth(new Date(2026, 10, 20), 2))).toBe(
+      "2026-11-03",
+    );
+  });
+
+  it("applyMonthlyRules handles negative day-of-month and new rules", () => {
+    const feb = new Date(2024, 1, 10);
+    expect(
+      ymd(applyMonthlyRules(makeSub({ monthlySpecificDay: -2 }), feb)),
+    ).toBe("2024-02-28");
+    expect(ymd(applyMonthlyRules(makeSub({ monthlyWorkingDay: 1 }), feb))).toBe(
+      "2024-02-01",
+    );
+    expect(
+      ymd(
+        applyMonthlyRules(
+          makeSub({ monthlyWeekday: "THURSDAY", monthlyWeekdayOrdinal: -1 }),
+          feb,
+        ),
+      ),
+    ).toBe("2024-02-29");
+  });
+
+  it("first occurrence before the start date moves to the next month", () => {
+    const sub = makeSub({
+      startDate: "2026-03-20",
+      monthlyWeekday: "MONDAY",
+      monthlyWeekdayOrdinal: 1,
+      duration: "FOREVER",
+    });
+    expect(ymd(generateSubscriptionOccurrences(sub, 2026, 2026)[0])).toBe(
+      "2026-04-06",
+    );
   });
 });

@@ -8,6 +8,8 @@ import CustomDatePicker from "../../components/datePicker/CustomDatePicker";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { CustomSelect } from "../../components/ui/CustomSelect.tsx";
 import { FieldLabel } from "../../components/ui/FieldLabel";
+import { MonthlyRulePicker } from "./MonthlyRulePicker";
+import type { MonthlyRule } from "../../utils/monthlyRule";
 
 export type FrequencyType = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 export type DurationType = "FOREVER" | "TIMES" | "UNTIL";
@@ -30,6 +32,11 @@ export interface SchedulingRulesProps {
   onStatusChange?: (value: SubscriptionStatus) => void;
   /** Accent colour (hex) for the selects + active status pill. */
   accentColor?: string;
+  /** Monthly "on which day" rule; the picker shows for MONTHLY when provided. */
+  monthlyRule?: MonthlyRule;
+  onMonthlyRuleChange?: (rule: MonthlyRule) => void;
+  /** Start date the monthly rule defaults and preview are derived from. */
+  startDate?: Date;
 }
 
 /**
@@ -53,6 +60,9 @@ export function SchedulingRules({
   status,
   onStatusChange,
   accentColor,
+  monthlyRule,
+  onMonthlyRuleChange,
+  startDate,
 }: SchedulingRulesProps) {
   return (
     <div className="bg-app-input/50 border border-app-border rounded-xl p-4 flex flex-col gap-4">
@@ -140,6 +150,19 @@ export function SchedulingRules({
           </div>
         </div>
       </div>
+
+      {frequencyType === "MONTHLY" &&
+        monthlyRule &&
+        onMonthlyRuleChange &&
+        startDate && (
+          <MonthlyRulePicker
+            rule={monthlyRule}
+            onChange={onMonthlyRuleChange}
+            startDate={startDate}
+            frequencyInterval={frequencyInterval}
+            accentColor={accentColor}
+          />
+        )}
 
       {showStatus && (
         <div>

@@ -87,6 +87,9 @@ export const SubscriptionDetailsModal = forwardRef<
         frequencyInterval: sub.frequencyInterval,
         monthlySpecificDay: sub.monthlySpecificDay,
         lastWorkingDayOfMonth: sub.lastWorkingDayOfMonth,
+        monthlyWorkingDay: sub.monthlyWorkingDay,
+        monthlyWeekday: sub.monthlyWeekday,
+        monthlyWeekdayOrdinal: sub.monthlyWeekdayOrdinal,
         duration: "UNTIL",
         durationUntil: formattedDate,
       };

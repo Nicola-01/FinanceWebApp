@@ -28,6 +28,7 @@ import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -305,12 +307,16 @@ public class SubscriptionService {
                 request.getFrequencyInterval() > 0 ? request.getFrequencyInterval() : 1)
             .monthlySpecificDay(request.getMonthlySpecificDay())
             .lastWorkingDayOfMonth(request.isLastWorkingDayOfMonth())
+            .monthlyWorkingDay(request.getMonthlyWorkingDay())
+            .monthlyWeekday(request.getMonthlyWeekday())
+            .monthlyWeekdayOrdinal(request.getMonthlyWeekdayOrdinal())
             .duration(Subscription.Duration.valueOf(request.getDuration()))
             .durationTimes(request.getDurationTimes())
             .durationUntil(request.getDurationUntil())
             .executedTimes(0)
             .build();
 
+    validateMonthlyRules(sub);
     sub.setNextExecutionDate(calculateNextExecutionDate(sub, sub.getStartDate(), false));
 
     // Immediate catch-up execution on create/import must NOT emit a recurring-execution
@@ -476,10 +482,17 @@ public class SubscriptionService {
       sub.setFrequencyInterval(request.getFrequencyInterval());
       recalculateDate = true;
     }
-    if (request.getMonthlySpecificDay() != sub.getMonthlySpecificDay()
-        || request.isLastWorkingDayOfMonth() != sub.isLastWorkingDayOfMonth()) {
+    if (!Objects.equals(request.getMonthlySpecificDay(), sub.getMonthlySpecificDay())
+        || request.isLastWorkingDayOfMonth() != sub.isLastWorkingDayOfMonth()
+        || !Objects.equals(request.getMonthlyWorkingDay(), sub.getMonthlyWorkingDay())
+        || request.getMonthlyWeekday() != sub.getMonthlyWeekday()
+        || !Objects.equals(request.getMonthlyWeekdayOrdinal(), sub.getMonthlyWeekdayOrdinal())) {
       sub.setMonthlySpecificDay(request.getMonthlySpecificDay());
       sub.setLastWorkingDayOfMonth(request.isLastWorkingDayOfMonth());
+      sub.setMonthlyWorkingDay(request.getMonthlyWorkingDay());
+      sub.setMonthlyWeekday(request.getMonthlyWeekday());
+      sub.setMonthlyWeekdayOrdinal(request.getMonthlyWeekdayOrdinal());
+      validateMonthlyRules(sub);
       recalculateDate = true;
     }
 
@@ -668,18 +681,38 @@ public class SubscriptionService {
   // =========================================================================
 
   /**
-   * Finds the last working day (Monday to Friday) of a given month.
-   *
-   * @param referenceDate A date within the target month
-   * @return The LocalDate representing the last working day
+   * Finds the n-th working day (Monday to Friday) of a month: n > 0 counts from the first day, n <
+   * 0 from the last (-1 = last working day). Every month has at least 20 working days.
    */
-  private LocalDate getLastWorkingDayOfMonth(LocalDate referenceDate) {
-    LocalDate lastDay = referenceDate.withDayOfMonth(referenceDate.lengthOfMonth());
-    while (lastDay.getDayOfWeek() == DayOfWeek.SATURDAY
-        || lastDay.getDayOfWeek() == DayOfWeek.SUNDAY) {
-      lastDay = lastDay.minusDays(1);
+  private LocalDate getNthWorkingDayOfMonth(LocalDate referenceDate, int n) {
+    int step = n > 0 ? 1 : -1;
+    LocalDate day =
+        n > 0
+            ? referenceDate.withDayOfMonth(1)
+            : referenceDate.withDayOfMonth(referenceDate.lengthOfMonth());
+    int remaining = Math.abs(n);
+    while (true) {
+      if (day.getDayOfWeek() != DayOfWeek.SATURDAY
+          && day.getDayOfWeek() != DayOfWeek.SUNDAY
+          && --remaining == 0) return day;
+      day = day.plusDays(step);
     }
-    return lastDay;
+  }
+
+  /** Rejects monthly rules whose ordinal would not exist in every month. */
+  private void validateMonthlyRules(Subscription sub) {
+    Integer day = sub.getMonthlySpecificDay();
+    if (day != null && (day == 0 || day > 31 || day < -28))
+      throw new IllegalArgumentException("monthlySpecificDay must be 1..31 or -1..-28");
+    Integer workingDay = sub.getMonthlyWorkingDay();
+    if (workingDay != null && (workingDay == 0 || Math.abs(workingDay) > 20))
+      throw new IllegalArgumentException("monthlyWorkingDay must be 1..20 or -1..-20");
+    Integer ordinal = sub.getMonthlyWeekdayOrdinal();
+    if ((ordinal == null) != (sub.getMonthlyWeekday() == null))
+      throw new IllegalArgumentException(
+          "monthlyWeekday and monthlyWeekdayOrdinal must be set together");
+    if (ordinal != null && (ordinal == 0 || Math.abs(ordinal) > 4))
+      throw new IllegalArgumentException("monthlyWeekdayOrdinal must be 1..4 or -1..-4");
   }
 
   /**
@@ -701,8 +734,11 @@ public class SubscriptionService {
     // 2. FINAL MICRO-ADJUSTMENT: Step forward interval by interval until the date is in the future
     // Note: nextDate is already close to 'today', so this loop runs 1-2 times max.
 
-    while (nextDate.isBefore(today) || (avoidToday && nextDate.isEqual(today)))
-      nextDate = advanceByOneInterval(sub, nextDate);
+    // A monthly rule can land before the reference date (e.g. "1st Monday" with a mid-month
+    // start): skip those too.
+    while (nextDate.isBefore(today)
+        || nextDate.isBefore(lastExecutionDate)
+        || (avoidToday && nextDate.isEqual(today))) nextDate = advanceByOneInterval(sub, nextDate);
 
     return nextDate;
   }
@@ -713,7 +749,7 @@ public class SubscriptionService {
    */
   private LocalDate applyFastForward(Subscription sub, LocalDate startDate, LocalDate today) {
     long daysBetween = ChronoUnit.DAYS.between(startDate, today);
-    if (daysBetween <= 0) return startDate;
+    if (daysBetween <= 0) return applyMonthlyRules(sub, startDate);
 
     int interval = sub.getFrequencyInterval();
     LocalDate nextDate = startDate;
@@ -768,14 +804,24 @@ public class SubscriptionService {
       return date; // Skip if not a monthly subscription
     }
 
-    if (sub.isLastWorkingDayOfMonth()) {
-      return getLastWorkingDayOfMonth(date);
+    Integer workingDay =
+        sub.isLastWorkingDayOfMonth() ? Integer.valueOf(-1) : sub.getMonthlyWorkingDay();
+    if (workingDay != null) {
+      return getNthWorkingDayOfMonth(date, workingDay);
+    }
+
+    if (sub.getMonthlyWeekday() != null && sub.getMonthlyWeekdayOrdinal() != null) {
+      // dayOfWeekInMonth handles negative ordinals (-1 = last) natively.
+      return date.with(
+          TemporalAdjusters.dayOfWeekInMonth(
+              sub.getMonthlyWeekdayOrdinal(), sub.getMonthlyWeekday()));
     }
 
     if (sub.getMonthlySpecificDay() != null) {
       int maxDays = date.lengthOfMonth();
-      int targetDay = Math.min(sub.getMonthlySpecificDay(), maxDays); // Cap at max days of month
-      return date.withDayOfMonth(targetDay);
+      int day = sub.getMonthlySpecificDay();
+      // Positive: cap at max days of month; negative: count back from the last day.
+      return date.withDayOfMonth(day > 0 ? Math.min(day, maxDays) : maxDays + 1 + day);
     }
 
     return date;

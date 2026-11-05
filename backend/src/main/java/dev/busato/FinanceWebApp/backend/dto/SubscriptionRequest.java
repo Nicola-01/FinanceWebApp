@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.dto;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -37,6 +38,9 @@ public class SubscriptionRequest {
   // Opzioni avanzate (possono essere null)
   private Integer monthlySpecificDay;
   private boolean lastWorkingDayOfMonth;
+  private Integer monthlyWorkingDay;
+  private DayOfWeek monthlyWeekday;
+  private Integer monthlyWeekdayOrdinal;
 
   // Regole di Durata
   private String duration; // FOREVER, TIMES, UNTIL
