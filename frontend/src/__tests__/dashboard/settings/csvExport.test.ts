@@ -108,7 +108,7 @@ describe("row builders", () => {
       autoExchangeRate: true,
     } as unknown as Subscription;
     const [header, row] = subscriptionsCsvRows([sub]);
-    expect(header).toHaveLength(18);
+    expect(header).toHaveLength(21);
     expect(row).toEqual([
       "Netflix",
       "",
@@ -127,6 +127,9 @@ describe("row builders", () => {
       "",
       "",
       "true",
+      "",
+      "",
+      "",
       "",
     ]);
   });

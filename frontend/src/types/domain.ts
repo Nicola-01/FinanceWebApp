@@ -73,6 +73,15 @@ export interface Invitation {
   wallet: Wallet;
 }
 
+export type Weekday =
+  | "MONDAY"
+  | "TUESDAY"
+  | "WEDNESDAY"
+  | "THURSDAY"
+  | "FRIDAY"
+  | "SATURDAY"
+  | "SUNDAY";
+
 export interface Subscription {
   id: string;
   name: string;
@@ -95,6 +104,9 @@ export interface Subscription {
   frequencyInterval: number;
   monthlySpecificDay?: number;
   lastWorkingDayOfMonth: boolean;
+  monthlyWorkingDay?: number | null;
+  monthlyWeekday?: Weekday | null;
+  monthlyWeekdayOrdinal?: number | null;
 
   duration: "FOREVER" | "TIMES" | "UNTIL";
   durationTimes?: number;

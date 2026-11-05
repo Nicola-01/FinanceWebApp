@@ -1,5 +1,6 @@
 import type { Subscription } from "../../types/domain";
 import { toLocalIsoDate } from "../../utils/localDate";
+import { monthlyRulePayload, type MonthlyRule } from "../../utils/monthlyRule";
 
 export interface ScheduleFields {
   status: Subscription["status"];
@@ -9,6 +10,8 @@ export interface ScheduleFields {
   duration: Subscription["duration"];
   durationTimes: number;
   durationUntil: Date | null;
+  /** Omitted by callers without a rule editor (the API then gets no rule). */
+  monthlyRule?: MonthlyRule;
 }
 
 /**
@@ -26,4 +29,6 @@ export const buildSchedulePayload = (f: ScheduleFields) => ({
     f.duration === "UNTIL" && f.durationUntil
       ? toLocalIsoDate(f.durationUntil)
       : null,
+  ...(f.monthlyRule &&
+    monthlyRulePayload(f.monthlyRule, f.frequencyType, f.startDate)),
 });

@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.model;
 import dev.busato.FinanceWebApp.backend.persistence.AssignableUuidV7;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -111,8 +112,21 @@ public class Subscription {
   private int frequencyInterval = 1; // "Ogni N" (es. 1 = ogni mese, 2 = ogni 2 settimane)
 
   // Opzioni avanzate (popolate solo se la logica lo richiede)
-  private Integer monthlySpecificDay; // es. 24 (esegui il 24 di ogni mese)
-  private boolean lastWorkingDayOfMonth; // es. true (esegui l'ultimo giorno feriale del mese)
+  // Day of month: 1..31 counts from the start (capped to month length), -1..-28 from the end
+  // (-1 = last day).
+  private Integer monthlySpecificDay;
+
+  // Legacy flag, equivalent to monthlyWorkingDay = -1.
+  private boolean lastWorkingDayOfMonth;
+
+  // N-th working day (Mon-Fri) of the month: 1..20 from the start, -1..-20 from the end.
+  private Integer monthlyWorkingDay;
+
+  // N-th weekday of the month (e.g. 2nd Tuesday): ordinal 1..4 from the start, -1..-4 from the end.
+  @Enumerated(EnumType.STRING)
+  private DayOfWeek monthlyWeekday;
+
+  private Integer monthlyWeekdayOrdinal;
 
   // --- LIMITI DI DURATA (Ottima la tua intuizione qui!) ---
 

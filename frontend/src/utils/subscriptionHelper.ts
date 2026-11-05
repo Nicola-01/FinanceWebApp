@@ -12,12 +12,24 @@ import {
   subDays,
   getDaysInMonth,
   setDate,
+  startOfMonth,
   parseISO,
   differenceInDays,
   differenceInMonths,
   differenceInYears,
 } from "date-fns";
-import type { Subscription, Transaction } from "../types/domain";
+import type { Subscription, Transaction, Weekday } from "../types/domain";
+
+// Indexed like Date.getDay() (0 = Sunday).
+export const WEEKDAYS: Weekday[] = [
+  "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+];
 
 // Last business day of the month.
 export const getLastWorkingDayOfMonth = (date: Date): Date => {
@@ -28,18 +40,54 @@ export const getLastWorkingDayOfMonth = (date: Date): Date => {
   return lastDay;
 };
 
-// Apply the monthly rules (e.g. last business day, specific day).
+// N-th business day of the month: n > 0 from the start, n < 0 from the end.
+export const getNthWorkingDayOfMonth = (date: Date, n: number): Date => {
+  const step = n > 0 ? 1 : -1;
+  let day = n > 0 ? startOfMonth(date) : lastDayOfMonth(date);
+  let remaining = Math.abs(n);
+  for (;;) {
+    if (!isWeekend(day) && --remaining === 0) return day;
+    day = addDays(day, step);
+  }
+};
+
+// N-th given weekday of the month (e.g. 2nd Tuesday, -1 = last Friday).
+export const getNthWeekdayOfMonth = (
+  date: Date,
+  weekday: Weekday,
+  n: number,
+): Date => {
+  const target = WEEKDAYS.indexOf(weekday);
+  if (n > 0) {
+    const first = startOfMonth(date);
+    return addDays(first, ((target - first.getDay() + 7) % 7) + (n - 1) * 7);
+  }
+  const last = lastDayOfMonth(date);
+  return subDays(last, ((last.getDay() - target + 7) % 7) + (-n - 1) * 7);
+};
+
+// Apply the monthly rules (mirrors SubscriptionService.applyMonthlyRules).
 export const applyMonthlyRules = (sub: Subscription, date: Date): Date => {
   if (sub.frequencyType !== "MONTHLY") return date;
 
-  if (sub.lastWorkingDayOfMonth) {
-    return getLastWorkingDayOfMonth(date);
+  const workingDay = sub.lastWorkingDayOfMonth ? -1 : sub.monthlyWorkingDay;
+  if (workingDay) {
+    return getNthWorkingDayOfMonth(date, workingDay);
+  }
+
+  if (sub.monthlyWeekday && sub.monthlyWeekdayOrdinal) {
+    return getNthWeekdayOfMonth(
+      date,
+      sub.monthlyWeekday,
+      sub.monthlyWeekdayOrdinal,
+    );
   }
 
   if (sub.monthlySpecificDay) {
     const maxDays = getDaysInMonth(date);
-    const targetDay = Math.min(sub.monthlySpecificDay, maxDays);
-    return setDate(date, targetDay);
+    const day = sub.monthlySpecificDay;
+    // Positive: cap at month length; negative: count back from the last day.
+    return setDate(date, day > 0 ? Math.min(day, maxDays) : maxDays + 1 + day);
   }
 
   return date;
@@ -83,11 +131,15 @@ export const generateSubscriptionOccurrences = (
   const startStr = sub.startDate || sub.nextExecutionDate;
   if (!startStr) return [];
 
-  let currentDate = parseISO(startStr);
+  const startDate = parseISO(startStr);
+  let currentDate = startDate;
 
-  // Apply the monthly rules to the very first date too.
+  // Apply the monthly rules to the very first date too; a rule landing before
+  // the start (e.g. "1st Monday" with a mid-month start) moves to next month.
   if (sub.frequencyType === "MONTHLY") {
     currentDate = applyMonthlyRules(sub, currentDate);
+    if (isBefore(currentDate, startDate))
+      currentDate = advanceByOneInterval(sub, currentDate);
   }
 
   const occurrences: Date[] = [];

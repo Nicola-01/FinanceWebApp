@@ -15,6 +15,7 @@ import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import { DetailRow } from "../common/DetailRow";
 import { ExchangeRateSection } from "../common/exchangeRate/ExchangeRateSection";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
+import { describeMonthlyRule } from "../../utils/monthlyRule";
 
 interface SubscriptionViewProps {
   sub: Subscription;
@@ -47,9 +48,12 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
   const getFrequencyText = () => {
     const interval = sub.frequencyInterval || 1;
     const typeStr = sub.frequencyType.toLowerCase();
-    if (interval === 1)
-      return `Every ${typeStr.replace("ly", "").replace("i", "y")}`;
-    return `Every ${interval} ${typeStr}s`;
+    const base =
+      interval === 1
+        ? `Every ${typeStr.replace("ly", "").replace("i", "y")}`
+        : `Every ${interval} ${typeStr}s`;
+    const rule = describeMonthlyRule(sub);
+    return rule ? `${base} ${rule}` : base;
   };
 
   const getStatusIcon = () => {

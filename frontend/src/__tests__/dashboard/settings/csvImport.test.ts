@@ -209,3 +209,33 @@ describe("parse<Resource>Csv end-to-end", () => {
     ]);
   });
 });
+
+describe("rowToSubscriptionRequest — monthly rule columns", () => {
+  it("reads working-day and weekday rules from the trailing columns", () => {
+    const base = Array(18).fill("");
+    base.splice(
+      0,
+      11,
+      "Rent",
+      "Home",
+      "900",
+      "EXPENSE",
+      "ACTIVE",
+      "2026-01-01",
+      "MONTHLY",
+      "1",
+      "",
+      "false",
+      "FOREVER",
+    );
+    expect(rowToSubscriptionRequest([...base, "-1", "", ""])).toMatchObject({
+      monthlyWorkingDay: -1,
+    });
+    const req = rowToSubscriptionRequest([...base, "", "tuesday", "2"]);
+    expect(req).toMatchObject({
+      monthlyWeekday: "TUESDAY",
+      monthlyWeekdayOrdinal: 2,
+    });
+    expect(req.monthlyWorkingDay).toBeUndefined();
+  });
+});

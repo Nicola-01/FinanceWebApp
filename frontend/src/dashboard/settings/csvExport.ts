@@ -110,5 +110,8 @@ export const subscriptionsCsvRows = (
     sub.exchangeValue ?? "",
     String(sub.autoExchangeRate),
     sub.notes ?? "",
+    sub.monthlyWorkingDay ?? "",
+    sub.monthlyWeekday ?? "",
+    sub.monthlyWeekdayOrdinal ?? "",
   ]),
 ];

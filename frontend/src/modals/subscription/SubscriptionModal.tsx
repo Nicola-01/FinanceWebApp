@@ -21,6 +21,11 @@ import { parseLocalIsoDate } from "../../utils/localDate";
 import { FieldLabel } from "../../components/ui/FieldLabel";
 import { useAmountEntryForm } from "../common/useAmountEntryForm";
 import { buildSchedulePayload } from "./subscriptionPayload";
+import {
+  EMPTY_MONTHLY_RULE,
+  monthlyRuleFromSub,
+  type MonthlyRule,
+} from "../../utils/monthlyRule";
 
 export interface SubscriptionModalHandle {
   openModal: (sub?: Subscription, initialDate?: Date) => void;
@@ -64,6 +69,8 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
     const [status, setStatus] = useState<"ACTIVE" | "PAUSED" | "COMPLETED">(
       "ACTIVE",
     );
+    const [monthlyRule, setMonthlyRule] =
+      useState<MonthlyRule>(EMPTY_MONTHLY_RULE);
 
     const [loading, setLoading] = useState(false);
     const [resetKey, setResetKey] = useState(0);
@@ -90,6 +97,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             sub.durationUntil ? parseLocalIsoDate(sub.durationUntil) : null,
           );
           setStatus(sub.status || "ACTIVE");
+          setMonthlyRule(
+            monthlyRuleFromSub(sub, parseLocalIsoDate(sub.startDate)),
+          );
         } else {
           // --- CREATE MODE ---
           setEditingSubId(null);
@@ -108,6 +118,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setDurationTimes(1);
           setDurationUntil(null);
           setStatus("ACTIVE");
+          setMonthlyRule(EMPTY_MONTHLY_RULE);
         }
         setOpen(true);
       },
@@ -135,6 +146,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             duration,
             durationTimes,
             durationUntil,
+            monthlyRule,
           }),
         };
 
@@ -262,6 +274,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             status={status}
             onStatusChange={setStatus}
             accentColor={wallet.color}
+            monthlyRule={monthlyRule}
+            onMonthlyRuleChange={setMonthlyRule}
+            startDate={startDate}
           />
 
           {/* 4. NAME & DESCRIPTION */}
