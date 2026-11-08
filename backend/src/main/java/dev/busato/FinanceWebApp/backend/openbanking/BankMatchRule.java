@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.openbanking;
 
+import dev.busato.FinanceWebApp.backend.model.BankRule;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -11,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 public final class BankMatchRule {
 
   static final int MAX_TEXT_LENGTH = 200;
+  static final int MAX_NAME_LENGTH = 50;
+  static final int MAX_RENAME_LENGTH = 100;
 
   /** A user regex gets this long per bank row; past it the row is treated as no match. */
   static final long REGEX_BUDGET_NANOS = 50_000_000L;
@@ -81,6 +84,58 @@ public final class BankMatchRule {
     if (text != null && sub.isBankMatchRegex()) {
       try {
         compile(text, sub.isBankMatchIgnoreCase());
+      } catch (PatternSyntaxException e) {
+        throw new IllegalArgumentException("Invalid bank match regex: " + e.getDescription());
+      }
+    }
+  }
+
+  public static boolean matches(BankRule rule, String bankName) {
+    return matches(
+        rule.getMatchText(), rule.isRegex(), rule.isIgnoreCase(), bankName, rule.getId());
+  }
+
+  private static boolean matches(
+      String text, boolean regex, boolean ignoreCase, String bankName, Object owner) {
+    if (text == null || text.isBlank() || bankName == null) return false;
+    if (!regex)
+      return ignoreCase
+          ? bankName.toLowerCase(Locale.ROOT).contains(text.toLowerCase(Locale.ROOT))
+          : bankName.contains(text);
+    try {
+      return compile(text, ignoreCase)
+          .matcher(new Deadline(bankName, System.nanoTime() + REGEX_BUDGET_NANOS))
+          .find();
+    } catch (RegexTimeout e) {
+      log.warn("Bank match regex timed out on {}", owner);
+      return false;
+    } catch (PatternSyntaxException e) {
+      // Validated at save time; a bad pattern must never break the sync.
+      log.warn("Invalid bank match regex on {}", owner);
+      return false;
+    }
+  }
+
+  /** Trims and normalises a rule, rejecting an invalid one. */
+  public static void validate(BankRule rule) {
+    String name = rule.getName() == null ? "" : rule.getName().trim();
+    if (name.isEmpty() || name.length() > MAX_NAME_LENGTH)
+      throw new IllegalArgumentException("Rule name must be 1-" + MAX_NAME_LENGTH + " characters");
+    rule.setName(name);
+    String text = rule.getMatchText() == null ? "" : rule.getMatchText().trim();
+    if (text.isEmpty()) throw new IllegalArgumentException("Bank match text is required");
+    if (text.length() > MAX_TEXT_LENGTH)
+      throw new IllegalArgumentException(
+          "Bank match text must be at most " + MAX_TEXT_LENGTH + " characters");
+    rule.setMatchText(text);
+    String rename = rule.getRenameTo() == null ? "" : rule.getRenameTo().trim();
+    if (rename.length() > MAX_RENAME_LENGTH)
+      throw new IllegalArgumentException(
+          "Rename must be at most " + MAX_RENAME_LENGTH + " characters");
+    rule.setRenameTo(rename.isEmpty() ? null : rename);
+    if (rule.isRegex()) {
+      try {
+        compile(text, rule.isIgnoreCase());
       } catch (PatternSyntaxException e) {
         throw new IllegalArgumentException("Invalid bank match regex: " + e.getDescription());
       }

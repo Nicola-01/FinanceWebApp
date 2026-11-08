@@ -7,18 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import dev.busato.FinanceWebApp.backend.model.Subscription;
+import dev.busato.FinanceWebApp.backend.model.BankRule;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 class BankMatchRuleTest {
 
-  private static Subscription rule(String text, boolean regex, boolean ignoreCase) {
-    return Subscription.builder()
-        .bankMatchText(text)
-        .bankMatchRegex(regex)
-        .bankMatchIgnoreCase(ignoreCase)
-        .build();
+  private static BankRule rule(String text, boolean regex, boolean ignoreCase) {
+    return BankRule.builder().name("R").matchText(text).regex(regex).ignoreCase(ignoreCase).build();
   }
 
   @Test
@@ -73,20 +69,58 @@ class BankMatchRuleTest {
   }
 
   @Test
-  void validate_bankDrivenWithoutText_throws() {
-    Subscription s = rule("  ", false, true);
-    s.setBankDriven(true);
+  void validate_blankText_throws() {
     IllegalArgumentException e =
-        assertThrows(IllegalArgumentException.class, () -> BankMatchRule.validate(s));
-    assertEquals("Date from bank requires a bank match text", e.getMessage());
-    assertNull(s.getBankMatchText());
+        assertThrows(
+            IllegalArgumentException.class, () -> BankMatchRule.validate(rule("  ", false, true)));
+    assertEquals("Bank match text is required", e.getMessage());
+  }
+
+  @Test
+  void validate_blankRenameTo_becomesNull() {
+    BankRule r = rule("AMZN", false, true);
+    r.setRenameTo("   ");
+    BankMatchRule.validate(r);
+    assertNull(r.getRenameTo());
+  }
+
+  @Test
+  void validate_trimsNameTextAndRenameTo() {
+    BankRule r = rule("  AMZN ", false, true);
+    r.setName(" Amazon ");
+    r.setRenameTo(" Amazon ");
+    BankMatchRule.validate(r);
+    assertEquals("Amazon", r.getName());
+    assertEquals("AMZN", r.getMatchText());
+    assertEquals("Amazon", r.getRenameTo());
+  }
+
+  @Test
+  void validate_nameTooLong_throws() {
+    BankRule r = rule("AMZN", false, true);
+    r.setName("x".repeat(51));
+    assertThrows(IllegalArgumentException.class, () -> BankMatchRule.validate(r));
+  }
+
+  @Test
+  void validate_blankName_throws() {
+    BankRule r = rule("AMZN", false, true);
+    r.setName(" ");
+    assertThrows(IllegalArgumentException.class, () -> BankMatchRule.validate(r));
+  }
+
+  @Test
+  void validate_renameToTooLong_throws() {
+    BankRule r = rule("AMZN", false, true);
+    r.setRenameTo("x".repeat(101));
+    assertThrows(IllegalArgumentException.class, () -> BankMatchRule.validate(r));
   }
 
   @Test
   void validate_validRule_ok() {
-    Subscription s = rule("NETFLIX", true, true);
-    BankMatchRule.validate(s);
-    assertEquals("NETFLIX", s.getBankMatchText());
+    BankRule r = rule("NETFLIX", true, true);
+    BankMatchRule.validate(r);
+    assertEquals("NETFLIX", r.getMatchText());
   }
 
   @Test
