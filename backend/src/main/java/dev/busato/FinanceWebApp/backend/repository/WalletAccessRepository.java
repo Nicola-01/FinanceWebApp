@@ -20,6 +20,8 @@ public interface WalletAccessRepository
 
   Optional<WalletAccess> findByUserIdAndWalletId(UUID userID, UUID walletID);
 
+  // wallet fetched eagerly: the report jobs read it outside any session (scheduler thread)
+  @EntityGraph(attributePaths = {"wallet"})
   List<WalletAccess> findAllByUserIdAndStatus(
       UUID userId, WalletAccess.InvitationStatus invitationStatus);
 
