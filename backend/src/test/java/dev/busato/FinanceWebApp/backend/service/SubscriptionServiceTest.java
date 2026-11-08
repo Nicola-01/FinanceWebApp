@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -1653,5 +1654,128 @@ class SubscriptionServiceTest {
 
     assertFalse(existing.isBankDriven());
     assertTrue(existing.getNextExecutionDate().isAfter(LocalDate.of(2024, 2, 14)));
+  }
+
+  // ==================== Bank-driven execution ====================
+
+  private Subscription bankDrivenSub() {
+    Subscription sub = new Subscription();
+    sub.setId(UUID.randomUUID());
+    sub.setWallet(mockWallet);
+    sub.setName("Netflix");
+    sub.setAmount(new BigDecimal("12.99"));
+    sub.setOriginalAmount(new BigDecimal("12.99"));
+    sub.setType(Subscription.Type.EXPENSE);
+    sub.setFrequencyType(Subscription.Frequency.MONTHLY);
+    sub.setFrequencyInterval(1);
+    sub.setStartDate(LocalDate.of(2024, 1, 1));
+    sub.setNextExecutionDate(LocalDate.of(2024, 1, 1));
+    sub.setDuration(Subscription.Duration.FOREVER);
+    sub.setStatus(Subscription.Status.ACTIVE);
+    sub.setBankMatchText("NETFLIX");
+    sub.setBankDriven(true);
+    lenient().when(subscriptionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    lenient().when(transactionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    return sub;
+  }
+
+  private static SubscriptionService.BankFill fill() {
+    return new SubscriptionService.BankFill(
+        LocalDate.of(2024, 2, 6), new BigDecimal("13.50"), new BigDecimal("13.50"), "EUR", null);
+  }
+
+  @Test
+  void executeFromBank_usesSubAmount_whenValued() {
+    Subscription sub = bankDrivenSub();
+    Transaction tx = subscriptionService.executeFromBank(sub, fill(), false);
+
+    assertEquals(0, new BigDecimal("12.99").compareTo(tx.getAmount()));
+    assertEquals(LocalDate.of(2024, 2, 6), tx.getTransactionDate());
+    assertEquals("Recurring: Netflix (#1); From OpenBanking", tx.getNotes());
+    assertSame(sub, tx.getSubscription());
+    assertTrue(tx.isImported());
+    assertFalse(tx.isNeedsReview());
+    assertEquals(1, sub.getExecutedTimes());
+    assertEquals(LocalDate.of(2024, 2, 6), sub.getLastExecutionDate());
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  @Test
+  void executeFromBank_usesBankAmount_whenPending() {
+    Subscription sub = bankDrivenSub();
+    sub.setAmountPending(true);
+    sub.setAmount(BigDecimal.ZERO);
+    sub.setOriginalAmount(BigDecimal.ZERO);
+
+    Transaction tx = subscriptionService.executeFromBank(sub, fill(), true);
+
+    assertEquals(0, new BigDecimal("13.50").compareTo(tx.getAmount()));
+    assertEquals(0, new BigDecimal("13.50").compareTo(tx.getOriginalAmount()));
+    assertEquals("EUR", tx.getOriginalCurrency());
+    assertFalse(tx.isAmountPending());
+    ArgumentCaptor<Object> event = ArgumentCaptor.forClass(Object.class);
+    verify(eventPublisher).publishEvent(event.capture());
+    WalletActivityEvent e = (WalletActivityEvent) event.getValue();
+    assertEquals(Notification.NotificationType.RECURRING_EXECUTED, e.type());
+    assertEquals(0, new BigDecimal("13.50").compareTo(e.amount()));
+  }
+
+  @Test
+  void executeFromBank_timesNotes_andCompletes() {
+    Subscription sub = bankDrivenSub();
+    sub.setDuration(Subscription.Duration.TIMES);
+    sub.setDurationTimes(1);
+
+    Transaction tx = subscriptionService.executeFromBank(sub, fill(), false);
+
+    assertEquals("Recurring: Netflix (1 / 1); From OpenBanking", tx.getNotes());
+    assertEquals(Subscription.Status.COMPLETED, sub.getStatus());
+  }
+
+  @Test
+  void executeFromBank_doesNotMoveNextExecutionDate() {
+    Subscription sub = bankDrivenSub();
+    subscriptionService.executeFromBank(sub, fill(), false);
+    assertEquals(LocalDate.of(2024, 1, 1), sub.getNextExecutionDate());
+  }
+
+  @Test
+  void cron_skipsBankDriven() {
+    Subscription sub = bankDrivenSub();
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(any(), any()))
+        .thenReturn(List.of(sub));
+
+    subscriptionService.processDueSubscriptions();
+
+    verify(transactionRepository, never()).save(any());
+    assertEquals(0, sub.getExecutedTimes());
+  }
+
+  @Test
+  void create_bankDrivenPastStart_noCatchUp() {
+    SubscriptionRequest request = bankRuleRequest();
+    request.setStartDate(LocalDate.of(2024, 1, 1)); // in the past → would catch up
+    request.setBankMatchText("NETFLIX");
+    request.setBankDriven(true);
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    verify(transactionRepository, never()).save(any());
+  }
+
+  @Test
+  void runScheduledOccurrence_returnsGeneratedTransaction() {
+    Subscription sub = bankDrivenSub();
+    sub.setBankDriven(false);
+    sub.setNextExecutionDate(LocalDate.of(2024, 2, 8));
+
+    Transaction tx = subscriptionService.runScheduledOccurrence(sub, false);
+
+    assertEquals(LocalDate.of(2024, 2, 8), tx.getTransactionDate());
+    assertEquals(LocalDate.of(2024, 3, 8), sub.getNextExecutionDate());
   }
 }

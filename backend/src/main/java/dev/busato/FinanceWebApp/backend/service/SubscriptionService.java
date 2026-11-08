@@ -574,7 +574,9 @@ public class SubscriptionService {
             List.of(Subscription.Status.ACTIVE, Subscription.Status.PAUSED), today);
 
     // Cron path: emit a RECURRING_EXECUTED notification for each ACTIVE subscription executed.
-    for (Subscription sub : dueSubscriptions) executeSubscription(sub, true);
+    // Bank-driven subscriptions have no schedule: the bank sync executes them.
+    for (Subscription sub : dueSubscriptions)
+      if (!sub.isBankDriven()) executeSubscription(sub, true);
   }
 
   /**
@@ -585,90 +587,16 @@ public class SubscriptionService {
    * @param notify When true (cron path), emit a RECURRING_EXECUTED notification for the generated
    *     transaction; false for immediate catch-up during create/import.
    */
-  private void executeSubscription(Subscription sub, boolean notify) {
-    int currentExecution = sub.getExecutedTimes() + 1;
-    // The subscription's name and notes are metadata of the subscription only and must NOT be
-    // transmitted onto the generated transactions. Use the tag name (with a safe fallback) instead.
-    String generatedName = sub.getTag() != null ? sub.getTag().getName() : sub.getName();
-    String generatedNotes;
-    if (sub.getDuration() == Subscription.Duration.TIMES && sub.getDurationTimes() != null)
-      generatedNotes =
-          String.format(
-              "Recurring: %s (%d / %d)", generatedName, currentExecution, sub.getDurationTimes());
-    else generatedNotes = String.format("Recurring: %s (#%d)", generatedName, currentExecution);
-
+  private Transaction executeSubscription(Subscription sub, boolean notify) {
+    Transaction transaction = null;
     // 1. Create the actual Transaction entity linked to the wallet ONLY if ACTIVE
     if (sub.getStatus() == Subscription.Status.ACTIVE) {
-      // Resolve the converted amount / rate: a foreign-currency subscription with
-      // autoExchangeRate uses the day's live rate; otherwise the stored (fixed)
-      // values are kept. If the live fetch fails, we fall back to the stored ones
-      // rather than skip the transaction.
-      // Reminder subscriptions generate amount-less transactions: skip rate resolution
-      // entirely — the amount is unknown until the user fills it in (fill endpoint).
-      boolean pending = sub.isAmountPending();
-      BigDecimal resolvedAmount = pending ? BigDecimal.ZERO : sub.getAmount();
-      BigDecimal resolvedExchange = pending ? null : sub.getExchangeValue();
-      String walletCurrency = sub.getWallet() != null ? sub.getWallet().getCurrency() : null;
-      boolean foreign =
-          sub.getOriginalCurrency() != null
-              && walletCurrency != null
-              && !sub.getOriginalCurrency().equals(walletCurrency);
-      if (!pending && foreign && sub.isAutoExchangeRate() && sub.getOriginalAmount() != null) {
-        BigDecimal liveRate =
-            exchangeRateService.getRate(sub.getOriginalCurrency(), walletCurrency).orElse(null);
-        if (liveRate != null) {
-          resolvedExchange = liveRate;
-          resolvedAmount =
-              sub.getOriginalAmount().multiply(liveRate).setScale(2, RoundingMode.HALF_UP);
-        }
-      }
-
-      Transaction transaction =
-          Transaction.builder()
-              .wallet(sub.getWallet())
-              .subscription(sub)
-              .tag(sub.getTag())
-              .name(generatedName)
-              .amountPending(pending)
-              .amount(resolvedAmount)
-              // Transactions.original_amount is NOT NULL. Guard here (not just at
-              // subscription build) so the daily cron never fails on a subscription
-              // that somehow carries a null original amount — fall back to the
-              // resolved amount, which equals it when no conversion is involved.
-              .originalAmount(
-                  pending
-                      ? BigDecimal.ZERO
-                      : sub.getOriginalAmount() != null ? sub.getOriginalAmount() : resolvedAmount)
-              .originalCurrency(sub.getOriginalCurrency())
-              .exchangeValue(resolvedExchange)
-              .type(Transaction.Type.valueOf(sub.getType().name()))
-              .notes(generatedNotes)
-              .transactionDate(
-                  sub.getNextExecutionDate()) // Transaction date is when it was scheduled
-              .build();
-
+      transaction = buildTransaction(sub, sub.getNextExecutionDate(), generatedNotes(sub), null);
       transactionRepository.save(transaction);
-
       // Increment executed times only when a transaction actually occurred
       sub.setExecutedTimes(sub.getExecutedTimes() + 1);
-
       // Cron-only: tell the wallet members a recurring transaction just landed.
-      if (notify && sub.getWallet() != null) {
-        Wallet wallet = sub.getWallet();
-        eventPublisher.publishEvent(
-            new WalletActivityEvent(
-                Notification.NotificationType.RECURRING_EXECUTED,
-                wallet.getId(),
-                wallet.getName(),
-                wallet.getCurrency(),
-                null,
-                null,
-                null,
-                // null amount marks a reminder awaiting its amount (see WalletActivityEvent)
-                pending ? null : resolvedAmount,
-                generatedName,
-                transaction.getId()));
-      }
+      if (notify) publishRecurringExecuted(sub, transaction);
     }
 
     // 2. Update tracking history
@@ -683,6 +611,140 @@ public class SubscriptionService {
 
     // Save the updated subscription state
     subscriptionRepository.save(sub);
+    return transaction;
+  }
+
+  /** A bank row already converted to the wallet currency by the bank sync. */
+  public record BankFill(
+      LocalDate date,
+      BigDecimal amount,
+      BigDecimal originalAmount,
+      String currency,
+      BigDecimal rate) {}
+
+  /**
+   * Runs the subscription's due occurrence now, as the cron would. System path (bank sync): no
+   * {@code @PreAuthorize}. Returns the generated transaction, or null when the sub is paused.
+   */
+  public Transaction runScheduledOccurrence(Subscription sub, boolean notify) {
+    return executeSubscription(sub, notify);
+  }
+
+  /**
+   * Executes a bank-driven subscription from a matching bank row: the bank's date, the
+   * subscription's values (the bank amount only when the subscription has none). The schedule
+   * ({@code nextExecutionDate}) is left untouched. System path (bank sync): no {@code
+   * PreAuthorize}.
+   */
+  public Transaction executeFromBank(Subscription sub, BankFill fill, boolean notify) {
+    Transaction transaction =
+        buildTransaction(sub, fill.date(), generatedNotes(sub) + "; From OpenBanking", fill);
+    transaction.setImported(true);
+    transaction.setNeedsReview(false);
+    transactionRepository.save(transaction);
+    sub.setExecutedTimes(sub.getExecutedTimes() + 1);
+    sub.setLastExecutionDate(fill.date());
+    checkCompletion(sub);
+    subscriptionRepository.save(sub);
+    if (notify) publishRecurringExecuted(sub, transaction);
+    return transaction;
+  }
+
+  // The subscription's name and notes are metadata of the subscription only and must NOT be
+  // transmitted onto the generated transactions. Use the tag name (with a safe fallback) instead.
+  private static String generatedName(Subscription sub) {
+    return sub.getTag() != null ? sub.getTag().getName() : sub.getName();
+  }
+
+  /** Notes for the next execution (executedTimes + 1). */
+  private static String generatedNotes(Subscription sub) {
+    int currentExecution = sub.getExecutedTimes() + 1;
+    if (sub.getDuration() == Subscription.Duration.TIMES && sub.getDurationTimes() != null)
+      return String.format(
+          "Recurring: %s (%d / %d)", generatedName(sub), currentExecution, sub.getDurationTimes());
+    return String.format("Recurring: %s (#%d)", generatedName(sub), currentExecution);
+  }
+
+  /**
+   * Builds (unsaved) the transaction for one execution. A reminder subscription takes its amount
+   * from {@code bankFill} when given, otherwise it stays pending.
+   */
+  private Transaction buildTransaction(
+      Subscription sub, LocalDate date, String notes, BankFill bankFill) {
+    boolean fromBank = sub.isAmountPending() && bankFill != null;
+    // Resolve the converted amount / rate: a foreign-currency subscription with
+    // autoExchangeRate uses the day's live rate; otherwise the stored (fixed)
+    // values are kept. If the live fetch fails, we fall back to the stored ones
+    // rather than skip the transaction.
+    // Reminder subscriptions generate amount-less transactions: skip rate resolution
+    // entirely — the amount is unknown until the user fills it in (fill endpoint).
+    boolean pending = sub.isAmountPending() && !fromBank;
+    BigDecimal resolvedAmount = pending ? BigDecimal.ZERO : sub.getAmount();
+    BigDecimal resolvedExchange = pending ? null : sub.getExchangeValue();
+    String walletCurrency = sub.getWallet() != null ? sub.getWallet().getCurrency() : null;
+    boolean foreign =
+        sub.getOriginalCurrency() != null
+            && walletCurrency != null
+            && !sub.getOriginalCurrency().equals(walletCurrency);
+    if (!sub.isAmountPending()
+        && foreign
+        && sub.isAutoExchangeRate()
+        && sub.getOriginalAmount() != null) {
+      BigDecimal liveRate =
+          exchangeRateService.getRate(sub.getOriginalCurrency(), walletCurrency).orElse(null);
+      if (liveRate != null) {
+        resolvedExchange = liveRate;
+        resolvedAmount =
+            sub.getOriginalAmount().multiply(liveRate).setScale(2, RoundingMode.HALF_UP);
+      }
+    }
+    // Transactions.original_amount is NOT NULL. Guard here (not just at
+    // subscription build) so the daily cron never fails on a subscription
+    // that somehow carries a null original amount — fall back to the
+    // resolved amount, which equals it when no conversion is involved.
+    BigDecimal originalAmount =
+        pending
+            ? BigDecimal.ZERO
+            : sub.getOriginalAmount() != null ? sub.getOriginalAmount() : resolvedAmount;
+    String originalCurrency = sub.getOriginalCurrency();
+    if (fromBank) {
+      resolvedAmount = bankFill.amount();
+      originalAmount = bankFill.originalAmount();
+      originalCurrency = bankFill.currency();
+      resolvedExchange = bankFill.rate();
+    }
+    return Transaction.builder()
+        .wallet(sub.getWallet())
+        .subscription(sub)
+        .tag(sub.getTag())
+        .name(generatedName(sub))
+        .amountPending(pending)
+        .amount(resolvedAmount)
+        .originalAmount(originalAmount)
+        .originalCurrency(originalCurrency)
+        .exchangeValue(resolvedExchange)
+        .type(Transaction.Type.valueOf(sub.getType().name()))
+        .notes(notes)
+        .transactionDate(date)
+        .build();
+  }
+
+  private void publishRecurringExecuted(Subscription sub, Transaction transaction) {
+    if (sub.getWallet() == null) return;
+    Wallet wallet = sub.getWallet();
+    eventPublisher.publishEvent(
+        new WalletActivityEvent(
+            Notification.NotificationType.RECURRING_EXECUTED,
+            wallet.getId(),
+            wallet.getName(),
+            wallet.getCurrency(),
+            null,
+            null,
+            null,
+            // null amount marks a reminder awaiting its amount (see WalletActivityEvent)
+            transaction.isAmountPending() ? null : transaction.getAmount(),
+            transaction.getName(),
+            transaction.getId()));
   }
 
   // =========================================================================
