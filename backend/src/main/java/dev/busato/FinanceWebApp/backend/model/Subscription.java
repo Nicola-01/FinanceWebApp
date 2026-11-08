@@ -89,6 +89,11 @@ public class Subscription {
   @Builder.Default
   private boolean bankMatchIgnoreCase = true;
 
+  /** Wallet bank rule routing matching imports to this subscription; null = none. */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "bank_rule_id")
+  private BankRule bankRule;
+
   /** No schedule of its own: every matching bank row becomes an execution, on the bank's date. */
   @Column(nullable = false)
   @ColumnDefault("false")

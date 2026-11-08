@@ -1,5 +1,6 @@
 package dev.busato.FinanceWebApp.backend.openbanking;
 
+import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
 import jakarta.validation.constraints.NotBlank;
@@ -20,6 +21,26 @@ public final class BankDtos {
   public record CallbackRequest(@NotBlank String code, @NotBlank String state) {}
 
   public record UrlResponse(String url) {}
+
+  /** {@code ignoreCase} null = true; {@code tag} is a tag name, null/blank = none. */
+  public record BankRuleRequest(
+      String name,
+      String matchText,
+      boolean regex,
+      Boolean ignoreCase,
+      String tag,
+      String renameTo) {}
+
+  public record BankRuleResponse(
+      UUID id,
+      String name,
+      String matchText,
+      boolean regex,
+      boolean ignoreCase,
+      TagResponse tag,
+      String renameTo,
+      List<String> usedBy,
+      Instant updatedAt) {}
 
   public record WalletBankResponse(boolean enabled, List<BankConnectionResponse> connections) {}
 

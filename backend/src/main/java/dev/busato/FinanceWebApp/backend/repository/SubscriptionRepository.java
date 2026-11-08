@@ -19,6 +19,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
   List<Subscription> findAllByWalletIdAndStatusAndBankMatchTextIsNotNull(
       UUID walletId, Subscription.Status status);
 
+  List<Subscription> findAllByBankRuleId(UUID bankRuleId);
+
   List<Subscription> findAllByStatusAndNextExecutionDateLessThanEqual(
       Subscription.Status status, LocalDate date);
 

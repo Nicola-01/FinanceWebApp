@@ -11,6 +11,7 @@ import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.mappers.WalletMapper;
 import dev.busato.FinanceWebApp.backend.model.*;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
+import dev.busato.FinanceWebApp.backend.repository.BankRuleRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
@@ -44,6 +45,7 @@ public class WalletService {
   private final TagRepository tagRepository;
   private final TagMapper tagMapper;
   private final SubscriptionRepository subscriptionRepository;
+  private final BankRuleRepository bankRuleRepository;
   private final BankConnectionRepository bankConnectionRepository;
 
   @Transactional
@@ -129,6 +131,8 @@ public class WalletService {
       // FK-reference the wallet's tags); the wallet delete then cascades tags, transactions and
       // access rows.
       subscriptionRepository.deleteAllByWalletId(walletId);
+      // Rules reference the wallet's tags; subscriptions (deleted above) reference rules.
+      bankRuleRepository.deleteAllByWalletId(walletId);
       bankConnectionRepository.deleteAll(bankConnectionRepository.findByWalletId(walletId));
       walletRepository.delete(userAccess.getWallet());
     } else userAccess.setStatus(WalletAccess.InvitationStatus.LEFT);
