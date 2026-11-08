@@ -10,6 +10,7 @@ import {
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { Card } from "../../components/ui/Card.tsx";
 import { BankAccountsSection } from "./BankAccountsSection.tsx";
+import { BankRulesSection } from "./BankRulesSection.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { CsvFormatModal } from "./CsvFormatModal.tsx";
 import { ImportReviewModal } from "../../modals/common/ImportReviewModal.tsx";
@@ -72,6 +73,7 @@ export const DataTab: React.FC = () => {
   return (
     <>
       <BankAccountsSection />
+      <BankRulesSection />
       <Card
         title="Data Management"
         subtitle="Export your data to CSV, or import from a file"
