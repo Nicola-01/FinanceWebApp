@@ -14,9 +14,14 @@ const { ctxRef, bank } = vi.hoisted(() => ({
     updateBankRule: vi.fn(),
   },
 }));
-vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
-  useWalletContext: () => ctxRef.current,
-}));
+vi.mock("../../../dashboard/wallet/WalletContext.tsx", async () => {
+  // TagBadge reads WalletContext directly, so it needs a real context object.
+  const { createContext } = await import("react");
+  return {
+    useWalletContext: () => ctxRef.current,
+    WalletContext: createContext(null),
+  };
+});
 vi.mock("../../../api/bankApi", () => bank);
 vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
@@ -44,8 +49,12 @@ const rule: BankRule = {
   matchText: "NETFLIX",
   regex: true,
   ignoreCase: true,
-  tag: null,
-  renameTo: "Netflix",
+  tag: {
+    name: "Streaming",
+    icon: "tag",
+    colorHex: "#ff0000",
+  } as BankRule["tag"],
+  renameTo: "Netflix TV",
   usedBy: ["Netflix"],
 };
 
@@ -82,6 +91,11 @@ describe("BankRulesSection", () => {
     expect(screen.getByText("NETFLIX")).toBeInTheDocument();
     expect(screen.getByText("Regex")).toBeInTheDocument();
     expect(screen.getByText("Used by Netflix")).toBeInTheDocument();
+    expect(screen.getByText("Streaming")).toBeInTheDocument();
+    expect(screen.getByText("Netflix TV")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit Netflix" }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Add rule" }),
     ).toBeInTheDocument();
@@ -95,7 +109,7 @@ describe("BankRulesSection", () => {
       screen.queryByRole("button", { name: "Add rule" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Delete" }),
+      screen.queryByRole("button", { name: "Delete Netflix" }),
     ).not.toBeInTheDocument();
   });
 
@@ -108,7 +122,7 @@ describe("BankRulesSection", () => {
     bank.deleteBankRule.mockRejectedValue(err);
     render(<BankRulesSection />);
     await userEvent.click(
-      await screen.findByRole("button", { name: "Delete" }),
+      await screen.findByRole("button", { name: "Delete Netflix" }),
     );
     await userEvent.click(
       await screen.findByRole("button", { name: "Delete rule" }),

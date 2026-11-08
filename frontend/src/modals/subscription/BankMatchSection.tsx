@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons";
 import { CustomSelect } from "../../components/ui/CustomSelect.tsx";
+import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import { DropdownManageButton } from "../../components/ui/DropdownManageButton.tsx";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { BankRulesSection } from "../../dashboard/settings/BankRulesSection.tsx";
@@ -40,7 +41,15 @@ export function BankMatchSection({
             activeColor={accentColor}
             options={[
               { value: "", label: "None" },
-              ...rules.map((r) => ({ value: r.id, label: r.name })),
+              ...rules.map((r) => ({
+                value: r.id,
+                label: (
+                  <span className="flex w-full min-w-0 items-center justify-between gap-3">
+                    <span className="truncate">{r.name}</span>
+                    {r.tag && <TagBadge tag={r.tag} showParent={false} />}
+                  </span>
+                ),
+              })),
             ]}
             footer={(close) => (
               <DropdownManageButton

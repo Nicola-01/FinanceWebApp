@@ -3,32 +3,30 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import type { BankRule } from "../../../types/domain";
 
+// Flat list of option buttons: options carry rich labels (rule name + tag badge).
 vi.mock("../../../components/ui/CustomSelect.tsx", () => ({
   CustomSelect: ({
-    value,
     onChange,
     options,
     footer,
   }: {
-    value: string;
     onChange: (v: string) => void;
-    options: { value: string; label: string }[];
+    options: { value: string; label: React.ReactNode }[];
     footer?: (close: () => void) => React.ReactNode;
   }) => (
-    <>
+    <div>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          data-testid={`opt-${o.value || "none"}`}
+          onClick={() => onChange(o.value)}
+        >
+          {o.label}
+        </button>
+      ))}
       {footer?.(() => {})}
-      <select
-        aria-label="Bank rule"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </>
+    </div>
   ),
 }));
 vi.mock("../../../dashboard/settings/BankRulesSection.tsx", () => ({
@@ -44,6 +42,11 @@ const rules: BankRule[] = [
     matchText: "NETFLIX",
     regex: false,
     ignoreCase: true,
+    tag: {
+      name: "Streaming",
+      icon: "tag",
+      colorHex: "#ff0000",
+    } as BankRule["tag"],
     usedBy: [],
   },
   {
@@ -57,7 +60,7 @@ const rules: BankRule[] = [
 ];
 
 describe("BankMatchSection", () => {
-  it("lists None plus the wallet's rules", () => {
+  it("lists None plus the wallet's rules, each with its tag badge", () => {
     render(
       <BankMatchSection
         value={{ ruleId: null }}
@@ -65,10 +68,11 @@ describe("BankMatchSection", () => {
         rules={rules}
       />,
     );
-    const names = screen
-      .getAllByRole("option")
-      .map((o) => (o as HTMLOptionElement).textContent);
-    expect(names).toEqual(["None", "Netflix", "Rent"]);
+    expect(screen.getByTestId("opt-none")).toHaveTextContent("None");
+    expect(screen.getByTestId("opt-r1")).toHaveTextContent("Netflix");
+    // Same tag element as the transactions (icon + coloured name).
+    expect(screen.getByTestId("opt-r1")).toHaveTextContent("Streaming");
+    expect(screen.getByTestId("opt-r2")).toHaveTextContent("Rent");
   });
 
   it("selecting a rule reports its id; None reports null", () => {
@@ -80,13 +84,9 @@ describe("BankMatchSection", () => {
         rules={rules}
       />,
     );
-    fireEvent.change(screen.getByLabelText("Bank rule"), {
-      target: { value: "r2" },
-    });
+    fireEvent.click(screen.getByTestId("opt-r2"));
     expect(onChange).toHaveBeenLastCalledWith({ ruleId: "r2" });
-    fireEvent.change(screen.getByLabelText("Bank rule"), {
-      target: { value: "" },
-    });
+    fireEvent.click(screen.getByTestId("opt-none"));
     expect(onChange).toHaveBeenLastCalledWith({ ruleId: null });
   });
 

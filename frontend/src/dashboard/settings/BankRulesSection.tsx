@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { faWandMagicSparkles } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowRight,
+  faPen,
+  faPlus,
+  faTrash,
+  faWandMagicSparkles,
+} from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import {
   deleteBankRule,
@@ -9,6 +16,8 @@ import {
 import { Card } from "../../components/ui/Card.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { Badge } from "../../components/ui/Badge.tsx";
+import { TagBadge } from "../../components/ui/TagBadge.tsx";
+import { DropdownManageButton } from "../../components/ui/DropdownManageButton.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorDetail, getApiErrorTitle } from "../../utils/apiError.ts";
 import { ConfirmModal } from "../../modals/common/ConfirmModal.tsx";
@@ -72,69 +81,79 @@ export function BankRulesSection({
     setDeleteTarget(null);
   };
 
-  return (
-    <Card
-      {...(!embedded && {
-        title: "Bank rules",
-        subtitle: "Tag and rename imported transactions automatically",
-        icon: faWandMagicSparkles,
-        iconColor: wallet.color,
-      })}
-    >
-      <div className="flex flex-col gap-3">
-        {rules.length === 0 && (
-          <p className="text-sm text-app-muted">
-            No rules yet. Add one to categorise matching imports for you.
-          </p>
-        )}
+  const list = (
+    <div className="flex flex-col">
+      {rules.length === 0 && (
+        <p className="text-sm text-app-muted">
+          No rules yet. Add one to tag and rename matching imports for you.
+        </p>
+      )}
+      <ul className="divide-y divide-app-border">
         {rules.map((r) => (
-          <div
-            key={r.id}
-            className="flex flex-col gap-2 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-bold text-app-text">{r.name}</span>
-              {r.tag && <Badge color={r.tag.colorHex}>{r.tag.name}</Badge>}
+          <li key={r.id} className="flex items-start gap-3 py-3 first:pt-0">
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="truncate font-semibold text-app-text">
+                  {r.name}
+                </span>
+                {r.tag && <TagBadge tag={r.tag} showParent={false} />}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-app-muted">
+                <span className="truncate font-app-mono">{r.matchText}</span>
+                {r.regex && <Badge size="sm">Regex</Badge>}
+                {r.renameTo && (
+                  <>
+                    <FontAwesomeIcon
+                      icon={faArrowRight}
+                      className="text-[10px]"
+                      aria-label="renamed to"
+                    />
+                    <span className="text-app-text">{r.renameTo}</span>
+                  </>
+                )}
+              </div>
+              {r.usedBy.length > 0 && (
+                <p className="text-xs text-app-muted">
+                  Used by {r.usedBy.join(", ")}
+                </p>
+              )}
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-app-muted">
-              <span className="font-app-mono text-app-text">{r.matchText}</span>
-              {r.regex && <Badge size="sm">Regex</Badge>}
-              {r.renameTo && <span>→ {r.renameTo}</span>}
-            </div>
-            {r.usedBy.length > 0 && (
-              <p className="text-xs text-app-muted">
-                Used by {r.usedBy.join(", ")}
-              </p>
-            )}
             {canEdit && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex shrink-0 gap-1">
                 <Button
+                  variant="ghost"
                   size="sm"
-                  variant="secondary"
+                  aria-label={`Edit ${r.name}`}
                   onClick={() => setEditing(r)}
                 >
-                  Edit
+                  <FontAwesomeIcon icon={faPen} />
                 </Button>
                 <Button
+                  variant="ghost"
                   size="sm"
-                  variant="danger"
+                  aria-label={`Delete ${r.name}`}
+                  className="hover:text-app-red!"
                   onClick={() => setDeleteTarget(r)}
                 >
-                  Delete
+                  <FontAwesomeIcon icon={faTrash} />
                 </Button>
               </div>
             )}
-          </div>
+          </li>
         ))}
-        {canEdit && (
-          <div>
-            <Button variant="secondary" onClick={() => setEditing(null)}>
-              Add rule
-            </Button>
-          </div>
-        )}
-      </div>
+      </ul>
+      {canEdit && (
+        <DropdownManageButton
+          icon={faPlus}
+          label="Add rule"
+          onClick={() => setEditing(null)}
+        />
+      )}
+    </div>
+  );
 
+  const overlays = (
+    <>
       <BankRuleEditor
         open={editing !== undefined}
         walletId={wallet.id}
@@ -157,6 +176,27 @@ export function BankRulesSection({
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
       />
+    </>
+  );
+
+  // Inside an overlay that already shows the title: no card around the list.
+  if (embedded)
+    return (
+      <>
+        {list}
+        {overlays}
+      </>
+    );
+
+  return (
+    <Card
+      title="Bank rules"
+      subtitle="Tag and rename imported transactions automatically"
+      icon={faWandMagicSparkles}
+      iconColor={wallet.color}
+    >
+      {list}
+      {overlays}
     </Card>
   );
 }
