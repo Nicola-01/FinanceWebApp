@@ -110,10 +110,14 @@ entities/DTOs.
   `ENABLEBANKING_PRIVATE_KEY_PATH` (PEM mounted from `./secrets/`, git-ignored), `ENABLEBANKING_API_URL`
   — **empty by default, which disables the feature** (`GET /api/bank/wallets/{id}` → `enabled:false`).
   Per-user admin toggle `User.openBankingEnabled` gates access.
-  Imports are first matched against **subscription bank rules** (`Subscription.bankMatchText`, optional
-  regex / ignore-case, `openbanking/BankMatchRule`): one match is absorbed by the subscription's own
-  transaction within ±3 days (scheduled) or becomes its execution on the bank date (`bankDriven`, skipped
-  by the cron); several matches stay to-categorise with a `Collision: …` note.
+  Imports are first matched against the wallet's **bank rules** (`model/BankRule`: text or regex,
+  ignore-case, optional tag + rename; CRUD at `/api/bank-rules/{walletId}`, gated like `/api/bank`;
+  matching in `openbanking/BankMatchRule`). 2+ matching rules → to-categorise with a `Collision: …` note.
+  One rule used by a subscription (`Subscription.bankRule`) → the bank row is absorbed by the
+  subscription's own transaction within ±3 days, keeping its `Recurring: <tag> (#N)` notes (rule
+  tag/rename never apply there; 2+ eligible subs → collision). One rule with no eligible subscription →
+  its tag (leaves "To categorise") and/or rename (`Bank: <original>` in notes). A tag or rule in use
+  can't be deleted. The form no longer offers `bankDriven` (backend path still exists).
 - **Email:** SMTP via `MAIL_*` env vars. `mailing/EmailService` (plain messages) and
   `service/SendEmailService` (HTML/MIME with templates in `resources/templates/`) back
   registration, password reset, admin user invites, and wallet-member invites.
