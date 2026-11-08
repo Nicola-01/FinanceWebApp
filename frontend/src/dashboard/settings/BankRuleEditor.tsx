@@ -109,7 +109,7 @@ export function BankRuleEditor({
           <Input
             type="text"
             aria-label="Rule name"
-            placeholder="e.g. Amazon"
+            placeholder="Bank rule name"
             value={name}
             maxLength={50}
             onChange={(e) => setName(e.target.value)}
@@ -167,20 +167,15 @@ export function BankRuleEditor({
           )}
         </div>
         <div>
-          <FieldLabel>Display name</FieldLabel>
+          <FieldLabel>Transaction Name</FieldLabel>
           <Input
             type="text"
-            aria-label="Display name"
-            placeholder="e.g. Amazon (Optional)"
+            aria-label="Transaction name"
+            placeholder="(Optional)"
             value={renameTo}
             maxLength={100}
             onChange={(e) => setRenameTo(e.target.value)}
           />
-          <p className="mt-1 text-xs text-app-muted">
-            Shown instead of the bank&apos;s name, e.g. &quot;AMZN MKTP
-            IT*2K4&quot; → &quot;Amazon&quot;. Leave empty to keep the
-            bank&apos;s name.
-          </p>
         </div>
         <p className="text-xs text-app-muted">
           Imports matching this rule get its tag and name. When a subscription
