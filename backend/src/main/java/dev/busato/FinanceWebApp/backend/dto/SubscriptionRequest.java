@@ -22,6 +22,12 @@ public class SubscriptionRequest {
   // updates that omit it leave the flag unchanged.
   private Boolean amountPending;
 
+  // Open Banking match rule. On update: null = unchanged, a blank text clears the rule.
+  private String bankMatchText;
+  private Boolean bankMatchRegex;
+  private Boolean bankMatchIgnoreCase;
+  private Boolean bankDriven;
+
   private BigDecimal originalAmount;
   private String originalCurrency;
   private BigDecimal exchangeValue;

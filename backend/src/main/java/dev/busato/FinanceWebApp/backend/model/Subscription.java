@@ -74,6 +74,27 @@ public class Subscription {
   @Column(columnDefinition = "TEXT")
   private String notes;
 
+  // --- OPEN BANKING MATCH RULE (see openbanking/BankMatchRule) ---
+
+  /** Text searched in bank-imported transaction names; null = no rule. */
+  private String bankMatchText;
+
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean bankMatchRegex = false;
+
+  @Column(nullable = false)
+  @ColumnDefault("true")
+  @Builder.Default
+  private boolean bankMatchIgnoreCase = true;
+
+  /** No schedule of its own: every matching bank row becomes an execution, on the bank's date. */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean bankDriven = false;
+
   // --- REGOLE DI SCHEDULAZIONE (Core del Cron Job) ---
 
   @Enumerated(EnumType.STRING)

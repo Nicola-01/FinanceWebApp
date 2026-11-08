@@ -15,6 +15,7 @@ import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.openbanking.BankMatchRule;
 import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
@@ -317,11 +318,14 @@ public class SubscriptionService {
             .build();
 
     validateMonthlyRules(sub);
+    applyBankRule(sub, request);
     sub.setNextExecutionDate(calculateNextExecutionDate(sub, sub.getStartDate(), false));
 
     // Immediate catch-up execution on create/import must NOT emit a recurring-execution
-    // notification (that is reserved for the cron) — pass notify=false.
-    if (!sub.getNextExecutionDate().isAfter(LocalDate.now(clock))) executeSubscription(sub, false);
+    // notification (that is reserved for the cron) — pass notify=false. Bank-driven
+    // subscriptions have no schedule: the bank sync executes them.
+    if (!sub.isBankDriven() && !sub.getNextExecutionDate().isAfter(LocalDate.now(clock)))
+      executeSubscription(sub, false);
 
     return subscriptionRepository.save(sub);
   }
@@ -495,6 +499,11 @@ public class SubscriptionService {
       validateMonthlyRules(sub);
       recalculateDate = true;
     }
+
+    boolean wasBankDriven = sub.isBankDriven();
+    applyBankRule(sub, request);
+    // Back to a schedule: the stored next date went stale while the bank drove it.
+    if (wasBankDriven && !sub.isBankDriven()) recalculateDate = true;
 
     // If any scheduling rule was changed, recalculate the next due date
     // Note: For stopping subscriptions, duration rules don't force recalculation from startDate
@@ -697,6 +706,16 @@ public class SubscriptionService {
           && --remaining == 0) return day;
       day = day.plusDays(step);
     }
+  }
+
+  /** Copies the Open Banking rule from the request (null = unchanged) and validates it. */
+  private void applyBankRule(Subscription sub, SubscriptionRequest request) {
+    if (request.getBankMatchText() != null) sub.setBankMatchText(request.getBankMatchText().trim());
+    if (request.getBankMatchRegex() != null) sub.setBankMatchRegex(request.getBankMatchRegex());
+    if (request.getBankMatchIgnoreCase() != null)
+      sub.setBankMatchIgnoreCase(request.getBankMatchIgnoreCase());
+    if (request.getBankDriven() != null) sub.setBankDriven(request.getBankDriven());
+    BankMatchRule.validate(sub);
   }
 
   /** Rejects monthly rules whose ordinal would not exist in every month. */
