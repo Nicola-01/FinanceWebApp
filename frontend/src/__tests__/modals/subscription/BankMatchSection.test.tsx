@@ -1,3 +1,4 @@
+import type React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import type { BankRule } from "../../../types/domain";
@@ -7,23 +8,31 @@ vi.mock("../../../components/ui/CustomSelect.tsx", () => ({
     value,
     onChange,
     options,
+    footer,
   }: {
     value: string;
     onChange: (v: string) => void;
     options: { value: string; label: string }[];
+    footer?: (close: () => void) => React.ReactNode;
   }) => (
-    <select
-      aria-label="Bank rule"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    <>
+      {footer?.(() => {})}
+      <select
+        aria-label="Bank rule"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </>
   ),
+}));
+vi.mock("../../../dashboard/settings/BankRulesSection.tsx", () => ({
+  BankRulesSection: () => <div>rules manager</div>,
 }));
 
 import { BankMatchSection } from "../../../modals/subscription/BankMatchSection";
@@ -90,5 +99,21 @@ describe("BankMatchSection", () => {
       />,
     );
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
+  });
+
+  it("opens the bank rules manager from the dropdown and reloads on close", async () => {
+    const onRulesChanged = vi.fn();
+    render(
+      <BankMatchSection
+        value={{ ruleId: null }}
+        onChange={() => {}}
+        rules={rules}
+        onRulesChanged={onRulesChanged}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /manage bank rules/i }));
+    expect(await screen.findByText("rules manager")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^(back|close)$/i }));
+    expect(onRulesChanged).toHaveBeenCalled();
   });
 });

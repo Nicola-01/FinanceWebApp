@@ -20,6 +20,8 @@ export interface CustomSelectProps {
   className?: string;
   dropdownAlign?: "left" | "right";
   activeColor?: string;
+  /** Extra content under the options (e.g. a "Manage …" action); `close` closes the list. */
+  footer?: (close: () => void) => React.ReactNode;
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({
@@ -29,6 +31,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
   className = "",
   dropdownAlign = "left",
   activeColor,
+  footer,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -78,6 +81,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               {opt.label}
             </button>
           ))}
+          {footer && (
+            <div className="px-1 pb-1">{footer(() => setIsOpen(false))}</div>
+          )}
         </div>
       )}
     </div>

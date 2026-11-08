@@ -320,6 +320,19 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
               value={bankMatch}
               onChange={setBankMatch}
               rules={bankRules}
+              onRulesChanged={() =>
+                listBankRules(wallet.id)
+                  .then((rules) => {
+                    setBankRules(rules);
+                    // A rule deleted in the manager can't stay selected.
+                    setBankMatch((m) =>
+                      rules.some((r) => r.id === m.ruleId)
+                        ? m
+                        : { ruleId: null },
+                    );
+                  })
+                  .catch(() => {})
+              }
               accentColor={wallet.color}
             />
           )}

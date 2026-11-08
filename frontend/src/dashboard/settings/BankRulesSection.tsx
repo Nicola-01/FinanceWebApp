@@ -16,7 +16,12 @@ import { BankRuleEditor } from "./BankRuleEditor.tsx";
 import type { BankRule } from "../../types/domain";
 
 /** The wallet's bank rules: tag/rename imports, or route them to subscriptions. */
-export function BankRulesSection() {
+export function BankRulesSection({
+  embedded = false,
+}: {
+  /** Inside an overlay that already shows the title: drop the card header. */
+  embedded?: boolean;
+} = {}) {
   const { wallet, tags } = useWalletContext();
   const [enabled, setEnabled] = useState(false);
   const [rules, setRules] = useState<BankRule[]>([]);
@@ -69,10 +74,12 @@ export function BankRulesSection() {
 
   return (
     <Card
-      title="Bank rules"
-      subtitle="Tag and rename imported transactions automatically"
-      icon={faWandMagicSparkles}
-      iconColor={wallet.color}
+      {...(!embedded && {
+        title: "Bank rules",
+        subtitle: "Tag and rename imported transactions automatically",
+        icon: faWandMagicSparkles,
+        iconColor: wallet.color,
+      })}
     >
       <div className="flex flex-col gap-3">
         {rules.length === 0 && (

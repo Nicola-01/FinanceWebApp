@@ -72,4 +72,24 @@ describe("CustomSelect", () => {
     expect(screen.getAllByRole("button")).toHaveLength(1);
     expect(onChange).not.toHaveBeenCalled();
   });
+
+  it("renders a footer under the options that can close the list", async () => {
+    const user = userEvent.setup();
+    render(
+      <CustomSelect
+        value="eur"
+        onChange={vi.fn()}
+        options={OPTIONS}
+        footer={(close) => (
+          <button type="button" onClick={close}>
+            Manage
+          </button>
+        )}
+      />,
+    );
+    expect(screen.queryByText("Manage")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Euro/i }));
+    await user.click(screen.getByRole("button", { name: "Manage" }));
+    expect(screen.queryByText("Manage")).not.toBeInTheDocument();
+  });
 });
