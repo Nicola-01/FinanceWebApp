@@ -110,6 +110,10 @@ entities/DTOs.
   `ENABLEBANKING_PRIVATE_KEY_PATH` (PEM mounted from `./secrets/`, git-ignored), `ENABLEBANKING_API_URL`
   — **empty by default, which disables the feature** (`GET /api/bank/wallets/{id}` → `enabled:false`).
   Per-user admin toggle `User.openBankingEnabled` gates access.
+  Imports are first matched against **subscription bank rules** (`Subscription.bankMatchText`, optional
+  regex / ignore-case, `openbanking/BankMatchRule`): one match is absorbed by the subscription's own
+  transaction within ±3 days (scheduled) or becomes its execution on the bank date (`bankDriven`, skipped
+  by the cron); several matches stay to-categorise with a `Collision: …` note.
 - **Email:** SMTP via `MAIL_*` env vars. `mailing/EmailService` (plain messages) and
   `service/SendEmailService` (HTML/MIME with templates in `resources/templates/`) back
   registration, password reset, admin user invites, and wallet-member invites.
