@@ -40,6 +40,7 @@ vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
 }));
 vi.mock("../../../api/bankApi", () => ({
   getWalletBank: vi.fn().mockResolvedValue({ enabled: false, connections: [] }),
+  listBankRules: vi.fn().mockResolvedValue([]),
 }));
 
 import {
@@ -47,8 +48,7 @@ import {
   type SubscriptionModalHandle,
 } from "../../../modals/subscription/SubscriptionModal";
 import api from "../../../api/axiosConfig";
-import { getWalletBank } from "../../../api/bankApi";
-import { AxiosError, type AxiosResponse } from "axios";
+import { getWalletBank, listBankRules } from "../../../api/bankApi";
 
 const wallet: Wallet = {
   id: "w1",
@@ -181,16 +181,27 @@ describe("SubscriptionModal", () => {
       frequencyType: "WEEKLY",
       frequencyInterval: 2,
       tag: { name: "Fun", icon: "tag", colorHex: "#fff" },
-      bankMatchText: "NETFLIX",
-      bankMatchRegex: false,
-      bankMatchIgnoreCase: true,
+      bankRuleId: "r1",
+      bankRuleName: "Netflix",
       bankDriven: true,
     } as unknown as Subscription;
 
-    const enableBank = () =>
-      vi
-        .mocked(getWalletBank)
-        .mockResolvedValue({ enabled: true, connections: [] });
+    const enableBank = () => {
+      vi.mocked(getWalletBank).mockResolvedValue({
+        enabled: true,
+        connections: [],
+      });
+      vi.mocked(listBankRules).mockResolvedValue([
+        {
+          id: "r1",
+          name: "Netflix",
+          matchText: "NETFLIX",
+          regex: false,
+          ignoreCase: true,
+          usedBy: ["Netflix"],
+        },
+      ]);
+    };
 
     it("hides the section when open banking is disabled", async () => {
       vi.mocked(getWalletBank).mockResolvedValue({
@@ -201,6 +212,14 @@ describe("SubscriptionModal", () => {
       act(() => ref.current!.openModal());
       await waitFor(() => expect(getWalletBank).toHaveBeenCalledWith("w1"));
       expect(screen.queryByText("Open Banking")).not.toBeInTheDocument();
+      expect(listBankRules).not.toHaveBeenCalled();
+    });
+
+    it("loads the wallet's rules when open banking is enabled", async () => {
+      enableBank();
+      const ref = renderModal();
+      act(() => ref.current!.openModal());
+      await waitFor(() => expect(listBankRules).toHaveBeenCalledWith("w1"));
     });
 
     it("date from bank hides the schedule fields but keeps the duration", async () => {
@@ -208,7 +227,6 @@ describe("SubscriptionModal", () => {
       const ref = renderModal();
       act(() => ref.current!.openModal(sub));
       expect(await screen.findByText("Open Banking")).toBeInTheDocument();
-      expect(screen.getByDisplayValue("NETFLIX")).toBeInTheDocument();
       expect(screen.queryByText("Repeat Every")).not.toBeInTheDocument();
       expect(screen.queryByText("Start Date")).not.toBeInTheDocument();
       expect(screen.getByText("Ends")).toBeInTheDocument();
@@ -234,37 +252,11 @@ describe("SubscriptionModal", () => {
         unknown
       >;
       expect(body).toMatchObject({
-        bankMatchText: "NETFLIX",
-        bankMatchRegex: false,
-        bankMatchIgnoreCase: true,
+        bankRuleId: "r1",
         bankDriven: true,
         frequencyType: "MONTHLY",
         frequencyInterval: 1,
       });
-    });
-
-    it("shows an invalid regex error inline", async () => {
-      enableBank();
-      vi.mocked(api.put).mockClear();
-      const err = new AxiosError("409");
-      err.response = {
-        data: {
-          title: "Conflict",
-          detail: "Invalid bank match regex: Unclosed group",
-        },
-        status: 409,
-      } as AxiosResponse;
-      vi.mocked(api.put).mockRejectedValue(err);
-      const ref = renderModal();
-      act(() => ref.current!.openModal(sub));
-      await screen.findByText("Open Banking");
-      fireEvent.click(
-        screen.getByRole("button", { name: /save subscription/i }),
-      );
-
-      expect(
-        await screen.findByText("Invalid bank match regex: Unclosed group"),
-      ).toBeInTheDocument();
     });
   });
 });

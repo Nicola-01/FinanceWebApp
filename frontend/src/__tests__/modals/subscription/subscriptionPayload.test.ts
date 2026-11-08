@@ -46,34 +46,16 @@ describe("buildSchedulePayload", () => {
 });
 
 describe("buildBankMatchPayload", () => {
-  it("trims the text and keeps the flags", () => {
-    expect(
-      buildBankMatchPayload({
-        text: "  NETFLIX ",
-        regex: true,
-        ignoreCase: false,
-        bankDriven: true,
-      }),
-    ).toEqual({
-      bankMatchText: "NETFLIX",
-      bankMatchRegex: true,
-      bankMatchIgnoreCase: false,
+  it("sends the selected rule and date-from-bank", () => {
+    expect(buildBankMatchPayload({ ruleId: "r1", bankDriven: true })).toEqual({
+      bankRuleId: "r1",
       bankDriven: true,
     });
   });
 
-  it("clears a blank rule and never sends date-from-bank without text", () => {
-    expect(
-      buildBankMatchPayload({
-        text: "   ",
-        regex: false,
-        ignoreCase: true,
-        bankDriven: true,
-      }),
-    ).toEqual({
-      bankMatchText: "",
-      bankMatchRegex: false,
-      bankMatchIgnoreCase: true,
+  it("clears the rule with None and never sends date-from-bank without a rule", () => {
+    expect(buildBankMatchPayload({ ruleId: null, bankDriven: true })).toEqual({
+      clearBankRule: true,
       bankDriven: false,
     });
   });

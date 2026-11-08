@@ -1,63 +1,58 @@
 import Toggle from "../../components/ui/Toggle.tsx";
-import { Input } from "../../components/ui/Input.tsx";
+import { CustomSelect } from "../../components/ui/CustomSelect.tsx";
 import { FieldLabel } from "../../components/ui/FieldLabel";
+import type { BankRule } from "../../types/domain";
 import type { BankMatchFields } from "./subscriptionPayload";
 
 interface Props {
   value: BankMatchFields;
   onChange: (next: BankMatchFields) => void;
-  error?: string;
+  /** The wallet's bank rules (managed in wallet settings → Data). */
+  rules: BankRule[];
   accentColor?: string;
 }
 
-/** Open Banking rule editor of the subscription form (fully controlled). */
+/** Open Banking part of the subscription form: pick a wallet bank rule (fully controlled). */
 export function BankMatchSection({
   value,
   onChange,
-  error,
+  rules,
   accentColor,
 }: Props) {
-  const set = (patch: Partial<BankMatchFields>) =>
-    onChange({ ...value, ...patch });
   return (
     <div className="bg-app-input/50 border border-app-border rounded-xl p-4 flex flex-col gap-4">
       <h4 className="text-sm font-bold text-app-text">Open Banking</h4>
       <div>
-        <FieldLabel>Bank text</FieldLabel>
-        <Input
-          type="text"
-          placeholder="Text in the bank transaction name (Optional)"
-          value={value.text}
-          onChange={(e) => set({ text: e.target.value })}
-          aria-invalid={!!error}
-        />
-        {error && <p className="mt-1 text-xs text-app-red">{error}</p>}
-      </div>
-      <div className="flex flex-wrap gap-4">
-        <Toggle
-          checked={value.regex}
-          onChange={(regex) => set({ regex })}
-          accentColor={accentColor}
-          size="sm"
-          label="Use regex"
-          aria-label="Use regex"
-        />
-        <Toggle
-          checked={value.ignoreCase}
-          onChange={(ignoreCase) => set({ ignoreCase })}
-          accentColor={accentColor}
-          size="sm"
-          label="Ignore case"
-          aria-label="Ignore case"
-        />
+        <FieldLabel>Bank rule</FieldLabel>
+        <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner h-12">
+          <CustomSelect
+            value={value.ruleId ?? ""}
+            onChange={(id) =>
+              onChange(
+                id
+                  ? { ...value, ruleId: id }
+                  : { ruleId: null, bankDriven: false },
+              )
+            }
+            className="w-full bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer"
+            activeColor={accentColor}
+            options={[
+              { value: "", label: "None" },
+              ...rules.map((r) => ({ value: r.id, label: r.name })),
+            ]}
+          />
+        </div>
+        <p className="mt-1 text-xs text-app-muted">
+          Rules are managed in the wallet settings, under Data.
+        </p>
       </div>
       <div>
         <Toggle
           checked={value.bankDriven}
-          onChange={(bankDriven) => set({ bankDriven })}
+          onChange={(bankDriven) => onChange({ ...value, bankDriven })}
           accentColor={accentColor}
           size="sm"
-          disabled={!value.text.trim()}
+          disabled={!value.ruleId}
           label="Date from bank"
           aria-label="Date from bank"
         />

@@ -132,21 +132,11 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
         </DetailRow>
 
         {/* Bank rule (Only if present) */}
-        {sub.bankMatchText && (
-          <DetailRow icon={faBuildingColumns} label="Bank match">
-            <div className="flex flex-col sm:items-end">
-              <span className="text-app-text font-medium font-app-mono truncate">
-                {sub.bankMatchText}
-              </span>
-              <span className="text-app-muted text-xs">
-                {[
-                  sub.bankMatchRegex && "Regex",
-                  sub.bankMatchIgnoreCase === false && "Case-sensitive",
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </span>
-            </div>
+        {sub.bankRuleName && (
+          <DetailRow icon={faBuildingColumns} label="Bank rule">
+            <span className="text-app-text font-medium truncate">
+              {sub.bankRuleName}
+            </span>
           </DetailRow>
         )}
 

@@ -34,23 +34,17 @@ export const buildSchedulePayload = (f: ScheduleFields) => ({
 });
 
 export interface BankMatchFields {
-  text: string;
-  regex: boolean;
-  ignoreCase: boolean;
+  /** Selected wallet bank rule; null = None. */
+  ruleId: string | null;
   bankDriven: boolean;
 }
 
 /**
- * Open Banking rule part of a `SubscriptionRequest`. A blank text is sent as
- * "" (the backend reads null as "unchanged" and blank as "clear"), and
- * date-from-bank is only sent together with a text.
+ * Bank rule part of a `SubscriptionRequest`. The backend reads a null
+ * `bankRuleId` as "unchanged", so None is sent as `clearBankRule`, and
+ * date-from-bank is only sent together with a rule.
  */
-export const buildBankMatchPayload = (f: BankMatchFields) => {
-  const text = f.text.trim();
-  return {
-    bankMatchText: text,
-    bankMatchRegex: f.regex,
-    bankMatchIgnoreCase: f.ignoreCase,
-    bankDriven: f.bankDriven && text !== "",
-  };
-};
+export const buildBankMatchPayload = (f: BankMatchFields) =>
+  f.ruleId
+    ? { bankRuleId: f.ruleId, bankDriven: f.bankDriven }
+    : { clearBankRule: true, bankDriven: false };
