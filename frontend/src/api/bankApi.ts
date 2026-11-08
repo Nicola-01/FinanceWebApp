@@ -83,6 +83,7 @@ export interface BankRuleRequest {
   tag: string | null;
   renameTo: string | null;
   reviewFirst: boolean;
+  dateFromName: boolean;
 }
 
 export const listBankRules = (walletId: string) =>

@@ -40,6 +40,7 @@ export function BankRuleEditor({
   const [tagName, setTagName] = useState("");
   const [renameTo, setRenameTo] = useState("");
   const [reviewFirst, setReviewFirst] = useState(false);
+  const [dateFromName, setDateFromName] = useState(false);
   const [textError, setTextError] = useState<string>();
   const [saving, setSaving] = useState(false);
 
@@ -52,6 +53,7 @@ export function BankRuleEditor({
     setTagName(rule?.tag?.name ?? "");
     setRenameTo(rule?.renameTo ?? "");
     setReviewFirst(rule?.reviewFirst ?? false);
+    setDateFromName(rule?.dateFromName ?? false);
     setTextError(undefined);
   }, [open, rule]);
 
@@ -68,6 +70,7 @@ export function BankRuleEditor({
       tag: tagName || null,
       renameTo: renameTo.trim() || null,
       reviewFirst,
+      dateFromName,
     };
     try {
       const saved = rule
@@ -192,6 +195,20 @@ export function BankRuleEditor({
           <p className="mt-1 text-xs text-app-muted">
             Tag and name are filled in, but the transaction stays in To
             categorise so you can adjust it first.
+          </p>
+        </div>
+        <div>
+          <Toggle
+            checked={dateFromName}
+            onChange={setDateFromName}
+            accentColor={accentColor}
+            size="sm"
+            label="Date from transaction name"
+            aria-label="Date from transaction name"
+          />
+          <p className="mt-1 text-xs text-app-muted">
+            Use the purchase date written in the bank description (e.g.
+            &quot;... 03.11.2026 ...&quot;) instead of the booking date.
           </p>
         </div>
         <p className="text-xs text-app-muted">

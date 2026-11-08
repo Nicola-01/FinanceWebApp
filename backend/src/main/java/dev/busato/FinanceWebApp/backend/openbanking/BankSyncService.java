@@ -253,7 +253,8 @@ public class BankSyncService {
             ? Map.of()
             : subscriptionRepository.findAllByWalletIdAndBankRuleIsNotNull(wallet.getId()).stream()
                 .collect(Collectors.groupingBy(s -> s.getBankRule().getId()));
-    for (MappedTx m : mapped) {
+    for (MappedTx row : mapped) {
+      MappedTx m = row;
       if (!known.add(m.externalId())) continue;
       String currency =
           m.currency() != null
@@ -275,17 +276,23 @@ public class BankSyncService {
       String name = m.name();
       Tag ruleTag = null;
       boolean reviewFirst = false;
-      List<BankRule> hits = rules.stream().filter(r -> BankMatchRule.matches(r, m.name())).toList();
+      List<BankRule> hits =
+          rules.stream().filter(r -> BankMatchRule.matches(r, row.name())).toList();
       if (hits.size() > 1) {
         notes = collision(hits.stream().map(BankRule::getName).toList(), notes);
       } else if (hits.size() == 1) {
         BankRule rule = hits.get(0);
+        if (rule.isDateFromName()) {
+          LocalDate booked = m.date();
+          m = m.withDate(NameDateParser.parse(m.name(), booked).orElse(booked));
+        }
+        MappedTx tx = m;
         List<Subscription> subs =
             subsByRule.getOrDefault(rule.getId(), List.of()).stream()
                 .filter(s -> s.getStatus() == Subscription.Status.ACTIVE) // may complete mid-batch
                 // A refund must not match an expense subscription (and vice versa).
-                .filter(s -> s.getType().name().equals(m.type().name()))
-                .filter(s -> withinDuration(s, m.date()))
+                .filter(s -> s.getType().name().equals(tx.type().name()))
+                .filter(s -> withinDuration(s, tx.date()))
                 .toList();
         if (subs.size() > 1) {
           notes = collision(subs.stream().map(Subscription::getName).toList(), notes);

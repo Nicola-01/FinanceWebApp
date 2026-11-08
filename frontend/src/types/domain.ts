@@ -93,6 +93,7 @@ export interface BankRule {
   renameTo?: string | null;
   /** Tag/name are applied but the import stays in "To categorise" to confirm. */
   reviewFirst: boolean;
+  dateFromName: boolean;
   /** Names of the subscriptions using this rule. */
   usedBy: string[];
   updatedAt?: string;

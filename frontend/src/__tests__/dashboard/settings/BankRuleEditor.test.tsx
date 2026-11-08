@@ -81,6 +81,7 @@ describe("BankRuleEditor", () => {
         tag: null,
         renameTo: null,
         reviewFirst: false,
+        dateFromName: false,
       }),
     );
     expect(onSaved).toHaveBeenCalled();
@@ -97,10 +98,14 @@ describe("BankRuleEditor", () => {
       tag: { name: "Food" } as Tag,
       renameTo: "Amazon",
       reviewFirst: false,
+      dateFromName: false,
       usedBy: [],
     });
     fireEvent.click(
       screen.getByRole("switch", { name: "Review before confirming" }),
+    );
+    fireEvent.click(
+      screen.getByRole("switch", { name: "Date from transaction name" }),
     );
     fireEvent.click(save());
     await waitFor(() =>
@@ -112,6 +117,7 @@ describe("BankRuleEditor", () => {
         tag: "Food",
         renameTo: "Amazon",
         reviewFirst: true,
+        dateFromName: true,
       }),
     );
   });

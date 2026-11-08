@@ -984,4 +984,32 @@ class BankSyncServiceTest {
     assertThat(t.getName()).isEqualTo("Esselunga");
     assertThat(t.isNeedsReview()).isTrue();
   }
+
+  private Transaction syncDateRule(boolean dateFromName, String bankName) {
+    BankRule r = rule("Supermarket", "ESSELUNGA", tag("Food"), null);
+    r.setDateFromName(dateFromName);
+    bankRuleRepository.save(r);
+    bankReturns(charge("r1", "12.30", bankName, DAY));
+    service.syncConnection(conn, null);
+    return walletTxs().get(0);
+  }
+
+  @Test
+  void dateFromNameRule_usesPurchaseDateFromName() {
+    Transaction t = syncDateRule(true, "PAGAMENTO POS DEL 17.10.2026 A ESSELUNGA");
+    assertThat(t.getTransactionDate()).isEqualTo(DAY.minusDays(3));
+    assertThat(t.getTag().getName()).isEqualTo("Food");
+  }
+
+  @Test
+  void dateFromNameOff_keepsBookingDate() {
+    assertThat(syncDateRule(false, "PAGAMENTO POS DEL 17.10.2026 A ESSELUNGA").getTransactionDate())
+        .isEqualTo(DAY);
+  }
+
+  @Test
+  void dateFromNameRule_implausibleDate_keepsBookingDate() {
+    assertThat(syncDateRule(true, "PAGAMENTO POS DEL 25.10.2026 A ESSELUNGA").getTransactionDate())
+        .isEqualTo(DAY);
+  }
 }

@@ -104,6 +104,7 @@ export function BankRulesSection({
                 </code>
                 {r.regex && <Badge size="sm">Regex</Badge>}
                 {r.reviewFirst && <Badge size="sm">Review first</Badge>}
+                {r.dateFromName && <Badge size="sm">Date from name</Badge>}
                 {r.renameTo && (
                   <>
                     <FontAwesomeIcon

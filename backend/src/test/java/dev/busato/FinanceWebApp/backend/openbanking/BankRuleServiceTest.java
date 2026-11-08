@@ -68,7 +68,7 @@ class BankRuleServiceTest {
   }
 
   private static BankRuleRequest req(String name, String text) {
-    return new BankRuleRequest(name, text, false, null, null, null, null);
+    return new BankRuleRequest(name, text, false, null, null, null, null, null);
   }
 
   private BankRule existing(String name) {
@@ -146,7 +146,7 @@ class BankRuleServiceTest {
             service.create(
                 userId,
                 walletId,
-                new BankRuleRequest("A", "B", false, null, "To categorise", null, null)));
+                new BankRuleRequest("A", "B", false, null, "To categorise", null, null, null)));
   }
 
   @Test
@@ -157,7 +157,9 @@ class BankRuleServiceTest {
         TagNotFoundException.class,
         () ->
             service.create(
-                userId, walletId, new BankRuleRequest("A", "B", false, null, "Nope", null, null)));
+                userId,
+                walletId,
+                new BankRuleRequest("A", "B", false, null, "Nope", null, null, null)));
   }
 
   @Test
@@ -167,7 +169,7 @@ class BankRuleServiceTest {
     when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
         .thenReturn(Optional.of(food));
     service.create(
-        userId, walletId, new BankRuleRequest("A", "B", false, false, "Food", "Shop", null));
+        userId, walletId, new BankRuleRequest("A", "B", false, false, "Food", "Shop", null, null));
     verify(ruleRepository)
         .save(
             argThat(
@@ -188,7 +190,9 @@ class BankRuleServiceTest {
         IllegalArgumentException.class,
         () ->
             service.create(
-                userId, walletId, new BankRuleRequest("A", "(", true, null, null, null, null)));
+                userId,
+                walletId,
+                new BankRuleRequest("A", "(", true, null, null, null, null, null)));
   }
 
   @Test

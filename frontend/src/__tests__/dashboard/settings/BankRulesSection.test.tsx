@@ -56,6 +56,7 @@ const rule: BankRule = {
   } as BankRule["tag"],
   renameTo: "Netflix TV",
   reviewFirst: true,
+  dateFromName: true,
   usedBy: ["Netflix"],
 };
 
@@ -92,6 +93,7 @@ describe("BankRulesSection", () => {
     // The trigger text reads as code.
     expect(screen.getByText("NETFLIX").tagName).toBe("CODE");
     expect(screen.getByText("Review first")).toBeInTheDocument();
+    expect(screen.getByText("Date from name")).toBeInTheDocument();
     expect(screen.getByText("Regex")).toBeInTheDocument();
     expect(screen.getByText("Used by Netflix")).toBeInTheDocument();
     expect(screen.getByText("Streaming")).toBeInTheDocument();

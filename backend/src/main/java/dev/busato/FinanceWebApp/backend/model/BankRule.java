@@ -58,5 +58,11 @@ public class BankRule {
   @Builder.Default
   private boolean reviewFirst = false;
 
+  /** Use the purchase date written in the bank description instead of the booking date. */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean dateFromName = false;
+
   @UpdateTimestamp @Column private Instant updatedAt;
 }
