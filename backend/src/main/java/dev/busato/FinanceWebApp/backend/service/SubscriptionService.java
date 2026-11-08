@@ -15,8 +15,8 @@ import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
-import dev.busato.FinanceWebApp.backend.openbanking.BankMatchRule;
 import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
+import dev.busato.FinanceWebApp.backend.repository.BankRuleRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
@@ -56,6 +56,7 @@ import org.springframework.stereotype.Service;
 public class SubscriptionService {
 
   private final SubscriptionRepository subscriptionRepository;
+  private final BankRuleRepository bankRuleRepository;
   private final WalletRepository walletRepository;
   private final TagRepository tagRepository;
   private final TransactionRepository transactionRepository;
@@ -772,12 +773,20 @@ public class SubscriptionService {
 
   /** Copies the Open Banking rule from the request (null = unchanged) and validates it. */
   private void applyBankRule(Subscription sub, SubscriptionRequest request) {
-    if (request.getBankMatchText() != null) sub.setBankMatchText(request.getBankMatchText().trim());
-    if (request.getBankMatchRegex() != null) sub.setBankMatchRegex(request.getBankMatchRegex());
-    if (request.getBankMatchIgnoreCase() != null)
-      sub.setBankMatchIgnoreCase(request.getBankMatchIgnoreCase());
+    if (Boolean.TRUE.equals(request.getClearBankRule())) {
+      sub.setBankRule(null);
+      sub.setBankDriven(false);
+      return;
+    }
+    if (request.getBankRuleId() != null)
+      sub.setBankRule(
+          bankRuleRepository
+              .findByIdAndWalletId(request.getBankRuleId(), sub.getWallet().getId())
+              .orElseThrow(
+                  () -> new IllegalArgumentException("Bank rule not found in this wallet")));
     if (request.getBankDriven() != null) sub.setBankDriven(request.getBankDriven());
-    BankMatchRule.validate(sub);
+    if (sub.isBankDriven() && sub.getBankRule() == null)
+      throw new IllegalArgumentException("Date from bank requires a bank rule");
   }
 
   /** Rejects monthly rules whose ordinal would not exist in every month. */

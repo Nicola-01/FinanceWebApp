@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
+import dev.busato.FinanceWebApp.backend.model.BankRule;
 import dev.busato.FinanceWebApp.backend.model.ImportedBankTransaction;
 import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
@@ -25,6 +26,7 @@ import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransaction;
 import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransactionPage;
 import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
+import dev.busato.FinanceWebApp.backend.repository.BankRuleRepository;
 import dev.busato.FinanceWebApp.backend.repository.ImportedBankTransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
@@ -92,6 +94,7 @@ class BankSyncServiceTest {
   @Autowired TransactionRepository transactionRepository;
   @Autowired TagRepository tagRepository;
   @Autowired SubscriptionRepository subscriptionRepository;
+  @Autowired BankRuleRepository bankRuleRepository;
 
   User owner;
   Wallet wallet;
@@ -522,9 +525,14 @@ class BankSyncServiceTest {
             .frequencyType(Subscription.Frequency.MONTHLY)
             .frequencyInterval(1)
             .duration(Subscription.Duration.FOREVER)
-            .bankMatchText(text)
+            .bankRule(text == null ? null : rule(name, text))
             .bankDriven(bankDriven)
             .build());
+  }
+
+  BankRule rule(String name, String text) {
+    return bankRuleRepository.save(
+        BankRule.builder().wallet(wallet).name(name).matchText(text).build());
   }
 
   Transaction subTx(Subscription s, LocalDate date, boolean pending) {

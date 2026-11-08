@@ -1,7 +1,6 @@
 package dev.busato.FinanceWebApp.backend.openbanking;
 
 import dev.busato.FinanceWebApp.backend.model.BankRule;
-import dev.busato.FinanceWebApp.backend.model.Subscription;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -47,46 +46,6 @@ public final class BankMatchRule {
     @Override
     public String toString() {
       return s.toString();
-    }
-  }
-
-  public static boolean matches(Subscription sub, String bankName) {
-    String text = sub.getBankMatchText();
-    if (text == null || text.isBlank() || bankName == null) return false;
-    boolean ignoreCase = sub.isBankMatchIgnoreCase();
-    if (!sub.isBankMatchRegex())
-      return ignoreCase
-          ? bankName.toLowerCase(Locale.ROOT).contains(text.toLowerCase(Locale.ROOT))
-          : bankName.contains(text);
-    try {
-      return compile(text, ignoreCase)
-          .matcher(new Deadline(bankName, System.nanoTime() + REGEX_BUDGET_NANOS))
-          .find();
-    } catch (RegexTimeout e) {
-      log.warn("Bank match regex timed out on subscription {}", sub.getId());
-      return false;
-    } catch (PatternSyntaxException e) {
-      // Validated at save time; a bad pattern must never break the sync.
-      log.warn("Invalid bank match regex on subscription {}", sub.getId());
-      return false;
-    }
-  }
-
-  /** Normalises a blank text to null and rejects an invalid rule (400 via the handler). */
-  public static void validate(Subscription sub) {
-    String text = sub.getBankMatchText();
-    if (text != null && text.isBlank()) sub.setBankMatchText(text = null);
-    if (text != null && text.length() > MAX_TEXT_LENGTH)
-      throw new IllegalArgumentException(
-          "Bank match text must be at most " + MAX_TEXT_LENGTH + " characters");
-    if (sub.isBankDriven() && text == null)
-      throw new IllegalArgumentException("Date from bank requires a bank match text");
-    if (text != null && sub.isBankMatchRegex()) {
-      try {
-        compile(text, sub.isBankMatchIgnoreCase());
-      } catch (PatternSyntaxException e) {
-        throw new IllegalArgumentException("Invalid bank match regex: " + e.getDescription());
-      }
     }
   }
 

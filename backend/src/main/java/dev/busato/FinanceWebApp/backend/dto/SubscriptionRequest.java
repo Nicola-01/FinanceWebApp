@@ -22,10 +22,9 @@ public class SubscriptionRequest {
   // updates that omit it leave the flag unchanged.
   private Boolean amountPending;
 
-  // Open Banking match rule. On update: null = unchanged, a blank text clears the rule.
-  private String bankMatchText;
-  private Boolean bankMatchRegex;
-  private Boolean bankMatchIgnoreCase;
+  // Wallet bank rule. On update: null = unchanged; clearBankRule=true removes it (and bankDriven).
+  private UUID bankRuleId;
+  private Boolean clearBankRule;
   private Boolean bankDriven;
 
   private BigDecimal originalAmount;

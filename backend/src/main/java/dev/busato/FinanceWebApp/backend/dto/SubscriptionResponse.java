@@ -25,9 +25,8 @@ public class SubscriptionResponse {
   private String notes;
   private String status;
 
-  private String bankMatchText;
-  private boolean bankMatchRegex;
-  private boolean bankMatchIgnoreCase;
+  private UUID bankRuleId;
+  private String bankRuleName;
   private boolean bankDriven;
 
   private LocalDate startDate;

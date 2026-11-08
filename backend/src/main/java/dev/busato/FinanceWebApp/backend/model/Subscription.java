@@ -74,20 +74,7 @@ public class Subscription {
   @Column(columnDefinition = "TEXT")
   private String notes;
 
-  // --- OPEN BANKING MATCH RULE (see openbanking/BankMatchRule) ---
-
-  /** Text searched in bank-imported transaction names; null = no rule. */
-  private String bankMatchText;
-
-  @Column(nullable = false)
-  @ColumnDefault("false")
-  @Builder.Default
-  private boolean bankMatchRegex = false;
-
-  @Column(nullable = false)
-  @ColumnDefault("true")
-  @Builder.Default
-  private boolean bankMatchIgnoreCase = true;
+  // --- OPEN BANKING (see openbanking/BankMatchRule) ---
 
   /** Wallet bank rule routing matching imports to this subscription; null = none. */
   @ManyToOne(fetch = FetchType.LAZY)

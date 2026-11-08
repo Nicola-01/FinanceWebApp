@@ -242,8 +242,7 @@ public class BankSyncService {
     List<Subscription> rules =
         mapped.isEmpty()
             ? List.of()
-            : subscriptionRepository.findAllByWalletIdAndStatusAndBankMatchTextIsNotNull(
-                wallet.getId(), Subscription.Status.ACTIVE);
+            : subscriptionRepository.findAllByWalletIdAndBankRuleIsNotNull(wallet.getId());
     for (MappedTx m : mapped) {
       if (!known.add(m.externalId())) continue;
       String currency =
@@ -268,7 +267,10 @@ public class BankSyncService {
               .filter(s -> s.getStatus() == Subscription.Status.ACTIVE) // may complete mid-batch
               // A refund must not match an expense subscription (and vice versa).
               .filter(s -> s.getType().name().equals(m.type().name()))
-              .filter(s -> withinDuration(s, m.date()) && BankMatchRule.matches(s, m.name()))
+              .filter(
+                  s ->
+                      withinDuration(s, m.date())
+                          && BankMatchRule.matches(s.getBankRule(), m.name()))
               .toList();
       if (hits.size() == 1) {
         Subscription s = hits.get(0);
