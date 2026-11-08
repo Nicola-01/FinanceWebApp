@@ -105,7 +105,7 @@ export function BankRuleEditor({
     >
       <div className="flex flex-col gap-5 text-left">
         <div>
-          <FieldLabel>Name</FieldLabel>
+          <FieldLabel>Name *</FieldLabel>
           <Input
             type="text"
             aria-label="Rule name"
@@ -116,10 +116,10 @@ export function BankRuleEditor({
           />
         </div>
         <div>
-          <FieldLabel>Bank text</FieldLabel>
+          <FieldLabel>Trigger text *</FieldLabel>
           <Input
             type="text"
-            aria-label="Bank text"
+            aria-label="Trigger text"
             placeholder="Text in the bank transaction name"
             value={text}
             maxLength={200}

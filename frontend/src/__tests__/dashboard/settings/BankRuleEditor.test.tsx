@@ -49,14 +49,14 @@ const save = () => screen.getByRole("button", { name: "Save rule" });
 beforeEach(() => vi.clearAllMocks());
 
 describe("BankRuleEditor", () => {
-  it("cannot save until name and bank text are filled", () => {
+  it("cannot save until name and trigger text are filled", () => {
     renderEditor();
     expect(save()).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Rule name"), {
       target: { value: "Amazon" },
     });
     expect(save()).toBeDisabled();
-    fireEvent.change(screen.getByLabelText("Bank text"), {
+    fireEvent.change(screen.getByLabelText("Trigger text"), {
       target: { value: "AMZN" },
     });
     expect(save()).toBeEnabled();
@@ -68,7 +68,7 @@ describe("BankRuleEditor", () => {
     fireEvent.change(screen.getByLabelText("Rule name"), {
       target: { value: "Amazon" },
     });
-    fireEvent.change(screen.getByLabelText("Bank text"), {
+    fireEvent.change(screen.getByLabelText("Trigger text"), {
       target: { value: "AMZN" },
     });
     fireEvent.click(save());
@@ -124,7 +124,7 @@ describe("BankRuleEditor", () => {
     fireEvent.change(screen.getByLabelText("Rule name"), {
       target: { value: "Bad" },
     });
-    fireEvent.change(screen.getByLabelText("Bank text"), {
+    fireEvent.change(screen.getByLabelText("Trigger text"), {
       target: { value: "(" },
     });
     fireEvent.click(save());
