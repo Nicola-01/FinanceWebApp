@@ -1,10 +1,10 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import * as walletOps from "../../api/walletOps";
 import Button from "../../components/ui/Button.tsx";
 import Toggle from "../../components/ui/Toggle.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import type { CurrencyCode } from "../../utils/currencies";
-import type { Tag, Wallet, Subscription } from "../../types/domain";
+import type { BankRule, Tag, Wallet, Subscription } from "../../types/domain";
 
 // Sub-components reused from the transaction modal.
 import CustomDatePicker from "../../components/datePicker/CustomDatePicker";
@@ -17,15 +17,23 @@ import { TagPicker } from "../transaction/TagPicker";
 import { ExchangeRateSection } from "../common/exchangeRate/ExchangeRateSection";
 import { SchedulingRules } from "../common/SchedulingRules";
 import { getApiErrorTitle } from "../../utils/apiError";
+import { getWalletBank, listBankRules } from "../../api/bankApi";
+import { BankMatchSection } from "./BankMatchSection";
 import { parseLocalIsoDate } from "../../utils/localDate";
 import { FieldLabel } from "../../components/ui/FieldLabel";
 import { useAmountEntryForm } from "../common/useAmountEntryForm";
-import { buildSchedulePayload } from "./subscriptionPayload";
+import {
+  buildBankMatchPayload,
+  buildSchedulePayload,
+  type BankMatchFields,
+} from "./subscriptionPayload";
 import {
   EMPTY_MONTHLY_RULE,
   monthlyRuleFromSub,
   type MonthlyRule,
 } from "../../utils/monthlyRule";
+
+const EMPTY_BANK_MATCH: BankMatchFields = { ruleId: null };
 
 export interface SubscriptionModalHandle {
   openModal: (sub?: Subscription, initialDate?: Date) => void;
@@ -72,6 +80,31 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
     const [monthlyRule, setMonthlyRule] =
       useState<MonthlyRule>(EMPTY_MONTHLY_RULE);
 
+    const [bankMatch, setBankMatch] =
+      useState<BankMatchFields>(EMPTY_BANK_MATCH);
+    const [bankEnabled, setBankEnabled] = useState(false);
+    const [bankRules, setBankRules] = useState<BankRule[]>([]);
+
+    // The Open Banking section only makes sense when the wallet can import.
+    useEffect(() => {
+      if (!open) return;
+      let alive = true;
+      Promise.resolve()
+        .then(() => getWalletBank(wallet.id))
+        .then(async (b) => {
+          if (!alive) return;
+          setBankEnabled(b.enabled);
+          if (!b.enabled) return;
+          // A failed rules fetch just leaves the selector with "None".
+          const rules = await listBankRules(wallet.id).catch(() => []);
+          if (alive) setBankRules(rules);
+        })
+        .catch(() => alive && setBankEnabled(false));
+      return () => {
+        alive = false;
+      };
+    }, [open, wallet.id]);
+
     const [loading, setLoading] = useState(false);
     const [resetKey, setResetKey] = useState(0);
 
@@ -100,6 +133,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setMonthlyRule(
             monthlyRuleFromSub(sub, parseLocalIsoDate(sub.startDate)),
           );
+          setBankMatch({ ruleId: sub.bankRuleId ?? null });
         } else {
           // --- CREATE MODE ---
           setEditingSubId(null);
@@ -119,6 +153,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setDurationUntil(null);
           setStatus("ACTIVE");
           setMonthlyRule(EMPTY_MONTHLY_RULE);
+          setBankMatch(EMPTY_BANK_MATCH);
         }
         setOpen(true);
       },
@@ -148,6 +183,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             durationUntil,
             monthlyRule,
           }),
+          ...buildBankMatchPayload(bankMatch),
         };
 
         if (editingSubId) {
@@ -278,6 +314,28 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             onMonthlyRuleChange={setMonthlyRule}
             startDate={startDate}
           />
+
+          {bankEnabled && (
+            <BankMatchSection
+              value={bankMatch}
+              onChange={setBankMatch}
+              rules={bankRules}
+              onRulesChanged={() =>
+                listBankRules(wallet.id)
+                  .then((rules) => {
+                    setBankRules(rules);
+                    // A rule deleted in the manager can't stay selected.
+                    setBankMatch((m) =>
+                      rules.some((r) => r.id === m.ruleId)
+                        ? m
+                        : { ruleId: null },
+                    );
+                  })
+                  .catch(() => {})
+              }
+              accentColor={wallet.color}
+            />
+          )}
 
           {/* 4. NAME & DESCRIPTION */}
           <div className="flex flex-col gap-4">

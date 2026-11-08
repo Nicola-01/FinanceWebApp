@@ -1,4 +1,5 @@
 import api from "./axiosConfig";
+import type { BankRule } from "../types/domain";
 
 // Online-only (like members/PATs): not routed through the offline ops queue.
 export interface BankAccountLink {
@@ -72,3 +73,44 @@ export const syncWalletIfStale = (walletId: string) =>
 
 export const deleteConnection = (id: string) =>
   api.delete(`/bank/connections/${id}`).then(() => undefined);
+
+export interface BankRuleRequest {
+  name: string;
+  matchText: string;
+  regex: boolean;
+  ignoreCase: boolean;
+  /** Tag name; null = none. */
+  tag: string | null;
+  renameTo: string | null;
+  reviewFirst: boolean;
+  dateFromName: boolean;
+}
+
+export const listBankRules = (walletId: string) =>
+  api.get<BankRule[]>(`/bank-rules/${walletId}`).then((r) => r.data);
+
+export const createBankRule = (walletId: string, req: BankRuleRequest) =>
+  api.post<BankRule>(`/bank-rules/${walletId}`, req).then((r) => r.data);
+
+export const updateBankRule = (
+  walletId: string,
+  ruleId: string,
+  req: BankRuleRequest,
+) =>
+  api
+    .put<BankRule>(`/bank-rules/${walletId}/${ruleId}`, req)
+    .then((r) => r.data);
+
+export const deleteBankRule = (walletId: string, ruleId: string) =>
+  api.delete(`/bank-rules/${walletId}/${ruleId}`).then(() => undefined);
+
+export interface ApplyRulesResult {
+  updated: number;
+  collisions: number;
+}
+
+/** Runs the rules over the imports still "To categorise". */
+export const applyBankRules = (walletId: string) =>
+  api
+    .post<ApplyRulesResult>(`/bank-rules/${walletId}/apply`)
+    .then((r) => r.data);

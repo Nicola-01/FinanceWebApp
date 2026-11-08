@@ -30,6 +30,9 @@ vi.mock("../../../api/axiosConfig", () => ({
 vi.mock("../../../dashboard/settings/BankAccountsSection.tsx", () => ({
   BankAccountsSection: () => null,
 }));
+vi.mock("../../../dashboard/settings/BankRulesSection.tsx", () => ({
+  BankRulesSection: () => null,
+}));
 vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));

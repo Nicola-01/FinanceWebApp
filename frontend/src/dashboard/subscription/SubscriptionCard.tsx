@@ -29,11 +29,14 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
 }) => {
   const isIncome = subscription.type === "INCOME";
 
-  const frequencyText = formatCompactFrequency(
-    subscription.frequencyInterval,
-    subscription.frequencyType,
-  );
-  const daysLeft = getDaysLeft(date);
+  // Bank-driven: executions follow the bank, so no frequency or countdown.
+  const frequencyText = subscription.bankDriven
+    ? "bank"
+    : formatCompactFrequency(
+        subscription.frequencyInterval,
+        subscription.frequencyType,
+      );
+  const daysLeft = subscription.bankDriven ? null : getDaysLeft(date);
 
   let cardBorder = "border border-transparent hover:border-app-border";
   let statusBadge = null;

@@ -13,6 +13,7 @@ import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.model.WalletAccess;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
+import dev.busato.FinanceWebApp.backend.repository.BankRuleRepository;
 import dev.busato.FinanceWebApp.backend.repository.EmailChangeRequestRepository;
 import dev.busato.FinanceWebApp.backend.repository.PersonalAccessTokenRepository;
 import dev.busato.FinanceWebApp.backend.repository.PushSubscriptionRepository;
@@ -41,6 +42,7 @@ class AccountDeletionServiceTest {
   @Mock private WalletAccessRepository walletAccessRepository;
   @Mock private SubscriptionRepository subscriptionRepository;
   @Mock private BankConnectionRepository bankConnectionRepository;
+  @Mock private BankRuleRepository bankRuleRepository;
   @Mock private PersonalAccessTokenRepository patRepository;
   @Mock private EmailChangeRequestRepository emailChangeRepository;
   @Mock private PushSubscriptionRepository pushSubscriptionRepository;
@@ -236,6 +238,7 @@ class AccountDeletionServiceTest {
     accountDeletionService.deleteAccount(me, RAW_PASSWORD);
 
     verify(subscriptionRepository).deleteAllByWalletId(w.getId());
+    verify(bankRuleRepository).deleteAllByWalletId(w.getId());
     verify(bankConnectionRepository, org.mockito.Mockito.times(2)).deleteAll(anyList());
     verify(walletRepository).delete(w);
     verify(walletAccessRepository, never()).save(any());

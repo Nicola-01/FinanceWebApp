@@ -116,4 +116,20 @@ describe("SubscriptionView", () => {
     );
     expect(screen.getByTestId("exchange")).toBeInTheDocument();
   });
+
+  it("shows the bank rule and 'Date from bank' instead of the schedule", () => {
+    const { container } = render(
+      <SubscriptionView
+        sub={makeSub({
+          bankRuleId: "r1",
+          bankRuleName: "Netflix rule",
+          bankDriven: true,
+        })}
+        wallet={wallet}
+      />,
+    );
+    expect(screen.getByText("Date from bank")).toBeInTheDocument();
+    expect(screen.queryByText("Next Run")).not.toBeInTheDocument();
+    expect(container.textContent).toContain("Netflix rule");
+  });
 });

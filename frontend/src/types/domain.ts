@@ -82,6 +82,23 @@ export type Weekday =
   | "SATURDAY"
   | "SUNDAY";
 
+/** Per-wallet Open Banking rule: tags/renames matching imports, or routes them to a subscription. */
+export interface BankRule {
+  id: string;
+  name: string;
+  matchText: string;
+  regex: boolean;
+  ignoreCase: boolean;
+  tag?: Tag | null;
+  renameTo?: string | null;
+  /** Tag/name are applied but the import stays in "To categorise" to confirm. */
+  reviewFirst: boolean;
+  dateFromName: boolean;
+  /** Names of the subscriptions using this rule. */
+  usedBy: string[];
+  updatedAt?: string;
+}
+
 export interface Subscription {
   id: string;
   name: string;
@@ -95,6 +112,12 @@ export interface Subscription {
   type: "INCOME" | "EXPENSE";
   notes?: string;
   status: "ACTIVE" | "PAUSED" | "COMPLETED";
+
+  // Wallet bank rule: bank imports it matches are matched to this subscription.
+  bankRuleId?: string | null;
+  bankRuleName?: string | null;
+  /** No schedule: each matching bank transaction becomes an execution. */
+  bankDriven?: boolean;
 
   startDate: string; // ISO Date (YYYY-MM-DD)
   nextExecutionDate: string;

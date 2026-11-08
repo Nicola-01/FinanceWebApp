@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import dev.busato.FinanceWebApp.backend.dto.SubscriptionResponse;
 import dev.busato.FinanceWebApp.backend.dto.TagResponse;
+import dev.busato.FinanceWebApp.backend.model.BankRule;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import java.math.BigDecimal;
@@ -103,5 +104,25 @@ class SubscriptionMapperTest {
     SubscriptionResponse response = subscriptionMapper.mapToResponse(sub);
 
     assertTrue(response.isAmountPending());
+  }
+
+  @Test
+  void mapToResponse_exposesBankRuleIdAndName() {
+    BankRule rule =
+        BankRule.builder().id(UUID.randomUUID()).name("Netflix").matchText("NETFLIX").build();
+    Subscription sub =
+        Subscription.builder()
+            .name("N")
+            .type(Subscription.Type.EXPENSE)
+            .status(Subscription.Status.ACTIVE)
+            .frequencyType(Subscription.Frequency.MONTHLY)
+            .duration(Subscription.Duration.FOREVER)
+            .bankRule(rule)
+            .bankDriven(true)
+            .build();
+    var r = subscriptionMapper.mapToResponse(sub);
+    assertEquals(rule.getId(), r.getBankRuleId());
+    assertEquals("Netflix", r.getBankRuleName());
+    assertTrue(r.isBankDriven());
   }
 }

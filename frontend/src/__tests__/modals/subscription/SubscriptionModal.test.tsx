@@ -38,12 +38,17 @@ vi.mock("../../../api/axiosConfig", () => ({
 vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));
+vi.mock("../../../api/bankApi", () => ({
+  getWalletBank: vi.fn().mockResolvedValue({ enabled: false, connections: [] }),
+  listBankRules: vi.fn().mockResolvedValue([]),
+}));
 
 import {
   SubscriptionModal,
   type SubscriptionModalHandle,
 } from "../../../modals/subscription/SubscriptionModal";
 import api from "../../../api/axiosConfig";
+import { getWalletBank, listBankRules } from "../../../api/bankApi";
 
 const wallet: Wallet = {
   id: "w1",
@@ -164,5 +169,93 @@ describe("SubscriptionModal", () => {
         name: "Reminder subscription (no fixed amount)",
       }),
     ).toBeInTheDocument();
+  });
+
+  describe("Open Banking section", () => {
+    const sub = {
+      id: "s9",
+      name: "Netflix",
+      type: "EXPENSE",
+      amount: 12.99,
+      startDate: "2026-01-02",
+      frequencyType: "WEEKLY",
+      frequencyInterval: 2,
+      tag: { name: "Fun", icon: "tag", colorHex: "#fff" },
+      bankRuleId: "r1",
+      bankRuleName: "Netflix",
+      bankDriven: true,
+    } as unknown as Subscription;
+
+    const enableBank = () => {
+      vi.mocked(getWalletBank).mockResolvedValue({
+        enabled: true,
+        connections: [],
+      });
+      vi.mocked(listBankRules).mockResolvedValue([
+        {
+          id: "r1",
+          name: "Netflix",
+          matchText: "NETFLIX",
+          regex: false,
+          ignoreCase: true,
+          usedBy: ["Netflix"],
+        },
+      ]);
+    };
+
+    it("hides the section when open banking is disabled", async () => {
+      vi.mocked(getWalletBank).mockResolvedValue({
+        enabled: false,
+        connections: [],
+      });
+      const ref = renderModal();
+      act(() => ref.current!.openModal());
+      await waitFor(() => expect(getWalletBank).toHaveBeenCalledWith("w1"));
+      expect(screen.queryByText("Open Banking")).not.toBeInTheDocument();
+      expect(listBankRules).not.toHaveBeenCalled();
+    });
+
+    it("loads the wallet's rules when open banking is enabled", async () => {
+      enableBank();
+      const ref = renderModal();
+      act(() => ref.current!.openModal());
+      await waitFor(() => expect(listBankRules).toHaveBeenCalledWith("w1"));
+    });
+
+    it("keeps the schedule and has no date-from-bank toggle", async () => {
+      enableBank();
+      const ref = renderModal();
+      act(() => ref.current!.openModal(sub));
+      expect(await screen.findByText("Open Banking")).toBeInTheDocument();
+      expect(screen.getByText("Repeat Every")).toBeInTheDocument();
+      expect(screen.getByText("Start Date")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("switch", { name: "Date from bank" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("sends the rule with the subscription's own schedule", async () => {
+      enableBank();
+      vi.mocked(api.put).mockClear();
+      vi.mocked(api.put).mockResolvedValue({ data: {} });
+      const ref = renderModal();
+      act(() => ref.current!.openModal(sub));
+      await screen.findByText("Open Banking");
+      fireEvent.click(
+        screen.getByRole("button", { name: /save subscription/i }),
+      );
+
+      await waitFor(() => expect(api.put).toHaveBeenCalled());
+      const body = vi.mocked(api.put).mock.calls[0][1] as Record<
+        string,
+        unknown
+      >;
+      expect(body).toMatchObject({
+        bankRuleId: "r1",
+        bankDriven: false,
+        frequencyType: "WEEKLY",
+        frequencyInterval: 2,
+      });
+    });
   });
 });

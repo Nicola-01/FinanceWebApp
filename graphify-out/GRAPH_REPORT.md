@@ -1,235 +1,244 @@
-# Graph Report - FinanceWebApp  (2026-11-05)
+# Graph Report - FinanceWebApp  (2026-11-08)
 
 ## Corpus Check
-- 992 files · ~477,108 words
+- 1007 files · ~485,278 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 6015 nodes · 20008 edges · 208 communities (178 shown, 25 thin omitted)
-- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 2358 edges (avg confidence: 0.81)
+- 6219 nodes · 20946 edges · 219 communities (178 shown, 34 thin omitted)
+- Extraction: 88% EXTRACTED · 12% INFERRED · 0% AMBIGUOUS · INFERRED: 2452 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1817bbca`
+- Built from commit: `55888d6f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- org.springframework.http.ResponseEntity
+- GlobalExceptionHandlerTest
 - org.junit.jupiter.api.Test
 - mcp_server.py
-- triggerToast
-- Transaction
-- SubscriptionModal.tsx
-- PersonalAccessToken
-- org.springframework.security.access.prepost.PreAuthorize
+- Button
+- overlay.test.ts
+- BankRuleEditor.tsx
+- PatServiceTest
+- WalletAccess
 - User
 - BackupServiceTest
-- WalletAccess
-- subscriptionHelper.ts
-- vitest
-- useTabLayout.ts
+- Wallet
+- Subscription
 - BasicsStep.tsx
-- org.junit.jupiter.api.extension.ExtendWith
-- lombok.Data
-- index.ts
-- axiosConfig.ts
-- useSyncStatus.ts
-- domain.ts
-- useExchangeRate.ts
-- FinanceWebApp Project
-- WalletController
+- useTabLayout.ts
+- UserNotFoundException
 - Registrations
+- lombok.Data
+- Transaction
+- vitest
+- domain.ts
+- tagOrder.ts
+- exchangeRates.ts
+- FinanceWebApp Project
+- org.springframework.http.ResponseEntity
+- .findByToken
 - dependencies
-- .findAllByUserIdAndStatus
-- Budget
+- WalletServiceTest
+- BudgetService
 - devDependencies
 - Tag
 - CustomDatePicker.tsx
 - compilerOptions
-- WalletSecurityTest
+- PersonalAccessToken
 - TagRequest
 - compilerOptions
 - Frontend UI Redesign — TODO
-- categoryChartData.ts
+- CategoryHeatmapChart.tsx
 - TagsStep.tsx
 - TransactionServiceTest
-- TransactionService
+- MonthlyRulePicker.tsx
 - JwtAuthenticationFilterTest
 - SubscriptionServiceTest
 - frontend/package.json
-- TokenListItem.tsx
-- react-router-dom
+- TokensSection.tsx
+- AppHeader.tsx
 - <p align="center">FinanceWebApp - Portfolio Showcase</p>
-- .generateAndStore
+- OAuthController
 - scripts
 - UserServiceTest
 - Frontend Unit-Test Plan — `frontend/`
 - EnableBankingClient
 - NotificationCopy
-- AuthController
-- SettingsPage.tsx
-- org.springframework.stereotype.Service
+- AuthControllerTest
+- BankRule
+- SendEmailService
 - package.json
 - React + TypeScript + Vite
 - tsconfig.json
 - csvImport.ts
 - JobCard.tsx
-- ScheduledJobService
+- .updateSchedule
 - FrankfurterExchangeRateService
-- SubscriptionService
-- DataTab.tsx
-- CreateWalletWizard.tsx
-- useCsvImport.ts
+- Subscription
+- csvExport.ts
+- transactionTags.ts
+- csvDedup.ts
 - MCP Server Python Dependencies
 - BankLinkService
-- OverviewTable.test.tsx
+- OverviewTable.tsx
 - Phases D–I — String extraction by area
 - MonthlyChart.tsx
 - .computeStatus
 - MFA (TOTP + Email code) — Implementation Plan / TODO
-- Badge.tsx
-- react
+- WalletsBar.tsx
+- @fortawesome/free-solid-svg-icons
 - BudgetServiceTest
-- PatAuthenticationFilterTest
+- useCsvImport.ts
 - Interactive Onboarding (guided tour) — Implementation Plan / TODO
-- NotificationsSection.tsx
-- PatService
+- NotificationsSection.test.tsx
+- .connect
 - Periodic Summary Reports — Implementation Plan
 - Frontend Restructure — Analysis & Execution Plan / TODO
-- App.tsx
-- AccountDeletionServiceTest
+- BankRuleServiceTest
+- jakarta.transaction.Transactional
 - walletOps.ts
-- TagTreePicker.tsx
-- offlineDb.ts
+- BackupRow.tsx
+- replay.ts
 - org.springframework.context.annotation.Bean
 - BankLinkServiceTest
-- WalletAccessId
+- PatAuthenticationFilterTest
 - Landing Page Redesign — Design Spec
 - Wallet Creation Wizard — Design Spec
 - BankSyncServiceTest
-- BankAccountsSection.tsx
+- .processDueSubscriptions
 - Offline Sync Rework — Implementation Plan / TODO
 - Web Push Notifications — Implementation Plan / TODO
 - walletCreation.ts
-- .budget
+- Budget
 - Phase A — Backend
 - ColorSelector.tsx
-- ShareSettingsSection.tsx
-- OverviewTable.tsx
-- .createWallet
-- WalletProvider.tsx
-- AuthControllerTest
+- CreateWalletWizard.tsx
+- SyncResult
+- .createTransactionsBulkInternal
+- BankMatchRuleTest
+- .generateToken
 - vite.config.ts
 - Settings tab — redesign plan
 - Wallet End-to-End Encryption — Implementation TODO
 - Settings Refactor — TODO
-- Menu.tsx
+- BudgetFormOverlay.tsx
 - .sendYearlyReports
 - Appendix — full live call-site table
-- StatisticsSummary.tsx
+- StatisticsTab.tsx
 - useAmountInput.ts
 - BankSyncCronJobTest
 - PWAProvider.test.tsx
 - WalletProvider.test.tsx
-- .map
-- ReportHtmlBuilderTest
+- EbTransaction
+- java.time.YearMonth
 - Phase map
-- OAuthConsent.test.tsx
-- AdminDashboard.tsx
+- axiosConfig.test.ts
+- NotificationsSection.tsx
 - refactor.ts
-- .updateSchedule
+- ScheduledJobService
 - 5. Epic: eliminare `no-explicit-any` (90 → 0)
-- useWalletData.ts
+- EnableBankingClientTest
 - Wallet data unifier + client cache — Design
 - Invitations in the Wallet Sidebar — Design
-- replay.ts
-- WebPushSenderTest
+- categoryChartData.ts
+- WebPushGateway
 - File map
 - Task 3 — GroupEditGrid mini-tiles + shared DnD (depends on 1 & 2)
 - Wallet End-to-End Encryption — Architecture Plan
 - Wallet Creation Wizard — Implementation Plan / TODO
 - Wallet slug leggibile nell'URL
-- ScheduledJobServiceTest
+- Status
 - lombok.RequiredArgsConstructor
-- .generateToken
+- subscriptionHelper.ts
 - NotificationTypeConstraintCleanup
 - Responsive Overlay Pattern — Implementation TODO
 - SubscriptionCronJob
 - WalletRole
 - sw.ts
 - Decisioni per te (non le ho prese io)
-- .extractClaim
-- recommendedSubscriptions.ts
+- ScheduledJobDTO
+- useWalletData.ts
 - Admin Section Redesign — TODO
 - Category Management — Redesign (planning only)
 - Wallet Data Unifier + Client Cache — Implementation Plan
 - Global Constraints
-- ScheduledJobDTO
+- CustomDatePicker.test.tsx
 - Kickoff prompt — SETTINGS redesign (copy into a new session)
 - 5. Authentication protocol changes
 - overlayHistory.ts
 - AssignableUuidV7Generator
 - .monthly
 - 1. What I extracted from the codebase
-- BudgetService
 - org.springframework.transaction.annotation.Transactional
 - Categories (Tags) tab — charts plan
 - 8. Sync design (frontend `src/sync/`, extending the existing layer)
 - Global Constraints
-- Transaction
-- TokensSection.tsx
+- SyncCenterOverlay.tsx
+- ToDoList.tsx
 - BackendApplication
-- lucide-react
+- .configured
 - Verifying FinanceWebApp changes at runtime
 - 9. Sharing, invitation, revocation
-- BudgetMapper
-- SubscriptionRequest
+- BudgetMapperTest
+- SubscriptionsStep.tsx
 - Open Banking: note notturne per la revisione
 - gradlew
 - ReportHtmlBuilder
 - 7. E2EE data plane (new API, coexisting with the legacy plane)
-- AdminJobControllerTest
-- BudgetAlertCronJob
-- InvitesStep.tsx
+- offlineDb.ts
+- .metadata_IsStable
+- ScheduledJobServiceTest
 - frontend-checks.sh
 - runtime-env.d.ts
 - rules/graphify.md
 - workflows/graphify.md
-- StatisticsTab.tsx
-- WebPushGateway
+- SubscriptionList.tsx
+- ReportHtmlBuilderTest
 - backend-mark.sh
 - backend-tests.sh
 - frontend-mark.sh
 - open-banking-followups.md
 - 40-config.sh
-- .registerViaInvite
-- java.time.YearMonth
-- .updateWallet
+- AdminJobControllerTest
+- BankRuleControllerTest
 - InvitationStatus
-- TagCreateMode.test.tsx
-- AssignableUuidV7
+- .deleteBudget
+- .runNow
 - EnableBankingException
-- JobRunStatus
-- Type
-- LandingPage.tsx
-- Type
-- .generateDemoWallet
+- ResetPasswordRequest
+- .setEnabled
+- react
+- DemoServiceTest
+- Frequency
+- useDayNavigation.test.ts
+- .uploadBackup
+- .metadata_IsStable
+- MonthSelector.tsx
+- YearSelector.tsx
+- Override
+- Status
 - NotificationTypeConverter
+- JobRunStatus
+- chartData.test.ts
+- BudgetConflictException
+- .deleteSubscription
 - .generateUuid
 - BankConnection
 
 ## God Nodes (most connected - your core abstractions)
-1. `react` - 332 edges
-2. `User` - 251 edges
-3. `vitest` - 213 edges
-4. `@fortawesome/free-solid-svg-icons` - 153 edges
-5. `@fortawesome/react-fontawesome` - 147 edges
-6. `@testing-library/react` - 146 edges
-7. `WalletAccess` - 132 edges
-8. `Wallet` - 108 edges
-9. `triggerToast()` - 108 edges
-10. `UserRepository` - 96 edges
+1. `react` - 334 edges
+2. `User` - 260 edges
+3. `vitest` - 217 edges
+4. `@fortawesome/free-solid-svg-icons` - 154 edges
+5. `@testing-library/react` - 150 edges
+6. `@fortawesome/react-fontawesome` - 147 edges
+7. `WalletAccess` - 134 edges
+8. `Wallet` - 114 edges
+9. `triggerToast()` - 113 edges
+10. `Tag` - 104 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Docker Compose Production Environment` --semantically_similar_to--> `Docker Compose Dev Environment`  [INFERRED] [semantically similar]
@@ -251,143 +260,143 @@
 - **Four-Service Docker Architecture** — docker_compose_postgres_service, docker_compose_backend_service, docker_compose_frontend_service, docker_compose_mcp_service [EXTRACTED 1.00]
 - **Email Notification System** — docker_compose_mail_config, backend_src_main_resources_templates_email_forgotpasswordemail, backend_src_main_resources_templates_email_registrationinviteemail, backend_src_main_resources_templates_email_walletinviteemail [INFERRED 0.85]
 
-## Communities (208 total, 25 thin omitted)
+## Communities (219 total, 34 thin omitted)
 
-### Community 0 - "org.springframework.http.ResponseEntity"
-Cohesion: 0.05
-Nodes (32): GlobalExceptionHandler, NotificationController, NotificationPreferencesController, GetMapping, Pattern, PostMapping, RestController, OAuthController (+24 more)
+### Community 0 - "GlobalExceptionHandlerTest"
+Cohesion: 0.07
+Nodes (9): TagHasChildrenException, TagInUseException, UnauthorizedAccessException, UserAlreadyExistsException, GlobalExceptionHandlerTest, MethodArgumentNotValidException, org.springframework.http.converter.HttpMessageNotReadableException, org.springframework.web.bind.MethodArgumentNotValidException (+1 more)
 
 ### Community 1 - "org.junit.jupiter.api.Test"
 Cohesion: 0.03
-Nodes (30): OAuthAuthorizeRequest, AdminUserControllerTest, org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration, org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration, MembersControllerTest, org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration, NotificationControllerTest, org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration (+22 more)
+Nodes (35): OAuthAuthorizeRequest, WalletAccessId, AdminDatabaseControllerTest, org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration, AdminUserControllerTest, org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration, org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration, MembersControllerTest (+27 more)
 
 ### Community 2 - "mcp_server.py"
 Cohesion: 0.08
 Nodes (76): BaseHTTPMiddleware, Context, custom_route, description, FastMCP, Field, ge, gt (+68 more)
 
-### Community 3 - "triggerToast"
-Cohesion: 0.08
-Nodes (46): AdminDashboard(), CreateInviteForm(), CreateInviteFormProps, AuthBrandLockup(), AuthCard(), AUTH_GLASS_CARD, shakeClass(), AuthErrorCard() (+38 more)
-
-### Community 4 - "Transaction"
-Cohesion: 0.03
-Nodes (99): deleteTransaction(), updateSubscription(), DateRangeValue, FloatingActionButton(), FloatingActionButtonProps, BudgetTab(), DateRangeBanner(), SettingsTab() (+91 more)
-
-### Community 5 - "SubscriptionModal.tsx"
+### Community 3 - "Button"
 Cohesion: 0.05
-Nodes (68): updateTransaction(), CustomDatePicker(), TagTreePicker(), AmountInput(), AmountInputProps, AmountMathToolbar(), AmountMathToolbarProps, FieldLabel() (+60 more)
+Nodes (73): AdminDashboard(), UsersPageProps, AdminPageHeader(), AdminPageHeaderProps, AdminTab, AdminTabs(), TABS, CreateInviteForm() (+65 more)
 
-### Community 6 - "PersonalAccessToken"
+### Community 4 - "overlay.test.ts"
+Cohesion: 0.16
+Nodes (11): filterTransactions(), WalletProvider(), applyPendingOps(), resolveTag(), stateOf(), foodTag, snacksTag, sub1 (+3 more)
+
+### Community 5 - "BankRuleEditor.tsx"
 Cohesion: 0.05
-Nodes (23): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, PatController, PatBulkDeleteRequest (+15 more)
+Nodes (42): Aspsp, connectBank(), createBankRule(), listAspsps(), updateBankRule(), CustomDatePicker(), AmountInput(), AmountInputProps (+34 more)
 
-### Community 7 - "org.springframework.security.access.prepost.PreAuthorize"
-Cohesion: 0.08
-Nodes (20): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, MembersController, MemberRequest (+12 more)
+### Community 6 - "PatServiceTest"
+Cohesion: 0.04
+Nodes (21): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, PatController, PatBulkDeleteRequest (+13 more)
+
+### Community 7 - "WalletAccess"
+Cohesion: 0.06
+Nodes (35): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, MembersController, MemberRequest (+27 more)
 
 ### Community 8 - "User"
-Cohesion: 0.06
-Nodes (27): DeleteMapping, GetMapping, PostMapping, RequestMapping, RestController, UserController, DeleteAccountRequest, EmailChangeConfirmDto (+19 more)
+Cohesion: 0.03
+Nodes (69): DataInitializer, Override, DemoController, DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping (+61 more)
 
 ### Community 9 - "BackupServiceTest"
-Cohesion: 0.05
-Nodes (18): AdminDatabaseController, BackupEntry, DeleteMapping, GetMapping, PostMapping, RequestMapping, RestController, BackupService (+10 more)
-
-### Community 10 - "WalletAccess"
 Cohesion: 0.06
-Nodes (56): DemoController, WalletNotFoundException, Entity, Table, Wallet, Entity, PrePersist, Table (+48 more)
+Nodes (7): BackupEntry, DeleteMapping, GetMapping, BackupEntry, BackupEntry, BackupServiceTest, R2StorageServiceTest
 
-### Community 11 - "subscriptionHelper.ts"
-Cohesion: 0.13
-Nodes (23): CalendarDayCell(), CalendarDayCellProps, PastSubscriptionsSection(), PastSubscriptionsSectionProps, SubscriptionCard(), SubscriptionCardProps, byNextExecution(), formatMonthLabel() (+15 more)
+### Community 10 - "Wallet"
+Cohesion: 0.05
+Nodes (56): TransactionRequest, OpenBankingDisabledException, StaleWriteException, TagNotFoundException, TagMapper, Entity, Table, Wallet (+48 more)
 
-### Community 12 - "vitest"
-Cohesion: 0.03
-Nodes (30): TokenListItem(), LONG_PRESS_MS, MOVE_TOLERANCE_PX, useLongPressSelect(), InviteSection(), InvitesStep(), user, { navigateMock } (+22 more)
+### Community 11 - "Subscription"
+Cohesion: 0.18
+Nodes (13): BASE_DAYS, buildCalendarGrid(), CalendarDayCell(), CalendarDayCellProps, SubscriptionCalendar(), SubscriptionCalendarProps, SubscriptionCardProps, SubscriptionListProps (+5 more)
+
+### Community 12 - "BasicsStep.tsx"
+Cohesion: 0.06
+Nodes (36): ColorSelectorPropsProps, IconColorSelector(), IconPickerButton(), IconPickerButtonProps, IconSelector(), IconSelectorProps, CustomSelect(), CustomSelectOption (+28 more)
 
 ### Community 13 - "useTabLayout.ts"
 Cohesion: 0.06
-Nodes (62): AccentHoverButton(), AccentHoverButtonProps, GroupEditGrid(), GroupEditGridProps, MemberTile(), MemberTileProps, HiddenTray(), HiddenTrayProps (+54 more)
+Nodes (63): AccentHoverButton(), AccentHoverButtonProps, GroupEditGrid(), GroupEditGridProps, MemberTile(), MemberTileProps, HiddenTray(), HiddenTrayProps (+55 more)
 
-### Community 14 - "BasicsStep.tsx"
-Cohesion: 0.08
-Nodes (23): ColorSelectorPropsProps, IconColorSelector(), IconPickerButtonProps, IconSelector(), IconSelectorProps, Features(), tagPreviewRows, MockTransactionRow() (+15 more)
+### Community 14 - "UserNotFoundException"
+Cohesion: 0.11
+Nodes (12): NotificationController, NotificationPreferencesController, PushController, UserNotFoundException, NotificationPreferenceService, NotificationPreferenceServiceTest, org.springframework.web.bind.annotation.DeleteMapping, org.springframework.web.bind.annotation.GetMapping (+4 more)
 
-### Community 15 - "org.junit.jupiter.api.extension.ExtendWith"
-Cohesion: 0.07
-Nodes (23): AdminUserController, DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, AdminInviteRequest (+15 more)
+### Community 15 - "Registrations"
+Cohesion: 0.20
+Nodes (6): PostMapping, AdminInviteRequest, Entity, Table, Registrations, RegisterServiceTest
 
 ### Community 16 - "lombok.Data"
-Cohesion: 0.08
-Nodes (38): NotificationPreferencesRequest, NotificationPreferencesResponse, WalletPrefs, NotificationResponse, PushSubscriptionRequest, RegisterInviteResponse, SubscriptionBulkResponse, SubscriptionResponse (+30 more)
+Cohesion: 0.05
+Nodes (66): GetMapping, PostMapping, PutMapping, RequestMapping, RestController, SubscriptionController, DeleteMapping, GetMapping (+58 more)
 
-### Community 17 - "index.ts"
-Cohesion: 0.06
-Nodes (40): CurrencyDropdownPanel(), CurrencyDropdownPanelProps, sectionLabel(), CurrencyOptionRow(), CurrencyOptionRowProps, CurrencySelector(), CurrencySelectorProps, useCurrencyDropdown() (+32 more)
+### Community 17 - "Transaction"
+Cohesion: 0.03
+Nodes (108): listBankRules(), CurrencyOptionRow(), CurrencyOptionRowProps, CurrencySelector(), CurrencySelectorProps, useCurrencyDropdown(), buildCurrencyLists(), MAIN_SET (+100 more)
 
-### Community 18 - "axiosConfig.ts"
-Cohesion: 0.06
-Nodes (41): useBackups(), api, failedQueue, processQueue(), useOAuthAuthorize(), OAuthParams, useOAuthParams(), OAuthConsent() (+33 more)
+### Community 18 - "vitest"
+Cohesion: 0.03
+Nodes (91): useBackups(), api, failedQueue, processQueue(), useOAuthAuthorize(), OAuthParams, useOAuthParams(), OAuthConsent() (+83 more)
 
-### Community 19 - "useSyncStatus.ts"
-Cohesion: 0.20
-Nodes (18): invalidate(), SyncStatusBadge(), EMPTY_COUNTS, useSyncStatus(), countByStatus(), enqueueOp(), listOps(), notify() (+10 more)
+### Community 19 - "domain.ts"
+Cohesion: 0.04
+Nodes (61): Icon(), WalletIconProps, WalletPermissionSelector(), WalletPermissionSelectorProps, TagDropdownPanel(), TagDropdownPanelProps, TagFilter(), TagFilterProps (+53 more)
 
-### Community 20 - "domain.ts"
-Cohesion: 0.06
-Nodes (54): IconPickerButton(), TagSelectorAddForm(), TagSelectorAddFormProps, SyncStateIcon(), SyncStateIconProps, AddCategoryButton(), CategoryChildRow(), CategoryChildRowProps (+46 more)
+### Community 20 - "tagOrder.ts"
+Cohesion: 0.10
+Nodes (31): buildChildParent(), CONTAINER_PREFIX, moveChildToParent(), nestedCollisionDetection(), resolveTargetParent(), ChildDropZone(), useCategoryTree(), useCategoryTreeDnd() (+23 more)
 
-### Community 21 - "useExchangeRate.ts"
-Cohesion: 0.29
-Nodes (10): useExchangeRate(), UseExchangeRateArgs, setup(), CachedFxRate, cacheKey(), FxRate, getExchangeRate(), readCache() (+2 more)
+### Community 21 - "exchangeRates.ts"
+Cohesion: 0.40
+Nodes (7): CachedFxRate, cacheKey(), FxRate, getExchangeRate(), readCache(), todayKey(), writeCache()
 
 ### Community 22 - "FinanceWebApp Project"
 Cohesion: 0.09
 Nodes (29): Forgot Password Email Template, Registration Invite Email Template, Wallet Invite Email Template, Spring Boot Backend Service, Database Backup Configuration, Docker Compose Dev Environment, Vite + React Frontend Service, JWT Authentication Configuration (+21 more)
 
-### Community 23 - "WalletController"
-Cohesion: 0.11
-Nodes (8): AccessDeniedException, DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, WalletController
+### Community 23 - "org.springframework.http.ResponseEntity"
+Cohesion: 0.29
+Nodes (8): GlobalExceptionHandler, jakarta.servlet.http.HttpServletRequest, org.springframework.http.HttpStatus, org.springframework.http.ProblemDetail, org.springframework.http.ResponseEntity, org.springframework.security.access.AccessDeniedException, org.springframework.web.bind.annotation.ExceptionHandler, org.springframework.web.bind.annotation.RestControllerAdvice
 
-### Community 24 - "Registrations"
-Cohesion: 0.08
-Nodes (18): AuthResponse, RegisterInviteRequest, ResetPasswordRequest, InvitationStatus, ACCEPTED, FORGOTPASSWORD, PENDING, REVOKED (+10 more)
+### Community 24 - ".findByToken"
+Cohesion: 0.18
+Nodes (3): GetMapping, RegisterInviteRequest, RegisterInviteResponse
 
 ### Community 25 - "dependencies"
 Cohesion: 0.08
 Nodes (25): dependencies, axios, date-fns, dexie, @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, @emotion/react (+17 more)
 
-### Community 26 - ".findAllByUserIdAndStatus"
-Cohesion: 0.16
-Nodes (4): WalletRole, WalletMapper, WalletMapperTest, Wallet
+### Community 26 - "WalletServiceTest"
+Cohesion: 0.07
+Nodes (15): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, WalletController, WalletRequest (+7 more)
 
-### Community 27 - "Budget"
+### Community 27 - "BudgetService"
 Cohesion: 0.12
-Nodes (15): PostMapping, PutMapping, BudgetRequest, BudgetStatusResponse, BudgetConflictException, BudgetNotFoundException, Budget, Entity (+7 more)
+Nodes (14): BudgetController, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, BudgetRequest, PeriodType (+6 more)
 
 ### Community 28 - "devDependencies"
 Cohesion: 0.06
 Nodes (34): devDependencies, autoprefixer, eslint, eslint-config-prettier, @eslint/js, eslint-plugin-prettier, eslint-plugin-react-hooks, eslint-plugin-react-refresh (+26 more)
 
 ### Community 29 - "Tag"
-Cohesion: 0.07
-Nodes (17): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, TagController, TagRequest (+9 more)
+Cohesion: 0.12
+Nodes (5): Entity, Table, Tag, Wallet, TagServiceTest
 
 ### Community 30 - "CustomDatePicker.tsx"
-Cohesion: 0.07
-Nodes (34): CalendarContainer(), CalendarContainerProps, ViewState, CustomDatePickerProps, DatePickerSidebar(), DatePickerSidebarProps, DatePickerSurface(), DatePickerSurfaceProps (+26 more)
+Cohesion: 0.12
+Nodes (23): CalendarContainer(), CalendarContainerProps, ViewState, CustomDatePickerProps, DatePickerSidebar(), DatePickerSidebarProps, DatePickerSurface(), DatePickerSurfaceProps (+15 more)
 
 ### Community 31 - "compilerOptions"
 Cohesion: 0.09
 Nodes (22): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, jsx, lib, module, moduleDetection, moduleResolution (+14 more)
 
-### Community 32 - "WalletSecurityTest"
-Cohesion: 0.09
-Nodes (4): PermissionDeniedException, PatWalletPermission, WalletSecurity, WalletSecurityTest
+### Community 32 - "PersonalAccessToken"
+Cohesion: 0.11
+Nodes (6): AccessDeniedException, PermissionDeniedException, Entity, Table, PersonalAccessToken, WalletSecurityTest
 
 ### Community 33 - "TagRequest"
-Cohesion: 0.10
-Nodes (17): TagRequest, MissingTagActionsProps, MissingTransactionTagsProps, TagSourceDto, StagedSubscriptionList(), StagedSubscriptionListProps, StagedSubscriptionRow(), tagKey() (+9 more)
+Cohesion: 0.16
+Nodes (19): SubscriptionRequest, TagRequest, WalletDraft, MissingTagActionsProps, TagSourceDto, StagedSubscriptionListProps, StagedSubscriptionRow(), StagedSubscriptionRowProps (+11 more)
 
 ### Community 34 - "compilerOptions"
 Cohesion: 0.10
@@ -397,77 +406,73 @@ Nodes (19): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, lib
 Cohesion: 0.05
 Nodes (37): Backend architecture, Common commands, Conventions & gotchas, Frontend architecture, Frontend code organization (structure guidelines), graphify, MCP server, Overview (+29 more)
 
-### Community 36 - "categoryChartData.ts"
-Cohesion: 0.12
-Nodes (22): buildMainCategoryMeta(), CategoryMeta, mainCategoryName(), OTHER_COLOR, buildHeatmap(), buildRanking(), buildTrend(), FlowType (+14 more)
+### Community 36 - "CategoryHeatmapChart.tsx"
+Cohesion: 0.20
+Nodes (12): FlowType, CategoryHeatmapChart(), CategoryHeatmapChartProps, COLOR_SCALE, CategoryTrendChart(), CategoryTrendChartProps, ChartCard(), ChartCardProps (+4 more)
 
 ### Community 37 - "TagsStep.tsx"
-Cohesion: 0.11
-Nodes (31): groupTagRequests(), groupToTagRequests(), RECOMMENDED_TAG_GROUPS, RecommendedTagGroup, MOCK_SOURCE_WALLETS, SourceWallet, StagedTagTree(), StagedTagTreeProps (+23 more)
+Cohesion: 0.10
+Nodes (35): groupTagRequests(), groupToTagRequests(), keyOfName(), RECOMMENDED_TAG_GROUPS, RecommendedTagGroup, fetchTagSources(), MOCK_SOURCE_WALLETS, SourceWallet (+27 more)
 
 ### Community 38 - "TransactionServiceTest"
-Cohesion: 0.09
+Cohesion: 0.11
 Nodes (5): DeleteMapping, ApplicationEventPublisher, Transaction, Wallet, TransactionServiceTest
 
-### Community 39 - "TransactionService"
-Cohesion: 0.10
-Nodes (20): GetMapping, PostMapping, PutMapping, RequestMapping, RestController, TransactionController, TransactionBulkResponse, Type (+12 more)
+### Community 39 - "MonthlyRulePicker.tsx"
+Cohesion: 0.14
+Nodes (23): DAY_OPTIONS, MonthlyRulePicker(), ordinalOptions(), Props, WEEKDAY_OPTIONS, WEEKDAY_ORDINALS, WORKING_ORDINALS, SchedulingRulesProps (+15 more)
 
-### Community 41 - "SubscriptionServiceTest"
-Cohesion: 0.07
-Nodes (4): ApplicationEventPublisher, Subscription, Wallet, SubscriptionServiceTest
+### Community 40 - "JwtAuthenticationFilterTest"
+Cohesion: 0.09
+Nodes (5): Override, JwtAuthenticationFilterTest, User, JwtServiceTest, io.jsonwebtoken.Claims
 
 ### Community 42 - "frontend/package.json"
 Cohesion: 0.06
 Nodes (36): @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, name, private, type, version, autoprefixer (+28 more)
 
-### Community 43 - "TokenListItem.tsx"
-Cohesion: 0.25
-Nodes (8): TokenActionButtons(), TokenActionButtonsProps, TokenLastUsedInfo(), TokenLastUsedInfoProps, TokenListItemProps, TokenWalletBadges(), TokenWalletBadgesProps, PatToken
+### Community 43 - "TokensSection.tsx"
+Cohesion: 0.09
+Nodes (22): TokenActionButtons(), TokenActionButtonsProps, TokenLastUsedInfo(), TokenLastUsedInfoProps, TokenListItem(), TokenListItemProps, TokenWalletBadges(), TokenWalletBadgesProps (+14 more)
 
-### Community 44 - "react-router-dom"
-Cohesion: 0.06
-Nodes (34): UserDashboard(), handleChangeWallet(), useWalletDeletion(), resolveWalletParam(), useWalletRouting(), WalletDashboard(), AppHeader(), AppHeaderProps (+26 more)
+### Community 44 - "AppHeader.tsx"
+Cohesion: 0.07
+Nodes (26): AppHeader(), AppHeaderProps, NotificationBell(), NotificationBellProps, NotificationCenterOverlay(), NotificationCenterOverlayProps, AppNotification, POLL_INTERVAL_MS (+18 more)
 
 ### Community 45 - "<p align="center">FinanceWebApp - Portfolio Showcase</p>"
 Cohesion: 0.15
 Nodes (12): 🏗️ Architecture Overview, 🚀 Automated Deployment, 🧩 Core Stack, ⚡ Demo & Onboarding Mode, ⚙️ Development Setup, Enabling Demo Features, 🚀 Engineering Highlights, 🛠️ Infrastructure & CI/CD (+4 more)
 
-### Community 46 - ".generateAndStore"
-Cohesion: 0.24
-Nodes (3): AuthCodeEntry, OAuthAuthCodeStoreTest, lombok.Getter
+### Community 46 - "OAuthController"
+Cohesion: 0.11
+Nodes (8): GetMapping, Pattern, PostMapping, RestController, OAuthController, AuthCodeEntry, OAuthAuthCodeStoreTest, lombok.Getter
 
 ### Community 47 - "scripts"
 Cohesion: 0.29
 Nodes (7): scripts, build, dev, lint, preview, test, test:watch
-
-### Community 48 - "UserServiceTest"
-Cohesion: 0.10
-Nodes (3): ChangePasswordRequest, User, UserServiceTest
 
 ### Community 49 - "Frontend Unit-Test Plan — `frontend/`"
 Cohesion: 0.05
 Nodes (42): 1.1 Cosa esiste già, 1.2 Convenzioni del repo da rispettare (da `CLAUDE.md` + `frontend/style.md`), 1.3 Convenzioni tecniche di mocking (pattern del repo, da riusare), 1.4 Dipendenze/decisioni da risolvere prima di S1/S3, 1.5 Politica di profondità di validazione (per tier), 1. Analisi dei requisiti, 2. Sezioni di test — ordinate per sicurezza (S1 → S4), 3. Ordine di esecuzione & tracking (+34 more)
 
 ### Community 50 - "EnableBankingClient"
-Cohesion: 0.07
-Nodes (26): Aspsp, EbAccount, EbDtos, EnableBankingClient, Builder, RawAccount, RawAmount, RawAspsps (+18 more)
+Cohesion: 0.16
+Nodes (15): EnableBankingClient, RawAccount, RawAmount, RawAspsps, RawAuth, RawIban, RawParty, RawSession (+7 more)
 
 ### Community 51 - "NotificationCopy"
 Cohesion: 0.09
 Nodes (9): Transition, Copy, NotificationCopy, WalletActivityEvent, WalletInviteEvent, NotificationCopyTest, User, NotificationDispatcherTest (+1 more)
 
-### Community 52 - "AuthController"
-Cohesion: 0.13
-Nodes (8): AuthController, PostMapping, RequestMapping, RestController, PutMapping, ForgotPasswordRequest, UpdateUsernameRequest, jakarta.servlet.http.HttpServletResponse
+### Community 52 - "AuthControllerTest"
+Cohesion: 0.16
+Nodes (8): AuthController, PostMapping, RequestMapping, RestController, ForgotPasswordRequest, AuthControllerTest, User, jakarta.servlet.http.HttpServletResponse
 
-### Community 53 - "SettingsPage.tsx"
-Cohesion: 0.08
-Nodes (35): Card(), CardProps, CardTone, PADDING, PasswordInput(), ConfirmModal(), EmailChangeRow(), AboutSection() (+27 more)
+### Community 53 - "BankRule"
+Cohesion: 0.15
+Nodes (13): BankRule, Entity, Table, BankRuleRequest, BankRuleResponse, BankRuleController, DeleteMapping, GetMapping (+5 more)
 
-### Community 54 - "org.springframework.stereotype.Service"
-Cohesion: 0.10
-Nodes (8): EmailService, Pattern, SendEmailService, WalletDashboardService, SendEmailServiceTest, jakarta.mail.internet.MimeMessage, org.springframework.mail.javamail.JavaMailSender, org.springframework.stereotype.Service
+### Community 54 - "SendEmailService"
+Cohesion: 0.04
+Nodes (33): AdminUserController, DeleteMapping, GetMapping, PutMapping, RequestMapping, RestController, AdminInviteResponse, BudgetStatusResponse (+25 more)
 
 ### Community 55 - "package.json"
 Cohesion: 0.25
@@ -478,40 +483,44 @@ Cohesion: 0.50
 Nodes (3): Expanding the ESLint configuration, React Compiler, React + TypeScript + Vite
 
 ### Community 58 - "csvImport.ts"
-Cohesion: 0.09
-Nodes (39): RFC-4180, CsvColumn, dataRows(), DurationType, FrequencyType, optionalNumber(), optionalRaw(), optionalTrimmed() (+31 more)
+Cohesion: 0.14
+Nodes (24): RFC-4180, CsvFormatModalProps, CsvColumn, DurationType, FrequencyType, optionalNumber(), optionalRaw(), optionalTrimmed() (+16 more)
 
 ### Community 59 - "JobCard.tsx"
-Cohesion: 0.13
-Nodes (25): buildSchedulePayload(), ScheduleDraft, SchedulePayload, JobCard(), JobRunHistory(), DAYS, DOM_OPTIONS, formatCountdown() (+17 more)
+Cohesion: 0.12
+Nodes (26): buildSchedulePayload(), ScheduleDraft, SchedulePayload, JobCard(), JobRunHistory(), DAYS, DOM_OPTIONS, formatCountdown() (+18 more)
+
+### Community 60 - ".updateSchedule"
+Cohesion: 0.19
+Nodes (6): AdminJobController, PutMapping, RequestMapping, RestController, UpdateEnabledRequest, UpdateScheduleRequest
 
 ### Community 61 - "FrankfurterExchangeRateService"
 Cohesion: 0.19
 Nodes (7): CachedRate, FrankfurterExchangeRateService, FrankfurterRate, Builder, Override, FrankfurterExchangeRateServiceTest, org.springframework.test.web.client.MockRestServiceServer
 
-### Community 62 - "SubscriptionService"
-Cohesion: 0.06
-Nodes (29): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, SubscriptionController, SubscriptionRequest (+21 more)
+### Community 62 - "Subscription"
+Cohesion: 0.08
+Nodes (19): Duration, FOREVER, TIMES, UNTIL, Entity, Table, Subscription, Type (+11 more)
 
-### Community 63 - "DataTab.tsx"
-Cohesion: 0.13
-Nodes (21): CsvRow, downloadCsv(), sortTagsForExport(), subscriptionsCsvRows(), tagsCsvRows(), toCsv(), transactionsCsvRows(), CsvFormatModal() (+13 more)
+### Community 63 - "csvExport.ts"
+Cohesion: 0.38
+Nodes (8): CsvRow, downloadCsv(), sortTagsForExport(), subscriptionsCsvRows(), tagsCsvRows(), toCsv(), transactionsCsvRows(), DataTab()
 
-### Community 67 - "CreateWalletWizard.tsx"
-Cohesion: 0.12
-Nodes (17): TransactionRequest, CreateWalletWizard, CreateWalletWizardHandle, DEFAULT_DRAFT, Props, WalletDraft, fetchTagSources(), TransactionsStep() (+9 more)
+### Community 67 - "transactionTags.ts"
+Cohesion: 0.18
+Nodes (11): TransactionRequest, MissingTransactionTagsProps, TransactionsStep(), TransactionsStepProps, groupMissingTransactionTags(), MissingTagGroup, missingTransactionTagCount(), reassignTransactionTag() (+3 more)
 
-### Community 68 - "useCsvImport.ts"
-Cohesion: 0.16
-Nodes (21): DedupOverwrite, DedupResult, detectSubscriptionOverwrites(), detectTagOverwrites(), detectTransactionOverwrites(), isoDate(), norm(), subscriptionKey() (+13 more)
+### Community 68 - "csvDedup.ts"
+Cohesion: 0.19
+Nodes (15): DedupResult, detectSubscriptionOverwrites(), detectTagOverwrites(), detectTransactionOverwrites(), isoDate(), norm(), subscriptionKey(), tagKey() (+7 more)
 
 ### Community 70 - "BankLinkService"
-Cohesion: 0.09
-Nodes (16): BankAccountResponse, BankConnectionResponse, BankDtos, ConnectRequest, Status, UrlResponse, WalletBankResponse, BankLinkController (+8 more)
+Cohesion: 0.18
+Nodes (4): DeleteMapping, BankLinkService, FunctionalInterface, Sleeper
 
-### Community 71 - "OverviewTable.test.tsx"
-Cohesion: 0.17
-Nodes (8): OverviewTable(), useOverviewData(), ViewMode, tag, transactions2024, setup(), transactions, MONTH_LABELS
+### Community 71 - "OverviewTable.tsx"
+Cohesion: 0.12
+Nodes (16): CellType, OverviewCell(), OverviewCellContent(), OverviewCellContentProps, OverviewCellProps, DataItem, OverviewRow(), OverviewRowProps (+8 more)
 
 ### Community 72 - "Phases D–I — String extraction by area"
 Cohesion: 0.06
@@ -525,33 +534,33 @@ Nodes (23): bucketLabel(), MonthlyBucket, MonthlyChartRow, toCumulativeRows(), t
 Cohesion: 0.07
 Nodes (29): Explicitly out of scope (do not build), Global Constraints (apply to every task), MFA (TOTP + Email code) — Implementation Plan / TODO, Phase A — Backend foundation, Phase B — Backend settings flows (enroll / disable / recovery codes), Phase C — Backend login flow + admin reset, Phase D — Ops / env plumbing, Phase E — Frontend: login second step (+21 more)
 
-### Community 76 - "Badge.tsx"
-Cohesion: 0.07
-Nodes (32): Badge(), BadgeProps, BadgeShape, BadgeSize, BadgeTone, BadgeVariant, OUTLINE, SHAPE (+24 more)
+### Community 76 - "WalletsBar.tsx"
+Cohesion: 0.08
+Nodes (30): RippleItem, useRipple(), UserDashboard(), handleChangeWallet(), useWalletDeletion(), resolveWalletParam(), useWalletRouting(), useWalletDragReorder() (+22 more)
 
-### Community 77 - "react"
-Cohesion: 0.04
-Nodes (81): AdminStatsProps, AdminTab, TABS, StatCard(), StatCardProps, SortConfig, UserDirectoryProps, UserRow() (+73 more)
+### Community 77 - "@fortawesome/free-solid-svg-icons"
+Cohesion: 0.03
+Nodes (89): InvitesTable(), InvitesTableProps, BankAccountLink, BankConnection, BankRuleRequest, deleteBankRule(), deleteConnection(), getWalletBank() (+81 more)
 
 ### Community 78 - "BudgetServiceTest"
-Cohesion: 0.15
+Cohesion: 0.16
 Nodes (4): Type, Budget, BudgetServiceTest, BudgetRequestBuilder
 
-### Community 79 - "PatAuthenticationFilterTest"
-Cohesion: 0.19
-Nodes (3): InvalidTokenException, Override, PatAuthenticationFilterTest
+### Community 79 - "useCsvImport.ts"
+Cohesion: 0.12
+Nodes (28): CsvUploadFieldProps, DedupOverwrite, dataRows(), parseSubscriptionsCsv(), parseTagsCsv(), parseTransactionsCsv(), CsvResource, DURATIONS (+20 more)
 
 ### Community 80 - "Interactive Onboarding (guided tour) — Implementation Plan / TODO"
 Cohesion: 0.07
 Nodes (27): Decisions (locked 2026-07-11 — do not re-litigate during implementation), Explicitly out of scope (do not build), Global Constraints (apply to every task), Interactive Onboarding (guided tour) — Implementation Plan / TODO, Phase A — Backend: flag, exposure, seed removal, Phase B — Tour engine (no product-visible change yet), Phase C — Content: anchors, wizard choreography, sample CSV, registry, Phase D — Triggers, persistence client, replay (+19 more)
 
-### Community 81 - "NotificationsSection.tsx"
-Cohesion: 0.10
-Nodes (34): Toggle(), ToggleProps, ToggleSize, ToggleVariant, WalletNotificationsCard(), fetchPublicKey(), getEnrollment(), isPushSupported() (+26 more)
+### Community 81 - "NotificationsSection.test.tsx"
+Cohesion: 0.17
+Nodes (15): fetchPublicKey(), getEnrollment(), isPushSupported(), keyToBase64(), PushEnrollment, subscribeThisDevice(), unsubscribeThisDevice(), urlBase64ToUint8Array() (+7 more)
 
-### Community 82 - "PatService"
-Cohesion: 0.08
-Nodes (19): PatMapper, CustomUserDetailsService, Override, JwtAuthenticationFilter, PatAuthenticationFilter, OAuthAuthCodeStore, PatService, UserService (+11 more)
+### Community 82 - ".connect"
+Cohesion: 0.15
+Nodes (9): BankAccountResponse, BankConnectionResponse, BankDtos, ConnectRequest, Status, UrlResponse, WalletBankResponse, GetMapping (+1 more)
 
 ### Community 83 - "Periodic Summary Reports — Implementation Plan"
 Cohesion: 0.07
@@ -561,37 +570,33 @@ Nodes (26): Final verification (after the last task), Global Constraints, Period
 Cohesion: 0.08
 Nodes (25): 5A — dashboard/tag, 5B — dashboard/statistics, 5C — dashboard/layout, 5D — dashboard/settings (CSV), 5E — dashboard core (wallet / transaction / subscription / root), 5F — modals (non-wizard), 5G — components/ui hot spots, 5H — components (pickers/selectors/landing/pat) (+17 more)
 
-### Community 85 - "App.tsx"
-Cohesion: 0.11
-Nodes (17): completeBankCallback(), AdminRoute(), App(), PushMessagesBridge(), RootRedirect(), AuthLayout(), BankCallback(), PWAPrompt() (+9 more)
+### Community 85 - "BankRuleServiceTest"
+Cohesion: 0.21
+Nodes (3): BankRuleServiceTest, BankRuleRequest, Wallet
 
-### Community 86 - "AccountDeletionServiceTest"
-Cohesion: 0.14
-Nodes (10): DemoCleanupCronJob, Override, DemoCleanupCronJobTest, User, Wallet, AccountDeletionServiceTest, InvitationStatus, User (+2 more)
+### Community 86 - "jakarta.transaction.Transactional"
+Cohesion: 0.10
+Nodes (11): DemoCleanupCronJob, Override, DemoCleanupCronJobTest, User, Wallet, AccountDeletionServiceTest, InvitationStatus, User (+3 more)
 
 ### Community 87 - "walletOps.ts"
-Cohesion: 0.18
-Nodes (20): createOp(), createSubscription(), createTag(), createTransaction(), deleteSubscription(), deleteTag(), isNetworkError(), mutateOnline() (+12 more)
+Cohesion: 0.17
+Nodes (23): createOp(), createSubscription(), createTag(), createTransaction(), deleteSubscription(), deleteTag(), deleteTransaction(), isNetworkError() (+15 more)
 
-### Community 88 - "TagTreePicker.tsx"
-Cohesion: 0.07
-Nodes (39): BackupConfirmModal(), Props, ageColorClass(), formatLabel(), formatSize(), parseKeyDate(), relativeAge(), BackupRow() (+31 more)
+### Community 88 - "BackupRow.tsx"
+Cohesion: 0.21
+Nodes (16): BackupConfirmModal(), Props, ageColorClass(), formatLabel(), formatSize(), parseKeyDate(), relativeAge(), BackupRow() (+8 more)
 
-### Community 89 - "offlineDb.ts"
-Cohesion: 0.12
-Nodes (17): OP_KIND_LABEL, opLabel(), SyncCenterOverlay(), SyncCenterOverlayProps, SyncStatus, failedOp, missingOp, pendingOp (+9 more)
+### Community 89 - "replay.ts"
+Cohesion: 0.11
+Nodes (30): invalidate(), EMPTY_COUNTS, useSyncStatus(), listOps(), removeOp(), updateOp(), classifyReplayError(), collectionUrl() (+22 more)
 
 ### Community 90 - "org.springframework.context.annotation.Bean"
 Cohesion: 0.10
-Nodes (20): ApplicationConfig, AsyncConfig, CacheConfig, ThreadPoolTaskScheduler, SchedulingConfig, SecurityConfig, FixedClock, FixedClock (+12 more)
+Nodes (21): ApplicationConfig, AsyncConfig, CacheConfig, ThreadPoolTaskScheduler, SchedulingConfig, SecurityConfig, FixedClock, FixedClock (+13 more)
 
 ### Community 91 - "BankLinkServiceTest"
-Cohesion: 0.20
-Nodes (8): CallbackRequest, EbSession, FunctionalInterface, Sleeper, BankLinkServiceTest, User, WalletRole, jakarta.persistence.EntityManager
-
-### Community 92 - "WalletAccessId"
-Cohesion: 0.14
-Nodes (7): WalletAccessId, IdorIntegrationTest, User, Wallet, User, Wallet, Embeddable
+Cohesion: 0.29
+Nodes (6): CallbackRequest, EbSession, BankLinkServiceTest, User, WalletRole, jakarta.persistence.EntityManager
 
 ### Community 93 - "Landing Page Redesign — Design Spec"
 Cohesion: 0.09
@@ -603,11 +608,11 @@ Nodes (20): 10. Testing, 11. Style & copy constraints (`style.md`), 12. Implemen
 
 ### Community 96 - "BankSyncServiceTest"
 Cohesion: 0.12
-Nodes (8): Status, Outcome, SyncResult, EbTransactionPage, PsuContext, BankSyncServiceTest, org.springframework.test.context.event.ApplicationEvents, org.springframework.test.context.event.RecordApplicationEvents
+Nodes (5): BankSyncServiceTest, User, Wallet, org.springframework.test.context.event.ApplicationEvents, org.springframework.test.context.event.RecordApplicationEvents
 
-### Community 97 - "BankAccountsSection.tsx"
-Cohesion: 0.15
-Nodes (19): Aspsp, BankAccountLink, BankConnection, connectBank(), deleteConnection(), getWalletBank(), listAspsps(), renewConnection() (+11 more)
+### Community 97 - ".processDueSubscriptions"
+Cohesion: 0.18
+Nodes (3): Status, Subscription, Wallet
 
 ### Community 98 - "Offline Sync Rework — Implementation Plan / TODO"
 Cohesion: 0.10
@@ -618,12 +623,12 @@ Cohesion: 0.10
 Nodes (19): Confirmed design decisions (from the interview — do not relitigate), Global Constraints (apply to every task), Phase 1 — Backend push infrastructure, Phase 1 — Frontend, Phase 2 — Notification center (history), Self-review checklist (run after implementation), Task 10: backend — list / mark-read / purge-read + retention job, Task 11: frontend — bell + yellow dot + center overlay with read/purge lifecycle (+11 more)
 
 ### Community 100 - "walletCreation.ts"
-Cohesion: 0.08
-Nodes (25): PANEL_VARIANTS, Wizard(), WizardCompletionState, WizardCompletionStatus, WizardProps, WizardStep, WizardStepper(), WizardStepperProps (+17 more)
+Cohesion: 0.14
+Nodes (13): CreateWalletWizard, bulkOutcome(), BulkResponse, createWalletFromDraft(), invitesTask(), ResourceKey, ResourceOutcome, WalletBasics (+5 more)
 
-### Community 101 - ".budget"
-Cohesion: 0.24
-Nodes (3): BudgetPeriods, Period, BudgetPeriodsTest
+### Community 101 - "Budget"
+Cohesion: 0.17
+Nodes (6): Budget, Entity, Table, BudgetPeriods, Period, BudgetPeriodsTest
 
 ### Community 102 - "Phase A — Backend"
 Cohesion: 0.11
@@ -633,21 +638,25 @@ Nodes (18): Budgeting — Implementation Plan / TODO, Global Constraints (apply 
 Cohesion: 0.19
 Nodes (10): COLOR_PRESETS, ColorSelector(), ColorSelectorProps, PRESET_SET, FALLBACK_HEX, hexToRgba(), toHex(), getRecentColors() (+2 more)
 
-### Community 104 - "ShareSettingsSection.tsx"
-Cohesion: 0.13
-Nodes (13): MemberCategory(), MemberCategoryProps, MemberRow(), MemberRowProps, members, { authMock }, baseMember, RowOverrides (+5 more)
+### Community 104 - "CreateWalletWizard.tsx"
+Cohesion: 0.04
+Nodes (42): CsvUploadField(), InviteComposer(), InviteComposerProps, RoleSelector(), RoleSelectorProps, WalletRole, PANEL_VARIANTS, Wizard() (+34 more)
 
-### Community 105 - "OverviewTable.tsx"
-Cohesion: 0.18
-Nodes (10): CellType, OverviewCell(), OverviewCellContent(), OverviewCellContentProps, OverviewCellProps, DataItem, OverviewRow(), OverviewRowProps (+2 more)
-
-### Community 107 - "WalletProvider.tsx"
-Cohesion: 0.12
-Nodes (15): selectPendingTransactions(), selectToCategorize(), filterTransactions(), WalletProvider(), WalletProviderProps, VALID_TABS, applyPendingOps(), resolveTag() (+7 more)
-
-### Community 108 - "AuthControllerTest"
+### Community 105 - "SyncResult"
 Cohesion: 0.20
-Nodes (3): LoginRequest, AuthControllerTest, User
+Nodes (8): BankLinkController, PostMapping, RequestMapping, RestController, Status, Outcome, SyncResult, PsuContext
+
+### Community 106 - ".createTransactionsBulkInternal"
+Cohesion: 0.10
+Nodes (7): IndexedTagRow, Subscription, Tag, Transaction, Type, Wallet, WalletProvisioningServiceTest
+
+### Community 107 - "BankMatchRuleTest"
+Cohesion: 0.12
+Nodes (6): BankMatchRule, Deadline, Override, RegexTimeout, BankMatchRuleTest, java.util.regex.Pattern
+
+### Community 108 - ".generateToken"
+Cohesion: 0.23
+Nodes (4): LoginRequest, User, Wallet, java.security.Key
 
 ### Community 109 - "vite.config.ts"
 Cohesion: 0.29
@@ -665,25 +674,29 @@ Nodes (14): Cross-cutting wrap-up (after each phase, verify), Open Banking inter
 Cohesion: 0.11
 Nodes (17): 1. AppHeader — `frontend/src/header/AppHeader.tsx`  🔧 modifica, 2. Routing — `frontend/src/App.tsx`  🔧 modifica, 3. Shell pagina — `frontend/src/settings/SettingsPage.tsx`  ✨ nuovo, 4. Sezione **Account** — `frontend/src/settings/sections/AccountSection.tsx`  ✅ FATTA (2026-07-05, backend incluso), 5. Sezione **Security** — `frontend/src/settings/sections/SecuritySection.tsx`  ✨ nuovo, 6. Sezione **Tokens & Connections** — `frontend/src/settings/sections/TokensSection.tsx`  ✨ nuovo · ✅, 7. Sezione **About** — `frontend/src/settings/sections/AboutSection.tsx`  ✨ nuovo · ✅, 7b. Sezione **Delete account** — `frontend/src/settings/sections/DeleteAccountSection.tsx`  ✨ nuovo · BE ✅ / FE ✅ (2026-07-05) (+9 more)
 
-### Community 113 - "Menu.tsx"
-Cohesion: 0.10
-Nodes (25): Menu, MenuContent(), MenuContentProps, MenuContext, MenuContextValue, MenuItem(), MenuItemProps, MenuItemTone (+17 more)
+### Community 113 - "BudgetFormOverlay.tsx"
+Cohesion: 0.05
+Nodes (46): InputProps, Menu, MenuContent(), MenuContentProps, MenuContext, MenuContextValue, MenuItem(), MenuItemProps (+38 more)
+
+### Community 114 - ".sendYearlyReports"
+Cohesion: 0.20
+Nodes (5): Override, YearlyReportCronJob, FunctionalInterface, SendForUser, YearlyReportCronJobTest
 
 ### Community 115 - "Appendix — full live call-site table"
 Cohesion: 0.13
 Nodes (14): Admin, Appendix — full live call-site table, Auth & onboarding, Dashboard / wallet, Dead files (never imported — delete; not audited in depth), Modals (wallet / tag / subscription / transaction), OAuth consent, P0 — Correctness bug (+6 more)
 
-### Community 116 - "StatisticsSummary.tsx"
-Cohesion: 0.19
-Nodes (8): buildMonthlyBuckets(), StatisticsSummary(), StatisticsSummaryProps, SummaryCardProps, RankRow(), NOTE: Despite its file name, chartData.ts exports the pure, tag, formatAmount()
+### Community 116 - "StatisticsTab.tsx"
+Cohesion: 0.16
+Nodes (13): buildMonthlyBuckets(), CumulativeChart(), MonthlySnapshotChart(), StatisticsSummary(), StatisticsSummaryProps, SummaryCardProps, CHART_TABS, ChartMode (+5 more)
 
 ### Community 117 - "useAmountInput.ts"
 Cohesion: 0.23
 Nodes (9): AmountType, evaluateSignedAmount(), useAmountInput(), UseAmountInputArgs, AmountType, Harness(), formatAmountString(), hasOperators() (+1 more)
 
 ### Community 118 - "BankSyncCronJobTest"
-Cohesion: 0.21
-Nodes (4): Override, BankSyncCronJobTest, Status, SyncResult
+Cohesion: 0.30
+Nodes (4): Status, BankSyncCronJobTest, Status, SyncResult
 
 ### Community 119 - "PWAProvider.test.tsx"
 Cohesion: 0.24
@@ -693,41 +706,41 @@ Nodes (8): Consumer(), BeforeInstallPromptEvent, Window, WindowEventMap, PWACont
 Cohesion: 0.10
 Nodes (17): cachedData, CaptureConsumer(), Consumer(), createTagOp, createTxOp, createTxWithPendingTagOp, FilterConsumer(), FilteredOverlayConsumer() (+9 more)
 
-### Community 121 - ".map"
-Cohesion: 0.21
+### Community 121 - "EbTransaction"
+Cohesion: 0.22
 Nodes (5): BankTransactionMapper, Type, MappedTx, EbTransaction, BankTransactionMapperTest
 
-### Community 122 - "ReportHtmlBuilderTest"
-Cohesion: 0.18
-Nodes (4): CategoryTotal, PeriodTotals, WalletMonthlyReport, ReportHtmlBuilderTest
+### Community 122 - "java.time.YearMonth"
+Cohesion: 0.19
+Nodes (5): CategoryTotal, MonthRow, WalletYearlyReport, YearRecords, java.time.YearMonth
 
 ### Community 123 - "Phase map"
 Cohesion: 0.14
 Nodes (13): Design decisions (agreed in grilling, 2026-07-07), Global Constraints, Phase map, Reminder Subscriptions (Amount-less) Implementation Plan, Task 1: Entity flags + DTO/mapper plumbing (backend), Task 2: SubscriptionService — create/update reminder subscriptions, Task 3: Cron — generate pending transactions, Task 4: Fill endpoint + pending-clearing on update/bulk (backend) (+5 more)
 
-### Community 124 - "OAuthConsent.test.tsx"
-Cohesion: 0.14
-Nodes (12): OfflineBanner(), useOnlineStatus(), base64url(), makeJwt(), setOnline(), stubLocation(), cacheGet, cachePut (+4 more)
+### Community 124 - "axiosConfig.test.ts"
+Cohesion: 0.18
+Nodes (10): OfflineBanner(), useOnlineStatus(), base64url(), makeJwt(), setOnline(), stubLocation(), cacheGet, cachePut (+2 more)
 
-### Community 125 - "AdminDashboard.tsx"
-Cohesion: 0.17
-Nodes (13): UsersPageProps, AdminPageHeader(), AdminPageHeaderProps, AdminStats(), AdminTabs(), Backups(), AdminInvite, InvitesTable() (+5 more)
+### Community 125 - "NotificationsSection.tsx"
+Cohesion: 0.08
+Nodes (34): AdminStats(), AdminStatsProps, StatCard(), StatCardProps, SortConfig, UserDirectory(), UserDirectoryProps, UserRow() (+26 more)
 
 ### Community 126 - "refactor.ts"
 Cohesion: 0.50
 Nodes (3): fileMoves, project, ts-morph
 
-### Community 127 - ".updateSchedule"
-Cohesion: 0.16
-Nodes (7): AdminJobController, PostMapping, PutMapping, RequestMapping, RestController, UpdateEnabledRequest, UpdateScheduleRequest
+### Community 127 - "ScheduledJobService"
+Cohesion: 0.23
+Nodes (4): ManagedJob, ScheduleDefaults, ScheduledJobDTO, ScheduledJobService
 
 ### Community 128 - "5. Epic: eliminare `no-explicit-any` (90 → 0)"
 Cohesion: 0.09
 Nodes (21): 1. Causa radice, 2. Strategia (Ibrido), 3. TODO, 4. Debito tecnico tracciato (warning, da smaltire in futuro), 5. Epic: eliminare `no-explicit-any` (90 → 0), 6. `react-refresh/only-export-components` (7 → 0), 7. `react-hooks/exhaustive-deps` (6 → 0), A. Config ESLint — sblocco (degrado regole rumorose) (+13 more)
 
-### Community 129 - "useWalletData.ts"
-Cohesion: 0.21
-Nodes (16): syncWalletIfStale(), cache, Entry, fetchAndTrack(), fetchFromApi(), getWalletData(), inflight, peek() (+8 more)
+### Community 129 - "EnableBankingClientTest"
+Cohesion: 0.09
+Nodes (12): Aspsp, EbAccount, EbDtos, EbTransactionPage, Builder, EnableBankingProperties, Wallet, Wallet (+4 more)
 
 ### Community 130 - "Wallet data unifier + client cache — Design"
 Cohesion: 0.15
@@ -737,9 +750,13 @@ Nodes (12): A. Backend — aggregate endpoint (new), Architecture, B. Frontend �
 Cohesion: 0.15
 Nodes (12): Backend contract (already implemented — `MembersController` @ `/api/invitations`), Components (all new files under `src/dashboard/wallet/`), Count badge & empty state, Edge cases, Files, Goals, Invitations in the Wallet Sidebar — Design, Non-goals (YAGNI) (+4 more)
 
-### Community 132 - "replay.ts"
-Cohesion: 0.12
-Nodes (17): classifyReplayError(), collectionUrl(), initSync(), OFFLINE_SYNC_COMPLETE, ReplayClassification, resourceUrl(), sendOp(), RFC-7807 (+9 more)
+### Community 132 - "categoryChartData.ts"
+Cohesion: 0.18
+Nodes (14): buildMainCategoryMeta(), CategoryMeta, mainCategoryName(), OTHER_COLOR, buildHeatmap(), buildRanking(), buildTrend(), HeatmapData (+6 more)
+
+### Community 133 - "WebPushGateway"
+Cohesion: 0.22
+Nodes (6): PushGateway, Override, WebPushGateway, WebPushSenderTest, nl.martijndwars.webpush.PushService, PushService
 
 ### Community 134 - "File map"
 Cohesion: 0.17
@@ -761,17 +778,17 @@ Nodes (11): Deferred decisions (captured, revisit at their phase), Global Constr
 Cohesion: 0.17
 Nodes (11): 1. Helper `src/utils/walletSlug.ts` (nuovo), 2. Risoluzione slug → wallet (in `UserDashboard.tsx`), 3. Costruzione dei link, 4. Canonicalizzazione, Design, File toccati, Fuori ambito, Obiettivo (+3 more)
 
-### Community 139 - "ScheduledJobServiceTest"
-Cohesion: 0.20
-Nodes (5): Entity, Table, ScheduledJobConfig, ScheduledJobConfigRepository, ScheduledJobServiceTest
+### Community 139 - "Status"
+Cohesion: 0.33
+Nodes (6): Status, ACTIVE, ERROR, EXPIRED, PAUSED, PENDING
 
 ### Community 140 - "lombok.RequiredArgsConstructor"
-Cohesion: 0.05
-Nodes (42): BackupCronJob, Override, Override, MonthlyReportCronJob, Override, NotificationCleanupCronJob, Override, YearlyReportCronJob (+34 more)
+Cohesion: 0.04
+Nodes (61): AdminDatabaseController, RequestMapping, RestController, BackupCronJob, BankSyncCronJob, BudgetAlertCronJob, BudgetResolution, MonthlyReportCronJob (+53 more)
 
-### Community 141 - ".generateToken"
-Cohesion: 0.17
-Nodes (4): User, Wallet, User, JwtServiceTest
+### Community 141 - "subscriptionHelper.ts"
+Cohesion: 0.26
+Nodes (12): SubscriptionCard(), advanceByOneInterval(), applyMonthlyRules(), buildYearsMap(), formatCompactFrequency(), generateSubscriptionOccurrences(), getDaysLeft(), getDaysLeftColor() (+4 more)
 
 ### Community 142 - "NotificationTypeConstraintCleanup"
 Cohesion: 0.31
@@ -797,9 +814,13 @@ Nodes (7): notificationTargetUrl(), PushPayload, workbox-cacheable-response, wor
 Cohesion: 0.14
 Nodes (13): Convenzioni, Cosa NON ho fatto, Cosa è stato fatto, Decisioni per te (non le ho prese io), Dipendenze npm inutilizzate (F22) — non rimosse, File più grossi prima → dopo, Frontend restructure — notte del 2026-10-27, Le tue modifiche non committate (+5 more)
 
-### Community 149 - "recommendedSubscriptions.ts"
-Cohesion: 0.15
-Nodes (12): MissingTransactionTags(), findRecommendedTagWithParent(), keyOfName(), RecommendedTag, RECOMMENDED_SUBSCRIPTIONS, RecommendedSubscriptionTag, toSubscriptionRequest(), SubscriptionsStep() (+4 more)
+### Community 148 - "ScheduledJobDTO"
+Cohesion: 0.18
+Nodes (10): JobRunDTO, ScheduledJobDTO, Entity, Table, JobRun, JobRunRepository, jakarta.annotation.PostConstruct, java.util.concurrent.ScheduledFuture (+2 more)
+
+### Community 149 - "useWalletData.ts"
+Cohesion: 0.23
+Nodes (15): syncWalletIfStale(), cache, Entry, fetchAndTrack(), fetchFromApi(), getWalletData(), inflight, peek() (+7 more)
 
 ### Community 150 - "Admin Section Redesign — TODO"
 Cohesion: 0.22
@@ -817,9 +838,9 @@ Nodes (8): File Structure, Global Constraints, Self-Review, Task 1: Backend — 
 Cohesion: 0.22
 Nodes (8): Execution Handoff, Global Constraints, Invitations in the Wallet Sidebar — Implementation Plan, Self-Review, Task 1: `useInvitations` hook, Task 2: `InviteCard` presentational tile, Task 3: `WalletInvites` placed pieces (badge, mobile panel, desktop section), Task 4: Wire into `WalletsBar` + retire the old `InvitationsModal`
 
-### Community 154 - "ScheduledJobDTO"
-Cohesion: 0.22
-Nodes (9): JobRunDTO, ScheduledJobDTO, Entity, Table, JobRun, JobRunRepository, java.util.concurrent.ScheduledFuture, org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler (+1 more)
+### Community 154 - "CustomDatePicker.test.tsx"
+Cohesion: 0.15
+Nodes (8): DateRangeValue, TransactionFilterCriteria, useTransactionFilters(), useDebounce(), JAN_15, themeValue, none, tags
 
 ### Community 155 - "Kickoff prompt — SETTINGS redesign (copy into a new session)"
 Cohesion: 0.25
@@ -834,20 +855,20 @@ Cohesion: 0.46
 Nodes (7): CloseFn, ensureListening(), onPopState(), reconcile(), reconcileSoon(), registerOverlay(), stack
 
 ### Community 158 - "AssignableUuidV7Generator"
-Cohesion: 0.29
-Nodes (6): AssignableUuidV7Generator, Override, org.hibernate.engine.spi.SharedSessionContractImplementor, org.hibernate.generator.BeforeExecutionGenerator, org.hibernate.generator.EventType, org.hibernate.id.uuid.UuidValueGenerator
+Cohesion: 0.39
+Nodes (5): AssignableUuidV7Generator, Override, org.hibernate.engine.spi.SharedSessionContractImplementor, org.hibernate.generator.BeforeExecutionGenerator, org.hibernate.generator.EventType
+
+### Community 159 - ".monthly"
+Cohesion: 0.17
+Nodes (4): Type, ReportAggregator, Type, ReportAggregatorTest
 
 ### Community 160 - "1. What I extracted from the codebase"
 Cohesion: 0.29
 Nodes (7): 1.1 Entities (backend `model/`, PostgreSQL via `ddl-auto=update`, no Flyway), 1.2 Current auth flow, 1.3 Current offline / sync layer (frontend), 1.4 Current MCP behavior, 1.5 Authorization & other cross-cutting facts, 1.6 Files that will be touched (complete map), 1. What I extracted from the codebase
 
-### Community 161 - "BudgetService"
-Cohesion: 0.18
-Nodes (7): BudgetController, DeleteMapping, GetMapping, RequestMapping, RestController, BudgetAlertLogRepository, BudgetService
-
 ### Community 162 - "org.springframework.transaction.annotation.Transactional"
 Cohesion: 0.06
-Nodes (19): DataInitializer, Override, EmailChangeRequestRepository, PersonalAccessTokenRepository, PushSubscriptionRepository, AccountDeletionService, WalletRole, NotificationPreferenceService (+11 more)
+Nodes (17): Override, NotificationCleanupCronJob, BankConnectionRepository, BudgetAlertLogRepository, EmailChangeRequestRepository, NotificationRepository, PushSubscriptionRepository, InvitationStatus (+9 more)
 
 ### Community 163 - "Categories (Tags) tab — charts plan"
 Cohesion: 0.33
@@ -861,21 +882,17 @@ Nodes (6): 8.1 Local store (Dexie v2 upgrade of `FinanceAppOffline`), 8.2 Pull (
 Cohesion: 0.33
 Nodes (5): Global Constraints, Self-Review, Task 1: Helper `walletSlug` con test, Task 2: Usare lo slug in `UserDashboard.tsx`, Wallet Slug URL Implementation Plan
 
-### Community 166 - "Transaction"
-Cohesion: 0.22
-Nodes (6): Entity, Table, Transaction, Type, ReportAggregator, TransactionMapperTest
+### Community 166 - "SyncCenterOverlay.tsx"
+Cohesion: 0.17
+Nodes (11): OP_KIND_LABEL, opLabel(), SyncCenterOverlay(), SyncCenterOverlayProps, SyncStatus, failedOp, missingOp, pendingOp (+3 more)
 
-### Community 167 - "TokensSection.tsx"
+### Community 167 - "ToDoList.tsx"
 Cohesion: 0.26
-Nodes (9): TokensSection(), TokenDialog(), Props, TokenFilterPills(), DialogView, FilterKey, filterTokens(), isMcpToken() (+1 more)
+Nodes (6): rawToDoData, todoData, ToDoItem, ToDoItemInput, ToDoStatus, ToDoList()
 
 ### Community 168 - "BackendApplication"
 Cohesion: 0.60
 Nodes (3): BackendApplication, org.springframework.boot.autoconfigure.SpringBootApplication, org.springframework.scheduling.annotation.EnableScheduling
-
-### Community 169 - "lucide-react"
-Cohesion: 0.25
-Nodes (5): MonthSelector(), MonthSelectorProps, YearSelector(), YearSelectorProps, lucide-react
 
 ### Community 170 - "Verifying FinanceWebApp changes at runtime"
 Cohesion: 0.40
@@ -885,13 +902,9 @@ Nodes (4): Frontend, Recipe: isolated backend instance with your working-tree co
 Cohesion: 0.40
 Nodes (5): 9.1 Invite A → B (encrypted wallet), 9.2 Invitee without a keypair (V1 user) or without an account, 9.3 Revocation semantics (chosen behavior, stated plainly), 9.4 PENDING_REWRAP recovery (after §5.7 key reset), 9. Sharing, invitation, revocation
 
-### Community 172 - "BudgetMapper"
-Cohesion: 0.24
-Nodes (4): BudgetMapper, BudgetMapperTest, Wallet, BudgetStatusResponseBuilder
-
-### Community 173 - "SubscriptionRequest"
-Cohesion: 0.08
-Nodes (28): Icon(), WalletIconProps, TagPickerTrigger(), TagPickerTriggerProps, CsvUploadField(), TagBadge(), SubscriptionRequest, WalletContext (+20 more)
+### Community 173 - "SubscriptionsStep.tsx"
+Cohesion: 0.11
+Nodes (19): findRecommendedTagWithParent(), RecommendedTag, RECOMMENDED_CONTEXT_TAGS, RecommendedSubscriptionPicker(), RecommendedSubscriptionPickerProps, RECOMMENDED_SUBSCRIPTIONS, RecommendedSubscription, RecommendedSubscriptionTag (+11 more)
 
 ### Community 174 - "Open Banking: note notturne per la revisione"
 Cohesion: 0.25
@@ -905,85 +918,81 @@ Nodes (3): gradlew script, die(), warn()
 Cohesion: 0.50
 Nodes (4): 7.1 Why a separate plane, 7.2 Endpoints (`controller/E2eeController`, service `E2eeSyncService`), 7.3 Change-log append (correctness details), 7. E2EE data plane (new API, coexisting with the legacy plane)
 
-### Community 178 - "AdminJobControllerTest"
+### Community 178 - "offlineDb.ts"
+Cohesion: 0.19
+Nodes (11): countByStatus(), enqueueOp(), notify(), SYNC_QUEUE_CHANGED, base, CacheItem, ConflictKind, FinanceDb (+3 more)
+
+### Community 180 - "ScheduledJobServiceTest"
+Cohesion: 0.26
+Nodes (5): Entity, Table, ScheduledJobConfig, ScheduledJobConfigRepository, ScheduledJobServiceTest
+
+### Community 185 - "SubscriptionList.tsx"
+Cohesion: 0.28
+Nodes (8): PastSubscriptionsSection(), PastSubscriptionsSectionProps, byNextExecution(), formatMonthLabel(), groupSubscriptions(), monthKeyOf(), PastPayment, SubscriptionList()
+
+### Community 186 - "ReportHtmlBuilderTest"
+Cohesion: 0.23
+Nodes (3): PeriodTotals, WalletMonthlyReport, ReportHtmlBuilderTest
+
+### Community 193 - "AdminJobControllerTest"
 Cohesion: 0.21
 Nodes (4): GetMapping, AdminJobControllerTest, org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration, ScheduledJobDTO
 
-### Community 179 - "BudgetAlertCronJob"
-Cohesion: 0.24
-Nodes (4): BudgetAlertCronJob, BudgetResolution, Override, Wallet
-
-### Community 180 - "InvitesStep.tsx"
-Cohesion: 0.35
-Nodes (8): InviteComposer(), InviteComposerProps, RoleSelector(), RoleSelectorProps, WalletRole, InviteSectionProps, InvitesStepProps, WalletInvite
-
-### Community 185 - "StatisticsTab.tsx"
-Cohesion: 0.24
-Nodes (8): CumulativeChart(), MonthlySnapshotChart(), CHART_TABS, ChartMode, darkTheme, lightTheme, RECENT_MONTHS, recentMonthsZoom()
-
-### Community 186 - "WebPushGateway"
+### Community 194 - "BankRuleControllerTest"
 Cohesion: 0.29
-Nodes (5): Override, WebPushGateway, jakarta.annotation.PostConstruct, nl.martijndwars.webpush.PushService, PushService
+Nodes (4): BankRuleControllerTest, User, Wallet, WalletRole
 
-### Community 194 - "java.time.YearMonth"
-Cohesion: 0.43
-Nodes (4): MonthRow, WalletYearlyReport, YearRecords, java.time.YearMonth
+### Community 195 - "InvitationStatus"
+Cohesion: 0.40
+Nodes (5): InvitationStatus, ACCEPTED, FORGOTPASSWORD, PENDING, REVOKED
 
-### Community 196 - "InvitationStatus"
-Cohesion: 0.33
-Nodes (6): InvitationStatus, ACCEPTED, LEFT, PENDING, REJECTED, REVOKED
-
-### Community 198 - "AssignableUuidV7"
-Cohesion: 0.70
-Nodes (4): AssignableUuidV7, java.lang.annotation.Retention, java.lang.annotation.Target, org.hibernate.annotations.IdGeneratorType
-
-### Community 200 - "JobRunStatus"
-Cohesion: 0.50
-Nodes (3): JobRunStatus, FAILURE, SUCCESS
-
-### Community 201 - "Type"
-Cohesion: 0.67
-Nodes (3): Type, EXPENSE, INCOME
-
-### Community 202 - "LandingPage.tsx"
+### Community 202 - "react"
 Cohesion: 0.04
-Nodes (38): Sphere(), SphereProps, BackgroundBlobs(), BackgroundSpheres(), SphereConfig, SPHERES, CTASection(), Footer() (+30 more)
+Nodes (70): Sphere(), SphereProps, AnimateBackground(), AuthLayout(), OAuthErrorState(), BackgroundBlobs(), BackgroundSpheres(), SphereConfig (+62 more)
 
-### Community 203 - "Type"
-Cohesion: 0.67
-Nodes (3): Type, EXPENSE, INCOME
-
-### Community 204 - ".generateDemoWallet"
-Cohesion: 0.14
+### Community 204 - "Frequency"
+Cohesion: 0.20
 Nodes (9): Frequency, DAILY, MONTHLY, WEEKLY, YEARLY, Tag, Transaction, Type (+1 more)
+
+### Community 205 - "useDayNavigation.test.ts"
+Cohesion: 0.36
+Nodes (5): CalendarDayDetailPanel, useDayNavigation(), day(), setup(), subs
+
+### Community 211 - "Status"
+Cohesion: 0.50
+Nodes (4): Status, ACTIVE, COMPLETED, PAUSED
 
 ### Community 212 - "NotificationTypeConverter"
 Cohesion: 0.23
 Nodes (7): Override, NotificationTypeConverter, Override, JobFrequencyConverter, NotificationTypeConverterTest, jakarta.persistence.AttributeConverter, jakarta.persistence.Converter
 
+### Community 213 - "JobRunStatus"
+Cohesion: 0.50
+Nodes (3): JobRunStatus, FAILURE, SUCCESS
+
 ### Community 286 - "BankConnection"
-Cohesion: 0.04
-Nodes (51): BankSyncCronJob, BankAccountLink, AllArgsConstructor, Builder, Data, Entity, NoArgsConstructor, Table (+43 more)
+Cohesion: 0.06
+Nodes (22): BankAccountLink, AllArgsConstructor, Builder, Data, Entity, NoArgsConstructor, Table, BankConnection (+14 more)
 
 ## Knowledge Gaps
-- **1134 isolated node(s):** `backend-mark.sh script`, `backend-tests.sh script`, `frontend-mark.sh script`, `PENDING`, `ACTIVE` (+1129 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1693 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **25 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **1143 isolated node(s):** `backend-mark.sh script`, `backend-tests.sh script`, `frontend-mark.sh script`, `PENDING`, `ACTIVE` (+1138 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1719 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **34 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `useWalletData.ts`, `triggerToast`, `Transaction`, `SubscriptionModal.tsx`, `subscriptionHelper.ts`, `vitest`, `useTabLayout.ts`, `BasicsStep.tsx`, `index.ts`, `axiosConfig.ts`, `useSyncStatus.ts`, `domain.ts`, `useExchangeRate.ts`, `CustomDatePicker.tsx`, `TagRequest`, `categoryChartData.ts`, `TagsStep.tsx`, `TokensSection.tsx`, `frontend/package.json`, `TokenListItem.tsx`, `react-router-dom`, `SubscriptionRequest`, `InvitesStep.tsx`, `SettingsPage.tsx`, `StatisticsTab.tsx`, `JobCard.tsx`, `DataTab.tsx`, `CreateWalletWizard.tsx`, `useCsvImport.ts`, `TagCreateMode.test.tsx`, `OverviewTable.test.tsx`, `MonthlyChart.tsx`, `LandingPage.tsx`, `Badge.tsx`, `NotificationsSection.tsx`, `App.tsx`, `TagTreePicker.tsx`, `offlineDb.ts`, `BankAccountsSection.tsx`, `walletCreation.ts`, `ColorSelector.tsx`, `ShareSettingsSection.tsx`, `OverviewTable.tsx`, `WalletProvider.tsx`, `Menu.tsx`, `StatisticsSummary.tsx`, `useAmountInput.ts`, `PWAProvider.test.tsx`, `WalletProvider.test.tsx`, `OAuthConsent.test.tsx`, `AdminDashboard.tsx`?**
-  _High betweenness centrality (0.040) - this node is a cross-community bridge._
-- **Why does `vitest` connect `vitest` to `useWalletData.ts`, `triggerToast`, `Transaction`, `SubscriptionModal.tsx`, `replay.ts`, `subscriptionHelper.ts`, `useTabLayout.ts`, `BasicsStep.tsx`, `index.ts`, `axiosConfig.ts`, `useSyncStatus.ts`, `domain.ts`, `useExchangeRate.ts`, `recommendedSubscriptions.ts`, `sw.ts`, `CustomDatePicker.tsx`, `TagRequest`, `categoryChartData.ts`, `TagsStep.tsx`, `TokensSection.tsx`, `lucide-react`, `frontend/package.json`, `TokenListItem.tsx`, `react-router-dom`, `SubscriptionRequest`, `SettingsPage.tsx`, `StatisticsTab.tsx`, `csvImport.ts`, `JobCard.tsx`, `DataTab.tsx`, `CreateWalletWizard.tsx`, `useCsvImport.ts`, `TagCreateMode.test.tsx`, `OverviewTable.test.tsx`, `MonthlyChart.tsx`, `LandingPage.tsx`, `Badge.tsx`, `react`, `NotificationsSection.tsx`, `App.tsx`, `walletOps.ts`, `TagTreePicker.tsx`, `offlineDb.ts`, `BankAccountsSection.tsx`, `walletCreation.ts`, `ColorSelector.tsx`, `ShareSettingsSection.tsx`, `OverviewTable.tsx`, `WalletProvider.tsx`, `Menu.tsx`, `StatisticsSummary.tsx`, `useAmountInput.ts`, `PWAProvider.test.tsx`, `WalletProvider.test.tsx`, `OAuthConsent.test.tsx`, `AdminDashboard.tsx`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
-- **Why does `User` connect `User` to `org.springframework.http.ResponseEntity`, `org.junit.jupiter.api.Test`, `PersonalAccessToken`, `org.springframework.security.access.prepost.PreAuthorize`, `WalletAccess`, `lombok.RequiredArgsConstructor`, `.generateToken`, `org.junit.jupiter.api.extension.ExtendWith`, `lombok.Data`, `WalletController`, `Registrations`, `.findAllByUserIdAndStatus`, `Budget`, `Tag`, `BankConnection`, `WalletSecurityTest`, `BudgetService`, `org.springframework.transaction.annotation.Transactional`, `TransactionServiceTest`, `TransactionService`, `JwtAuthenticationFilterTest`, `SubscriptionServiceTest`, `UserServiceTest`, `NotificationCopy`, `AuthController`, `SubscriptionService`, `BankLinkService`, `.computeStatus`, `PatAuthenticationFilterTest`, `PatService`, `AccountDeletionServiceTest`, `BankLinkServiceTest`, `WalletAccessId`, `BankSyncServiceTest`, `AuthControllerTest`, `.sendYearlyReports`, `BankSyncCronJobTest`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `Button`, `categoryChartData.ts`, `BankRuleEditor.tsx`, `Subscription`, `BasicsStep.tsx`, `useTabLayout.ts`, `subscriptionHelper.ts`, `Transaction`, `vitest`, `domain.ts`, `tagOrder.ts`, `useWalletData.ts`, `CustomDatePicker.test.tsx`, `CustomDatePicker.tsx`, `TagRequest`, `CategoryHeatmapChart.tsx`, `TagsStep.tsx`, `SyncCenterOverlay.tsx`, `ToDoList.tsx`, `MonthlyRulePicker.tsx`, `frontend/package.json`, `TokensSection.tsx`, `AppHeader.tsx`, `SubscriptionsStep.tsx`, `SubscriptionList.tsx`, `JobCard.tsx`, `transactionTags.ts`, `csvDedup.ts`, `TagsStep.test.tsx`, `OverviewTable.tsx`, `MonthlyChart.tsx`, `WalletsBar.tsx`, `@fortawesome/free-solid-svg-icons`, `useDayNavigation.test.ts`, `useCsvImport.ts`, `BackupRow.tsx`, `replay.ts`, `ColorSelector.tsx`, `CreateWalletWizard.tsx`, `BudgetFormOverlay.tsx`, `StatisticsTab.tsx`, `useAmountInput.ts`, `PWAProvider.test.tsx`, `WalletProvider.test.tsx`, `axiosConfig.test.ts`, `NotificationsSection.tsx`?**
+  _High betweenness centrality (0.045) - this node is a cross-community bridge._
+- **Why does `User` connect `User` to `EnableBankingClientTest`, `org.junit.jupiter.api.Test`, `PatServiceTest`, `WalletAccess`, `Wallet`, `lombok.RequiredArgsConstructor`, `UserNotFoundException`, `Registrations`, `lombok.Data`, `org.springframework.http.ResponseEntity`, `.findByToken`, `WalletServiceTest`, `BudgetService`, `BankConnection`, `PersonalAccessToken`, `org.springframework.transaction.annotation.Transactional`, `TransactionServiceTest`, `JwtAuthenticationFilterTest`, `SubscriptionServiceTest`, `OAuthController`, `UserServiceTest`, `NotificationCopy`, `AuthControllerTest`, `BankRule`, `SendEmailService`, `BankRuleControllerTest`, `.deleteBudget`, `BankLinkService`, `ResetPasswordRequest`, `.computeStatus`, `.connect`, `jakarta.transaction.Transactional`, `.deleteSubscription`, `BankLinkServiceTest`, `PatAuthenticationFilterTest`, `BankSyncServiceTest`, `SyncResult`, `.sendYearlyReports`, `BankSyncCronJobTest`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `vitest` connect `vitest` to `Button`, `categoryChartData.ts`, `BankRuleEditor.tsx`, `overlay.test.ts`, `Subscription`, `BasicsStep.tsx`, `useTabLayout.ts`, `subscriptionHelper.ts`, `Transaction`, `sw.ts`, `domain.ts`, `tagOrder.ts`, `useWalletData.ts`, `exchangeRates.ts`, `CustomDatePicker.test.tsx`, `CustomDatePicker.tsx`, `TagRequest`, `CategoryHeatmapChart.tsx`, `TagsStep.tsx`, `SyncCenterOverlay.tsx`, `ToDoList.tsx`, `MonthlyRulePicker.tsx`, `frontend/package.json`, `TokensSection.tsx`, `AppHeader.tsx`, `SubscriptionsStep.tsx`, `offlineDb.ts`, `SubscriptionList.tsx`, `csvImport.ts`, `JobCard.tsx`, `csvExport.ts`, `transactionTags.ts`, `csvDedup.ts`, `TagsStep.test.tsx`, `OverviewTable.tsx`, `MonthlyChart.tsx`, `react`, `WalletsBar.tsx`, `@fortawesome/free-solid-svg-icons`, `useDayNavigation.test.ts`, `useCsvImport.ts`, `MonthSelector.tsx`, `YearSelector.tsx`, `NotificationsSection.test.tsx`, `chartData.test.ts`, `walletOps.ts`, `BackupRow.tsx`, `replay.ts`, `walletCreation.ts`, `ColorSelector.tsx`, `CreateWalletWizard.tsx`, `BudgetFormOverlay.tsx`, `StatisticsTab.tsx`, `useAmountInput.ts`, `PWAProvider.test.tsx`, `WalletProvider.test.tsx`, `axiosConfig.test.ts`, `NotificationsSection.tsx`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **Are the 34 inferred relationships involving `User` (e.g. with `.run()` and `.memberWithEmail()`) actually correct?**
   _`User` has 34 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `backend-mark.sh script`, `backend-tests.sh script`, `frontend-mark.sh script` to the rest of the system?**
-  _1134 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `org.springframework.http.ResponseEntity` be split into smaller, more focused modules?**
-  _Cohesion score 0.052837938760268856 - nodes in this community are weakly interconnected._
+  _1143 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `GlobalExceptionHandlerTest` be split into smaller, more focused modules?**
+  _Cohesion score 0.06507936507936508 - nodes in this community are weakly interconnected._
 - **Should `org.junit.jupiter.api.Test` be split into smaller, more focused modules?**
-  _Cohesion score 0.030833682446585672 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.027012987012987013 - nodes in this community are weakly interconnected._

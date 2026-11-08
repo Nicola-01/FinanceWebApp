@@ -9,6 +9,7 @@ import {
   faPlay,
   faPause,
   faCheckDouble,
+  faBuildingColumns,
 } from "@fortawesome/free-solid-svg-icons";
 import type { Subscription, Wallet } from "../../types/domain";
 import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
@@ -109,9 +110,11 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
           className="bg-app-input"
         >
           <div className="flex flex-col sm:items-end">
-            <span className="text-app-text font-medium">
-              {getFrequencyText()}
-            </span>
+            {!sub.bankDriven && (
+              <span className="text-app-text font-medium">
+                {getFrequencyText()}
+              </span>
+            )}
             {sub.duration === "TIMES" && (
               <span className="text-app-muted text-xs">
                 Runs {sub.durationTimes} times (Done: {sub.executedTimes || 0})
@@ -128,10 +131,21 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
           </div>
         </DetailRow>
 
-        {/* Next Date */}
-        <DetailRow icon={faClock} label="Next Run">
+        {/* Bank rule (Only if present) */}
+        {sub.bankRuleName && (
+          <DetailRow icon={faBuildingColumns} label="Bank rule">
+            <span className="text-app-text font-medium truncate">
+              {sub.bankRuleName}
+            </span>
+          </DetailRow>
+        )}
+
+        {/* Next Date — a bank-driven subscription has no schedule of its own */}
+        <DetailRow icon={faClock} label={sub.bankDriven ? "Runs" : "Next Run"}>
           <span className="text-app-text font-medium">
-            {formatDate(sub.nextExecutionDate)}
+            {sub.bankDriven
+              ? "Date from bank"
+              : formatDate(sub.nextExecutionDate)}
           </span>
         </DetailRow>
 

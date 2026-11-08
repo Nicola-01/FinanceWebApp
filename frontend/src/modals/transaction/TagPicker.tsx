@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLayerGroup } from "@fortawesome/free-solid-svg-icons";
 import type { Tag } from "../../types/domain";
 import { TagTreePicker } from "../../components/tags/TagTreePicker.tsx";
+import { DropdownManageButton } from "../../components/ui/DropdownManageButton.tsx";
 import { useWalletContext } from "../../dashboard/wallet/WalletContext.tsx";
 import { CategoryManagerDrawer } from "../../dashboard/tag/CategoryManagerDrawer.tsx";
 import {
@@ -59,26 +59,14 @@ export const TagPicker: React.FC<TagPickerProps> = ({
       onOpen={() => setSortMode(readSortMode(wallet.id))}
       footerSlot={({ currentParentName }) => (
         // Categories are created / organized in the manager drawer.
-        <div className="mt-2 border-t border-app-border pt-2">
-          <button
-            type="button"
-            onClick={() => {
-              setManagerParent(currentParentName);
-              setManagerOpen(true);
-            }}
-            className="group flex w-full items-center gap-3 rounded-lg border border-dashed border-app-border p-2.5 text-left transition-colors hover:bg-app-input"
-          >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-input transition-colors group-hover:bg-app-surface">
-              <FontAwesomeIcon
-                icon={faLayerGroup}
-                className="text-app-muted group-hover:text-app-text"
-              />
-            </div>
-            <span className="text-sm font-medium text-app-muted group-hover:text-app-text">
-              Manage categories
-            </span>
-          </button>
-        </div>
+        <DropdownManageButton
+          icon={faLayerGroup}
+          label="Manage categories"
+          onClick={() => {
+            setManagerParent(currentParentName);
+            setManagerOpen(true);
+          }}
+        />
       )}
     >
       <CategoryManagerDrawer

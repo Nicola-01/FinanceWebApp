@@ -41,6 +41,18 @@ const makeTx = (transactionDate: string, id = "tx"): Transaction =>
   ({ id, name: "past", transactionDate }) as unknown as Transaction;
 
 describe("buildYearsMap", () => {
+  it("projects no future occurrences for a bank-driven subscription", () => {
+    const sub = makeSub({
+      status: "ACTIVE",
+      bankDriven: true,
+      history: [makeTx("2025-03-15T12:00:00")],
+    });
+
+    const map = buildYearsMap([sub], [2025]);
+
+    expect(Object.keys(map[2025])).toEqual(["2025-03-15"]);
+  });
+
   it("maps history transactions of the target year to their day", () => {
     const sub = makeSub({
       status: "COMPLETED", // isola: niente occorrenze future

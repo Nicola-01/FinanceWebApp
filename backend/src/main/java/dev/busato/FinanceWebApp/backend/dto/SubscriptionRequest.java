@@ -22,6 +22,11 @@ public class SubscriptionRequest {
   // updates that omit it leave the flag unchanged.
   private Boolean amountPending;
 
+  // Wallet bank rule. On update: null = unchanged; clearBankRule=true removes it (and bankDriven).
+  private UUID bankRuleId;
+  private Boolean clearBankRule;
+  private Boolean bankDriven;
+
   private BigDecimal originalAmount;
   private String originalCurrency;
   private BigDecimal exchangeValue;

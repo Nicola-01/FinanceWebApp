@@ -387,10 +387,9 @@ public class TransactionService {
               // The placeholder can be kept (an unchanged edit) but never newly assigned.
               .filter(t -> !t.isPlaceholder() || t.equals(transaction.getTag()))
               .orElseThrow(() -> new TagNotFoundException(request.getTag(), walletId));
-      // Re-categorizing an imported transaction resolves its review flag.
-      if (transaction.getTag() == null || !tag.getId().equals(transaction.getTag().getId())) {
-        transaction.setNeedsReview(false);
-      }
+      // Filing an import under a real category (even the one a review-first bank rule already
+      // set) resolves its review flag; keeping the placeholder does not.
+      if (!tag.isPlaceholder()) transaction.setNeedsReview(false);
       transaction.setTag(tag);
     }
 

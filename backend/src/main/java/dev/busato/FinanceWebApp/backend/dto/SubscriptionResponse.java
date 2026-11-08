@@ -25,6 +25,10 @@ public class SubscriptionResponse {
   private String notes;
   private String status;
 
+  private UUID bankRuleId;
+  private String bankRuleName;
+  private boolean bankDriven;
+
   private LocalDate startDate;
   private LocalDate nextExecutionDate;
   private LocalDate lastExecutionDate;

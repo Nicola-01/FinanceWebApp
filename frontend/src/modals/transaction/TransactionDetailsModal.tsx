@@ -14,6 +14,7 @@ import {
 
 import { TransactionView } from "./TransactionView";
 import { TagPicker } from "./TagPicker.tsx";
+import { reviewTagName } from "../../dashboard/wallet/toCategorize.ts";
 import { categoriseTransaction } from "../../dashboard/transaction/categoriseTransaction.ts";
 
 export interface TransactionDetailsModalHandle {
@@ -83,7 +84,7 @@ export const TransactionDetailsModal = forwardRef<
         <TagPicker
           tags={tags}
           showLabel={false}
-          selectedTagName=""
+          selectedTagName={reviewTagName(tx, tags)}
           onSelectTag={async (tagName) => {
             if (await categoriseTransaction(wallet, tx, tagName)) {
               handleClose();

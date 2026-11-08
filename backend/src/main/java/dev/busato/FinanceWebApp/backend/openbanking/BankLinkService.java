@@ -338,7 +338,7 @@ public class BankLinkService {
         .orElseThrow(() -> new PermissionDeniedException("Bank connection not accessible"));
   }
 
-  private void requireFeature(UUID userId) {
+  void requireFeature(UUID userId) {
     if (!featureEnabled(userId)) throw new OpenBankingDisabledException();
   }
 

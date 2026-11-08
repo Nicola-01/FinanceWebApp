@@ -276,7 +276,8 @@ export const buildYearsMap = (
         });
       }
 
-      if (sub.status === "COMPLETED") return;
+      // Bank-driven subscriptions have no schedule to project.
+      if (sub.status === "COMPLETED" || sub.bankDriven) return;
 
       // 2. Future occurrences (from nextExecutionDate on only)
       const dates = generateSubscriptionOccurrences(sub, y, y);

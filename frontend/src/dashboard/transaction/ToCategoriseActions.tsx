@@ -10,7 +10,7 @@ import { TagPicker } from "../../modals/transaction/TagPicker.tsx";
 import { categoriseTransaction } from "./categoriseTransaction.ts";
 import { useDeleteModal } from "../../modals/common/DeleteModalContext";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
-import { suggestTagName } from "../wallet/toCategorize.ts";
+import { reviewTagName, suggestTagName } from "../wallet/toCategorize.ts";
 
 /** Inline category picker + delete for a bank import still on the "To categorise" placeholder. */
 export const ToCategoriseActions: React.FC<{ transaction: Transaction }> = ({
@@ -19,7 +19,7 @@ export const ToCategoriseActions: React.FC<{ transaction: Transaction }> = ({
   const { wallet, tags, transactions, fetchData } = useWalletContext();
   const deleteModalRef = useDeleteModal();
   if (wallet.userRole === "VIEWER") return null;
-  const suggested = suggestTagName(tx, transactions);
+  const suggested = reviewTagName(tx, tags) || suggestTagName(tx, transactions);
 
   const changeTag = async (tagName: string) => {
     if (await categoriseTransaction(wallet, tx, tagName)) fetchData();

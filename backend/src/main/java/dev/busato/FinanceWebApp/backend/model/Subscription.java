@@ -74,6 +74,19 @@ public class Subscription {
   @Column(columnDefinition = "TEXT")
   private String notes;
 
+  // --- OPEN BANKING (see openbanking/BankMatchRule) ---
+
+  /** Wallet bank rule routing matching imports to this subscription; null = none. */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "bank_rule_id")
+  private BankRule bankRule;
+
+  /** No schedule of its own: every matching bank row becomes an execution, on the bank's date. */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean bankDriven = false;
+
   // --- REGOLE DI SCHEDULAZIONE (Core del Cron Job) ---
 
   @Enumerated(EnumType.STRING)

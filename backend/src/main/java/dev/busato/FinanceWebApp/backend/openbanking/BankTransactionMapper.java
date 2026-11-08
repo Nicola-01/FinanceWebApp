@@ -27,7 +27,11 @@ public class BankTransactionMapper {
       BigDecimal amount,
       String currency,
       Transaction.Type type,
-      LocalDate date) {}
+      LocalDate date) {
+    public MappedTx withDate(LocalDate d) {
+      return new MappedTx(externalId, name, notes, amount, currency, type, d);
+    }
+  }
 
   /**
    * Drops non-BOOK rows; order preserved. Callers pass whole days so occurrence indexes are stable.

@@ -2,8 +2,10 @@ package dev.busato.FinanceWebApp.backend.openbanking;
 
 import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
+import dev.busato.FinanceWebApp.backend.model.BankRule;
 import dev.busato.FinanceWebApp.backend.model.ImportedBankTransaction;
 import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
+import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -16,12 +18,16 @@ import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.PsuContext;
 import dev.busato.FinanceWebApp.backend.push.NotificationCopy;
 import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
+import dev.busato.FinanceWebApp.backend.repository.BankRuleRepository;
 import dev.busato.FinanceWebApp.backend.repository.ImportedBankTransactionRepository;
+import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletAccessRepository;
 import dev.busato.FinanceWebApp.backend.service.ExchangeRateService;
 import dev.busato.FinanceWebApp.backend.service.NotificationService;
+import dev.busato.FinanceWebApp.backend.service.SubscriptionService;
+import dev.busato.FinanceWebApp.backend.service.SubscriptionService.BankFill;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
@@ -29,10 +35,14 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -55,6 +65,11 @@ public class BankSyncService {
   /** Name of the review tag before it became a placeholder; upgraded at boot. */
   public static final String LEGACY_REVIEW_TAG = "To categorize";
 
+  /** Max days between a subscription's transaction and the bank row it absorbs. */
+  static final int MATCH_WINDOW_DAYS = 3;
+
+  private static final String FROM_BANK = "From OpenBanking";
+
   static final Duration ON_OPEN_THROTTLE = Duration.ofHours(2);
   static final int LOOKBACK_DAYS = 5;
 
@@ -71,6 +86,9 @@ public class BankSyncService {
   private final NotificationService notificationService;
   private final ApplicationEventPublisher eventPublisher;
   private final TransactionTemplate transactionTemplate;
+  private final SubscriptionRepository subscriptionRepository;
+  private final BankRuleRepository ruleRepository;
+  private final SubscriptionService subscriptionService;
   private final Clock clock;
 
   /** A status change away from ACTIVE, with what the owners must be told once it commits. */
@@ -226,7 +244,17 @@ public class BankSyncService {
     LocalDate retryFrom = null;
     // The first sync backfills history: notifying each of those rows would flood the members.
     boolean notify = link.getLastSyncedAt() != null;
-    for (MappedTx m : mapped) {
+    List<BankRule> rules =
+        mapped.isEmpty()
+            ? List.of()
+            : ruleRepository.findAllByWalletIdOrderByNameAsc(wallet.getId());
+    Map<UUID, List<Subscription>> subsByRule =
+        rules.isEmpty()
+            ? Map.of()
+            : subscriptionRepository.findAllByWalletIdAndBankRuleIsNotNull(wallet.getId()).stream()
+                .collect(Collectors.groupingBy(s -> s.getBankRule().getId()));
+    for (MappedTx row : mapped) {
+      MappedTx m = row;
       if (!known.add(m.externalId())) continue;
       String currency =
           m.currency() != null
@@ -244,14 +272,57 @@ public class BankSyncService {
         }
         amount = m.amount().multiply(rate).setScale(2, RoundingMode.HALF_UP);
       }
-      if (tag == null) tag = reviewTag(wallet);
+      String notes = m.notes();
+      String name = m.name();
+      Tag ruleTag = null;
+      boolean reviewFirst = false;
+      List<BankRule> hits =
+          rules.stream().filter(r -> BankMatchRule.matches(r, row.name())).toList();
+      if (hits.size() > 1) {
+        notes = collision(hits.stream().map(BankRule::getName).toList(), notes);
+      } else if (hits.size() == 1) {
+        BankRule rule = hits.get(0);
+        if (rule.isDateFromName()) {
+          LocalDate booked = m.date();
+          m = m.withDate(NameDateParser.parse(m.name(), booked).orElse(booked));
+        }
+        MappedTx tx = m;
+        List<Subscription> subs =
+            subsByRule.getOrDefault(rule.getId(), List.of()).stream()
+                .filter(s -> s.getStatus() == Subscription.Status.ACTIVE) // may complete mid-batch
+                // A refund must not match an expense subscription (and vice versa).
+                .filter(s -> s.getType().name().equals(tx.type().name()))
+                .filter(s -> withinDuration(s, tx.date()))
+                .toList();
+        if (subs.size() > 1) {
+          notes = collision(subs.stream().map(Subscription::getName).toList(), notes);
+        } else if (subs.size() == 1) {
+          // Subscription path: its own naming/tag/notes win; the rule's actions never apply.
+          Subscription s = subs.get(0);
+          UUID matched = matchSubscription(s, m, amount, currency, rate, notify);
+          if (matched != null) {
+            saveLedger(link, m, now, matched);
+            continue;
+          }
+          notes =
+              joinNotes("Possible match: " + s.getName() + " (off schedule); " + FROM_BANK, notes);
+        } else {
+          ruleTag = rule.getTag();
+          reviewFirst = rule.isReviewFirst();
+          if (rule.getRenameTo() != null) {
+            name = rule.getRenameTo();
+            notes = joinNotes("Bank: " + m.name(), notes);
+          }
+        }
+      }
+      if (ruleTag == null && tag == null) tag = reviewTag(wallet);
       Transaction saved =
           transactionRepository.save(
               Transaction.builder()
                   .wallet(wallet)
-                  .tag(tag)
-                  .name(m.name())
-                  .notes(m.notes())
+                  .tag(ruleTag != null ? ruleTag : tag)
+                  .name(name)
+                  .notes(notes)
                   .amount(amount)
                   .originalAmount(m.amount())
                   .originalCurrency(currency)
@@ -259,7 +330,7 @@ public class BankSyncService {
                   .type(m.type())
                   .transactionDate(m.date())
                   .imported(true)
-                  .needsReview(true)
+                  .needsReview(ruleTag == null || reviewFirst)
                   .build());
       if (notify)
         eventPublisher.publishEvent(
@@ -272,20 +343,82 @@ public class BankSyncService {
                 null,
                 null,
                 amount,
-                m.name(),
+                name,
                 saved.getId()));
-      ledgerRepository.save(
-          ImportedBankTransaction.builder()
-              .link(link)
-              .externalId(m.externalId())
-              .importedAt(now)
-              .build());
+      saveLedger(link, m, now, null);
       n++;
     }
     link.setLastSyncedAt(now);
     link.setRetryFrom(retryFrom);
     link.setImportedCount(link.getImportedCount() + n);
     return n;
+  }
+
+  private void saveLedger(BankAccountLink link, MappedTx m, Instant now, UUID matchedTxId) {
+    ledgerRepository.save(
+        ImportedBankTransaction.builder()
+            .link(link)
+            .externalId(m.externalId())
+            .importedAt(now)
+            .matchedTransactionId(matchedTxId)
+            .build());
+  }
+
+  static String joinNotes(String head, String bankNotes) {
+    return bankNotes == null || bankNotes.isBlank() ? head : head + "; " + bankNotes;
+  }
+
+  private static String collision(List<String> names, String notes) {
+    return joinNotes("Collision: matches " + String.join(", ", names) + "; " + FROM_BANK, notes);
+  }
+
+  /** A row dated after an UNTIL end no longer belongs to the subscription. */
+  private static boolean withinDuration(Subscription s, LocalDate date) {
+    return s.getDuration() != Subscription.Duration.UNTIL
+        || s.getDurationUntil() == null
+        || !date.isAfter(s.getDurationUntil());
+  }
+
+  /**
+   * Bank-driven: the row becomes an execution. Scheduled: the row is absorbed by the subscription's
+   * own transaction (running the due occurrence early when the bank posted before the cron).
+   * Returns the transaction the row was matched into, or null for an off-schedule row.
+   */
+  private UUID matchSubscription(
+      Subscription s,
+      MappedTx m,
+      BigDecimal amount,
+      String currency,
+      BigDecimal rate,
+      boolean notify) {
+    if (s.isBankDriven())
+      return subscriptionService
+          .executeFromBank(s, new BankFill(m.date(), amount, m.amount(), currency, rate), notify)
+          .getId();
+    LocalDate from = m.date().minusDays(MATCH_WINDOW_DAYS);
+    LocalDate to = m.date().plusDays(MATCH_WINDOW_DAYS);
+    Transaction own =
+        transactionRepository
+            .findAllBySubscriptionIdAndTransactionDateBetween(s.getId(), from, to)
+            .stream()
+            .filter(t -> !ledgerRepository.existsByMatchedTransactionId(t.getId()))
+            .min(
+                Comparator.comparingLong(
+                    t -> Math.abs(ChronoUnit.DAYS.between(t.getTransactionDate(), m.date()))))
+            .orElse(null);
+    if (own == null && !s.getNextExecutionDate().isAfter(to))
+      own = subscriptionService.runScheduledOccurrence(s, notify);
+    if (own == null) return null;
+    own.setNotes(own.getNotes() == null ? FROM_BANK : own.getNotes() + "; " + FROM_BANK);
+    if (own.isAmountPending()) {
+      own.setAmount(amount);
+      own.setOriginalAmount(m.amount());
+      own.setOriginalCurrency(currency);
+      own.setExchangeValue(rate);
+      own.setAmountPending(false);
+    }
+    transactionRepository.save(own);
+    return own.getId();
   }
 
   /** Found by name each time: if the user renamed or deleted it, a fresh one is created. */

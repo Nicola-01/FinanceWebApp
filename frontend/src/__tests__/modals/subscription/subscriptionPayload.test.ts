@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  buildBankMatchPayload,
   buildSchedulePayload,
   type ScheduleFields,
 } from "../../../modals/subscription/subscriptionPayload";
@@ -41,5 +42,21 @@ describe("buildSchedulePayload", () => {
       buildSchedulePayload({ ...base, duration: "UNTIL", durationUntil: null })
         .durationUntil,
     ).toBeNull();
+  });
+});
+
+describe("buildBankMatchPayload", () => {
+  it("sends the selected rule and turns date-from-bank off", () => {
+    expect(buildBankMatchPayload({ ruleId: "r1" })).toEqual({
+      bankRuleId: "r1",
+      bankDriven: false,
+    });
+  });
+
+  it("clears the rule with None", () => {
+    expect(buildBankMatchPayload({ ruleId: null })).toEqual({
+      clearBankRule: true,
+      bankDriven: false,
+    });
   });
 });

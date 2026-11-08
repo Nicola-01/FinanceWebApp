@@ -31,12 +31,15 @@ export function groupSubscriptions(subscriptions: Subscription[]) {
   const daysLeft = (s: Subscription) => getDaysLeft(s.nextExecutionDate) ?? NaN;
 
   const activeSubs = subscriptions.filter((s) => s.status !== "COMPLETED");
-  const within7Days = activeSubs.filter((s) => daysLeft(s) <= 7);
-  const within31Days = activeSubs.filter((s) => daysLeft(s) > 7);
+  // Bank-driven: the stored date is not a schedule, so they trail the later group.
+  const scheduled = activeSubs.filter((s) => !s.bankDriven);
+  const within7Days = scheduled.filter((s) => daysLeft(s) <= 7);
+  const within31Days = scheduled.filter((s) => daysLeft(s) > 7);
   const completedSubs = subscriptions.filter((s) => s.status === "COMPLETED");
 
   within7Days.sort(byNextExecution);
   within31Days.sort(byNextExecution);
+  within31Days.push(...activeSubs.filter((s) => s.bankDriven));
 
   const pastTransactions: PastPayment[] = [];
   subscriptions.forEach((sub) => {

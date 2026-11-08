@@ -1,8 +1,10 @@
 package dev.busato.FinanceWebApp.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,6 +17,7 @@ import dev.busato.FinanceWebApp.backend.dto.TagResponse;
 import dev.busato.FinanceWebApp.backend.exceptions.StaleWriteException;
 import dev.busato.FinanceWebApp.backend.mappers.SubscriptionMapper;
 import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
+import dev.busato.FinanceWebApp.backend.model.BankRule;
 import dev.busato.FinanceWebApp.backend.model.Notification;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
@@ -22,6 +25,7 @@ import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.User;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
+import dev.busato.FinanceWebApp.backend.repository.BankRuleRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
@@ -48,6 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class SubscriptionServiceTest {
 
   @Mock private SubscriptionRepository subscriptionRepository;
+  @Mock private BankRuleRepository bankRuleRepository;
   @Mock private WalletRepository walletRepository;
   @Mock private TagRepository tagRepository;
   @Mock private TransactionRepository transactionRepository;
@@ -1525,5 +1530,255 @@ class SubscriptionServiceTest {
     assertEquals("USD", generated.getOriginalCurrency());
     assertEquals(LocalDate.of(2024, 2, 15), generated.getTransactionDate());
     verify(exchangeRateService, never()).getRate(any(), any());
+  }
+
+  // ==================== Open Banking rule ====================
+
+  private SubscriptionRequest bankRuleRequest() {
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setName("Netflix");
+    request.setAmount(new BigDecimal("12.99"));
+    request.setType("EXPENSE");
+    request.setFrequencyType("MONTHLY");
+    request.setFrequencyInterval(1);
+    request.setStartDate(LocalDate.of(2024, 3, 15));
+    request.setDuration("FOREVER");
+    return request;
+  }
+
+  private Subscription existingSub() {
+    Subscription existing = new Subscription();
+    existing.setId(UUID.randomUUID());
+    existing.setName("Netflix");
+    existing.setAmount(new BigDecimal("12.99"));
+    existing.setType(Subscription.Type.EXPENSE);
+    existing.setFrequencyType(Subscription.Frequency.MONTHLY);
+    existing.setFrequencyInterval(1);
+    existing.setStartDate(LocalDate.of(2024, 1, 15));
+    existing.setNextExecutionDate(LocalDate.of(2024, 2, 15));
+    existing.setDuration(Subscription.Duration.FOREVER);
+    existing.setStatus(Subscription.Status.ACTIVE);
+    existing.setBankRule(netflixRule);
+    when(subscriptionRepository.findByIdAndWalletId(existing.getId(), walletId))
+        .thenReturn(Optional.of(existing));
+    when(subscriptionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    lenient()
+        .when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+    return existing;
+  }
+
+  private final BankRule netflixRule =
+      BankRule.builder().id(UUID.randomUUID()).name("Netflix").matchText("NETFLIX").build();
+
+  @Test
+  void create_withBankRuleId_linksRule() {
+    SubscriptionRequest request = bankRuleRequest();
+    request.setBankRuleId(netflixRule.getId());
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(bankRuleRepository.findByIdAndWalletId(netflixRule.getId(), walletId))
+        .thenReturn(Optional.of(netflixRule));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+    verify(subscriptionRepository, atLeastOnce()).save(captor.capture());
+    assertEquals(netflixRule, captor.getValue().getBankRule());
+    assertFalse(captor.getValue().isBankDriven());
+  }
+
+  @Test
+  void create_bankRuleFromOtherWallet_throws() {
+    SubscriptionRequest request = bankRuleRequest();
+    UUID foreign = UUID.randomUUID();
+    request.setBankRuleId(foreign);
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(bankRuleRepository.findByIdAndWalletId(foreign, walletId)).thenReturn(Optional.empty());
+
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> subscriptionService.createSubscription(request, walletId, userId));
+    assertEquals("Bank rule not found in this wallet", e.getMessage());
+    verify(subscriptionRepository, never()).save(any());
+  }
+
+  @Test
+  void create_bankDrivenWithoutRule_throws() {
+    SubscriptionRequest request = bankRuleRequest();
+    request.setBankDriven(true);
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> subscriptionService.createSubscription(request, walletId, userId));
+    assertEquals("Date from bank requires a bank rule", e.getMessage());
+  }
+
+  @Test
+  void update_nullBankRuleId_keepsRule() {
+    Subscription existing = existingSub();
+    subscriptionService.updateSubscription(
+        existing.getId(), SubscriptionRequest.builder().build(), walletId, userId);
+    assertEquals(netflixRule, existing.getBankRule());
+  }
+
+  @Test
+  void update_clearBankRule_removesRuleAndBankDriven() {
+    Subscription existing = existingSub();
+    existing.setBankDriven(true);
+    existing.setNextExecutionDate(LocalDate.of(2023, 1, 15)); // stale while bank-driven
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setClearBankRule(true);
+    request.setBankDriven(true); // clear wins
+
+    subscriptionService.updateSubscription(existing.getId(), request, walletId, userId);
+
+    assertNull(existing.getBankRule());
+    assertFalse(existing.isBankDriven());
+    assertTrue(existing.getNextExecutionDate().isAfter(LocalDate.of(2024, 2, 14)));
+  }
+
+  @Test
+  void update_bankDrivenOff_recalculatesNextDate() {
+    Subscription existing = existingSub();
+    existing.setBankDriven(true);
+    existing.setNextExecutionDate(LocalDate.of(2023, 1, 15)); // stale while bank-driven
+    SubscriptionRequest request = SubscriptionRequest.builder().build();
+    request.setBankDriven(false);
+
+    subscriptionService.updateSubscription(existing.getId(), request, walletId, userId);
+
+    assertFalse(existing.isBankDriven());
+    assertTrue(existing.getNextExecutionDate().isAfter(LocalDate.of(2024, 2, 14)));
+  }
+
+  // ==================== Bank-driven execution ====================
+
+  private Subscription bankDrivenSub() {
+    Subscription sub = new Subscription();
+    sub.setId(UUID.randomUUID());
+    sub.setWallet(mockWallet);
+    sub.setName("Netflix");
+    sub.setAmount(new BigDecimal("12.99"));
+    sub.setOriginalAmount(new BigDecimal("12.99"));
+    sub.setType(Subscription.Type.EXPENSE);
+    sub.setFrequencyType(Subscription.Frequency.MONTHLY);
+    sub.setFrequencyInterval(1);
+    sub.setStartDate(LocalDate.of(2024, 1, 1));
+    sub.setNextExecutionDate(LocalDate.of(2024, 1, 1));
+    sub.setDuration(Subscription.Duration.FOREVER);
+    sub.setStatus(Subscription.Status.ACTIVE);
+    sub.setBankRule(netflixRule);
+    sub.setBankDriven(true);
+    lenient().when(subscriptionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    lenient().when(transactionRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+    return sub;
+  }
+
+  private static SubscriptionService.BankFill fill() {
+    return new SubscriptionService.BankFill(
+        LocalDate.of(2024, 2, 6), new BigDecimal("13.50"), new BigDecimal("13.50"), "EUR", null);
+  }
+
+  @Test
+  void executeFromBank_usesSubAmount_whenValued() {
+    Subscription sub = bankDrivenSub();
+    Transaction tx = subscriptionService.executeFromBank(sub, fill(), false);
+
+    assertEquals(0, new BigDecimal("12.99").compareTo(tx.getAmount()));
+    assertEquals(LocalDate.of(2024, 2, 6), tx.getTransactionDate());
+    assertEquals("Recurring: Netflix (#1); From OpenBanking", tx.getNotes());
+    assertSame(sub, tx.getSubscription());
+    assertTrue(tx.isImported());
+    assertFalse(tx.isNeedsReview());
+    assertEquals(1, sub.getExecutedTimes());
+    assertEquals(LocalDate.of(2024, 2, 6), sub.getLastExecutionDate());
+    verify(eventPublisher, never()).publishEvent(any());
+  }
+
+  @Test
+  void executeFromBank_usesBankAmount_whenPending() {
+    Subscription sub = bankDrivenSub();
+    sub.setAmountPending(true);
+    sub.setAmount(BigDecimal.ZERO);
+    sub.setOriginalAmount(BigDecimal.ZERO);
+
+    Transaction tx = subscriptionService.executeFromBank(sub, fill(), true);
+
+    assertEquals(0, new BigDecimal("13.50").compareTo(tx.getAmount()));
+    assertEquals(0, new BigDecimal("13.50").compareTo(tx.getOriginalAmount()));
+    assertEquals("EUR", tx.getOriginalCurrency());
+    assertFalse(tx.isAmountPending());
+    ArgumentCaptor<Object> event = ArgumentCaptor.forClass(Object.class);
+    verify(eventPublisher).publishEvent(event.capture());
+    WalletActivityEvent e = (WalletActivityEvent) event.getValue();
+    assertEquals(Notification.NotificationType.RECURRING_EXECUTED, e.type());
+    assertEquals(0, new BigDecimal("13.50").compareTo(e.amount()));
+  }
+
+  @Test
+  void executeFromBank_timesNotes_andCompletes() {
+    Subscription sub = bankDrivenSub();
+    sub.setDuration(Subscription.Duration.TIMES);
+    sub.setDurationTimes(1);
+
+    Transaction tx = subscriptionService.executeFromBank(sub, fill(), false);
+
+    assertEquals("Recurring: Netflix (1 / 1); From OpenBanking", tx.getNotes());
+    assertEquals(Subscription.Status.COMPLETED, sub.getStatus());
+  }
+
+  @Test
+  void executeFromBank_doesNotMoveNextExecutionDate() {
+    Subscription sub = bankDrivenSub();
+    subscriptionService.executeFromBank(sub, fill(), false);
+    assertEquals(LocalDate.of(2024, 1, 1), sub.getNextExecutionDate());
+  }
+
+  @Test
+  void cron_skipsBankDriven() {
+    Subscription sub = bankDrivenSub();
+    when(subscriptionRepository.findAllByStatusInAndNextExecutionDateLessThanEqual(any(), any()))
+        .thenReturn(List.of(sub));
+
+    subscriptionService.processDueSubscriptions();
+
+    verify(transactionRepository, never()).save(any());
+    assertEquals(0, sub.getExecutedTimes());
+  }
+
+  @Test
+  void create_bankDrivenPastStart_noCatchUp() {
+    SubscriptionRequest request = bankRuleRequest();
+    request.setStartDate(LocalDate.of(2024, 1, 1)); // in the past → would catch up
+    request.setBankRuleId(netflixRule.getId());
+    request.setBankDriven(true);
+    when(bankRuleRepository.findByIdAndWalletId(netflixRule.getId(), walletId))
+        .thenReturn(Optional.of(netflixRule));
+    when(walletRepository.findById(walletId)).thenReturn(Optional.of(mockWallet));
+    when(subscriptionRepository.save(any(Subscription.class))).thenAnswer(i -> i.getArgument(0));
+    when(subscriptionMapper.mapToResponse(any()))
+        .thenReturn(SubscriptionResponse.builder().build());
+
+    subscriptionService.createSubscription(request, walletId, userId);
+
+    verify(transactionRepository, never()).save(any());
+  }
+
+  @Test
+  void runScheduledOccurrence_returnsGeneratedTransaction() {
+    Subscription sub = bankDrivenSub();
+    sub.setBankDriven(false);
+    sub.setNextExecutionDate(LocalDate.of(2024, 2, 8));
+
+    Transaction tx = subscriptionService.runScheduledOccurrence(sub, false);
+
+    assertEquals(LocalDate.of(2024, 2, 8), tx.getTransactionDate());
+    assertEquals(LocalDate.of(2024, 3, 8), sub.getNextExecutionDate());
   }
 }

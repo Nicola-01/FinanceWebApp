@@ -58,10 +58,14 @@ export function applyPendingOps(
                     payload.tag !== undefined
                       ? resolveTag(payload.tag, tags)
                       : t.tag,
-                  // Re-categorizing resolves the review flag (mirrors the backend).
+                  // Filing under a real tag (the placeholder is never in `tags`)
+                  // resolves the review flag (mirrors the backend).
                   ...(typeof payload.tag === "string" &&
-                  payload.tag.trim() !== "" &&
-                  payload.tag.toLowerCase() !== t.tag?.name?.toLowerCase()
+                  tags.some(
+                    (tag) =>
+                      tag.name.toLowerCase() ===
+                      (payload.tag as string).toLowerCase(),
+                  )
                     ? { needsReview: false }
                     : {}),
                   syncState,
