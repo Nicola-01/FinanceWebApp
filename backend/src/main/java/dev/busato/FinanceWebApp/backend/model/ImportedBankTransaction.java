@@ -38,4 +38,7 @@ public class ImportedBankTransaction {
 
   @Column(nullable = false)
   private Instant importedAt;
+
+  /** Transaction this row was matched into (subscription match); plain id, no FK on purpose. */
+  private UUID matchedTransactionId;
 }

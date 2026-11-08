@@ -10,4 +10,6 @@ public interface ImportedBankTransactionRepository
     extends JpaRepository<ImportedBankTransaction, UUID> {
   @Query("select i.externalId from ImportedBankTransaction i where i.link.id = :linkId")
   Set<String> findExternalIdsByLinkId(UUID linkId);
+
+  boolean existsByMatchedTransactionId(UUID transactionId);
 }

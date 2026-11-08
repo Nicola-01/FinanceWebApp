@@ -21,6 +21,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
   Optional<Transaction> findByIdAndWalletId(UUID id, UUID walletId);
 
+  List<Transaction> findAllBySubscriptionIdAndTransactionDateBetween(
+      UUID subscriptionId, LocalDate from, LocalDate to);
+
   boolean existsByIdAndWalletId(UUID id, UUID walletId);
 
   long countByWalletId(UUID walletId);

@@ -12,7 +12,9 @@ import static org.mockito.Mockito.when;
 
 import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
+import dev.busato.FinanceWebApp.backend.model.ImportedBankTransaction;
 import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
+import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.User;
@@ -24,6 +26,7 @@ import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.EbTransactionPage;
 import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
 import dev.busato.FinanceWebApp.backend.repository.ImportedBankTransactionRepository;
+import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
 import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.UserRepository;
@@ -88,6 +91,7 @@ class BankSyncServiceTest {
   @Autowired ImportedBankTransactionRepository ledgerRepository;
   @Autowired TransactionRepository transactionRepository;
   @Autowired TagRepository tagRepository;
+  @Autowired SubscriptionRepository subscriptionRepository;
 
   User owner;
   Wallet wallet;
@@ -492,5 +496,261 @@ class BankSyncServiceTest {
         .isEqualTo(BankConnection.Status.EXPIRED);
     assertThat(connectionRepository.findById(conn.getId()).orElseThrow().getStatus())
         .isEqualTo(BankConnection.Status.EXPIRED);
+  }
+
+  // ==================== Subscription matching ====================
+
+  static EbTransaction charge(String ref, String amount, String creditor, LocalDate date) {
+    return new EbTransaction(
+        ref, null, new BigDecimal(amount), "EUR", "DBIT", "BOOK", date, date, creditor, null, null);
+  }
+
+  Subscription sub(String name, String text, boolean bankDriven, LocalDate next) {
+    Tag tag = tagRepository.save(Tag.builder().name(name + " tag").wallet(wallet).build());
+    return subscriptionRepository.save(
+        Subscription.builder()
+            .wallet(wallet)
+            .tag(tag)
+            .name(name)
+            .amount(new BigDecimal("12.99"))
+            .originalAmount(new BigDecimal("12.99"))
+            .originalCurrency("EUR")
+            .type(Subscription.Type.EXPENSE)
+            .status(Subscription.Status.ACTIVE)
+            .startDate(LocalDate.of(2026, 9, 5))
+            .nextExecutionDate(next)
+            .frequencyType(Subscription.Frequency.MONTHLY)
+            .frequencyInterval(1)
+            .duration(Subscription.Duration.FOREVER)
+            .bankMatchText(text)
+            .bankDriven(bankDriven)
+            .build());
+  }
+
+  Transaction subTx(Subscription s, LocalDate date, boolean pending) {
+    return transactionRepository.save(
+        Transaction.builder()
+            .wallet(wallet)
+            .subscription(s)
+            .tag(s.getTag())
+            .name(s.getTag().getName())
+            .amount(pending ? BigDecimal.ZERO : new BigDecimal("12.99"))
+            .originalAmount(pending ? BigDecimal.ZERO : new BigDecimal("12.99"))
+            .originalCurrency("EUR")
+            .amountPending(pending)
+            .type(Transaction.Type.EXPENSE)
+            .notes("Recurring: " + s.getTag().getName() + " (#1)")
+            .transactionDate(date)
+            .build());
+  }
+
+  ImportedBankTransaction ledger(String ref) {
+    return ledgerRepository.findAll().stream()
+        .filter(l -> l.getExternalId().equals(ref))
+        .findFirst()
+        .orElseThrow();
+  }
+
+  /** Marks the first sync as done so later imports notify. */
+  void afterBackfill() {
+    link.setLastSyncedAt(NOW.minus(Duration.ofDays(1)));
+  }
+
+  @Test
+  void noRule_importsToCategorise() {
+    sub("Netflix", null, false, LocalDate.of(2026, 11, 5));
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+    service.syncConnection(conn, null);
+    assertThat(walletTxs()).singleElement().satisfies(t -> assertThat(t.isNeedsReview()).isTrue());
+  }
+
+  @Test
+  void collision_importsWithCollisionNote() {
+    afterBackfill();
+    sub("Netflix", "NETFLIX", false, LocalDate.of(2026, 11, 5));
+    sub("Netflix Family", "netflix.com", false, LocalDate.of(2026, 11, 5));
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(walletTxs()).hasSize(1);
+    assertThat(t.isNeedsReview()).isTrue();
+    assertThat(t.getTag().getName()).isEqualTo("To categorise");
+    assertThat(t.getNotes())
+        .isEqualTo("Collision: matches Netflix, Netflix Family; From OpenBanking");
+    assertThat(events.stream(WalletActivityEvent.class))
+        .singleElement()
+        .satisfies(e -> assertThat(e.type()).isEqualTo(NotificationType.BANK_TRANSACTION_IMPORTED));
+  }
+
+  @Test
+  void scheduled_absorbsTxWithinWindow() {
+    afterBackfill();
+    Subscription s = sub("Netflix", "netflix", false, LocalDate.of(2026, 11, 19));
+    Transaction own = subTx(s, DAY.minusDays(1), false);
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+
+    SyncResult res = service.syncConnection(conn, null);
+
+    assertThat(res.imported()).isZero();
+    assertThat(walletTxs())
+        .singleElement()
+        .satisfies(t -> assertThat(t.getId()).isEqualTo(own.getId()));
+    assertThat(own.getNotes()).isEqualTo("Recurring: Netflix tag (#1); From OpenBanking");
+    assertThat(ledger("r1").getMatchedTransactionId()).isEqualTo(own.getId());
+    assertThat(events.stream(WalletActivityEvent.class)).isEmpty();
+  }
+
+  @Test
+  void scheduled_fillsPendingAmount() {
+    Subscription s = sub("Netflix", "netflix", false, LocalDate.of(2026, 11, 19));
+    Transaction own = subTx(s, DAY, true);
+    bankReturns(charge("r1", "13.49", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(own.isAmountPending()).isFalse();
+    assertThat(own.getAmount()).isEqualByComparingTo("13.49");
+    assertThat(own.getOriginalAmount()).isEqualByComparingTo("13.49");
+  }
+
+  @Test
+  void scheduled_bankBeforeCron_runsOccurrenceEarly() {
+    Subscription s = sub("Netflix", "netflix", false, DAY.plusDays(2));
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs())
+        .singleElement()
+        .satisfies(
+            t -> {
+              assertThat(t.getSubscription().getId()).isEqualTo(s.getId());
+              assertThat(t.getTransactionDate()).isEqualTo(DAY.plusDays(2));
+              assertThat(t.getNotes()).isEqualTo("Recurring: Netflix tag (#1); From OpenBanking");
+              assertThat(ledger("r1").getMatchedTransactionId()).isEqualTo(t.getId());
+            });
+    assertThat(s.getNextExecutionDate()).isEqualTo(DAY.plusDays(2).plusMonths(1));
+  }
+
+  @Test
+  void scheduled_offSchedule_possibleMatchNote() {
+    sub("Netflix", "netflix", false, DAY.plusDays(20));
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs())
+        .singleElement()
+        .satisfies(
+            t -> {
+              assertThat(t.isNeedsReview()).isTrue();
+              assertThat(t.getNotes())
+                  .isEqualTo("Possible match: Netflix (off schedule); From OpenBanking");
+            });
+  }
+
+  @Test
+  void secondRowInWindow_notAbsorbedTwice() {
+    Subscription s = sub("Netflix", "netflix", false, DAY.plusDays(20));
+    Transaction own = subTx(s, DAY, false);
+    bankReturns(
+        charge("r1", "12.99", "NETFLIX.COM", DAY), charge("r2", "12.99", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs()).hasSize(2);
+    assertThat(ledger("r1").getMatchedTransactionId()).isEqualTo(own.getId());
+    assertThat(ledger("r2").getMatchedTransactionId()).isNull();
+  }
+
+  @Test
+  void resync_matchedRow_isIdempotent() {
+    Subscription s = sub("Netflix", "netflix", false, DAY.plusDays(20));
+    Transaction own = subTx(s, DAY, false);
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+    service.syncConnection(conn, null);
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs()).hasSize(1);
+    assertThat(own.getNotes()).isEqualTo("Recurring: Netflix tag (#1); From OpenBanking");
+  }
+
+  @Test
+  void pausedSub_notCandidate() {
+    Subscription s = sub("Netflix", "netflix", false, DAY);
+    s.setStatus(Subscription.Status.PAUSED);
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs())
+        .singleElement()
+        .satisfies(
+            t -> {
+              assertThat(t.isNeedsReview()).isTrue();
+              assertThat(t.getSubscription()).isNull();
+            });
+  }
+
+  @Test
+  void bankDriven_createsExecution() {
+    afterBackfill();
+    Subscription s = sub("Netflix", "netflix", true, LocalDate.of(2026, 9, 5));
+    bankReturns(charge("r1", "13.50", "NETFLIX.COM", DAY));
+
+    SyncResult res = service.syncConnection(conn, null);
+
+    assertThat(res.imported()).isZero();
+    Transaction t = walletTxs().get(0);
+    assertThat(walletTxs()).hasSize(1);
+    assertThat(t.getNotes()).isEqualTo("Recurring: Netflix tag (#1); From OpenBanking");
+    assertThat(t.getTag().getId()).isEqualTo(s.getTag().getId());
+    assertThat(t.getTransactionDate()).isEqualTo(DAY);
+    assertThat(t.getAmount()).isEqualByComparingTo("12.99");
+    assertThat(t.isNeedsReview()).isFalse();
+    assertThat(ledger("r1").getMatchedTransactionId()).isEqualTo(t.getId());
+    assertThat(s.getExecutedTimes()).isEqualTo(1);
+    assertThat(events.stream(WalletActivityEvent.class))
+        .singleElement()
+        .satisfies(e -> assertThat(e.type()).isEqualTo(NotificationType.RECURRING_EXECUTED));
+  }
+
+  @Test
+  void bankDriven_firstBackfill_noPush() {
+    sub("Netflix", "netflix", true, LocalDate.of(2026, 9, 5));
+    bankReturns(charge("r1", "13.50", "NETFLIX.COM", DAY));
+    service.syncConnection(conn, null);
+    assertThat(walletTxs()).hasSize(1);
+    assertThat(events.stream(WalletActivityEvent.class)).isEmpty();
+  }
+
+  @Test
+  void bankDriven_afterUntil_unmatched() {
+    Subscription s = sub("Netflix", "netflix", true, LocalDate.of(2026, 9, 5));
+    s.setDuration(Subscription.Duration.UNTIL);
+    s.setDurationUntil(DAY.minusDays(1));
+    bankReturns(charge("r1", "13.50", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs()).singleElement().satisfies(t -> assertThat(t.isNeedsReview()).isTrue());
+  }
+
+  @Test
+  void bankDriven_completesMidBatch_laterRowsUnmatched() {
+    Subscription s = sub("Netflix", "netflix", true, LocalDate.of(2026, 9, 5));
+    s.setDuration(Subscription.Duration.TIMES);
+    s.setDurationTimes(1);
+    bankReturns(
+        charge("r1", "13.50", "NETFLIX.COM", DAY),
+        charge("r2", "13.50", "NETFLIX.COM", DAY.plusDays(1)));
+
+    service.syncConnection(conn, null);
+
+    assertThat(s.getStatus()).isEqualTo(Subscription.Status.COMPLETED);
+    assertThat(walletTxs()).hasSize(2);
+    assertThat(walletTxs()).filteredOn(Transaction::isNeedsReview).hasSize(1);
   }
 }
