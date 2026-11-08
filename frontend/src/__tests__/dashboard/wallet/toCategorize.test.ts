@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isCategorised,
+  reviewTagName,
   selectToCategorize,
   suggestTagName,
 } from "../../../dashboard/wallet/toCategorize";
@@ -61,6 +62,42 @@ describe("suggestTagName", () => {
   it("is empty when nothing matches", () => {
     expect(
       suggestTagName(imp, [imp, t("d", "Other", "Food", "2026-04-01")]),
+    ).toBe("");
+  });
+});
+
+describe("reviewTagName", () => {
+  const food = { name: "Food", icon: "x", colorHex: "#000" };
+  const base = {
+    id: "t",
+    name: "Esselunga",
+    amount: 1,
+    type: "EXPENSE",
+    transactionDate: "2026-11-01",
+  };
+  it("is the real tag a review-first rule set on an import awaiting review", () => {
+    expect(
+      reviewTagName({ ...base, tag: food, needsReview: true } as Transaction, [
+        food,
+      ]),
+    ).toBe("Food");
+  });
+  it("is empty on the placeholder (not a wallet tag) or once confirmed", () => {
+    const placeholder = {
+      name: "To categorise",
+      icon: "bank",
+      colorHex: "#999",
+    };
+    expect(
+      reviewTagName(
+        { ...base, tag: placeholder, needsReview: true } as Transaction,
+        [food],
+      ),
+    ).toBe("");
+    expect(
+      reviewTagName({ ...base, tag: food, needsReview: false } as Transaction, [
+        food,
+      ]),
     ).toBe("");
   });
 });

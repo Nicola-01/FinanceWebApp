@@ -968,4 +968,20 @@ class BankSyncServiceTest {
         .singleElement()
         .satisfies(t -> assertThat(t.getTag().getId()).isEqualTo(food.getId()));
   }
+
+  @Test
+  void reviewFirstRule_appliesTagAndNameButStaysToCategorise() {
+    Tag food = tag("Food");
+    BankRule r = rule("Supermarket", "ESSELUNGA", food, "Esselunga");
+    r.setReviewFirst(true);
+    bankRuleRepository.save(r);
+    bankReturns(charge("r1", "42.10", "ESSELUNGA MILANO", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(t.getTag().getId()).isEqualTo(food.getId());
+    assertThat(t.getName()).isEqualTo("Esselunga");
+    assertThat(t.isNeedsReview()).isTrue();
+  }
 }

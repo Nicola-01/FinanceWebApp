@@ -52,5 +52,11 @@ public class BankRule {
 
   private String renameTo;
 
+  /** Apply tag/name but keep the import in "To categorise" for the user to confirm. */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean reviewFirst = false;
+
   @UpdateTimestamp @Column private Instant updatedAt;
 }

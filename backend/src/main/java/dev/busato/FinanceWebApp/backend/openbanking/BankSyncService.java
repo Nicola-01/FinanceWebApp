@@ -274,6 +274,7 @@ public class BankSyncService {
       String notes = m.notes();
       String name = m.name();
       Tag ruleTag = null;
+      boolean reviewFirst = false;
       List<BankRule> hits = rules.stream().filter(r -> BankMatchRule.matches(r, m.name())).toList();
       if (hits.size() > 1) {
         notes = collision(hits.stream().map(BankRule::getName).toList(), notes);
@@ -300,6 +301,7 @@ public class BankSyncService {
               joinNotes("Possible match: " + s.getName() + " (off schedule); " + FROM_BANK, notes);
         } else {
           ruleTag = rule.getTag();
+          reviewFirst = rule.isReviewFirst();
           if (rule.getRenameTo() != null) {
             name = rule.getRenameTo();
             notes = joinNotes("Bank: " + m.name(), notes);
@@ -321,7 +323,7 @@ public class BankSyncService {
                   .type(m.type())
                   .transactionDate(m.date())
                   .imported(true)
-                  .needsReview(ruleTag == null)
+                  .needsReview(ruleTag == null || reviewFirst)
                   .build());
       if (notify)
         eventPublisher.publishEvent(

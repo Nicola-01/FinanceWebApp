@@ -16,6 +16,7 @@ import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
 import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
 import { FieldLabel } from "../../components/ui/FieldLabel";
+import { reviewTagName } from "../../dashboard/wallet/toCategorize.ts";
 import { useAmountEntryForm } from "../common/useAmountEntryForm";
 
 export interface TransactionModalHandle {
@@ -56,6 +57,9 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
           setEditingTxId(tx.id);
           setEditingTx(tx);
           form.reset(tx);
+          // A review-first bank rule already chose the tag: keep it pre-selected.
+          const ruleTag = reviewTagName(tx, tags);
+          if (ruleTag) form.setSelectedTagName(ruleTag);
           setDate(parseLocalIsoDate(tx.transactionDate));
         } else {
           // --- CREATE MODE ---

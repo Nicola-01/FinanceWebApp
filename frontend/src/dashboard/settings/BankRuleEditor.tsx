@@ -39,6 +39,7 @@ export function BankRuleEditor({
   const [ignoreCase, setIgnoreCase] = useState(true);
   const [tagName, setTagName] = useState("");
   const [renameTo, setRenameTo] = useState("");
+  const [reviewFirst, setReviewFirst] = useState(false);
   const [textError, setTextError] = useState<string>();
   const [saving, setSaving] = useState(false);
 
@@ -50,6 +51,7 @@ export function BankRuleEditor({
     setIgnoreCase(rule?.ignoreCase ?? true);
     setTagName(rule?.tag?.name ?? "");
     setRenameTo(rule?.renameTo ?? "");
+    setReviewFirst(rule?.reviewFirst ?? false);
     setTextError(undefined);
   }, [open, rule]);
 
@@ -65,6 +67,7 @@ export function BankRuleEditor({
       ignoreCase,
       tag: tagName || null,
       renameTo: renameTo.trim() || null,
+      reviewFirst,
     };
     try {
       const saved = rule
@@ -176,6 +179,20 @@ export function BankRuleEditor({
             maxLength={100}
             onChange={(e) => setRenameTo(e.target.value)}
           />
+        </div>
+        <div>
+          <Toggle
+            checked={reviewFirst}
+            onChange={setReviewFirst}
+            accentColor={accentColor}
+            size="sm"
+            label="Review before confirming"
+            aria-label="Review before confirming"
+          />
+          <p className="mt-1 text-xs text-app-muted">
+            Tag and name are filled in, but the transaction stays in To
+            categorise so you can adjust it first.
+          </p>
         </div>
         <p className="text-xs text-app-muted">
           Imports matching this rule get its tag and name. When a subscription

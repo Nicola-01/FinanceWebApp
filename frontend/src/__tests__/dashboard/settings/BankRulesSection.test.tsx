@@ -55,6 +55,7 @@ const rule: BankRule = {
     colorHex: "#ff0000",
   } as BankRule["tag"],
   renameTo: "Netflix TV",
+  reviewFirst: true,
   usedBy: ["Netflix"],
 };
 
@@ -88,7 +89,9 @@ describe("BankRulesSection", () => {
   it("lists the rules with their usage", async () => {
     render(<BankRulesSection />);
     expect(await screen.findByText("Bank rules")).toBeInTheDocument();
-    expect(screen.getByText("NETFLIX")).toBeInTheDocument();
+    // The trigger text reads as code.
+    expect(screen.getByText("NETFLIX").tagName).toBe("CODE");
+    expect(screen.getByText("Review first")).toBeInTheDocument();
     expect(screen.getByText("Regex")).toBeInTheDocument();
     expect(screen.getByText("Used by Netflix")).toBeInTheDocument();
     expect(screen.getByText("Streaming")).toBeInTheDocument();

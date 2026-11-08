@@ -80,6 +80,7 @@ describe("BankRuleEditor", () => {
         ignoreCase: true,
         tag: null,
         renameTo: null,
+        reviewFirst: false,
       }),
     );
     expect(onSaved).toHaveBeenCalled();
@@ -95,8 +96,12 @@ describe("BankRuleEditor", () => {
       ignoreCase: false,
       tag: { name: "Food" } as Tag,
       renameTo: "Amazon",
+      reviewFirst: false,
       usedBy: [],
     });
+    fireEvent.click(
+      screen.getByRole("switch", { name: "Review before confirming" }),
+    );
     fireEvent.click(save());
     await waitFor(() =>
       expect(bank.updateBankRule).toHaveBeenCalledWith("w1", "r1", {
@@ -106,6 +111,7 @@ describe("BankRuleEditor", () => {
         ignoreCase: false,
         tag: "Food",
         renameTo: "Amazon",
+        reviewFirst: true,
       }),
     );
   });

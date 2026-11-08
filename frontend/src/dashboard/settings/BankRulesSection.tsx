@@ -99,8 +99,11 @@ export function BankRulesSection({
                 {r.tag && <TagBadge tag={r.tag} showParent={false} />}
               </div>
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-app-muted">
-                <span className="truncate font-app-mono">{r.matchText}</span>
+                <code className="max-w-full truncate rounded-md border border-app-border bg-app-surface px-2 py-0.5 font-app-mono text-xs text-app-text">
+                  {r.matchText}
+                </code>
                 {r.regex && <Badge size="sm">Regex</Badge>}
+                {r.reviewFirst && <Badge size="sm">Review first</Badge>}
                 {r.renameTo && (
                   <>
                     <FontAwesomeIcon

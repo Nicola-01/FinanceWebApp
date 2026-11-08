@@ -1,4 +1,4 @@
-import type { Transaction } from "../../types/domain";
+import type { Tag, Transaction } from "../../types/domain";
 
 /** Imported transactions still awaiting a real category, newest first. */
 export function selectToCategorize(transactions: Transaction[]): Transaction[] {
@@ -35,3 +35,13 @@ export function suggestTagName(
   }
   return best?.tag.name ?? "";
 }
+
+/**
+ * The real tag a review-first bank rule already set on an import awaiting review,
+ * or "" while it sits on the "To categorise" placeholder (which is never in the
+ * wallet's tag list).
+ */
+export const reviewTagName = (tx: Transaction, tags: Tag[]): string =>
+  tx.needsReview && tags.some((t) => t.name === tx.tag?.name)
+    ? tx.tag.name
+    : "";

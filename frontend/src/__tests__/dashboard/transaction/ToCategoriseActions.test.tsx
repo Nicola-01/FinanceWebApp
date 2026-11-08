@@ -7,6 +7,7 @@ import type { Transaction } from "../../../types/domain";
 
 const ctx = vi.hoisted(() => ({
   role: "EDITOR",
+  tags: [] as { name: string; icon: string; colorHex: string }[],
   fetchData: vi.fn(),
   transactions: [] as Transaction[],
 }));
@@ -14,7 +15,7 @@ const ctx = vi.hoisted(() => ({
 vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
   useWalletContext: () => ({
     wallet: { id: "w1", currency: "EUR", userRole: ctx.role },
-    tags: [],
+    tags: ctx.tags,
     transactions: ctx.transactions,
     fetchData: ctx.fetchData,
   }),
@@ -64,6 +65,28 @@ describe("ToCategoriseActions", () => {
     vi.clearAllMocks();
     ctx.role = "EDITOR";
     ctx.transactions = [];
+    ctx.tags = [];
+  });
+
+  it("pre-selects the tag a review-first bank rule already set", () => {
+    const food = { name: "Food", icon: "x", colorHex: "#000" };
+    ctx.tags = [food];
+    render(
+      <DeleteModalContext.Provider
+        value={{ current: { deleteObject: vi.fn() } }}
+      >
+        <ToCategoriseActions
+          transaction={{ ...tx, tag: food } as Transaction}
+        />
+      </DeleteModalContext.Provider>,
+    );
+    expect(screen.getByText("pick-tag")).toHaveAttribute(
+      "data-selected",
+      "Food",
+    );
+    expect(
+      screen.getByLabelText("Confirm Food for OpenAI"),
+    ).toBeInTheDocument();
   });
 
   it("pre-selects the tag of a past same-name transaction and confirms it with the tick", async () => {

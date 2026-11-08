@@ -22,14 +22,18 @@ public final class BankDtos {
 
   public record UrlResponse(String url) {}
 
-  /** {@code ignoreCase} null = true; {@code tag} is a tag name, null/blank = none. */
+  /**
+   * {@code ignoreCase} null = true; {@code tag} is a tag name, null/blank = none; {@code
+   * reviewFirst} null = false.
+   */
   public record BankRuleRequest(
       String name,
       String matchText,
       boolean regex,
       Boolean ignoreCase,
       String tag,
-      String renameTo) {}
+      String renameTo,
+      Boolean reviewFirst) {}
 
   public record BankRuleResponse(
       UUID id,
@@ -39,6 +43,7 @@ public final class BankDtos {
       boolean ignoreCase,
       TagResponse tag,
       String renameTo,
+      boolean reviewFirst,
       List<String> usedBy,
       Instant updatedAt) {}
 

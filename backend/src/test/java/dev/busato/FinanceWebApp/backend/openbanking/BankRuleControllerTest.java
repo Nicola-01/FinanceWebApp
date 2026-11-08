@@ -72,7 +72,7 @@ class BankRuleControllerTest extends BaseIntegrationTest {
   }
 
   static final String BODY =
-      "{\"name\":\"Amazon\",\"matchText\":\"AMZN\",\"regex\":false,\"renameTo\":\"Amazon\"}";
+      "{\"name\":\"Amazon\",\"matchText\":\"AMZN\",\"regex\":false,\"renameTo\":\"Amazon\",\"reviewFirst\":true}";
 
   @Test
   void crudRoundTrip() throws Exception {
@@ -86,6 +86,7 @@ class BankRuleControllerTest extends BaseIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.name").value("Amazon"))
             .andExpect(jsonPath("$.ignoreCase").value(true))
+            .andExpect(jsonPath("$.reviewFirst").value(true))
             .andReturn()
             .getResponse()
             .getContentAsString();

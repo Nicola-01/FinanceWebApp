@@ -432,6 +432,26 @@ class TransactionServiceTest {
   }
 
   @Test
+  void confirmingSameRealTagClearsNeedsReview() {
+    // A review-first bank rule already set the real tag; confirming it files the import.
+    Tag food = Tag.builder().id(UUID.randomUUID()).name("Food").build();
+    Transaction tx = new Transaction();
+    tx.setName("Esselunga");
+    tx.setTag(food);
+    tx.setNeedsReview(true);
+    when(transactionRepository.findByIdAndWalletId(transactionId, walletId))
+        .thenReturn(Optional.of(tx));
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
+        .thenReturn(Optional.of(food));
+    TransactionRequest request = TransactionRequest.builder().build();
+    request.setTag("Food");
+
+    transactionService.updateTransaction(transactionId, request, walletId, userId);
+
+    assertFalse(tx.isNeedsReview());
+  }
+
+  @Test
   void updateCannotAssignPlaceholderTag() {
     Tag placeholder = Tag.builder().id(UUID.randomUUID()).placeholder(true).build();
     Transaction tx = new Transaction();

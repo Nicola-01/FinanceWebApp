@@ -85,6 +85,7 @@ public class BankRuleService {
     rule.setRegex(req.regex());
     rule.setIgnoreCase(req.ignoreCase() == null || req.ignoreCase());
     rule.setRenameTo(req.renameTo());
+    rule.setReviewFirst(Boolean.TRUE.equals(req.reviewFirst()));
     rule.setTag(resolveTag(req.tag(), walletId));
     BankMatchRule.validate(rule);
     ruleRepository
@@ -120,6 +121,7 @@ public class BankRuleService {
         r.isIgnoreCase(),
         r.getTag() == null ? null : tagMapper.mapToResponse(r.getTag()),
         r.getRenameTo(),
+        r.isReviewFirst(),
         usedBy(r),
         r.getUpdatedAt());
   }
