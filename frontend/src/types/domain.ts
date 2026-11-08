@@ -96,6 +96,13 @@ export interface Subscription {
   notes?: string;
   status: "ACTIVE" | "PAUSED" | "COMPLETED";
 
+  // Open Banking rule: bank imports whose name matches are matched to this subscription.
+  bankMatchText?: string | null;
+  bankMatchRegex?: boolean;
+  bankMatchIgnoreCase?: boolean;
+  /** No schedule: each matching bank transaction becomes an execution. */
+  bankDriven?: boolean;
+
   startDate: string; // ISO Date (YYYY-MM-DD)
   nextExecutionDate: string;
   lastExecutionDate?: string;

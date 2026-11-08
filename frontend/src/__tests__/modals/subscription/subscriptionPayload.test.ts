@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  buildBankMatchPayload,
   buildSchedulePayload,
   type ScheduleFields,
 } from "../../../modals/subscription/subscriptionPayload";
@@ -41,5 +42,39 @@ describe("buildSchedulePayload", () => {
       buildSchedulePayload({ ...base, duration: "UNTIL", durationUntil: null })
         .durationUntil,
     ).toBeNull();
+  });
+});
+
+describe("buildBankMatchPayload", () => {
+  it("trims the text and keeps the flags", () => {
+    expect(
+      buildBankMatchPayload({
+        text: "  NETFLIX ",
+        regex: true,
+        ignoreCase: false,
+        bankDriven: true,
+      }),
+    ).toEqual({
+      bankMatchText: "NETFLIX",
+      bankMatchRegex: true,
+      bankMatchIgnoreCase: false,
+      bankDriven: true,
+    });
+  });
+
+  it("clears a blank rule and never sends date-from-bank without text", () => {
+    expect(
+      buildBankMatchPayload({
+        text: "   ",
+        regex: false,
+        ignoreCase: true,
+        bankDriven: true,
+      }),
+    ).toEqual({
+      bankMatchText: "",
+      bankMatchRegex: false,
+      bankMatchIgnoreCase: true,
+      bankDriven: false,
+    });
   });
 });

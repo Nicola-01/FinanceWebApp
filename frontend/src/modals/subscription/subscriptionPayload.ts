@@ -32,3 +32,25 @@ export const buildSchedulePayload = (f: ScheduleFields) => ({
   ...(f.monthlyRule &&
     monthlyRulePayload(f.monthlyRule, f.frequencyType, f.startDate)),
 });
+
+export interface BankMatchFields {
+  text: string;
+  regex: boolean;
+  ignoreCase: boolean;
+  bankDriven: boolean;
+}
+
+/**
+ * Open Banking rule part of a `SubscriptionRequest`. A blank text is sent as
+ * "" (the backend reads null as "unchanged" and blank as "clear"), and
+ * date-from-bank is only sent together with a text.
+ */
+export const buildBankMatchPayload = (f: BankMatchFields) => {
+  const text = f.text.trim();
+  return {
+    bankMatchText: text,
+    bankMatchRegex: f.regex,
+    bankMatchIgnoreCase: f.ignoreCase,
+    bankDriven: f.bankDriven && text !== "",
+  };
+};

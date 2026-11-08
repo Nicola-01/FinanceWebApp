@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import * as walletOps from "../../api/walletOps";
 import Button from "../../components/ui/Button.tsx";
 import Toggle from "../../components/ui/Toggle.tsx";
@@ -16,16 +16,31 @@ import { TransactionTypeToggle } from "../../components/ui/TransactionTypeToggle
 import { TagPicker } from "../transaction/TagPicker";
 import { ExchangeRateSection } from "../common/exchangeRate/ExchangeRateSection";
 import { SchedulingRules } from "../common/SchedulingRules";
-import { getApiErrorTitle } from "../../utils/apiError";
+import { getApiErrorDetail, getApiErrorTitle } from "../../utils/apiError";
+import { getWalletBank } from "../../api/bankApi";
+import { BankMatchSection } from "./BankMatchSection";
 import { parseLocalIsoDate } from "../../utils/localDate";
 import { FieldLabel } from "../../components/ui/FieldLabel";
 import { useAmountEntryForm } from "../common/useAmountEntryForm";
-import { buildSchedulePayload } from "./subscriptionPayload";
+import {
+  buildBankMatchPayload,
+  buildSchedulePayload,
+  type BankMatchFields,
+} from "./subscriptionPayload";
 import {
   EMPTY_MONTHLY_RULE,
   monthlyRuleFromSub,
   type MonthlyRule,
 } from "../../utils/monthlyRule";
+
+const EMPTY_BANK_MATCH: BankMatchFields = {
+  text: "",
+  regex: false,
+  ignoreCase: true,
+  bankDriven: false,
+};
+
+const REGEX_ERROR = "Invalid bank match regex";
 
 export interface SubscriptionModalHandle {
   openModal: (sub?: Subscription, initialDate?: Date) => void;
@@ -72,6 +87,24 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
     const [monthlyRule, setMonthlyRule] =
       useState<MonthlyRule>(EMPTY_MONTHLY_RULE);
 
+    const [bankMatch, setBankMatch] =
+      useState<BankMatchFields>(EMPTY_BANK_MATCH);
+    const [bankError, setBankError] = useState<string>();
+    const [bankEnabled, setBankEnabled] = useState(false);
+
+    // The Open Banking section only makes sense when the wallet can import.
+    useEffect(() => {
+      if (!open) return;
+      let alive = true;
+      Promise.resolve()
+        .then(() => getWalletBank(wallet.id))
+        .then((b) => alive && setBankEnabled(b.enabled))
+        .catch(() => alive && setBankEnabled(false));
+      return () => {
+        alive = false;
+      };
+    }, [open, wallet.id]);
+
     const [loading, setLoading] = useState(false);
     const [resetKey, setResetKey] = useState(0);
 
@@ -100,6 +133,12 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setMonthlyRule(
             monthlyRuleFromSub(sub, parseLocalIsoDate(sub.startDate)),
           );
+          setBankMatch({
+            text: sub.bankMatchText ?? "",
+            regex: sub.bankMatchRegex ?? false,
+            ignoreCase: sub.bankMatchIgnoreCase ?? true,
+            bankDriven: sub.bankDriven ?? false,
+          });
         } else {
           // --- CREATE MODE ---
           setEditingSubId(null);
@@ -119,7 +158,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setDurationUntil(null);
           setStatus("ACTIVE");
           setMonthlyRule(EMPTY_MONTHLY_RULE);
+          setBankMatch(EMPTY_BANK_MATCH);
         }
+        setBankError(undefined);
         setOpen(true);
       },
     }));
@@ -132,6 +173,9 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
       if (!type) return triggerToast("Please select income or expense.", false);
 
       setLoading(true);
+      setBankError(undefined);
+      // Date from bank: no schedule of its own, the backend ignores these defaults.
+      const bankDriven = bankMatch.bankDriven && bankMatch.text.trim() !== "";
       try {
         // Payload mapped to SubscriptionRequest.java
         const payload = {
@@ -140,14 +184,15 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           autoExchangeRate,
           ...buildSchedulePayload({
             status,
-            startDate,
-            frequencyType,
-            frequencyInterval,
+            startDate: bankDriven ? new Date() : startDate,
+            frequencyType: bankDriven ? "MONTHLY" : frequencyType,
+            frequencyInterval: bankDriven ? 1 : frequencyInterval,
             duration,
             durationTimes,
             durationUntil,
-            monthlyRule,
+            monthlyRule: bankDriven ? EMPTY_MONTHLY_RULE : monthlyRule,
           }),
+          ...buildBankMatchPayload(bankMatch),
         };
 
         if (editingSubId) {
@@ -166,6 +211,11 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
         onSuccess();
         setOpen(false);
       } catch (err: unknown) {
+        const detail = getApiErrorDetail(err, "");
+        if (detail.startsWith(REGEX_ERROR)) {
+          setBankError(detail);
+          return;
+        }
         const actionText = editingSubId ? "updating" : "creating";
         triggerToast(
           getApiErrorTitle(err, `Error ${actionText} subscription`),
@@ -181,6 +231,8 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
       selectedTagName !== "" &&
       type !== "";
     const isEditing = !!editingSubId;
+    const bankDriven =
+      bankEnabled && bankMatch.bankDriven && bankMatch.text.trim() !== "";
 
     // Primary save control lives in the sticky footer.
     const footer = (
@@ -244,18 +296,20 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                 onSelectTag={setSelectedTagName}
               />
             </div>
-            <div>
-              <FieldLabel>Start Date</FieldLabel>
-              <CustomDatePicker
-                isRange={false}
-                color={wallet.color}
-                initialPreset="custom"
-                initialStartDate={startDate}
-                onChange={(val) => {
-                  if (val instanceof Date) setStartDate(val);
-                }}
-              />
-            </div>
+            {!bankDriven && (
+              <div>
+                <FieldLabel>Start Date</FieldLabel>
+                <CustomDatePicker
+                  isRange={false}
+                  color={wallet.color}
+                  initialPreset="custom"
+                  initialStartDate={startDate}
+                  onChange={(val) => {
+                    if (val instanceof Date) setStartDate(val);
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* 3. SCHEDULING RULES (frequency & duration) */}
@@ -270,6 +324,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             onDurationTimesChange={setDurationTimes}
             durationUntil={durationUntil}
             onDurationUntilChange={setDurationUntil}
+            showFrequency={!bankDriven}
             showStatus
             status={status}
             onStatusChange={setStatus}
@@ -278,6 +333,15 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             onMonthlyRuleChange={setMonthlyRule}
             startDate={startDate}
           />
+
+          {bankEnabled && (
+            <BankMatchSection
+              value={bankMatch}
+              onChange={setBankMatch}
+              error={bankError}
+              accentColor={wallet.color}
+            />
+          )}
 
           {/* 4. NAME & DESCRIPTION */}
           <div className="flex flex-col gap-4">

@@ -116,4 +116,23 @@ describe("SubscriptionView", () => {
     );
     expect(screen.getByTestId("exchange")).toBeInTheDocument();
   });
+
+  it("shows the bank rule and 'Date from bank' instead of the schedule", () => {
+    const { container } = render(
+      <SubscriptionView
+        sub={makeSub({
+          bankMatchText: "^NETFLIX",
+          bankMatchRegex: true,
+          bankMatchIgnoreCase: false,
+          bankDriven: true,
+        })}
+        wallet={wallet}
+      />,
+    );
+    expect(screen.getByText("Date from bank")).toBeInTheDocument();
+    expect(screen.queryByText("Next Run")).not.toBeInTheDocument();
+    expect(container.textContent).toContain("^NETFLIX");
+    expect(container.textContent).toContain("Regex");
+    expect(container.textContent).toContain("Case-sensitive");
+  });
 });

@@ -38,12 +38,17 @@ vi.mock("../../../api/axiosConfig", () => ({
 vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));
+vi.mock("../../../api/bankApi", () => ({
+  getWalletBank: vi.fn().mockResolvedValue({ enabled: false, connections: [] }),
+}));
 
 import {
   SubscriptionModal,
   type SubscriptionModalHandle,
 } from "../../../modals/subscription/SubscriptionModal";
 import api from "../../../api/axiosConfig";
+import { getWalletBank } from "../../../api/bankApi";
+import { AxiosError, type AxiosResponse } from "axios";
 
 const wallet: Wallet = {
   id: "w1",
@@ -164,5 +169,102 @@ describe("SubscriptionModal", () => {
         name: "Reminder subscription (no fixed amount)",
       }),
     ).toBeInTheDocument();
+  });
+
+  describe("Open Banking section", () => {
+    const sub = {
+      id: "s9",
+      name: "Netflix",
+      type: "EXPENSE",
+      amount: 12.99,
+      startDate: "2026-01-02",
+      frequencyType: "WEEKLY",
+      frequencyInterval: 2,
+      tag: { name: "Fun", icon: "tag", colorHex: "#fff" },
+      bankMatchText: "NETFLIX",
+      bankMatchRegex: false,
+      bankMatchIgnoreCase: true,
+      bankDriven: true,
+    } as unknown as Subscription;
+
+    const enableBank = () =>
+      vi
+        .mocked(getWalletBank)
+        .mockResolvedValue({ enabled: true, connections: [] });
+
+    it("hides the section when open banking is disabled", async () => {
+      vi.mocked(getWalletBank).mockResolvedValue({
+        enabled: false,
+        connections: [],
+      });
+      const ref = renderModal();
+      act(() => ref.current!.openModal());
+      await waitFor(() => expect(getWalletBank).toHaveBeenCalledWith("w1"));
+      expect(screen.queryByText("Open Banking")).not.toBeInTheDocument();
+    });
+
+    it("date from bank hides the schedule fields but keeps the duration", async () => {
+      enableBank();
+      const ref = renderModal();
+      act(() => ref.current!.openModal(sub));
+      expect(await screen.findByText("Open Banking")).toBeInTheDocument();
+      expect(screen.getByDisplayValue("NETFLIX")).toBeInTheDocument();
+      expect(screen.queryByText("Repeat Every")).not.toBeInTheDocument();
+      expect(screen.queryByText("Start Date")).not.toBeInTheDocument();
+      expect(screen.getByText("Ends")).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole("switch", { name: "Date from bank" }));
+      expect(screen.getByText("Repeat Every")).toBeInTheDocument();
+    });
+
+    it("sends the rule and a default schedule when the date comes from the bank", async () => {
+      enableBank();
+      vi.mocked(api.put).mockClear();
+      vi.mocked(api.put).mockResolvedValue({ data: {} });
+      const ref = renderModal();
+      act(() => ref.current!.openModal(sub));
+      await screen.findByText("Open Banking");
+      fireEvent.click(
+        screen.getByRole("button", { name: /save subscription/i }),
+      );
+
+      await waitFor(() => expect(api.put).toHaveBeenCalled());
+      const body = vi.mocked(api.put).mock.calls[0][1] as Record<
+        string,
+        unknown
+      >;
+      expect(body).toMatchObject({
+        bankMatchText: "NETFLIX",
+        bankMatchRegex: false,
+        bankMatchIgnoreCase: true,
+        bankDriven: true,
+        frequencyType: "MONTHLY",
+        frequencyInterval: 1,
+      });
+    });
+
+    it("shows an invalid regex error inline", async () => {
+      enableBank();
+      vi.mocked(api.put).mockClear();
+      const err = new AxiosError("409");
+      err.response = {
+        data: {
+          title: "Conflict",
+          detail: "Invalid bank match regex: Unclosed group",
+        },
+        status: 409,
+      } as AxiosResponse;
+      vi.mocked(api.put).mockRejectedValue(err);
+      const ref = renderModal();
+      act(() => ref.current!.openModal(sub));
+      await screen.findByText("Open Banking");
+      fireEvent.click(
+        screen.getByRole("button", { name: /save subscription/i }),
+      );
+
+      expect(
+        await screen.findByText("Invalid bank match regex: Unclosed group"),
+      ).toBeInTheDocument();
+    });
   });
 });
