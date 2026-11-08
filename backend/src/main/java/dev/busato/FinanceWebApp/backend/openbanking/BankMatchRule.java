@@ -10,7 +10,42 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class BankMatchRule {
 
+  static final int MAX_TEXT_LENGTH = 200;
+
+  /** A user regex gets this long per bank row; past it the row is treated as no match. */
+  static final long REGEX_BUDGET_NANOS = 50_000_000L;
+
   private BankMatchRule() {}
+
+  /** Thrown from charAt once the regex budget is spent (stops catastrophic backtracking). */
+  private static final class RegexTimeout extends RuntimeException {
+    RegexTimeout() {
+      super(null, null, false, false);
+    }
+  }
+
+  private record Deadline(CharSequence s, long until) implements CharSequence {
+    @Override
+    public char charAt(int i) {
+      if (System.nanoTime() > until) throw new RegexTimeout();
+      return s.charAt(i);
+    }
+
+    @Override
+    public int length() {
+      return s.length();
+    }
+
+    @Override
+    public CharSequence subSequence(int start, int end) {
+      return new Deadline(s.subSequence(start, end), until);
+    }
+
+    @Override
+    public String toString() {
+      return s.toString();
+    }
+  }
 
   public static boolean matches(Subscription sub, String bankName) {
     String text = sub.getBankMatchText();
@@ -21,7 +56,12 @@ public final class BankMatchRule {
           ? bankName.toLowerCase(Locale.ROOT).contains(text.toLowerCase(Locale.ROOT))
           : bankName.contains(text);
     try {
-      return compile(text, ignoreCase).matcher(bankName).find();
+      return compile(text, ignoreCase)
+          .matcher(new Deadline(bankName, System.nanoTime() + REGEX_BUDGET_NANOS))
+          .find();
+    } catch (RegexTimeout e) {
+      log.warn("Bank match regex timed out on subscription {}", sub.getId());
+      return false;
     } catch (PatternSyntaxException e) {
       // Validated at save time; a bad pattern must never break the sync.
       log.warn("Invalid bank match regex on subscription {}", sub.getId());
@@ -33,6 +73,9 @@ public final class BankMatchRule {
   public static void validate(Subscription sub) {
     String text = sub.getBankMatchText();
     if (text != null && text.isBlank()) sub.setBankMatchText(text = null);
+    if (text != null && text.length() > MAX_TEXT_LENGTH)
+      throw new IllegalArgumentException(
+          "Bank match text must be at most " + MAX_TEXT_LENGTH + " characters");
     if (sub.isBankDriven() && text == null)
       throw new IllegalArgumentException("Date from bank requires a bank match text");
     if (text != null && sub.isBankMatchRegex()) {

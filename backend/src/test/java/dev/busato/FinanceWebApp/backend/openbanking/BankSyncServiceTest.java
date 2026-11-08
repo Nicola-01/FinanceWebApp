@@ -753,4 +753,33 @@ class BankSyncServiceTest {
     assertThat(walletTxs()).hasSize(2);
     assertThat(walletTxs()).filteredOn(Transaction::isNeedsReview).hasSize(1);
   }
+
+  @Test
+  void refund_doesNotMatchExpenseSubscription() {
+    Subscription s = sub("Netflix", "netflix", true, LocalDate.of(2026, 9, 5));
+    bankReturns(
+        new EbTransaction(
+            "r1",
+            null,
+            new BigDecimal("12.99"),
+            "EUR",
+            "CRDT",
+            "BOOK",
+            DAY,
+            DAY,
+            null,
+            "NETFLIX.COM",
+            null));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs())
+        .singleElement()
+        .satisfies(
+            t -> {
+              assertThat(t.getType()).isEqualTo(Transaction.Type.INCOME);
+              assertThat(t.isNeedsReview()).isTrue();
+            });
+    assertThat(s.getExecutedTimes()).isZero();
+  }
 }

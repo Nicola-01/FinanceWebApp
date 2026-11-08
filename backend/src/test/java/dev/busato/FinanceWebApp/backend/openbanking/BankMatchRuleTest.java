@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.busato.FinanceWebApp.backend.model.Subscription;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 class BankMatchRuleTest {
@@ -85,5 +87,22 @@ class BankMatchRuleTest {
     Subscription s = rule("NETFLIX", true, true);
     BankMatchRule.validate(s);
     assertEquals("NETFLIX", s.getBankMatchText());
+  }
+
+  @Test
+  void matches_catastrophicRegex_givesUpAsNoMatch() {
+    String name = "a".repeat(40) + "!";
+    assertTimeoutPreemptively(
+        Duration.ofSeconds(2),
+        () -> assertFalse(BankMatchRule.matches(rule("(.*a){12}$", true, true), name)));
+  }
+
+  @Test
+  void validate_tooLongText_throws() {
+    IllegalArgumentException e =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> BankMatchRule.validate(rule("x".repeat(201), false, true)));
+    assertEquals("Bank match text must be at most 200 characters", e.getMessage());
   }
 }

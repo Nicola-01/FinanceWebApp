@@ -59,4 +59,16 @@ describe("subscriptionGroups", () => {
       { sub: b, tx: b.history![0] },
     ]);
   });
+
+  it("keeps a bank-driven subscription out of the 7-day group (its date is not a schedule)", () => {
+    const bank = sub({
+      id: "b",
+      bankDriven: true,
+      nextExecutionDate: "2026-01-01",
+    });
+    const soon = sub({ id: "x", nextExecutionDate: "2026-03-12" });
+    const { within7Days, within31Days } = groupSubscriptions([bank, soon]);
+    expect(within7Days.map((s) => s.id)).toEqual(["x"]);
+    expect(within31Days.map((s) => s.id)).toEqual(["b"]);
+  });
 });

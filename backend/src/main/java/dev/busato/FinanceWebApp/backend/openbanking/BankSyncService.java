@@ -266,6 +266,8 @@ public class BankSyncService {
       List<Subscription> hits =
           rules.stream()
               .filter(s -> s.getStatus() == Subscription.Status.ACTIVE) // may complete mid-batch
+              // A refund must not match an expense subscription (and vice versa).
+              .filter(s -> s.getType().name().equals(m.type().name()))
               .filter(s -> withinDuration(s, m.date()) && BankMatchRule.matches(s, m.name()))
               .toList();
       if (hits.size() == 1) {
