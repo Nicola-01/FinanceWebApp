@@ -2,6 +2,7 @@ package dev.busato.FinanceWebApp.backend.openbanking;
 
 import dev.busato.FinanceWebApp.backend.model.BankAccountLink;
 import dev.busato.FinanceWebApp.backend.model.BankConnection;
+import dev.busato.FinanceWebApp.backend.model.BankRule;
 import dev.busato.FinanceWebApp.backend.model.ImportedBankTransaction;
 import dev.busato.FinanceWebApp.backend.model.Notification.NotificationType;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
@@ -17,6 +18,7 @@ import dev.busato.FinanceWebApp.backend.openbanking.EbDtos.PsuContext;
 import dev.busato.FinanceWebApp.backend.push.NotificationCopy;
 import dev.busato.FinanceWebApp.backend.push.WalletActivityEvent;
 import dev.busato.FinanceWebApp.backend.repository.BankConnectionRepository;
+import dev.busato.FinanceWebApp.backend.repository.BankRuleRepository;
 import dev.busato.FinanceWebApp.backend.repository.ImportedBankTransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
@@ -37,8 +39,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -83,6 +87,7 @@ public class BankSyncService {
   private final ApplicationEventPublisher eventPublisher;
   private final TransactionTemplate transactionTemplate;
   private final SubscriptionRepository subscriptionRepository;
+  private final BankRuleRepository ruleRepository;
   private final SubscriptionService subscriptionService;
   private final Clock clock;
 
@@ -239,10 +244,15 @@ public class BankSyncService {
     LocalDate retryFrom = null;
     // The first sync backfills history: notifying each of those rows would flood the members.
     boolean notify = link.getLastSyncedAt() != null;
-    List<Subscription> rules =
+    List<BankRule> rules =
         mapped.isEmpty()
             ? List.of()
-            : subscriptionRepository.findAllByWalletIdAndBankRuleIsNotNull(wallet.getId());
+            : ruleRepository.findAllByWalletIdOrderByNameAsc(wallet.getId());
+    Map<UUID, List<Subscription>> subsByRule =
+        rules.isEmpty()
+            ? Map.of()
+            : subscriptionRepository.findAllByWalletIdAndBankRuleIsNotNull(wallet.getId()).stream()
+                .collect(Collectors.groupingBy(s -> s.getBankRule().getId()));
     for (MappedTx m : mapped) {
       if (!known.add(m.externalId())) continue;
       String currency =
@@ -262,36 +272,47 @@ public class BankSyncService {
         amount = m.amount().multiply(rate).setScale(2, RoundingMode.HALF_UP);
       }
       String notes = m.notes();
-      List<Subscription> hits =
-          rules.stream()
-              .filter(s -> s.getStatus() == Subscription.Status.ACTIVE) // may complete mid-batch
-              // A refund must not match an expense subscription (and vice versa).
-              .filter(s -> s.getType().name().equals(m.type().name()))
-              .filter(
-                  s ->
-                      withinDuration(s, m.date())
-                          && BankMatchRule.matches(s.getBankRule(), m.name()))
-              .toList();
-      if (hits.size() == 1) {
-        Subscription s = hits.get(0);
-        UUID matched = matchSubscription(s, m, amount, currency, rate, notify);
-        if (matched != null) {
-          saveLedger(link, m, now, matched);
-          continue;
+      String name = m.name();
+      Tag ruleTag = null;
+      List<BankRule> hits = rules.stream().filter(r -> BankMatchRule.matches(r, m.name())).toList();
+      if (hits.size() > 1) {
+        notes = collision(hits.stream().map(BankRule::getName).toList(), notes);
+      } else if (hits.size() == 1) {
+        BankRule rule = hits.get(0);
+        List<Subscription> subs =
+            subsByRule.getOrDefault(rule.getId(), List.of()).stream()
+                .filter(s -> s.getStatus() == Subscription.Status.ACTIVE) // may complete mid-batch
+                // A refund must not match an expense subscription (and vice versa).
+                .filter(s -> s.getType().name().equals(m.type().name()))
+                .filter(s -> withinDuration(s, m.date()))
+                .toList();
+        if (subs.size() > 1) {
+          notes = collision(subs.stream().map(Subscription::getName).toList(), notes);
+        } else if (subs.size() == 1) {
+          // Subscription path: its own naming/tag/notes win; the rule's actions never apply.
+          Subscription s = subs.get(0);
+          UUID matched = matchSubscription(s, m, amount, currency, rate, notify);
+          if (matched != null) {
+            saveLedger(link, m, now, matched);
+            continue;
+          }
+          notes =
+              joinNotes("Possible match: " + s.getName() + " (off schedule); " + FROM_BANK, notes);
+        } else {
+          ruleTag = rule.getTag();
+          if (rule.getRenameTo() != null) {
+            name = rule.getRenameTo();
+            notes = joinNotes("Bank: " + m.name(), notes);
+          }
         }
-        notes =
-            joinNotes("Possible match: " + s.getName() + " (off schedule); " + FROM_BANK, notes);
-      } else if (hits.size() > 1) {
-        String names = String.join(", ", hits.stream().map(Subscription::getName).toList());
-        notes = joinNotes("Collision: matches " + names + "; " + FROM_BANK, notes);
       }
-      if (tag == null) tag = reviewTag(wallet);
+      if (ruleTag == null && tag == null) tag = reviewTag(wallet);
       Transaction saved =
           transactionRepository.save(
               Transaction.builder()
                   .wallet(wallet)
-                  .tag(tag)
-                  .name(m.name())
+                  .tag(ruleTag != null ? ruleTag : tag)
+                  .name(name)
                   .notes(notes)
                   .amount(amount)
                   .originalAmount(m.amount())
@@ -300,7 +321,7 @@ public class BankSyncService {
                   .type(m.type())
                   .transactionDate(m.date())
                   .imported(true)
-                  .needsReview(true)
+                  .needsReview(ruleTag == null)
                   .build());
       if (notify)
         eventPublisher.publishEvent(
@@ -313,7 +334,7 @@ public class BankSyncService {
                 null,
                 null,
                 amount,
-                m.name(),
+                name,
                 saved.getId()));
       saveLedger(link, m, now, null);
       n++;
@@ -336,6 +357,10 @@ public class BankSyncService {
 
   private static String joinNotes(String head, String bankNotes) {
     return bankNotes == null || bankNotes.isBlank() ? head : head + "; " + bankNotes;
+  }
+
+  private static String collision(List<String> names, String notes) {
+    return joinNotes("Collision: matches " + String.join(", ", names) + "; " + FROM_BANK, notes);
   }
 
   /** A row dated after an UNTIL end no longer belongs to the subscription. */

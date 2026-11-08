@@ -531,8 +531,29 @@ class BankSyncServiceTest {
   }
 
   BankRule rule(String name, String text) {
+    return rule(name, text, null, null);
+  }
+
+  BankRule rule(String name, String text, Tag tag, String renameTo) {
     return bankRuleRepository.save(
-        BankRule.builder().wallet(wallet).name(name).matchText(text).build());
+        BankRule.builder()
+            .wallet(wallet)
+            .name(name)
+            .matchText(text)
+            .tag(tag)
+            .renameTo(renameTo)
+            .build());
+  }
+
+  Tag tag(String name) {
+    return tagRepository.save(Tag.builder().name(name).wallet(wallet).build());
+  }
+
+  /** A subscription on an existing rule. */
+  Subscription subOn(String name, BankRule rule, boolean bankDriven, LocalDate next) {
+    Subscription s = sub(name, null, bankDriven, next);
+    s.setBankRule(rule);
+    return subscriptionRepository.save(s);
   }
 
   Transaction subTx(Subscription s, LocalDate date, boolean pending) {
@@ -644,7 +665,11 @@ class BankSyncServiceTest {
 
   @Test
   void scheduled_offSchedule_possibleMatchNote() {
-    sub("Netflix", "netflix", false, DAY.plusDays(20));
+    subOn(
+        "Netflix",
+        rule("Netflix", "netflix", tag("Streaming"), "Netflix"),
+        false,
+        DAY.plusDays(20));
     bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
 
     service.syncConnection(conn, null);
@@ -656,6 +681,9 @@ class BankSyncServiceTest {
               assertThat(t.isNeedsReview()).isTrue();
               assertThat(t.getNotes())
                   .isEqualTo("Possible match: Netflix (off schedule); From OpenBanking");
+              // The rule's own actions never apply on the subscription path.
+              assertThat(t.getTag().getName()).isEqualTo("To categorise");
+              assertThat(t.getName()).isEqualTo("NETFLIX.COM");
             });
   }
 
@@ -789,5 +817,155 @@ class BankSyncServiceTest {
               assertThat(t.isNeedsReview()).isTrue();
             });
     assertThat(s.getExecutedTimes()).isZero();
+  }
+
+  // ==================== wallet bank rules (tag / rename) ====================
+
+  static EbTransaction refund(String ref, String creditor) {
+    return new EbTransaction(
+        ref, null, new BigDecimal("12.99"), "EUR", "CRDT", "BOOK", DAY, DAY, null, creditor, null);
+  }
+
+  @Test
+  void twoRulesMatch_collisionNotesWithRuleNames() {
+    Tag food = tag("Food");
+    rule("Amazon", "AMZN", food, "Amazon");
+    rule("Amazon Prime", "AMZN MKTP", food, null);
+    bankReturns(charge("r1", "9.99", "AMZN MKTP IT*2K4", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(t.getNotes()).isEqualTo("Collision: matches Amazon, Amazon Prime; From OpenBanking");
+    assertThat(t.getTag().getName()).isEqualTo("To categorise");
+    assertThat(t.getName()).isEqualTo("AMZN MKTP IT*2K4");
+    assertThat(t.isNeedsReview()).isTrue();
+  }
+
+  @Test
+  void oneRuleTwoSubs_collisionNotesWithSubNames() {
+    BankRule shared = rule("Streaming", "netflix");
+    subOn("Netflix", shared, false, DAY.plusDays(20));
+    subOn("Netflix Family", shared, false, DAY.plusDays(20));
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs())
+        .singleElement()
+        .satisfies(
+            t ->
+                assertThat(t.getNotes())
+                    .isEqualTo("Collision: matches Netflix, Netflix Family; From OpenBanking"));
+  }
+
+  @Test
+  void ruleWithTag_tagsAndIsNotToCategorise() {
+    Tag food = tag("Food");
+    rule("Supermarket", "ESSELUNGA", food, null);
+    bankReturns(charge("r1", "42.10", "ESSELUNGA MILANO", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(t.getTag().getId()).isEqualTo(food.getId());
+    assertThat(t.isNeedsReview()).isFalse();
+    assertThat(t.isImported()).isTrue();
+    assertThat(t.getName()).isEqualTo("ESSELUNGA MILANO");
+  }
+
+  @Test
+  void ruleWithRename_renamesAndKeepsBankName() {
+    rule("Amazon", "AMZN", null, "Amazon");
+    bankReturns(charge("r1", "9.99", "AMZN MKTP IT*2K4", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(t.getName()).isEqualTo("Amazon");
+    assertThat(t.getNotes()).isEqualTo("Bank: AMZN MKTP IT*2K4");
+    // No tag on the rule: still to categorise.
+    assertThat(t.getTag().getName()).isEqualTo("To categorise");
+    assertThat(t.isNeedsReview()).isTrue();
+  }
+
+  @Test
+  void ruleWithoutActions_toCategorise() {
+    rule("Netflix", "netflix");
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(t.getTag().getName()).isEqualTo("To categorise");
+    assertThat(t.getName()).isEqualTo("NETFLIX.COM");
+    assertThat(t.getNotes()).isNull();
+  }
+
+  @Test
+  void refundOnExpenseSubRule_appliesRuleTag() {
+    Tag refunds = tag("Refunds");
+    subOn("Netflix", rule("Netflix", "netflix", refunds, null), true, LocalDate.of(2026, 9, 5));
+    bankReturns(refund("r1", "NETFLIX.COM"));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(t.getType()).isEqualTo(Transaction.Type.INCOME);
+    assertThat(t.getTag().getId()).isEqualTo(refunds.getId());
+    assertThat(t.getSubscription()).isNull();
+  }
+
+  @Test
+  void pausedSubOnRule_appliesRuleActions() {
+    Tag streaming = tag("Streaming");
+    Subscription s = subOn("Netflix", rule("Netflix", "netflix", streaming, "Netflix"), false, DAY);
+    s.setStatus(Subscription.Status.PAUSED);
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(t.getTag().getId()).isEqualTo(streaming.getId());
+    assertThat(t.getName()).isEqualTo("Netflix");
+    assertThat(t.getSubscription()).isNull();
+  }
+
+  @Test
+  void bankDrivenSubOnRuleWithRename_keepsRecurringNotes() {
+    afterBackfill();
+    Tag affitto = tag("Affitto");
+    Subscription rent =
+        subOn("Rent", rule("Rent", "LANDLORD", tag("Food"), "X"), true, LocalDate.of(2026, 9, 5));
+    rent.setTag(affitto);
+    bankReturns(charge("r1", "800.00", "BONIFICO LANDLORD SRL", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(walletTxs()).hasSize(1);
+    assertThat(t.getNotes()).isEqualTo("Recurring: Affitto (#1); From OpenBanking");
+    assertThat(t.getTag().getId()).isEqualTo(affitto.getId());
+    assertThat(t.getName()).isNotEqualTo("X");
+    assertThat(t.getSubscription().getId()).isEqualTo(rent.getId());
+  }
+
+  @Test
+  void ruleTextEditedBetweenSyncs_usesNewText() {
+    Tag food = tag("Food");
+    BankRule r = rule("Shop", "OLDSHOP", food, null);
+    bankReturns(charge("r1", "5.00", "NEWSHOP 1", DAY));
+    service.syncConnection(conn, null);
+    assertThat(walletTxs().get(0).getTag().getName()).isEqualTo("To categorise");
+
+    r.setMatchText("NEWSHOP");
+    bankRuleRepository.save(r);
+    bankReturns(charge("r1", "5.00", "NEWSHOP 1", DAY), charge("r2", "6.00", "NEWSHOP 2", DAY));
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs())
+        .filteredOn(t -> t.getName().equals("NEWSHOP 2"))
+        .singleElement()
+        .satisfies(t -> assertThat(t.getTag().getId()).isEqualTo(food.getId()));
   }
 }
