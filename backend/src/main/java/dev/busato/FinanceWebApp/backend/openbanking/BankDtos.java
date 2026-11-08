@@ -49,6 +49,9 @@ public final class BankDtos {
       List<String> usedBy,
       Instant updatedAt) {}
 
+  /** Result of running the rules over the imports still to categorise. */
+  public record ApplyRulesResponse(int updated, int collisions) {}
+
   public record WalletBankResponse(boolean enabled, List<BankConnectionResponse> connections) {}
 
   public record BankAccountResponse(

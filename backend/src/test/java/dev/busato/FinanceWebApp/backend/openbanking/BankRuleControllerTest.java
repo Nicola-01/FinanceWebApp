@@ -132,6 +132,21 @@ class BankRuleControllerTest extends BaseIntegrationTest {
   }
 
   @Test
+  void applyToReview_runsOverToCategorise_viewerForbidden() throws Exception {
+    mockMvc
+        .perform(post("/api/bank-rules/{w}/apply", wallet.getId()).header("Authorization", jwt))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.updated").value(0))
+        .andExpect(jsonPath("$.collisions").value(0));
+    User viewer = user("apply-viewer@example.com");
+    grant(viewer, WalletAccess.WalletRole.VIEWER);
+    String vjwt = "Bearer " + jwtService.generateToken(new HashMap<>(), viewer);
+    mockMvc
+        .perform(post("/api/bank-rules/{w}/apply", wallet.getId()).header("Authorization", vjwt))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void featureOffIs403() throws Exception {
     owner.setOpenBankingEnabled(false);
     userRepository.save(owner);

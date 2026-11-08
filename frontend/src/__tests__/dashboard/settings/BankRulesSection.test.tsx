@@ -5,13 +5,16 @@ import { AxiosError, type AxiosResponse } from "axios";
 import type { BankRule, Wallet } from "../../../types/domain";
 
 const { ctxRef, bank } = vi.hoisted(() => ({
-  ctxRef: { current: {} as { wallet: Wallet; tags: [] } },
+  ctxRef: {
+    current: {} as { wallet: Wallet; tags: []; fetchData?: () => void },
+  },
   bank: {
     getWalletBank: vi.fn(),
     listBankRules: vi.fn(),
     deleteBankRule: vi.fn(),
     createBankRule: vi.fn(),
     updateBankRule: vi.fn(),
+    applyBankRules: vi.fn(),
   },
 }));
 vi.mock("../../../dashboard/wallet/WalletContext.tsx", async () => {
@@ -73,7 +76,7 @@ beforeEach(() => {
   HTMLDialogElement.prototype.close ??= function () {
     this.removeAttribute("open");
   };
-  ctxRef.current = { wallet: wallet("OWNER"), tags: [] };
+  ctxRef.current = { wallet: wallet("OWNER"), tags: [], fetchData: vi.fn() };
   bank.getWalletBank.mockResolvedValue({ enabled: true, connections: [] });
   bank.listBankRules.mockResolvedValue([rule]);
 });
@@ -135,5 +138,32 @@ describe("BankRulesSection", () => {
     await waitFor(() =>
       expect(triggerToast).toHaveBeenCalledWith("Used by: Netflix", false),
     );
+  });
+
+  it("applies the rules to the imports to categorise and reloads", async () => {
+    bank.applyBankRules.mockResolvedValue({ updated: 2, collisions: 1 });
+    render(<BankRulesSection />);
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: /apply rules to to categorise/i,
+      }),
+    );
+    await waitFor(() =>
+      expect(triggerToast).toHaveBeenCalledWith(
+        "Updated 2 imports. 1 skipped: more than one rule matched.",
+        true,
+      ),
+    );
+    expect(bank.applyBankRules).toHaveBeenCalledWith("w1");
+    expect(ctxRef.current.fetchData).toHaveBeenCalled();
+  });
+
+  it("hides the apply button from viewers", async () => {
+    ctxRef.current = { wallet: wallet("VIEWER"), tags: [] };
+    render(<BankRulesSection />);
+    await screen.findByText("NETFLIX");
+    expect(
+      screen.queryByRole("button", { name: /apply rules/i }),
+    ).not.toBeInTheDocument();
   });
 });

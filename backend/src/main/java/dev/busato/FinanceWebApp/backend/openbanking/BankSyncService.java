@@ -364,7 +364,7 @@ public class BankSyncService {
             .build());
   }
 
-  private static String joinNotes(String head, String bankNotes) {
+  static String joinNotes(String head, String bankNotes) {
     return bankNotes == null || bankNotes.isBlank() ? head : head + "; " + bankNotes;
   }
 

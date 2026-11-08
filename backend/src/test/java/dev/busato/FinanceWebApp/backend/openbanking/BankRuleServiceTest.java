@@ -17,13 +17,16 @@ import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.model.BankRule;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
+import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
 import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.BankRuleRequest;
 import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.BankRuleResponse;
 import dev.busato.FinanceWebApp.backend.repository.BankRuleRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
+import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,6 +46,7 @@ class BankRuleServiceTest {
   @Mock WalletRepository walletRepository;
   @Mock BankLinkService bankLinkService;
   @Mock TagMapper tagMapper;
+  @Mock TransactionRepository transactionRepository;
   @InjectMocks BankRuleService service;
 
   final UUID userId = UUID.randomUUID();
@@ -224,5 +228,102 @@ class BankRuleServiceTest {
     when(subscriptionRepository.findAllByBankRuleId(a.getId())).thenReturn(List.of());
     service.delete(userId, walletId, a.getId());
     verify(ruleRepository).delete(a);
+  }
+
+  // --- apply to "To categorise" ---
+
+  private Transaction toReview(String name, String notes, LocalDate date) {
+    Tag review = Tag.builder().name("To review").placeholder(true).build();
+    return Transaction.builder()
+        .name(name)
+        .notes(notes)
+        .tag(review)
+        .imported(true)
+        .needsReview(true)
+        .transactionDate(date)
+        .build();
+  }
+
+  private BankRule rule(String name, String text) {
+    return BankRule.builder()
+        .id(UUID.randomUUID())
+        .wallet(wallet)
+        .name(name)
+        .matchText(text)
+        .build();
+  }
+
+  @Test
+  void applyToReview_tagsRenamesAndFixesDate() {
+    Tag food = Tag.builder().name("Food").build();
+    BankRule r = rule("Conad", "conad");
+    r.setTag(food);
+    r.setRenameTo("Conad");
+    r.setDateFromName(true);
+    Transaction tx = toReview("CONAD 03.11.2026", "ref 1", LocalDate.of(2026, 11, 6));
+    when(ruleRepository.findAllByWalletIdOrderByNameAsc(walletId)).thenReturn(List.of(r));
+    when(transactionRepository.findAllByWalletIdAndImportedTrueAndTagPlaceholderTrue(walletId))
+        .thenReturn(List.of(tx));
+
+    var res = service.applyToReview(userId, walletId);
+
+    assertEquals(1, res.updated());
+    assertEquals(0, res.collisions());
+    assertEquals(food, tx.getTag());
+    assertEquals(false, tx.isNeedsReview());
+    assertEquals("Conad", tx.getName());
+    assertEquals("Bank: CONAD 03.11.2026; ref 1", tx.getNotes());
+    assertEquals(LocalDate.of(2026, 11, 3), tx.getTransactionDate());
+    verify(transactionRepository).saveAll(List.of(tx));
+  }
+
+  @Test
+  void applyToReview_matchesOriginalBankNameOfRenamedImport() {
+    Tag food = Tag.builder().name("Food").build();
+    BankRule r = rule("Conad", "conad");
+    r.setTag(food);
+    r.setRenameTo("Conad");
+    r.setReviewFirst(true);
+    // Renamed at import by a tag-less version of the rule: still to categorise.
+    Transaction tx = toReview("Conad", "Bank: CONAD SPA", LocalDate.of(2026, 11, 6));
+    when(ruleRepository.findAllByWalletIdOrderByNameAsc(walletId)).thenReturn(List.of(r));
+    when(transactionRepository.findAllByWalletIdAndImportedTrueAndTagPlaceholderTrue(walletId))
+        .thenReturn(List.of(tx));
+
+    var res = service.applyToReview(userId, walletId);
+
+    assertEquals(1, res.updated());
+    assertEquals(food, tx.getTag());
+    assertTrue(tx.isNeedsReview()); // review first
+    assertEquals("Bank: CONAD SPA", tx.getNotes()); // not duplicated
+  }
+
+  @Test
+  void applyToReview_collisionAndNoActionLeaveUntouched() {
+    BankRule a = rule("A", "shop");
+    a.setRenameTo("A");
+    BankRule b = rule("B", "shop");
+    b.setRenameTo("B");
+    BankRule subOnly = rule("Rent", "rent");
+    Transaction clash = toReview("SHOP 1", null, LocalDate.of(2026, 11, 6));
+    Transaction rent = toReview("RENT NOV", null, LocalDate.of(2026, 11, 6));
+    when(ruleRepository.findAllByWalletIdOrderByNameAsc(walletId))
+        .thenReturn(List.of(a, b, subOnly));
+    when(transactionRepository.findAllByWalletIdAndImportedTrueAndTagPlaceholderTrue(walletId))
+        .thenReturn(List.of(clash, rent));
+
+    var res = service.applyToReview(userId, walletId);
+
+    assertEquals(0, res.updated());
+    assertEquals(1, res.collisions());
+    assertEquals("SHOP 1", clash.getName());
+    assertEquals("RENT NOV", rent.getName());
+    verify(transactionRepository).saveAll(List.of());
+  }
+
+  @Test
+  void applyToReview_featureDisabled_throws() {
+    doThrow(new OpenBankingDisabledException()).when(bankLinkService).requireFeature(userId);
+    assertThrows(OpenBankingDisabledException.class, () -> service.applyToReview(userId, walletId));
   }
 }

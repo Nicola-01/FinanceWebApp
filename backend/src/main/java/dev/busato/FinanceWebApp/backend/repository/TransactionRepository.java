@@ -19,6 +19,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
   boolean existsByTag(Tag tag);
 
+  /** Bank imports still "To categorise" (on the wallet's placeholder tag). */
+  List<Transaction> findAllByWalletIdAndImportedTrueAndTagPlaceholderTrue(UUID walletId);
+
   Optional<Transaction> findByIdAndWalletId(UUID id, UUID walletId);
 
   List<Transaction> findAllBySubscriptionIdAndTransactionDateBetween(

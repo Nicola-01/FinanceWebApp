@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.openbanking;
 
 import dev.busato.FinanceWebApp.backend.model.User;
+import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.ApplyRulesResponse;
 import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.BankRuleRequest;
 import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.BankRuleResponse;
 import java.util.List;
@@ -29,6 +30,12 @@ public class BankRuleController {
       @RequestBody BankRuleRequest request,
       @AuthenticationPrincipal User user) {
     return ResponseEntity.ok(service.create(user.getId(), walletId, request));
+  }
+
+  @PostMapping("/{walletId}/apply")
+  public ResponseEntity<ApplyRulesResponse> applyToReview(
+      @PathVariable UUID walletId, @AuthenticationPrincipal User user) {
+    return ResponseEntity.ok(service.applyToReview(user.getId(), walletId));
   }
 
   @PutMapping("/{walletId}/{ruleId}")

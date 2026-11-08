@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowRight,
+  faBolt,
   faPen,
   faPlus,
   faTrash,
@@ -9,6 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import {
+  applyBankRules,
   deleteBankRule,
   getWalletBank,
   listBankRules,
@@ -31,13 +33,14 @@ export function BankRulesSection({
   /** Inside an overlay that already shows the title: drop the card header. */
   embedded?: boolean;
 } = {}) {
-  const { wallet, tags } = useWalletContext();
+  const { wallet, tags, fetchData } = useWalletContext();
   const [enabled, setEnabled] = useState(false);
   const [rules, setRules] = useState<BankRule[]>([]);
   // undefined = editor closed, null = creating, a rule = editing it.
   const [editing, setEditing] = useState<BankRule | null | undefined>();
   const [deleteTarget, setDeleteTarget] = useState<BankRule | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [applying, setApplying] = useState(false);
   const canEdit = wallet.userRole !== "VIEWER";
 
   const load = useCallback(
@@ -79,6 +82,27 @@ export function BankRulesSection({
     }
     setDeleting(false);
     setDeleteTarget(null);
+  };
+
+  const applyToReview = async () => {
+    setApplying(true);
+    try {
+      const { updated, collisions } = await applyBankRules(wallet.id);
+      const done =
+        updated === 0
+          ? "No imports to categorise matched a rule"
+          : `Updated ${updated} import${updated === 1 ? "" : "s"}`;
+      triggerToast(
+        collisions > 0
+          ? `${done}. ${collisions} skipped: more than one rule matched.`
+          : done,
+        true,
+      );
+      if (updated > 0) fetchData();
+    } catch (err) {
+      triggerToast(getApiErrorTitle(err, "Could not apply rules"), false);
+    }
+    setApplying(false);
   };
 
   const list = (
@@ -152,6 +176,19 @@ export function BankRulesSection({
           label="Add rule"
           onClick={() => setEditing(null)}
         />
+      )}
+      {canEdit && rules.length > 0 && (
+        <Button
+          variant="secondary"
+          size="sm"
+          fullWidth
+          className="mt-2"
+          disabled={applying}
+          onClick={applyToReview}
+        >
+          <FontAwesomeIcon icon={faBolt} />
+          {applying ? "Applying…" : "Apply rules to To categorise"}
+        </Button>
       )}
     </div>
   );

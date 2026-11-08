@@ -5,13 +5,18 @@ import dev.busato.FinanceWebApp.backend.mappers.TagMapper;
 import dev.busato.FinanceWebApp.backend.model.BankRule;
 import dev.busato.FinanceWebApp.backend.model.Subscription;
 import dev.busato.FinanceWebApp.backend.model.Tag;
+import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.ApplyRulesResponse;
 import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.BankRuleRequest;
 import dev.busato.FinanceWebApp.backend.openbanking.BankDtos.BankRuleResponse;
 import dev.busato.FinanceWebApp.backend.repository.BankRuleRepository;
 import dev.busato.FinanceWebApp.backend.repository.SubscriptionRepository;
 import dev.busato.FinanceWebApp.backend.repository.TagRepository;
+import dev.busato.FinanceWebApp.backend.repository.TransactionRepository;
 import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +29,15 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class BankRuleService {
 
+  private static final String BANK_NOTE = "Bank: ";
+
   private final BankRuleRepository ruleRepository;
   private final SubscriptionRepository subscriptionRepository;
   private final TagRepository tagRepository;
   private final WalletRepository walletRepository;
   private final BankLinkService bankLinkService;
   private final TagMapper tagMapper;
+  private final TransactionRepository transactionRepository;
 
   @Transactional(readOnly = true)
   @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
@@ -71,6 +79,61 @@ public class BankRuleService {
     if (!usedBy.isEmpty())
       throw new IllegalArgumentException("Used by: " + String.join(", ", usedBy));
     ruleRepository.delete(rule);
+  }
+
+  /**
+   * Runs the rules over the imports still "To categorise" (placeholder tag). Same outcome as at
+   * import time, minus subscription absorption: one matching rule applies its tag, rename and
+   * date-from-name; 2+ matching rules are counted as collisions and left untouched.
+   */
+  @Transactional
+  @PreAuthorize("@walletSecurity.hasWriteAccess(#userId, #walletId)")
+  public ApplyRulesResponse applyToReview(UUID userId, UUID walletId) {
+    bankLinkService.requireFeature(userId);
+    List<BankRule> rules = ruleRepository.findAllByWalletIdOrderByNameAsc(walletId);
+    List<Transaction> changed = new ArrayList<>();
+    int collisions = 0;
+    for (Transaction tx :
+        transactionRepository.findAllByWalletIdAndImportedTrueAndTagPlaceholderTrue(walletId)) {
+      String bankName = bankName(tx);
+      List<BankRule> hits = rules.stream().filter(r -> BankMatchRule.matches(r, bankName)).toList();
+      if (hits.size() > 1) collisions++;
+      if (hits.size() == 1 && applyRule(hits.get(0), tx, bankName)) changed.add(tx);
+    }
+    transactionRepository.saveAll(changed);
+    return new ApplyRulesResponse(changed.size(), collisions);
+  }
+
+  /** The bank's own name: a renamed import keeps it in its "Bank: <name>" note. */
+  private static String bankName(Transaction tx) {
+    String notes = tx.getNotes();
+    if (notes == null || !notes.startsWith(BANK_NOTE)) return tx.getName();
+    int end = notes.indexOf("; ");
+    return notes.substring(BANK_NOTE.length(), end < 0 ? notes.length() : end);
+  }
+
+  private static boolean applyRule(BankRule rule, Transaction tx, String bankName) {
+    boolean changed = false;
+    if (rule.getTag() != null) {
+      tx.setTag(rule.getTag());
+      tx.setNeedsReview(rule.isReviewFirst());
+      changed = true;
+    }
+    if (rule.getRenameTo() != null && !rule.getRenameTo().equals(tx.getName())) {
+      if (tx.getNotes() == null || !tx.getNotes().startsWith(BANK_NOTE))
+        tx.setNotes(BankSyncService.joinNotes(BANK_NOTE + bankName, tx.getNotes()));
+      tx.setName(rule.getRenameTo());
+      changed = true;
+    }
+    if (rule.isDateFromName()) {
+      LocalDate parsed =
+          NameDateParser.parse(bankName, tx.getTransactionDate()).orElse(tx.getTransactionDate());
+      if (!parsed.equals(tx.getTransactionDate())) {
+        tx.setTransactionDate(parsed);
+        changed = true;
+      }
+    }
+    return changed;
   }
 
   private BankRule find(UUID ruleId, UUID walletId) {

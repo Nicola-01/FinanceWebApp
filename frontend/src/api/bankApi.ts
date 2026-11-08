@@ -103,3 +103,14 @@ export const updateBankRule = (
 
 export const deleteBankRule = (walletId: string, ruleId: string) =>
   api.delete(`/bank-rules/${walletId}/${ruleId}`).then(() => undefined);
+
+export interface ApplyRulesResult {
+  updated: number;
+  collisions: number;
+}
+
+/** Runs the rules over the imports still "To categorise". */
+export const applyBankRules = (walletId: string) =>
+  api
+    .post<ApplyRulesResult>(`/bank-rules/${walletId}/apply`)
+    .then((r) => r.data);
