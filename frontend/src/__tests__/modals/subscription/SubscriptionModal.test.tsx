@@ -222,20 +222,19 @@ describe("SubscriptionModal", () => {
       await waitFor(() => expect(listBankRules).toHaveBeenCalledWith("w1"));
     });
 
-    it("date from bank hides the schedule fields but keeps the duration", async () => {
+    it("keeps the schedule and has no date-from-bank toggle", async () => {
       enableBank();
       const ref = renderModal();
       act(() => ref.current!.openModal(sub));
       expect(await screen.findByText("Open Banking")).toBeInTheDocument();
-      expect(screen.queryByText("Repeat Every")).not.toBeInTheDocument();
-      expect(screen.queryByText("Start Date")).not.toBeInTheDocument();
-      expect(screen.getByText("Ends")).toBeInTheDocument();
-
-      fireEvent.click(screen.getByRole("switch", { name: "Date from bank" }));
       expect(screen.getByText("Repeat Every")).toBeInTheDocument();
+      expect(screen.getByText("Start Date")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("switch", { name: "Date from bank" }),
+      ).not.toBeInTheDocument();
     });
 
-    it("sends the rule and a default schedule when the date comes from the bank", async () => {
+    it("sends the rule with the subscription's own schedule", async () => {
       enableBank();
       vi.mocked(api.put).mockClear();
       vi.mocked(api.put).mockResolvedValue({ data: {} });
@@ -253,9 +252,9 @@ describe("SubscriptionModal", () => {
       >;
       expect(body).toMatchObject({
         bankRuleId: "r1",
-        bankDriven: true,
-        frequencyType: "MONTHLY",
-        frequencyInterval: 1,
+        bankDriven: false,
+        frequencyType: "WEEKLY",
+        frequencyInterval: 2,
       });
     });
   });

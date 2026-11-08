@@ -26,8 +26,6 @@ export interface SchedulingRulesProps {
   onDurationTimesChange: (value: number) => void;
   durationUntil: Date | null;
   onDurationUntilChange: (value: Date) => void;
-  /** Show the "Repeat Every" row and monthly rule. Default: true. */
-  showFrequency?: boolean;
   /** Show the Active/Paused/Completed status selector. Default: true. */
   showStatus?: boolean;
   status?: SubscriptionStatus;
@@ -58,7 +56,6 @@ export function SchedulingRules({
   onDurationTimesChange,
   durationUntil,
   onDurationUntilChange,
-  showFrequency = true,
   showStatus = true,
   status,
   onStatusChange,
@@ -73,38 +70,36 @@ export function SchedulingRules({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Repeat Every */}
-        {showFrequency && (
-          <div>
-            <FieldLabel>Repeat Every</FieldLabel>
-            <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:border-[var(--brand-1)] transition-colors h-12">
-              <input
-                type="number"
-                min="1"
-                value={frequencyInterval}
-                onChange={(e) =>
-                  onFrequencyIntervalChange(Number(e.target.value) || 1)
-                }
-                className="w-1/2 bg-transparent px-3 py-2 text-app-text font-bold focus:outline-none text-center border-r border-app-border [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <CustomSelect
-                value={frequencyType}
-                onChange={(val) =>
-                  onFrequencyTypeChange(
-                    val as "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY",
-                  )
-                }
-                className="w-1/2 bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer"
-                activeColor={accentColor}
-                options={[
-                  { value: "DAILY", label: "Days" },
-                  { value: "WEEKLY", label: "Weeks" },
-                  { value: "MONTHLY", label: "Months" },
-                  { value: "YEARLY", label: "Years" },
-                ]}
-              />
-            </div>
+        <div>
+          <FieldLabel>Repeat Every</FieldLabel>
+          <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner focus-within:border-[var(--brand-1)] transition-colors h-12">
+            <input
+              type="number"
+              min="1"
+              value={frequencyInterval}
+              onChange={(e) =>
+                onFrequencyIntervalChange(Number(e.target.value) || 1)
+              }
+              className="w-1/2 bg-transparent px-3 py-2 text-app-text font-bold focus:outline-none text-center border-r border-app-border [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <CustomSelect
+              value={frequencyType}
+              onChange={(val) =>
+                onFrequencyTypeChange(
+                  val as "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY",
+                )
+              }
+              className="w-1/2 bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer"
+              activeColor={accentColor}
+              options={[
+                { value: "DAILY", label: "Days" },
+                { value: "WEEKLY", label: "Weeks" },
+                { value: "MONTHLY", label: "Months" },
+                { value: "YEARLY", label: "Years" },
+              ]}
+            />
           </div>
-        )}
+        </div>
 
         {/* Ends */}
         <div>
@@ -156,8 +151,7 @@ export function SchedulingRules({
         </div>
       </div>
 
-      {showFrequency &&
-        frequencyType === "MONTHLY" &&
+      {frequencyType === "MONTHLY" &&
         monthlyRule &&
         onMonthlyRuleChange &&
         startDate && (

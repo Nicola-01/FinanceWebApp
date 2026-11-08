@@ -51,7 +51,7 @@ describe("BankMatchSection", () => {
   it("lists None plus the wallet's rules", () => {
     render(
       <BankMatchSection
-        value={{ ruleId: null, bankDriven: false }}
+        value={{ ruleId: null }}
         onChange={() => {}}
         rules={rules}
       />,
@@ -66,7 +66,7 @@ describe("BankMatchSection", () => {
     const onChange = vi.fn();
     render(
       <BankMatchSection
-        value={{ ruleId: "r1", bankDriven: true }}
+        value={{ ruleId: "r1" }}
         onChange={onChange}
         rules={rules}
       />,
@@ -74,29 +74,21 @@ describe("BankMatchSection", () => {
     fireEvent.change(screen.getByLabelText("Bank rule"), {
       target: { value: "r2" },
     });
-    expect(onChange).toHaveBeenLastCalledWith({
-      ruleId: "r2",
-      bankDriven: true,
-    });
+    expect(onChange).toHaveBeenLastCalledWith({ ruleId: "r2" });
     fireEvent.change(screen.getByLabelText("Bank rule"), {
       target: { value: "" },
     });
-    expect(onChange).toHaveBeenLastCalledWith({
-      ruleId: null,
-      bankDriven: false,
-    });
+    expect(onChange).toHaveBeenLastCalledWith({ ruleId: null });
   });
 
-  it("disables date from bank without a rule", () => {
+  it("has no date-from-bank toggle", () => {
     render(
       <BankMatchSection
-        value={{ ruleId: null, bankDriven: false }}
+        value={{ ruleId: "r1" }}
         onChange={() => {}}
         rules={rules}
       />,
     );
-    expect(
-      screen.getByRole("switch", { name: "Date from bank" }),
-    ).toBeDisabled();
+    expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });
 });

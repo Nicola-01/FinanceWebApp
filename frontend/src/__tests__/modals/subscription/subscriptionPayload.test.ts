@@ -46,15 +46,15 @@ describe("buildSchedulePayload", () => {
 });
 
 describe("buildBankMatchPayload", () => {
-  it("sends the selected rule and date-from-bank", () => {
-    expect(buildBankMatchPayload({ ruleId: "r1", bankDriven: true })).toEqual({
+  it("sends the selected rule and turns date-from-bank off", () => {
+    expect(buildBankMatchPayload({ ruleId: "r1" })).toEqual({
       bankRuleId: "r1",
-      bankDriven: true,
+      bankDriven: false,
     });
   });
 
-  it("clears the rule with None and never sends date-from-bank without a rule", () => {
-    expect(buildBankMatchPayload({ ruleId: null, bankDriven: true })).toEqual({
+  it("clears the rule with None", () => {
+    expect(buildBankMatchPayload({ ruleId: null })).toEqual({
       clearBankRule: true,
       bankDriven: false,
     });

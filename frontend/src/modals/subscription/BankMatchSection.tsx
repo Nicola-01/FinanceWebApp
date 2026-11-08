@@ -1,4 +1,3 @@
-import Toggle from "../../components/ui/Toggle.tsx";
 import { CustomSelect } from "../../components/ui/CustomSelect.tsx";
 import { FieldLabel } from "../../components/ui/FieldLabel";
 import type { BankRule } from "../../types/domain";
@@ -27,13 +26,7 @@ export function BankMatchSection({
         <div className="flex bg-app-input border border-app-border rounded-xl shadow-inner h-12">
           <CustomSelect
             value={value.ruleId ?? ""}
-            onChange={(id) =>
-              onChange(
-                id
-                  ? { ...value, ruleId: id }
-                  : { ruleId: null, bankDriven: false },
-              )
-            }
+            onChange={(id) => onChange({ ruleId: id || null })}
             className="w-full bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer"
             activeColor={accentColor}
             options={[
@@ -44,21 +37,6 @@ export function BankMatchSection({
         </div>
         <p className="mt-1 text-xs text-app-muted">
           Rules are managed in the wallet settings, under Data.
-        </p>
-      </div>
-      <div>
-        <Toggle
-          checked={value.bankDriven}
-          onChange={(bankDriven) => onChange({ ...value, bankDriven })}
-          accentColor={accentColor}
-          size="sm"
-          disabled={!value.ruleId}
-          label="Date from bank"
-          aria-label="Date from bank"
-        />
-        <p className="mt-1 text-xs text-app-muted">
-          Each matching bank transaction becomes an execution, on the bank's
-          date.
         </p>
       </div>
     </div>

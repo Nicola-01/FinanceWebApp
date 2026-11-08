@@ -33,7 +33,7 @@ import {
   type MonthlyRule,
 } from "../../utils/monthlyRule";
 
-const EMPTY_BANK_MATCH: BankMatchFields = { ruleId: null, bankDriven: false };
+const EMPTY_BANK_MATCH: BankMatchFields = { ruleId: null };
 
 export interface SubscriptionModalHandle {
   openModal: (sub?: Subscription, initialDate?: Date) => void;
@@ -133,10 +133,7 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           setMonthlyRule(
             monthlyRuleFromSub(sub, parseLocalIsoDate(sub.startDate)),
           );
-          setBankMatch({
-            ruleId: sub.bankRuleId ?? null,
-            bankDriven: sub.bankDriven ?? false,
-          });
+          setBankMatch({ ruleId: sub.bankRuleId ?? null });
         } else {
           // --- CREATE MODE ---
           setEditingSubId(null);
@@ -170,8 +167,6 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
       if (!type) return triggerToast("Please select income or expense.", false);
 
       setLoading(true);
-      // Date from bank: no schedule of its own, the backend ignores these defaults.
-      const bankDriven = bankMatch.bankDriven && bankMatch.ruleId !== null;
       try {
         // Payload mapped to SubscriptionRequest.java
         const payload = {
@@ -180,13 +175,13 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
           autoExchangeRate,
           ...buildSchedulePayload({
             status,
-            startDate: bankDriven ? new Date() : startDate,
-            frequencyType: bankDriven ? "MONTHLY" : frequencyType,
-            frequencyInterval: bankDriven ? 1 : frequencyInterval,
+            startDate,
+            frequencyType,
+            frequencyInterval,
             duration,
             durationTimes,
             durationUntil,
-            monthlyRule: bankDriven ? EMPTY_MONTHLY_RULE : monthlyRule,
+            monthlyRule,
           }),
           ...buildBankMatchPayload(bankMatch),
         };
@@ -222,8 +217,6 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
       selectedTagName !== "" &&
       type !== "";
     const isEditing = !!editingSubId;
-    const bankDriven =
-      bankEnabled && bankMatch.bankDriven && bankMatch.ruleId !== null;
 
     // Primary save control lives in the sticky footer.
     const footer = (
@@ -287,20 +280,18 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
                 onSelectTag={setSelectedTagName}
               />
             </div>
-            {!bankDriven && (
-              <div>
-                <FieldLabel>Start Date</FieldLabel>
-                <CustomDatePicker
-                  isRange={false}
-                  color={wallet.color}
-                  initialPreset="custom"
-                  initialStartDate={startDate}
-                  onChange={(val) => {
-                    if (val instanceof Date) setStartDate(val);
-                  }}
-                />
-              </div>
-            )}
+            <div>
+              <FieldLabel>Start Date</FieldLabel>
+              <CustomDatePicker
+                isRange={false}
+                color={wallet.color}
+                initialPreset="custom"
+                initialStartDate={startDate}
+                onChange={(val) => {
+                  if (val instanceof Date) setStartDate(val);
+                }}
+              />
+            </div>
           </div>
 
           {/* 3. SCHEDULING RULES (frequency & duration) */}
@@ -315,7 +306,6 @@ export const SubscriptionModal = forwardRef<SubscriptionModalHandle, Props>(
             onDurationTimesChange={setDurationTimes}
             durationUntil={durationUntil}
             onDurationUntilChange={setDurationUntil}
-            showFrequency={!bankDriven}
             showStatus
             status={status}
             onStatusChange={setStatus}

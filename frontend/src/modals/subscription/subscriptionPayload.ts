@@ -36,15 +36,14 @@ export const buildSchedulePayload = (f: ScheduleFields) => ({
 export interface BankMatchFields {
   /** Selected wallet bank rule; null = None. */
   ruleId: string | null;
-  bankDriven: boolean;
 }
 
 /**
  * Bank rule part of a `SubscriptionRequest`. The backend reads a null
- * `bankRuleId` as "unchanged", so None is sent as `clearBankRule`, and
- * date-from-bank is only sent together with a rule.
+ * `bankRuleId` as "unchanged", so None is sent as `clearBankRule`. The form
+ * no longer offers date-from-bank, so it is always switched off.
  */
 export const buildBankMatchPayload = (f: BankMatchFields) =>
   f.ruleId
-    ? { bankRuleId: f.ruleId, bankDriven: f.bankDriven }
+    ? { bankRuleId: f.ruleId, bankDriven: false }
     : { clearBankRule: true, bankDriven: false };
