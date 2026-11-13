@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { faTags } from "@fortawesome/free-solid-svg-icons";
 import { IconColorSelector } from "./IconColorSelector.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 interface IconPickerButtonProps {
   icon: IconKey;
@@ -24,6 +25,8 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
   isOpen,
   onToggle,
 }) => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const buttonRef = useRef<HTMLDivElement>(null);
   const popupRef = useRef<HTMLDivElement>(null); // ref to the popup container
   const [coords, setCoords] = useState<{
@@ -91,8 +94,20 @@ export const IconPickerButton: React.FC<IconPickerButtonProps> = ({
       <div
         ref={buttonRef}
         onClick={() => onToggle(!isOpen)}
-        className={`shrink-0 flex items-center justify-center border border-app-border bg-app-surface shadow-sm cursor-pointer hover:scale-110 transition-transform ${sizeClasses}`}
-        style={{ color }}
+        className={`shrink-0 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform ${
+          v2
+            ? "bg-app-raised"
+            : "border border-app-border bg-app-surface shadow-sm"
+        } ${sizeClasses}`}
+        // ui-v2-switch: the category colour sits on an 18% tint tile, as CategoryIcon does.
+        style={
+          v2
+            ? {
+                color,
+                backgroundColor: `color-mix(in srgb, ${color} 18%, transparent)`,
+              }
+            : { color }
+        }
         title="Change Icon & Color"
       >
         <FontAwesomeIcon icon={ICONS[icon] || faTags} />

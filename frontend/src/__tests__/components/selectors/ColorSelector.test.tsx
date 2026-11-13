@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ColorSelector } from "../../../components/selectors/ColorSelector";
 import { getRecentColors } from "../../../utils/recentColors";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 // The colour wheel and shade slider are heavy canvas/drag widgets; stub them so
 // the "Advanced" panel can be exercised deterministically. Keep the real colour
@@ -144,5 +145,33 @@ describe("ColorSelector", () => {
     unmount();
 
     expect(getRecentColors()).toEqual(["#123456"]);
+  });
+});
+
+describe("ColorSelector v2 UI", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    setUiVersion("v2");
+  });
+  afterEach(() => setUiVersion("v1"));
+
+  it("draws swatches as rounded tiles with a class-based selection ring", () => {
+    render(<ColorSelector value="#ff8c00" onChange={vi.fn()} />);
+    const selected = screen.getByTitle("#ff8c00");
+    expect(selected).toHaveClass(
+      "rounded-[var(--r-sm)]",
+      "ring-2",
+      "ring-app-text",
+    );
+    expect(selected.style.boxShadow).toBe("");
+    expect(screen.getByTitle("#ff00ff")).not.toHaveClass("ring-2");
+  });
+
+  it("still fires onChange when a preset is picked", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<ColorSelector value="" onChange={onChange} />);
+    await user.click(screen.getByTitle("#ff8c00"));
+    expect(onChange).toHaveBeenCalledWith("#ff8c00");
   });
 });

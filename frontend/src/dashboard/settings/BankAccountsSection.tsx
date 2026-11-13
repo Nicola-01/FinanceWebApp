@@ -8,7 +8,8 @@ import {
   deleteConnection,
   type BankConnection,
 } from "../../api/bankApi";
-import { Card } from "../../components/ui/Card.tsx";
+import { SettingsBox } from "./SettingsBox.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import Button from "../../components/ui/Button.tsx";
 import { Badge, type BadgeTone } from "../../components/ui/Badge.tsx";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
@@ -42,6 +43,8 @@ const relativeTime = (iso?: string) => {
 /** Bank connections for the active wallet; explains how to get access when not enabled. */
 export const BankAccountsSection: React.FC = () => {
   const { wallet, fetchData } = useWalletContext();
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
   // null until the first load answers, so nothing flashes before we know.
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [connections, setConnections] = useState<BankConnection[]>([]);
@@ -67,14 +70,14 @@ export const BankAccountsSection: React.FC = () => {
   }, [load]);
 
   const notice = (text: string) => (
-    <Card
+    <SettingsBox
       title="Bank accounts"
-      subtitle="Import transactions automatically from your bank"
+      description="Import transactions automatically from your bank"
       icon={faBuildingColumns}
       iconColor={wallet.color}
     >
       <p className="text-sm text-app-muted">{text}</p>
-    </Card>
+    </SettingsBox>
   );
 
   if (loadFailed) return notice("Could not load bank accounts.");
@@ -128,33 +131,49 @@ export const BankAccountsSection: React.FC = () => {
   };
 
   return (
-    <Card
+    <SettingsBox
       title="Bank accounts"
-      subtitle="Import transactions automatically from your bank"
+      description="Import transactions automatically from your bank"
       icon={faBuildingColumns}
       iconColor={wallet.color}
     >
-      <div className="flex flex-col gap-3">
+      <div className={isV2 ? "flex flex-col" : "flex flex-col gap-3"}>
         {connections.map((c) => {
           const expiring = isExpiring(c);
           return (
             <div
               key={c.id}
-              className="flex flex-col gap-2 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4"
+              className={
+                isV2
+                  ? "flex flex-col gap-2 border-t border-app-border py-3 first:border-t-0 first:pt-0"
+                  : "flex flex-col gap-2 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4"
+              }
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-bold text-app-text">{c.aspspName}</span>
-                <Badge tone={STATUS_TONE[c.status]} uppercase>
-                  {c.status}
-                </Badge>
+                {isV2 ? ( // ui-v2-switch
+                  <Badge tone={STATUS_TONE[c.status]}>
+                    {c.status.charAt(0) + c.status.slice(1).toLowerCase()}
+                  </Badge>
+                ) : (
+                  <Badge tone={STATUS_TONE[c.status]} uppercase>
+                    {c.status}
+                  </Badge>
+                )}
               </div>
               {c.lastError && (
-                <p className="text-sm text-app-red">{c.lastError}</p>
+                <p
+                  className={`text-sm ${isV2 ? "text-app-danger" : "text-app-red"}`}
+                >
+                  {c.lastError}
+                </p>
               )}
               {c.accounts.map((a) => (
                 <div key={a.id} className="text-sm text-app-muted">
                   <span className="text-app-text">{a.displayName}</span>{" "}
-                  <span className="font-app-mono">{a.maskedIban}</span>
+                  <span className={isV2 ? "tabular-nums" : "font-app-mono"}>
+                    {a.maskedIban}
+                  </span>
                   {" · Last sync "}
                   {relativeTime(a.lastSyncedAt)}
                 </div>
@@ -196,7 +215,7 @@ export const BankAccountsSection: React.FC = () => {
         {isOwner && (
           <div>
             <Button variant="secondary" onClick={() => setLinking(true)}>
-              Link bank
+              {isV2 ? "Link a bank account" : "Link bank"}
             </Button>
           </div>
         )}
@@ -224,6 +243,6 @@ export const BankAccountsSection: React.FC = () => {
       >
         <ConnectBankForm walletId={wallet.id} />
       </ResponsiveOverlay>
-    </Card>
+    </SettingsBox>
   );
 };

@@ -9,6 +9,7 @@ import {
 import { DndContext } from "@dnd-kit/core";
 import type { Tag } from "../../types/domain.ts";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { useDeleteModal } from "../../modals/common/DeleteModalContext.tsx";
@@ -58,6 +59,8 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
     handleUpdateTag,
   });
 
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [addingMain, setAddingMain] = useState(false);
   const [addingChildFor, setAddingChildFor] = useState<string | null>(null);
@@ -107,7 +110,13 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
       >
         <div className="mb-3">
           <div className="flex items-center gap-2">
-            <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wider text-app-muted">
+            <span
+              className={
+                v2 // ui-v2-switch
+                  ? "shrink-0 text-[13px] font-medium text-app-muted"
+                  : "shrink-0 text-[11px] font-semibold uppercase tracking-wider text-app-muted"
+              }
+            >
               Sort
             </span>
             <Selector
@@ -159,13 +168,23 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
 
         {tree.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-app-input text-app-muted">
+            <div
+              className={`flex h-14 w-14 items-center justify-center rounded-full ${v2 ? "bg-app-raised" : "bg-app-input"} text-app-muted`}
+            >
               <FontAwesomeIcon icon={faLayerGroup} className="text-xl" />
             </div>
-            <h3 className="text-sm font-bold text-app-text">
+            <h3
+              className={
+                v2 // ui-v2-switch
+                  ? "font-display text-[17px] font-semibold text-app-text"
+                  : "text-sm font-bold text-app-text"
+              }
+            >
               No categories yet
             </h3>
-            <p className="max-w-xs text-xs text-app-muted">
+            <p
+              className={`max-w-xs ${v2 ? "text-[13px]" : "text-xs"} text-app-muted`}
+            >
               {readOnly
                 ? "This wallet has no categories."
                 : "Create your first main category to start organizing transactions."}

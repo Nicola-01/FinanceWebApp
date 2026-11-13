@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { setUiVersion } from "../../../utils/uiVersion";
+import { render, screen, act, cleanup } from "@testing-library/react";
 import { ToastHost } from "../../../components/ui/ToastHost";
 import { triggerToast } from "../../../components/ui/ToastNotification";
 
@@ -67,5 +68,40 @@ describe("ToastHost", () => {
     toast = getToast("Temporary message");
     expect(toast.className).toContain("opacity-0");
     expect(toast.className).toContain("invisible");
+  });
+});
+
+describe("ToastHost v2", () => {
+  beforeEach(() => {
+    setUiVersion("v2");
+    const root = document.createElement("div");
+    root.id = "toast-root";
+    document.body.appendChild(root);
+  });
+
+  afterEach(() => {
+    // Unmount before removing the portal target, or a late re-render throws.
+    cleanup();
+    setUiVersion("v1");
+    document.getElementById("toast-root")?.remove();
+  });
+
+  it("drops the border and blur, and tints the status chip with its colour", () => {
+    render(<ToastHost />);
+    act(() => triggerToast("Saved", true));
+    const toast = screen.getByText("Saved").parentElement as HTMLElement;
+    expect(toast.className).toContain("bg-app-card");
+    expect(toast.className).not.toContain("backdrop-blur-md");
+    expect(toast.className).not.toContain("border-app-green");
+    const chip = toast.querySelector('[aria-hidden="true"]') as HTMLElement;
+    expect(chip.className).toContain("text-app-income");
+  });
+
+  it("uses the danger status for failures", () => {
+    render(<ToastHost />);
+    act(() => triggerToast("Failed", false));
+    const toast = screen.getByText("Failed").parentElement as HTMLElement;
+    const chip = toast.querySelector('[aria-hidden="true"]') as HTMLElement;
+    expect(chip.className).toContain("text-app-danger");
   });
 });

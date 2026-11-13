@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { WalletPermState } from "../../../types/domain";
 import { WalletPermissionSelector } from "../../../components/pat/WalletPermissionSelector";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 // Factory for a wallet-permission row. Defaults to a fully disabled ("none")
 // state so each test opts into exactly the flags it exercises.
@@ -176,5 +177,42 @@ describe("WalletPermissionSelector", () => {
     await user.click(writeButtons[1]); // Beta's Write
     expect(setPermission).toHaveBeenCalledTimes(1);
     expect(setPermission).toHaveBeenCalledWith("wb", "write");
+  });
+});
+
+describe("WalletPermissionSelector v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => {
+    setUiVersion("v1");
+    localStorage.clear();
+  });
+
+  it("paints enabled rows as a card fill without the inline wallet tint", () => {
+    render(
+      <WalletPermissionSelector
+        walletPerms={[wp({ walletName: "Alpha", enabled: true, read: true })]}
+        setPermission={vi.fn()}
+      />,
+    );
+    const row = screen.getByText("Alpha").closest(".flex-col")
+      ?.parentElement as HTMLElement;
+    expect(row.className).toContain("bg-app-card");
+    expect(row.style.backgroundColor).toBe("");
+    expect(row.style.borderColor).toBe("");
+  });
+
+  it("still grants write access on click for an owner", async () => {
+    const user = userEvent.setup();
+    const setPermission = vi.fn();
+    render(
+      <WalletPermissionSelector
+        walletPerms={[
+          wp({ walletId: "w1", userRole: "OWNER", enabled: true, read: true }),
+        ]}
+        setPermission={setPermission}
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: "Write" }));
+    expect(setPermission).toHaveBeenCalledWith("w1", "write");
   });
 });

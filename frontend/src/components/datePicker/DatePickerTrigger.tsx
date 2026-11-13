@@ -1,6 +1,7 @@
 import React from "react";
 import { format, subMonths, addMonths, subYears, addYears } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useUiVersion } from "../../hooks/useUiVersion";
 import type { PresetType } from "./datePresets";
 
 export interface DatePickerTriggerProps {
@@ -37,7 +38,19 @@ export default function DatePickerTrigger({
   onToggle,
   triggerClassName,
 }: DatePickerTriggerProps) {
+  const [ui] = useUiVersion();
+  // ui-v2-switch: v2 is a flat raised field (like Input) with no border.
+  const isV2 = ui === "v2";
   const bgMain = isDark ? "bg-app-card" : "bg-app-bg";
+  const textFaint = isV2 ? "text-app-faint" : textMuted;
+  // ui-v2-switch: step arrows are always enabled here, so v2 gives them the muted
+  // (not faint) tone with a hover lift; v1 keeps its original styling.
+  const arrowClass = isV2
+    ? "p-1 shrink-0 text-app-muted hover:text-app-text hover:bg-app-card rounded-[var(--r-sm)]"
+    : `p-1 rounded shrink-0 ${bgHover} ${textMuted}`;
+  const chipBg = isV2
+    ? "bg-app-card rounded-[var(--r-sm)]"
+    : `rounded border ${bgInput} ${borderInput}`;
 
   const renderTriggerContent = () => {
     // Single-date mode: show just the selected date
@@ -71,7 +84,7 @@ export default function DatePickerTrigger({
               e.stopPropagation();
               setCurrentDate((prev) => subMonths(prev, 1));
             }}
-            className={`p-1 rounded shrink-0 ${bgHover} ${textMuted}`}
+            className={arrowClass}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -85,7 +98,7 @@ export default function DatePickerTrigger({
               e.stopPropagation();
               setCurrentDate((prev) => addMonths(prev, 1));
             }}
-            className={`p-1 rounded shrink-0 ${bgHover} ${textMuted}`}
+            className={arrowClass}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -100,7 +113,7 @@ export default function DatePickerTrigger({
               e.stopPropagation();
               setCurrentDate((prev) => subYears(prev, 1));
             }}
-            className={`p-1 rounded shrink-0 ${bgHover} ${textMuted}`}
+            className={arrowClass}
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -114,7 +127,7 @@ export default function DatePickerTrigger({
               e.stopPropagation();
               setCurrentDate((prev) => addYears(prev, 1));
             }}
-            className={`p-1 rounded shrink-0 ${bgHover} ${textMuted}`}
+            className={arrowClass}
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -127,13 +140,13 @@ export default function DatePickerTrigger({
         className={`flex items-center gap-2 flex-1 min-w-0 font-medium text-sm w-full text-app-text`}
       >
         <span
-          className={`flex-1 min-w-0 truncate text-center rounded py-1 px-2 border ${bgInput} ${borderInput}`}
+          className={`flex-1 min-w-0 truncate text-center py-1 px-2 ${chipBg}`}
         >
           {formatDateLabel(startDate)}
         </span>
-        <span className={`${textMuted} shrink-0`}>→</span>
+        <span className={`${textFaint} shrink-0`}>→</span>
         <span
-          className={`flex-1 min-w-0 truncate text-center rounded py-1 px-2 border ${bgInput} ${borderInput}`}
+          className={`flex-1 min-w-0 truncate text-center py-1 px-2 ${chipBg}`}
         >
           {formatDateLabel(endDate)}
         </span>
@@ -147,7 +160,10 @@ export default function DatePickerTrigger({
       className={
         triggerClassName
           ? `flex-1 min-w-0 flex items-center justify-between cursor-pointer ${triggerClassName}`
-          : `flex-1 min-w-0 flex items-center justify-between p-3 border rounded-lg shadow-sm cursor-pointer transition-colors h-12 ${bgMain} ${borderMain} hover:border-opacity-70`
+          : // ui-v2-switch
+            isV2
+            ? "flex-1 min-w-0 flex items-center justify-between px-3 py-2.5 rounded-[var(--r-input)] bg-app-raised text-app-text cursor-pointer transition-shadow duration-200 focus-within:ring-2 focus-within:ring-wallet/40"
+            : `flex-1 min-w-0 flex items-center justify-between p-3 border rounded-lg shadow-sm cursor-pointer transition-colors h-12 ${bgMain} ${borderMain} hover:border-opacity-70`
       }
     >
       <div className="flex items-center w-full min-w-0">

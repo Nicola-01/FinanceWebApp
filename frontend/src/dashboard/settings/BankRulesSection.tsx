@@ -15,7 +15,8 @@ import {
   getWalletBank,
   listBankRules,
 } from "../../api/bankApi";
-import { Card } from "../../components/ui/Card.tsx";
+import { SettingsBox } from "./SettingsBox.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import Button from "../../components/ui/Button.tsx";
 import { Badge } from "../../components/ui/Badge.tsx";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
@@ -34,6 +35,8 @@ export function BankRulesSection({
   embedded?: boolean;
 } = {}) {
   const { wallet, tags, fetchData } = useWalletContext();
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
   const [enabled, setEnabled] = useState(false);
   const [rules, setRules] = useState<BankRule[]>([]);
   // undefined = editor closed, null = creating, a rule = editing it.
@@ -123,7 +126,13 @@ export function BankRulesSection({
                 {r.tag && <TagBadge tag={r.tag} showParent={false} />}
               </div>
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-app-muted">
-                <code className="max-w-full truncate rounded-md border border-app-border bg-app-surface px-2 py-0.5 font-app-mono text-xs text-app-text">
+                <code
+                  className={
+                    isV2
+                      ? "max-w-full truncate rounded-[var(--r-sm)] bg-app-raised px-2 py-0.5 text-[13px] text-app-text"
+                      : "max-w-full truncate rounded-md border border-app-border bg-app-surface px-2 py-0.5 font-app-mono text-xs text-app-text"
+                  }
+                >
                   {r.matchText}
                 </code>
                 {r.regex && <Badge size="sm">Regex</Badge>}
@@ -160,7 +169,9 @@ export function BankRulesSection({
                   variant="ghost"
                   size="sm"
                   aria-label={`Delete ${r.name}`}
-                  className="hover:text-app-red!"
+                  className={
+                    isV2 ? "hover:text-app-danger!" : "hover:text-app-red!"
+                  }
                   onClick={() => setDeleteTarget(r)}
                 >
                   <FontAwesomeIcon icon={faTrash} />
@@ -230,14 +241,14 @@ export function BankRulesSection({
     );
 
   return (
-    <Card
+    <SettingsBox
       title="Bank rules"
-      subtitle="Tag and rename imported transactions automatically"
+      description="Tag and rename imported transactions automatically"
       icon={faWandMagicSparkles}
       iconColor={wallet.color}
     >
       {list}
       {overlays}
-    </Card>
+    </SettingsBox>
   );
 }

@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent, act, within } from "@testing-library/react";
 import { CurrencySelector } from "../../../components/selectors/CurrencySelector";
 import { CURRENCY_META } from "../../../utils/currencies";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 // Hydration adds a code (AED) that is NOT in the curated static set, so we can
 // prove the long list is pulled in on open. Curated meta + MAIN codes stay real.
@@ -174,5 +175,40 @@ describe("CurrencySelector", () => {
     expect(
       screen.getByLabelText("Remove GBP as default currency"),
     ).toBeInTheDocument();
+  });
+});
+
+describe("CurrencySelector v2 UI", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    setUiVersion("v2");
+    vi.clearAllMocks();
+  });
+  afterEach(() => setUiVersion("v1"));
+
+  it("renders a borderless raised trigger", () => {
+    render(<CurrencySelector value="USD" onChange={vi.fn()} />);
+    const trigger = screen.getByRole("button");
+    expect(trigger).toHaveClass("bg-app-raised", "rounded-[var(--r-input)]");
+    expect(trigger).not.toHaveClass("border");
+  });
+
+  it("marks the selected row with the raised fill and a check, no accent", async () => {
+    render(<CurrencySelector value="USD" onChange={vi.fn()} />);
+    await openDropdown();
+    const selected = screen
+      .getByRole("listbox", { hidden: true })
+      .querySelector('[aria-selected="true"]') as HTMLElement;
+    expect(selected).toHaveClass("bg-app-raised", "text-app-text");
+    expect(selected.getAttribute("style")).toBeNull();
+    expect(selected.querySelector("svg")).not.toBeNull();
+  });
+
+  it("still selects on mousedown", async () => {
+    const onChange = vi.fn();
+    render(<CurrencySelector value="USD" onChange={onChange} />);
+    await openDropdown();
+    fireEvent.mouseDown(screen.getByText("Euro"));
+    expect(onChange).toHaveBeenCalledWith("EUR");
   });
 });

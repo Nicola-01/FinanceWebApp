@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { PatToken } from "../../../types/domain";
 import { TokenActionButtons } from "../../../components/pat/TokenActionButtons";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 const token = (over: Partial<PatToken> = {}): PatToken => ({
   id: "t1",
@@ -60,5 +61,27 @@ describe("TokenActionButtons (smoke)", () => {
     expect(
       screen.getByRole("button", { name: /revoke token/i }),
     ).toBeDisabled();
+  });
+});
+
+describe("TokenActionButtons v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => {
+    setUiVersion("v1");
+    localStorage.clear();
+  });
+
+  it("uses a raised hover fill with a danger text tint on revoke", async () => {
+    const user = userEvent.setup();
+    const onDelete = vi.fn();
+    render(<TokenActionButtons token={token()} onDelete={onDelete} />);
+    const revoke = screen.getByRole("button", { name: /revoke token/i });
+    expect(revoke.className).toContain("hover:bg-app-raised");
+    expect(revoke.className).toContain("hover:text-app-danger");
+    expect(revoke.className).not.toContain("bg-app-red/15");
+    await user.click(revoke);
+    expect(onDelete).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "t1" }),
+    );
   });
 });

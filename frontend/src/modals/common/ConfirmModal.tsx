@@ -4,6 +4,7 @@ import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "./ModalDialog";
 import Button from "../../components/ui/Button";
 import { useHoldToConfirm } from "../../hooks/useHoldToConfirm";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface ConfirmModalProps {
   open: boolean;
@@ -28,6 +29,20 @@ const TONES = {
     text: "text-app-yellow",
     fill: "bg-app-yellow",
     badge: "bg-app-yellow/15",
+  },
+} as const;
+
+// ui-v2-switch: v2 status tokens (income/warn/danger), same tone keys.
+const TONES_V2 = {
+  danger: {
+    text: "text-app-danger",
+    fill: "bg-app-danger",
+    badge: "bg-app-danger/15",
+  },
+  warning: {
+    text: "text-app-warn",
+    fill: "bg-app-warn",
+    badge: "bg-app-warn/15",
   },
 } as const;
 
@@ -65,7 +80,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     !busy,
   );
 
-  const t = TONES[tone];
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
+  const t = (isV2 ? TONES_V2 : TONES)[tone];
 
   return (
     <ModalDialog
@@ -87,7 +104,15 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               className={`text-2xl ${t.text}`}
             />
           </span>
-          <h3 className="m-0 text-xl font-bold text-app-text">{title}</h3>
+          <h3
+            className={`m-0 ${
+              isV2
+                ? "font-display text-xl font-semibold tracking-[-0.02em] text-app-text"
+                : "text-xl font-bold text-app-text"
+            }`}
+          >
+            {title}
+          </h3>
         </div>
 
         <div className="mb-6 text-sm text-app-muted">{message}</div>
@@ -99,7 +124,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             onPointerDown={startHold}
             onPointerUp={endHold}
             onPointerLeave={endHold}
-            className="relative w-full select-none overflow-hidden rounded-[var(--r-cta)] border border-app-border bg-app-input py-3 font-bold text-app-text disabled:opacity-60"
+            className={`relative w-full select-none overflow-hidden rounded-[var(--r-cta)] border border-app-border bg-app-input py-3 text-app-text disabled:opacity-60 ${
+              isV2 ? "font-semibold" : "font-bold"
+            }`}
           >
             <span
               aria-hidden

@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction D — Wallet card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  :root {
+    --bg: #141312; --surface: #1d1c1a; --raised: #262421; --line: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --income: #7fcf95; --warn: #f0b85a;
+    --wallet: #f2cc2f; --on-wallet: #1d1a10;
+    --display: "Bricolage Grotesque", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.5 "Instrument Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+  .app { display: grid; grid-template-columns: 228px 1fr; min-height: 100vh; }
+  aside { background: var(--surface); padding: 20px 14px; display: flex; flex-direction: column; gap: 8px; position: sticky; top: 0; height: 100vh; }
+  .brand { display: flex; align-items: center; gap: 8px; font: 700 18px var(--display); padding: 0 6px 18px; }
+  .brand img { width: 28px; }
+  .side-h { color: var(--muted); font-size: 13px; padding: 0 6px; }
+  /* wallets as mini cards: the colour is the identity */
+  .mini { display: grid; grid-template-columns: 1fr auto; align-items: end; height: 58px; padding: 10px 12px; border-radius: 12px; text-align: left; background: var(--c); color: var(--on); transition: transform .15s; }
+  .mini:hover { transform: translateX(2px); }
+  .mini[aria-current] { outline: 2px solid var(--text); outline-offset: 3px; }
+  .mini b { font: 600 15px var(--display); }
+  .mini small { font-size: 11px; opacity: .7; }
+  .side-foot { margin-top: auto; display: grid; gap: 2px; }
+  .link { display: flex; align-items: center; gap: 10px; padding: 8px 6px; color: var(--muted); border-radius: 8px; }
+  .link:hover { color: var(--text); background: var(--raised); }
+  .link .n { margin-left: auto; font-size: 13px; color: var(--faint); }
+
+  main { padding: 24px 40px 60px; max-width: 1180px; width: 100%; min-width: 0; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+  .seg { display: inline-flex; background: var(--surface); border-radius: 12px; padding: 4px; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+  .seg button { display: flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 9px; color: var(--muted); white-space: nowrap; }
+  .seg button i { font-size: 13px; }
+  .seg button[aria-selected="true"] { background: var(--raised); color: var(--text); }
+  .seg button[aria-selected="true"] i { color: var(--wallet); }
+  .me { display: flex; gap: 16px; align-items: center; color: var(--muted); }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: #3b3833; display: grid; place-items: center; color: var(--text); font-size: 13px; }
+
+  .hero { display: grid; grid-template-columns: 1.5fr 1fr; gap: 14px; }
+  .card { position: relative; overflow: hidden; background: var(--wallet); color: var(--on-wallet); border-radius: 20px; padding: 22px 24px; min-height: 196px; gap: 22px; display: flex; flex-direction: column; justify-content: space-between; }
+  .card .emblem { position: absolute; right: -18px; bottom: -22px; width: 150px; opacity: .9; transform: rotate(-8deg); pointer-events: none; }
+  .card h1 { font: 700 30px/1.1 var(--display); letter-spacing: -.02em; }
+  .card .meta { font-size: 13px; opacity: .7; margin-top: 4px; }
+  .card .k { font-size: 13px; opacity: .7; }
+  .card .big { font: 700 46px/1 var(--display); letter-spacing: -.03em; margin-top: 4px; }
+  .month { display: inline-flex; align-items: center; gap: 4px; margin-top: 14px; background: color-mix(in srgb, var(--on-wallet) 10%, transparent); border-radius: 10px; padding: 3px; position: relative; }
+  .month button { width: 28px; height: 28px; border-radius: 8px; }
+  .month button:hover { background: color-mix(in srgb, var(--on-wallet) 12%, transparent); }
+  .month span { padding: 0 6px; font-weight: 600; }
+
+  .tiles { display: grid; gap: 14px; }
+  .tile { background: var(--surface); border-radius: 16px; padding: 16px 18px; display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; }
+  .tile .k { color: var(--muted); font-size: 13px; }
+  .tile .v { font: 650 26px/1.1 var(--display); letter-spacing: -.02em; }
+  .tile .v.in { color: var(--income); }
+  .tile .sub { color: var(--faint); font-size: 13px; }
+
+  .ic { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; font-size: 16px; background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--c); flex: none; }
+
+  .cols { display: grid; grid-template-columns: 1fr 300px; gap: 32px; margin-top: 32px; }
+  h2 { font: 650 20px var(--display); display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  h2 small { font: 400 14px "Instrument Sans", sans-serif; color: var(--muted); }
+  .tools { display: flex; gap: 10px; margin-bottom: 8px; }
+  .search { flex: 1; display: flex; align-items: center; gap: 10px; background: var(--surface); border-radius: 12px; padding: 0 14px; color: var(--faint); }
+  .search input { flex: 1; background: none; border: 0; color: var(--text); font: inherit; padding: 9px 0; outline: none; }
+  .ghost { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 12px; background: var(--surface); color: var(--muted); }
+  .ghost:hover { color: var(--text); }
+  .cta { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 12px; background: var(--wallet); color: var(--on-wallet); font-weight: 600; white-space: nowrap; }
+  .cta:hover { filter: brightness(1.06); }
+
+  .todo { background: var(--surface); border-radius: 14px; padding: 12px 14px; display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; margin: 8px 0; box-shadow: inset 3px 0 0 var(--warn); }
+  .todo .c { color: var(--warn); }
+  .todo input { width: 100px; background: var(--raised); border: 0; border-radius: 9px; padding: 8px 10px; color: var(--text); font: inherit; text-align: right; }
+
+  .group { margin-top: 20px; }
+  .group .d { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; padding: 0 6px 6px; }
+  .item { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; padding: 8px 6px; border-radius: 12px; }
+  .item:hover { background: var(--surface); }
+  .t { font-weight: 550; }
+  .c { color: var(--muted); font-size: 13px; }
+  .a { font-weight: 600; }
+  .a.in { color: var(--income); }
+
+  .up { background: var(--surface); border-radius: 16px; padding: 4px 14px; }
+  .up .item { padding: 11px 0; border-bottom: 1px solid var(--line); border-radius: 0; }
+  .up .item:last-child { border: 0; }
+  .up .item:hover { background: none; }
+  .due { font-size: 13px; color: var(--muted); text-align: right; }
+  .due.soon { color: var(--warn); font-weight: 600; }
+
+  .empty { text-align: center; padding: 48px 16px; color: var(--muted); }
+  .empty img { width: 96px; transform: rotate(-6deg); margin-bottom: 12px; }
+  .empty h3 { font: 650 20px var(--display); color: var(--text); margin-bottom: 4px; }
+  .empty .cta { margin-top: 16px; }
+
+  [hidden] { display: none !important; }
+  .panel-h { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 32px 0 14px; }
+  .panel-h h2 { margin: 0 auto 0 0; justify-content: flex-start; gap: 10px; }
+  .seg.sm button { padding: 5px 12px; font-size: 14px; }
+  .box { background: var(--surface); border-radius: 18px; padding: 20px; }
+  .box h3 { font: 650 17px var(--display); margin-bottom: 14px; }
+  .note { color: var(--muted); margin: -6px 0 14px; }
+  .note b { color: var(--text); font-weight: 600; }
+
+  /* subscriptions */
+  .gh { color: var(--muted); font-size: 13px; margin: 18px 0 8px; }
+  .scards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+  .scard { background: var(--surface); border-radius: 16px; padding: 14px 16px; display: grid; gap: 14px; }
+  .scard .top { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; }
+  .scard .bottom { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .lg { font: 650 21px var(--display); letter-spacing: -.02em; white-space: nowrap; }
+  .lg.in { color: var(--income); }
+  .lg small { font: 400 13px "Instrument Sans", sans-serif; color: var(--muted); }
+  .st2 { color: #ff8a7a; font-weight: 600; }
+  .st1 { color: var(--warn); font-weight: 600; }
+
+  .rsum { display: grid; gap: 16px; margin-bottom: 8px; }
+  .rnums { display: flex; flex-wrap: wrap; gap: 16px 40px; align-items: start; }
+  .rnums .k { color: var(--muted); font-size: 13px; }
+  .rbar { display: flex; gap: 2px; height: 14px; }
+  .rbar i { min-width: 3px; height: 100%; }
+  .rbar i:first-child { border-radius: 7px 0 0 7px; }
+  .rbar i:last-child { border-radius: 0 7px 7px 0; }
+  .rlegend { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 13px; }
+  .rlegend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; }
+  .rlegend b { color: var(--text); font-weight: 600; margin-left: 2px; }
+
+  /* categories */
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .donut { width: 190px; display: block; margin: 0 auto 18px; }
+  .donut circle { transition: stroke-width .15s; }
+  .donut circle:hover { stroke-width: 22; }
+  .crow { display: grid; grid-template-columns: 40px 1fr; gap: 12px; align-items: center; padding: 7px 0; }
+  .cline { display: flex; justify-content: space-between; gap: 8px; }
+  .cline small { color: var(--faint); margin-left: 6px; }
+  .cbar { height: 6px; border-radius: 3px; background: var(--raised); margin-top: 6px; overflow: hidden; }
+  .cbar i { display: block; height: 100%; border-radius: 3px; }
+
+  /* statistics */
+  .yt { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .yt .k { color: var(--muted); font-size: 13px; }
+  .legend { display: flex; gap: 16px; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .chart { width: 100%; height: auto; display: block; }
+  .chart text { fill: var(--faint); font: 12px "Instrument Sans", sans-serif; }
+  .chart path:hover { opacity: .8; }
+  table.months { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .months th { text-align: right; color: var(--faint); font-weight: 500; font-size: 13px; padding: 8px 10px; }
+  .months td { text-align: right; padding: 9px 10px; border-top: 1px solid var(--line); }
+  .months th:first-child, .months td:first-child { text-align: left; }
+  .months td.in { color: var(--income); }
+  .months tr.total td { font-weight: 650; }
+
+  /* budget */
+  .bcard { background: var(--surface); border-radius: 18px; padding: 16px 18px; display: grid; gap: 12px; }
+  .bcard .top { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; }
+  .pill { justify-self: start; display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--s) 16%, transparent); color: var(--s); }
+  .bbar { height: 10px; border-radius: 5px; background: var(--raised); overflow: hidden; }
+  .bbar i { display: block; height: 100%; border-radius: 5px; background: var(--s); }
+  .bfoot { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+  .bnew { border: 2px dashed var(--line); border-radius: 18px; display: grid; place-items: center; gap: 6px; color: var(--muted); min-height: 150px; align-content: center; }
+  .bnew:hover { color: var(--text); border-color: var(--faint); }
+
+  /* settings */
+  .set { display: grid; grid-template-columns: 1fr 320px; gap: 24px; align-items: start; margin-top: 8px; }
+  .set .stack { display: grid; gap: 14px; }
+  .field { display: grid; gap: 6px; margin-bottom: 14px; }
+  .field > span { color: var(--muted); font-size: 13px; }
+  .field input { background: var(--raised); border: 1px solid transparent; border-radius: 12px; padding: 10px 12px; color: var(--text); font: inherit; }
+  .field input:focus { outline: none; border-color: var(--faint); }
+  .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+  .swatches button { width: 34px; height: 34px; border-radius: 50%; background: var(--c); }
+  .swatches button[aria-pressed="true"] { outline: 2px solid var(--text); outline-offset: 3px; }
+  .mrow { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+  .mrow:first-of-type { border-top: 0; }
+  .role { font-size: 13px; color: var(--muted); background: var(--raised); padding: 4px 10px; border-radius: 8px; }
+  .danger { color: #ff8a7a; }
+  .preview-wrap { position: sticky; top: 24px; display: grid; gap: 10px; }
+  .preview-wrap .card { min-height: 180px; }
+  .preview-wrap .big { font-size: 34px; }
+
+  @media (max-width: 1000px) {
+    .two, .set { grid-template-columns: 1fr; }
+    .preview-wrap { position: static; order: -1; }
+    .cols { grid-template-columns: 1fr; }
+    .hero { grid-template-columns: 1fr; }
+    .tiles { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; }
+    aside { display: none; }
+    main { padding: 16px 16px 48px; }
+    .me { display: none; }
+    .card .big { font-size: 36px; }
+    .tile { grid-template-columns: 1fr; }
+    .tile .ic { display: none; }
+    .tile .v { font-size: 20px; }
+    .tools .ghost { display: none; }
+    .yt { grid-template-columns: 1fr; }
+    .months .hide-sm { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><img src="icon.svg" alt="">My Wallet</div>
+    <div class="side-h">Wallets</div>
+    <div id="wallets" style="display:grid;gap:8px"></div>
+    <div class="side-foot">
+      <button class="link"><i class="fa-solid fa-envelope"></i>Invitations<span class="n">0</span></button>
+      <button class="link"><i class="fa-solid fa-plus"></i>New wallet</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div class="seg" role="tablist">
+        <button role="tab" aria-selected="true"><i class="fa-solid fa-receipt"></i>Transactions</button>
+        <button role="tab"><i class="fa-solid fa-calendar-days"></i>Subscriptions</button>
+        <button role="tab"><i class="fa-solid fa-chart-pie"></i>Categories</button>
+        <button role="tab"><i class="fa-solid fa-chart-line"></i>Statistics</button>
+        <button role="tab"><i class="fa-solid fa-bullseye"></i>Budget</button>
+        <button role="tab"><i class="fa-solid fa-gear"></i>Settings</button>
+      </div>
+      <div class="me"><i class="fa-regular fa-bell"></i><span class="avatar">A</span></div>
+    </div>
+
+    <section class="hero" id="hero">
+      <div class="card">
+        <img class="emblem" src="icon.svg" alt="">
+        <div><h1 id="w-name"></h1><div class="meta" id="w-meta"></div></div>
+        <div>
+          <div class="k">Net this month</div>
+          <div class="big" id="w-net"></div>
+          <div class="month"><button aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button><span id="w-month"></span><button aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button></div>
+        </div>
+      </div>
+      <div class="tiles">
+        <div class="tile"><span class="ic" style="--c:#7fcf95"><i class="fa-solid fa-arrow-trend-up"></i></span><div><div class="k">Income</div><div class="v in" id="w-in"></div><div class="sub" id="w-in-sub"></div></div></div>
+        <div class="tile"><span class="ic" style="--c:#ec8a76"><i class="fa-solid fa-arrow-trend-down"></i></span><div><div class="k">Spent</div><div class="v" id="w-out"></div><div class="sub" id="w-out-sub"></div></div></div>
+      </div>
+    </section>
+
+    <div class="cols" data-panel="tx">
+      <section>
+        <h2>Transactions <small id="w-count"></small></h2>
+        <div class="tools">
+          <label class="search"><i class="fa-solid fa-magnifying-glass"></i><input placeholder="Search transactions" aria-label="Search transactions"></label>
+          <button class="ghost"><i class="fa-solid fa-filter"></i> Filters</button>
+          <button class="cta"><i class="fa-solid fa-plus"></i>New transaction</button>
+        </div>
+        <div id="list"></div>
+      </section>
+      <section>
+        <h2>Coming up <small>next 31 days</small></h2>
+        <div class="up" id="up"></div>
+      </section>
+    </div>
+    <div data-panel="subs" id="p-subs" hidden></div>
+    <div data-panel="cat" id="p-cat" hidden></div>
+    <div data-panel="stats" id="p-stats" hidden></div>
+    <div data-panel="budget" id="p-budget" hidden></div>
+    <div data-panel="settings" id="p-settings" hidden></div>
+  </main>
+</div>
+
+<script>
+  const fmt = n => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n).toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  const C = { food: "#ff6b8a", groc: "#f5a524", work: "#7fcf95", car: "#ec6a5e", ice: "#5ab8f0", film: "#ff5a5a", music: "#4cd17a", bank: "#6aa6ff", wifi: "#2ec4d6", cart: "#5ab8f0", tax: "#ec6a5e" };
+  const wallets = [
+    { id: "empty", name: "Empty", color: "#8b6cf6", month: "November 2026", members: "Only you", in: 0, out: 0, count: 0,
+      todo: ["fa-receipt", C.tax, "Car Tax", "Due 30 Oct, waiting for the amount"], days: [],
+      up: [["fa-receipt", C.tax, "Car Tax", -180, "in 10 months"]] },
+    { id: "demo", name: "Demo Wallet", color: "#f2cc2f", month: "October 2026", members: "Shared with 1 person", in: 1750.01, out: -10766.74, count: 20,
+      days: [
+        ["Thu 29 Oct", [["fa-utensils", C.food, "Food & Entertainment", "Food & Entertainment", -123], ["fa-apple-whole", C.groc, "Food", "Groceries", -123], ["fa-apple-whole", C.groc, "Food", "Groceries", -888], ["fa-apple-whole", C.groc, "Food", "Groceries", -8347]]],
+        ["Tue 27 Oct", [["fa-money-bill-wave", C.work, "Monthly Salary", "Work › Salary", 1750.01], ["fa-car", C.car, "Car", "Car", -5], ["fa-ice-cream", C.ice, "Ice Cream", "Food & Entertainment", -4], ["fa-film", C.film, "Netflix", "Subscriptions", -2], ["fa-music", C.music, "Spotify", "Subscriptions", -2]]],
+        ["Tue 20 Oct", [["fa-music", C.music, "Spotify Premium", "Subscriptions › Spotify", -10.99]]],
+      ],
+      up: [["fa-film", C.film, "Netflix Standard", -12.99, "in 3 days", 1], ["fa-music", C.music, "Spotify Premium", -10.99, "in 8 days"], ["fa-money-bill-wave", C.work, "Monthly Salary", 1750, "in 15 days"], ["fa-cart-shopping", C.cart, "Prime Renewal", -49.9, "in 1 month"]] },
+  ];
+  // dark or light text on the wallet colour, whatever colour the user picked
+  const onColor = hex => { const [r, g, b] = hex.match(/\w\w/g).map(h => parseInt(h, 16) / 255); return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5 ? "#1d1a10" : "#ffffff"; };
+  const icon = (i, c) => `<span class="ic" style="--c:${c}"><i class="fa-solid ${i}"></i></span>`;
+  const $ = id => document.getElementById(id);
+
+  function show(w) {
+    const root = document.documentElement.style;
+    root.setProperty("--wallet", w.color);
+    root.setProperty("--on-wallet", onColor(w.color));
+    $("wallets").innerHTML = wallets.map(x => `
+      <button class="mini" style="--c:${x.color};--on:${onColor(x.color)}" ${x === w ? 'aria-current="page"' : ""} data-id="${x.id}">
+        <b>${x.name}</b><small>EUR</small></button>`).join("");
+    $("w-name").textContent = w.name;
+    $("w-meta").textContent = `Euro, ${w.members.toLowerCase()}`;
+    $("w-net").textContent = fmt(w.in + w.out);
+    $("w-month").textContent = w.month;
+    $("w-in").textContent = fmt(w.in);
+    $("w-out").textContent = fmt(-w.out).replace("+", "");
+    $("w-in-sub").textContent = w.in ? "1 transaction" : "Nothing yet";
+    $("w-out-sub").textContent = w.in ? `${Math.round(-w.out / w.in * 100)}% of income` : "Nothing yet";
+    $("w-count").textContent = w.count ? `${w.count} this month` : "";
+    const todo = w.todo ? `<div class="todo">${icon(w.todo[0], w.todo[1])}<div><div class="t">${w.todo[2]}</div><div class="c">${w.todo[3]}</div></div>
+      <div style="display:flex;gap:8px"><input placeholder="0.00 €" aria-label="Amount for ${w.todo[2]}"><button class="ghost">Save</button></div></div>` : "";
+    $("list").innerHTML = todo + (w.days.length ? w.days.map(([d, rows]) => `
+      <div class="group"><div class="d"><span>${d}</span><span>${fmt(rows.reduce((s, r) => s + r[4], 0))}</span></div>${rows.map(([i, c, t, cat, a]) => `
+        <div class="item">${icon(i, c)}<div><div class="t">${t}</div><div class="c">${cat}</div></div><div class="a ${a > 0 ? "in" : ""}">${fmt(a)}</div></div>`).join("")}</div>`).join("")
+      : `<div class="empty"><img src="icon.svg" alt=""><h3>Nothing spent in ${w.month.split(" ")[0]} yet</h3><p>Add a transaction, or link a bank account to import them.</p><button class="cta"><i class="fa-solid fa-plus"></i>Add a transaction</button></div>`);
+    $("up").innerHTML = w.up.map(([i, c, t, a, due, soon]) => `
+      <div class="item">${icon(i, c)}<div><div class="t">${t}</div><div class="c">${fmt(a)}</div></div><div class="due ${soon ? "soon" : ""}">${due}</div></div>`).join("");
+  }
+  /* ---------- other sections ---------- */
+  const money = n => Math.abs(n).toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  const STATUS = { over: ["#ff8a7a", "fa-circle-exclamation"], close: ["#f0b85a", "fa-triangle-exclamation"], ok: ["#7fcf95", "fa-circle-check"] };
+  const extra = {
+    demo: {
+      subs: [
+        ["Due now", [["fa-building-columns", C.bank, "Apartment Rent", "Rent", -650, "month", "11 days overdue", 2], ["fa-wifi", C.wifi, "Fiber Optic", "Internet", -29.9, "month", "2 days overdue", 2], ["fa-film", C.film, "Netflix Standard", "Netflix", -12.99, "month", "in 3 days", 1]]],
+        ["This month", [["fa-music", C.music, "Spotify Premium", "Spotify", -10.99, "month", "in 8 days"], ["fa-money-bill-wave", C.work, "Monthly Salary", "Salary", 1750, "month", "in 15 days"], ["fa-cart-shopping", C.cart, "Prime Renewal", "Amazon Prime", -49.9, "year", "in 1 month"]]],
+        ["Later", [["fa-shield-halved", C.tax, "Car Insurance Renewal", "Insurance", -450, "year", "in 5 months"], ["fa-receipt", C.tax, "Car Tax", "Car tax", -180, "year", "in 10 months"]]],
+      ],
+      out: [["fa-apple-whole", C.groc, "Food", 9480.38], ["fa-building-columns", C.bank, "Rent", 650], ["fa-bolt", "#b48cff", "Gas", 186.11], ["fa-gas-pump", C.car, "Gasoline", 167.36], ["fa-utensils", C.food, "Food & Entertainment", 123], ["fa-ellipsis", "#8a857c", "Other", 159.89]],
+      inc: [["fa-money-bill-wave", C.work, "Salary", 1750.01]],
+      year: { inc: [1703.22, 1726.94, 1796.48, 1739.38, 1716.87, 1703.89, 1791.59, 1635.62, 1716.23, 1750.01], out: [1211.95, 1321.43, 1131.92, 1372.33, 1562.75, 1349.77, 1104.15, 1290.15, 1305.42, 10766.74] },
+      budgets: [["fa-apple-whole", C.groc, "Groceries", "Groceries, monthly", 9358.38, 600], ["fa-wallet", "#b9b4ab", "Everything", "Whole wallet, monthly", 10766.74, 12000], ["fa-utensils", C.food, "Eating out", "Food & Entertainment, monthly", 127, 200], ["fa-music", C.music, "Streaming", "Subscriptions, monthly", 14.99, 50]],
+      members: [["A", "aiorT", "you", "Owner"], ["G", "Giulia", "giulia@example.com", "Editor"]],
+    },
+    empty: { subs: [["Later", [["fa-receipt", C.tax, "Car Tax", "Car tax", -180, "year", "in 10 months"]]]], members: [["A", "aiorT", "you", "Owner"]] },
+  };
+  const emptyState = (title, text, cta) => `<div class="empty"><img src="icon.svg" alt=""><h3>${title}</h3><p>${text}</p>${cta ? `<button class="cta"><i class="fa-solid fa-plus"></i>${cta}</button>` : ""}</div>`;
+  const head = (title, small = "", actions = "") => `<div class="panel-h"><h2>${title} ${small ? `<small>${small}</small>` : ""}</h2>${actions}</div>`;
+
+  function subsPanel(x) {
+    const all = x.subs.flatMap(g => g[1]).filter(s => s[4] < 0);
+    const perMonth = all.reduce((t, s) => t + (s[5] === "month" ? -s[4] : -s[4] / 12), 0);
+    const monthly = s => -s[4] / (s[5] === "year" ? 12 : 1);
+    const parts = all.map(s => [s, monthly(s) / perMonth * 100]).sort((a, b) => b[1] - a[1]);
+    const earned = x.subs.flatMap(g => g[1]).filter(s => s[4] > 0).reduce((t, s) => t + s[4], 0);
+    return head("Subscriptions", "", `<div class="seg sm"><button aria-selected="true"><i class="fa-solid fa-list"></i>List</button><button><i class="fa-solid fa-calendar"></i>Calendar</button></div><button class="cta"><i class="fa-solid fa-plus"></i>New subscription</button>`)
+      + `<div class="box rsum">
+          <div class="rnums"><div><div class="k">Recurring costs</div><div class="lg" style="font-size:30px">${money(perMonth)} <small>/ month</small></div></div>
+            <div><div class="k">Over a year</div><div class="lg">${money(perMonth * 12)}</div></div>
+            ${earned ? `<div><div class="k">Recurring income</div><div class="lg in">${fmt(earned)} <small>/ month</small></div></div>` : ""}</div>
+          <div class="rbar" role="img" aria-label="Recurring costs split by subscription">${parts.map(([s, p]) => `<i style="width:${p}%;background:${s[1]}" title="${s[2]}: ${money(monthly(s))} a month (${p.toFixed(1)}%)"></i>`).join("")}</div>
+          <div class="rlegend">${parts.map(([s, p]) => `<span><i style="background:${s[1]}"></i>${s[3]} <b>${p < 1 ? "<1" : Math.round(p)}%</b></span>`).join("")}</div>
+        </div>`
+      + x.subs.map(([g, items]) => `<div class="gh">${g}</div>${items.map(([i, c, t, cat, a, per, due, st]) => `
+        <div class="item">${icon(i, c)}<div><div class="t">${t}</div><div class="c">${cat}, every ${per}</div></div>
+        <div style="text-align:right"><div class="a ${a > 0 ? "in" : ""}">${fmt(a)}</div><div class="due ${st ? "st" + st : ""}">${st === 2 ? '<i class="fa-solid fa-circle-exclamation"></i> ' : ""}${due}</div></div></div>`).join("")}`).join("");
+  }
+
+  function donut(items, label) {
+    const total = items.reduce((t, x) => t + x[3], 0), r = 54, len = 2 * Math.PI * r;
+    let off = 0;
+    const segs = items.map(([, c, name, v]) => {
+      const l = v / total * len;
+      const s = `<circle r="${r}" cx="70" cy="70" fill="none" stroke="${c}" stroke-width="18" stroke-dasharray="${Math.max(l - 2, 1)} ${len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"><title>${name}: ${money(v)} (${Math.round(v / total * 100)}%)</title></circle>`;
+      off += l; return s;
+    }).join("");
+    return `<svg class="donut" viewBox="0 0 140 140" role="img" aria-label="${label}">${segs}
+      <text x="70" y="70" text-anchor="middle" fill="currentColor" style="font:700 17px var(--display)">${money(total).replace(".00", "")}</text>
+      <text x="70" y="88" text-anchor="middle" fill="var(--muted)" style="font:11px 'Instrument Sans'">${label}</text></svg>`;
+  }
+  const catList = items => { const total = items.reduce((t, x) => t + x[3], 0); return items.map(([i, c, n, v]) => { const p = v / total * 100; return `
+    <div class="crow">${icon(i, c)}<div><div class="cline"><span>${n}</span><span>${money(v)}<small>${p < 1 ? "<1" : Math.round(p)}%</small></span></div><div class="cbar"><i style="width:${p}%;background:${c}"></i></div></div></div>`; }).join(""); };
+  const catPanel = x => head("Categories", cur.month, `<button class="ghost"><i class="fa-solid fa-layer-group"></i> Manage categories</button>`)
+    + `<div class="two"><div class="box"><h3>Spending</h3>${donut(x.out, "spent")}${catList(x.out)}</div><div class="box"><h3>Income</h3>${donut(x.inc, "earned")}${catList(x.inc)}</div></div>`;
+
+  function statsPanel(x) {
+    const M = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const { inc, out } = x.year, sum = a => a.reduce((t, v) => t + v, 0), n = inc.length;
+    const W = 720, H = 230, base = 200, top = 12, max = 12000, gw = (W - 50) / 12, bw = 16;
+    const y = v => base - v / max * (base - top);
+    const bar = (x0, v, c, tip) => { const yy = y(v), r = Math.min(4, base - yy); return `<path fill="${c}" d="M${x0},${base}V${yy + r}Q${x0},${yy} ${x0 + r},${yy}H${x0 + bw - r}Q${x0 + bw},${yy} ${x0 + bw},${yy + r}V${base}Z"><title>${tip}</title></path>`; };
+    const grid = [0, 3000, 6000, 9000, 12000].map(v => `<line x1="50" x2="${W}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="42" y="${y(v) + 4}" text-anchor="end">${v ? v / 1000 + "k" : 0}</text>`).join("");
+    const bars = M.map((m, i) => { const x0 = 50 + i * gw + (gw - 2 * bw - 2) / 2; return (i < n ? bar(x0, inc[i], "#7fcf95", `${m}: earned ${money(inc[i])}`) + bar(x0 + bw + 2, out[i], "#ec8a76", `${m}: spent ${money(out[i])}`) : "")
+      + `<text x="${x0 + bw + 1}" y="${base + 20}" text-anchor="middle">${m}</text>`; }).join("");
+    const tile = (k, v, cls, sub) => `<div class="box"><div class="k">${k}</div><div class="lg ${cls}" style="font-size:28px">${v}</div><div class="c">${sub}</div></div>`;
+    return head("Statistics", "", `<div class="seg sm"><button aria-label="Previous year"><i class="fa-solid fa-chevron-left"></i></button><button aria-selected="true">2026</button><button aria-label="Next year" disabled><i class="fa-solid fa-chevron-right"></i></button></div><div class="seg sm"><button aria-selected="true">Monthly</button><button>Yearly</button></div>`)
+      + `<div class="yt">${tile("Earned in 2026", fmt(sum(inc)), "in", `about ${money(sum(inc) / n)} a month`)}${tile("Spent in 2026", money(sum(out)), "", `about ${money(sum(out) / n)} a month`)}${tile("Net", fmt(sum(inc) - sum(out)), "", "October's groceries tipped the year")}</div>`
+      + `<div class="box" style="margin-top:14px"><h3>Month by month</h3><div class="legend"><span><i style="background:#7fcf95"></i>Earned</span><span><i style="background:#ec8a76"></i>Spent</span></div>
+        <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Earned and spent per month, 2026">${grid}${bars}</svg>
+        <table class="months"><thead><tr><th>Month</th><th>Earned</th><th>Spent</th><th class="hide-sm">Net</th></tr></thead><tbody>
+        ${inc.map((v, i) => `<tr><td>${M[i]}</td><td class="in">${fmt(v)}</td><td>${money(out[i])}</td><td class="hide-sm">${fmt(v - out[i])}</td></tr>`).join("")}
+        <tr class="total"><td>Total</td><td class="in">${fmt(sum(inc))}</td><td>${money(sum(out))}</td><td class="hide-sm">${fmt(sum(inc) - sum(out))}</td></tr></tbody></table></div>`;
+  }
+
+  const budgetPanel = x => head("Budgets", "October, 2 days left", `<button class="cta"><i class="fa-solid fa-plus"></i>New budget</button>`)
+    + `<div class="scards">${x.budgets.map(([i, c, n, scope, spent, limit]) => {
+      const p = spent / limit, k = p >= 1 ? "over" : p >= .8 ? "close" : "ok", [s, si] = STATUS[k];
+      const label = k === "over" ? `Over by ${money(spent - limit)}` : k === "close" ? "Close to the limit" : "On track";
+      return `<div class="bcard" style="--s:${s}"><div class="top">${icon(i, c)}<div><div class="t">${n}</div><div class="c">${scope}</div></div></div>
+        <div class="pill"><i class="fa-solid ${si}"></i>${label}</div>
+        <div><div class="lg">${money(spent)} <small>of ${money(limit)}</small></div></div>
+        <div class="bbar"><i style="width:${Math.min(p, 1) * 100}%"></i></div>
+        <div class="bfoot"><span>${Math.round(p * 100)}% used</span><span>${k === "over" ? "Limit passed on 6 Oct" : money(limit - spent) + " left"}</span></div></div>`; }).join("")}
+      <button class="bnew"><span><i class="fa-solid fa-plus"></i></span>New budget</button></div>`;
+
+  const SW = ["#f2cc2f", "#f5a524", "#ff7a59", "#ff6b8a", "#e05bd0", "#8b6cf6", "#5b7cfa", "#2ec4d6", "#4cd17a", "#b9b4ab"];
+  const settingsPanel = x => head("Wallet settings")
+    + `<div class="set"><div class="stack">
+      <div class="box"><h3>General</h3>
+        <label class="field"><span>Name</span><input value="${cur.name}"></label>
+        <label class="field"><span>Currency</span><input value="Euro (EUR)" readonly></label>
+        <div class="field"><span>Colour</span><div class="swatches">${SW.map(c => `<button style="--c:${c}" data-color="${c}" aria-label="Colour ${c}" aria-pressed="${c === cur.color}"></button>`).join("")}</div></div>
+      </div>
+      <div class="box"><h3>Members</h3>${x.members.map(([a, n, mail, role]) => `<div class="mrow"><span class="avatar">${a}</span><div><div class="t">${n}</div><div class="c">${mail}</div></div><span class="role">${role}</span></div>`).join("")}
+        <button class="ghost" style="margin-top:10px"><i class="fa-solid fa-user-plus"></i> Invite someone</button></div>
+      <div class="box"><h3>Bank accounts</h3><p class="c" style="margin-bottom:12px">Link a bank account and its transactions are imported here four times a day.</p><button class="ghost"><i class="fa-solid fa-building-columns"></i> Link a bank account</button></div>
+      <div class="box"><h3 class="danger">Delete wallet</h3><p class="c" style="margin-bottom:12px">Deletes every transaction, subscription and budget in ${cur.name}, for all members. This can't be undone.</p><button class="ghost danger">Delete ${cur.name}</button></div>
+    </div>
+    <div class="preview-wrap"><span class="c">Preview</span><div class="card"><img class="emblem" src="icon.svg" alt=""><div><h1>${cur.name}</h1><div class="meta">Euro</div></div><div><div class="k">Net this month</div><div class="big">${fmt(cur.in + cur.out)}</div></div></div></div></div>`;
+
+  const TABS = ["tx", "subs", "cat", "stats", "budget", "settings"];
+  const tabs = [...document.querySelectorAll(".seg[role=tablist] [role=tab]")];
+  let cur, tab = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "tx";
+  function render(w) {
+    cur = w;
+    show(w);
+    const x = extra[w.id], none = !x.out;
+    tabs.forEach((b, i) => b.setAttribute("aria-selected", TABS[i] === tab));
+    document.querySelectorAll("[data-panel]").forEach(p => p.hidden = p.dataset.panel !== tab);
+    $("hero").hidden = tab === "stats" || tab === "settings";
+    const fill = { subs: () => subsPanel(x),
+      cat: () => none ? head("Categories") + emptyState("No categories used yet", "Once you add transactions, this shows where the money goes.", "Add a transaction") : catPanel(x),
+      stats: () => none ? head("Statistics") + emptyState("Not enough history yet", "Statistics appear after your first month of transactions.") : statsPanel(x),
+      budget: () => none ? head("Budgets") + emptyState("No budgets yet", "Set a monthly limit for a category or the whole wallet, and get a heads-up before you pass it.", "New budget") : budgetPanel(x),
+      settings: () => settingsPanel(x) }[tab];
+    if (fill) $("p-" + tab).innerHTML = fill();
+  }
+  tabs.forEach((b, i) => b.addEventListener("click", () => { tab = TABS[i]; render(cur); }));
+  $("wallets").addEventListener("click", e => { const b = e.target.closest(".mini"); if (b) render(wallets.find(w => w.id === b.dataset.id)); });
+  $("p-settings").addEventListener("click", e => { const b = e.target.closest("[data-color]"); if (b) { cur.color = b.dataset.color; render(cur); } });
+  render(wallets[1]);
+</script>
+</body>
+</html>

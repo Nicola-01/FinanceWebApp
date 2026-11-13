@@ -19,6 +19,7 @@ import type { DateRangeValue } from "../../components/datePicker/CustomDatePicke
 import { getCurrencySymbol } from "../../utils/currencies";
 import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
 import { validateThresholds } from "./budgetLogic";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface BudgetFormOverlayProps {
   open: boolean;
@@ -62,6 +63,7 @@ export const BudgetFormOverlay: React.FC<BudgetFormOverlayProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const [ui] = useUiVersion();
   const [name, setName] = useState(initial?.name ?? "");
   const [scopeMode, setScopeMode] = useState<ScopeMode>(
     initial?.tagName ? "TAG" : "WALLET",
@@ -285,7 +287,7 @@ export const BudgetFormOverlay: React.FC<BudgetFormOverlayProps> = ({
               <Badge
                 key={t}
                 size="md"
-                mono
+                mono={ui !== "v2"} // ui-v2-switch: v2 has no monospace
                 color={accentColor}
                 className="pr-1"
               >

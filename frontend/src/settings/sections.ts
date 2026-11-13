@@ -3,6 +3,7 @@ import {
   faShieldAlt,
   faCode,
   faBell,
+  faPalette,
   faInfoCircle,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
@@ -46,6 +47,12 @@ export const SETTINGS_SECTIONS: SettingsSectionDef[] = [
     label: "Notifications",
     icon: faBell,
     description: "Push notifications and activity alerts",
+  },
+  {
+    id: "appearance",
+    label: "Appearance",
+    icon: faPalette,
+    description: "How the app looks on this device",
   },
   {
     id: "about",

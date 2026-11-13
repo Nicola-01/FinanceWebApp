@@ -5,6 +5,7 @@ import type { Tag } from "../../types/domain";
 import { useWalletContext } from "../../dashboard/wallet/WalletContext.tsx";
 import { IconPickerButton } from "../icon/IconPickerButton.tsx";
 import type { IconKey } from "../../utils/icons.ts";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 interface TagSelectorAddFormProps {
   currentParentName: string | null;
@@ -22,6 +23,8 @@ export const TagSelectorAddForm: React.FC<TagSelectorAddFormProps> = ({
   onClose,
 }) => {
   const { handleAddTag } = useWalletContext();
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const [showIconSelector, setShowIconSelector] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -70,7 +73,13 @@ export const TagSelectorAddForm: React.FC<TagSelectorAddFormProps> = ({
   };
 
   return (
-    <div className="flex w-full items-center gap-2 overflow-hidden rounded-xl border border-app-border bg-app-input/70 p-1.5 pl-2 shadow-sm">
+    <div
+      className={`flex w-full items-center gap-2 overflow-hidden p-1.5 pl-2 ${
+        v2 // ui-v2-switch
+          ? "rounded-[var(--r-input)] bg-app-raised"
+          : "rounded-xl border border-app-border bg-app-input/70 shadow-sm"
+      }`}
+    >
       <div className="flex shrink-0 items-center justify-center">
         <IconPickerButton
           icon={newTag.icon as IconKey}
@@ -85,7 +94,9 @@ export const TagSelectorAddForm: React.FC<TagSelectorAddFormProps> = ({
       </div>
       <input
         autoFocus
-        className="min-w-0 flex-1 bg-transparent text-sm font-medium text-app-text placeholder:text-app-muted/50 outline-none"
+        className={`min-w-0 flex-1 bg-transparent text-sm font-medium text-app-text outline-none ${
+          v2 ? "placeholder:text-app-faint" : "placeholder:text-app-muted/50"
+        }`}
         placeholder={
           currentParentName ? "Subcategory name..." : "Category name..."
         }
@@ -108,15 +119,23 @@ export const TagSelectorAddForm: React.FC<TagSelectorAddFormProps> = ({
           <button
             onClick={handleSave}
             aria-label="Save category"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-white shadow-sm transition-transform hover:scale-105"
-            style={{ backgroundColor: currentParentColor }}
+            className={
+              v2 // ui-v2-switch: primary CTA = wallet fill, not the category colour
+                ? "flex h-7 w-7 items-center justify-center rounded-[var(--r-sm)] bg-wallet text-on-wallet transition-transform hover:scale-105"
+                : "flex h-7 w-7 items-center justify-center rounded-lg text-white shadow-sm transition-transform hover:scale-105"
+            }
+            style={v2 ? undefined : { backgroundColor: currentParentColor }}
           >
             <FontAwesomeIcon icon={faCheck} className="text-xs" />
           </button>
           <button
             onClick={onClose}
             aria-label="Cancel"
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-red/10 hover:text-app-red"
+            className={`flex h-7 w-7 items-center justify-center rounded-lg text-app-muted transition-colors ${
+              v2
+                ? "hover:bg-app-card hover:text-app-text"
+                : "hover:bg-app-red/10 hover:text-app-red"
+            }`}
           >
             <FontAwesomeIcon icon={faXmark} className="text-xs" />
           </button>

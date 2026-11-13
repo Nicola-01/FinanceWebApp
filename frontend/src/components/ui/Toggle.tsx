@@ -1,4 +1,6 @@
 import React from "react";
+import { useUiVersion } from "../../hooks/useUiVersion";
+import { walletVars } from "../../utils/color";
 
 export type ToggleVariant = "switch" | "button";
 export type ToggleSize = "sm" | "md";
@@ -26,6 +28,9 @@ export interface ToggleProps {
 const FOCUS =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 " +
   "focus-visible:ring-offset-2 focus-visible:ring-offset-transparent";
+// ui-v2-switch: a 2px wallet ring at ~40%, no offset.
+const FOCUS_V2 =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-wallet/40";
 
 const Toggle: React.FC<ToggleProps> = ({
   checked,
@@ -38,6 +43,9 @@ const Toggle: React.FC<ToggleProps> = ({
   className = "",
   "aria-label": ariaLabel,
 }) => {
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
+  const focus = isV2 ? FOCUS_V2 : FOCUS; // ui-v2-switch
   const toggle = () => {
     if (!disabled) onChange(!checked);
   };
@@ -53,12 +61,25 @@ const Toggle: React.FC<ToggleProps> = ({
         disabled={disabled}
         onClick={toggle}
         style={
-          checked && accentColor ? { backgroundColor: accentColor } : undefined
+          checked && accentColor
+            ? // ui-v2-switch
+              isV2
+              ? walletVars(accentColor)
+              : { backgroundColor: accentColor }
+            : undefined
         }
-        className={`inline-flex cursor-pointer select-none items-center gap-2 rounded-[var(--r-cta)] border px-4 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${FOCUS} ${
-          checked
-            ? `border-transparent text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.7)] hover:shadow-[0_16px_34px_-16px_rgba(0,0,0,0.85)] ${accentColor ? "" : "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)]"}`
-            : "border-app-border bg-app-input text-app-muted hover:bg-app-hover hover:text-app-text"
+        className={`${
+          isV2 // ui-v2-switch
+            ? "inline-flex cursor-pointer select-none items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+            : "inline-flex cursor-pointer select-none items-center gap-2 rounded-[var(--r-cta)] border px-4 py-2 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+        } ${focus} ${
+          isV2 // ui-v2-switch
+            ? checked
+              ? "bg-wallet text-on-wallet"
+              : "bg-app-raised text-app-muted hover:text-app-text"
+            : checked
+              ? `border-transparent text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.7)] hover:shadow-[0_16px_34px_-16px_rgba(0,0,0,0.85)] ${accentColor ? "" : "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)]"}`
+              : "border-app-border bg-app-input text-app-muted hover:bg-app-hover hover:text-app-text"
         } ${className}`}
       >
         {label}
@@ -92,24 +113,39 @@ const Toggle: React.FC<ToggleProps> = ({
       onClick={toggle}
       className={`group inline-flex items-center gap-2.5 border-0 bg-transparent p-0 ${
         disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
-      } select-none ${FOCUS} ${className}`}
+      } select-none ${focus} ${className}`}
     >
       <span
         style={
-          checked && accentColor ? { backgroundColor: accentColor } : undefined
+          checked && accentColor
+            ? // ui-v2-switch
+              isV2
+              ? walletVars(accentColor)
+              : { backgroundColor: accentColor }
+            : undefined
         }
-        className={`relative inline-flex ${dims.track} shrink-0 items-center rounded-full border border-white/10 transition-colors duration-200 ${
-          checked
-            ? accentColor
-              ? ""
-              : "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)]"
-            : "bg-app-hover"
+        className={`relative inline-flex ${dims.track} shrink-0 items-center rounded-full transition-colors duration-200 ${
+          isV2 // ui-v2-switch
+            ? checked
+              ? "bg-wallet" // accentColor reaches it through walletVars
+              : "bg-app-raised"
+            : `border border-white/10 ${
+                checked
+                  ? accentColor
+                    ? ""
+                    : "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)]"
+                  : "bg-app-hover"
+              }`
         }`}
       >
         <span
-          className={`${dims.knob} inline-block rounded-full bg-white shadow-sm transition-transform duration-200 ${
-            checked ? dims.on : dims.off
-          }`}
+          className={`${dims.knob} inline-block rounded-full shadow-sm transition-transform duration-200 ${
+            isV2 // ui-v2-switch
+              ? checked
+                ? "bg-on-wallet"
+                : "bg-app-muted"
+              : "bg-white"
+          } ${checked ? dims.on : dims.off}`}
         />
       </span>
       {label != null && (

@@ -1,6 +1,7 @@
 import { AccentHoverButton } from "../../components/ui/AccentHoverButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEyeSlash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import type { WidgetDef } from "./widgetTypes.ts";
 import type { LayoutSlot } from "../../utils/tabLayout/types";
 
@@ -18,12 +19,18 @@ const TrayChip: React.FC<TrayChipProps> = ({
   accentColor,
   onShow,
 }) => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   return (
     <AccentHoverButton
       accentColor={accentColor}
       aria-label={`Show ${label}`}
       onClick={onShow}
-      className="flex items-center gap-2 rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm font-medium text-app-text shadow-sm transition-colors"
+      className={
+        v2
+          ? "flex items-center gap-2 rounded-[var(--r-sm)] bg-app-raised px-3 py-2 text-sm font-medium text-app-text transition-colors"
+          : "flex items-center gap-2 rounded-xl border border-app-border bg-app-surface px-3 py-2 text-sm font-medium text-app-text shadow-sm transition-colors"
+      }
     >
       {(hover) => (
         <>
@@ -54,16 +61,34 @@ export function HiddenTray<Ctx>({
   accentColor,
   onShow,
 }: HiddenTrayProps<Ctx>) {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   return (
-    <div className="mt-8 rounded-2xl border border-dashed border-app-border bg-app-input/20 p-4">
+    <div
+      className={
+        v2
+          ? "mt-8 rounded-[var(--r-card)] border-[1.5px] border-dashed border-app-border p-4"
+          : "mt-8 rounded-2xl border border-dashed border-app-border bg-app-input/20 p-4"
+      }
+    >
       <div className="mb-3 flex items-center gap-2 text-app-muted">
         <FontAwesomeIcon icon={faEyeSlash} className="text-xs" />
-        <span className="text-xs font-bold uppercase tracking-wider">
+        <span
+          className={
+            v2
+              ? "text-[13px] font-medium"
+              : "text-xs font-bold uppercase tracking-wider"
+          }
+        >
           Hidden widgets
         </span>
       </div>
       {hiddenSlots.length === 0 ? (
-        <p className="text-sm text-app-muted/70">
+        <p
+          className={
+            v2 ? "text-sm text-app-muted" : "text-sm text-app-muted/70"
+          }
+        >
           Nothing hidden — use the eye button on a card to hide it.
         </p>
       ) : (

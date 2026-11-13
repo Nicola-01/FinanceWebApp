@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { AmountInput } from "../../../components/ui/AmountInput";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 // Render framer-motion nodes as plain children (drop animation-only props).
 vi.mock("framer-motion", () => ({
@@ -180,5 +181,22 @@ describe("AmountInput", () => {
       />,
     );
     expect(input.value).toBe("-50");
+  });
+});
+
+describe("AmountInput v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => {
+    setUiVersion("v1");
+    localStorage.clear();
+  });
+
+  it("drops monospace and keeps expense amounts in the text colour", () => {
+    const { input } = setup("EXPENSE");
+    fireEvent.change(input, { target: { value: "12" } });
+    expect(input.className).toContain("tabular-nums");
+    expect(input.className).not.toContain("font-app-mono");
+    expect(input.className).toContain("text-app-text");
+    expect(input.className).not.toContain("text-app-red");
   });
 });

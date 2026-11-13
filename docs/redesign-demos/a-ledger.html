@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction A — Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #161719; --surface: #1c1d20; --line: #2a2b2f; --hover: #222327;
+    --text: #e9e9eb; --muted: #8a8c93; --faint: #5d5f66;
+    --income: #5cb98a; --warn: #d9a441;
+    --wallet: #e6c229; /* per-wallet accent, used only as a marker */
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.45 Geist, system-ui, sans-serif; font-feature-settings: "tnum"; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; border-radius: 4px; }
+
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  aside { border-right: 1px solid var(--line); padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; padding: 4px 8px 20px; }
+  .brand img { width: 22px; height: 22px; }
+  .side-h { color: var(--muted); font-size: 12px; padding: 8px 8px 4px; display: flex; justify-content: space-between; }
+  .w { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 6px; width: 100%; text-align: left; }
+  .w:hover { background: var(--hover); }
+  .w[aria-current] { background: var(--surface); }
+  .w .dot { width: 8px; height: 8px; border-radius: 2px; }
+  .w .cur { margin-left: auto; color: var(--faint); font-size: 12px; }
+  .side-foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 8px; }
+  .w.add { color: var(--muted); }
+
+  main { min-width: 0; }
+  .top { display: flex; align-items: center; justify-content: space-between; padding: 14px 32px; border-bottom: 1px solid var(--line); }
+  .crumb { color: var(--muted); }
+  .crumb b { color: var(--text); font-weight: 500; }
+  .user { display: flex; gap: 16px; align-items: center; color: var(--muted); }
+  .avatar { width: 26px; height: 26px; border-radius: 50%; background: #3a3b40; display: grid; place-items: center; color: var(--text); font-size: 12px; }
+
+  .head { padding: 28px 32px 0; }
+  .head h1 { font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+  .head h1 .bar { width: 4px; height: 20px; border-radius: 2px; background: var(--wallet); }
+  .head p { color: var(--muted); margin-top: 2px; }
+  nav.tabs { display: flex; gap: 24px; padding: 0 32px; margin-top: 20px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  nav.tabs button { padding: 10px 0; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  nav.tabs button[aria-selected="true"] { color: var(--text); border-color: var(--text); }
+
+  .toolbar { display: flex; gap: 12px; align-items: center; padding: 16px 32px; }
+  .search { flex: 1; max-width: 320px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; color: var(--faint); }
+  .search input { background: none; border: 0; color: var(--text); font: inherit; width: 100%; outline: none; }
+  .month { display: flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 6px; }
+  .month button { padding: 6px 10px; color: var(--muted); }
+  .month span { min-width: 110px; text-align: center; }
+  .btn { padding: 7px 12px; border-radius: 6px; border: 1px solid var(--line); }
+  .btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 500; }
+  .spacer { flex: 1; }
+
+  .summary { display: flex; gap: 32px; padding: 4px 32px 20px; color: var(--muted); }
+  .summary strong { display: block; color: var(--text); font-size: 18px; font-weight: 500; }
+  .summary .pos { color: var(--income); }
+
+  .ledger { padding: 0 32px 48px; }
+  .day { display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; padding: 18px 12px 6px; border-bottom: 1px solid var(--line); }
+  .row { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .row:hover { background: var(--hover); }
+  .title { font-weight: 500; }
+  .cat { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .cat i { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .amt { text-align: right; font-weight: 500; }
+  .amt.in { color: var(--income); }
+
+  .pending { margin: 0 32px 8px; border: 1px dashed #4a4b50; border-radius: 6px; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center; }
+  .pending .cat { color: var(--warn); }
+  .pending input { width: 110px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; color: var(--text); font: inherit; text-align: right; }
+
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; }
+    aside { display: none; }
+    .top, .head, .toolbar, .summary, .ledger { padding-left: 16px; padding-right: 16px; }
+    nav.tabs { padding: 0 16px; }
+    .pending { margin: 0 16px 8px; grid-template-columns: 1fr auto; }
+    .pending .btn { grid-column: 1 / -1; }
+    .search { max-width: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><img src="icon.svg" alt="">My Wallet</div>
+    <div class="side-h"><span>Wallets</span><span>2</span></div>
+    <button class="w"><span class="dot" style="background:#8b5cf6"></span>Empty<span class="cur">EUR</span></button>
+    <button class="w" aria-current="page"><span class="dot" style="background:var(--wallet)"></span>Demo Wallet<span class="cur">EUR</span></button>
+    <div class="side-foot">
+      <button class="w">Invitations<span class="cur">0</span></button>
+      <button class="w add">+ New wallet</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div class="crumb">Wallets / <b>Demo Wallet</b></div>
+      <div class="user"><span aria-label="Notifications">🔔</span><span class="avatar">A</span></div>
+    </div>
+
+    <div class="head">
+      <h1><span class="bar"></span>Demo Wallet</h1>
+      <p>Euro · shared with 1 person</p>
+    </div>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="true">Transactions</button>
+      <button role="tab">Subscriptions</button>
+      <button role="tab">Categories</button>
+      <button role="tab">Statistics</button>
+      <button role="tab">Budget</button>
+      <button role="tab">Settings</button>
+    </nav>
+
+    <div class="toolbar">
+      <label class="search">⌕<input placeholder="Search transactions"></label>
+      <div class="month"><button aria-label="Previous month">‹</button><span>October 2026</span><button aria-label="Next month">›</button></div>
+      <button class="btn">Filters</button>
+      <span class="spacer"></span>
+      <button class="btn primary">New transaction</button>
+    </div>
+
+    <div class="summary">
+      <div>Income<strong class="pos">+1,750.01 €</strong></div>
+      <div>Spent<strong>10,766.74 €</strong></div>
+      <div>Net<strong>−9,016.73 €</strong></div>
+    </div>
+
+    <div class="pending">
+      <div><div class="title">Car Tax</div><div class="cat">Recurring, due 30 Oct — enter the amount</div></div>
+      <input value="" placeholder="0.00 €" aria-label="Amount for Car Tax">
+      <button class="btn">Save</button>
+    </div>
+
+    <section class="ledger" id="ledger"></section>
+  </main>
+</div>
+
+<script>
+  const days = [
+    ["Thursday 29 October", [
+      ["Food & Entertainment", null, "#e0457b", -123],
+      ["Food", "Groceries", "#e8a33d", -123],
+      ["Food", "Groceries", "#e8a33d", -888],
+      ["Food", "Groceries", "#e8a33d", -8347],
+    ]],
+    ["Tuesday 27 October", [
+      ["Monthly Salary", "Work › Salary", "#5cb98a", 1750.01],
+      ["Car", null, "#d9534f", -5],
+      ["Ice Cream", "Food & Entertainment", "#4fa3d9", -4],
+      ["Netflix", "Subscriptions", "#c0392b", -2],
+      ["Spotify", "Subscriptions", "#3dbb6b", -2],
+    ]],
+    ["Tuesday 20 October", [
+      ["Spotify Premium", "Subscriptions › Spotify", "#3dbb6b", -10.99],
+    ]],
+  ];
+  const fmt = n => (n > 0 ? "+" : "−") + Math.abs(n).toLocaleString("en", { minimumFractionDigits: 2 }) + " €";
+  document.getElementById("ledger").innerHTML = days.map(([d, rows]) => `
+    <div class="day"><span>${d}</span><span>${fmt(rows.reduce((s, r) => s + r[3], 0))}</span></div>
+    ${rows.map(([t, c, col, a]) => `
+      <div class="row">
+        <div><div class="title">${t}</div><div class="cat"><i style="background:${col}"></i>${c ?? t}</div></div>
+        <div class="amt ${a > 0 ? "in" : ""}">${fmt(a)}</div>
+      </div>`).join("")}`).join("");
+</script>
+</body>
+</html>

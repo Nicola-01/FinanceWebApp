@@ -7,6 +7,7 @@ import Button from "../../components/ui/Button";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
 import { toLocalIsoDate } from "../../utils/localDate";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 const COUNTRY = "IT";
 
@@ -31,6 +32,8 @@ export const ConnectBankForm: React.FC<{ walletId: string }> = ({
   const [aspsp, setAspsp] = useState("");
   const [importFrom, setImportFrom] = useState(defaultImportFrom);
   const [busy, setBusy] = useState(false);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   useEffect(() => {
     listAspsps(COUNTRY)
@@ -60,6 +63,13 @@ export const ConnectBankForm: React.FC<{ walletId: string }> = ({
       <div>
         <FieldLabel>Bank</FieldLabel>
         <CustomSelect
+          className={
+            isV2
+              ? "w-full rounded-[var(--r-input)] bg-app-raised px-3.5 py-2.5 text-sm text-app-text"
+              : "w-full rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3.5 py-2.5 text-sm text-app-text"
+          }
+          searchable
+          placeholder="Select a bank..."
           value={aspsp}
           onChange={setAspsp}
           options={aspsps.map((a) => ({ value: a.name, label: a.name }))}

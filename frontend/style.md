@@ -218,3 +218,88 @@ the licence watermark — **don't touch it** (licensing decision still open).
 - [ ] If auth: rendered inside `AuthLayout` (card only, no own background)?
 - [ ] All UI copy and comments in English?
 - [ ] `npm run lint` and `npm run build` green?
+
+
+---
+
+## 8. UI v2 "Wallet card" (beta — dual UI during the migration)
+
+Plan: `.claude/TODO/ui-redesign-v2.md` · rationale + mockups: `.claude/TODO/ui-redesign-v2-style.md`,
+`docs/redesign-demos/d-wallet-card.html` (dark), `d-light.html` (light), `d-accent.html`.
+Until the cut-over (Phase 11) **§2–§5 above still apply to v1**; this section applies to v2.
+
+### How the dual UI works
+- `utils/uiVersion.ts` stores `"v1" | "v2"` per device and mirrors it on `<html data-ui>`;
+  components read it with `hooks/useUiVersion.ts`. Toggle: `/settings` → Appearance.
+- **Tokens restyle shared primitives for free**: `theme-tokens.css` remaps the same
+  `--bg-*`/`--text-*` vars under `:root[data-ui="v2"]` (light) and `:root.dark[data-ui="v2"]`.
+  Prefer restyling through tokens over forking a component.
+- Where the **structure** changes, build the v2 component next to the old one and switch in
+  one place: `ui === "v2" ? <New /> : <Old />`, marked `// ui-v2-switch`. Never fork a hook.
+
+### Tokens (Tailwind classes; v1 falls back to the nearest old colour)
+| Class | v2 dark | v2 light | Use |
+|---|---|---|---|
+| `bg-app-bg` | `#141312` | `#f4f3f1` | page |
+| `bg-app-card` / `bg-app-surface` | `#1d1c1a` | `#ffffff` | sidebar, boxes, tiles |
+| `bg-app-raised` (= `app-input`, `app-hover`) | `#262421` | `#eeece8` | active segment, inputs in boxes, bar tracks |
+| `border-app-border` | `#2e2c29` | `#e4e1dc` | hairlines between rows |
+| `text-app-text` / `-muted` / `-faint` | `#efece6` / `#9a958c` / `#6b665e` | `#1c1a17` / `#6b665e` / `#9a958c` | text levels |
+| `text-app-income` | `#7fcf95` | `#2f8f55` | income amounts, "On track" (**only** income is green) |
+| `app-expense-mark` | `#ec8a76` | `#ec8a76` | expense **marks** in charts/bars, never text |
+| `app-warn` / `app-danger` | `#f0b85a` / `#ff8a7a` | `#a86a0c` / `#c4412f` | due soon / overdue, over budget, destructive |
+| `bg-wallet` + `text-on-wallet` | wallet colour / `onColor()` | same | the one solid wallet surface (card, primary CTA, mini-cards, active-tab icon) |
+
+- `--wallet`/`--on-wallet` default to the **inverted neutral** (text colour fill, page colour
+  text) — that is the accent outside a wallet (login, global settings, admin). A wallet root
+  sets them from `wallet.color` + `onColor(wallet.color)` (`utils/color.ts`).
+- Light only: white boxes get a 1px hairline — `shadow-[var(--box-ring)]` (transparent in dark, so it can be combined: `shadow-[inset_3px_0_0_var(--color-app-warn),var(--box-ring)]`).
+  Category glyphs in light: `color-mix(in srgb, <cat> 70%, #000)` so yellow/cyan stay legible.
+- Radius: `--r-hero` 20 (wallet card) · `--r-card` 18 · `--r-input`/`--r-cta` 12 · `--r-sm` 8 ·
+  icon tile 11 · pills full. Spacing: page 40px desktop / 16px mobile, 14px between boxes,
+  32px between sections.
+- Fonts (self-hosted, `assets/fonts/`): **Instrument Sans** = `font-sans` (UI, tabular
+  numbers by default); **Bricolage Grotesque** = `font-display` (titles, wallet name, big
+  numbers; `tracking-[-0.02em]`). No monospace for amounts in v2.
+
+### Do / don't
+| Do | Don't |
+|---|---|
+| Wallet colour as a **solid fill** on: wallet card, primary CTA, wallet mini-cards, active-tab icon | Wallet colour on borders, text, glows, halos, tab underlines, gradients |
+| Category colour on **icon tiles** (18% tint bg + full-colour glyph) and chart marks | Coloured category *chips/badges* with coloured text in every row |
+| Sentence case everywhere ("New transaction", "Subscriptions") | ALL CAPS tabs, labels, eyebrows |
+| Expenses in normal text colour; **only income is green** | Every expense in red |
+| Tabular figures in the UI font (`font-variant-numeric: tabular-nums`) | Monospace for amounts |
+| Neutral warm-dark background, flat | Radial glows, purple-tinted backgrounds, `DashboardBackground` blobs |
+| Status = icon **+** text + colour (On track / Close to the limit / Over by …) | Status by colour alone |
+| Fox in empty states and as card emblem | Fox animated, or used as decoration on full pages |
+
+### Components (spec → primitive in `components/ui/`)
+| Pattern | Spec | Primitive (in `components/ui/`) |
+|---|---|---|
+| **Wallet card** | solid `--wallet`, text `--on-wallet`, name (display 30), meta (13, 70% opacity), "Net this month" + big net, month switcher as translucent pill (`color-mix(on-wallet 10%)`), fox emblem bottom-right rotated −8° and clipped | `WalletHeroCard` |
+| **Wallet mini-card** (sidebar) | 58px tall, solid wallet colour, name + currency; active = 2px `--text` outline offset 3px; no opacity dimming | `WalletMiniCard` (replaces current `WalletCard` look) |
+| **Stat tile** | surface box, icon tile + label + display number + 13px sub | `StatTile` |
+| **Tabs** | segmented control on `--surface`, active segment `--raised`, icon of active tab in `--wallet` | restyle `WalletTabs` / `Selector` |
+| **Category icon** | 40×40, radius 11, bg `color-mix(cat 18%)`, glyph in category colour | `CategoryIcon` (replaces chip-style `TagBadge` in rows) |
+| **List row** | icon · title (600) + sub (13 muted) · amount right (600, income green); hover = surface bg; title falls back to leaf category when the transaction has no name | restyle `TransactionRow` |
+| **Day group header** | muted 13px date left, day total right | — |
+| **Primary CTA** | solid `--wallet` / `--on-wallet` inside a wallet; outside a wallet: the inverted neutral (D8) — `bg-wallet text-on-wallet` gives both | `Button variant="primary"` |
+| **Secondary / ghost** | `--surface` bg, muted text, icon + label gap 8 | `Button variant="secondary"` |
+| **Status pill** | `color-mix(status 16%)` bg, status text, icon + label | `StatusPill` |
+| **Progress bar** | 10px track `--raised`, fill = status colour, radius 5 | `ProgressBar` |
+| **Split bar** | 14px, 2px gaps, segments in entity colour, legend with % below | `SplitBar` |
+| **Empty state** | fox (96px, −6°), display title 20, one-line explanation, CTA that names the action | `EmptyState` |
+| **Needs-attention row** | surface box with 3px inset left bar in `--warn` | — |
+
+### Charts (MUI X-Charts stays — restyle via `statistics/chartTheme.ts`)
+- Income mark `--income`, expense mark `--expense-mark`, balance line `--text` at 60%.
+- 4px rounded bar tops, 2px gap between paired bars, recessive grid (`--line`), axis
+  labels `--faint` 12px, no axis lines.
+- Donuts: 18px ring, 2px gaps between segments, total in display face at the centre.
+- Legend always present for ≥2 series; tooltip on hover; a table view stays available.
+- Category colours come from the user's tags — don't recolour them.
+
+### Copy
+Sentence case, plain verbs. CTAs name the action ("New subscription", "Delete Demo Wallet");
+empty states say what to do next; relative dates for due items ("in 3 days", "11 days overdue").

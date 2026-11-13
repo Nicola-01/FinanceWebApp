@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { SearchInput } from "../../components/ui/SearchInput.tsx";
 import { useOutsideClick } from "../../hooks/useOutsideClick.ts";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 interface TransactionsSearchProps {
   /** Current search text (controlled). */
@@ -25,6 +26,7 @@ const TransactionsSearch: React.FC<TransactionsSearchProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const popoverInputRef = useRef<HTMLInputElement>(null);
+  const [ui] = useUiVersion();
 
   useOutsideClick(dropdownRef, () => setIsOpen(false), isOpen);
 
@@ -34,6 +36,21 @@ const TransactionsSearch: React.FC<TransactionsSearchProps> = ({
   }, [isOpen]);
 
   const hasQuery = safeValue.trim().length > 0;
+
+  // ui-v2-switch: v2 is always a full field; the toolbar wraps it on narrow screens.
+  if (ui === "v2") {
+    return (
+      <div className="min-w-[12rem] flex-1">
+        <SearchInput
+          value={safeValue}
+          onChange={onChange}
+          color={color}
+          placeholder="Search transactions"
+          aria-label="Search transactions"
+        />
+      </div>
+    );
+  }
 
   return (
     <>

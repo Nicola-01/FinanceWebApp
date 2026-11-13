@@ -6,6 +6,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Input, type InputProps } from "./Input.tsx";
 import { Selector, type SelectorOption } from "./Selector.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 /** Direction of a signed amount (`""` = not yet chosen). */
 export type AmountType = "INCOME" | "EXPENSE" | "";
@@ -32,10 +33,13 @@ export interface NumberInputProps extends Omit<
 
 // Strip the native up/down spinners (keeps the decimal soft-keyboard) and adopt
 // the monospaced amount look.
-const FIELD_CLASS =
-  "font-app-mono [appearance:textfield] [&::-webkit-outer-spin-button]:m-0 " +
+const SPIN_CLASS =
+  "[appearance:textfield] [&::-webkit-outer-spin-button]:m-0 " +
   "[&::-webkit-outer-spin-button]:appearance-none " +
   "[&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none";
+const FIELD_CLASS = `font-app-mono ${SPIN_CLASS}`;
+// ui-v2-switch: v2 amounts use tabular figures in the UI font, not monospace.
+const FIELD_CLASS_V2 = `tabular-nums ${SPIN_CLASS}`;
 
 const TYPE_OPTIONS: SelectorOption<"EXPENSE" | "INCOME">[] = [
   {
@@ -51,6 +55,20 @@ const TYPE_OPTIONS: SelectorOption<"EXPENSE" | "INCOME">[] = [
     icon: <FontAwesomeIcon icon={faArrowTrendUp} />, // money coming into the wallet
     activeBgClass: "bg-app-green/15",
     activeColorClass: "text-app-green",
+  },
+];
+
+// ui-v2-switch: expenses stay neutral text; only income is green.
+const TYPE_OPTIONS_V2: SelectorOption<"EXPENSE" | "INCOME">[] = [
+  {
+    ...TYPE_OPTIONS[0],
+    activeBgClass: "bg-app-raised",
+    activeColorClass: "text-app-text",
+  },
+  {
+    ...TYPE_OPTIONS[1],
+    activeBgClass: "bg-app-raised",
+    activeColorClass: "text-app-income",
   },
 ];
 
@@ -76,12 +94,19 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     },
     ref,
   ) => {
+    const [ui] = useUiVersion();
+    const isV2 = ui === "v2"; // ui-v2-switch
     const signed = type !== undefined && onTypeChange !== undefined;
     const tint =
       type === "EXPENSE"
-        ? "text-app-red"
+        ? // ui-v2-switch
+          isV2
+          ? ""
+          : "text-app-red"
         : type === "INCOME"
-          ? "text-app-green"
+          ? isV2
+            ? "text-app-income" // ui-v2-switch
+            : "text-app-green"
           : "";
 
     const field = (
@@ -95,7 +120,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           if (e.key === "Enter") onEnter?.();
           onKeyDown?.(e);
         }}
-        className={`${FIELD_CLASS} ${signed ? "h-full min-h-0" : ""} ${tint} ${className}`.trim()}
+        className={`${isV2 ? FIELD_CLASS_V2 : FIELD_CLASS} ${signed ? "h-full min-h-0" : ""} ${tint} ${className}`.trim()}
         {...props}
       />
     );
@@ -106,7 +131,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       <div className="flex h-10 items-stretch gap-2">
         <div className="flex min-w-0 flex-1">{field}</div>
         <Selector
-          options={TYPE_OPTIONS}
+          options={isV2 ? TYPE_OPTIONS_V2 : TYPE_OPTIONS} // ui-v2-switch
           // `""` (unset) matches no segment, so nothing is highlighted.
           value={type as "EXPENSE" | "INCOME"}
           onChange={onTypeChange}

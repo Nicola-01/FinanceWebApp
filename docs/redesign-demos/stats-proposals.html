@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statistics proposals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141312; --surface: #1d1c1a; --raised: #262421; --line: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --income: #7fcf95; --expense: #ec8a76; --recurring: #b65a48; --warn: #f0b85a; --danger: #ff8a7a;
+    --wallet: #f2cc2f; --on-wallet: #1d1a10;
+    --display: "Bricolage Grotesque", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.5 "Instrument Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  main { max-width: 1120px; margin: 0 auto; padding: 24px 24px 80px; }
+
+  .switch { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 12px 0 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .switch p { color: var(--muted); font-size: 13px; margin-left: auto; max-width: 420px; }
+  .seg { display: inline-flex; background: var(--surface); border-radius: 12px; padding: 4px; gap: 2px; }
+  .seg button { padding: 6px 14px; border-radius: 9px; color: var(--muted); white-space: nowrap; }
+  .seg button[aria-pressed="true"] { background: var(--raised); color: var(--text); }
+  .seg.sm button { padding: 4px 10px; font-size: 13px; }
+
+  .head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .head h1 { font: 650 24px var(--display); margin-right: auto; }
+  .intro { color: var(--muted); margin: -6px 0 20px; max-width: 70ch; }
+  .intro b { color: var(--text); font-weight: 600; }
+
+  .grid { display: grid; gap: 14px; }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  .g2 { grid-template-columns: 1fr 1fr; }
+  .g32 { grid-template-columns: 2fr 1fr; }
+  .box { background: var(--surface); border-radius: 18px; padding: 18px 20px; min-width: 0; }
+  .box h2 { font: 650 17px var(--display); display: flex; align-items: center; gap: 10px; }
+  .box h2 .r { margin-left: auto; }
+  .box .sub { color: var(--muted); font-size: 13px; margin: 2px 0 12px; }
+  .kit { display: inline-block; font-size: 11px; color: var(--faint); border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; margin-left: 6px; font-weight: 400; font-family: "Instrument Sans"; vertical-align: middle; }
+  section + section { margin-top: 14px; }
+
+  .tile .k { color: var(--muted); font-size: 13px; }
+  .tile .v { font: 650 26px/1.15 var(--display); letter-spacing: -.02em; margin-top: 4px; }
+  .tile .v.in { color: var(--income); }
+  .tile .d { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .tile .d b { font-weight: 600; }
+  .up { color: var(--income); } .down { color: var(--danger); }
+  .tile svg { display: block; width: 100%; height: 38px; margin-top: 10px; }
+
+  svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+  svg text { fill: var(--faint); font: 12px "Instrument Sans", sans-serif; }
+  svg .lbl { fill: var(--muted); }
+  svg .val { fill: var(--text); font-weight: 600; }
+  svg [data-hover]:hover { opacity: .75; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .legend i.line { height: 2px; border-radius: 1px; vertical-align: 3px; }
+
+  .insights { display: grid; gap: 2px; }
+  .ins { display: grid; grid-template-columns: 36px 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .ins:first-of-type { border-top: 0; }
+  .ins .ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-weight: 700; }
+  .ins b { font-weight: 600; }
+  .ins span { color: var(--muted); font-size: 13px; display: block; }
+
+  details { margin-top: 14px; }
+  summary { cursor: pointer; color: var(--muted); padding: 10px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: right; color: var(--faint); font-weight: 500; font-size: 13px; padding: 8px 10px; }
+  td { text-align: right; padding: 8px 10px; border-top: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  td.in { color: var(--income); }
+
+  .heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 3px; overflow-x: auto; padding-bottom: 4px; }
+  .heat i { width: 13px; height: 13px; border-radius: 3px; background: var(--raised); }
+  .heat-wrap { display: grid; grid-template-columns: auto 1fr; gap: 8px; }
+  .days { display: grid; grid-template-rows: repeat(7, 13px); gap: 3px; font-size: 11px; color: var(--faint); }
+  .scale { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--faint); margin-top: 10px; justify-content: flex-end; }
+  .scale i { width: 13px; height: 13px; border-radius: 3px; }
+
+  .rings { display: flex; justify-content: space-around; gap: 12px; flex-wrap: wrap; }
+  .ring { text-align: center; }
+  .ring svg { width: 120px; height: 120px; }
+  .ring .y { color: var(--muted); font-size: 13px; }
+
+  .note { color: var(--faint); font-size: 12px; margin-top: 28px; }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 900px) {
+    .g4 { grid-template-columns: 1fr 1fr; }
+    .g2, .g32 { grid-template-columns: 1fr; }
+    .switch p { margin-left: 0; }
+  }
+  @media (max-width: 520px) { main { padding: 8px 16px 60px; } .tile .v { font-size: 21px; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="switch">
+    <div class="seg" id="pick">
+      <button data-p="p0">Chosen</button>
+      <button aria-pressed="true" data-p="p1">A · Balance story</button>
+      <button data-p="p2">B · Rhythm</button>
+      <button data-p="p3">C · Year vs year</button>
+    </div>
+    <p>Grey tags name the shadcn.io kit component (already in <code>src/components/ui/charts/</code>) each card would use. Hover marks for values.</p>
+  </div>
+
+  <!-- ===================== Chosen (2026-11-13) ===================== -->
+  <div id="p0" hidden>
+    <div class="head"><h1>Statistics</h1>
+      <div class="seg sm"><button aria-pressed="true">2026</button><button>2025</button><button>2024</button><button>All time</button></div>
+    </div>
+    <div id="p0-body"></div>
+  </div>
+
+  <!-- ===================== A ===================== -->
+  <div id="p1">
+    <div class="head"><h1>Statistics</h1>
+      <div class="seg sm"><button aria-pressed="true">2026</button><button>2025</button><button>2024</button><button>All time</button></div>
+    </div>
+    <p class="intro">Answers <b>"am I saving money, and when did it go wrong?"</b> — one headline chart of your balance, then the months explained.</p>
+
+    <section class="grid g4" id="a-tiles"></section>
+
+    <section class="box">
+      <h2>Balance over time <span class="kit">AreaChart + ChartBrush</span>
+        <span class="r seg sm"><button>6M</button><button aria-pressed="true">1Y</button><button>All</button></span></h2>
+      <div class="sub">What's left after every euro in and out, since the wallet started.</div>
+      <svg class="chart" id="a-area" viewBox="0 0 1000 260"></svg>
+    </section>
+
+    <section class="grid g32">
+      <div class="box">
+        <h2>Month by month <span class="kit">ComposedChart (Bar + Line)</span></h2>
+        <div class="sub">Earned above the line, spent below it. The dot is what you kept.</div>
+        <div class="legend"><span><i style="background:var(--income)"></i>Earned</span><span><i style="background:var(--expense)"></i>Spent</span><span><i style="background:var(--text);border-radius:50%"></i>Kept</span></div>
+        <svg class="chart" id="a-div" viewBox="0 0 640 300"></svg>
+      </div>
+      <div class="box">
+        <h2>Worth knowing</h2>
+        <div class="sub">Computed from your transactions.</div>
+        <div class="insights" id="a-ins"></div>
+      </div>
+    </section>
+
+    <details class="box"><summary>Show the numbers</summary><div id="a-table"></div></details>
+  </div>
+
+  <!-- ===================== B ===================== -->
+  <div id="p2" hidden>
+    <div class="head"><h1>Statistics</h1>
+      <div class="seg sm"><button aria-pressed="true">2026</button><button>2025</button></div>
+    </div>
+    <p class="intro">Answers <b>"how does my money move through the year?"</b> — when you spend, how the year added up, and how much of it is on autopilot.</p>
+
+    <section class="box">
+      <h2>Spending calendar <span class="kit">Heatmap (calendar)</span></h2>
+      <div class="sub">Each square is a day. Darker means more spent.</div>
+      <div class="heat-wrap"><div class="days"><span></span><span>Mon</span><span></span><span>Wed</span><span></span><span>Fri</span><span></span></div><div class="heat" id="b-heat"></div></div>
+      <div class="scale">Less <i style="background:var(--raised)"></i><i style="background:#4a2e28"></i><i style="background:#7a4236"></i><i style="background:#b35f4d"></i><i style="background:var(--expense)"></i> More</div>
+    </section>
+
+    <section class="box">
+      <h2>How the year added up <span class="kit">Waterfall</span></h2>
+      <div class="sub">Start of the year, each month's net, where you are now.</div>
+      <svg class="chart" id="b-water" viewBox="0 0 1000 280"></svg>
+    </section>
+
+    <section class="grid g2">
+      <div class="box">
+        <h2>Fixed vs everyday <span class="kit">BarChart (stacked)</span></h2>
+        <div class="sub">Spending from subscriptions vs everything else.</div>
+        <div class="legend"><span><i style="background:var(--recurring)"></i>Subscriptions</span><span><i style="background:var(--expense)"></i>Everyday</span></div>
+        <svg class="chart" id="b-stack" viewBox="0 0 520 240"></svg>
+      </div>
+      <div class="box">
+        <h2>By day of the week <span class="kit">BarChart (horizontal)</span></h2>
+        <div class="sub">Average spent on each weekday, excluding subscriptions.</div>
+        <svg class="chart" id="b-week" viewBox="0 0 520 240"></svg>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================== C ===================== -->
+  <div id="p3" hidden>
+    <div class="head"><h1>Statistics</h1>
+      <div class="seg sm"><button aria-pressed="true">2026 vs 2025</button><button>2025 vs 2024</button></div>
+    </div>
+    <p class="intro">Answers <b>"am I doing better than last year?"</b> — this year against the same months of last year.</p>
+
+    <section class="grid g4" id="c-tiles"></section>
+
+    <section class="box">
+      <h2>Spent so far, this year vs last <span class="kit">LineChart (2 series)</span></h2>
+      <div class="sub">Running total of spending, month by month.</div>
+      <div class="legend"><span><i class="line" style="background:var(--expense)"></i>2026</span><span><i class="line" style="background:var(--faint)"></i>2025</span></div>
+      <svg class="chart" id="c-lines" viewBox="0 0 1000 260"></svg>
+    </section>
+
+    <section class="grid g2">
+      <div class="box">
+        <h2>Earned and spent, per year <span class="kit">Dumbbell</span></h2>
+        <div class="sub">The gap between the dots is what you saved.</div>
+        <svg class="chart" id="c-dumb" viewBox="0 0 520 200"></svg>
+      </div>
+      <div class="box">
+        <h2>Savings rate <span class="kit">RingChart</span></h2>
+        <div class="sub">Share of income you kept.</div>
+        <div class="rings" id="c-rings"></div>
+      </div>
+    </section>
+  </div>
+
+  <p class="note">2026 monthly totals and the yearly totals are the Demo Wallet's real figures. 2025 per-month values, daily spending, the subscription split and weekday averages are illustrative.</p>
+</main>
+
+<script>
+  const M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const inc26 = [1703.22,1726.94,1796.48,1739.38,1716.87,1703.89,1791.59,1635.62,1716.23,1750.01];
+  const out26 = [1211.95,1321.43,1131.92,1372.33,1562.75,1349.77,1104.15,1290.15,1305.42,10766.74];
+  // illustrative 2025 months, scaled to the real yearly totals (21,775.73 / 15,366.41)
+  const w = [1,.97,1.03,.99,1.01,.98,1.04,.96,1,1.02,.99,1.01], ws = w.reduce((a,b)=>a+b);
+  const inc25 = w.map(x => 21775.73 * x / ws), out25 = w.map((x,i) => 15366.41 * [1.02,.95,1,1.05,.97,1.01,1.08,.93,.99,1.02,.96,1.02][i] / ws);
+  const years = [["2024", 6626.61, 3991.19], ["2025", 21775.73, 15366.41], ["2026", 17280.23, 22416.61]];
+  const sum = a => a.reduce((t,v)=>t+v,0);
+  const eur = (n, d = 2) => Math.abs(n).toLocaleString("en", { minimumFractionDigits: d, maximumFractionDigits: d }) + " €";
+  const sgn = (n, d) => (n > 0 ? "+" : n < 0 ? "−" : "") + eur(n, d);
+  const k = n => (n < 0 ? "−" : "") + (Math.abs(n) >= 1000 ? (Math.abs(n)/1000).toFixed(Math.abs(n) % 1000 ? 1 : 0) + "k" : Math.abs(n));
+  const $ = id => document.getElementById(id);
+
+  // ---- tiny SVG helpers ----
+  const scale = (d0, d1, r0, r1) => v => r0 + (v - d0) / (d1 - d0) * (r1 - r0);
+  const niceMax = v => { const p = 10 ** Math.floor(Math.log10(v)); return Math.ceil(v / p) * p; };
+  const grid = (ticks, y, x0, x1) => ticks.map(t => `<line x1="${x0}" x2="${x1}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)" ${t ? 'stroke-dasharray="3 4"' : ''}/><text x="${x0 - 8}" y="${y(t) + 4}" text-anchor="end">${k(t)}</text>`).join("");
+  const path = pts => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1)).join("");
+  const spark = (vals, color, fill) => { const mn = Math.min(...vals), mx = Math.max(...vals), x = scale(0, vals.length - 1, 0, 200), y = scale(mn, mx || 1, 36, 2);
+    const p = vals.map((v, i) => [x(i), y(v)]);
+    return `<svg viewBox="0 0 200 38" preserveAspectRatio="none">${fill ? `<path d="${path(p)}L200,38L0,38Z" fill="${color}" opacity=".15"/>` : ""}<path d="${path(p)}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`; };
+  const tile = (label, value, cls, delta, sp) => `<div class="box tile"><div class="k">${label}</div><div class="v ${cls}">${value}</div><div class="d">${delta}</div>${sp || ""}</div>`;
+
+  // ===================== A =====================
+  const net26 = inc26.map((v, i) => v - out26[i]);
+  const rate = (i, o) => Math.round((i - o) / i * 100);
+  $("a-tiles").innerHTML =
+    tile("Earned in 2026", sgn(sum(inc26)), "in", `about ${eur(sum(inc26)/10, 0)} a month`, spark(inc26, "var(--income)", 1)) +
+    tile("Spent in 2026", eur(sum(out26)), "", `<b class="down">+46%</b> vs 2025`, spark(out26, "var(--expense)", 1)) +
+    tile("Kept", sgn(sum(inc26) - sum(out26)), "", `2025: <b class="up">+6,409 €</b>`, spark(net26, "var(--text)")) +
+    tile("Savings rate", `${rate(sum(inc26), sum(out26))}%`, "", `was <b class="up">29%</b> until September`, spark(net26.map((n,i)=>n/inc26[i]), "var(--wallet)"));
+
+  // balance series: end of 2024 + 2025 months + 2026 months
+  const bal = []; let b = 2635.42;
+  inc25.forEach((v, i) => bal.push(["2025 " + M[i], b += v - out25[i]]));
+  inc26.forEach((v, i) => bal.push(["2026 " + M[i], b += v - out26[i]]));
+  (() => {
+    const W = 1000, H = 260, L = 50, R = 990, T = 16, B = 226;
+    const x = scale(0, bal.length - 1, L, R), y = scale(0, 14000, B, T);
+    const pts = bal.map((p, i) => [x(i), y(p[1])]);
+    const peak = bal.reduce((m, p, i) => p[1] > bal[m][1] ? i : m, 0), last = bal.length - 1;
+    $("a-area").innerHTML = `<defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--wallet)" stop-opacity=".35"/><stop offset="1" stop-color="var(--wallet)" stop-opacity="0"/></linearGradient></defs>`
+      + grid([0, 4000, 8000, 12000], y, L, R)
+      + `<path d="${path(pts)}L${R},${B}L${L},${B}Z" fill="url(#ag)"/><path d="${path(pts)}" fill="none" stroke="var(--wallet)" stroke-width="2.5"/>`
+      + bal.map((p, i) => `<rect data-hover x="${x(i) - 20}" y="${T}" width="40" height="${B - T}" fill="transparent"><title>${p[0]}: ${eur(p[1])}</title></rect>`).join("")
+      + bal.map((p, i) => i % 3 === 0 ? `<text x="${x(i)}" y="${B + 22}" text-anchor="middle">${p[0].replace(" ", " ").split(" ").reverse().join(" ")}</text>` : "").join("")
+      + `<circle cx="${x(peak)}" cy="${y(bal[peak][1])}" r="5" fill="var(--wallet)" stroke="var(--surface)" stroke-width="2"/><text class="val" x="${x(peak)}" y="${y(bal[peak][1]) - 14}" text-anchor="middle">Peak ${eur(bal[peak][1], 0)}</text>`
+      + `<circle cx="${x(last)}" cy="${y(bal[last][1])}" r="5" fill="var(--wallet)" stroke="var(--surface)" stroke-width="2"/><text class="val" x="${x(last) - 8}" y="${y(bal[last][1]) + 26}" text-anchor="end">Now ${eur(bal[last][1], 0)}</text>`;
+  })();
+
+  (() => {
+    const L = 50, R = 630, T = 10, B = 270, mid = 140;
+    const y = v => mid - v / 11000 * (mid - T) * 1; // shared scale both ways
+    const gw = (R - L) / 12, bw = 18;
+    let s = grid([-10000, -5000, 0, 5000, 10000], v => mid - v / 10000 * (mid - T - 4), L, R);
+    const yy = v => mid - v / 10000 * (mid - T - 4);
+    M.forEach((m, i) => {
+      const cx = L + gw * i + gw / 2;
+      if (i < inc26.length) {
+        const top = yy(inc26[i]), bot = yy(-out26[i]);
+        s += `<path data-hover fill="var(--income)" d="M${cx - bw/2},${mid - 1}V${top + 4}Q${cx - bw/2},${top} ${cx - bw/2 + 4},${top}H${cx + bw/2 - 4}Q${cx + bw/2},${top} ${cx + bw/2},${top + 4}V${mid - 1}Z"><title>${m}: earned ${eur(inc26[i])}</title></path>`;
+        s += `<path data-hover fill="var(--expense)" d="M${cx - bw/2},${mid + 1}V${bot - 4}Q${cx - bw/2},${bot} ${cx - bw/2 + 4},${bot}H${cx + bw/2 - 4}Q${cx + bw/2},${bot} ${cx + bw/2},${bot - 4}V${mid + 1}Z"><title>${m}: spent ${eur(out26[i])}</title></path>`;
+      }
+      s += `<text x="${cx}" y="${B + 22}" text-anchor="middle">${m}</text>`;
+    });
+    const np = net26.map((n, i) => [L + gw * i + gw / 2, yy(n)]);
+    s += `<path d="${path(np)}" fill="none" stroke="var(--text)" stroke-width="1.5" opacity=".6"/>` + np.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="var(--text)" stroke="var(--surface)" stroke-width="2"><title>${M[i]}: kept ${sgn(net26[i])}</title></circle>`).join("");
+    s += `<text class="val" x="${np[9][0] - 14}" y="${np[9][1] + 4}" text-anchor="end">−9,017 €</text>`;
+    $("a-div").innerHTML = s;
+  })();
+
+  const ins = [["!", "var(--danger)", `October cost ${eur(out26[9], 0)}`, "8× your usual month. 8,347 € of it is one Groceries transaction on 29 Oct."],
+    ["↑", "var(--income)", "Best month: July, +687 €", "You kept 38% of what you earned."],
+    ["↻", "var(--recurring)", "Subscriptions are 34% of spending", "About 760 € a month, before anything else."],
+    ["=", "var(--muted)", "Income is steady", "Between 1,636 € and 1,796 € every month this year."]];
+  $("a-ins").innerHTML = ins.map(([g, c, t, s]) => `<div class="ins"><div class="ic" style="background:color-mix(in srgb, ${c} 18%, transparent);color:${c}">${g}</div><div><b>${t}</b><span>${s}</span></div></div>`).join("");
+  $("a-table").innerHTML = `<table><thead><tr><th>Month</th><th>Earned</th><th>Spent</th><th>Kept</th></tr></thead><tbody>${inc26.map((v, i) => `<tr><td>${M[i]}</td><td class="in">${sgn(v)}</td><td>${eur(out26[i])}</td><td>${sgn(v - out26[i])}</td></tr>`).join("")}</tbody></table>`;
+
+  // ===================== B =====================
+  (() => {
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const start = new Date(2026, 0, 1), cells = [];
+    for (let i = 0; i < start.getDay(); i++) cells.push(`<i style="visibility:hidden"></i>`);
+    const end = new Date(2026, 9, 31), today = new Date(2026, 10, 13);
+    for (let d = new Date(start); d <= new Date(2026, 11, 31); d.setDate(d.getDate() + 1)) {
+      const future = d > end;
+      let v = rnd() < .35 ? 0 : rnd() ** 2 * 120;
+      if (d.getDay() === 6) v *= 1.8;
+      if (d.getMonth() === 9 && d.getDate() === 29) v = 9481;
+      const c = future ? "transparent" : v === 0 ? "var(--raised)" : v < 25 ? "#4a2e28" : v < 60 ? "#7a4236" : v < 120 ? "#b35f4d" : "var(--expense)";
+      cells.push(`<i style="background:${c};${future ? "outline:1px solid var(--line);outline-offset:-1px" : ""}" title="${d.toDateString().slice(4)}: ${future ? "—" : eur(v)}"></i>`);
+    }
+    $("b-heat").innerHTML = cells.join("");
+  })();
+
+  (() => {
+    const L = 60, R = 990, T = 20, B = 240, startBal = 9044.74;
+    const steps = [["1 Jan", startBal, "start"], ...net26.map((n, i) => [M[i], n, "step"]), ["Now", startBal + sum(net26), "end"]];
+    const y = scale(0, 13000, B, T), gw = (R - L) / steps.length, bw = gw * .62;
+    let run = 0, s = grid([0, 4000, 8000, 12000], y, L, R);
+    steps.forEach(([lab, v, t], i) => {
+      const x0 = L + gw * i + (gw - bw) / 2;
+      let a, b2, c;
+      if (t === "start" || t === "end") { a = 0; b2 = v; c = "var(--muted)"; run = v; }
+      else { a = run; b2 = run + v; run = b2; c = v >= 0 ? "var(--income)" : "var(--expense)"; }
+      const top = y(Math.max(a, b2)), h = Math.max(2, Math.abs(y(a) - y(b2)));
+      s += `<rect data-hover x="${x0}" y="${top}" width="${bw}" height="${h}" rx="3" fill="${c}"><title>${lab}: ${t === "step" ? sgn(v) : eur(v)}</title></rect>`;
+      if (i < steps.length - 1) { const nb = t === "step" ? b2 : v; s += `<line x1="${x0 + bw}" x2="${x0 + gw}" y1="${y(nb)}" y2="${y(nb)}" stroke="var(--faint)" stroke-dasharray="2 3"/>`; }
+      s += `<text x="${x0 + bw / 2}" y="${B + 20}" text-anchor="middle">${lab}</text>`;
+      if (t !== "step" || Math.abs(v) > 3000) s += `<text class="val" x="${x0 + bw / 2}" y="${top - 6}" text-anchor="middle">${t === "step" ? sgn(v, 0) : eur(v, 0)}</text>`;
+    });
+    $("b-water").innerHTML = s;
+  })();
+
+  (() => {
+    const L = 46, R = 515, T = 10, B = 200, rec = [700,705,712,712,730,735,740,742,752,760];
+    const y = scale(0, 2000, B, T), gw = (R - L) / 10, bw = 24;
+    let s = grid([0, 1000, 2000], y, L, R);
+    out26.forEach((o, i) => {
+      const x0 = L + gw * i + (gw - bw) / 2, r = rec[i], e = Math.min(o - r, 1300), cut = o - r > 1300;
+      s += `<rect data-hover x="${x0}" y="${y(r)}" width="${bw}" height="${B - y(r)}" fill="var(--recurring)"><title>${M[i]}: subscriptions ${eur(r)}</title></rect>`;
+      s += `<path data-hover fill="var(--expense)" d="M${x0},${y(r) - 2}V${y(r + e) + 4}Q${x0},${y(r + e)} ${x0 + 4},${y(r + e)}H${x0 + bw - 4}Q${x0 + bw},${y(r + e)} ${x0 + bw},${y(r + e) + 4}V${y(r) - 2}Z"><title>${M[i]}: everyday ${eur(o - r)}</title></path>`;
+      if (cut) s += `<text class="val" x="${x0 + bw / 2}" y="${y(r + e) - 8}" text-anchor="middle">${k(o - r)} ↑</text>`;
+      s += `<text x="${x0 + bw / 2}" y="${B + 20}" text-anchor="middle">${M[i]}</text>`;
+    });
+    $("b-stack").innerHTML = s;
+  })();
+
+  (() => {
+    const days = [["Mon", 21], ["Tue", 18], ["Wed", 24], ["Thu", 31], ["Fri", 39], ["Sat", 64], ["Sun", 27]];
+    const L = 50, R = 470, x = scale(0, 70, L, R), h = 22, gap = 9;
+    $("b-week").innerHTML = days.map(([d, v], i) => { const yy = 8 + i * (h + gap);
+      return `<text class="lbl" x="${L - 10}" y="${yy + 15}" text-anchor="end">${d}</text><rect data-hover x="${L}" y="${yy}" width="${x(v) - L}" height="${h}" rx="4" fill="${d === "Sat" ? "var(--expense)" : "#7a4236"}"><title>${d}: ${eur(v)} on average</title></rect><text class="val" x="${x(v) + 8}" y="${yy + 15}">${v} €</text>`; }).join("");
+  })();
+
+  // ===================== C =====================
+  const cum = a => a.map((s => v => s += v)(0));
+  const c26 = cum(out26), c25 = cum(out25);
+  $("c-tiles").innerHTML =
+    tile("Spent Jan–Oct", eur(c26[9], 0), "", `<b class="down">+${eur(c26[9] - c25[9], 0)}</b> vs same months 2025`) +
+    tile("Earned Jan–Oct", sgn(sum(inc26), 0), "in", `<b class="down">−${eur(sum(inc25.slice(0,10)) - sum(inc26), 0)}</b> vs 2025`) +
+    tile("Kept Jan–Oct", sgn(sum(net26), 0), "", `2025 same months: <b class="up">${sgn(sum(inc25.slice(0,10)) - c25[9], 0)}</b>`) +
+    tile("Without October", sgn(sum(net26.slice(0, 9)), 0), "", "You'd be on track with 2025");
+  (() => {
+    const L = 60, R = 990, T = 16, B = 226, x = scale(0, 11, L, R), y = scale(0, 24000, B, T);
+    const p25 = c25.map((v, i) => [x(i), y(v)]), p26 = c26.map((v, i) => [x(i), y(v)]);
+    let s = grid([0, 6000, 12000, 18000, 24000], y, L, R);
+    s += `<path d="${path(p25)}" fill="none" stroke="var(--faint)" stroke-width="2" stroke-dasharray="5 4"/>`;
+    s += `<path d="${path(p26)}" fill="none" stroke="var(--expense)" stroke-width="2.5"/>`;
+    s += c26.map((v, i) => `<circle data-hover cx="${x(i)}" cy="${y(v)}" r="4" fill="var(--expense)" stroke="var(--surface)" stroke-width="2"><title>${M[i]} 2026: ${eur(v)} so far (2025: ${eur(c25[i])})</title></circle>`).join("");
+    s += M.map((m, i) => `<text x="${x(i)}" y="${B + 22}" text-anchor="middle">${m}</text>`).join("");
+    s += `<line x1="${x(9)}" x2="${x(9)}" y1="${y(c26[9])}" y2="${y(c25[9])}" stroke="var(--danger)" stroke-width="1.5"/><text class="val" x="${x(9) - 10}" y="${(y(c26[9]) + y(c25[9])) / 2 + 4}" text-anchor="end">+${eur(c26[9] - c25[9], 0)}</text>`;
+    s += `<text x="${x(11)}" y="${y(c25[11]) - 12}" text-anchor="end" class="lbl">2025 full year: ${eur(c25[11], 0)}</text>`;
+    $("c-lines").innerHTML = s;
+  })();
+  (() => {
+    const L = 60, R = 500, x = scale(0, 24000, L, R);
+    let s = [0, 8000, 16000, 24000].map(t => `<line x1="${x(t)}" x2="${x(t)}" y1="10" y2="170" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${x(t)}" y="190" text-anchor="middle">${k(t)}</text>`).join("");
+    years.forEach(([yr, i, o], n) => { const yy = 40 + n * 55;
+      s += `<text class="lbl" x="${L - 12}" y="${yy + 4}" text-anchor="end">${yr}</text><line x1="${x(Math.min(i, o))}" x2="${x(Math.max(i, o))}" y1="${yy}" y2="${yy}" stroke="${i >= o ? "var(--income)" : "var(--danger)"}" stroke-width="3" opacity=".5"/>`
+        + `<circle data-hover cx="${x(i)}" cy="${yy}" r="7" fill="var(--income)"><title>${yr}: earned ${eur(i)}</title></circle><circle data-hover cx="${x(o)}" cy="${yy}" r="7" fill="var(--expense)"><title>${yr}: spent ${eur(o)}</title></circle>`
+        + `<text class="val" x="${(x(i) + x(o)) / 2}" y="${yy - 12}" text-anchor="middle">${sgn(i - o, 0)}</text>`; });
+    $("c-dumb").innerHTML = s;
+  })();
+  $("c-rings").innerHTML = years.map(([yr, i, o]) => { const r = (i - o) / i, R = 48, C = 2 * Math.PI * R, ok = r >= 0;
+    return `<div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${R}" fill="none" stroke="var(--raised)" stroke-width="12"/>
+      <circle cx="60" cy="60" r="${R}" fill="none" stroke="${ok ? "var(--income)" : "var(--danger)"}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${Math.min(Math.abs(r), 1) * C} ${C}" transform="rotate(-90 60 60)${ok ? "" : " scale(1,-1) translate(0,-120)"}"/>
+      <text x="60" y="66" text-anchor="middle" style="font:700 22px var(--display);fill:var(--text)">${Math.round(r * 100)}%</text></svg><div class="y">${yr}</div></div>`; }).join("");
+
+  // chosen view: A tiles, Month by month + Worth knowing, B waterfall, B fixed vs everyday, A numbers (collapsed)
+  (() => {
+    const pick = el => { const c = el.cloneNode(true); c.querySelectorAll("[id]").forEach(n => n.removeAttribute("id")); c.removeAttribute("id"); return c; };
+    const body = $("p0-body"), card = id => $(id).closest(".box");
+    body.append(pick($("a-tiles")), pick($("a-div").closest("section")));
+    const water = pick(card("b-water")), stack = pick(card("b-stack"));
+    water.style.marginTop = stack.style.marginTop = "14px";
+    stack.querySelector("svg").style.maxHeight = "280px";
+    body.append(water, stack, pick($("a-table").closest("details")));
+  })();
+
+  // ---- projection card (Chosen view): LineChart + Band + ProjectionLine ----
+  (() => {
+    const median = a => { const b = [...a].sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+    const nets = bal.map((p, i) => p[1] - (i ? bal[i - 1][1] : 2635.42)).slice(-12);
+    const med = median(nets), sigma = median(nets.map(x => Math.abs(x - med))) * 1.4826 || 50;
+    const MS = M.map(m => m), lab = (y, m) => `${MS[m]} ${String(y).slice(2)}`;
+    const hist = bal.map(p => { const [y, m] = p[0].split(" "); return [lab(+y, MS.indexOf(m)), p[1]]; });
+    const box = document.createElement("section"); box.className = "box"; box.style.marginTop = "14px";
+    box.innerHTML = `<h2>Where you're heading <span class="kit">LineChart + Band + ProjectionLine</span>
+      <span class="r seg sm" id="ph">${[["End of year", 2], ["1 year", 12], ["3 years", 36], ["5 years", 60]].map(([l, n], i) => `<button data-n="${n}" aria-pressed="${i === 1}">${l}</button>`).join("")}</span></h2>
+      <div class="sub" id="psub"></div>
+      <div class="legend"><span><i class="line" style="background:var(--wallet)"></i>Balance</span><span><i class="line" style="background:repeating-linear-gradient(90deg,var(--wallet) 0 4px,transparent 4px 7px)"></i>Projection</span><span><i style="background:color-mix(in srgb, var(--wallet) 22%, transparent)"></i>Likely range</span></div>
+      <svg class="chart" id="proj" viewBox="0 0 1000 280"></svg>
+      <div class="sub" style="margin:10px 0 0">Based on your typical month over the last 12 (median), so one-off months don't skew it. The range is where 8 in 10 outcomes would land.</div>`;
+    const draw = n => {
+      const h = n <= 12 ? hist.slice(-12) : hist, last = hist[hist.length - 1][1];
+      const fut = []; for (let k = 1; k <= n; k++) { const mi = 9 + k, y = 2026 + Math.floor(mi / 12), sp = 1.28 * sigma * Math.sqrt(k);
+        fut.push([lab(y, mi % 12), last + med * k, last + med * k - sp, last + med * k + sp]); }
+      const all = h.length + n, L = 60, R = 985, T = 24, B = 236, x = scale(0, all - 1, L, R);
+      const lo = Math.min(0, ...fut.map(f => f[2]), ...h.map(p => p[1])), hi = niceMax(Math.max(...fut.map(f => f[3]), ...h.map(p => p[1])));
+      const y = scale(lo, hi, B, T), step = hi / 4, ticks = [0, step, 2 * step, 3 * step, hi].filter(t => t >= lo);
+      const i0 = h.length - 1, hp = h.map((p, i) => [x(i), y(p[1])]);
+      const fp = [[x(i0), y(last)], ...fut.map((f, k) => [x(i0 + k + 1), y(f[1])])];
+      const up = [[x(i0), y(last)], ...fut.map((f, k) => [x(i0 + k + 1), y(f[3])])], dn = [[x(i0), y(last)], ...fut.map((f, k) => [x(i0 + k + 1), y(f[2])])].reverse();
+      const every = Math.ceil(all / 9), end = fut[fut.length - 1];
+      let s = grid(ticks, y, L, R);
+      s += `<rect x="${x(i0)}" y="${T}" width="${R - x(i0)}" height="${B - T}" fill="var(--raised)" opacity=".35"/><text x="${x(i0) + 8}" y="${T + 14}" class="lbl">Forecast</text>`;
+      s += `<path d="${path(up)}${path(dn).replace("M", "L")}Z" fill="var(--wallet)" opacity=".18"/>`;
+      s += `<path d="${path(hp)}" fill="none" stroke="var(--wallet)" stroke-width="2.5"/>`;
+      s += `<path d="${path(fp)}" fill="none" stroke="var(--wallet)" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>`;
+      s += h.map((p, i) => `<rect data-hover x="${x(i) - 8}" y="${T}" width="16" height="${B - T}" fill="transparent"><title>${p[0]}: ${eur(p[1])}</title></rect>`).join("");
+      s += fut.map((f, k) => `<rect data-hover x="${x(i0 + k + 1) - 8}" y="${T}" width="16" height="${B - T}" fill="transparent"><title>${f[0]}: about ${eur(f[1], 0)} (${eur(f[2], 0)} – ${eur(f[3], 0)})</title></rect>`).join("");
+      s += [...h.map(p => p[0]), ...fut.map(f => f[0])].map((l, i) => i % every === 0 || i === all - 1 ? `<text x="${x(i)}" y="${B + 22}" text-anchor="middle">${l}</text>` : "").join("");
+      s += `<circle cx="${x(i0)}" cy="${y(last)}" r="5" fill="var(--wallet)" stroke="var(--surface)" stroke-width="2"/><text class="val" x="${x(i0) - 10}" y="${y(last) - 12}" text-anchor="end">Now ${eur(last, 0)}</text>`;
+      s += `<circle cx="${x(all - 1)}" cy="${y(end[1])}" r="5" fill="var(--surface)" stroke="var(--wallet)" stroke-width="2"/><text class="val" x="${x(all - 1)}" y="${y(end[3]) - 10}" text-anchor="end">≈ ${eur(end[1], 0)}</text>`;
+      box.querySelector("#proj").innerHTML = s;
+      box.querySelector("#psub").innerHTML = `At your usual pace of <b style="color:var(--text)">${sgn(med, 0)} a month</b> you'd have about <b style="color:var(--text)">${eur(end[1], 0)}</b> by ${end[0].replace(" ", " 20")} (likely ${eur(end[2], 0)} – ${eur(end[3], 0)}).`;
+    };
+    box.querySelector("#ph").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+      box.querySelectorAll("#ph button").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(+b.dataset.n); });
+    draw(12);
+    const body = $("p0-body"); body.insertBefore(box, body.lastElementChild);
+  })();
+
+  // proposal switcher
+  $("pick").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+    [...$("pick").children].forEach(x => x.setAttribute("aria-pressed", x === b));
+    ["p0", "p1", "p2", "p3"].forEach(p => $(p).hidden = p !== b.dataset.p); });
+  const h = location.hash.slice(1); if (["p0","p1","p2","p3"].includes(h)) document.querySelector(`[data-p=${h}]`).click();
+</script>
+</body>
+</html>

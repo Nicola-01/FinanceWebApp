@@ -12,7 +12,7 @@ interface ListProps {
   onOpen: (invite: Invitation) => void;
 }
 
-const InvitesList: React.FC<ListProps> = ({ invites, onOpen }) =>
+export const InvitesList: React.FC<ListProps> = ({ invites, onOpen }) =>
   invites.length > 0 ? (
     <>
       {invites.map((inv) => (

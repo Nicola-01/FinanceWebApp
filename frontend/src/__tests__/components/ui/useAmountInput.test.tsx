@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { useAmountInput } from "../../../components/ui/useAmountInput";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 type AmountType = "EXPENSE" | "INCOME" | "";
 
@@ -119,5 +120,22 @@ describe("useAmountInput", () => {
       />,
     );
     expect(input.value).toBe("");
+  });
+});
+
+describe("useAmountInput v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("keeps expenses in the text colour", () => {
+    const { input, state } = setup();
+    fireEvent.change(input, { target: { value: "12" } });
+    expect(state()).toBe("text-app-text|text-6xl|null|false");
+  });
+
+  it("keeps income green", () => {
+    const { input, state } = setup("INCOME");
+    fireEvent.change(input, { target: { value: "12" } });
+    expect(state()).toBe("text-app-green|text-6xl|null|false");
   });
 });

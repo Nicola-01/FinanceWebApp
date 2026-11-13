@@ -1,26 +1,24 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { LinePlot } from "@mui/x-charts-pro/LineChart";
 import { toCumulativeRows } from "./chartData";
-import {
-  BALANCE_COLOR,
-  EXPENSE_COLOR,
-  INCOME_COLOR,
-  formatBalance,
-  formatExpense,
-  formatIncome,
-} from "./chartTheme.ts";
+import { formatBalance, formatExpense, formatIncome } from "./chartTheme.ts";
+import { useChartPalette } from "./useChartPalette.ts";
 import {
   MonthlyChart,
   type MonthlyChartProps,
   type MonthlyChartSeries,
 } from "./MonthlyChart.tsx";
 
-const SERIES: MonthlyChartSeries = [
+const cumulativeSeries = (c: {
+  income: string;
+  expense: string;
+  balance: string;
+}): MonthlyChartSeries => [
   {
     type: "line",
     dataKey: "income",
     label: "Cumulative Income",
-    color: INCOME_COLOR,
+    color: c.income,
     curve: "monotoneX",
     showMark: false,
     valueFormatter: formatIncome,
@@ -29,7 +27,7 @@ const SERIES: MonthlyChartSeries = [
     type: "line",
     dataKey: "expense",
     label: "Cumulative Expenses",
-    color: EXPENSE_COLOR,
+    color: c.expense,
     curve: "monotoneX",
     showMark: false,
     valueFormatter: formatExpense,
@@ -38,27 +36,32 @@ const SERIES: MonthlyChartSeries = [
     type: "line",
     dataKey: "balance",
     label: "Net Balance",
-    color: BALANCE_COLOR,
+    color: c.balance,
     curve: "monotoneX",
     showMark: false,
     valueFormatter: formatBalance,
   },
 ];
 
-const LEGEND = [
-  { label: "Cum. Income", color: INCOME_COLOR },
-  { label: "Cum. Expenses", color: EXPENSE_COLOR },
-  { label: "Net Balance", color: BALANCE_COLOR },
-];
-
-export const CumulativeChart: React.FC<MonthlyChartProps> = (props) => (
-  <MonthlyChart
-    {...props}
-    buildRows={toCumulativeRows}
-    series={SERIES}
-    plots={<LinePlot />}
-    axisHighlight="line"
-    legend={LEGEND}
-    swatchClassName="w-3 h-1 rounded-full"
-  />
-);
+export const CumulativeChart: React.FC<MonthlyChartProps> = (props) => {
+  const { income, expense, balance } = useChartPalette();
+  const series = useMemo(
+    () => cumulativeSeries({ income, expense, balance }),
+    [income, expense, balance],
+  );
+  return (
+    <MonthlyChart
+      {...props}
+      buildRows={toCumulativeRows}
+      series={series}
+      plots={<LinePlot />}
+      axisHighlight="line"
+      legend={[
+        { label: "Cum. Income", color: income },
+        { label: "Cum. Expenses", color: expense },
+        { label: "Net Balance", color: balance },
+      ]}
+      swatchClassName="w-3 h-1 rounded-full"
+    />
+  );
+};

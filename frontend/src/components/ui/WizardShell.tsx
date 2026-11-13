@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
+import { useUiVersion } from "../../hooks/useUiVersion";
+import Button from "./Button";
 
 export interface WizardShellProps {
   open: boolean;
@@ -27,6 +29,8 @@ export function WizardShell({
   children,
 }: WizardShellProps) {
   useEscapeKey(onClose, open);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
@@ -45,19 +49,38 @@ export function WizardShell({
         className={`flex ${subtitle ? "items-start" : "items-center"} justify-between gap-4 border-b border-app-border px-5 py-4 sm:px-8 lg:pt-2`}
       >
         <div className="min-w-0">
-          <h2 className="truncate text-lg font-bold text-app-text">{title}</h2>
+          <h2
+            className={`truncate text-app-text ${
+              isV2
+                ? "font-display text-xl font-semibold tracking-[-0.02em]"
+                : "text-lg font-bold"
+            }`}
+          >
+            {title}
+          </h2>
           {subtitle && (
             <p className="mt-0.5 text-sm text-app-muted">{subtitle}</p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
-        >
-          <FontAwesomeIcon icon={faXmark} />
-        </button>
+        {isV2 ? ( // ui-v2-switch
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <FontAwesomeIcon icon={faXmark} />
+          </Button>
+        ) : (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+          >
+            <FontAwesomeIcon icon={faXmark} />
+          </button>
+        )}
       </header>
 
       {/* Bounded flex column: the hosted Wizard fills it and scrolls its own

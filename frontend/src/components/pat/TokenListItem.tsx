@@ -13,6 +13,7 @@ import { TokenActionButtons } from "./TokenActionButtons";
 import { TokenWalletBadges } from "./TokenWalletBadges";
 import { TokenLastUsedInfo } from "./TokenLastUsedInfo";
 import { useLongPressSelect } from "./useLongPressSelect";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface TokenListItemProps {
   token: PatToken;
@@ -60,6 +61,9 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
   const isMcp = token.name.trim().toLowerCase().startsWith("oauth:");
 
   const [revealed, setRevealed] = useState(false);
+  const [ui] = useUiVersion();
+  // ui-v2-switch
+  const isV2 = ui === "v2";
 
   const longPressHandlers = useLongPressSelect(
     () => onLongPressSelect?.(token),
@@ -80,17 +84,18 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
   return (
     <Wrapper
       {...wrapperProps}
-      className={`group w-full rounded-xl border p-3.5 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
-        !isButtonVariant ? "select-none" : ""
-      } ${!isButtonVariant && selectionMode ? "cursor-pointer" : ""} ${
-        selected
-          ? "border-app-purple/60 bg-app-purple/5 ring-1 ring-app-purple/40"
-          : "border-app-border bg-app-input hover:border-app-purple/50"
-      } ${token.paused ? "opacity-60" : ""}`}
+      className={`group w-full p-3.5 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+        // ui-v2-switch: borderless card; selection is the raised fill.
+        isV2
+          ? `rounded-[var(--r-card)] ${selected ? "bg-app-raised" : "bg-app-card shadow-[var(--box-ring)] hover:bg-app-raised"}`
+          : `rounded-xl border ${selected ? "border-app-purple/60 bg-app-purple/5 ring-1 ring-app-purple/40" : "border-app-border bg-app-input hover:border-app-purple/50"}`
+      } ${!isButtonVariant ? "select-none" : ""} ${!isButtonVariant && selectionMode ? "cursor-pointer" : ""} ${token.paused ? "opacity-60" : ""}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-app-bg">
+          <div
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${isV2 ? "bg-app-raised" : "bg-app-bg"}`}
+          >
             <FontAwesomeIcon icon={faKey} className="text-lg text-app-muted" />
           </div>
           <div className="min-w-0">
@@ -120,7 +125,9 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
                   <span aria-hidden="true" className="text-app-muted/40">
                     ·
                   </span>
-                  <span className="font-mono text-xs text-app-muted">
+                  <span
+                    className={`text-xs text-app-muted ${isV2 ? "tabular-nums" : "font-mono"}`}
+                  >
                     {revealed ? `${token.tokenPrefix}...` : "••••••••"}
                   </span>
                   {!isButtonVariant && (
@@ -165,7 +172,7 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
           <div className="flex shrink-0 items-center pr-1">
             <FontAwesomeIcon
               icon={faArrowRight}
-              className="self-center text-xs text-app-muted/50 transition-colors group-hover:text-app-purple"
+              className={`self-center text-xs text-app-muted/50 transition-colors ${isV2 ? "group-hover:text-app-text" : "group-hover:text-app-purple"}`}
             />
           </div>
         )}

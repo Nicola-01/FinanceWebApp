@@ -4,12 +4,14 @@ import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { isCategorised } from "../wallet/toCategorize.ts";
 import { OverviewTable } from "./OverviewTable.tsx";
 import { StatisticsSummary } from "./StatisticsSummary.tsx";
+import { StatisticsV2 } from "./StatisticsV2.tsx";
 import { MonthlySnapshotChart } from "./MonthlySnapshotChart.tsx";
 import { CumulativeChart } from "./CumulativeChart.tsx";
 import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import type { ZoomData } from "@mui/x-charts/internals";
 
 import { useTheme } from "../../utils/ThemeContext.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { buildMonthlyBuckets } from "./chartData";
 import { recentMonthsZoom } from "../../utils/recentMonthsZoom.ts";
 
@@ -43,6 +45,8 @@ export const StatisticsTab: React.FC = () => {
   // Bank imports join the statistics only once they've been categorised.
   const transactions = useMemo(() => all.filter(isCategorised), [all]);
   const { resolvedTheme } = useTheme();
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
   const [chartMode, setChartMode] = useState<ChartMode>("snapshot");
   const [zoomData, setZoomData] = useState<ZoomData[]>([
     { axisId: "x-axis", start: 0, end: 100 },
@@ -74,6 +78,12 @@ export const StatisticsTab: React.FC = () => {
   const handleZoomChange = React.useCallback((newZoom: ZoomData[]) => {
     setZoomData(newZoom);
   }, []);
+
+  // ui-v2-switch
+  if (isV2)
+    return (
+      <StatisticsV2 transactions={transactions} currency={wallet.currency} />
+    );
 
   const currentTab = CHART_TABS.find((t) => t.key === chartMode)!;
 

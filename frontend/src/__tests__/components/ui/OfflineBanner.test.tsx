@@ -1,4 +1,5 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, beforeEach } from "vitest";
+import { setUiVersion } from "../../../utils/uiVersion";
 import { render, screen, act } from "@testing-library/react";
 import { OfflineBanner } from "../../../components/ui/OfflineBanner";
 import { setOnline } from "../../../test/testUtils";
@@ -25,5 +26,28 @@ describe("OfflineBanner", () => {
       window.dispatchEvent(new Event("offline"));
     });
     expect(screen.getByText(OFFLINE_COPY)).toBeInTheDocument();
+  });
+});
+
+describe("OfflineBanner v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => {
+    setOnline(true);
+    setUiVersion("v1");
+  });
+
+  it("shows the warn colour on a tint, without the amber border", () => {
+    setOnline(true);
+    render(<OfflineBanner />);
+    act(() => {
+      setOnline(false);
+      window.dispatchEvent(new Event("offline"));
+    });
+    const banner = screen.getByRole("status");
+    expect(banner).toHaveClass("text-app-warn");
+    expect(banner.className).toContain(
+      "color-mix(in_srgb,currentColor_16%,transparent)",
+    );
+    expect(banner.className).not.toContain("border-amber");
   });
 });

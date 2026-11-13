@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { createPortal } from "react-dom";
 import { registerToastHandler, type ToastData } from "./ToastNotification";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 const TIMEOUT_DURATION = 3000;
 
@@ -12,6 +13,8 @@ export const ToastHost: React.FC = () => {
 
   const timerRef = useRef<number | null>(null);
   const toastRef = useRef<HTMLDivElement>(null);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
 
   useEffect(() => {
     const handleTrigger = (newData: ToastData) => {
@@ -55,9 +58,12 @@ export const ToastHost: React.FC = () => {
                 fixed top-5 left-1/2 z-9999 m-0
                 flex items-center gap-3 px-4 py-3
                 min-w-75 w-fit max-w-[95vw]
-                rounded-[var(--r-card)] border backdrop-blur-md
-                bg-app-card/90 text-app-text font-semibold tracking-wide
-                shadow-[0_1px_2px_rgba(0,0,0,0.04),0_14px_34px_-20px_rgba(0,0,0,0.35)]
+                rounded-[var(--r-card)]
+                ${
+                  isV2
+                    ? "bg-app-card text-app-text font-semibold shadow-[0_8px_24px_rgb(0_0_0/0.25)]"
+                    : "border backdrop-blur-md bg-app-card/90 text-app-text font-semibold tracking-wide shadow-[0_1px_2px_rgba(0,0,0,0.04),0_14px_34px_-20px_rgba(0,0,0,0.35)]"
+                }
                 transition-all duration-400 ease-[cubic-bezier(0.175,0.885,0.32,1.275)]
 
                 ${
@@ -66,16 +72,18 @@ export const ToastHost: React.FC = () => {
                     : "opacity-0 -translate-x-1/2 translate-y-5 invisible pointer-events-none"
                 }
 
-                ${data.success ? "border-app-green/30" : "border-app-red/30"}
+                ${isV2 ? "" : data.success ? "border-app-green/30" : "border-app-red/30"}
             `}
     >
       {/* Semantic tint on the chip only — depth comes from a neutral shadow, no coloured glow. */}
       <span
         aria-hidden="true"
         className={`grid h-8 w-8 shrink-0 place-items-center rounded-[var(--r-sm)] text-sm ${
-          data.success
-            ? "bg-app-green/15 text-app-green"
-            : "bg-app-red/15 text-app-red"
+          isV2
+            ? `bg-[color-mix(in_srgb,currentColor_16%,transparent)] ${data.success ? "text-app-income" : "text-app-danger"}`
+            : data.success
+              ? "bg-app-green/15 text-app-green"
+              : "bg-app-red/15 text-app-red"
         }`}
       >
         <FontAwesomeIcon icon={data.success ? faCheck : faXmark} />

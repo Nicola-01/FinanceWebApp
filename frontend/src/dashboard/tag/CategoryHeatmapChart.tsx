@@ -7,6 +7,8 @@ import { useRecentMonthsZoom } from "./useRecentMonthsZoom.ts";
 import { formatAmount } from "../../utils/format.ts";
 import { ChartCard } from "./ChartCard.tsx";
 import { FlowTypeToggle } from "./FlowTypeToggle.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
+import { heatmapRamp, V2_AXIS } from "./chartStyleV2.ts";
 
 // Soft sequential scales (low-alpha tint → soft 400 tint), per flow type.
 const COLOR_SCALE: Record<FlowType, readonly [string, string]> = {
@@ -31,6 +33,8 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
   currency,
   bare = false,
 }) => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const [type, setType] = useState<FlowType>("EXPENSE");
 
   const { xLabels, yLabels, cells, maxValue } = useMemo(
@@ -66,6 +70,7 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
                 fill: "var(--color-app-muted)",
                 fontSize: 11,
               },
+              ...(v2 ? V2_AXIS : {}), // ui-v2-switch
             },
           ]}
           yAxis={[
@@ -75,6 +80,7 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
                 fill: "var(--color-app-muted)",
                 fontSize: 11,
               },
+              ...(v2 ? V2_AXIS : {}), // ui-v2-switch
             },
           ]}
           zAxis={[
@@ -85,7 +91,8 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
                 type: "continuous",
                 min: 0,
                 max: maxValue,
-                color: COLOR_SCALE[type],
+                // ui-v2-switch: wallet-tinted ramp instead of the legacy red/green scale.
+                color: v2 ? heatmapRamp : COLOR_SCALE[type],
               },
             },
           ]}

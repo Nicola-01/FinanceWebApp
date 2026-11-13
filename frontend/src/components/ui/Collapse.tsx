@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface CollapseProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
@@ -25,9 +26,16 @@ export const Collapse: React.FC<CollapseProps> = ({
   ...props
 }) => {
   const [collapseOpen, setCollapseOpen] = useState(defaultOpen);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
 
+  // ui-v2-switch: large section titles use the display face, sentence case.
   const titleClass =
-    size === "sm" ? "text-sm font-semibold" : "text-2xl font-bold";
+    size === "sm"
+      ? "text-sm font-semibold"
+      : isV2
+        ? "font-display text-2xl font-semibold"
+        : "text-2xl font-bold";
 
   return (
     <div className={`${className}`} {...props}>

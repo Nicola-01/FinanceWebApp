@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import { render } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 
 vi.mock("../../../api/bankApi", () => ({
-  listAspsps: vi.fn().mockResolvedValue([]),
+  listAspsps: vi
+    .fn()
+    .mockResolvedValue([{ name: "Intesa" }, { name: "Unicredit" }]),
   connectBank: vi.fn(),
 }));
 
@@ -17,5 +19,15 @@ describe("ConnectBankForm", () => {
     min.setFullYear(min.getFullYear() - 2);
     expect(input.getAttribute("min")).toBe(toLocalIsoDate(min));
     expect(input.getAttribute("max")).toBe(toLocalIsoDate(new Date()));
+  });
+
+  it("filters banks from the search inside the open select", async () => {
+    render(<ConnectBankForm walletId="w1" />);
+    fireEvent.click(screen.getByText("Select a bank..."));
+    fireEvent.change(screen.getByPlaceholderText("Tap to search..."), {
+      target: { value: "uni" },
+    });
+    expect(await screen.findByText("Unicredit")).toBeTruthy();
+    expect(screen.queryByText("Intesa")).toBeNull();
   });
 });

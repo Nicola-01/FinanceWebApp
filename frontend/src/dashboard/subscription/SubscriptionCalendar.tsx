@@ -10,6 +10,7 @@ import {
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { buildCalendarGrid } from "./buildCalendarGrid";
 import { CalendarDayCell } from "./CalendarDayCell";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface SubscriptionCalendarProps {
   subscriptions: Subscription[];
@@ -30,6 +31,8 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
   const currentYear = currentDate.getFullYear();
 
   const { wallet } = useWalletContext();
+  const [ui] = useUiVersion(); // ui-v2-switch
+  const v2 = ui === "v2";
 
   // year → day "yyyy-MM-dd" → subscriptions, memoized over the 3 visible years.
   // Pure derivation (no state / setState-in-effect); covered by buildYearsMap tests.
@@ -66,7 +69,13 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem] p-4 sm:p-6 md:p-8 animate-[fadeIn_0.3s_ease-out]">
+    <div
+      className={`flex flex-col h-full animate-[fadeIn_0.3s_ease-out] p-4 sm:p-6 md:p-8 ${
+        v2
+          ? "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)]"
+          : "bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem]"
+      }`}
+    >
       {/* Calendar header */}
       <div className="flex items-center justify-center sm:justify-start mb-3 sm:mb-6 w-full">
         <div className="w-full sm:max-w-xs m-auto">
@@ -93,7 +102,11 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
         {weekDays.map((wd) => (
           <div
             key={wd}
-            className="text-center text-[10px] sm:text-xs font-bold text-app-muted uppercase tracking-wider py-1 sm:py-2"
+            className={
+              v2
+                ? "text-center text-[11px] sm:text-[13px] font-medium text-app-muted py-1 sm:py-2"
+                : "text-center text-[10px] sm:text-xs font-bold text-app-muted uppercase tracking-wider py-1 sm:py-2"
+            }
           >
             {wd}
           </div>

@@ -7,6 +7,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { RoleSelector, type WalletRole } from "./RoleSelector";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface InviteComposerProps {
   /** Username/email being typed (controlled). */
@@ -56,8 +57,17 @@ export function InviteComposer({
   placeholder = "Invite by username or email",
   ariaLabel = "Username or email",
 }: InviteComposerProps): JSX.Element {
+  const [ui] = useUiVersion();
+  // ui-v2-switch: the action button is the wallet fill; the inline accent is v1-only.
+  const isV2 = ui === "v2";
   return (
-    <div className="flex flex-col gap-2 rounded-[var(--r-input)] border border-app-border bg-app-surface p-2 sm:flex-row sm:items-center">
+    <div
+      className={`flex flex-col gap-2 rounded-[var(--r-input)] p-2 sm:flex-row sm:items-center ${
+        isV2
+          ? "bg-app-card shadow-[var(--box-ring)]"
+          : "border border-app-border bg-app-surface"
+      }`}
+    >
       {/* Username / email — borderless, sits on the row surface */}
       <label className="flex min-w-0 flex-1 cursor-text items-center gap-2 px-2">
         <FontAwesomeIcon
@@ -82,7 +92,7 @@ export function InviteComposer({
           data-1p-ignore="true"
           data-lpignore="true"
           data-form-type="other"
-          className="min-w-0 flex-1 bg-transparent py-1 text-sm text-app-text outline-none placeholder:text-app-muted"
+          className={`min-w-0 flex-1 bg-transparent py-1 text-sm text-app-text outline-none ${isV2 ? "placeholder:text-app-faint" : "placeholder:text-app-muted"}`}
         />
       </label>
 
@@ -101,8 +111,8 @@ export function InviteComposer({
           disabled={disabled}
           aria-label={actionLabel}
           title={actionLabel}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white transition-all hover:brightness-110 disabled:opacity-50"
-          style={{ backgroundColor: accentColor }}
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all hover:brightness-110 disabled:opacity-50 ${isV2 ? "bg-wallet text-on-wallet" : "text-white"}`}
+          style={isV2 ? undefined : { backgroundColor: accentColor }}
         >
           <FontAwesomeIcon
             icon={busy ? faSpinner : actionIcon}

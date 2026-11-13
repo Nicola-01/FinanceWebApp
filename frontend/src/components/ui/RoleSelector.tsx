@@ -2,6 +2,7 @@ import { type JSX } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faPen } from "@fortawesome/free-solid-svg-icons";
 import { Selector } from "./Selector";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 /** The two per-wallet roles a member/invite can hold. */
 export type WalletRole = "VIEWER" | "EDITOR";
@@ -34,6 +35,9 @@ export function RoleSelector({
   className = "",
   iconOnly = false,
 }: RoleSelectorProps): JSX.Element {
+  const [ui] = useUiVersion();
+  // ui-v2-switch: the active segment is the raised fill in v2.
+  const activeBgClass = ui === "v2" ? "bg-app-raised" : "bg-app-surface";
   return (
     <Selector<WalletRole>
       value={value}
@@ -47,7 +51,7 @@ export function RoleSelector({
           label: iconOnly ? undefined : "Viewer",
           title: iconOnly ? "Viewer" : undefined,
           icon: <FontAwesomeIcon icon={faEye} />,
-          activeBgClass: "bg-app-surface",
+          activeBgClass,
           activeColorClass: "text-app-text",
         },
         {
@@ -55,7 +59,7 @@ export function RoleSelector({
           label: iconOnly ? undefined : "Editor",
           title: iconOnly ? "Editor" : undefined,
           icon: <FontAwesomeIcon icon={faPen} />,
-          activeBgClass: "bg-app-surface",
+          activeBgClass,
           activeColorClass: "text-app-text",
         },
       ]}

@@ -7,6 +7,7 @@ import {
   faPlay,
 } from "@fortawesome/free-solid-svg-icons";
 import type { PatToken } from "../../types/domain";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface TokenActionButtonsProps {
   token: PatToken;
@@ -26,6 +27,12 @@ export const TokenActionButtons: React.FC<TokenActionButtonsProps> = ({
   revokingId,
   pausingId,
 }) => {
+  const [ui] = useUiVersion();
+  // ui-v2-switch: quiet icon buttons; hover uses the raised fill and a status text colour.
+  const isV2 = ui === "v2";
+  const iconBase = isV2
+    ? "text-app-muted transition-all hover:bg-app-raised"
+    : "text-app-muted/50 transition-all";
   return (
     <div className="flex shrink-0 gap-2">
       {onPauseToggle && (
@@ -36,7 +43,7 @@ export const TokenActionButtons: React.FC<TokenActionButtonsProps> = ({
             onPauseToggle(token);
           }}
           disabled={pausingId === token.id}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-app-muted/50 transition-all hover:bg-app-yellow/15 hover:text-app-yellow disabled:opacity-40"
+          className={`flex h-8 w-8 items-center justify-center rounded-lg disabled:opacity-40 ${iconBase} ${isV2 ? "hover:text-app-warn" : "hover:bg-app-yellow/15 hover:text-app-yellow"}`}
           title={token.paused ? "Resume token" : "Pause token"}
         >
           <FontAwesomeIcon
@@ -52,7 +59,7 @@ export const TokenActionButtons: React.FC<TokenActionButtonsProps> = ({
             e.stopPropagation();
             onEdit(token);
           }}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-app-muted/50 transition-all hover:bg-app-purple/15 hover:text-app-purple"
+          className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconBase} ${isV2 ? "hover:text-app-text" : "hover:bg-app-purple/15 hover:text-app-purple"}`}
           title="Edit permissions"
         >
           <FontAwesomeIcon icon={faPen} className="text-xs" />
@@ -66,7 +73,7 @@ export const TokenActionButtons: React.FC<TokenActionButtonsProps> = ({
             onDelete(token);
           }}
           disabled={revokingId === token.id}
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-app-muted/50 transition-all hover:bg-app-red/15 hover:text-app-red disabled:opacity-40"
+          className={`flex h-8 w-8 items-center justify-center rounded-lg disabled:opacity-40 ${iconBase} ${isV2 ? "hover:text-app-danger" : "hover:bg-app-red/15 hover:text-app-red"}`}
           title="Revoke Token"
         >
           <FontAwesomeIcon

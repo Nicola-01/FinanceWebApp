@@ -11,6 +11,7 @@ import { categoriseTransaction } from "./categoriseTransaction.ts";
 import { useDeleteModal } from "../../modals/common/DeleteModalContext";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { reviewTagName, suggestTagName } from "../wallet/toCategorize.ts";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 /** Inline category picker + delete for a bank import still on the "To categorise" placeholder. */
 export const ToCategoriseActions: React.FC<{ transaction: Transaction }> = ({
@@ -18,6 +19,8 @@ export const ToCategoriseActions: React.FC<{ transaction: Transaction }> = ({
 }) => {
   const { wallet, tags, transactions, fetchData } = useWalletContext();
   const deleteModalRef = useDeleteModal();
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   if (wallet.userRole === "VIEWER") return null;
   const suggested = reviewTagName(tx, tags) || suggestTagName(tx, transactions);
 
@@ -66,7 +69,7 @@ export const ToCategoriseActions: React.FC<{ transaction: Transaction }> = ({
       {suggested && (
         <Button
           type="button"
-          variant="ghost"
+          variant={v2 ? "secondary" : "ghost"} // ui-v2-switch: secondary is the v2 surface button
           size="sm"
           onClick={() => changeTag(suggested)}
           aria-label={`Confirm ${suggested} for ${tx.name}`}

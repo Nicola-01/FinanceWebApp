@@ -6,6 +6,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { walletSlug } from "../../utils/walletSlug.ts";
 import { useRipple } from "../../components/ui/useRipple.ts";
+import { WalletMiniCard } from "../../components/ui/WalletMiniCard.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 export interface WalletProps {
   wallet: Wallet;
@@ -24,6 +26,7 @@ export const WalletCardUI = forwardRef<
     ref,
   ) => {
     const { ripples, spawnRipple } = useRipple();
+    const [ui] = useUiVersion();
     // Remember how the last interaction started so the context-menu handler can
     // tell a mouse right-click (allow native menu) from a touch long-press
     // (which is the drag-reorder gesture — suppress the menu).
@@ -39,7 +42,8 @@ export const WalletCardUI = forwardRef<
       lastPointerType.current = e.pointerType;
       pointerDownPos.current = { x: e.clientX, y: e.clientY };
       if (isOverlay) return;
-      spawnRipple(e);
+      // ui-v2-switch
+      if (ui === "v1") spawnRipple(e);
 
       if (props.onPointerDown) {
         props.onPointerDown(e);
@@ -90,6 +94,35 @@ export const WalletCardUI = forwardRef<
         e.preventDefault();
       }
     };
+
+    // ui-v2-switch
+    if (ui === "v2") {
+      return (
+        <a
+          ref={ref}
+          href={href}
+          draggable={false}
+          style={{
+            ...style,
+            opacity: isDragging && !isOverlay ? 0.3 : 1,
+            zIndex: isOverlay ? 50 : isSelected ? 10 : 1,
+          }}
+          onClick={handleClick}
+          onContextMenu={handleContextMenu}
+          {...props}
+          onPointerDown={handlePointerDown}
+          className={`block w-full shrink-0 rounded-[12px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-text ${isOverlay || isDragging ? "cursor-move shadow-2xl" : "cursor-pointer"}`}
+        >
+          <WalletMiniCard
+            name={wallet.name}
+            color={wallet.color}
+            icon={wallet.icon}
+            meta={wallet.currency}
+            active={isSelected}
+          />
+        </a>
+      );
+    }
 
     return (
       <a

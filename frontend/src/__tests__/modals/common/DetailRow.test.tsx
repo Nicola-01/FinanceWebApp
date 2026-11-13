@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { faTag } from "@fortawesome/free-solid-svg-icons";
 import { DetailRow } from "../../../modals/common/DetailRow";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 describe("DetailRow", () => {
   it("renders label + value with the default muted label", () => {
@@ -30,5 +31,21 @@ describe("DetailRow", () => {
     );
     expect(screen.getByText("Frequency")).toHaveClass("text-app-sky");
     expect(container.firstElementChild).toHaveClass("bg-app-input");
+  });
+});
+
+describe("DetailRow — v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("renders sentence-case labels instead of tracked caps", () => {
+    render(
+      <DetailRow icon={faTag} label="Name">
+        <span>Coffee</span>
+      </DetailRow>,
+    );
+    const label = screen.getByText("Name");
+    expect(label).toHaveClass("text-[13px]", "font-medium");
+    expect(label).not.toHaveClass("uppercase", "tracking-wider");
   });
 });

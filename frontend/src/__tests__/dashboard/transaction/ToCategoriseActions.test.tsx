@@ -1,9 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { ToCategoriseActions } from "../../../dashboard/transaction/ToCategoriseActions";
 import * as walletOps from "../../../api/walletOps";
 import { DeleteModalContext } from "../../../modals/common/DeleteModalContext";
 import type { Transaction } from "../../../types/domain";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 const ctx = vi.hoisted(() => ({
   role: "EDITOR",
@@ -140,5 +141,54 @@ describe("ToCategoriseActions", () => {
     ctx.role = "VIEWER";
     const { container } = renderActions();
     expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe("ToCategoriseActions (v2)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    ctx.role = "EDITOR";
+    ctx.transactions = [];
+    ctx.tags = [];
+    setUiVersion("v2");
+  });
+
+  afterEach(() => {
+    setUiVersion("v1");
+  });
+
+  it("styles the confirm button as the v2 secondary surface", () => {
+    ctx.transactions = [
+      {
+        ...tx,
+        id: "old",
+        needsReview: false,
+        tag: { name: "AI", icon: "x", colorHex: "#000" },
+      } as Transaction,
+    ];
+    renderActions();
+    expect(screen.getByLabelText("Confirm AI for OpenAI").className).toContain(
+      "bg-app-card",
+    );
+  });
+
+  it("the confirm button still files the transaction under the suggested tag", async () => {
+    ctx.transactions = [
+      {
+        ...tx,
+        id: "old",
+        needsReview: false,
+        tag: { name: "AI", icon: "x", colorHex: "#000" },
+      } as Transaction,
+    ];
+    renderActions();
+    fireEvent.click(screen.getByLabelText("Confirm AI for OpenAI"));
+    await waitFor(() => expect(ctx.fetchData).toHaveBeenCalled());
+    expect(walletOps.updateTransaction).toHaveBeenCalledWith(
+      "w1",
+      "1",
+      expect.objectContaining({ tag: "AI" }),
+      null,
+    );
   });
 });

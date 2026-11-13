@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { evaluateMathExpression } from "../../utils/mathEvaluator.ts";
 import { formatAmountString, hasOperators } from "../../utils/amountFormat.ts";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 type AmountType = "EXPENSE" | "INCOME" | "";
 
@@ -36,6 +37,9 @@ export function useAmountInput({
 }: UseAmountInputArgs) {
   const internalRef = useRef<HTMLInputElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const [ui] = useUiVersion();
+  // ui-v2-switch: v2 keeps expenses in the text colour; green stays income-only.
+  const expenseColor = ui === "v2" ? "text-app-text" : "text-app-red";
 
   const [color, setColor] = useState<string>("");
   const [textSize, setTextSize] = useState<
@@ -93,7 +97,7 @@ export function useAmountInput({
       setColor("text-app-muted opacity-40");
       return;
     }
-    setColor(type === "EXPENSE" ? "text-app-red" : "text-app-green");
+    setColor(type === "EXPENSE" ? expenseColor : "text-app-green");
 
     if (internalRef.current) {
       let currentValue = internalRef.current.value;
@@ -103,7 +107,8 @@ export function useAmountInput({
       internalRef.current.value =
         (type === "EXPENSE" ? "-" : "+") + currentValue;
     }
-  }, [type]);
+    // expenseColor in deps: a UI-version switch re-derives the colour (sign rewrite is idempotent).
+  }, [type, expenseColor]);
 
   // On mount, focus the field and select any pre-filled value (edit mode) so the
   // amount is ready to type/overwrite without an extra click. The overlay no
@@ -161,9 +166,7 @@ export function useAmountInput({
       setColor("text-app-muted opacity-40");
       setLiveResult(null);
     } else {
-      setColor(
-        currentSignType === "EXPENSE" ? "text-app-red" : "text-app-green",
-      );
+      setColor(currentSignType === "EXPENSE" ? expenseColor : "text-app-green");
 
       // Live preview when the value contains math operators
       if (hasOperators(cleanedValue)) {

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction D — Accent outside wallets</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  /* 0.3 proposal: the same three screens with each candidate accent. ?light switches theme */
+  :root { --bg: #141312; --surface: #1d1c1a; --raised: #262421; --line: #2e2c29; --text: #efece6; --muted: #9a958c; --faint: #6b665e; --display: "Bricolage Grotesque", system-ui, sans-serif; }
+  :root[data-theme="light"] { --bg: #f4f3f1; --surface: #ffffff; --raised: #eeece8; --line: #e4e1dc; --text: #1c1a17; --muted: #6b665e; --faint: #9a958c; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 15px/1.5 "Instrument Sans", system-ui, sans-serif; padding: 32px 24px; }
+  h1 { font: 700 26px var(--display); letter-spacing: -.02em; margin-bottom: 4px; }
+  .lead { color: var(--muted); margin-bottom: 28px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 24px; }
+  .col h2 { font: 650 19px var(--display); margin-bottom: 4px; }
+  .col .note { color: var(--muted); font-size: 13px; margin-bottom: 14px; min-height: 40px; }
+  .box { background: var(--surface); border-radius: 18px; padding: 22px; margin-bottom: 14px; }
+  .brand { display: flex; align-items: center; gap: 8px; font: 700 18px var(--display); margin-bottom: 18px; }
+  .brand img { width: 28px; }
+  .field { display: grid; gap: 6px; margin-bottom: 12px; }
+  .field span { color: var(--muted); font-size: 13px; }
+  .field input { background: var(--raised); border: 0; border-radius: 12px; padding: 10px 12px; color: var(--text); font: inherit; }
+  .cta { display: inline-flex; justify-content: center; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 12px; border: 0; background: var(--acc); color: var(--on-acc); font: 600 15px "Instrument Sans", sans-serif; cursor: pointer; }
+  .wide { width: 100%; margin-top: 6px; }
+  .link { color: var(--acc-text); font-weight: 600; font-size: 13px; text-decoration: none; }
+  .small { color: var(--muted); font-size: 13px; margin-top: 14px; text-align: center; }
+  .empty { text-align: center; padding: 10px 0; color: var(--muted); }
+  .empty img { width: 80px; transform: rotate(-6deg); margin-bottom: 10px; }
+  .empty h3 { font: 650 19px var(--display); color: var(--text); margin-bottom: 4px; }
+  .empty .cta { margin-top: 14px; }
+  .nav { display: grid; gap: 2px; }
+  .nav a { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 9px; color: var(--muted); text-decoration: none; }
+  .nav a i { width: 16px; text-align: center; }
+  .nav a[aria-current] { background: var(--raised); color: var(--text); }
+  .nav a[aria-current] i { color: var(--acc-text); }
+  .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); margin-top: 10px; }
+  .switch { width: 40px; height: 24px; border-radius: 12px; background: var(--acc); position: relative; }
+  .switch::after { content: ""; position: absolute; right: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--on-acc); }
+  .violet { --acc: #8b6cf6; --on-acc: #ffffff; --acc-text: #a891ff; }
+  .fox { --acc: #eb8440; --on-acc: #1d1a10; --acc-text: #f0a06a; }
+  .neutral { --acc: var(--text); --on-acc: var(--bg); --acc-text: var(--text); }
+  :root[data-theme="light"] .violet { --acc-text: #6d4fe0; }
+  :root[data-theme="light"] .fox { --acc-text: #b85d1f; }
+  .themebtn { position: fixed; right: 16px; bottom: 16px; padding: 8px 14px; border-radius: 12px; border: 0; background: var(--text); color: var(--bg); font-weight: 600; cursor: pointer; }
+</style>
+<script>document.documentElement.dataset.theme = location.search.includes("light") ? "light" : "dark";</script>
+</head>
+<body>
+  <h1>Accent outside a wallet</h1>
+  <p class="lead">Inside a wallet the accent is the wallet colour. Outside (login, global settings, admin, no wallet yet) it needs a fixed one.</p>
+  <div class="grid" id="grid"></div>
+  <button class="themebtn" onclick="const r=document.documentElement;r.dataset.theme=r.dataset.theme==='light'?'dark':'light'">Toggle light / dark</button>
+<script>
+  const variants = [
+    ["violet", "A. Brand violet #8b6cf6", "Continuity with today's brand gradient (minus magenta). Risk: violet is also a common wallet colour."],
+    ["fox", "B. Fox orange #eb8440", "Taken from the mascot, warm like the v2 greys. Risk: close to the expense mark and warn colours."],
+    ["neutral", "C. Inverted neutral", "Text colour as fill. Calmest, never clashes with a wallet; the fox is the only colour."],
+  ];
+  document.getElementById("grid").innerHTML = variants.map(([cls, title, note]) => `
+    <div class="col ${cls}"><h2>${title}</h2><p class="note">${note}</p>
+      <div class="box"><div class="brand"><img src="icon.svg" alt="">My Wallet</div>
+        <label class="field"><span>Email</span><input value="nicola@example.com"></label>
+        <label class="field"><span>Password</span><input type="password" value="secret12"></label>
+        <button class="cta wide">Sign in</button>
+        <p class="small">No account? <a class="link" href="#">Create one</a></p></div>
+      <div class="box"><div class="empty"><img src="icon.svg" alt=""><h3>No wallets yet</h3><p>Create one to start tracking.</p><button class="cta"><i class="fa-solid fa-plus"></i>New wallet</button></div></div>
+      <div class="box"><nav class="nav"><a href="#" aria-current="page"><i class="fa-solid fa-user"></i>Account</a><a href="#"><i class="fa-solid fa-palette"></i>Appearance</a><a href="#"><i class="fa-regular fa-bell"></i>Notifications</a></nav>
+        <div class="row"><span>New interface (beta)</span><span class="switch"></span></div></div>
+    </div>`).join("");
+</script>
+</body>
+</html>

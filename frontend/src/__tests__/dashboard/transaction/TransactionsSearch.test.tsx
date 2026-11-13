@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import TransactionsSearch from "../../../dashboard/transaction/TransactionsSearch";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 describe("TransactionsSearch", () => {
   it("renders the current value", () => {
@@ -27,5 +28,32 @@ describe("TransactionsSearch", () => {
     const input = screen.getByLabelText("Search transactions");
     input.focus();
     expect(input).toHaveFocus();
+  });
+});
+
+describe("TransactionsSearch (v2)", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("calls onChange on each keystroke", async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<TransactionsSearch value="" onChange={onChange} />);
+
+    await user.type(screen.getByLabelText("Search transactions"), "ab");
+
+    expect(onChange).toHaveBeenCalledTimes(2);
+    expect(onChange).toHaveBeenNthCalledWith(1, "a");
+    expect(onChange).toHaveBeenNthCalledWith(2, "b");
+  });
+
+  it("clears the query from the clear button", async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(<TransactionsSearch value="coffee" onChange={onChange} />);
+
+    await user.click(screen.getByRole("button", { name: "Clear search" }));
+
+    expect(onChange).toHaveBeenCalledWith("");
   });
 });

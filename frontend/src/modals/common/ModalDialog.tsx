@@ -3,7 +3,9 @@ import { createPortal } from "react-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialogRightAction } from "./ModalDialogRightAction";
+import Button from "../../components/ui/Button";
 import type { ModalDialogRightActionProp } from "./ModalDialogRightAction";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface ModalDialogProps {
   ref?: React.Ref<HTMLDialogElement>;
@@ -35,6 +37,8 @@ export const ModalDialog = ({
   footer,
 }: ModalDialogProps) => {
   const modalRoot = document.getElementById("modal-root");
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
 
   // Tracks whether an outside-click press *started* on the backdrop, so a drag
   // that begins inside the dialog (e.g. selecting text in an input) and releases
@@ -106,11 +110,15 @@ export const ModalDialog = ({
       onClick={handleBackdropClick}
       className={`
                     m-auto w-screen md:w-[90vw] max-w-112.5
-                    rounded-[var(--r-card)] border border-app-border bg-app-surface/85 text-app-text
-                    shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)] backdrop-blur-[20px]
-                    backdrop:bg-black/45 backdrop:backdrop-blur-sm
+                    rounded-[var(--r-card)] text-app-text
                     open:animate-[modalFadeIn_0.4s_cubic-bezier(0.16,1,0.3,1)]
                     focus:outline-none
+                    ${
+                      // ui-v2-switch: flat card panel, neutral depth + hairline ring, no glass.
+                      isV2
+                        ? "bg-app-card shadow-[0_8px_24px_rgb(0_0_0/0.25),var(--box-ring)] backdrop:bg-black/50"
+                        : "border border-app-border bg-app-surface/85 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)] backdrop-blur-[20px] backdrop:bg-black/45 backdrop:backdrop-blur-sm"
+                    }
                     ${className}
                 `}
     >
@@ -123,12 +131,24 @@ export const ModalDialog = ({
             {/* Left: title + subtitle */}
             <div className="min-w-0 flex-1">
               {title && (
-                <h3 className="m-0 truncate text-lg font-bold tracking-tight text-app-text [&>svg]:mr-2 [&>svg]:align-[-1px]">
+                <h3
+                  className={`m-0 truncate ${
+                    isV2
+                      ? "font-display text-xl font-semibold tracking-[-0.02em]"
+                      : "text-lg font-bold tracking-tight"
+                  } text-app-text [&>svg]:mr-2 [&>svg]:align-[-1px]`}
+                >
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p className="mt-1 text-sm font-medium text-app-muted">
+                <p
+                  className={
+                    isV2
+                      ? "mt-1 text-sm text-app-muted"
+                      : "mt-1 text-sm font-medium text-app-muted"
+                  }
+                >
                   {subtitle}
                 </p>
               )}
@@ -139,16 +159,26 @@ export const ModalDialog = ({
               {rightActions && rightActions.length > 0 && (
                 <ModalDialogRightAction actions={rightActions} />
               )}
-              {showClose && (
-                <button
-                  type="button"
-                  onClick={handleCloseClick}
-                  aria-label="Close"
-                  className="flex h-9 w-9 items-center justify-center rounded-[var(--r-sm)] bg-app-input text-app-muted transition-colors hover:bg-app-hover hover:text-app-text"
-                >
-                  <FontAwesomeIcon icon={faTimes} className="text-lg" />
-                </button>
-              )}
+              {showClose &&
+                (isV2 ? ( // ui-v2-switch
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleCloseClick}
+                    aria-label="Close"
+                  >
+                    <FontAwesomeIcon icon={faTimes} className="text-lg" />
+                  </Button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleCloseClick}
+                    aria-label="Close"
+                    className="flex h-9 w-9 items-center justify-center rounded-[var(--r-sm)] bg-app-input text-app-muted transition-colors hover:bg-app-hover hover:text-app-text"
+                  >
+                    <FontAwesomeIcon icon={faTimes} className="text-lg" />
+                  </button>
+                ))}
             </div>
           </div>
         )}

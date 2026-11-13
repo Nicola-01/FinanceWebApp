@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import type { PatToken, Wallet } from "../../../types/domain";
 import { TokenWalletBadges } from "../../../components/pat/TokenWalletBadges";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 const token = (over: Partial<PatToken> = {}): PatToken => ({
   id: "t1",
@@ -74,5 +75,26 @@ describe("TokenWalletBadges (smoke)", () => {
     expect(screen.getByText("Alpha")).toBeInTheDocument();
     // Unknown wallet falls back to a truncated id, never a blank label.
     expect(screen.getByText("unknown-...")).toBeInTheDocument();
+  });
+});
+
+describe("TokenWalletBadges v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("drops the border and tints only the no-access state as a status", () => {
+    render(
+      <TokenWalletBadges
+        token={token({
+          walletPermissions: [{ walletId: "wa", permissions: [] }],
+        })}
+        walletsMap={{ wa: wallet() }}
+      />,
+    );
+    const access = screen.getByTitle("none access");
+    expect(access.className).toContain("text-app-danger");
+    const badge = access.parentElement as HTMLElement;
+    expect(badge.className).toContain("bg-app-raised");
+    expect(badge.className).not.toContain("border-app-border");
   });
 });

@@ -7,6 +7,7 @@ import {
   faRepeat,
 } from "@fortawesome/free-solid-svg-icons";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { ICONS, type IconKey } from "../../utils/icons.ts";
@@ -44,6 +45,16 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
 
   const spec = SAMPLES[mode];
   const headerLine = spec.columns.map((c) => c.key).join(",");
+  const [ui] = useUiVersion();
+  // ui-v2-switch: no monospace, flat raised well, sentence-case captions.
+  const isV2 = ui === "v2";
+  const mono = isV2 ? "" : "font-mono";
+  const chip = isV2
+    ? "rounded bg-app-card px-1 text-app-text"
+    : `rounded bg-app-input px-1 ${mono} text-app-text`;
+  const captionClass = isV2
+    ? "mb-2 text-[13px] font-semibold text-app-muted"
+    : "mb-2 text-[11px] font-bold uppercase tracking-wider text-app-muted";
 
   return (
     <ResponsiveOverlay
@@ -97,30 +108,32 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
         />
 
         {/* Format rules */}
-        <div className="flex flex-col gap-2 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4">
+        <div
+          className={
+            isV2
+              ? "flex flex-col gap-2 rounded-[var(--r-input)] bg-app-raised p-4"
+              : "flex flex-col gap-2 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4"
+          }
+        >
           <p className="text-xs leading-relaxed text-app-muted">
             UTF-8 CSV. The first line must be the header below, columns in this
             exact order. Fields are separated by a comma (
-            <code className="rounded bg-app-input px-1 font-mono text-app-text">
-              ,
-            </code>
-            ) — i.e. <span className="font-mono">field,field,…</span> — and each
-            value is wrapped in double quotes on export. Wrap a value in{" "}
-            <code className="rounded bg-app-input px-1 font-mono text-app-text">
-              "…"
-            </code>{" "}
-            if it contains a comma or a line break.
+            <code className={chip}>,</code>) — i.e.{" "}
+            <span className={mono}>field,field,…</span> — and each value is
+            wrapped in double quotes on export. Wrap a value in{" "}
+            <code className={chip}>"…"</code> if it contains a comma or a line
+            break.
           </p>
-          <pre className="custom-scrollbar overflow-x-auto rounded-[var(--r-sm)] bg-app-input px-3 py-2 text-[11px] leading-relaxed text-app-text">
-            <code className="font-mono">{headerLine}</code>
+          <pre
+            className={`custom-scrollbar overflow-x-auto rounded-[var(--r-sm)] ${isV2 ? "bg-app-card" : "bg-app-input"} px-3 py-2 text-[11px] leading-relaxed text-app-text`}
+          >
+            <code className={mono}>{headerLine}</code>
           </pre>
         </div>
 
         {/* Representative example table */}
         <div>
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-app-muted">
-            Example
-          </p>
+          <p className={captionClass}>Example</p>
           <div className="custom-scrollbar overflow-x-auto rounded-[var(--r-input)] border border-app-border">
             <table className="min-w-full border-collapse text-xs">
               <thead>
@@ -150,7 +163,7 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
                       return (
                         <td
                           key={ci}
-                          className="whitespace-nowrap px-3 py-2 font-mono text-app-text"
+                          className={`whitespace-nowrap px-3 py-2 text-app-text ${isV2 ? "tabular-nums" : "font-mono"}`}
                         >
                           {renderCell(mode, colKey, cell)}
                         </td>
@@ -163,8 +176,8 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
           </div>
           {mode === "tags" && (
             <p className="mt-2 text-[11px] leading-relaxed text-app-muted">
-              <span className="font-mono">ParentName</span> is empty (
-              <span className="font-mono">""</span>) for a top-level tag —{" "}
+              <span className={mono}>ParentName</span> is empty (
+              <span className={mono}>""</span>) for a top-level tag —{" "}
               <span className="font-semibold text-app-text">Groceries</span>{" "}
               above nests under{" "}
               <span className="font-semibold text-app-text">Food</span>.
@@ -174,13 +187,11 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
 
         {/* Per-field legend */}
         <div>
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-app-muted">
-            Fields
-          </p>
+          <p className={captionClass}>Fields</p>
           <dl className="flex flex-col gap-1.5">
             {spec.columns.map((col) => (
               <div key={col.key} className="flex items-baseline gap-2 text-xs">
-                <dt className="shrink-0 font-mono font-semibold text-app-text">
+                <dt className={`shrink-0 font-semibold text-app-text ${mono}`}>
                   {col.key}
                 </dt>
                 <span
@@ -190,7 +201,13 @@ export const CsvFormatModal: React.FC<CsvFormatModalProps> = ({
                 <dd className="shrink-0 text-right text-app-muted">
                   {col.hint}
                   {col.optional && (
-                    <span className="ml-1 rounded bg-app-input px-1 text-[10px] uppercase tracking-wide">
+                    <span
+                      className={
+                        isV2
+                          ? "ml-1 rounded bg-app-raised px-1.5 text-[11px]"
+                          : "ml-1 rounded bg-app-input px-1 text-[10px] uppercase tracking-wide"
+                      }
+                    >
                       optional
                     </span>
                   )}

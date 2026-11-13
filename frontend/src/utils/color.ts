@@ -1,3 +1,5 @@
+import type React from "react";
+
 /** `#rrggbb` → `rgba(r, g, b, alpha)`; empty input falls back to spring green. */
 export const hexToRgba = (hex: string, alpha: number): string => {
   if (!hex) return `rgba(0, 255, 127, ${alpha})`;
@@ -41,3 +43,15 @@ export function toHex(input: string): string {
     return FALLBACK_HEX;
   }
 }
+
+/** Text colour that stays readable on a solid `hex` fill (wallet card, CTA): dark ink on light colours, white otherwise. */
+export function onColor(hex: string): "#1d1a10" | "#ffffff" {
+  const h = toHex(hex);
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+  // Rec. 709 luma on the gamma-encoded channels — the threshold the v2 mockup validated.
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5 ? "#1d1a10" : "#ffffff";
+}
+
+/** Inline CSS vars that make a subtree use `color` as its wallet accent (`bg-wallet`, `text-on-wallet`, …). */
+export const walletVars = (color: string): React.CSSProperties =>
+  ({ "--wallet": color, "--on-wallet": onColor(color) }) as React.CSSProperties;

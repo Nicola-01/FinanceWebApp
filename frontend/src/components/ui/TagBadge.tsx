@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS } from "../../utils/icons.ts";
 import { faChevronRight, faTags } from "@fortawesome/free-solid-svg-icons";
 import { WalletContext } from "../../dashboard/wallet/WalletContext.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export const TagBadge = ({
   tag,
@@ -28,6 +29,8 @@ export const TagBadge = ({
   // used where no WalletProvider exists, in which case the caller supplies `tags`.
   const ctx = useContext(WalletContext);
   const tags = tagsProp ?? ctx?.tags ?? [];
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
   if (!tag) return null;
 
   return (
@@ -50,17 +53,33 @@ export const TagBadge = ({
           />
         </span>
       )}
+      {/* ui-v2-switch: sentence-case pill, 16% tint, no border (same recipe as Badge). */}
       <span
-        className={`inline-flex items-center gap-1 rounded-md font-bold uppercase tracking-wider ${
-          compact
-            ? "px-1 py-px text-[8px] sm:text-[10px] sm:px-2 sm:py-0.5 min-w-0 truncate"
-            : "px-2 py-0.5 text-[10px] gap-1.5 w-max shrink-0"
-        }`}
-        style={{
-          backgroundColor: `${tag.colorHex}15`,
-          color: tag.colorHex,
-          border: `1px solid ${tag.colorHex}30`,
-        }}
+        className={
+          isV2
+            ? `inline-flex items-center gap-1 rounded-full font-semibold ${
+                compact
+                  ? "px-1.5 py-px text-[10px] sm:text-xs min-w-0 truncate"
+                  : "px-2 py-0.5 text-xs gap-1.5 w-max shrink-0"
+              }`
+            : `inline-flex items-center gap-1 rounded-md font-bold uppercase tracking-wider ${
+                compact
+                  ? "px-1 py-px text-[8px] sm:text-[10px] sm:px-2 sm:py-0.5 min-w-0 truncate"
+                  : "px-2 py-0.5 text-[10px] gap-1.5 w-max shrink-0"
+              }`
+        }
+        style={
+          isV2
+            ? {
+                backgroundColor: `color-mix(in srgb, ${tag.colorHex} 16%, transparent)`,
+                color: tag.colorHex,
+              }
+            : {
+                backgroundColor: `${tag.colorHex}15`,
+                color: tag.colorHex,
+                border: `1px solid ${tag.colorHex}30`,
+              }
+        }
       >
         <FontAwesomeIcon
           icon={ICONS[tag.icon as IconKey] || faTags}

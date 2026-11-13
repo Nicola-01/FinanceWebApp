@@ -2,6 +2,7 @@ import React from "react";
 import { MemberRow } from "./MemberRow";
 import type { WalletMember } from "../../types/domain";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 interface MemberCategoryProps {
   title: string;
@@ -24,12 +25,18 @@ export const MemberCategory: React.FC<MemberCategoryProps> = ({
   onRemove,
   onChangeRole,
 }) => {
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
   if (members.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className={isV2 ? "flex flex-col" : "flex flex-col gap-2"}>
       <h4
-        className={`text-[10px] font-bold uppercase tracking-widest ml-2 ${titleColor}`}
+        className={
+          isV2
+            ? `text-[13px] font-semibold ${titleColor}`
+            : `text-[10px] font-bold uppercase tracking-widest ml-2 ${titleColor}`
+        }
       >
         {title}
       </h4>

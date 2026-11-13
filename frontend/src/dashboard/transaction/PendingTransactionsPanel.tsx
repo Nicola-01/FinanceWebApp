@@ -9,12 +9,14 @@ import {
 } from "../../utils/currencies/index.ts";
 import api from "../../api/axiosConfig.ts";
 import Button from "../../components/ui/Button.tsx";
+import { CategoryIcon } from "../../components/ui/CategoryIcon.tsx";
 import {
   NumberInput,
   type AmountType,
 } from "../../components/ui/NumberInput.tsx";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 interface PendingRowProps {
   wallet: Wallet;
@@ -31,6 +33,7 @@ const PendingTransactionRow: React.FC<PendingRowProps> = ({
   onFilled,
   onOpenDetails,
 }) => {
+  const [ui] = useUiVersion();
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -68,6 +71,63 @@ const PendingTransactionRow: React.FC<PendingRowProps> = ({
     month: "short",
     year: "numeric",
   });
+
+  // ui-v2-switch: needs-attention row (surface box + warn bar), amount + Save wrap below sm.
+  // Warn bar + hairline share one shadow list: --box-ring is transparent in dark (not none).
+  if (ui === "v2")
+    return (
+      <div
+        onClick={() => onOpenDetails(transaction)}
+        className="mb-3.5 grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-[var(--r-card)] bg-app-card p-3 shadow-[inset_3px_0_0_var(--color-app-warn),var(--box-ring)] sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+      >
+        <CategoryIcon
+          icon={transaction.tag.icon}
+          color={transaction.tag.colorHex}
+        />
+        <div className="min-w-0">
+          <div className="truncate font-semibold text-app-text">
+            {transaction.name}
+          </div>
+          <div className="text-[13px] text-app-muted">
+            Due {formattedDate}, waiting for the amount
+          </div>
+        </div>
+        <div
+          className="col-span-2 flex items-center gap-2 sm:col-span-1"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {canEdit ? (
+            <>
+              <div className="min-w-0 flex-1 sm:w-52 sm:flex-none">
+                <NumberInput
+                  ref={inputRef}
+                  placeholder={`0.00 ${symbol}`}
+                  value={value}
+                  onChange={setValue}
+                  onEnter={submit}
+                  type={type}
+                  onTypeChange={setType}
+                  aria-label={`Amount for ${transaction.name}`}
+                  className="text-right"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                ripple
+                disabled={saving}
+                onClick={submit}
+                aria-label="Confirm amount"
+              >
+                {saving ? "…" : "Save"}
+              </Button>
+            </>
+          ) : (
+            <span className="text-sm text-app-muted">—</span>
+          )}
+        </div>
+      </div>
+    );
 
   return (
     <div
@@ -152,7 +212,23 @@ interface PendingTransactionsPanelProps {
 export const PendingTransactionsPanel: React.FC<
   PendingTransactionsPanelProps
 > = ({ wallet, pendingTransactions, focusId, onFilled, onOpenDetails }) => {
+  const [ui] = useUiVersion();
   if (pendingTransactions.length === 0) return null;
+
+  const rows = pendingTransactions.map((tx) => (
+    <PendingTransactionRow
+      key={tx.id}
+      wallet={wallet}
+      transaction={tx}
+      focused={String(tx.id) === focusId}
+      onFilled={onFilled}
+      onOpenDetails={onOpenDetails}
+    />
+  ));
+
+  // ui-v2-switch: each v2 row says "waiting for the amount" itself, so the
+  // "Awaiting amount" header is dropped.
+  if (ui === "v2") return <div className="mb-6">{rows}</div>;
 
   return (
     <div className="mb-6 flex flex-col gap-2">
@@ -166,16 +242,7 @@ export const PendingTransactionsPanel: React.FC<
           Awaiting amount
         </h4>
       </div>
-      {pendingTransactions.map((tx) => (
-        <PendingTransactionRow
-          key={tx.id}
-          wallet={wallet}
-          transaction={tx}
-          focused={String(tx.id) === focusId}
-          onFilled={onFilled}
-          onOpenDetails={onOpenDetails}
-        />
-      ))}
+      {rows}
     </div>
   );
 };

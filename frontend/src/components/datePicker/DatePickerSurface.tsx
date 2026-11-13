@@ -1,5 +1,6 @@
 import React from "react";
 import { createPortal } from "react-dom";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface DatePickerSurfaceProps {
   isMobile: boolean;
@@ -31,7 +32,11 @@ export default function DatePickerSurface({
   dropdownPosition,
   children,
 }: DatePickerSurfaceProps) {
+  const [ui] = useUiVersion();
+  // ui-v2-switch: v2 popovers are flat app-card boxes with a soft shadow, no border.
+  const isV2 = ui === "v2";
   const bgMain = isDark ? "bg-app-card" : "bg-app-bg";
+  const v2Shadow = "shadow-[0_8px_24px_rgb(0_0_0/0.25),var(--box-ring)]";
 
   if (isMobile && typeof document !== "undefined") {
     return createPortal(
@@ -43,11 +48,19 @@ export default function DatePickerSurface({
           if (e.target === e.currentTarget) onClose();
         }}
         // Native ::backdrop instead of an overlay div
-        className="m-0 p-0 w-full h-full max-w-none max-h-none theme-bg-transparent backdrop:theme-bg-backdrop-dark open:flex open:flex-col open:justify-end sm:hidden z-[100]"
+        className={`m-0 p-0 w-full h-full max-w-none max-h-none theme-bg-transparent ${
+          // ui-v2-switch
+          isV2 ? "backdrop:bg-black/45" : "backdrop:theme-bg-backdrop-dark"
+        } open:flex open:flex-col open:justify-end sm:hidden z-[100]`}
       >
         <div
           ref={modalRef}
-          className={`relative w-full max-h-[85vh] overflow-y-auto rounded-t-2xl pb-6 shadow-2xl border-t flex flex-col ${bgMain} ${borderMain} animate-[slideUp_0.3s_ease-out]`}
+          className={
+            // ui-v2-switch
+            isV2
+              ? `relative w-full max-h-[85vh] overflow-y-auto rounded-t-[var(--r-card)] pb-6 ${v2Shadow} flex flex-col bg-app-card animate-[slideUp_0.3s_ease-out]`
+              : `relative w-full max-h-[85vh] overflow-y-auto rounded-t-2xl pb-6 shadow-2xl border-t flex flex-col ${bgMain} ${borderMain} animate-[slideUp_0.3s_ease-out]`
+          }
         >
           {children}
         </div>
@@ -66,7 +79,12 @@ export default function DatePickerSurface({
   return (
     <div
       ref={modalRef}
-      className={`absolute ${positionClasses} ${alignClasses} transform rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] ${withSidebar ? "w-[380px] sm:w-auto sm:min-w-[550px]" : "w-[320px]"} overflow-hidden ${bgMain} ${borderMain}`}
+      className={
+        // ui-v2-switch
+        isV2
+          ? `absolute ${positionClasses} ${alignClasses} transform rounded-[var(--r-card)] ${v2Shadow} flex flex-col sm:flex-row z-[100] ${withSidebar ? "w-[380px] sm:w-auto sm:min-w-[550px]" : "w-[320px]"} overflow-hidden bg-app-card`
+          : `absolute ${positionClasses} ${alignClasses} transform rounded-xl shadow-2xl border flex flex-col sm:flex-row z-[100] ${withSidebar ? "w-[380px] sm:w-auto sm:min-w-[550px]" : "w-[320px]"} overflow-hidden ${bgMain} ${borderMain}`
+      }
     >
       {children}
     </div>

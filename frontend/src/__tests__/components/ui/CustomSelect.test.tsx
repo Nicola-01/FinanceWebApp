@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CustomSelect } from "../../../components/ui/CustomSelect";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 const OPTIONS = [
   { value: "eur", label: "Euro" },
@@ -91,5 +92,36 @@ describe("CustomSelect", () => {
     await user.click(screen.getByRole("button", { name: /Euro/i }));
     await user.click(screen.getByRole("button", { name: "Manage" }));
     expect(screen.queryByText("Manage")).not.toBeInTheDocument();
+  });
+});
+
+describe("CustomSelect v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => {
+    setUiVersion("v1");
+    localStorage.clear();
+  });
+
+  it("renders a borderless card panel with the selected row raised and checked", async () => {
+    const user = userEvent.setup();
+    render(<CustomSelect value="usd" onChange={vi.fn()} options={OPTIONS} />);
+    await user.click(screen.getByRole("button", { name: "US Dollar" }));
+    const panel = screen.getByRole("button", { name: "Euro" })
+      .parentElement as HTMLElement;
+    expect(panel.className).toContain("bg-app-card");
+    expect(panel.className).toContain("rounded-[var(--r-card)]");
+    expect(panel.className).not.toContain("border-app-border");
+    const selected = within(panel).getByRole("button", { name: "US Dollar" });
+    expect(selected.className).toContain("bg-app-raised");
+    expect(selected.querySelector("svg")).not.toBeNull();
+  });
+
+  it("still selects an option on click", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<CustomSelect value="usd" onChange={onChange} options={OPTIONS} />);
+    await user.click(screen.getByRole("button", { name: "US Dollar" }));
+    await user.click(screen.getByRole("button", { name: "Euro" }));
+    expect(onChange).toHaveBeenCalledWith("eur");
   });
 });

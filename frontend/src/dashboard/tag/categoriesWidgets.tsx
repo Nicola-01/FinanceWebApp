@@ -11,7 +11,7 @@ import { TransactionPieChart } from "./TransactionPieChart.tsx";
 import { CategoryRanking } from "./CategoryRanking.tsx";
 import { CategoryTrendChart } from "./CategoryTrendChart.tsx";
 import { CategoryHeatmapChart } from "./CategoryHeatmapChart.tsx";
-import { CashFlowSankey } from "../statistics/CashFlowSankey.tsx";
+import { LazyCashFlowSankey } from "../statistics/LazyCashFlowSankey.tsx";
 
 export const CATEGORIES_TAB_ID = "categories";
 
@@ -137,7 +137,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
     label: "Cash Flow",
     icon: faDiagramProject,
     render: (ctx, bare) => (
-      <CashFlowSankey
+      <LazyCashFlowSankey
         transactions={ctx.transactions}
         currency={ctx.currencyCode}
         bare={bare}

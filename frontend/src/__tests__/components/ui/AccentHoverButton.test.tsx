@@ -1,4 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { setUiVersion } from "../../../utils/uiVersion";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { AccentHoverButton } from "../../../components/ui/AccentHoverButton";
 
@@ -41,5 +42,35 @@ describe("AccentHoverButton", () => {
     expect(btn).toHaveTextContent("hovered");
     fireEvent.click(btn);
     expect(onClick).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AccentHoverButton v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("hovers with the raised fill, not the wallet-coloured tint", () => {
+    render(
+      <AccentHoverButton
+        accentColor="#ff0000"
+        hoverStyle={{ color: "#ff0000" }}
+      >
+        {(hover) => (hover ? "Hovered" : "Idle")}
+      </AccentHoverButton>,
+    );
+    const btn = screen.getByRole("button", { name: "Idle" });
+    expect(btn).toHaveClass("hover:bg-app-raised");
+
+    fireEvent.mouseEnter(btn);
+    expect(
+      screen.getByRole("button", { name: "Hovered" }).style.borderColor,
+    ).toBe("");
+    expect(
+      screen.getByRole("button", { name: "Hovered" }).style.backgroundColor,
+    ).toBe("");
+    // The caller's hoverStyle is still applied.
+    expect(screen.getByRole("button", { name: "Hovered" }).style.color).toBe(
+      "rgb(255, 0, 0)",
+    );
   });
 });

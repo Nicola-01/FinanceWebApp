@@ -1,4 +1,5 @@
 import React, { forwardRef } from "react";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   /** Icon shown inside, on the left. */
@@ -28,13 +29,25 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     },
     ref,
   ) => {
+    const [ui] = useUiVersion();
     const sm = inputSize === "sm";
+    // ui-v2-switch
+    const isV2 = ui === "v2";
     return (
       <div
-        className={`relative flex items-center ${sm ? "rounded-[var(--r-sm)]" : "rounded-[var(--r-input)]"} border bg-app-input/70 transition-colors duration-200 ${
-          invalid
-            ? "border-app-red"
-            : "border-app-border focus-within:border-[var(--brand-1)] focus-within:ring-1 focus-within:ring-[var(--brand-1)]/50"
+        className={`relative flex items-center ${sm ? "rounded-[var(--r-sm)]" : "rounded-[var(--r-input)]"} ${
+          // ui-v2-switch
+          isV2
+            ? `bg-app-raised transition-shadow duration-200 ${
+                invalid
+                  ? "ring-2 ring-app-danger"
+                  : "focus-within:ring-2 focus-within:ring-wallet/40"
+              }`
+            : `border bg-app-input/70 transition-colors duration-200 ${
+                invalid
+                  ? "border-app-red"
+                  : "border-app-border focus-within:border-[var(--brand-1)] focus-within:ring-1 focus-within:ring-[var(--brand-1)]/50"
+              }`
         }`}
       >
         {leadingIcon && (
@@ -44,10 +57,31 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
-          className={`w-full bg-transparent text-app-text outline-none placeholder:text-app-muted ${
-            sm ? "py-1.5 text-xs" : "py-2.5"
-          } ${leadingIcon ? "pl-10" : sm ? "pl-2.5" : "pl-3.5"} ${
-            rightSlot ? (sm ? "pr-6" : "pr-11") : sm ? "pr-2.5" : "pr-3.5"
+          className={`w-full bg-transparent text-app-text outline-none ${
+            // ui-v2-switch
+            isV2
+              ? "placeholder:text-app-faint tabular-nums"
+              : "placeholder:text-app-muted"
+          } ${sm ? "py-1.5 text-xs" : "py-2.5"} ${
+            leadingIcon
+              ? "pl-10"
+              : sm
+                ? "pl-2.5"
+                : // ui-v2-switch
+                  isV2
+                  ? "pl-3"
+                  : "pl-3.5"
+          } ${
+            rightSlot
+              ? sm
+                ? "pr-6"
+                : "pr-11"
+              : sm
+                ? "pr-2.5"
+                : // ui-v2-switch
+                  isV2
+                  ? "pr-3"
+                  : "pr-3.5"
           } ${className}`}
           {...props}
         />
