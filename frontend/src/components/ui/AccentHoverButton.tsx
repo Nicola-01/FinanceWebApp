@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface AccentHoverButtonProps extends Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -22,22 +23,29 @@ export const AccentHoverButton: React.FC<AccentHoverButtonProps> = ({
   hoverStyle,
   children,
   type = "button",
+  className,
   ...props
 }) => {
   const [hover, setHover] = useState(false);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
   return (
     <button
       type={type}
       {...props}
+      className={isV2 ? `hover:bg-app-raised ${className ?? ""}` : className}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      // ui-v2-switch: no wallet-coloured border/tint on hover; the raised fill does it.
       style={
         hover
-          ? {
-              borderColor: accentColor,
-              backgroundColor: `${accentColor}14`,
-              ...hoverStyle,
-            }
+          ? isV2
+            ? hoverStyle
+            : {
+                borderColor: accentColor,
+                backgroundColor: `${accentColor}14`,
+                ...hoverStyle,
+              }
           : undefined
       }
     >

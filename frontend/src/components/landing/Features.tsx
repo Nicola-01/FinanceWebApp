@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Calendar, Users, WifiOff } from "lucide-react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { TransactionPieChart } from "../../dashboard/tag/TransactionPieChart.tsx";
-import { CashFlowSankey } from "../../dashboard/statistics/CashFlowSankey.tsx";
+import { LazyCashFlowSankey } from "../../dashboard/statistics/LazyCashFlowSankey.tsx";
 import { WalletCardUI } from "../../dashboard/wallet/WalletCard";
 import MockTransactionRow from "./MockTransactionRow";
 import { useTheme } from "../../utils/ThemeContext";
@@ -132,7 +132,7 @@ const Features: React.FC = () => {
       <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
         <div className="flex-1 w-full order-2 md:order-1">
           <ThemeProvider theme={muiTheme}>
-            <CashFlowSankey transactions={DEMO_TRANSACTIONS} />
+            <LazyCashFlowSankey transactions={DEMO_TRANSACTIONS} />
           </ThemeProvider>
         </div>
         <div className="flex-1 space-y-6 order-1 md:order-2">

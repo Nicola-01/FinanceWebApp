@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { setUiVersion } from "../../../utils/uiVersion";
+import { render, screen, fireEvent } from "@testing-library/react";
 import type { Tag } from "../../../types/domain";
 import { TagBadge } from "../../../components/ui/TagBadge";
 
@@ -41,5 +42,25 @@ describe("TagBadge", () => {
     render(<TagBadge tag={child} tags={[parent, child]} forceShowParent />);
     expect(screen.getByText("Groceries")).toBeInTheDocument();
     expect(screen.getByText("Food")).toBeInTheDocument();
+  });
+});
+
+describe("TagBadge v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("renders a borderless sentence-case pill", () => {
+    render(<TagBadge tag={groceries} tags={[groceries]} />);
+    const chip = screen.getByText("Groceries").parentElement as HTMLElement;
+    expect(chip.className).toContain("rounded-full");
+    expect(chip.className).not.toContain("uppercase");
+    expect(chip.style.border).toBe("");
+  });
+
+  it("still forwards clicks to the badge", () => {
+    const onClick = vi.fn();
+    render(<TagBadge tag={groceries} tags={[groceries]} onClick={onClick} />);
+    fireEvent.click(screen.getByText("Groceries"));
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,4 +1,5 @@
 import React from "react";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 export interface TagDropdownPanelProps {
   /** Positioning + width utilities, e.g. "right-0 mt-4 w-72" or "mt-1 w-full". */
@@ -21,18 +22,28 @@ export const TagDropdownPanel: React.FC<TagDropdownPanelProps> = ({
   searchSlot,
   headerSlot,
   children,
-}) => (
-  <div
-    className={`absolute z-50 flex max-h-[350px] flex-col rounded-xl border border-app-border bg-app-card p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] ${className}`}
-  >
-    {searchSlot && <div className="mb-2 shrink-0">{searchSlot}</div>}
-    {headerSlot && (
-      <div className="mb-1 shrink-0 border-b border-app-border pb-1">
-        {headerSlot}
+}) => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch: borderless card with the soft floating shadow
+  return (
+    <div
+      className={`absolute z-50 flex max-h-[350px] flex-col p-2 animate-[fadeIn_0.1s_ease-out] ${
+        v2
+          ? "rounded-[var(--r-card)] bg-app-card shadow-[0_8px_24px_rgb(0_0_0/0.25),var(--box-ring)]"
+          : "rounded-xl border border-app-border bg-app-card shadow-2xl"
+      } ${className}`}
+    >
+      {searchSlot && <div className="mb-2 shrink-0">{searchSlot}</div>}
+      {headerSlot && (
+        <div
+          className={`mb-1 shrink-0 pb-1 ${v2 ? "" : "border-b border-app-border"}`}
+        >
+          {headerSlot}
+        </div>
+      )}
+      <div className="custom-scrollbar min-h-[50px] flex-1 space-y-1 overflow-y-auto pr-1">
+        {children}
       </div>
-    )}
-    <div className="custom-scrollbar min-h-[50px] flex-1 space-y-1 overflow-y-auto pr-1">
-      {children}
     </div>
-  </div>
-);
+  );
+};

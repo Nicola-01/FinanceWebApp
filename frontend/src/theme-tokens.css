@@ -60,6 +60,10 @@
   --r-input: 10px;
   --r-cta: 12px;
   --r-sm: 8px;
+
+  /* Accent read by `bg-wallet`/`text-on-wallet`; v2 and wallet roots override it. */
+  --wallet: var(--brand-1);
+  --on-wallet: #ffffff;
 }
 
 /* =====================================================================
@@ -119,4 +123,96 @@
   --color-border-default: rgba(255, 255, 255, 0.14);
   --color-border-active: rgba(255, 255, 255, 0.3);
   --color-border-focus: rgba(255, 255, 255, 0.3);
+}
+
+/* =====================================================================
+   UI v2 "Wallet card" (dual UI: active only with data-ui="v2" on <html>,
+   see utils/uiVersion.ts). Remaps the same rgb-triplet vars the `app-*`
+   Tailwind colours read, so shared primitives restyle without forking.
+   :root[data-ui] beats `.dark`; light first, dark overrides it.
+   ===================================================================== */
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 500 800;
+  font-display: swap;
+  src: url("./assets/fonts/bricolage-var.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("./assets/fonts/instrument-sans-var.woff2") format("woff2");
+}
+
+:root[data-ui="v2"] {
+  --bg-main: 244 243 241; /* #f4f3f1 */
+  --bg-surface: 255 255 255;
+  --bg-card: 255 255 255;
+  --bg-card-dark: 255 255 255;
+  --bg-raised: 238 236 232; /* #eeece8 */
+  --bg-transparent: rgba(244, 243, 241, 0.72);
+  --text-primary: 28 26 23; /* #1c1a17 */
+  --text-muted: 107 102 94; /* #6b665e */
+  --text-faint: 154 149 140; /* #9a958c */
+  --border-primary: 228 225 220; /* #e4e1dc */
+  --bg-input: 238 236 232;
+  --bg-hover: 238 236 232;
+  --v2-income: 47 143 85; /* #2f8f55 */
+  --v2-kept: 52 120 198; /* #3478c6 */
+  --v2-expense-mark: 236 138 118; /* #ec8a76 */
+  --v2-warn: 154 95 0; /* #9a5f00 text (D11) */
+  --v2-warn-fill: 240 160 32; /* #f0a020 bars, pill tint (D11) */
+  --v2-danger: 196 65 47; /* #c4412f */
+  /* Light only (D7): white boxes need a hairline to separate from the bg. */
+  --box-ring: 0 0 0 1px rgb(var(--border-primary));
+  /* Category glyphs: darkened in light so yellow/cyan stay legible (D7). */
+  --glyph-mix: 70%;
+
+  --color-text-default: rgb(var(--text-primary));
+  --color-text-muted: rgb(var(--text-muted));
+  --color-text-subtle: rgb(var(--text-faint));
+  --color-bg-page: rgb(var(--bg-main));
+  --color-border-default: rgb(var(--border-primary));
+
+  /* Accent outside a wallet = inverted neutral (D8). Wallet roots set --wallet/--on-wallet. */
+  --wallet: rgb(var(--text-primary));
+  --on-wallet: rgb(var(--bg-main));
+
+  --font-sans:
+    "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+
+  --r-hero: 20px;
+  --r-card: 18px;
+  --r-input: 12px;
+  --r-cta: 12px;
+  --r-sm: 8px;
+}
+:root.dark[data-ui="v2"] {
+  --bg-main: 20 19 18; /* #141312 */
+  --bg-surface: 29 28 26; /* #1d1c1a */
+  --bg-card: 29 28 26;
+  --bg-card-dark: 29 28 26;
+  --bg-raised: 38 36 33; /* #262421 */
+  --bg-transparent: rgba(20, 19, 18, 0.65);
+  --text-primary: 239 236 230; /* #efece6 */
+  --text-muted: 154 149 140; /* #9a958c */
+  --text-faint: 107 102 94; /* #6b665e */
+  --border-primary: 46 44 41; /* #2e2c29 */
+  --bg-input: 38 36 33;
+  --bg-hover: 38 36 33;
+  --v2-income: 127 207 149; /* #7fcf95 */
+  --v2-kept: 122 170 245; /* #7aaaf5 */
+  --v2-warn: 240 184 90; /* #f0b85a */
+  --v2-warn-fill: 240 184 90;
+  --v2-danger: 255 138 122; /* #ff8a7a */
+  --box-ring: 0 0 0 0 transparent; /* not "none": it must stay valid inside a shadow list */
+  --glyph-mix: 100%;
+}
+:root[data-ui="v2"] :is(body, #root) {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }

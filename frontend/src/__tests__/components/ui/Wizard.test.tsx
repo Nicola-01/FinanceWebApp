@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { useState, type ReactNode } from "react";
 import { faWallet, faTag, faUserPlus } from "@fortawesome/free-solid-svg-icons";
@@ -7,6 +7,7 @@ import {
   type WizardStep,
   type WizardCompletionState,
 } from "../../../components/ui/Wizard";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 interface HarnessProps {
   onComplete?: () => Promise<unknown>;
@@ -201,6 +202,31 @@ describe("Wizard", () => {
     fireEvent.click(screen.getByTestId("wizard-next")); // -> complete (rejects)
     await screen.findByText("Return to setup");
     fireEvent.click(screen.getByText("Return to setup"));
+    expect(screen.getByText("Step 0 content")).toBeInTheDocument();
+  });
+});
+
+describe("Wizard — v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("paints reached stepper nodes with the wallet fill and keeps navigation working", () => {
+    render(<Harness />);
+    expect(screen.getByTestId("wizard-step-0")).toHaveClass(
+      "bg-wallet",
+      "text-on-wallet",
+      "ring-2",
+    );
+    expect(screen.getByTestId("wizard-step-1")).toHaveClass("bg-app-raised");
+    advanceToStep1();
+    expect(screen.getByTestId("wizard-step-0")).toHaveClass(
+      "bg-[color-mix(in_srgb,var(--wallet)_25%,transparent)]",
+    );
+    expect(screen.getByTestId("wizard-step-1")).toHaveClass(
+      "bg-wallet",
+      "ring-2",
+    );
+    fireEvent.click(screen.getByTestId("wizard-back"));
     expect(screen.getByText("Step 0 content")).toBeInTheDocument();
   });
 });

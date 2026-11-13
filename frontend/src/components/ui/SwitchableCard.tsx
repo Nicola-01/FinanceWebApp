@@ -6,6 +6,8 @@ import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import { useWalletContext } from "../../dashboard/wallet/WalletContext.tsx";
 import { Selector } from "./Selector.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion";
+import { toSentenceCase } from "../../utils/format";
 
 export interface Tab {
   key: string;
@@ -49,6 +51,11 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
 
   const { wallet } = useWalletContext();
   const walletColor = wallet?.color || "var(--color-app-green)";
+  const [ui] = useUiVersion();
+  // ui-v2-switch: v2 keeps wallet colour off text; the active tab is marked by the raised fill.
+  const isV2 = ui === "v2";
+  const activeTextStyle = (key: string): React.CSSProperties | undefined =>
+    isV2 ? undefined : { color: activeTab === key ? walletColor : "" };
 
   useClickAway(menuRef, () => setIsMenuOpen(false));
 
@@ -63,7 +70,11 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
 
   return (
     <div
-      className={`bg-app-card/20 rounded-2xl border border-app-border overflow-hidden ${className}`.trim()}
+      className={`${
+        isV2
+          ? "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)]"
+          : "bg-app-card/20 rounded-2xl border border-app-border"
+      } overflow-hidden ${className}`.trim()}
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 md:px-6 py-4 border-b border-app-border relative">
@@ -82,8 +93,14 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
                   >
                     <div className="flex flex-col min-w-0">
                       {title && (
-                        <h3 className="text-xl font-bold text-app-text uppercase tracking-wider truncate group-hover:text-app-text transition-colors">
-                          {title}
+                        <h3
+                          className={
+                            isV2
+                              ? "font-display text-xl font-semibold text-app-text truncate transition-colors"
+                              : "text-xl font-bold text-app-text uppercase tracking-wider truncate group-hover:text-app-text transition-colors"
+                          }
+                        >
+                          {isV2 ? toSentenceCase(title) : title}
                         </h3>
                       )}
                     </div>
@@ -103,8 +120,14 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
               ) : (
                 <div className="flex flex-col min-w-0">
                   {title && (
-                    <h3 className="text-xl font-bold text-app-text uppercase tracking-wider truncate">
-                      {title}
+                    <h3
+                      className={
+                        isV2
+                          ? "font-display text-xl font-semibold text-app-text truncate"
+                          : "text-xl font-bold text-app-text uppercase tracking-wider truncate"
+                      }
+                    >
+                      {isV2 ? toSentenceCase(title) : title}
                     </h3>
                   )}
                   {subtitle && (
@@ -123,7 +146,11 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute top-full left-0 z-50 mt-2 w-48 bg-app-card/95 backdrop-blur-xl border border-app-border rounded-xl shadow-2xl overflow-hidden py-1"
+                    className={`absolute top-full left-0 z-50 mt-2 w-48 overflow-hidden py-1 ${
+                      isV2
+                        ? "bg-app-card rounded-[var(--r-sm)] shadow-[0_8px_24px_rgb(0_0_0/0.25)]"
+                        : "bg-app-card/95 backdrop-blur-xl border border-app-border rounded-xl shadow-2xl"
+                    }`}
                   >
                     {tabs.map((tab) => (
                       <button
@@ -131,12 +158,14 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
                         onClick={() => handleTabChange(tab.key)}
                         className={`w-full text-left px-4 py-3 text-sm transition-all ${
                           activeTab === tab.key
-                            ? "bg-app-hover font-bold"
-                            : "text-app-muted hover:text-app-text hover:bg-app-input"
+                            ? isV2
+                              ? "bg-app-raised font-semibold text-app-text"
+                              : "bg-app-hover font-bold"
+                            : isV2
+                              ? "text-app-muted hover:text-app-text hover:bg-app-raised"
+                              : "text-app-muted hover:text-app-text hover:bg-app-input"
                         }`}
-                        style={{
-                          color: activeTab === tab.key ? walletColor : "",
-                        }}
+                        style={activeTextStyle(tab.key)}
                       >
                         {tab.title}
                       </button>
@@ -166,7 +195,7 @@ export const SwitchableCard: React.FC<SwitchableCardProps> = ({
             options={tabs.map((tab) => ({
               value: tab.key,
               label: tab.label,
-              style: { color: activeTab === tab.key ? walletColor : "" },
+              style: activeTextStyle(tab.key),
             }))}
           />
         )}

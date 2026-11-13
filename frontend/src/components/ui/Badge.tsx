@@ -1,6 +1,7 @@
 import React, { type ReactNode } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export type BadgeTone =
   "neutral" | "green" | "red" | "yellow" | "blue" | "purple" | "pink" | "brand";
@@ -66,6 +67,31 @@ const SUBTLE: Record<BadgeTone, string> = {
   brand: "bg-[var(--brand-1)]/15 text-[var(--brand-1)]",
 };
 
+// v2: no borders, no uppercase, no mono. Tint = 16% of the text colour, the
+// same recipe as StatusPill. Blue/purple/pink have no v2 status token, so they
+// read as neutral text on a raised chip rather than an off-palette colour.
+const V2_TINT = "bg-[color-mix(in_srgb,currentColor_16%,transparent)]";
+const SOFT_V2: Record<BadgeTone, string> = {
+  neutral: "bg-app-raised text-app-muted",
+  green: `${V2_TINT} text-app-income`,
+  red: `${V2_TINT} text-app-danger`,
+  yellow: `${V2_TINT} text-app-warn`,
+  blue: "bg-app-raised text-app-text",
+  purple: "bg-app-raised text-app-text",
+  pink: "bg-app-raised text-app-text",
+  brand: "bg-wallet text-on-wallet",
+};
+const OUTLINE_V2: Record<BadgeTone, string> = {
+  neutral: "text-app-muted",
+  green: "text-app-income",
+  red: "text-app-danger",
+  yellow: "text-app-warn",
+  blue: "text-app-text",
+  purple: "text-app-text",
+  pink: "text-app-text",
+  brand: "text-app-text",
+};
+
 const SHAPE: Record<BadgeShape, string> = {
   pill: "rounded-full",
   rounded: "rounded-md",
@@ -74,6 +100,10 @@ const SHAPE: Record<BadgeShape, string> = {
 
 const SIZE: Record<BadgeSize, string> = {
   sm: "px-2 py-0.5 text-[10px]",
+  md: "px-2.5 py-0.5 text-xs",
+};
+const SIZE_V2: Record<BadgeSize, string> = {
+  sm: "px-2 py-0.5 text-xs",
   md: "px-2.5 py-0.5 text-xs",
 };
 
@@ -96,32 +126,51 @@ export const Badge: React.FC<BadgeProps> = ({
   children,
   ...rest
 }) => {
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
   const useColor = Boolean(color);
   // A border is drawn for soft/outline (and any arbitrary-colour badge).
-  const hasBorder = useColor || variant !== "subtle";
+  const hasBorder = !isV2 && (useColor || variant !== "subtle");
 
   const toneClass = useColor
     ? ""
-    : variant === "subtle"
-      ? SUBTLE[tone]
-      : variant === "outline"
-        ? OUTLINE[tone]
-        : SOFT[tone];
+    : isV2
+      ? variant === "outline"
+        ? OUTLINE_V2[tone]
+        : SOFT_V2[tone]
+      : variant === "subtle"
+        ? SUBTLE[tone]
+        : variant === "outline"
+          ? OUTLINE[tone]
+          : SOFT[tone];
 
   const colorStyle: React.CSSProperties | undefined = useColor
-    ? {
-        color,
-        backgroundColor: variant === "outline" ? undefined : `${color}26`,
-        borderColor: `${color}66`,
-        ...style,
-      }
+    ? isV2
+      ? {
+          color,
+          backgroundColor:
+            variant === "outline"
+              ? undefined
+              : `color-mix(in srgb, ${color} 16%, transparent)`,
+          ...style,
+        }
+      : {
+          color,
+          backgroundColor: variant === "outline" ? undefined : `${color}26`,
+          borderColor: `${color}66`,
+          ...style,
+        }
     : style;
 
   return (
     <span
       {...rest}
       style={colorStyle}
-      className={`inline-flex items-center gap-1.5 font-bold whitespace-nowrap ${SHAPE[shape]} ${SIZE[size]} ${hasBorder ? "border" : ""} ${toneClass} ${uppercase ? "uppercase tracking-wider" : ""} ${mono ? "font-app-mono tabular-nums" : ""} ${className}`}
+      className={
+        isV2
+          ? `inline-flex items-center gap-1.5 font-semibold tabular-nums whitespace-nowrap ${SHAPE[shape]} ${SIZE_V2[size]} ${toneClass} ${className}`
+          : `inline-flex items-center gap-1.5 font-bold whitespace-nowrap ${SHAPE[shape]} ${SIZE[size]} ${hasBorder ? "border" : ""} ${toneClass} ${uppercase ? "uppercase tracking-wider" : ""} ${mono ? "font-app-mono tabular-nums" : ""} ${className}`
+      }
     >
       {icon && (
         <FontAwesomeIcon icon={icon} className="shrink-0 text-[0.85em]" />

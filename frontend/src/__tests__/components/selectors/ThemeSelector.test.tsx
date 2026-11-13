@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeSelector } from "../../../components/selectors/ThemeSelector";
+import { setUiVersion } from "../../../utils/uiVersion";
 import {
   ThemeContext,
   type Theme,
@@ -57,5 +58,28 @@ describe("ThemeSelector", () => {
     // The Selector applies a bold class to the active option only.
     expect(screen.getByTitle("Dark").className).toContain("font-bold");
     expect(screen.getByTitle("Light").className).not.toContain("font-bold");
+  });
+});
+
+describe("ThemeSelector v2 UI", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("keeps the active segment on the neutral raised fill, not sky", () => {
+    renderWithTheme({ theme: "light" });
+    const active = screen.getByTitle("Light");
+    expect(active).toHaveClass("bg-app-raised");
+    expect(active.className).not.toContain("text-app-sky");
+  });
+});
+
+describe("ThemeSelector v2 label", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("uses the sentence-case label", () => {
+    renderWithTheme();
+    expect(screen.getByText("App theme")).toBeInTheDocument();
+    expect(screen.queryByText("App Theme")).not.toBeInTheDocument();
   });
 });

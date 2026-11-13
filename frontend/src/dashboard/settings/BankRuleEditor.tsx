@@ -4,6 +4,7 @@ import Button from "../../components/ui/Button.tsx";
 import Toggle from "../../components/ui/Toggle.tsx";
 import { Input } from "../../components/ui/Input.tsx";
 import { FieldLabel } from "../../components/ui/FieldLabel";
+import { useUiVersion } from "../../hooks/useUiVersion";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { TagPicker } from "../../modals/transaction/TagPicker";
 import { createBankRule, updateBankRule } from "../../api/bankApi";
@@ -57,6 +58,8 @@ export function BankRuleEditor({
     setTextError(undefined);
   }, [open, rule]);
 
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
   const canSave = name.trim() !== "" && text.trim() !== "" && !saving;
 
   const save = async () => {
@@ -133,7 +136,11 @@ export function BankRuleEditor({
             aria-invalid={!!textError}
           />
           {textError && (
-            <p className="mt-1 text-xs text-app-red">{textError}</p>
+            <p
+              className={`mt-1 text-xs ${isV2 ? "text-app-danger" : "text-app-red"}`}
+            >
+              {textError}
+            </p>
           )}
         </div>
         <div className="flex flex-wrap gap-4">

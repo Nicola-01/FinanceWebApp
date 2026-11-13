@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { subDays, isSameDay } from "date-fns";
@@ -9,6 +9,7 @@ import type {
 } from "../../../components/datePicker/CustomDatePicker";
 import { ThemeContext } from "../../../utils/ThemeContext";
 import type { ThemeContextType } from "../../../utils/ThemeContext";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 // The component calls useTheme() unconditionally, so a ThemeContext provider
 // is required even when the `isDark` prop is supplied.
@@ -211,5 +212,76 @@ describe("CustomDatePicker", () => {
     expect(screen.getByText("15")).toBeInTheDocument();
     expect(screen.queryByText("Year")).not.toBeInTheDocument();
     expect(screen.queryByText("Last 30 Days")).not.toBeInTheDocument();
+  });
+});
+
+describe("CustomDatePicker (UI v2)", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("renders the trigger as a borderless raised field", () => {
+    const { container } = renderPicker({ initialStartDate: JAN_15 });
+
+    const trigger = container.querySelector(".bg-app-raised");
+    expect(trigger).toContainElement(screen.getByText("January 2026"));
+    expect(trigger).toHaveClass("rounded-[var(--r-input)]");
+    expect(trigger).not.toHaveClass("border");
+  });
+
+  it("gives the enabled step arrows the muted, hover-lifted style", () => {
+    renderPicker({ initialStartDate: JAN_15 });
+
+    const [prev, next] = screen.getAllByRole("button");
+    for (const arrow of [prev, next]) {
+      expect(arrow).toHaveClass(
+        "text-app-muted",
+        "hover:text-app-text",
+        "hover:bg-app-card",
+        "rounded-[var(--r-sm)]",
+      );
+      expect(arrow).not.toHaveClass("text-app-faint");
+    }
+  });
+
+  it("highlights only the active preset in the sidebar", async () => {
+    const user = userEvent.setup();
+    renderPicker({ initialStartDate: JAN_15 });
+
+    await user.click(screen.getByText("January 2026")); // open
+
+    const month = screen.getByRole("button", { name: "Month" });
+    const year = screen.getByRole("button", { name: "Year" });
+    expect(month).toHaveClass("bg-app-raised", "text-app-text");
+    expect(year).toHaveClass("text-app-muted");
+    expect(year).not.toHaveClass("bg-app-raised");
+  });
+
+  it("picking a preset still emits the range and the preset", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const onPresetChange = vi.fn();
+    renderPicker({ onChange, onPresetChange, initialStartDate: JAN_15 });
+
+    await user.click(screen.getByText("January 2026")); // open
+    await user.click(screen.getByRole("button", { name: "Year" }));
+
+    expect(onPresetChange).toHaveBeenLastCalledWith("year");
+    const value = lastRangeValue(onChange);
+    expectDate(value.start, 2026, 0, 1);
+    expectDate(value.end, 2026, 11, 31);
+  });
+
+  it("picking two days still emits a range", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderPicker({ onChange, initialStartDate: JAN_15 });
+
+    await user.click(screen.getByText("January 2026")); // open
+    await user.click(screen.getByText("15"));
+    await user.click(screen.getByText("20"));
+
+    const value = lastRangeValue(onChange);
+    expectDate(value.start, 2026, 0, 15);
+    expectDate(value.end, 2026, 0, 20);
   });
 });

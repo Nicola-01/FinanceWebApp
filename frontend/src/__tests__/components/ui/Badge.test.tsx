@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { setUiVersion } from "../../../utils/uiVersion";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { faClock } from "@fortawesome/free-solid-svg-icons";
 import { Badge } from "../../../components/ui/Badge";
 
@@ -85,5 +86,41 @@ describe("Badge", () => {
   it("forwards native span attributes (title, onClick)", () => {
     render(<Badge title="tip">Y</Badge>);
     expect(screen.getByText("Y")).toHaveAttribute("title", "tip");
+  });
+});
+
+describe("Badge v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("renders a borderless 16% status tint, sentence case, tabular numbers", () => {
+    render(<Badge tone="green">On track</Badge>);
+    const el = screen.getByText("On track");
+    expect(el.className).toContain("rounded-full");
+    expect(el.className).toContain("font-semibold");
+    expect(el.className).toContain("text-app-income");
+    expect(el.className).toContain(
+      "color-mix(in_srgb,currentColor_16%,transparent)",
+    );
+    expect(el.classList.contains("border")).toBe(false);
+  });
+
+  it("ignores uppercase and mono styling but keeps tabular numbers", () => {
+    render(
+      <Badge uppercase mono>
+        12
+      </Badge>,
+    );
+    const el = screen.getByText("12");
+    expect(el.className).not.toContain("uppercase");
+    expect(el.className).not.toContain("font-app-mono");
+    expect(el.className).toContain("tabular-nums");
+  });
+
+  it("still forwards click handlers", () => {
+    const onClick = vi.fn();
+    render(<Badge onClick={onClick}>Tap</Badge>);
+    fireEvent.click(screen.getByText("Tap"));
+    expect(onClick).toHaveBeenCalledTimes(1);
   });
 });

@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { getRecentColors, pushRecentColor } from "../../utils/recentColors";
 import { toHex } from "../../utils/color";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 // 12 presets in chromatic order (rainbow). Concrete hex so the wheel, the hex
 // field and the recents all stay hex-consistent. The three that used to be CSS
@@ -31,32 +32,59 @@ interface ColorSelectorProps {
   onChange: (color: string) => void;
 }
 
+// ui-v2-switch: small caption style, sentence case, no tracking.
+const LABEL_V1 =
+  "text-[10px] font-semibold uppercase tracking-wider text-app-muted/70";
+const LABEL_V2 = "text-xs font-medium text-app-faint";
+
 /** A colour swatch (preset or recent) with a neutral selected ring (no glow). */
 const Swatch: React.FC<{
   color: string;
   selected: boolean;
+  v2: boolean;
   onClick: () => void;
-}> = ({ color, selected, onClick }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    title={color}
-    aria-pressed={selected}
-    className="h-7 w-7 rounded-full transition-transform duration-150 hover:scale-110"
-    style={{
-      backgroundColor: color,
-      // Neutral offset ring on selection — no coloured glow (style guide).
-      boxShadow: selected
-        ? "0 0 0 2px var(--color-app-card), 0 0 0 4px var(--color-app-text)"
-        : "none",
-    }}
-  />
-);
+}> = ({ color, selected, v2, onClick }) => {
+  if (v2) {
+    // v2: 28px rounded tile; the selected ring is a class, not an inline shadow.
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        title={color}
+        aria-pressed={selected}
+        className={`h-7 w-7 rounded-[var(--r-sm)] transition-transform duration-150 hover:scale-110 ${
+          selected
+            ? "ring-2 ring-app-text ring-offset-2 ring-offset-app-card"
+            : ""
+        }`}
+        style={{ backgroundColor: color }}
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={color}
+      aria-pressed={selected}
+      className="h-7 w-7 rounded-full transition-transform duration-150 hover:scale-110"
+      style={{
+        backgroundColor: color,
+        // Neutral offset ring on selection — no coloured glow (style guide).
+        boxShadow: selected
+          ? "0 0 0 2px var(--color-app-card), 0 0 0 4px var(--color-app-text)"
+          : "none",
+      }}
+    />
+  );
+};
 
 export const ColorSelector: React.FC<ColorSelectorProps> = ({
   value,
   onChange,
 }) => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [recents] = useState<string[]>(() => getRecentColors());
 
@@ -111,6 +139,7 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({
             key={color}
             color={color}
             selected={hex === toHex(color)}
+            v2={v2}
             onClick={() => onChange(color)}
           />
         ))}
@@ -119,15 +148,14 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({
       {/* Recent colours — shown only when there are some (presets excluded) */}
       {recents.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-app-muted/70">
-            Recent
-          </span>
+          <span className={v2 ? LABEL_V2 : LABEL_V1}>Recent</span>
           <div className="grid grid-cols-6 gap-3">
             {recents.map((color, i) => (
               <Swatch
                 key={`${color}-${i}`}
                 color={color}
                 selected={hex === toHex(color)}
+                v2={v2}
                 onClick={() => onChange(color)}
               />
             ))}
@@ -143,7 +171,13 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({
         className="flex w-full items-center gap-3 text-app-muted transition-colors hover:text-app-text"
       >
         <span className="h-px flex-grow bg-app-border" />
-        <span className="flex items-center gap-1 text-[0.7rem] font-semibold uppercase tracking-wider">
+        <span
+          className={
+            v2
+              ? "flex items-center gap-1 text-xs font-medium"
+              : "flex items-center gap-1 text-[0.7rem] font-semibold uppercase tracking-wider"
+          }
+        >
           Advanced
           <FontAwesomeIcon
             icon={faChevronDown}
@@ -164,9 +198,7 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({
           />
 
           <div className="flex w-full flex-col gap-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-app-muted/70">
-              Brightness
-            </span>
+            <span className={v2 ? LABEL_V2 : LABEL_V1}>Brightness</span>
             <ShadeSlider
               hsva={hsva}
               height={14}
@@ -180,11 +212,21 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({
           {/* Current colour + editable hex */}
           <div className="flex w-full items-center gap-2">
             <span
-              className="h-8 w-8 shrink-0 rounded-[var(--r-sm)] border border-app-border"
+              className={`h-8 w-8 shrink-0 rounded-[var(--r-sm)] ${v2 ? "" : "border border-app-border"}`}
               style={{ backgroundColor: value }}
             />
-            <div className="flex flex-1 items-center gap-1 rounded-[var(--r-input)] border border-app-border bg-app-input px-2.5 py-1.5 focus-within:border-app-purple/60">
-              <span className="font-app-mono text-sm text-app-muted">#</span>
+            <div
+              className={
+                v2
+                  ? "flex flex-1 items-center gap-1 rounded-[var(--r-input)] bg-app-raised px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-wallet/40"
+                  : "flex flex-1 items-center gap-1 rounded-[var(--r-input)] border border-app-border bg-app-input px-2.5 py-1.5 focus-within:border-app-purple/60"
+              }
+            >
+              <span
+                className={`text-sm text-app-muted ${v2 ? "" : "font-app-mono"}`}
+              >
+                #
+              </span>
               <input
                 value={hexDraft}
                 onChange={(e) =>
@@ -201,7 +243,9 @@ export const ColorSelector: React.FC<ColorSelectorProps> = ({
                 }}
                 spellCheck={false}
                 aria-label="Hex colour"
-                className="w-full min-w-0 bg-transparent font-app-mono text-sm uppercase tracking-wide text-app-text outline-none"
+                className={`w-full min-w-0 bg-transparent text-sm text-app-text outline-none ${
+                  v2 ? "tabular-nums" : "font-app-mono uppercase tracking-wide"
+                }`}
               />
             </div>
           </div>

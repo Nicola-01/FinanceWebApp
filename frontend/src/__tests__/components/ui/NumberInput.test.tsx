@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createRef } from "react";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { NumberInput } from "../../../components/ui/NumberInput";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 describe("NumberInput", () => {
   it("renders a number field with a decimal keypad by default", () => {
@@ -170,6 +171,73 @@ describe("NumberInput", () => {
       expect(screen.getByLabelText("Amount").className).toContain(
         "text-app-green",
       );
+    });
+  });
+
+  describe("v2 UI", () => {
+    beforeEach(() => {
+      setUiVersion("v2");
+    });
+
+    afterEach(() => {
+      setUiVersion("v1");
+      localStorage.clear();
+    });
+
+    it("uses tabular figures in the UI font instead of monospace", () => {
+      render(<NumberInput aria-label="Amount" value="" onChange={() => {}} />);
+      const input = screen.getByLabelText("Amount");
+      expect(input.className).toContain("tabular-nums");
+      expect(input.className).not.toContain("font-app-mono");
+    });
+
+    it("tints only income green and keeps expenses in the text colour", () => {
+      const { rerender } = render(
+        <NumberInput
+          aria-label="Amount"
+          value="5"
+          onChange={() => {}}
+          type="EXPENSE"
+          onTypeChange={() => {}}
+        />,
+      );
+      expect(screen.getByLabelText("Amount").className).not.toContain(
+        "text-app-red",
+      );
+      rerender(
+        <NumberInput
+          aria-label="Amount"
+          value="5"
+          onChange={() => {}}
+          type="INCOME"
+          onTypeChange={() => {}}
+        />,
+      );
+      expect(screen.getByLabelText("Amount").className).toContain(
+        "text-app-income",
+      );
+    });
+
+    it("still reports changes and direction clicks", () => {
+      const onChange = vi.fn();
+      const onTypeChange = vi.fn();
+      render(
+        <NumberInput
+          aria-label="Amount"
+          value=""
+          onChange={onChange}
+          type="INCOME"
+          onTypeChange={onTypeChange}
+        />,
+      );
+      fireEvent.change(screen.getByLabelText("Amount"), {
+        target: { value: "3" },
+      });
+      expect(onChange).toHaveBeenCalledWith("3");
+      fireEvent.click(
+        screen.getByRole("button", { name: "Expense — money out" }),
+      );
+      expect(onTypeChange).toHaveBeenCalledWith("EXPENSE");
     });
   });
 });

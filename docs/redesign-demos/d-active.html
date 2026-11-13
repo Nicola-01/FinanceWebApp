@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction D — Active wallet + warn colour</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  /* Two follow-ups after Phase 1: how to mark the active wallet, and the warn fill colour. */
+  .dark { --bg: #141312; --surface: #1d1c1a; --raised: #262421; --line: #2e2c29; --text: #efece6; --muted: #9a958c; --income: #7fcf95; --danger: #ff8a7a; --ring: none; }
+  .light { --bg: #f4f3f1; --surface: #ffffff; --raised: #eeece8; --line: #e4e1dc; --text: #1c1a17; --muted: #6b665e; --income: #2f8f55; --danger: #c4412f; --ring: 0 0 0 1px #e4e1dc; }
+  * { box-sizing: border-box; margin: 0; }
+  body { font: 15px/1.5 "Instrument Sans", system-ui, sans-serif; background: #0b0b0a; color: #efece6; padding: 24px; }
+  h1 { font: 700 24px "Bricolage Grotesque"; margin-bottom: 4px; }
+  .lead { color: #9a958c; margin-bottom: 20px; }
+  .themes { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 40px; }
+  .theme { background: var(--bg); color: var(--text); border-radius: 16px; padding: 18px; }
+  .row { display: grid; grid-template-columns: repeat(5, 210px); gap: 14px; }
+  .opt h3 { font: 650 14px "Bricolage Grotesque"; margin-bottom: 2px; }
+  .opt p { font-size: 12px; color: var(--muted); margin-bottom: 10px; min-height: 36px; }
+  aside { background: var(--surface); box-shadow: var(--ring); border-radius: 16px; padding: 12px; display: grid; gap: 8px; }
+  .mini { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: end; height: 58px; padding: 10px 12px; border-radius: 12px; background: var(--c); color: var(--on); }
+  .mini b { font: 600 15px "Bricolage Grotesque"; }
+  .mini small { font-size: 11px; opacity: .7; }
+  .mini .net { display: none; }
+  /* A: active expands and shows the month's net */
+  .A .mini.on { height: 88px; align-content: space-between; }
+  .A .mini.on .net { display: block; grid-column: 1 / -1; font: 700 18px "Bricolage Grotesque"; order: 3; }
+  /* B: inner ring in the card's own ink */
+  .B .mini.on { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--on) 55%, transparent); }
+  /* C: marker bar outside, left */
+  .C aside { padding-left: 16px; }
+  .C .mini.on::before { content: ""; position: absolute; left: -10px; top: 14px; bottom: 14px; width: 4px; border-radius: 2px; background: var(--text); }
+  /* D: only the active wallet is solid; the others are quiet rows */
+  .D .mini:not(.on) { background: transparent; color: var(--text); height: 44px; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; }
+  .D .mini:not(.on)::before { content: ""; width: 14px; height: 14px; border-radius: 4px; background: var(--c); }
+  .D .mini:not(.on) small { color: var(--muted); opacity: 1; }
+  /* E: check badge */
+  .E .mini.on::after { content: "\f00c"; font: 900 10px "Font Awesome 6 Free"; position: absolute; top: 8px; right: 10px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--on); color: var(--c); }
+
+  .warn { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .bar { height: 10px; border-radius: 5px; background: var(--raised); overflow: hidden; margin: 8px 0; }
+  .bar i { display: block; height: 100%; border-radius: 5px; }
+  .pill { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  /* D variants (round 2): active solid; others same height, tinted or neutral */
+  .D1 .mini:not(.on), .D2 .mini:not(.on), .D3 .mini:not(.on), .D4 .mini:not(.on) { color: var(--text); }
+  .D1 .mini:not(.on) { background: color-mix(in srgb, var(--c) 14%, var(--surface)); }
+  .D2 .mini:not(.on) { background: color-mix(in srgb, var(--c) 26%, var(--surface)); }
+  .D3 .mini:not(.on) { background: var(--raised); grid-template-columns: 12px 1fr auto; gap: 10px; }
+  .D3 .mini:not(.on)::before { content: ""; width: 12px; height: 12px; border-radius: 4px; background: var(--c); align-self: center; }
+  .D4 .mini:not(.on) { background: var(--raised); box-shadow: inset 4px 0 0 var(--c); }
+  .D1 .mini:not(.on) small, .D2 .mini:not(.on) small, .D3 .mini:not(.on) small, .D4 .mini:not(.on) small { color: var(--muted); opacity: 1; }
+</style>
+</head>
+<body>
+  <h1>1b. Only the active wallet is solid — how the others look</h1>
+  <p class="lead">Same height for all (no jumping when you switch). Hover would lift the others a step towards their colour.</p>
+  <div class="themes" id="wallets2"></div>
+
+  <h1>1. Active wallet in the sidebar</h1>
+  <p class="lead">Today: a 2px white outline around the card. Five alternatives, same in both themes.</p>
+  <div class="themes" id="wallets"></div>
+
+  <h1>2. "Close to the limit" colour</h1>
+  <p class="lead">Bar fill + pill. Today light uses ochre #a86a0c, dark #f0b85a. Fills can be brighter than text (no contrast need), so text and fill may differ.</p>
+  <div class="themes" id="warn"></div>
+<script>
+  const onColor = h => { const [r, g, b] = h.match(/\w\w/g).map(x => parseInt(x, 16) / 255); return .2126 * r + .7152 * g + .0722 * b > .5 ? "#1d1a10" : "#ffffff"; };
+  const W = [["Empty", "#8b6cf6", "+0,00 €"], ["Demo Wallet", "#f2cc2f", "−9016,73 €"], ["Holidays", "#2ec4d6", "+120,00 €"]];
+  const opts = [["A", "Expands", "Active card is taller and shows this month's net."], ["B", "Inner ring", "Ring inside the card, in its own ink colour."], ["C", "Side marker", "Small bar to the left, like a cursor."], ["D", "Only active is solid", "Others become quiet rows with a colour square."], ["E", "Check badge", "Small check in the corner."]];
+  const side = () => `<aside>${W.map(([n, c, net], i) => `<div class="mini ${i === 1 ? "on" : ""}" style="--c:${c};--on:${onColor(c)}"><b>${n}</b><small>EUR</small><span class="net">${net}</span></div>`).join("")}</aside>`;
+  document.getElementById("wallets").innerHTML = ["dark", "light"].map(t => `<div class="theme ${t}"><div class="row">${opts.map(([k, h, p]) => `<div class="opt ${k}"><h3>${k}. ${h}</h3><p>${p}</p>${side()}</div>`).join("")}</div></div>`).join("");
+
+  const opts2 = [["D1", "Very soft tint", "14% of the wallet colour."], ["D2", "Soft tint", "26% of the wallet colour."], ["D3", "Neutral + square", "Grey row, colour square on the left."], ["D4", "Neutral + edge", "Grey row, colour edge on the left."]];
+  document.getElementById("wallets2").innerHTML = ["dark", "light"].map(t => `<div class="theme ${t}"><div class="row">${opts2.map(([k, h, p]) => `<div class="opt ${k}"><h3>${k}. ${h}</h3><p>${p}</p>${side()}</div>`).join("")}</div></div>`).join("");
+  const warn = {
+    dark: [["Now", "#f0b85a", "#f0b85a"], ["Amber", "#f5a524", "#f5a524"], ["Yellow", "#f2cc2f", "#f2cc2f"], ["Soft orange", "#f29b5c", "#f29b5c"]],
+    light: [["Now (ochre)", "#a86a0c", "#a86a0c"], ["Amber fill", "#f0a020", "#9a5f00"], ["Yellow fill", "#f2cc2f", "#8a6a00"], ["Soft orange fill", "#f29b5c", "#b4531c"]],
+  };
+  document.getElementById("warn").innerHTML = ["dark", "light"].map(t => `<div class="theme ${t}"><div class="warn">${warn[t].map(([n, fill, text], i) => `<div class="opt"><h3>${i + 1}. ${n}</h3>
+    <div class="bar"><i style="width:30%;background:var(--income)"></i></div>
+    <div class="bar"><i style="width:85%;background:${fill}"></i></div>
+    <div class="bar"><i style="width:100%;background:var(--danger)"></i></div>
+    <span class="pill" style="color:${text};background:color-mix(in srgb, ${fill} 18%, transparent)"><i class="fa-solid fa-triangle-exclamation"></i>Close to the limit</span></div>`).join("")}</div></div>`).join("");
+</script>
+</body>
+</html>

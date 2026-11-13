@@ -1,6 +1,7 @@
 import React, { type ReactNode } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export type CardTone = "default" | "danger";
 
@@ -57,13 +58,18 @@ export const Card: React.FC<CardProps> = ({
   children,
   className = "",
 }) => {
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
   const isDanger = tone === "danger";
   const hasHeader = Boolean(icon || title);
   const hasBody = Boolean(children);
 
-  const surface = isDanger
-    ? "border-app-red/30 bg-app-red/5"
-    : "border-app-border bg-app-card/80";
+  // ui-v2-switch: flat warm surface + hairline ring (none in dark); no border, no blur.
+  const surface = isV2
+    ? "bg-app-card shadow-[var(--box-ring)]"
+    : isDanger
+      ? "border-app-red/30 bg-app-red/5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_14px_34px_-20px_rgba(0,0,0,0.22)] backdrop-blur-md"
+      : "border-app-border bg-app-card/80 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_14px_34px_-20px_rgba(0,0,0,0.22)] backdrop-blur-md";
   const divider = isDanger ? "border-app-red/20" : "border-app-border";
 
   const footerJustify =
@@ -76,7 +82,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       style={style}
-      className={`relative flex flex-col gap-4 rounded-[var(--r-card)] border ${PADDING[padding]} shadow-[0_1px_2px_rgba(0,0,0,0.04),0_14px_34px_-20px_rgba(0,0,0,0.22)] backdrop-blur-md sm:gap-5 ${surface} ${className}`}
+      className={`relative flex flex-col gap-4 rounded-[var(--r-card)] ${isV2 ? "" : "border"} ${PADDING[padding]} sm:gap-5 ${surface} ${className}`}
     >
       {hasHeader && (
         <div
@@ -90,7 +96,13 @@ export const Card: React.FC<CardProps> = ({
             {icon && (
               <span
                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--r-sm)] ${
-                  isDanger ? "bg-app-red/10 text-app-red" : "bg-app-surface"
+                  isV2
+                    ? isDanger
+                      ? "bg-[color-mix(in_srgb,currentColor_16%,transparent)] text-app-danger"
+                      : "bg-app-raised"
+                    : isDanger
+                      ? "bg-app-red/10 text-app-red"
+                      : "bg-app-surface"
                 }`}
                 style={!isDanger ? { color: iconColor } : undefined}
               >
@@ -99,7 +111,11 @@ export const Card: React.FC<CardProps> = ({
             )}
             {title && (
               <h2
-                className={`text-lg font-bold ${isDanger ? "text-app-red" : "text-app-text"}`}
+                className={
+                  isV2
+                    ? `font-display text-lg font-semibold ${isDanger ? "text-app-danger" : "text-app-text"}`
+                    : `text-lg font-bold ${isDanger ? "text-app-red" : "text-app-text"}`
+                }
               >
                 {title}
               </h2>

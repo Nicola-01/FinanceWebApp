@@ -5,6 +5,7 @@ import {
   faSquare,
   faMinusSquare,
 } from "@fortawesome/free-solid-svg-icons";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export type CheckboxState = "checked" | "unchecked" | "indeterminate";
 
@@ -46,12 +47,15 @@ export const Checkbox: React.FC<CheckboxProps> = ({
   state,
   onChange,
   label,
-  color = "var(--brand-1)",
+  color,
   size = "md",
   disabled = false,
   className = "",
   "aria-label": ariaLabel,
 }) => {
+  const [ui] = useUiVersion();
+  // ui-v2-switch: the checked glyph is the wallet colour by default.
+  const accent = color ?? (ui === "v2" ? "var(--wallet)" : "var(--brand-1)");
   const resolved: CheckboxState =
     typeof state === "boolean" ? (state ? "checked" : "unchecked") : state;
   const isActive = resolved !== "unchecked";
@@ -77,7 +81,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({
         className={`${iconSize} shrink-0 transition-colors ${
           isActive ? "" : "text-app-muted"
         }`}
-        style={isActive ? { color } : {}}
+        style={isActive ? { color: accent } : {}}
       />
       {label != null && (
         <span

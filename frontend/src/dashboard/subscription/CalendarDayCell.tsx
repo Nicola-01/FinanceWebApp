@@ -3,6 +3,7 @@ import { format, isSameDay } from "date-fns";
 import type { Subscription, Transaction } from "../../types/domain";
 import { applyTransactionToSubscription } from "../../utils/subscriptionHelper";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 const MAX_VISIBLE = 3;
 
@@ -27,6 +28,8 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
   onTransactionClick,
 }) => {
   const isToday = isSameDay(calendarDay, new Date());
+  const [ui] = useUiVersion(); // ui-v2-switch
+  const v2 = ui === "v2";
 
   const visibleSubs = daySubscriptions.slice(0, MAX_VISIBLE);
   const overflowCount = daySubscriptions.length - MAX_VISIBLE;
@@ -34,16 +37,32 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
   return (
     <div
       onClick={() => onDayClick(calendarDay)}
-      className={`flex flex-col p-1 sm:p-2 rounded-lg sm:rounded-xl border cursor-pointer transition-all min-w-0 overflow-hidden ${
-        isCurrentMonth
-          ? "bg-app-input/50 border-app-border hover:bg-app-input/80 hover:border-app-border"
-          : "bg-app-transparent border-transparent opacity-40"
+      className={`flex flex-col p-1 sm:p-2 cursor-pointer transition-all min-w-0 overflow-hidden ${
+        v2
+          ? `rounded-[var(--r-sm)] ${
+              isCurrentMonth
+                ? `bg-app-card hover:bg-app-raised ${isToday ? "shadow-[var(--box-ring),inset_0_0_0_1.5px_var(--wallet)]" : "shadow-[var(--box-ring)]"}`
+                : "bg-transparent opacity-40"
+            }`
+          : `rounded-lg sm:rounded-xl border ${
+              isCurrentMonth
+                ? "bg-app-input/50 border-app-border hover:bg-app-input/80 hover:border-app-border"
+                : "bg-app-transparent border-transparent opacity-40"
+            }`
       }`}
-      style={isToday ? { boxShadow: `0 0 0 1px ${color}` } : {}}
+      style={isToday && !v2 ? { boxShadow: `0 0 0 1px ${color}` } : {}}
     >
       <span
-        className={`text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 shrink-0 ${isToday ? "" : "text-app-muted"}`}
-        style={isToday ? { color } : {}}
+        className={
+          v2
+            ? `shrink-0 mb-0.5 sm:mb-1 self-start text-[11px] sm:text-xs font-semibold tabular-nums ${
+                isToday
+                  ? "grid h-5 min-w-5 place-items-center rounded-full bg-wallet px-1 text-on-wallet"
+                  : "text-app-muted"
+              }`
+            : `text-[10px] sm:text-xs font-bold mb-0.5 sm:mb-1 shrink-0 ${isToday ? "" : "text-app-muted"}`
+        }
+        style={isToday && !v2 ? { color } : {}}
       >
         {format(calendarDay, "d")}
       </span>
@@ -77,7 +96,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
         {overflowCount > 0 && (
           <span
             className="text-[10px] sm:text-auto font-bold text-app-muted pl-0.5 shrink-0 ml-auto mr-1"
-            style={{ color }}
+            style={v2 ? undefined : { color }}
           >
             +{overflowCount}
           </span>

@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type IconKey, ICONS, ICON_CATEGORIES } from "../../utils/icons.ts";
 import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 interface IconSelectorProps {
   value: IconKey;
@@ -17,6 +18,8 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
 
   // Filter categories based on search query
   const filteredCategories = Object.entries(ICON_CATEGORIES)
@@ -52,7 +55,13 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
             className={`flex items-center transition-all duration-300 ${isSearchOpen ? "w-full" : "w-auto"}`}
           >
             {isSearchOpen ? (
-              <div className="flex w-full items-center gap-2 rounded-lg bg-app-background px-3 py-1.5 focus-within:ring-1 focus-within:ring-app-primary">
+              <div
+                className={`flex w-full items-center gap-2 px-3 py-1.5 ${
+                  v2
+                    ? "rounded-[var(--r-input)] bg-app-raised focus-within:ring-2 focus-within:ring-wallet/40"
+                    : "rounded-lg bg-app-background focus-within:ring-1 focus-within:ring-app-primary"
+                }`}
+              >
                 <FontAwesomeIcon
                   icon={faMagnifyingGlass}
                   className="text-app-muted text-xs"
@@ -63,7 +72,11 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
                   placeholder="Search icons..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent text-sm text-app-text outline-none placeholder:text-app-muted"
+                  className={`w-full bg-transparent text-sm text-app-text outline-none ${
+                    v2
+                      ? "placeholder:text-app-faint"
+                      : "placeholder:text-app-muted"
+                  }`}
                 />
                 <button
                   onClick={toggleSearch}
@@ -75,7 +88,11 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
             ) : (
               <button
                 onClick={toggleSearch}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-app-muted hover:bg-app-background hover:text-app-text transition-colors"
+                className={`flex h-8 w-8 items-center justify-center text-app-muted hover:text-app-text transition-colors ${
+                  v2
+                    ? "rounded-[var(--r-sm)] hover:bg-app-raised"
+                    : "rounded-lg hover:bg-app-background"
+                }`}
                 title="Search Icons"
               >
                 <FontAwesomeIcon icon={faMagnifyingGlass} />
@@ -93,7 +110,13 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
           filteredCategories.map(({ category, keys }) => (
             <div key={category} className="flex flex-col gap-2">
               <div className="py-0 text-center w-full">
-                <h3 className="text-[10px] font-semibold text-app-muted/60 uppercase tracking-wider">
+                <h3
+                  className={
+                    v2
+                      ? "text-xs font-medium text-app-faint"
+                      : "text-[10px] font-semibold text-app-muted/60 uppercase tracking-wider"
+                  }
+                >
                   &mdash; {category} &mdash;
                 </h3>
               </div>
@@ -103,11 +126,18 @@ export const IconSelector: React.FC<IconSelectorProps> = ({
                   return (
                     <div
                       key={key}
-                      className={`flex aspect-square cursor-pointer items-center justify-center rounded-lg text-lg transition-all hover:scale-110 ${isActive ? "" : "text-app-muted hover:bg-app-background"}`}
+                      className={`flex aspect-square cursor-pointer items-center justify-center text-lg transition-all hover:scale-110 ${
+                        v2
+                          ? `rounded-[var(--r-sm)] ${isActive ? "" : "text-app-muted hover:bg-app-raised"}`
+                          : `rounded-lg ${isActive ? "" : "text-app-muted hover:bg-app-background"}`
+                      }`}
                       style={{
                         color: isActive ? currentColor : undefined,
+                        // v2: the selected glyph sits on the same 18% tint tile as CategoryIcon.
                         backgroundColor: isActive
-                          ? `${currentColor}33`
+                          ? v2
+                            ? `color-mix(in srgb, ${currentColor} 18%, transparent)`
+                            : `${currentColor}33`
                           : undefined,
                       }}
                       onClick={() => onChange(key)}

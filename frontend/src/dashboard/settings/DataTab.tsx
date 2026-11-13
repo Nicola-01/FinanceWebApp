@@ -8,7 +8,8 @@ import {
   faCircleInfo,
 } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
-import { Card } from "../../components/ui/Card.tsx";
+import { SettingsBox } from "./SettingsBox.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { BankAccountsSection } from "./BankAccountsSection.tsx";
 import { BankRulesSection } from "./BankRulesSection.tsx";
 import Button from "../../components/ui/Button.tsx";
@@ -24,6 +25,8 @@ import { useCsvImport } from "./useCsvImport.ts";
 
 export const DataTab: React.FC = () => {
   const { wallet, tags, transactions, subscriptions } = useWalletContext();
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
   const [formatOpen, setFormatOpen] = useState(false);
   const {
     review,
@@ -70,26 +73,51 @@ export const DataTab: React.FC = () => {
     triggerToast("Subscriptions exported successfully", true);
   };
 
+  // ui-v2-switch: export/import sit flat in the box, sentence-case headers.
+  const tileClass = isV2
+    ? "flex flex-col gap-3"
+    : "flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4";
+  const headerClass = isV2
+    ? "text-sm font-semibold text-app-text"
+    : "text-sm font-bold uppercase tracking-wider text-app-text";
+  const hintClass = isV2
+    ? "text-[13px] text-app-muted"
+    : "text-xs text-app-muted";
+
   return (
     <>
       <BankAccountsSection />
       <BankRulesSection />
-      <Card
-        title="Data Management"
-        subtitle="Export your data to CSV, or import from a file"
+      <SettingsBox
+        title={isV2 ? "Data" : "Data Management"}
+        description="Export your data to CSV, or import from a file"
         icon={faFileCsv}
         iconColor={wallet.color}
       >
         {/* Help affordance: opens the CSV format reference. */}
-        <button
-          type="button"
-          onClick={() => setFormatOpen(true)}
-          aria-label="CSV format help"
-          title="CSV format"
-          className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text sm:right-6 sm:top-6"
-        >
-          <FontAwesomeIcon icon={faCircleInfo} />
-        </button>
+        {isV2 ? ( // ui-v2-switch
+          <div className="absolute right-4 top-4 sm:right-5 sm:top-5">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setFormatOpen(true)}
+              aria-label="CSV format help"
+              title="CSV format"
+            >
+              <FontAwesomeIcon icon={faCircleInfo} />
+            </Button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setFormatOpen(true)}
+            aria-label="CSV format help"
+            title="CSV format"
+            className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text sm:right-6 sm:top-6"
+          >
+            <FontAwesomeIcon icon={faCircleInfo} />
+          </button>
+        )}
 
         <CsvFormatModal
           open={formatOpen}
@@ -122,14 +150,15 @@ export const DataTab: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {/* EXPORT */}
-          <div className="flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4">
+          <div className={tileClass}>
             <div className="flex items-center gap-2">
-              <FontAwesomeIcon icon={faDownload} className="text-app-green" />
-              <span className="text-sm font-bold uppercase tracking-wider text-app-text">
-                Export
-              </span>
+              <FontAwesomeIcon
+                icon={faDownload}
+                className={isV2 ? "text-app-muted" : "text-app-green"}
+              />
+              <span className={headerClass}>Export</span>
             </div>
-            <p className="text-xs text-app-muted">
+            <p className={hintClass}>
               Download your data as CSV for backups or external analysis.
             </p>
             <div className="mt-auto flex flex-col gap-2">
@@ -159,14 +188,15 @@ export const DataTab: React.FC = () => {
           {/* IMPORT — each button ships the whole CSV to a single bulk endpoint
             (POST /<resource>/{walletId}/bulk), an atomic all-or-nothing request
             rather than one call per row. */}
-          <div className="flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4">
+          <div className={tileClass}>
             <div className="flex items-center gap-2">
-              <FontAwesomeIcon icon={faUpload} className="text-app-blue" />
-              <span className="text-sm font-bold uppercase tracking-wider text-app-text">
-                Import
-              </span>
+              <FontAwesomeIcon
+                icon={faUpload}
+                className={isV2 ? "text-app-muted" : "text-app-blue"}
+              />
+              <span className={headerClass}>Import</span>
             </div>
-            <p className="text-xs text-app-muted">
+            <p className={hintClass}>
               Upload a CSV to add records in bulk. Match the export format —
               open the format guide (?) if unsure.
             </p>
@@ -198,7 +228,7 @@ export const DataTab: React.FC = () => {
             </div>
           </div>
         </div>
-      </Card>
+      </SettingsBox>
     </>
   );
 };

@@ -6,6 +6,8 @@ import { faChevronLeft, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
 import { useEscapeKey } from "../../hooks/useEscapeKey.ts";
 import { registerOverlay } from "../../utils/overlayHistory.ts";
+import { useUiVersion } from "../../hooks/useUiVersion";
+import Button from "./Button";
 
 export interface ResponsiveOverlayProps {
   open: boolean;
@@ -34,7 +36,7 @@ const DESKTOP_QUERY = "(min-width: 768px)";
  * Declarative `open`/`onClose`. Closes on Esc, backdrop click (desktop), the header
  * control, and the **browser Back button / swipe** (a history entry is pushed on open and
  * consumed on close, so back closes the overlay without changing route). Portals to
- * <body>; locks body scroll; kept below the icon-picker popup (z-[100]).
+ * <body>; locks body scroll; z-[95]: above the sticky wallet tabs (z-90), below the icon-picker popup (z-[100]).
  */
 export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
   open,
@@ -48,6 +50,8 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
   children,
 }) => {
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
   const panelRef = useRef<HTMLElement>(null);
 
   // Keep the latest onClose without re-running the history effect on every render.
@@ -93,7 +97,7 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
       {open && (
         <motion.div
           key="overlay"
-          className="fixed inset-0 z-50 flex justify-end"
+          className="fixed inset-0 z-[95] flex justify-end"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -101,7 +105,7 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
         >
           {isDesktop && (
             <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              className={`absolute inset-0 bg-black/50 ${isV2 ? "" : "backdrop-blur-sm"}`}
               onClick={onClose}
               aria-hidden
             />
@@ -115,8 +119,11 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
             aria-label={title}
             className={
               isDesktop
-                ? "relative ml-auto flex h-full flex-col border-l border-app-border bg-app-surface shadow-2xl outline-none"
-                : "relative flex h-full w-full flex-col bg-app-surface outline-none"
+                ? // ui-v2-switch: drawer rounds only its inner (left) edge.
+                  isV2
+                  ? "relative ml-auto flex h-full flex-col rounded-l-[var(--r-card)] bg-app-card shadow-[0_8px_24px_rgb(0_0_0/0.25),var(--box-ring)] outline-none"
+                  : "relative ml-auto flex h-full flex-col border-l border-app-border bg-app-surface shadow-2xl outline-none"
+                : `relative flex h-full w-full flex-col outline-none ${isV2 ? "bg-app-card" : "bg-app-surface"}`
             }
             style={isDesktop ? { width, maxWidth: "92vw" } : undefined}
             initial={{ x: "100%" }}
@@ -125,16 +132,26 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
             transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
           >
             <header className="flex items-center gap-2 border-b border-app-border px-4 py-3">
-              {!isDesktop && (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="Back"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
-                >
-                  <FontAwesomeIcon icon={faChevronLeft} />
-                </button>
-              )}
+              {!isDesktop &&
+                (isV2 ? ( // ui-v2-switch
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClose}
+                    aria-label="Back"
+                  >
+                    <FontAwesomeIcon icon={faChevronLeft} />
+                  </Button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Back"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+                  >
+                    <FontAwesomeIcon icon={faChevronLeft} />
+                  </button>
+                ))}
 
               <span
                 aria-hidden
@@ -145,7 +162,13 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
               />
 
               <div className="min-w-0 flex-1">
-                <h2 className="truncate text-lg font-bold text-app-text">
+                <h2
+                  className={`truncate text-app-text ${
+                    isV2
+                      ? "font-display text-xl font-semibold tracking-[-0.02em]"
+                      : "text-lg font-bold"
+                  }`}
+                >
                   {title}
                 </h2>
                 {subtitle && (
@@ -159,16 +182,26 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
                 </div>
               )}
 
-              {isDesktop && (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  aria-label="Close"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
-                >
-                  <FontAwesomeIcon icon={faXmark} />
-                </button>
-              )}
+              {isDesktop &&
+                (isV2 ? ( // ui-v2-switch
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onClose}
+                    aria-label="Close"
+                  >
+                    <FontAwesomeIcon icon={faXmark} />
+                  </Button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Close"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+                  >
+                    <FontAwesomeIcon icon={faXmark} />
+                  </button>
+                ))}
             </header>
 
             <div className="custom-scrollbar flex-1 overflow-y-auto px-4 py-4">
@@ -176,7 +209,11 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
             </div>
 
             {footer && (
-              <footer className="shrink-0 border-t border-app-border bg-app-surface px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <footer
+                className={`shrink-0 border-t border-app-border px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${
+                  isV2 ? "bg-app-card" : "bg-app-surface"
+                }`}
+              >
                 {footer}
               </footer>
             )}

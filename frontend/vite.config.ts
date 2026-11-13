@@ -117,5 +117,8 @@ export default defineConfig(({ mode }) => {
           : undefined,
     },
     envDir: envDirectory,
+    resolve: {
+      alias: { "@": path.resolve(__dirname, "src") },
+    },
   };
 });

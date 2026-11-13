@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { useOutsideClick } from "../../hooks/useOutsideClick";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 /**
  * Anchored dropdown menu primitive — the shared "click-outside popover" pattern
@@ -89,13 +90,18 @@ export interface MenuContentProps {
 
 const MenuContent: React.FC<MenuContentProps> = ({ children, className }) => {
   const { open, align, width } = useMenu();
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
   if (!open) return null;
   return (
     <div
       role="menu"
-      className={`absolute top-full z-50 mt-2 rounded-xl border border-app-border bg-app-card p-2 shadow-2xl animate-[fadeIn_0.1s_ease-out] ${
-        align === "right" ? "right-0" : "left-0"
-      } ${className ?? ""}`}
+      className={`absolute top-full z-50 mt-2 bg-app-card p-2 animate-[fadeIn_0.1s_ease-out] ${
+        // ui-v2-switch: floating layer = soft neutral shadow, no border.
+        isV2
+          ? "rounded-[var(--r-card)] shadow-[0_8px_24px_rgb(0_0_0/0.25)]"
+          : "rounded-xl border border-app-border shadow-2xl"
+      } ${align === "right" ? "right-0" : "left-0"} ${className ?? ""}`}
       style={{ width }}
     >
       {children}
@@ -110,6 +116,14 @@ const TONE_CLASSES: Record<MenuItemTone, string> = {
   danger: "text-app-red/70 hover:bg-app-red/20 hover:text-app-red",
   warning: "text-app-muted hover:bg-app-yellow/15 hover:text-app-yellow",
   success: "text-app-green hover:bg-app-input",
+};
+
+// ui-v2-switch: hover is the raised fill; status tones use the v2 status tokens.
+const TONE_CLASSES_V2: Record<MenuItemTone, string> = {
+  default: "text-app-muted hover:bg-app-raised hover:text-app-text",
+  danger: "text-app-danger hover:bg-app-raised",
+  warning: "text-app-warn hover:bg-app-raised",
+  success: "text-app-income hover:bg-app-raised",
 };
 
 export interface MenuItemProps {
@@ -141,6 +155,8 @@ const MenuItem: React.FC<MenuItemProps> = ({
   children,
 }) => {
   const { close } = useMenu();
+  const [ui] = useUiVersion();
+  const tones = ui === "v2" ? TONE_CLASSES_V2 : TONE_CLASSES;
   return (
     <button
       type="button"
@@ -151,7 +167,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
         onClick?.();
         if (closeOnClick) close();
       }}
-      className={`flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold transition-colors disabled:opacity-50 ${TONE_CLASSES[tone]} ${className ?? ""}`}
+      className={`flex w-full items-center gap-3 rounded-lg p-2.5 text-left text-sm font-semibold transition-colors disabled:opacity-50 ${tones[tone]} ${className ?? ""}`}
     >
       {icon && (
         <FontAwesomeIcon icon={icon} className={`w-4 ${iconClassName ?? ""}`} />

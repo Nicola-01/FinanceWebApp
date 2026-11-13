@@ -139,6 +139,10 @@ entities/DTOs.
   and the always-dark auth screens (`dark` class on the root container). Prefer the
   theme-aware `app-*` colour tokens; avoid the legacy `theme-*`/`--color-*` set (no `.dark`
   override → light-mode white-on-white).
+- **UI redesign v2 (in progress, dual UI):** `frontend/style.md` §8 + plan
+  `.claude/TODO/ui-redesign-v2.md`. `<html data-ui="v1|v2">` (per-device, `utils/uiVersion.ts` /
+  `hooks/useUiVersion.ts`, toggle in `/settings` → Appearance); v2 tokens/fonts live under
+  `:root[data-ui="v2"]` in `theme-tokens.css`; structural forks are marked `// ui-v2-switch`.
 - **State:** React Context, not Redux. `dashboard/wallet/WalletContext.tsx` is the hub
   (wallet, transactions, subscriptions, tags, filters); plus `ThemeContext`, `PWAContext`.
 - **API client:** `src/api/axiosConfig.ts`, baseURL = `VITE_API_URL + "/api"`. Request
@@ -192,7 +196,9 @@ findings get *censused* there, not fixed opportunistically. The rules it encodes
   moment to gain coverage.
 - **Folder naming:** lowercase for category folders (`ui/`, `selectors/`, `common/`),
   `PascalCase.tsx` for component files. No single-file PascalCase subfolders.
-- **No path aliases** (`tsconfig` has none): all imports are relative. Moving a file
+- **Imports are relative.** The only alias is `@/` → `src/`, reserved for shadcn/ui code
+  (`components.json`; vendored shadcn.io chart kit in `src/components/ui/charts/`, excluded from
+  ESLint/Prettier — never edit it; lazy-load it, the main chunk sits near the 2 MiB PWA precache cap). Moving a file
   means fixing imports in the file *and* all importers, and mirror-moving its test under
   `src/__tests__/<same path>`. Always verify with `npm run build`.
 - **Modal shells:** exactly two exist — `modals/common/ModalDialog.tsx` (native

@@ -8,6 +8,7 @@ import {
   faCircleCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import Button from "./Button";
+import { useUiVersion } from "../../hooks/useUiVersion";
 import { CsvFormatModal } from "../../dashboard/settings/CsvFormatModal";
 import {
   parseAndValidateCsv,
@@ -52,6 +53,10 @@ export function CsvUploadField<T>({
   const [addedCount, setAddedCount] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const [formatOpen, setFormatOpen] = useState(false);
+  const [ui] = useUiVersion();
+  // ui-v2-switch
+  const isV2 = ui === "v2";
+  const mono = isV2 ? "" : "font-app-mono";
 
   const ingest = async (file: File) => {
     if (!file.name.toLowerCase().endsWith(".csv")) {
@@ -95,7 +100,7 @@ export function CsvUploadField<T>({
             onClick={() => setFormatOpen(true)}
             aria-label="CSV format help"
             title="CSV format"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+            className={`flex h-8 w-8 items-center justify-center rounded-full text-app-muted transition-colors hover:text-app-text ${isV2 ? "hover:bg-app-raised" : "hover:bg-app-input"}`}
           >
             <FontAwesomeIcon icon={faCircleInfo} />
           </button>
@@ -120,10 +125,11 @@ export function CsvUploadField<T>({
           }}
           onDragLeave={() => setDragging(false)}
           onDrop={onDrop}
-          className={`relative flex flex-col items-center gap-3 rounded-[var(--r-card)] border border-dashed px-6 py-8 text-center transition-colors ${
-            dragging
-              ? "border-app-blue bg-app-hover"
-              : "border-app-border bg-app-surface"
+          className={`relative flex flex-col items-center gap-3 rounded-[var(--r-card)] border-dashed px-6 py-8 text-center transition-colors ${
+            // ui-v2-switch: a 1.5px dashed drop zone on a raised fill, no gradient.
+            isV2
+              ? `border-[1.5px] ${dragging ? "border-app-muted bg-app-hover" : "border-app-border bg-app-raised"}`
+              : `border ${dragging ? "border-app-blue bg-app-hover" : "border-app-border bg-app-surface"}`
           }`}
         >
           <button
@@ -131,7 +137,7 @@ export function CsvUploadField<T>({
             onClick={() => setFormatOpen(true)}
             aria-label="CSV format help"
             title="CSV format"
-            className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-app-muted transition-colors hover:bg-app-input hover:text-app-text"
+            className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-app-muted transition-colors hover:text-app-text ${isV2 ? "hover:bg-app-raised" : "hover:bg-app-input"}`}
           >
             <FontAwesomeIcon icon={faCircleInfo} />
           </button>
@@ -146,8 +152,7 @@ export function CsvUploadField<T>({
               <p className="mt-1 text-xs text-app-muted">{subtitle}</p>
             )}
             <p className="mt-1 text-xs text-app-muted">
-              Drag &amp; drop a <span className="font-app-mono">.csv</span>{" "}
-              here, or
+              Drag &amp; drop a <span className={mono}>.csv</span> here, or
             </p>
           </div>
           <Button
@@ -161,8 +166,8 @@ export function CsvUploadField<T>({
           </Button>
           {columnsHint && (
             <p className="text-[11px] text-app-muted">
-              Columns: <span className="font-app-mono">{columnsHint}</span> —
-              tap <FontAwesomeIcon icon={faCircleInfo} /> for the full format.
+              Columns: <span className={mono}>{columnsHint}</span> — tap{" "}
+              <FontAwesomeIcon icon={faCircleInfo} /> for the full format.
             </p>
           )}
         </div>
@@ -178,8 +183,12 @@ export function CsvUploadField<T>({
       />
 
       {errors.length > 0 && (
-        <div className="rounded-[var(--r-input)] border border-app-red/40 bg-app-red/10 p-3">
-          <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-app-red">
+        <div
+          className={`p-3 ${isV2 ? "rounded-[var(--r-card)] bg-app-danger/10" : "rounded-[var(--r-input)] border border-app-red/40 bg-app-red/10"}`}
+        >
+          <p
+            className={`mb-2 flex items-center gap-2 text-sm font-semibold ${isV2 ? "text-app-danger" : "text-app-red"}`}
+          >
             <FontAwesomeIcon icon={faTriangleExclamation} />
             This file has {errors.length} problem
             {errors.length === 1 ? "" : "s"} — nothing was imported.
@@ -196,7 +205,9 @@ export function CsvUploadField<T>({
       )}
 
       {addedCount !== null && errors.length === 0 && (
-        <p className="flex items-center gap-2 text-sm text-app-green">
+        <p
+          className={`flex items-center gap-2 text-sm ${isV2 ? "text-app-income" : "text-app-green"}`}
+        >
           <FontAwesomeIcon icon={faCircleCheck} />
           {addedCount} {noun}
           {addedCount === 1 ? "" : "s"} added.

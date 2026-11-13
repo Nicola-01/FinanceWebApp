@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEllipsisVertical } from "@fortawesome/free-solid-svg-icons";
 import { useClickAway } from "react-use";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface ModalDialogRightActionProp {
   icon: React.ReactNode;
@@ -22,6 +23,10 @@ export const ModalDialogRightAction = ({
 }: ModalDialogRightActionProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
+  // ui-v2-switch: default hover is the raised fill in v2 (surface is the panel colour).
+  const defaultHoverBg = isV2 ? "hover:bg-app-raised" : "hover:bg-app-surface";
 
   useClickAway(dropdownRef, () => {
     setIsOpen(false);
@@ -37,12 +42,16 @@ export const ModalDialogRightAction = ({
         onClick={action.onClick}
         disabled={action.disabled}
         //
-        className={`flex h-10 w-10 px-2 items-center justify-center rounded-full transition-colors bg-app-input
+        className={`flex h-10 w-10 px-2 items-center justify-center ${
+          isV2
+            ? "rounded-[var(--r-input)] transition-colors"
+            : "rounded-full transition-colors bg-app-input"
+        }
                     ${
                       action.disabled
                         ? "opacity-50 cursor-not-allowed text-app-muted"
                         : `${!action.color?.startsWith("#") ? action.color || "text-app-muted" : ""} 
-                        ${action.hoverColor || "hover:text-app-text"} ${action.hoverBg || "hover:bg-app-surface"}`
+                        ${action.hoverColor || "hover:text-app-text"} ${action.hoverBg || defaultHoverBg}`
                     }`}
         style={
           action.color?.startsWith("#") && !action.disabled
@@ -61,13 +70,24 @@ export const ModalDialogRightAction = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-app-input text-app-muted transition-colors hover:bg-app-surface hover:text-app-text"
+        className={`flex h-10 w-10 items-center justify-center text-app-muted transition-colors hover:text-app-text ${
+          isV2
+            ? "rounded-[var(--r-input)] hover:bg-app-raised"
+            : "rounded-full bg-app-input hover:bg-app-surface"
+        }`}
       >
         <FontAwesomeIcon icon={faEllipsisVertical} className="text-xl" />
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-xl border border-app-border bg-app-card shadow-[0_20px_40px_rgba(0,0,0,0.4)] z-50">
+        <div
+          className={`absolute right-0 top-full mt-2 w-48 overflow-hidden z-50 ${
+            // ui-v2-switch: floating layer = soft neutral shadow + hairline ring, no border.
+            isV2
+              ? "rounded-[var(--r-card)] bg-app-card shadow-[0_8px_24px_rgb(0_0_0/0.25),var(--box-ring)]"
+              : "rounded-xl border border-app-border bg-app-card shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+          }`}
+        >
           <div className="flex flex-col py-2">
             {actions.map((action, index) => (
               <button
@@ -78,7 +98,7 @@ export const ModalDialogRightAction = ({
                   setIsOpen(false);
                   if (action.onClick) action.onClick();
                 }}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors text-left ${action.disabled ? "opacity-50 cursor-not-allowed text-app-muted" : `${!action.color?.startsWith("#") ? action.color || "text-app-muted" : ""} ${action.hoverColor || "hover:text-app-text"} ${action.hoverBg || "hover:bg-app-surface"}`}`}
+                className={`flex w-full items-center gap-3 px-4 py-3 text-sm transition-colors text-left ${action.disabled ? "opacity-50 cursor-not-allowed text-app-muted" : `${!action.color?.startsWith("#") ? action.color || "text-app-muted" : ""} ${action.hoverColor || "hover:text-app-text"} ${action.hoverBg || defaultHoverBg}`}`}
                 style={
                   action.color?.startsWith("#") && !action.disabled
                     ? { color: action.color }

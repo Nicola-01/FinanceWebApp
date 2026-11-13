@@ -5,6 +5,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import { faTriangleExclamation } from "@fortawesome/free-solid-svg-icons";
 import Button from "./Button";
 import { WizardStepper } from "./WizardStepper";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 /** One configurable step. All state is owned by the consumer. */
 export interface WizardStep {
@@ -70,6 +71,7 @@ export function Wizard<TResult = unknown>({
   renderCompletion,
   accentColor,
 }: WizardProps<TResult>) {
+  const [ui] = useUiVersion();
   const [current, setCurrent] = useState(0);
   const [furthest, setFurthest] = useState(0);
   const [phase, setPhase] = useState<"steps" | "completion">("steps");
@@ -162,7 +164,9 @@ export function Wizard<TResult = unknown>({
           {step.blocked && step.blockedReason && (
             <p
               role="alert"
-              className="mb-3 flex items-center gap-2 text-xs font-medium text-app-yellow"
+              className={`mb-3 flex items-center gap-2 text-xs font-medium ${
+                ui === "v2" ? "text-app-warn" : "text-app-yellow"
+              }`}
             >
               <FontAwesomeIcon
                 icon={faTriangleExclamation}

@@ -8,6 +8,8 @@ import {
 import type { Tag } from "../../types/domain.ts";
 import { Icon } from "../icon/Icon.tsx";
 import { Checkbox, type CheckboxState } from "../ui/Checkbox.tsx";
+import { CategoryIcon } from "../ui/CategoryIcon.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 /** Trailing affordance on the right edge of a row. */
 export type TagRowTrailing =
@@ -53,17 +55,23 @@ export const TagRow: React.FC<TagRowProps> = ({
   checkbox,
   trailing,
 }) => {
-  let bgClass = "border border-transparent hover:bg-app-input";
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
+  let bgClass = v2
+    ? "hover:bg-app-raised"
+    : "border border-transparent hover:bg-app-input";
   let bgStyle: React.CSSProperties | undefined;
   if (background === "active") {
-    bgClass = "border border-transparent bg-app-surface";
+    bgClass = v2 ? "bg-app-raised" : "border border-transparent bg-app-surface";
   } else if (background === "selected") {
-    bgClass = "border";
-    bgStyle = {
-      backgroundColor: `color-mix(in srgb, ${color} 16%, transparent)`,
-      borderColor: `color-mix(in srgb, ${color} 34%, transparent)`,
-    };
-  } else if (background === "tint") {
+    // ui-v2-switch: selection is the raised fill + check icon, never a tint.
+    bgClass = v2 ? "bg-app-raised" : "border";
+    if (!v2)
+      bgStyle = {
+        backgroundColor: `color-mix(in srgb, ${color} 16%, transparent)`,
+        borderColor: `color-mix(in srgb, ${color} 34%, transparent)`,
+      };
+  } else if (background === "tint" && !v2) {
     bgClass = "border";
     bgStyle = {
       backgroundColor: `color-mix(in srgb, ${color} 8%, transparent)`,
@@ -84,23 +92,31 @@ export const TagRow: React.FC<TagRowProps> = ({
           <Checkbox
             state={checkbox.state}
             onChange={checkbox.onChange}
-            color={color}
+            color={v2 ? undefined : color} // ui-v2-switch: wallet colour
             aria-label={`Toggle ${tag.name}`}
             className="shrink-0"
           />
         )}
 
-        <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm transition-transform group-hover:scale-110 ${
-            highlighted ? "bg-app-hover" : "bg-app-input"
-          }`}
-          style={{ color: tag.colorHex || "var(--color-app-text)" }}
-        >
-          <Icon
+        {v2 ? ( // ui-v2-switch: category colour lives on the 18% icon tile
+          <CategoryIcon
             icon={tag.icon}
-            color={tag.colorHex || "var(--color-app-text)"}
+            color={tag.colorHex || "rgb(var(--text-primary))"}
+            size="sm"
           />
-        </div>
+        ) : (
+          <div
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm transition-transform group-hover:scale-110 ${
+              highlighted ? "bg-app-hover" : "bg-app-input"
+            }`}
+            style={{ color: tag.colorHex || "var(--color-app-text)" }}
+          >
+            <Icon
+              icon={tag.icon}
+              color={tag.colorHex || "var(--color-app-text)"}
+            />
+          </div>
+        )}
 
         <span
           className={`truncate text-sm font-medium ${
@@ -127,8 +143,13 @@ const RowTrailing: React.FC<{
   tagName: string;
   color: string;
 }> = ({ trailing, tagName, color }) => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
+
   if (trailing.kind === "check") {
-    return (
+    return v2 ? (
+      <FontAwesomeIcon icon={faCheck} className="text-sm text-app-text" />
+    ) : (
       <FontAwesomeIcon icon={faCheck} className="text-sm" style={{ color }} />
     );
   }
@@ -139,10 +160,12 @@ const RowTrailing: React.FC<{
         icon={faChevronRight}
         className={
           trailing.ancestor
-            ? "text-sm"
+            ? v2
+              ? "text-sm text-app-text"
+              : "text-sm"
             : "text-xs text-app-muted opacity-50 group-hover:opacity-100"
         }
-        style={trailing.ancestor ? { color } : undefined}
+        style={!v2 && trailing.ancestor ? { color } : undefined}
       />
     );
   }
@@ -156,7 +179,9 @@ const RowTrailing: React.FC<{
         e.stopPropagation();
         trailing.onToggle();
       }}
-      className="ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full outline-none transition-colors hover:bg-app-surface"
+      className={`ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full outline-none transition-colors ${
+        v2 ? "hover:bg-app-raised" : "hover:bg-app-surface"
+      }`}
     >
       <FontAwesomeIcon
         icon={faChevronDown}

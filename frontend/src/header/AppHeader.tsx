@@ -1,23 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faChevronDown,
-  faSignOutAlt,
-  faUserCircle,
-  faDownload,
-  faBell,
-} from "@fortawesome/free-solid-svg-icons";
-import { clearSession, getUserAuth } from "../utils/authHelper.ts";
-import api from "../api/axiosConfig.ts";
-import { ThemeSelector } from "../components/selectors/ThemeSelector";
-import { usePWA } from "../utils/PWAContext.tsx";
-import { Menu } from "../components/ui/Menu.tsx";
-import { SETTINGS_SECTIONS } from "../settings/sections.ts";
-import { SyncStatusBadge } from "./SyncStatusBadge.tsx";
-import { NotificationBell } from "./notifications/NotificationBell.tsx";
-import { NotificationCenterOverlay } from "./notifications/NotificationCenterOverlay.tsx";
-import { useNotifications } from "./notifications/useNotifications.ts";
+import { HeaderActions } from "./HeaderActions.tsx";
 import { OfflineBanner } from "../components/ui/OfflineBanner.tsx";
 
 interface AppHeaderProps {
@@ -30,24 +12,6 @@ interface AppHeaderProps {
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ page, accentColor }) => {
-  const navigate = useNavigate();
-  const user = getUserAuth();
-  const { installPrompt, installApp } = usePWA();
-  const notif = useNotifications();
-  const hasUnread = notif.unreadCount > 0;
-
-  // Immediate, single-device logout — no confirmation modal. "Sign out from all
-  // devices" lives in Settings → Security.
-  const handleLogout = async () => {
-    try {
-      await api.post("/auth/logout");
-    } catch {
-      // Log out locally even if the network call fails.
-    }
-    clearSession();
-    window.location.href = "/login";
-  };
-
   return (
     <>
       <header className="top-0 z-[120] flex h-16 w-full items-center justify-between gap-3 border-b border-app-border bg-app-bg/80 px-4 backdrop-blur-md sm:px-6">
@@ -66,142 +30,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ page, accentColor }) => {
           </h2>
         </div>
 
-        {/* Right cluster: sync badge + user dropdown (keeps the header justify-between). */}
-        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
-          <SyncStatusBadge />
-          {/* Phones: the bell moves into the profile menu to keep the title. */}
-          <NotificationBell
-            unreadCount={notif.unreadCount}
-            onOpen={notif.openCenter}
-            className="hidden sm:block"
-          />
-
-          {/* User dropdown — quick links only */}
-          <Menu align="right" width={224} className="z-[120]">
-            <Menu.Trigger>
-              {({ open, toggle }) => (
-                <button
-                  onClick={toggle}
-                  aria-expanded={open}
-                  aria-haspopup="menu"
-                  aria-label="Profile menu"
-                  className={`flex items-center gap-2.5 rounded-full border px-1.5 py-1.5 sm:px-3 transition-all duration-300 ${
-                    open
-                      ? "border-app-border bg-app-input shadow-sm"
-                      : "border-transparent hover:bg-app-input"
-                  }`}
-                >
-                  <span className="relative flex">
-                    <FontAwesomeIcon
-                      icon={faUserCircle}
-                      className={`text-2xl transition-colors ${open ? "text-[var(--brand-1)]" : "text-app-muted"}`}
-                    />
-                    {hasUnread && (
-                      <span
-                        aria-hidden
-                        data-testid="profile-unread-dot"
-                        className="pointer-events-none absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-400 sm:hidden"
-                      />
-                    )}
-                  </span>
-                  <span
-                    className={`hidden text-sm font-semibold tracking-wide transition-colors sm:inline ${
-                      open ? "text-app-text" : "text-app-muted"
-                    }`}
-                  >
-                    {user?.username || "Profile"}
-                  </span>
-                  <FontAwesomeIcon
-                    icon={faChevronDown}
-                    className={`ml-1 hidden text-[10px] transition-transform duration-300 sm:inline ${
-                      open ? "rotate-180 text-app-text" : "text-app-muted"
-                    }`}
-                  />
-                </button>
-              )}
-            </Menu.Trigger>
-
-            <Menu.Content>
-              {/* Identity header */}
-              <div className="mb-1 flex flex-col border-b border-app-border px-3 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-bold text-app-text">
-                    {user?.username || "User"}
-                  </p>
-                  {user?.role === "ADMIN" && (
-                    <span className="shrink-0 rounded bg-app-yellow/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-yellow">
-                      Admin
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Phones only: stands in for the header bell. */}
-              <div className="sm:hidden">
-                <Menu.Item
-                  icon={faBell}
-                  onClick={notif.openCenter}
-                  trailing={
-                    hasUnread && (
-                      <span
-                        aria-hidden
-                        className="h-2 w-2 shrink-0 rounded-full bg-amber-400"
-                      />
-                    )
-                  }
-                >
-                  Notification center
-                </Menu.Item>
-                <Menu.Divider />
-              </div>
-
-              {installPrompt && (
-                <>
-                  <Menu.Item
-                    icon={faDownload}
-                    tone="success"
-                    onClick={installApp}
-                  >
-                    Install App (PWA)
-                  </Menu.Item>
-                  <Menu.Divider />
-                </>
-              )}
-
-              {SETTINGS_SECTIONS.filter((s) => !s.danger).map((s) => (
-                <Menu.Item
-                  key={s.id}
-                  icon={s.icon}
-                  onClick={() => navigate(`/settings#${s.id}`)}
-                >
-                  {s.label}
-                </Menu.Item>
-              ))}
-
-              <Menu.Divider />
-
-              <ThemeSelector />
-
-              <Menu.Divider />
-
-              <Menu.Item
-                icon={faSignOutAlt}
-                tone="danger"
-                onClick={handleLogout}
-              >
-                Logout
-              </Menu.Item>
-            </Menu.Content>
-          </Menu>
-        </div>
+        {/* Right cluster: sync badge + notifications + user dropdown. */}
+        <HeaderActions accentColor={accentColor} />
       </header>
-
-      <NotificationCenterOverlay
-        open={notif.open}
-        onClose={notif.closeCenter}
-        notifications={notif.notifications}
-        accentColor={accentColor}
-      />
 
       <OfflineBanner />
     </>

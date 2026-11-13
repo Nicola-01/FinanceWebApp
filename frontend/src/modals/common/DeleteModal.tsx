@@ -14,6 +14,7 @@ import { ModalDialog } from "./ModalDialog";
 import Button from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { useHoldToConfirm } from "../../hooks/useHoldToConfirm";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 /**
  * Delete confirmation friction, escalating with blast radius:
@@ -35,8 +36,16 @@ export interface DeleteModalHandle {
 
 const HOLD_MS = 1750;
 
+// ui-v2-switch: v2 destructive fill is the shared `danger` token (matches Button variant="danger").
+const HOLD_BUTTON_V1 =
+  "relative flex-1 select-none overflow-hidden rounded-[var(--r-cta)] bg-app-red py-2.5 text-sm font-semibold tracking-wide text-white shadow-[0_12px_26px_-14px_rgba(0,0,0,0.7)] transition-[filter] hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60";
+const HOLD_BUTTON_V2 =
+  "relative flex-1 select-none overflow-hidden rounded-[var(--r-cta)] bg-app-danger py-2.5 text-sm font-semibold text-app-bg transition-[filter] hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60";
+
 export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
 
   // Internal modal state
   const [objToDelete, setObjToDelete] = useState<
@@ -100,7 +109,7 @@ export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
         <>
           <FontAwesomeIcon
             icon={faTriangleExclamation}
-            className="text-app-red"
+            className={isV2 ? "text-app-danger" : "text-app-red"}
           />
           Delete {itemType}
         </>
@@ -124,7 +133,7 @@ export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
               onPointerDown={startHold}
               onPointerUp={endHold}
               onPointerLeave={endHold}
-              className="relative flex-1 select-none overflow-hidden rounded-[var(--r-cta)] bg-app-red py-2.5 text-sm font-semibold tracking-wide text-white shadow-[0_12px_26px_-14px_rgba(0,0,0,0.7)] transition-[filter] hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className={isV2 ? HOLD_BUTTON_V2 : HOLD_BUTTON_V1}
             >
               <span
                 aria-hidden
@@ -152,7 +161,11 @@ export const DeleteModal = forwardRef<DeleteModalHandle>((_props, ref) => {
           You're about to permanently delete this {itemType}:
         </p>
 
-        <div className="my-4 break-words rounded-[var(--r-input)] border border-dashed border-app-border bg-app-input px-4 py-3 text-center font-['JetBrains_Mono',_monospace] text-lg text-app-text">
+        <div
+          className={`my-4 break-words rounded-[var(--r-input)] border border-dashed border-app-border bg-app-input px-4 py-3 text-center ${
+            isV2 ? "font-semibold" : "font-['JetBrains_Mono',_monospace]"
+          } text-lg text-app-text`}
+        >
           {objToDelete?.name}
         </div>
 

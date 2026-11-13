@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { TrendingUp, TrendingDown, Scale } from "lucide-react";
 import type { Transaction } from "../../types/domain.ts";
-import { buildMonthlyBuckets } from "./chartData.ts";
+import { summarize } from "./summaryStats.ts";
 import { formatAmount } from "../../utils/format.ts";
 
 interface StatisticsSummaryProps {
@@ -51,27 +51,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
 export const StatisticsSummary: React.FC<StatisticsSummaryProps> = ({
   transactions,
 }) => {
-  const stats = useMemo(() => {
-    const totals = transactions.reduce(
-      (acc, tx) => {
-        if (tx.type === "INCOME") acc.income += tx.amount;
-        else if (tx.type === "EXPENSE") acc.expense += tx.amount;
-        return acc;
-      },
-      { income: 0, expense: 0 },
-    );
-    const net = totals.income - totals.expense;
-    const activeMonths = buildMonthlyBuckets(transactions).length;
-    const per = (v: number) => (activeMonths > 0 ? v / activeMonths : 0);
-    return {
-      income: totals.income,
-      expense: totals.expense,
-      net,
-      avgIncome: per(totals.income),
-      avgExpense: per(totals.expense),
-      avgNet: per(net),
-    };
-  }, [transactions]);
+  const stats = useMemo(() => summarize(transactions), [transactions]);
 
   const netClass = stats.net >= 0 ? "text-app-green" : "text-app-red";
   const signed = (v: number) =>

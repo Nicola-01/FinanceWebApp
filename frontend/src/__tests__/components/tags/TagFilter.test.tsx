@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { setUiVersion } from "../../../utils/uiVersion";
 import type { Tag } from "../../../types/domain";
 import { TagFilter } from "../../../components/tags/TagFilter";
 
@@ -78,5 +79,42 @@ describe("TagFilter", () => {
     render(<TagFilter tags={[]} selectedTags={[]} onChange={vi.fn()} />);
     await user.click(screen.getByTitle("Filter by Tags"));
     expect(screen.getByText("No tags available.")).toBeInTheDocument();
+  });
+});
+
+describe("TagFilter v2 UI", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("renders a borderless raised trigger", () => {
+    render(<TagFilter tags={tags} selectedTags={[]} onChange={vi.fn()} />);
+    const trigger = screen.getByTitle("Filter by Tags");
+    expect(trigger).toHaveClass("bg-app-raised", "rounded-[var(--r-input)]");
+    expect(trigger).not.toHaveClass("border");
+  });
+
+  it("paints checked glyphs with the wallet colour, not the prop colour", async () => {
+    const user = userEvent.setup();
+    render(
+      <TagFilter
+        tags={tags}
+        selectedTags={["Rent"]}
+        color="#ff0000"
+        onChange={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByTitle("Filter by Tags"));
+    const glyph = rowCheckbox("Rent").querySelector("svg") as SVGElement;
+    expect(glyph.getAttribute("style")).toContain("var(--wallet)");
+    expect(glyph.getAttribute("style")).not.toContain("#ff0000");
+  });
+
+  it("still selects a whole family from a parent checkbox", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(<TagFilter tags={tags} selectedTags={[]} onChange={onChange} />);
+    await user.click(screen.getByTitle("Filter by Tags"));
+    await user.click(rowCheckbox("Food"));
+    expect(onChange).toHaveBeenCalledWith(["Food", "Groceries"]);
   });
 });

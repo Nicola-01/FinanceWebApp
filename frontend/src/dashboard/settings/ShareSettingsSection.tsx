@@ -11,7 +11,8 @@ import {
   faUsers,
 } from "@fortawesome/free-solid-svg-icons";
 import type { WalletMember } from "../../types/domain";
-import { Card } from "../../components/ui/Card.tsx";
+import { SettingsBox } from "./SettingsBox.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { ConfirmModal } from "../../modals/common/ConfirmModal.tsx";
 
 import { InviteSection } from "./InviteSection";
@@ -22,6 +23,8 @@ import { getApiErrorTitle } from "../../utils/apiError";
 
 export const ShareSettingsSection: React.FC = () => {
   const { wallet } = useWalletContext();
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
   const [members, setMembers] = useState<WalletMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [removeTarget, setRemoveTarget] = useState<{
@@ -121,9 +124,9 @@ export const ShareSettingsSection: React.FC = () => {
   return (
     <>
       {/* Invite + members merged into a single card */}
-      <Card
+      <SettingsBox
         title="Members"
-        subtitle="Invite people and manage roles & access."
+        description="Invite people and manage roles & access."
         icon={faUsers}
         iconColor={wallet.color}
       >
@@ -176,7 +179,7 @@ export const ShareSettingsSection: React.FC = () => {
               {isOwner && (
                 <MemberCategory
                   title="Pending Invites"
-                  titleColor="text-app-yellow"
+                  titleColor={isV2 ? "text-app-warn" : "text-app-yellow"}
                   members={pending}
                   icon={faClock}
                   iconColor="#f59e0b"
@@ -188,7 +191,7 @@ export const ShareSettingsSection: React.FC = () => {
             </div>
           )}
         </div>
-      </Card>
+      </SettingsBox>
 
       <ConfirmModal
         open={!!removeTarget}

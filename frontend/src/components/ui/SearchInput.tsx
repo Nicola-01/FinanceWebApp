@@ -1,6 +1,7 @@
 import React, { forwardRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface SearchInputProps extends Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -35,7 +36,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       value,
       onChange,
       onClear,
-      color = "var(--brand-1)",
+      color,
       variant = "boxed",
       heightClassName = "h-11",
       type = "text",
@@ -45,25 +46,38 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     },
     ref,
   ) => {
+    const [ui] = useUiVersion();
+    const isV2 = ui === "v2"; // ui-v2-switch
     const [focused, setFocused] = useState(false);
     const hasValue = value.length > 0;
 
-    const surfaceClass =
-      variant === "plain"
+    const surfaceClass = isV2 // ui-v2-switch
+      ? "bg-app-raised"
+      : variant === "plain"
         ? "bg-app-input"
         : "border border-app-border bg-app-input/70";
 
+    const accent = color ?? "var(--brand-1)";
     // Accent ring on focus (works for both variants; `borderColor` is a no-op
-    // for `plain` since it has no border).
+    // for `plain` since it has no border). v2 has no border: the wallet ring
+    // comes from a class, and an explicit `color` becomes a 2px ring at ~40%.
     const focusStyle = focused
-      ? { boxShadow: `0 0 0 1px ${color}`, borderColor: color }
+      ? isV2 // ui-v2-switch
+        ? color
+          ? { boxShadow: `0 0 0 2px ${color}66` }
+          : undefined
+        : { boxShadow: `0 0 0 1px ${accent}`, borderColor: accent }
       : undefined;
 
     const clear = () => (onClear ? onClear() : onChange(""));
 
     return (
       <div
-        className={`relative flex items-center rounded-xl transition-colors ${surfaceClass} ${heightClassName}`}
+        className={`relative flex items-center transition-colors ${
+          isV2 // ui-v2-switch
+            ? "rounded-[var(--r-input)] focus-within:ring-2 focus-within:ring-wallet/40"
+            : "rounded-xl"
+        } ${surfaceClass} ${heightClassName}`}
         style={focusStyle}
       >
         <span className="pointer-events-none absolute left-3 flex items-center text-app-muted">
@@ -78,9 +92,11 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className={`h-full w-full rounded-xl border-0 bg-transparent pl-10 text-sm text-app-text outline-none placeholder:text-app-muted ${
-            hasValue ? "pr-10" : "pr-3"
-          } ${className}`}
+          className={`h-full w-full rounded-xl border-0 bg-transparent pl-10 text-sm text-app-text outline-none ${
+            isV2 // ui-v2-switch
+              ? "placeholder:text-app-faint tabular-nums"
+              : "placeholder:text-app-muted"
+          } ${hasValue ? "pr-10" : "pr-3"} ${className}`}
           {...props}
         />
 

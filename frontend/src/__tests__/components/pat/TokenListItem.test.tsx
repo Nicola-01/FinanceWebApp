@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { PatToken, Wallet } from "../../../types/domain";
 import { TokenListItem } from "../../../components/pat/TokenListItem";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 const token = (over: Partial<PatToken> = {}): PatToken => ({
   id: "t1",
@@ -155,5 +156,31 @@ describe("TokenListItem (smoke)", () => {
     });
     expect(onLongPressSelect).toHaveBeenCalledWith(t);
     vi.useRealTimers();
+  });
+});
+
+describe("TokenListItem v2", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => {
+    setUiVersion("v1");
+    localStorage.clear();
+  });
+
+  it("renders a borderless card row, with selection as the raised fill", () => {
+    const { rerender } = render(
+      <TokenListItem token={token()} walletsMap={walletsMap} />,
+    );
+    const row = screen.getByText("CI Bot").closest(".group") as HTMLElement;
+    expect(row.className).toContain("rounded-[var(--r-card)]");
+    expect(row.className).not.toContain("border-app-border");
+    expect(row.className).not.toContain("font-mono");
+
+    rerender(
+      <TokenListItem token={token()} walletsMap={walletsMap} selected />,
+    );
+    const selected = screen
+      .getByText("CI Bot")
+      .closest(".group") as HTMLElement;
+    expect(selected.className).toContain("bg-app-raised");
   });
 });

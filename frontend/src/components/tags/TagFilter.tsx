@@ -7,6 +7,7 @@ import { SearchInput } from "../ui/SearchInput.tsx";
 import { TagRow } from "./TagRow.tsx";
 import { TagDropdownPanel } from "./TagDropdownPanel.tsx";
 import { useTagTree } from "./useTagTree.ts";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 interface TagFilterProps {
   tags: Tag[];
@@ -30,6 +31,9 @@ export const TagFilter: React.FC<TagFilterProps> = ({
   onChange,
   topSlot,
 }) => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch: accent comes from --wallet, not the prop
+  const accent = v2 ? undefined : color;
   const {
     isOpen,
     open,
@@ -114,7 +118,13 @@ export const TagFilter: React.FC<TagFilterProps> = ({
   const isFilterActive = selectedTags.length !== tags.length;
 
   const emptyState = (message: string) => (
-    <div className="rounded-lg border border-dashed border-app-border p-4 text-center text-sm italic text-app-muted">
+    <div
+      className={
+        v2 // ui-v2-switch
+          ? "rounded-[var(--r-sm)] bg-app-raised p-4 text-center text-sm text-app-muted"
+          : "rounded-lg border border-dashed border-app-border p-4 text-center text-sm italic text-app-muted"
+      }
+    >
       {message}
     </div>
   );
@@ -206,9 +216,9 @@ export const TagFilter: React.FC<TagFilterProps> = ({
           state={allState}
           onChange={toggleAll}
           label="All Tags"
-          color={color}
+          color={accent}
           aria-label="Toggle all tags"
-          className="w-full rounded-lg p-3 hover:bg-app-input"
+          className={`w-full rounded-lg p-3 ${v2 ? "hover:bg-app-raised" : "hover:bg-app-input"}`}
         />
         <hr className="my-1 border-app-border" />
         {rootTags.length > 0
@@ -224,19 +234,29 @@ export const TagFilter: React.FC<TagFilterProps> = ({
       <button
         type="button"
         onClick={() => (isOpen ? close() : openFilter())}
-        className={`flex h-[48px] w-[48px] items-center justify-center rounded-xl border transition-all ${
-          isFilterActive || isOpen
-            ? "shadow-lg"
-            : "bg-app-input border-app-border text-app-muted hover:bg-app-surface hover:text-app-text"
-        }`}
+        className={
+          v2 // ui-v2-switch: borderless raised field, focus-style ring when open
+            ? `flex h-9 w-9 items-center justify-center rounded-[var(--r-input)] bg-app-raised transition-all ${
+                isFilterActive || isOpen
+                  ? "text-app-text"
+                  : "text-app-faint hover:text-app-text"
+              } ${isOpen ? "ring-2 ring-wallet/40" : ""}`
+            : `flex h-[48px] w-[48px] items-center justify-center rounded-xl border transition-all ${
+                isFilterActive || isOpen
+                  ? "shadow-lg"
+                  : "bg-app-input border-app-border text-app-muted hover:bg-app-surface hover:text-app-text"
+              }`
+        }
         style={
-          isFilterActive || isOpen
-            ? {
-                backgroundColor: color + "26",
-                color: color,
-                borderColor: color + "40",
-              }
-            : {}
+          v2
+            ? undefined
+            : isFilterActive || isOpen
+              ? {
+                  backgroundColor: color + "26",
+                  color: color,
+                  borderColor: color + "40",
+                }
+              : {}
         }
         title="Filter by Tags"
       >
@@ -247,8 +267,16 @@ export const TagFilter: React.FC<TagFilterProps> = ({
           />
           {isFilterActive && (
             <div
-              className="absolute -top-1 -right-1.5 h-2 w-2 rounded-full"
-              style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
+              className={
+                v2
+                  ? "absolute -top-1 -right-1.5 h-2 w-2 rounded-full bg-wallet"
+                  : "absolute -top-1 -right-1.5 h-2 w-2 rounded-full"
+              }
+              style={
+                v2
+                  ? undefined
+                  : { backgroundColor: color, boxShadow: `0 0 8px ${color}` }
+              }
             ></div>
           )}
         </div>
@@ -264,7 +292,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({
                 ref={searchInputRef}
                 value={searchQuery}
                 onChange={setSearchQuery}
-                color={color}
+                color={accent}
                 placeholder="Search tags..."
                 aria-label="Search tags"
               />

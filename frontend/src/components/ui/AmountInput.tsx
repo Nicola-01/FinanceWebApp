@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useMobileMath } from "../../hooks/useMobileMath.ts";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { useAmountInput } from "./useAmountInput.ts";
 import { AmountMathToolbar } from "./AmountMathToolbar.tsx";
 
@@ -25,6 +26,9 @@ export const AmountInput = ({
   "aria-label": ariaLabel,
 }: AmountInputProps) => {
   const { isMobile, keyboardHeight } = useMobileMath();
+  const [ui] = useUiVersion();
+  // ui-v2-switch
+  const isV2 = ui === "v2";
   const {
     internalRef,
     toolbarRef,
@@ -49,11 +53,25 @@ export const AmountInput = ({
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute top-0 left-1/2 -translate-x-1/2 bg-app-surface/95 backdrop-blur-md border border-app-border rounded-full px-4 py-1 text-sm font-app-mono shadow-2xl flex items-center gap-1.5 z-50 whitespace-nowrap"
+            className={`absolute top-0 left-1/2 -translate-x-1/2 rounded-full px-4 py-1 text-sm flex items-center gap-1.5 z-50 whitespace-nowrap ${
+              // ui-v2-switch
+              isV2
+                ? "bg-app-card shadow-[0_8px_24px_rgb(0_0_0/0.25),var(--box-ring)] tabular-nums"
+                : "bg-app-surface/95 backdrop-blur-md border border-app-border font-app-mono shadow-2xl"
+            }`}
           >
             <span className="text-app-muted text-xs">Preview:</span>
             <span
-              className={`${liveResult < 0 ? "text-app-red" : "text-app-green"} font-semibold`}
+              className={`${
+                // ui-v2-switch
+                isV2
+                  ? liveResult < 0
+                    ? "text-app-text"
+                    : "text-app-income"
+                  : liveResult < 0
+                    ? "text-app-red"
+                    : "text-app-green"
+              } font-semibold`}
             >
               {liveResult < 0 ? "-" : "+"}
               {Math.abs(liveResult).toFixed(2)} {currencySymbol}
@@ -66,7 +84,7 @@ export const AmountInput = ({
         <input
           ref={internalRef}
           aria-label={ariaLabel}
-          className={`font-amount font-app-mono w-[280px] theme-bg-transparent text-center outline-none transition-all duration-200 placeholder:text-app-muted/30 ${textSize} ${color || "text-app-muted opacity-40"}`}
+          className={`font-amount ${isV2 ? "tabular-nums" : "font-app-mono"} w-[280px] theme-bg-transparent text-center outline-none transition-all duration-200 placeholder:text-app-muted/30 ${textSize} ${color || "text-app-muted opacity-40"}`}
           type="text"
           inputMode="decimal"
           placeholder={placeholder || "0.00"}
@@ -78,7 +96,9 @@ export const AmountInput = ({
           autoFocus={autoFocus}
           required
         />
-        <span className="font-app-mono pb-2 text-4xl text-app-muted opacity-40">
+        <span
+          className={`${isV2 ? "tabular-nums" : "font-app-mono"} pb-2 text-4xl text-app-muted opacity-40`}
+        >
           {currencySymbol}
         </span>
       </div>

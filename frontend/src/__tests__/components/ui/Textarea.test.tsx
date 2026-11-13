@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { createRef } from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Textarea } from "../../../components/ui/Textarea";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 describe("Textarea", () => {
   it("passes through native props like placeholder and rows", () => {
@@ -77,5 +78,48 @@ describe("Textarea", () => {
     expect(el.className).toContain("border-app-red");
     fireEvent.focus(el);
     expect(el.style.borderColor).toBe("");
+  });
+
+  describe("v2 UI", () => {
+    beforeEach(() => {
+      setUiVersion("v2");
+    });
+
+    afterEach(() => {
+      setUiVersion("v1");
+      localStorage.clear();
+    });
+
+    it("renders a borderless raised field with a wallet focus ring", () => {
+      render(<Textarea placeholder="Notes" />);
+      const el = screen.getByPlaceholderText("Notes");
+      expect(el.className).toContain("bg-app-raised");
+      expect(el.className).toContain("focus:ring-wallet/40");
+      expect(el.className).not.toContain("border-app-border");
+    });
+
+    it("shows a danger ring when invalid", () => {
+      render(<Textarea placeholder="Notes" invalid />);
+      expect(screen.getByPlaceholderText("Notes").className).toContain(
+        "ring-app-danger",
+      );
+    });
+
+    it("keeps the accent as a 2px ring while focused", () => {
+      render(<Textarea placeholder="Accent" accentColor="#f2cc2f" />);
+      const el = screen.getByPlaceholderText("Accent") as HTMLTextAreaElement;
+      fireEvent.focus(el);
+      expect(el.style.boxShadow).toContain("2px");
+      expect(el.style.borderColor).toBe("");
+    });
+
+    it("still forwards changes to onChange", () => {
+      const onChange = vi.fn();
+      render(<Textarea placeholder="Notes" onChange={onChange} />);
+      fireEvent.change(screen.getByPlaceholderText("Notes"), {
+        target: { value: "hello" },
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
   });
 });

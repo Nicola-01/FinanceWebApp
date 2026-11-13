@@ -14,10 +14,18 @@ import { walletSlug } from "../utils/walletSlug";
 import { readWalletOrder } from "../utils/walletOrder";
 import { useWalletRouting } from "./useWalletRouting";
 import { useWalletDeletion } from "./useWalletDeletion";
+import { useUiVersion } from "../hooks/useUiVersion";
+import { useMediaQuery } from "../hooks/useMediaQuery";
+import { V2_DESKTOP_QUERY } from "./wallet/WalletsBar.tsx";
+import { HeaderActions } from "../header/HeaderActions.tsx";
+import { OfflineBanner } from "../components/ui/OfflineBanner.tsx";
+import { EmptyState } from "../components/ui/EmptyState.tsx";
 
 const UserDashboard: React.FC = () => {
   const { walletId } = useParams<{ walletId: string }>();
   const navigate = useNavigate();
+  const [ui] = useUiVersion();
+  const isDesktop = useMediaQuery(V2_DESKTOP_QUERY);
 
   // Centralized states
   const [wallets, setWallets] = useState<Wallet[]>([]);
@@ -70,6 +78,65 @@ const UserDashboard: React.FC = () => {
   function handleChangeWallet(id: string) {
     const w = wallets.find((wallet) => wallet.id === id);
     navigate(`/dashboard/${w ? walletSlug(w) : id}`);
+  }
+
+  const quitModal = (
+    <ConfirmModal
+      open={!!quitTarget}
+      title="Quit wallet"
+      message={
+        <>
+          Remove your access to <strong>{quitTarget?.name}</strong>? You will
+          need the owner to invite you again to regain access.
+        </>
+      }
+      confirmLabel="Quit Wallet"
+      tone="danger"
+      busy={isQuitting}
+      onConfirm={confirmQuit}
+      onCancel={cancelQuit}
+    />
+  );
+
+  // ui-v2-switch
+  if (ui === "v2") {
+    // One HeaderActions instance: in the phone top bar or in the wallet title row.
+    const actions = <HeaderActions accentColor={selectedWallet?.color} />;
+    return (
+      <div className="min-h-screen bg-app-bg text-app-text lg:flex">
+        <WalletsBar
+          wallets={wallets}
+          setWallets={setWallets}
+          loading={loading}
+          selectedWalletId={selectedWallet?.id}
+          onSelectWallet={(id) => handleChangeWallet(id)}
+          onRefreshAll={fetchData}
+          actions={isDesktop ? undefined : actions}
+        />
+        <main className="min-w-0 flex-1 px-4 pb-28 pt-2 lg:px-10 lg:pb-12 lg:pt-6">
+          <OfflineBanner />
+          <div className="mx-auto w-full max-w-[1180px]">
+            {selectedWallet ? (
+              <WalletDashboard
+                _wallet={selectedWallet}
+                key={selectedWallet.id}
+                onWalletUpdate={fetchData}
+                onWalletDelete={() => requestDelete(selectedWallet)}
+                headerActions={isDesktop ? actions : undefined}
+              />
+            ) : loading ? (
+              <p className="py-24 text-center text-app-muted">Loading…</p>
+            ) : (
+              <EmptyState
+                title="No wallets yet"
+                description="Create one with “New wallet” to start tracking."
+              />
+            )}
+          </div>
+        </main>
+        {quitModal}
+      </div>
+    );
   }
 
   return (

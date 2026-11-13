@@ -9,6 +9,8 @@ import TransactionsSearch from "./TransactionsSearch.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeftRight } from "@fortawesome/free-solid-svg-icons";
 import Toggle from "../../components/ui/Toggle.tsx";
+import Button from "../../components/ui/Button.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 export const TransactionsFilter: React.FC = () => {
   const {
@@ -32,6 +34,8 @@ export const TransactionsFilter: React.FC = () => {
   // tab it's hidden (the query is kept in context and reapplied on return).
   const showSearch = activeTab === "transactions";
   const { resolvedTheme } = useTheme();
+  const [ui] = useUiVersion(); // ui-v2-switch
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   const activeTags = selectedTags ?? tags.map((t) => t.name); // Using context state
 
@@ -53,6 +57,68 @@ export const TransactionsFilter: React.FC = () => {
     setOnlyToCategorise(!onlyToCategorise);
     setPickerKey((k) => k + 1);
   };
+
+  // ui-v2-switch: the same controls, laid out as a plain toolbar in the page flow.
+  if (isV2) {
+    return (
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {showSearch && (
+          <TransactionsSearch
+            value={searchQuery}
+            onChange={setSearchQuery}
+            color={wallet.color}
+          />
+        )}
+        <div className="w-full sm:w-auto sm:min-w-[16rem]">
+          <CustomDatePicker
+            key={pickerKey}
+            isRange={true}
+            color={wallet.color}
+            isDark={resolvedTheme === "dark"}
+            onChange={(val) => setDateRange(val as DateRangeValue)}
+            initialPreset={datePreset}
+            initialStartDate={dateRange.start}
+            initialEndDate={dateRange.end}
+            onPresetChange={(preset) => {
+              setDatePreset(preset);
+              if (onlyToCategorise && preset !== "all")
+                setOnlyToCategorise(false);
+            }}
+          />
+        </div>
+        <TagFilter
+          tags={tags}
+          selectedTags={onlyToCategorise ? [] : activeTags}
+          color={wallet.color}
+          onChange={(newSelection) => {
+            if (onlyToCategorise) toggleReview();
+            if (newSelection.length === tags.length) {
+              setSelectedTags(null);
+            } else {
+              setSelectedTags(newSelection);
+            }
+          }}
+        />
+        {showSearch && toCategorise.length > 0 && (
+          <Button
+            variant="secondary"
+            aria-pressed={onlyToCategorise}
+            onClick={toggleReview}
+            // Pressed uses the segmented-tab look; `!` beats the secondary base fill.
+            className={
+              onlyToCategorise ? "!bg-app-raised !text-app-text" : undefined
+            }
+          >
+            <FontAwesomeIcon icon={faLeftRight} />
+            To categorise
+            <span className="tabular-nums text-app-muted">
+              {toCategorise.length}
+            </span>
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="sticky top-17 z-80 mb-4 w-full max-w-350 mx-auto px-4 lg:px-8 pointer-events-none">

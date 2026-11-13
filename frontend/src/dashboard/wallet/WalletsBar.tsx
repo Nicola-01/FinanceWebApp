@@ -12,12 +12,28 @@ import {
 import WalletCard, { WalletCardUI } from "./WalletCard.tsx";
 import type { Wallet, Invitation } from "../../types/domain.ts";
 import { useInvitations } from "./useInvitations";
-import { InvitesMobileInline, InvitesDesktopSection } from "./WalletInvites";
+import {
+  InvitesMobileInline,
+  InvitesDesktopSection,
+  InvitesList,
+} from "./WalletInvites";
 import { InviteModal } from "../../modals/wallet/InviteModal";
 import { AddWalletTile, WalletSkeleton } from "./WalletBarTiles";
 import { useWalletDragReorder } from "./useWalletDragReorder";
 
 import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
+import SwipeableDrawer from "@mui/material/SwipeableDrawer";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faChevronDown,
+  faEnvelope,
+  faPlus,
+} from "@fortawesome/free-solid-svg-icons";
+import Button from "../../components/ui/Button";
+import { Icon } from "../../components/icon/Icon";
+import { useUiVersion } from "../../hooks/useUiVersion";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { walletVars } from "../../utils/color";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 
 interface WalletsAreaProps {
@@ -27,7 +43,12 @@ interface WalletsAreaProps {
   selectedWalletId?: string;
   onSelectWallet: (id: string) => void;
   onRefreshAll: () => void;
+  /** v2 phones: header actions (sync, bell, profile) shown right of the wallet switcher. */
+  actions?: React.ReactNode;
 }
+
+/** v2 layout breakpoint: sidebar from here up, switcher + bottom tabs below. */
+export const V2_DESKTOP_QUERY = "(min-width: 1024px)";
 
 export const WalletsBar: React.FC<WalletsAreaProps> = ({
   wallets,
@@ -36,7 +57,12 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
   selectedWalletId,
   onSelectWallet,
   onRefreshAll,
+  actions,
 }) => {
+  const [ui] = useUiVersion();
+  const isDesktop = useMediaQuery(V2_DESKTOP_QUERY);
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [v2InvitesOpen, setV2InvitesOpen] = useState(false);
   const walletModal = useRef<CreateWalletWizardHandle>(null);
   const {
     activeId,
@@ -118,6 +144,186 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
   };
 
   const activeWallet = activeId ? wallets.find((w) => w.id === activeId) : null;
+
+  // ui-v2-switch
+  if (ui === "v2") {
+    const selected = wallets.find((w) => w.id === selectedWalletId);
+    const openWizard = () => {
+      setSwitcherOpen(false);
+      walletModal.current?.openModal();
+    };
+    const walletList =
+      loading && wallets.length === 0 ? (
+        [0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="h-[58px] shrink-0 animate-pulse rounded-[12px] bg-app-raised"
+          />
+        ))
+      ) : (
+        <SortableContext
+          items={wallets.map((w) => w.id)}
+          strategy={rectSortingStrategy}
+        >
+          {wallets.map((wallet) => (
+            <WalletCard
+              key={wallet.id}
+              wallet={wallet}
+              isSelected={wallet.id === selectedWalletId}
+              onClick={() => {
+                onSelectWallet(wallet.id);
+                setSwitcherOpen(false);
+              }}
+            />
+          ))}
+        </SortableContext>
+      );
+    const label = "px-1.5 text-[13px] text-app-muted";
+
+    return (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        {isDesktop ? (
+          <aside className="sticky top-0 flex h-screen w-[228px] shrink-0 flex-col gap-2 bg-app-card px-3.5 py-5 shadow-[var(--box-ring)]">
+            <div className="flex items-center gap-2 px-1.5 pb-4 font-display text-lg font-bold">
+              <img src="/icon.svg" alt="" className="w-7" />
+              My Wallet
+            </div>
+            <div className={label}>Wallets</div>
+            <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-1 [scrollbar-width:none]">
+              {walletList}
+            </div>
+            <div className="grid gap-1 pt-2">
+              {v2InvitesOpen && (
+                <div className="grid gap-2 pb-1">
+                  <InvitesList invites={invites} onOpen={setActiveInvite} />
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-expanded={v2InvitesOpen}
+                onClick={() => setV2InvitesOpen((o) => !o)}
+                className="!justify-start"
+              >
+                <FontAwesomeIcon icon={faEnvelope} />
+                Invitations
+                <span className="ml-auto text-app-faint">{invites.length}</span>
+              </Button>
+              {!loading && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={openWizard}
+                  className="!justify-start"
+                >
+                  <FontAwesomeIcon icon={faPlus} />
+                  New wallet
+                </Button>
+              )}
+            </div>
+          </aside>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-3">
+              <Button
+                variant="secondary"
+                onClick={() => setSwitcherOpen(true)}
+                aria-label="Switch wallet"
+                className="min-w-0 !pl-1.5"
+              >
+                {selected && (
+                  <span
+                    style={walletVars(selected.color)}
+                    className="grid h-[30px] w-[30px] shrink-0 place-items-center rounded-[9px] bg-wallet text-on-wallet"
+                  >
+                    <Icon icon={selected.icon} />
+                  </span>
+                )}
+                <span className="truncate text-app-text">
+                  {selected?.name ?? "Wallets"}
+                </span>
+                {invites.length > 0 && (
+                  <Badge tone="yellow">{invites.length}</Badge>
+                )}
+                <FontAwesomeIcon icon={faChevronDown} className="text-[11px]" />
+              </Button>
+              {actions}
+            </div>
+            <SwipeableDrawer
+              anchor="bottom"
+              open={switcherOpen}
+              onOpen={() => setSwitcherOpen(true)}
+              onClose={() => setSwitcherOpen(false)}
+              disableSwipeToOpen
+              // Above the fixed bottom tab bar (MUI zIndex 1100).
+              sx={{ zIndex: 1300 }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    bgcolor: "var(--color-app-card)",
+                    color: "var(--color-app-text)",
+                    backgroundImage: "none",
+                    borderRadius: "22px 22px 0 0",
+                    maxHeight: "85vh",
+                    px: 2,
+                    pt: 1.25,
+                    pb: "calc(24px + env(safe-area-inset-bottom))",
+                  },
+                },
+              }}
+            >
+              <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-app-border" />
+              <div className="grid gap-2">
+                {invites.length > 0 && (
+                  <>
+                    <div className={label}>Invitations</div>
+                    <InvitesList invites={invites} onOpen={setActiveInvite} />
+                  </>
+                )}
+                <div className={label}>Wallets</div>
+                {walletList}
+                {!loading && (
+                  <Button
+                    variant="ghost"
+                    onClick={openWizard}
+                    className="!justify-start"
+                  >
+                    <FontAwesomeIcon icon={faPlus} />
+                    New wallet
+                  </Button>
+                )}
+              </div>
+            </SwipeableDrawer>
+          </>
+        )}
+
+        <CreateWalletWizard ref={walletModal} onSuccess={handleCreate} />
+
+        <InviteModal
+          invite={activeInvite}
+          onAccept={handleAccept}
+          onReject={handleReject}
+          onClose={() => setActiveInvite(null)}
+        />
+
+        <DragOverlay dropAnimation={{ duration: 250, easing: "ease-out" }}>
+          {activeWallet ? (
+            <WalletCardUI
+              wallet={activeWallet}
+              isSelected={activeWallet.id === selectedWalletId}
+              isOverlay={true}
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    );
+  }
 
   return (
     <DndContext

@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface AmountMathToolbarProps {
   open: boolean;
@@ -17,6 +18,9 @@ export function AmountMathToolbar({
   onPress,
   onResolve,
 }: AmountMathToolbarProps) {
+  const [ui] = useUiVersion();
+  // ui-v2-switch
+  const isV2 = ui === "v2";
   return (
     <AnimatePresence>
       {open && (
@@ -33,7 +37,12 @@ export function AmountMathToolbar({
             bottom: `${keyboardHeight}px`,
             zIndex: 9999,
           }}
-          className="bg-app-surface/90 backdrop-blur-md border-t border-app-border px-2 py-1.5 flex items-center justify-between gap-1"
+          className={`px-2 py-1.5 flex items-center justify-between gap-1 ${
+            // ui-v2-switch
+            isV2
+              ? "bg-app-card shadow-[0_-8px_24px_rgb(0_0_0/0.25),var(--box-ring)]"
+              : "bg-app-surface/90 backdrop-blur-md border-t border-app-border"
+          }`}
         >
           {["(", ")", "/", "*", "-", "+", "%"].map((char) => (
             <button
@@ -42,7 +51,12 @@ export function AmountMathToolbar({
               onMouseDown={(e) => e.preventDefault()}
               onTouchStart={(e) => e.preventDefault()}
               onClick={() => onPress(char)}
-              className="bg-app-input hover:bg-app-hover border border-app-border text-app-text font-app-mono font-medium text-base rounded-lg h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+              className={`text-base h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer ${
+                // ui-v2-switch
+                isV2
+                  ? "bg-app-raised hover:bg-app-hover text-app-text tabular-nums font-medium rounded-[var(--r-sm)]"
+                  : "bg-app-input hover:bg-app-hover border border-app-border text-app-text font-app-mono font-medium rounded-lg"
+              }`}
             >
               {char}
             </button>
@@ -52,7 +66,12 @@ export function AmountMathToolbar({
             onMouseDown={(e) => e.preventDefault()}
             onTouchStart={(e) => e.preventDefault()}
             onClick={onResolve}
-            className="bg-gradient-to-r theme-gradient-success-from theme-gradient-success-to hover:theme-gradient-success-from hover:theme-gradient-success-to border theme-border-success theme-text-default font-bold font-app-mono text-base rounded-lg h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+            className={`text-base h-10 flex-1 flex items-center justify-center active:scale-95 transition-all cursor-pointer ${
+              // ui-v2-switch
+              isV2
+                ? "bg-wallet text-on-wallet font-semibold tabular-nums rounded-[var(--r-sm)]"
+                : "bg-gradient-to-r theme-gradient-success-from theme-gradient-success-to hover:theme-gradient-success-from hover:theme-gradient-success-to border theme-border-success theme-text-default font-bold font-app-mono rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+            }`}
           >
             =
           </button>

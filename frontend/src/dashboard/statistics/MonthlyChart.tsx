@@ -18,7 +18,14 @@ import {
   type MonthlyBucket,
   type MonthlyChartRow,
 } from "./chartData";
-import { darkTheme, lightTheme, tooltipSx } from "./chartTheme.ts";
+import {
+  darkTheme,
+  gridSxV2,
+  lightTheme,
+  tooltipSx,
+  tooltipSxV2,
+} from "./chartTheme.ts";
+import { useChartPalette } from "./useChartPalette.ts";
 
 export type MonthlyChartSeries = AllSeriesType[];
 
@@ -58,7 +65,29 @@ export const MonthlyChart: React.FC<
   swatchClassName,
 }) => {
   const { resolvedTheme } = useTheme();
+  const { isV2, grid, axis } = useChartPalette();
   const clipPathId = useId();
+  // ui-v2-switch: v2 drops the axis lines and uses the faint 12px labels.
+  const xAxisV2 = isV2
+    ? {
+        barGapRatio: 0.12,
+        disableLine: true,
+        disableTicks: true,
+        tickLabelStyle: { fill: axis, fontSize: 12 },
+      }
+    : {};
+  const yAxisLook = isV2
+    ? {
+        disableLine: true,
+        disableTicks: true,
+        tickLabelStyle: { fill: axis, fontSize: 12 },
+      }
+    : {
+        tickLabelStyle: {
+          fill: "var(--color-app-muted)",
+          fontSize: 11,
+        },
+      };
 
   const dataset = useMemo(
     () => buildRows(buildMonthlyBuckets(transactions)),
@@ -85,21 +114,19 @@ export const MonthlyChart: React.FC<
             scaleType: "band",
             dataKey: "label",
             zoom: { slider: { enabled: true }, minSpan: 5, panning: true },
+            ...xAxisV2,
           },
         ]}
         yAxis={[
           {
             id: "y-axis",
-            tickLabelStyle: {
-              fill: "var(--color-app-muted)",
-              fontSize: 11,
-            },
+            ...yAxisLook,
           },
         ]}
         initialZoom={zoomData ?? [{ axisId: "x-axis", start: 0, end: 100 }]}
         onZoomChange={onZoomChange}
       >
-        <ChartsSurface>
+        <ChartsSurface sx={isV2 ? gridSxV2(grid) : undefined}>
           <ChartsClipPath id={clipPathId} />
           <ChartsGrid horizontal />
           <g clipPath={`url(#${clipPathId})`}>{plots}</g>
@@ -108,7 +135,9 @@ export const MonthlyChart: React.FC<
           <ChartsAxisHighlight x={axisHighlight} />
           <ChartZoomSlider />
         </ChartsSurface>
-        <ChartsTooltip sx={tooltipSx(resolvedTheme === "dark")} />
+        <ChartsTooltip
+          sx={isV2 ? tooltipSxV2 : tooltipSx(resolvedTheme === "dark")}
+        />
       </ChartDataProviderPro>
 
       {/* Legend */}
@@ -119,7 +148,11 @@ export const MonthlyChart: React.FC<
               className={swatchClassName}
               style={{ backgroundColor: item.color }}
             />
-            <span className="text-xs text-app-muted">{item.label}</span>
+            <span
+              className={`${isV2 ? "text-[13px]" : "text-xs"} text-app-muted`}
+            >
+              {item.label}
+            </span>
           </div>
         ))}
       </div>

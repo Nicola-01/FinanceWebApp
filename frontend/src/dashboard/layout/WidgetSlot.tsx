@@ -8,11 +8,61 @@ import {
 import { useSortable } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
+import Button from "../../components/ui/Button.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { GroupEditGrid } from "./GroupEditGrid.tsx";
 import type { WidgetDef } from "./widgetTypes.ts";
 import type { LayoutSlot, WidgetSpan } from "../../utils/tabLayout/types";
 
 const mergeZoneId = (slotId: string) => `merge:${slotId}`;
+
+interface EditActionProps {
+  label: string;
+  icon: typeof faEyeSlash;
+  onClick: () => void;
+  onPointerDown?: React.PointerEventHandler<HTMLButtonElement>;
+  /** Hide-style action: the v1 hover tint is red. */
+  danger?: boolean;
+  className?: string;
+}
+
+/** Hide action on a card / group header: ghost icon Button in v2, the v1 chip button otherwise. */
+function EditAction({
+  label,
+  icon,
+  onClick,
+  onPointerDown,
+  danger = false,
+  className = "",
+}: EditActionProps) {
+  const [ui] = useUiVersion();
+  if (ui === "v2") {
+    // ui-v2-switch
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label={label}
+        onPointerDown={onPointerDown}
+        onClick={onClick}
+        className={`shrink-0 ${className}`}
+      >
+        <FontAwesomeIcon icon={icon} className="text-xs" />
+      </Button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onPointerDown={onPointerDown}
+      onClick={onClick}
+      className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm transition-colors ${danger ? "hover:border-app-red/40 hover:text-app-red" : ""} ${className}`}
+    >
+      <FontAwesomeIcon icon={icon} className="text-xs" />
+    </button>
+  );
+}
 
 interface WidgetSlotProps<Ctx> {
   slot: LayoutSlot;
@@ -102,6 +152,8 @@ export function WidgetSlot<Ctx>({
   // In group edit mode the tiles own the pointer drag, so the whole-group drag
   // is restricted to the ⠿ handle (listeners live on the handle, not an overlay).
   const groupEditMode = editing && isGroup;
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
 
   return (
     <motion.div
@@ -114,11 +166,21 @@ export function WidgetSlot<Ctx>({
         // This card is being dragged: its content rides the DragOverlay while
         // its slot shows a dashed placeholder framer slides to the drop spot.
         <div
-          className="h-full rounded-2xl border-2 border-dashed border-app-border bg-app-input/20"
+          className={
+            v2 // ui-v2-switch
+              ? "h-full rounded-[var(--r-card)] border-[1.5px] border-dashed border-app-border bg-app-raised/40"
+              : "h-full rounded-2xl border-2 border-dashed border-app-border bg-app-input/20"
+          }
           style={{ minHeight: placeholderHeight ?? 160 }}
         />
       ) : groupEditMode ? (
-        <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-app-border bg-app-card/20">
+        <div
+          className={
+            v2 // ui-v2-switch
+              ? "flex h-full min-h-0 flex-col overflow-hidden rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]"
+              : "flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-app-border bg-app-card/20"
+          }
+        >
           <div
             {...listeners}
             className="flex cursor-grab items-center gap-2.5 border-b border-app-border px-4 py-3 active:cursor-grabbing"
@@ -135,22 +197,30 @@ export function WidgetSlot<Ctx>({
                   KeyboardEventHandler<HTMLSpanElement> | undefined
               }
               aria-label={`Move ${hideLabel}`}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm"
+              className={
+                v2 // ui-v2-switch
+                  ? "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[var(--r-input)] bg-app-raised text-app-muted"
+                  : "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm"
+              }
             >
               <FontAwesomeIcon icon={faUpDownLeftRight} className="text-xs" />
             </span>
-            <h3 className="min-w-0 flex-1 truncate text-sm font-bold uppercase tracking-wider text-app-text">
+            <h3
+              className={
+                v2 // ui-v2-switch
+                  ? "min-w-0 flex-1 truncate font-display text-[15px] font-semibold text-app-text"
+                  : "min-w-0 flex-1 truncate text-sm font-bold uppercase tracking-wider text-app-text"
+              }
+            >
               {hideLabel}
             </h3>
-            <button
-              type="button"
-              aria-label={`Hide ${hideLabel}`}
+            <EditAction
+              label={`Hide ${hideLabel}`}
+              icon={faEyeSlash}
+              danger
               onPointerDown={(e) => e.stopPropagation()}
               onClick={() => onHide(slot.id)}
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm transition-colors hover:border-app-red/40 hover:text-app-red"
-            >
-              <FontAwesomeIcon icon={faEyeSlash} className="text-xs" />
-            </button>
+            />
           </div>
           <div className="min-h-0 flex-1 p-3">
             <GroupEditGrid
@@ -187,7 +257,11 @@ export function WidgetSlot<Ctx>({
             // but touch scrolling must keep working — the TouchSensor's 250ms
             // delay disambiguates scroll vs drag (same setup as the WalletsBar).
             <div
-              className="absolute inset-0 z-10 cursor-grab rounded-2xl outline-dashed outline-1 -outline-offset-1 outline-app-border active:cursor-grabbing"
+              className={
+                v2 // ui-v2-switch
+                  ? "absolute inset-0 z-10 cursor-grab rounded-[var(--r-card)] border-[1.5px] border-dashed border-app-border active:cursor-grabbing"
+                  : "absolute inset-0 z-10 cursor-grab rounded-2xl outline-dashed outline-1 -outline-offset-1 outline-app-border active:cursor-grabbing"
+              }
               {...listeners}
             >
               {/* Keyboard/AT drag affordance: the sortable role/tabindex live on
@@ -201,19 +275,22 @@ export function WidgetSlot<Ctx>({
                   listeners?.onKeyDown as
                     KeyboardEventHandler<HTMLSpanElement> | undefined
                 }
-                className="absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm"
+                className={
+                  v2 // ui-v2-switch
+                    ? "absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-[var(--r-input)] bg-app-card text-app-muted shadow-[var(--box-ring)]"
+                    : "absolute left-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm"
+                }
               >
                 <FontAwesomeIcon icon={faUpDownLeftRight} className="text-xs" />
               </span>
 
-              <button
-                type="button"
-                aria-label={`Hide ${hideLabel}`}
+              <EditAction
+                label={`Hide ${hideLabel}`}
+                icon={faEyeSlash}
+                danger
+                className="absolute right-3 top-3"
                 onClick={() => onHide(slot.id)}
-                className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg border border-app-border bg-app-surface/90 text-app-muted shadow-sm transition-colors hover:border-app-red/40 hover:text-app-red"
-              >
-                <FontAwesomeIcon icon={faEyeSlash} className="text-xs" />
-              </button>
+              />
             </div>
           )}
         </>

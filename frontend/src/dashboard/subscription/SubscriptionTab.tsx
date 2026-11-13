@@ -13,6 +13,9 @@ import {
 import type { CurrencyCode } from "../../utils/currencies/index.ts";
 import { SubscriptionCalendar } from "./SubscriptionCalendar.tsx";
 import { SubscriptionList } from "./SubscriptionList.tsx";
+import { SubscriptionSummaryV2 } from "./SubscriptionSummaryV2.tsx";
+import { V2_LIST_MAX_WIDTH } from "./SubscriptionListV2.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
 import {
   TransactionDetailsModal,
@@ -31,6 +34,7 @@ export const SubscriptionTab = () => {
   const { subscriptions, transactions, fetchData, isLoading } =
     useWalletContext();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [ui] = useUiVersion(); // ui-v2-switch
 
   const { wallet, tags } = useWalletContext();
 
@@ -67,6 +71,18 @@ export const SubscriptionTab = () => {
           ]}
         />
       </div>
+
+      {/* v2 summary box: recurring totals + cost split (capped like the list) */}
+      {ui === "v2" && subscriptions.length > 0 && (
+        <div
+          className={`mb-6 w-full ${viewMode === "list" ? `mx-auto ${V2_LIST_MAX_WIDTH}` : ""}`}
+        >
+          <SubscriptionSummaryV2
+            subscriptions={subscriptions}
+            currency={wallet.currency}
+          />
+        </div>
+      )}
 
       {/* Active view */}
       <div className="flex-1 relative">

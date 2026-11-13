@@ -7,6 +7,7 @@ import { TagDropdownPanel } from "./TagDropdownPanel.tsx";
 import { useTagTree } from "./useTagTree.ts";
 import { TagPickerTrigger } from "./TagPickerTrigger.tsx";
 import { FieldLabel } from "../ui/FieldLabel";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 export interface TagTreePickerProps {
   /** Flat tag list, already in display order; `parentName` links the tree. */
@@ -50,6 +51,8 @@ export const TagTreePicker: React.FC<TagTreePickerProps> = ({
   footerSlot,
   children,
 }) => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const {
     isOpen,
     open,
@@ -102,7 +105,13 @@ export const TagTreePicker: React.FC<TagTreePickerProps> = ({
   };
 
   const emptyState = (message: string) => (
-    <div className="rounded-lg border border-dashed border-app-border p-4 text-center text-sm italic text-app-muted">
+    <div
+      className={
+        v2 // ui-v2-switch
+          ? "rounded-[var(--r-sm)] bg-app-raised p-4 text-center text-sm text-app-muted"
+          : "rounded-lg border border-dashed border-app-border p-4 text-center text-sm italic text-app-muted"
+      }
+    >
       {message}
     </div>
   );
@@ -186,8 +195,12 @@ export const TagTreePicker: React.FC<TagTreePickerProps> = ({
         onClick={() =>
           setCurrentParentName(currentParentTag.parentName || null)
         }
-        className="flex w-full items-center gap-2 rounded-lg p-2 text-sm font-bold outline-none transition-colors hover:bg-app-input"
-        style={{ color }}
+        className={`flex w-full items-center gap-2 rounded-lg p-2 text-sm outline-none transition-colors ${
+          v2
+            ? "font-semibold text-app-text hover:bg-app-raised"
+            : "font-bold hover:bg-app-input"
+        }`}
+        style={v2 ? undefined : { color }}
       >
         <FontAwesomeIcon icon={faChevronLeft} />
         Back to{" "}

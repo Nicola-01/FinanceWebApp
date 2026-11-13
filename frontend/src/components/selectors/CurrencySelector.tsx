@@ -7,6 +7,7 @@ import { useCurrencyList } from "./useCurrencyList";
 import { useCurrencyDropdown } from "./useCurrencyDropdown";
 import { CurrencyOptionRow } from "./CurrencyOptionRow";
 import { CurrencyDropdownPanel } from "./CurrencyDropdownPanel";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface CurrencySelectorProps {
   value: CurrencyCode | string;
@@ -32,6 +33,8 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
   starredCurrency,
   onToggleStar,
 }) => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const safeCode = (
     value ? String(value).toUpperCase() : "EUR"
   ) as CurrencyCode;
@@ -86,11 +89,17 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
         type="button"
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className={`flex h-[48px] w-full cursor-pointer items-center justify-between rounded-xl border bg-app-input px-4 outline-none transition-all ${
-          isOpen ? "" : "border-app-border hover:border-app-muted/50"
-        }`}
+        className={
+          v2 // ui-v2-switch: borderless raised field, wallet focus ring when open
+            ? `flex h-9 w-full cursor-pointer items-center justify-between rounded-[var(--r-input)] bg-app-raised px-3 outline-none transition-all ${
+                isOpen ? "ring-2 ring-wallet/40" : ""
+              }`
+            : `flex h-[48px] w-full cursor-pointer items-center justify-between rounded-xl border bg-app-input px-4 outline-none transition-all ${
+                isOpen ? "" : "border-app-border hover:border-app-muted/50"
+              }`
+        }
         style={
-          isOpen
+          isOpen && !v2
             ? {
                 borderColor: accentColor,
                 boxShadow: `0 0 0 2px color-mix(in srgb, ${accentColor} 20%, transparent)`,
@@ -115,10 +124,14 @@ export const CurrencySelector: React.FC<CurrencySelectorProps> = ({
 
         <FontAwesomeIcon
           icon={faChevronDown}
-          className={`shrink-0 text-app-muted transition-transform duration-300 ${
-            isOpen ? "rotate-180" : ""
+          className={`shrink-0 transition-transform duration-300 ${
+            v2
+              ? isOpen
+                ? "rotate-180 text-app-text"
+                : "text-app-faint"
+              : `text-app-muted ${isOpen ? "rotate-180" : ""}`
           }`}
-          style={isOpen ? { color: accentColor } : undefined}
+          style={isOpen && !v2 ? { color: accentColor } : undefined}
         />
       </button>
 

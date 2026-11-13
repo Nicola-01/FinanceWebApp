@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { format, addMonths, subMonths, addYears, subYears } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useUiVersion } from "../../hooks/useUiVersion";
 import MonthGrid from "./MonthGrid";
 import MonthSelector from "./MonthSelector";
 import YearSelector from "./YearSelector";
@@ -94,9 +95,27 @@ export default function CalendarContainer({
     setCurrentDate((prev) => addYears(prev, 10));
   };
 
-  const btnNav = `p-2 rounded-md transition-colors ${isDark ? "theme-bg-neutral-dark hover:theme-bg-neutral theme-text-muted" : "theme-bg-inverse-muted hover:theme-bg-inverse-muted theme-text-subtle"}`;
-  const textMain = isDark ? "theme-text-muted" : "theme-text-subtle";
-  const textMuted = isDark ? "theme-text-subtle" : "theme-text-muted";
+  const [ui] = useUiVersion();
+  // ui-v2-switch: v2 headers are flat text with a raised hover, no legacy theme tokens.
+  const isV2 = ui === "v2";
+  const btnNav = isV2
+    ? "p-2 rounded-[var(--r-sm)] transition-colors text-app-muted hover:bg-app-raised"
+    : `p-2 rounded-md transition-colors ${isDark ? "theme-bg-neutral-dark hover:theme-bg-neutral theme-text-muted" : "theme-bg-inverse-muted hover:theme-bg-inverse-muted theme-text-subtle"}`;
+  const textMain = isV2
+    ? "text-app-text"
+    : isDark
+      ? "theme-text-muted"
+      : "theme-text-subtle";
+  const textMuted = isV2
+    ? "text-[12px] text-app-faint"
+    : isDark
+      ? "theme-text-subtle"
+      : "theme-text-muted";
+  const titleHover = isV2
+    ? "hover:bg-app-raised"
+    : isDark
+      ? "hover:theme-bg-neutral-dark"
+      : "hover:theme-bg-inverse-muted";
 
   const baseDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const weekDays = [
@@ -124,7 +143,7 @@ export default function CalendarContainer({
               <button
                 key={currentDate.toISOString() + "-title"}
                 onClick={() => setView("months")}
-                className={`flex items-center gap-1 font-semibold px-3 py-1 rounded-md transition-colors ${textMain} ${isDark ? "hover:theme-bg-neutral-dark" : "hover:theme-bg-inverse-muted"} ${direction === "next" ? "anim-next" : "anim-prev"}`}
+                className={`flex items-center gap-1 font-semibold px-3 py-1 transition-colors ${isV2 ? "rounded-[var(--r-sm)]" : "rounded-md"} ${textMain} ${titleHover} ${direction === "next" ? "anim-next" : "anim-prev"}`}
               >
                 <span className="capitalize">
                   {format(currentDate, "MMMM")}
@@ -141,7 +160,12 @@ export default function CalendarContainer({
             {weekDays.map((day) => (
               <div
                 key={day}
-                className={`text-center text-xs font-medium ${textMuted}`}
+                className={
+                  // ui-v2-switch
+                  isV2
+                    ? `text-center ${textMuted}`
+                    : `text-center text-xs font-medium ${textMuted}`
+                }
               >
                 {day}
               </div>

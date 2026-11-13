@@ -7,6 +7,8 @@ import { faRepeat } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { groupSubscriptions, monthKeyOf } from "./subscriptionGroups";
 import { PastSubscriptionsSection } from "./PastSubscriptionsSection";
+import { SubscriptionListV2 } from "./SubscriptionListV2";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface SubscriptionListProps {
   subscriptions: Subscription[];
@@ -42,6 +44,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
   onTransactionClick,
 }) => {
   const { wallet } = useWalletContext();
+  const [ui] = useUiVersion(); // ui-v2-switch
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>(
     {},
   );
@@ -85,6 +88,25 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
     if (expandedMonths[monthKey] !== undefined) return expandedMonths[monthKey];
     return monthKey === currentMonthKey;
   };
+
+  // ui-v2-switch: v2 has its own grouped list (same expand/load-more state).
+  if (ui === "v2") {
+    return (
+      <SubscriptionListV2
+        subscriptions={subscriptions}
+        onEditSubscription={onEditSubscription}
+        past={{
+          groupedPastSubs,
+          sortedMonthKeys,
+          visibleMonthsCount,
+          onLoadMore: () => setVisibleMonthsCount((prev) => prev + 12),
+          isExpanded,
+          onToggleMonth: toggleMonth,
+          onTransactionClick,
+        }}
+      />
+    );
+  }
 
   const hasUpcoming = within7Days.length > 0 || within31Days.length > 0;
 

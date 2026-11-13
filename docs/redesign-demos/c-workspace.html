@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Direction C — Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #111317; --side: #0d0f12; --surface: #171a1f; --line: #23272e; --hover: #1b1f25;
+    --text: #e6e8ec; --muted: #8d939e; --faint: #5c626c;
+    --brand: #9688e8; /* the old violet, desaturated: the only brand accent */
+    --income: #6cc3a0; --warn: #d8a656;
+    --wallet: #e6c229;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.5 "IBM Plex Sans", system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+  button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  .app { display: grid; grid-template-columns: 248px 1fr; min-height: 100vh; }
+  aside { background: var(--side); border-right: 1px solid var(--line); padding: 14px 10px; display: flex; flex-direction: column; }
+  .switch { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; width: 100%; text-align: left; }
+  .switch .sq { width: 26px; height: 26px; border-radius: 6px; background: var(--surface); display: grid; place-items: center; box-shadow: inset 0 -3px 0 var(--wallet); }
+  .switch .sq img { width: 18px; }
+  .switch small { display: block; color: var(--muted); font-size: 12px; }
+  .switch .chev { margin-left: auto; color: var(--faint); }
+  .nav { margin-top: 18px; display: grid; gap: 1px; }
+  .nav button { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; color: var(--muted); text-align: left; }
+  .nav button:hover { background: var(--hover); color: var(--text); }
+  .nav button[aria-current] { background: var(--surface); color: var(--text); }
+  .nav button[aria-current] svg { color: var(--brand); }
+  .nav svg { width: 16px; height: 16px; flex: none; }
+  .nav .badge { margin-left: auto; font-size: 12px; color: var(--warn); }
+  .sep { color: var(--faint); font-size: 12px; padding: 18px 10px 6px; }
+  .foot { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 10px; border-top: 1px solid var(--line); color: var(--muted); }
+  .avatar { width: 26px; height: 26px; border-radius: 50%; background: #2c313a; color: var(--text); display: grid; place-items: center; font-size: 12px; }
+  .foot .bell { margin-left: auto; }
+
+  main { padding: 24px 40px 60px; min-width: 0; }
+  .bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .bar h1 { font-size: 20px; font-weight: 600; margin-right: auto; }
+  .month { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 6px; }
+  .month button { padding: 5px 10px; color: var(--muted); }
+  .month span { padding: 0 8px; }
+  .btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--line); color: var(--muted); }
+  .btn.primary { background: var(--brand); border-color: var(--brand); color: #15131f; font-weight: 600; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 40px; align-items: end; margin: 28px 0 24px; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+  .stat .k { color: var(--muted); font-size: 13px; }
+  .stat .v { font-size: 24px; font-weight: 500; letter-spacing: -.01em; }
+  .stat .v.in { color: var(--income); }
+  .spark { display: flex; align-items: end; gap: 4px; height: 44px; justify-self: end; }
+  .spark i { width: 10px; background: #2b3039; border-radius: 2px 2px 0 0; }
+  .spark i.now { background: var(--brand); }
+
+  .notice { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; background: #1d1a13; color: var(--warn); margin-bottom: 16px; flex-wrap: wrap; }
+  .notice b { color: var(--text); font-weight: 500; }
+  .notice input { margin-left: auto; width: 110px; background: var(--bg); border: 1px solid #3a3426; border-radius: 6px; padding: 5px 8px; color: var(--text); font: inherit; text-align: right; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-weight: 500; color: var(--faint); font-size: 13px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr:hover td { background: var(--hover); }
+  td.date { color: var(--muted); white-space: nowrap; width: 90px; }
+  td.amt, th.amt { text-align: right; white-space: nowrap; }
+  td.amt.in { color: var(--income); }
+  .tag { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+  .tag i { width: 8px; height: 8px; border-radius: 2px; }
+  .tag .parent { color: var(--faint); }
+
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; }
+    aside { display: none; }
+    main { padding: 16px; }
+    .stats { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .stat .v { font-size: 17px; }
+    .spark { display: none; }
+    th.cat, td.cat, th.date, td.date { display: none; }
+  }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-list" viewBox="0 0 16 16"><path d="M3 4h10M3 8h10M3 12h7" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></symbol>
+  <symbol id="i-rep" viewBox="0 0 16 16"><path d="M3 8a5 5 0 0 1 9-3M13 8a5 5 0 0 1-9 3M12 2v3H9M4 14v-3h3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 16 16"><path d="M2.5 2.5h5l6 6-5 5-6-6z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><circle cx="5.5" cy="5.5" r="1" fill="currentColor"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 16 16"><path d="M3 13V8M8 13V3M13 13v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="i-goal" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="8" cy="8" r="2" fill="currentColor"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+</svg>
+<div class="app">
+  <aside>
+    <button class="switch" aria-label="Switch wallet">
+      <span class="sq"><img src="icon.svg" alt=""></span>
+      <span>Demo Wallet<small>EUR, 2 members</small></span>
+      <span class="chev">⌄</span>
+    </button>
+    <div class="nav">
+      <button aria-current="page"><svg><use href="#i-list"/></svg>Transactions<span class="badge">1 to review</span></button>
+      <button><svg><use href="#i-rep"/></svg>Subscriptions</button>
+      <button><svg><use href="#i-tag"/></svg>Categories</button>
+      <button><svg><use href="#i-chart"/></svg>Statistics</button>
+      <button><svg><use href="#i-goal"/></svg>Budget</button>
+      <button><svg><use href="#i-gear"/></svg>Wallet settings</button>
+    </div>
+    <div class="sep">Other wallets</div>
+    <div class="nav" style="margin-top:0">
+      <button><span style="width:8px;height:8px;border-radius:2px;background:#8b5cf6;margin:0 4px"></span>Empty</button>
+      <button>+ New wallet</button>
+    </div>
+    <div class="foot"><span class="avatar">A</span>aiorT<span class="bell" aria-label="Notifications">🔔</span></div>
+  </aside>
+
+  <main>
+    <div class="bar">
+      <h1>Transactions</h1>
+      <div class="month"><button aria-label="Previous month">‹</button><span>October 2026</span><button aria-label="Next month">›</button></div>
+      <button class="btn">Filter</button>
+      <button class="btn primary">New transaction</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Income</div><div class="v in">+1,750.01 €</div></div>
+      <div class="stat"><div class="k">Spent</div><div class="v">10,766.74 €</div></div>
+      <div class="stat"><div class="k">Net</div><div class="v">−9,016.73 €</div></div>
+      <div class="spark" title="Spending, last 10 months" id="spark"></div>
+    </div>
+
+    <div class="notice">
+      <span><b>Car Tax</b> was due on 30 Oct. Enter the amount to record it.</span>
+      <input placeholder="0.00 €" aria-label="Amount for Car Tax">
+      <button class="btn">Save</button>
+    </div>
+
+    <table>
+      <thead><tr><th class="date">Date</th><th>Description</th><th class="cat">Category</th><th class="amt">Amount</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </main>
+</div>
+
+<script>
+  const fmt = n => (n > 0 ? "+" : "−") + Math.abs(n).toLocaleString("en", { minimumFractionDigits: 2 }) + " €";
+  const rows = [
+    ["29 Oct", "Food & Entertainment", null, "Food & Entertainment", "#e0457b", -123],
+    ["29 Oct", "Groceries", "Groceries", "Food", "#e8a33d", -123],
+    ["29 Oct", "Groceries", "Groceries", "Food", "#e8a33d", -888],
+    ["29 Oct", "Groceries", "Groceries", "Food", "#e8a33d", -8347],
+    ["27 Oct", "Monthly Salary", "Work", "Salary", "#6cc3a0", 1750.01],
+    ["27 Oct", "Car", null, "Car", "#d9534f", -5],
+    ["27 Oct", "Ice Cream", "Food & Entertainment", "Ice Cream", "#4fa3d9", -4],
+    ["27 Oct", "Netflix", "Subscriptions", "Netflix", "#c0392b", -2],
+    ["27 Oct", "Spotify", "Subscriptions", "Spotify", "#3dbb6b", -2],
+    ["20 Oct", "Spotify Premium", "Subscriptions", "Spotify", "#3dbb6b", -10.99],
+  ];
+  document.getElementById("rows").innerHTML = rows.map(([d, t, p, c, col, a]) => `
+    <tr><td class="date">${d}</td><td>${t}</td>
+    <td class="cat"><span class="tag"><i style="background:${col}"></i>${p ? `<span class="parent">${p} /</span>` : ""}${c}</span></td>
+    <td class="amt ${a > 0 ? "in" : ""}">${fmt(a)}</td></tr>`).join("");
+  const spend = [1212, 1321, 1132, 1372, 1563, 1350, 1104, 1290, 1305, 10767];
+  const max = Math.max(...spend);
+  document.getElementById("spark").innerHTML = spend.map((s, i) => `<i class="${i === spend.length - 1 ? "now" : ""}" style="height:${Math.max(4, s / max * 44)}px"></i>`).join("");
+</script>
+</body>
+</html>

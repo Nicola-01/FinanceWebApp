@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { setYear } from "date-fns";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface YearSelectorProps {
   currentDate: Date;
@@ -27,8 +28,17 @@ export default function YearSelector({
   const years = Array.from({ length: 12 }, (_, i) => startYear + i);
 
   // Theme-dependent styles
-  const btnNav = `p-2 rounded-md transition-colors ${isDark ? "theme-bg-neutral-dark hover:theme-bg-neutral theme-text-muted" : "theme-bg-inverse-muted hover:theme-bg-inverse-muted theme-text-subtle"}`;
-  const textMain = isDark ? "theme-text-muted" : "theme-text-subtle";
+  const [ui] = useUiVersion();
+  // ui-v2-switch: v2 selected year = wallet fill; hover = raised (no accent text).
+  const isV2 = ui === "v2";
+  const btnNav = isV2
+    ? "p-2 rounded-[var(--r-sm)] transition-colors text-app-muted hover:bg-app-raised"
+    : `p-2 rounded-md transition-colors ${isDark ? "theme-bg-neutral-dark hover:theme-bg-neutral theme-text-muted" : "theme-bg-inverse-muted hover:theme-bg-inverse-muted theme-text-subtle"}`;
+  const textMain = isV2
+    ? "text-app-text"
+    : isDark
+      ? "theme-text-muted"
+      : "theme-text-subtle";
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -55,20 +65,23 @@ export default function YearSelector({
       >
         {years.map((year) => {
           const isSelected = isAllPreset || currentYear === year;
-          const defaultStyle = isDark
-            ? "theme-text-muted hover:theme-bg-neutral-dark"
-            : "theme-text-subtle hover:theme-bg-inverse-muted";
+          const defaultStyle = isV2
+            ? "text-app-text hover:bg-app-raised"
+            : isDark
+              ? "theme-text-muted hover:theme-bg-neutral-dark"
+              : "theme-text-subtle hover:theme-bg-inverse-muted";
+          const selectedStyle = isV2
+            ? "bg-wallet text-on-wallet font-medium"
+            : "theme-text-default font-medium shadow-sm";
 
           return (
             <button
               key={year}
               onClick={() => onSelectYear(setYear(currentDate, year))}
-              className={`flex items-center justify-center rounded-lg text-sm transition-colors ${
-                isSelected
-                  ? "theme-text-default font-medium shadow-sm"
-                  : defaultStyle
+              className={`flex items-center justify-center ${isV2 ? "rounded-[var(--r-sm)]" : "rounded-lg"} text-sm transition-colors ${
+                isSelected ? selectedStyle : defaultStyle
               }`}
-              style={isSelected ? { backgroundColor: color } : {}}
+              style={isSelected && !isV2 ? { backgroundColor: color } : {}}
             >
               {year}
             </button>

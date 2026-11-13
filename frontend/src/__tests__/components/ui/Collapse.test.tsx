@@ -1,41 +1,37 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { Collapse } from "../../../components/ui/Collapse";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 describe("Collapse", () => {
-  it("renders the title but hides children when closed by default", () => {
-    render(
-      <Collapse title="Settings">
-        <p>Secret content</p>
-      </Collapse>,
-    );
-    expect(screen.getByText("Settings")).toBeInTheDocument();
-    expect(screen.queryByText("Secret content")).not.toBeInTheDocument();
+  it("keeps the v1 large title by default", () => {
+    render(<Collapse title="Section">Body</Collapse>);
+    const heading = screen.getByRole("heading", { name: "Section" });
+    expect(heading).toHaveClass("text-2xl", "font-bold");
+    expect(heading.className).not.toContain("font-display");
   });
 
-  it("shows children when defaultOpen is set", () => {
-    render(
-      <Collapse title="Settings" defaultOpen>
-        <p>Secret content</p>
-      </Collapse>,
-    );
-    expect(screen.getByText("Secret content")).toBeInTheDocument();
-  });
+  describe("v2", () => {
+    beforeEach(() => setUiVersion("v2"));
+    afterEach(() => setUiVersion("v1"));
 
-  it("toggles children visibility when the header is clicked", async () => {
-    const user = userEvent.setup();
-    render(
-      <Collapse title="Settings">
-        <p>Secret content</p>
-      </Collapse>,
-    );
-    expect(screen.queryByText("Secret content")).not.toBeInTheDocument();
+    it("uses the display face for large titles", () => {
+      render(<Collapse title="Section">Body</Collapse>);
+      expect(screen.getByRole("heading", { name: "Section" })).toHaveClass(
+        "font-display",
+        "text-2xl",
+        "font-semibold",
+      );
+    });
 
-    await user.click(screen.getByRole("button", { name: /settings/i }));
-    expect(screen.getByText("Secret content")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /settings/i }));
-    expect(screen.queryByText("Secret content")).not.toBeInTheDocument();
+    it("still toggles the body", () => {
+      render(<Collapse title="Section">Body</Collapse>);
+      const toggle = screen.getByRole("button", { name: "Section" });
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+      expect(screen.queryByText("Body")).not.toBeInTheDocument();
+      fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute("aria-expanded", "true");
+      expect(screen.getByText("Body")).toBeInTheDocument();
+    });
   });
 });

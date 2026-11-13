@@ -1,12 +1,21 @@
 import React from "react";
 import { useTheme } from "../../utils/ThemeContext.tsx";
-import { pieArcLabelClasses, PieChart } from "@mui/x-charts/PieChart";
+import {
+  PieArcLabel,
+  pieArcClasses,
+  pieArcLabelClasses,
+  PieChart,
+} from "@mui/x-charts/PieChart";
 import { styled } from "@mui/material/styles";
 import { useDrawingArea } from "@mui/x-charts/hooks";
 import { useTheme as useMuiTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import type { Transaction } from "../../types/domain.ts";
-import { hexToRgba } from "../../utils/color.ts";
+import { hexToRgba, onColor } from "../../utils/color.ts";
+import { toSentenceCase } from "../../utils/format.ts";
+import { getCurrencySymbol } from "../../utils/currencies/index.ts";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
+import { AnimatedNumber } from "../../components/ui/AnimatedNumber.tsx";
 
 const StyledText = styled("text")(() => ({
   fill: "currentColor",
@@ -15,6 +24,47 @@ const StyledText = styled("text")(() => ({
   fontSize: 16,
   fontWeight: "bold",
 }));
+
+/** v2 centre: the animated total in the display face, with a muted "spent"/"earned" caption (HTML inside the SVG, for NumberFlow). */
+function V2CenterLabel({
+  total,
+  currency,
+  caption,
+}: {
+  total: number;
+  currency: string;
+  caption: string;
+}): React.ReactElement {
+  const { width, height, left, top } = useDrawingArea();
+  return (
+    <foreignObject x={left} y={top} width={width} height={height}>
+      <div className="flex h-full flex-col items-center justify-center text-app-text">
+        <div className="font-display text-[16px] leading-tight font-semibold tracking-[-0.02em]">
+          <AnimatedNumber
+            value={total}
+            currency={getCurrencySymbol(currency)}
+            decimals={0}
+          />
+        </div>
+        <div className="text-[12px] text-app-muted">{caption}</div>
+      </div>
+    </foreignObject>
+  );
+}
+
+/** v2 slice label: inside labels sit on the slice (ink picked for contrast), outside ones on the card. */
+// ui-v2-switch
+function V2ArcLabel(props: React.ComponentProps<typeof PieArcLabel>) {
+  const inside = props.arcLabelRadius < props.outerRadius;
+  return (
+    <PieArcLabel
+      {...props}
+      style={{
+        fill: inside ? onColor(props.color) : "rgb(var(--text-primary))",
+      }}
+    />
+  );
+}
 
 function PieCenterLabel({
   children,
@@ -47,23 +97,44 @@ export const TransactionPieChart = ({
   const { resolvedTheme } = useTheme();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const txs = transactions.filter((t) => t.type === type);
   const totalAmount = txs.reduce((acc, t) => acc + t.amount, 0);
 
   const shellClass = bare
     ? "flex flex-col items-center w-full h-full text-app-text"
-    : "flex flex-col items-center w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text";
+    : v2 // ui-v2-switch
+      ? "flex flex-col items-center w-full h-full bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 md:p-6 text-app-text"
+      : "flex flex-col items-center w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text";
+
+  const titleClass = v2 // ui-v2-switch
+    ? "mb-6 w-full font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text"
+    : "text-xl font-bold text-app-text mb-6 uppercase tracking-wider";
+  const shownTitle = v2 ? toSentenceCase(title) : title; // ui-v2-switch
 
   if (totalAmount === 0) {
     return (
       <div className={shellClass}>
         {!bare && (
-          <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider opacity-50">
-            {title}
+          <h3
+            className={
+              v2 // ui-v2-switch
+                ? titleClass
+                : "text-xl font-bold text-app-text mb-6 uppercase tracking-wider opacity-50"
+            }
+          >
+            {shownTitle}
           </h3>
         )}
 
-        <div className="w-full flex flex-col items-center justify-center flex-1 min-h-[400px] bg-app-input/30 rounded-xl border border-app-border border-dashed">
+        <div
+          className={
+            v2 // ui-v2-switch
+              ? "w-full flex flex-col items-center justify-center flex-1 min-h-[400px] bg-app-raised rounded-[var(--r-input)]"
+              : "w-full flex flex-col items-center justify-center flex-1 min-h-[400px] bg-app-input/30 rounded-xl border border-app-border border-dashed"
+          }
+        >
           <p className="text-app-muted">
             No {title.toLowerCase()} data available.
           </p>
@@ -125,11 +196,7 @@ export const TransactionPieChart = ({
 
   return (
     <div className={shellClass}>
-      {!bare && (
-        <h3 className="text-xl font-bold text-app-text mb-6 uppercase tracking-wider">
-          {title}
-        </h3>
-      )}
+      {!bare && <h3 className={titleClass}>{shownTitle}</h3>}
 
       <div className="w-full flex justify-center h-[400px]">
         <PieChart
@@ -170,22 +237,46 @@ export const TransactionPieChart = ({
             },
           ]}
           sx={{
-            [`& .${pieArcLabelClasses.root}`]: {
-              fill:
-                resolvedTheme === "dark" ? "#ffffff" : "var(--color-app-card)",
-              fontSize: isMobile ? "9px" : "11px",
-              fontWeight: "bold",
-            },
+            [`& .${pieArcLabelClasses.root}`]: v2
+              ? {
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 12,
+                  fontWeight: "bold",
+                } // ui-v2-switch
+              : {
+                  fill:
+                    resolvedTheme === "dark"
+                      ? "#ffffff"
+                      : "var(--color-app-card)",
+                  fontSize: isMobile ? "9px" : "11px",
+                  fontWeight: "bold",
+                },
+            ...(v2 // ui-v2-switch
+              ? {
+                  [`& .${pieArcClasses.root}`]: {
+                    stroke: "rgb(var(--bg-card))",
+                  },
+                }
+              : {}),
           }}
+          slots={v2 ? { pieArcLabel: V2ArcLabel } : undefined} // ui-v2-switch
           hideLegend
         >
-          <PieCenterLabel>
-            {totalAmount.toLocaleString("it-IT", {
-              style: "currency",
-              currency,
-              maximumFractionDigits: 0,
-            })}
-          </PieCenterLabel>
+          {v2 ? ( // ui-v2-switch
+            <V2CenterLabel
+              total={totalAmount}
+              currency={currency}
+              caption={type === "INCOME" ? "earned" : "spent"}
+            />
+          ) : (
+            <PieCenterLabel>
+              {totalAmount.toLocaleString("it-IT", {
+                style: "currency",
+                currency,
+                maximumFractionDigits: 0,
+              })}
+            </PieCenterLabel>
+          )}
         </PieChart>
       </div>
     </div>

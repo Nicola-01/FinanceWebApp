@@ -4,6 +4,7 @@ import { faArrowsRotate } from "@fortawesome/free-solid-svg-icons";
 // @ts-expect-error virtual module from vite-plugin-pwa
 import { useRegisterSW } from "virtual:pwa-register/react";
 import Button from "./Button";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export const PWAPrompt: React.FC = () => {
   const {
@@ -18,23 +19,38 @@ export const PWAPrompt: React.FC = () => {
     },
   });
 
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
+
   if (!needRefresh) return null;
 
   return (
     <div
       role="status"
-      className="fixed bottom-4 left-1/2 z-[999] w-11/12 max-w-sm -translate-x-1/2 flex flex-col sm:flex-row items-center gap-4 p-4 bg-app-card border border-app-border rounded-[var(--r-card)] shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)] animate-[slideUp_0.3s_ease-out]"
+      className={`fixed bottom-4 left-1/2 z-[999] w-11/12 max-w-sm -translate-x-1/2 flex flex-col sm:flex-row items-center gap-4 p-4 rounded-[var(--r-card)] animate-[slideUp_0.3s_ease-out] ${
+        isV2
+          ? "bg-app-card shadow-[0_8px_24px_rgb(0_0_0/0.25)]"
+          : "bg-app-card border border-app-border shadow-[0_18px_40px_-12px_rgba(0,0,0,0.55)]"
+      }`}
     >
-      {/* Global prompt (outside any wallet) → brand-gradient accent. */}
+      {/* Global prompt (outside any wallet) → brand-gradient accent in v1; the inverted neutral in v2. */}
       <span
         aria-hidden="true"
-        className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--r-input)] text-white bg-gradient-to-br from-[var(--brand-1)] to-[var(--brand-2)]"
+        className={`grid h-10 w-10 shrink-0 place-items-center rounded-[var(--r-input)] ${
+          isV2
+            ? "bg-wallet text-on-wallet"
+            : "text-white bg-gradient-to-br from-[var(--brand-1)] to-[var(--brand-2)]"
+        }`}
       >
         <FontAwesomeIcon icon={faArrowsRotate} />
       </span>
 
       <div className="flex-1 text-center sm:text-left">
-        <p className="text-sm font-bold text-app-text">App update</p>
+        <p
+          className={`text-sm text-app-text ${isV2 ? "font-semibold" : "font-bold"}`}
+        >
+          App update
+        </p>
         <p className="mt-1 text-xs text-app-muted">
           A new version is ready. Refresh to apply.
         </p>

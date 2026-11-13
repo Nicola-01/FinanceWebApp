@@ -11,6 +11,7 @@ import { AccountSection } from "./sections/AccountSection";
 import { SecuritySection } from "./sections/SecuritySection";
 import { TokensSection } from "./sections/TokensSection";
 import { NotificationsSection } from "./sections/NotificationsSection";
+import { AppearanceSection } from "./sections/AppearanceSection";
 import { AboutSection } from "./sections/AboutSection";
 import { DeleteAccountSection } from "./sections/DeleteAccountSection";
 import { getMustChangePWD } from "../utils/authHelper";
@@ -133,6 +134,7 @@ const SettingsPage: React.FC = () => {
                 )}
                 {s.id === "tokens" && <TokensSection />}
                 {s.id === "notifications" && <NotificationsSection />}
+                {s.id === "appearance" && <AppearanceSection />}
                 {s.id === "about" && <AboutSection />}
                 {s.id === "delete-account" && <DeleteAccountSection />}
               </section>

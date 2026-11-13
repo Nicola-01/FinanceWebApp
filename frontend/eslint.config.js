@@ -7,7 +7,8 @@ import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended"
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-  globalIgnores(["dist", ".agents"]),
+  // src/components/ui/charts = vendored shadcn.io chart kit (bklit/TanStack Charts, MIT): not linted or reformatted.
+  globalIgnores(["dist", ".agents", "src/components/ui/charts"]),
   {
     files: ["**/*.{ts,tsx}"],
     extends: [
@@ -26,6 +27,13 @@ export default defineConfig([
       "react-hooks/set-state-in-effect": "error",
       "react-hooks/exhaustive-deps": "error",
     },
+  },
+  {
+    files: [
+      "src/components/shadcn/**/*.tsx",
+      "src/components/ui/charts/**/*.tsx",
+    ],
+    rules: { "react-refresh/only-export-components": "off" },
   },
   eslintPluginPrettierRecommended,
 ]);

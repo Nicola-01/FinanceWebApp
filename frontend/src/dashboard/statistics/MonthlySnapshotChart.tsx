@@ -1,66 +1,71 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { BarPlot } from "@mui/x-charts-pro/BarChart";
 import { LinePlot } from "@mui/x-charts-pro/LineChart";
 import { toSnapshotRows } from "./chartData";
-import {
-  BALANCE_COLOR,
-  EXPENSE_COLOR,
-  INCOME_COLOR,
-  formatBalance,
-  formatExpense,
-  formatIncome,
-} from "./chartTheme.ts";
+import { formatBalance, formatExpense, formatIncome } from "./chartTheme.ts";
+import { useChartPalette } from "./useChartPalette.ts";
 import {
   MonthlyChart,
   type MonthlyChartProps,
   type MonthlyChartSeries,
 } from "./MonthlyChart.tsx";
 
-const SERIES: MonthlyChartSeries = [
+const snapshotSeries = (c: {
+  income: string;
+  expense: string;
+  balance: string;
+}): MonthlyChartSeries => [
   {
     type: "bar",
     dataKey: "income",
     label: "Income",
-    color: INCOME_COLOR,
+    color: c.income,
     valueFormatter: formatIncome,
   },
   {
     type: "bar",
     dataKey: "expense",
     label: "Expenses",
-    color: EXPENSE_COLOR,
+    color: c.expense,
     valueFormatter: formatExpense,
   },
   {
     type: "line",
     dataKey: "balance",
     label: "Balance",
-    color: BALANCE_COLOR,
+    color: c.balance,
     curve: "monotoneX",
     showMark: false,
     valueFormatter: formatBalance,
   },
 ];
 
-const LEGEND = [
-  { label: "Income", color: INCOME_COLOR },
-  { label: "Expenses", color: EXPENSE_COLOR },
-  { label: "Balance", color: BALANCE_COLOR },
-];
-
-export const MonthlySnapshotChart: React.FC<MonthlyChartProps> = (props) => (
-  <MonthlyChart
-    {...props}
-    buildRows={toSnapshotRows}
-    series={SERIES}
-    plots={
-      <>
-        <BarPlot />
-        <LinePlot />
-      </>
-    }
-    axisHighlight="band"
-    legend={LEGEND}
-    swatchClassName="w-3 h-3 rounded-sm"
-  />
-);
+export const MonthlySnapshotChart: React.FC<MonthlyChartProps> = (props) => {
+  const palette = useChartPalette();
+  const { income, expense, balance, isV2 } = palette;
+  const series = useMemo(
+    () => snapshotSeries({ income, expense, balance }),
+    [income, expense, balance],
+  );
+  return (
+    <MonthlyChart
+      {...props}
+      buildRows={toSnapshotRows}
+      series={series}
+      plots={
+        <>
+          {/* ui-v2-switch: 4px rounded bar tops */}
+          <BarPlot borderRadius={isV2 ? 4 : undefined} />
+          <LinePlot />
+        </>
+      }
+      axisHighlight="band"
+      legend={[
+        { label: "Income", color: income },
+        { label: "Expenses", color: expense },
+        { label: "Balance", color: balance },
+      ]}
+      swatchClassName="w-3 h-3 rounded-sm"
+    />
+  );
+};
