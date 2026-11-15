@@ -14,6 +14,8 @@ export interface DatePickerTriggerProps {
   endDate: Date | null;
   onToggle: () => void;
   triggerClassName?: string;
+  /** Single-date mode: where the closed trigger shows the date. */
+  triggerAlign?: "center" | "right";
 }
 
 const textMain = "text-app-text";
@@ -37,6 +39,7 @@ export default function DatePickerTrigger({
   endDate,
   onToggle,
   triggerClassName,
+  triggerAlign = "center",
 }: DatePickerTriggerProps) {
   const [ui] = useUiVersion();
   // ui-v2-switch: v2 is a flat raised field (like Input) with no border.
@@ -56,7 +59,9 @@ export default function DatePickerTrigger({
     // Single-date mode: show just the selected date
     if (!isRange) {
       return (
-        <span className={`${textMain} font-medium text-sm flex-1 text-center`}>
+        <span
+          className={`${textMain} font-medium text-sm flex-1 ${triggerAlign === "right" ? "text-right" : "text-center"}`}
+        >
           {startDate ? format(startDate, "MMM d, yyyy") : "Select a date"}
         </span>
       );
@@ -162,7 +167,7 @@ export default function DatePickerTrigger({
           ? `flex-1 min-w-0 flex items-center justify-between cursor-pointer ${triggerClassName}`
           : // ui-v2-switch
             isV2
-            ? "flex-1 min-w-0 flex items-center justify-between px-3 py-2.5 rounded-[var(--r-input)] bg-app-raised text-app-text cursor-pointer transition-shadow duration-200 focus-within:ring-2 focus-within:ring-wallet/40"
+            ? "flex-1 min-w-0 flex items-center justify-between px-3 h-11 rounded-[var(--r-input)] bg-app-raised text-app-text cursor-pointer transition-shadow duration-200 focus-within:ring-2 focus-within:ring-wallet/40"
             : `flex-1 min-w-0 flex items-center justify-between p-3 border rounded-lg shadow-sm cursor-pointer transition-colors h-12 ${bgMain} ${borderMain} hover:border-opacity-70`
       }
     >

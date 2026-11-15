@@ -16,6 +16,8 @@ interface YearWaterfallChartProps {
   /** True for the all-time view (one step per year), false for the year view (one step per month). */
   byYear: boolean;
   currencySymbol: string;
+  /** Render without the card shell + heading (the parent group card provides them). */
+  bare?: boolean;
 }
 
 /** v2: waterfall of the balance from the start of the period through each period's net to now. */
@@ -23,6 +25,7 @@ export function YearWaterfallChart({
   rows,
   byYear,
   currencySymbol,
+  bare = false,
 }: YearWaterfallChartProps) {
   const { income, expense, neutral } = useChartPalette();
   const title = byYear ? "How the years added up" : "How the year added up";
@@ -36,11 +39,21 @@ export function YearWaterfallChart({
     currencySymbol;
 
   return (
-    <section className="bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4">
-      <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-        {title}
-      </h3>
-      <p className="text-[13px] text-app-muted mt-0.5">{sub}</p>
+    <section
+      className={
+        bare
+          ? ""
+          : "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4"
+      }
+    >
+      {!bare && (
+        <>
+          <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
+            {title}
+          </h3>
+          <p className="text-[13px] text-app-muted mt-0.5">{sub}</p>
+        </>
+      )}
       {rows.length === 0 || rows.every((r) => !r.value) ? (
         <KitNoData />
       ) : (

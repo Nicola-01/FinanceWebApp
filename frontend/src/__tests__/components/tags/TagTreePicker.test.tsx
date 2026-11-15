@@ -87,3 +87,20 @@ describe("TagTreePicker v2 UI", () => {
     expect(onSelectTag).toHaveBeenCalledWith("Groceries");
   });
 });
+
+describe("TagTreePicker trigger", () => {
+  it("merges triggerClassName onto the trigger", () => {
+    render(
+      <TagTreePicker
+        tags={tags}
+        selectedTagName=""
+        onSelectTag={vi.fn()}
+        triggerClassName="bg-transparent shadow-none"
+      />,
+    );
+    const trigger = screen
+      .getByText("Select a category...")
+      .closest(".justify-between");
+    expect(trigger).toHaveClass("bg-transparent", "shadow-none");
+  });
+});

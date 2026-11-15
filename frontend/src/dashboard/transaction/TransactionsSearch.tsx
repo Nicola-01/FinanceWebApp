@@ -40,7 +40,7 @@ const TransactionsSearch: React.FC<TransactionsSearchProps> = ({
   // ui-v2-switch: v2 is always a full field; the toolbar wraps it on narrow screens.
   if (ui === "v2") {
     return (
-      <div className="min-w-[12rem] flex-1">
+      <div className="min-w-0 flex-1">
         <SearchInput
           value={safeValue}
           onChange={onChange}

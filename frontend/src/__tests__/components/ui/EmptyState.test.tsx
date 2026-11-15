@@ -30,4 +30,15 @@ describe("EmptyState", () => {
     expect(img).toHaveAttribute("src", "/icon.svg");
     expect(img).toHaveAttribute("alt", "");
   });
+
+  it("replaces the image with the icon when given", () => {
+    const { container } = render(
+      <EmptyState title="T" icon={<svg data-testid="glyph" />} />,
+    );
+    expect(container.querySelector("img")).toBeNull();
+    expect(screen.getByTestId("glyph").parentElement).toHaveClass(
+      "rounded-full",
+      "bg-app-raised",
+    );
+  });
 });

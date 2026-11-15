@@ -64,5 +64,11 @@ public class BankRule {
   @Builder.Default
   private boolean dateFromName = false;
 
+  /** Import with an empty name (the bank's name stays in the notes). Wins over renameTo. */
+  @Column(nullable = false)
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean clearName = false;
+
   @UpdateTimestamp @Column private Instant updatedAt;
 }

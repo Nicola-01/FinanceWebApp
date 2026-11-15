@@ -63,11 +63,12 @@ public class ReportHtmlBuilder {
         border:1px solid #e2e8f0; border-left:4px solid %s; border-radius:8px; margin-bottom:8px;">\
         <span style="font-weight:600;">%s</span>\
         <span style="font-weight:700; color:%s;">%s</span></div>"""
-        .formatted(
-            sanitizeHexColor(r.walletColor()),
-            HtmlUtils.htmlEscape(r.walletName()),
-            netClass,
-            formatAmount(r.totals().net(), r.currency()));
+            .formatted(
+                sanitizeHexColor(r.walletColor()),
+                HtmlUtils.htmlEscape(r.walletName()),
+                netClass,
+                formatAmount(r.totals().net(), r.currency()))
+        + emailCharts(r.charts(), r.currency());
   }
 
   private String monthlySection(WalletMonthlyReport r) {
@@ -106,6 +107,7 @@ public class ReportHtmlBuilder {
         categoryBlock("Top expense categories", r.topExpenseCategories(), r.currency(), "#dc2626"));
     s.append(
         categoryBlock("Top income categories", r.topIncomeCategories(), r.currency(), "#059669"));
+    s.append(ReportChartHtml.block(r.charts(), r.currency(), true));
     s.append("</div>");
     return s.toString();
   }
@@ -203,11 +205,17 @@ public class ReportHtmlBuilder {
         border:1px solid #e2e8f0; border-left:4px solid %s; border-radius:8px; margin-bottom:8px;">\
         <span style="font-weight:600;">%s</span>\
         <span style="font-weight:700; color:%s;">%s</span></div>"""
-        .formatted(
-            sanitizeHexColor(r.walletColor()),
-            HtmlUtils.htmlEscape(r.walletName()),
-            netColor,
-            formatAmount(r.totals().net(), r.currency()));
+            .formatted(
+                sanitizeHexColor(r.walletColor()),
+                HtmlUtils.htmlEscape(r.walletName()),
+                netColor,
+                formatAmount(r.totals().net(), r.currency()))
+        + emailCharts(r.charts(), r.currency());
+  }
+
+  private static String emailCharts(ReportCharts charts, String currency) {
+    String block = ReportChartHtml.block(charts, currency, false);
+    return block.isEmpty() ? "" : "<div style=\"padding:0 4px 18px 4px;\">" + block + "</div>";
   }
 
   private String yearlySection(WalletYearlyReport r) {
@@ -246,6 +254,7 @@ public class ReportHtmlBuilder {
         categoryBlock("Top expense categories", r.topExpenseCategories(), r.currency(), "#dc2626"));
     s.append(
         categoryBlock("Top income categories", r.topIncomeCategories(), r.currency(), "#059669"));
+    s.append(ReportChartHtml.block(r.charts(), r.currency(), true));
     s.append(recordsBlock(r.records(), r.currency()));
     s.append("</div>");
     return s.toString();

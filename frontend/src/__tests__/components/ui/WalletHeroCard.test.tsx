@@ -22,6 +22,28 @@ describe("WalletHeroCard", () => {
     expect(screen.getByText("€1,204")).toBeInTheDocument();
   });
 
+  it("renders the footer under the value only when given", () => {
+    const { rerender } = render(
+      <WalletHeroCard name="Main" color="#f2cc2f" label="Balance" value="42" />,
+    );
+    expect(screen.queryByTestId("trend")).toBeNull();
+
+    rerender(
+      <WalletHeroCard
+        name="Main"
+        color="#f2cc2f"
+        label="Balance"
+        value="42"
+        footer={<div data-testid="trend" />}
+      />,
+    );
+    const footer = screen.getByTestId("trend").parentElement;
+    expect(footer).toHaveClass("mr-[110px]");
+    expect(screen.getByText("42").compareDocumentPosition(footer!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+  });
+
   it("renders meta only when given", () => {
     const { rerender } = render(
       <WalletHeroCard name="Main" color="#f2cc2f" label="Balance" value="1" />,
@@ -80,7 +102,7 @@ describe("WalletHeroCard", () => {
       <WalletHeroCard name="Main" color="#f2cc2f" label="Balance" value="1" />,
     );
     const img = container.querySelector("img");
-    expect(img).toHaveAttribute("src", "/icon.svg");
+    expect(img).toHaveAttribute("src", "/hero-cat.webp");
     expect(img).toHaveAttribute("alt", "");
     expect(img).toHaveAttribute("aria-hidden", "true");
   });

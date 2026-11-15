@@ -61,7 +61,8 @@ export const HeaderActions: React.FC<HeaderActionsProps> = ({
         />
 
         {/* User dropdown — quick links only */}
-        <Menu align="right" width={224} className="z-[120]">
+        {/* z-94: over the sticky wallet tabs (z-90), under full-screen overlays/wizards (z-95). */}
+        <Menu align="right" width={224} className="z-[94]">
           <Menu.Trigger>
             {({ open, toggle }) => (
               <button

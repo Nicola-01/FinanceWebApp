@@ -14,13 +14,12 @@ import { PendingTransactionsPanel } from "./PendingTransactionsPanel.tsx";
 import * as walletOps from "../../api/walletOps.ts";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faReceipt } from "@fortawesome/free-solid-svg-icons";
+import { faReceipt } from "@fortawesome/free-solid-svg-icons";
 import {
   CURRENCY_META,
   type CurrencyCode,
 } from "../../utils/currencies/index.ts";
 import { EmptyState } from "../../components/ui/EmptyState.tsx"; // ui-v2-switch
-import Button from "../../components/ui/Button.tsx"; // ui-v2-switch
 import { useUiVersion } from "../../hooks/useUiVersion.ts"; // ui-v2-switch
 import { sumByType } from "../../utils/period.ts"; // ui-v2-switch
 import { formatAmount } from "../../utils/format.ts"; // ui-v2-switch
@@ -160,7 +159,9 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
 
   return (
     <div className="flex flex-col flex-1 relative min-h-0">
-      <div className="flex-1 overflow-auto pb-10 custom-scrollbar">
+      <div
+        className={`flex-1 overflow-auto custom-scrollbar ${ui === "v2" ? "pb-24" : "pb-10"}`} // ui-v2-switch
+      >
         {!isLoading && (
           <PendingTransactionsPanel
             wallet={wallet}
@@ -189,19 +190,11 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
         ) : /* 2. Empty state (no transactions) */
         transactions.length === 0 && pendingTransactions.length === 0 ? (
           ui === "v2" ? ( // ui-v2-switch
+            // The floating action button is the only add control here
             <EmptyState
               title="No transactions in this period"
               description="Add a transaction, or link a bank account to import them."
-              action={
-                <Button
-                  type="button"
-                  variant="primary"
-                  onClick={() => transactionModalRef.current?.openModal()}
-                >
-                  <FontAwesomeIcon icon={faPlus} />
-                  New transaction
-                </Button>
-              }
+              icon={<FontAwesomeIcon icon={faReceipt} />}
             />
           ) : (
             <div className="flex flex-col items-center justify-center py-24 text-app-muted">

@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleCheck,
   faClock,
+  faEnvelope,
   faGear,
   faPlay,
   faSpinner,
@@ -48,14 +49,17 @@ export const JobCard: React.FC<{
     saving,
     togglingEnabled,
     running,
+    sendingTest,
     toggleDay,
     handleSave,
     handleToggleEnabled,
     handleRunNow,
+    handleSendTest,
     handleReset,
   } = useJobSchedule(job, onReload);
 
   const icon = JOB_ICONS[job.key] ?? faGear;
+  const isReport = job.key === "monthly-report" || job.key === "yearly-report";
 
   return (
     <div
@@ -185,6 +189,21 @@ export const JobCard: React.FC<{
                 Save
               </Button>
             </>
+          )}
+          {isReport && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSendTest}
+              disabled={sendingTest}
+              title="Email the last closed period's report to you only"
+            >
+              <FontAwesomeIcon
+                icon={sendingTest ? faSpinner : faEnvelope}
+                spin={sendingTest}
+              />
+              Send test to me
+            </Button>
           )}
           <Button
             variant="secondary"

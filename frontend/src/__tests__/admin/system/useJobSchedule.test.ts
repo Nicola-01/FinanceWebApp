@@ -70,4 +70,14 @@ describe("useJobSchedule", () => {
     });
     expect(onReload).toHaveBeenCalled();
   });
+
+  it("sends a test report to the caller and toasts the result", async () => {
+    const mockedPost = api.post as unknown as ReturnType<typeof vi.fn>;
+    mockedPost.mockResolvedValue({ data: { message: "sent 1" } });
+    const report = { ...job, key: "monthly-report" };
+    const { result } = renderHook(() => useJobSchedule(report, vi.fn()));
+    await act(() => result.current.handleSendTest());
+    expect(mockedPost).toHaveBeenCalledWith("/admin/jobs/monthly-report/test");
+    expect(result.current.sendingTest).toBe(false);
+  });
 });

@@ -1,9 +1,7 @@
-import React, { useRef, useEffect } from "react";
+import React, { lazy, Suspense, useRef, useEffect } from "react";
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import Login from "./auth/Login";
 import UserDashboard from "./dashboard/UserDashboard.tsx";
-import SettingsPage from "./settings/SettingsPage.tsx";
-import AdminDashboard from "./admin/AdminDashboard";
 import ProtectedRoute from "./utils/ProtectedRoute.tsx";
 import { ToastHost } from "./components/ui/ToastHost.tsx";
 import {
@@ -20,11 +18,13 @@ import { getUserAuth } from "./utils/authHelper.ts";
 import { PWAProvider } from "./utils/PWAProvider.tsx";
 import { PWAPrompt } from "./components/ui/PWAPrompt.tsx";
 import { usePushMessages } from "./push/usePushMessages.ts";
-import LandingPage from "./components/landing/LandingPage.tsx";
-import ToDoPage from "./components/todo/ToDoPage.tsx";
-import OAuthConsent from "./auth/OAuthConsent.tsx";
 import BankCallback from "./auth/BankCallback.tsx";
 import AuthLayout from "./auth/AuthLayout.tsx";
+const OAuthConsent = lazy(() => import("./auth/OAuthConsent.tsx"));
+const ToDoPage = lazy(() => import("./components/todo/ToDoPage.tsx"));
+const LandingPage = lazy(() => import("./components/landing/LandingPage.tsx"));
+const AdminDashboard = lazy(() => import("./admin/AdminDashboard"));
+const SettingsPage = lazy(() => import("./settings/SettingsPage.tsx"));
 
 const RootRedirect = () => {
   const user = getUserAuth();
@@ -66,43 +66,52 @@ const App: React.FC = () => {
         <ToastHost />
         <DeleteModalProvider deleteModalRef={deleteModalRef}>
           <DeleteModal ref={deleteModalRef} />
-          <Routes>
-            {/* Auth screens share one shell so the animated background persists
+          {/* Rarely-visited routes are lazy so the main chunk stays under the 2 MiB PWA precache cap. */}
+          <Suspense fallback={null}>
+            <Routes>
+              {/* Auth screens share one shell so the animated background persists
                 across navigation (only the form swaps via <Outlet/>). */}
-            <Route element={<AuthLayout />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-            </Route>
-            <Route path="/about" element={<LandingPage />} />
-            <Route path="/ToDo" element={<ToDoPage />} />
-            <Route path="/oauth/authorize" element={<OAuthConsent />} />
-
-            {/* Root Route serves the Landing Page or Redirects based on auth */}
-            <Route path="/" element={<RootRedirect />} />
-
-            {/* Generic protected routes (user must be logged in) */}
-            <Route element={<ProtectedRoute />}>
-              {/* User Dashboard */}
-              <Route path="/dashboard/:walletId?" element={<UserDashboard />} />
-
-              {/* Account & app settings (all authenticated users) */}
-              <Route path="/settings" element={<SettingsPage />} />
-
-              {/* Return URL of the bank consent flow */}
-              <Route path="/bank/callback" element={<BankCallback />} />
-
-              {/* Specific protected routes for ADMIN */}
-              <Route element={<AdminRoute />}>
-                <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
-                {/* Any other admin routes will go here */}
+              <Route element={<AuthLayout />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
               </Route>
-            </Route>
+              <Route path="/about" element={<LandingPage />} />
+              <Route path="/ToDo" element={<ToDoPage />} />
+              <Route path="/oauth/authorize" element={<OAuthConsent />} />
 
-            {/* CATCH-ALL: If the user types a non-existent URL */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              {/* Root Route serves the Landing Page or Redirects based on auth */}
+              <Route path="/" element={<RootRedirect />} />
+
+              {/* Generic protected routes (user must be logged in) */}
+              <Route element={<ProtectedRoute />}>
+                {/* User Dashboard */}
+                <Route
+                  path="/dashboard/:walletId?"
+                  element={<UserDashboard />}
+                />
+
+                {/* Account & app settings (all authenticated users) */}
+                <Route path="/settings" element={<SettingsPage />} />
+
+                {/* Return URL of the bank consent flow */}
+                <Route path="/bank/callback" element={<BankCallback />} />
+
+                {/* Specific protected routes for ADMIN */}
+                <Route element={<AdminRoute />}>
+                  <Route
+                    path="/admin/dashboard/*"
+                    element={<AdminDashboard />}
+                  />
+                  {/* Any other admin routes will go here */}
+                </Route>
+              </Route>
+
+              {/* CATCH-ALL: If the user types a non-existent URL */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </DeleteModalProvider>
       </PWAProvider>
     </ThemeProvider>

@@ -62,6 +62,12 @@ export const TransactionsFilter: React.FC = () => {
   if (isV2) {
     return (
       <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* Categories has no search: its page title sits on the left, like Statistics. */}
+        {!showSearch && (
+          <h2 className="basis-full sm:mr-auto sm:basis-auto font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">
+            Categories
+          </h2>
+        )}
         {showSearch && (
           <TransactionsSearch
             value={searchQuery}
@@ -69,7 +75,15 @@ export const TransactionsFilter: React.FC = () => {
             color={wallet.color}
           />
         )}
-        <div className="w-full sm:w-auto sm:min-w-[16rem]">
+        {/* Phones: the picker drops to its own full-width row below search + buttons. */}
+        {/* No search (Categories): picker + filter share one row, right-aligned from sm up. */}
+        <div
+          className={
+            showSearch
+              ? "order-last w-full sm:order-none sm:w-auto sm:min-w-[16rem]"
+              : "min-w-0 flex-1 sm:flex-none sm:min-w-[16rem]"
+          }
+        >
           <CustomDatePicker
             key={pickerKey}
             isRange={true}
@@ -105,12 +119,13 @@ export const TransactionsFilter: React.FC = () => {
             aria-pressed={onlyToCategorise}
             onClick={toggleReview}
             // Pressed uses the segmented-tab look; `!` beats the secondary base fill.
-            className={
-              onlyToCategorise ? "!bg-app-raised !text-app-text" : undefined
-            }
+            className={`h-11 ${
+              onlyToCategorise ? "!bg-app-raised !text-app-text" : ""
+            }`}
           >
             <FontAwesomeIcon icon={faLeftRight} />
-            To categorise
+            {/* Phones: icon + count only; the sr-only text keeps the accessible name. */}
+            <span className="max-sm:sr-only">To categorise</span>
             <span className="tabular-nums text-app-muted">
               {toCategorise.length}
             </span>

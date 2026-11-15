@@ -39,7 +39,17 @@ export const StatTile: React.FC<StatTileProps> = ({
   >
     {icon && <div className="max-sm:hidden">{icon}</div>}
     <div className="min-w-0">
-      <div className="text-[13px] text-app-muted">{label}</div>
+      <div className="flex items-center gap-1.5 text-[13px] text-app-muted">
+        {icon && (
+          <span
+            aria-hidden="true"
+            className="sm:hidden inline-grid [&>*]:h-5 [&>*]:w-5 [&>*]:rounded-[6px] [&>*]:text-[10px]"
+          >
+            {icon}
+          </span>
+        )}
+        {label}
+      </div>
       <div
         className={
           "font-display text-[26px] leading-[1.1] font-[650] tracking-[-0.02em] max-sm:text-xl " +

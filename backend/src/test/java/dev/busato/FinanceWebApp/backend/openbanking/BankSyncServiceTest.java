@@ -875,6 +875,67 @@ class BankSyncServiceTest {
   }
 
   @Test
+  void ruleWithTag_recordsBankRuleId() {
+    BankRule r = rule("Supermarket", "ESSELUNGA", tag("Food"), null);
+    bankReturns(charge("r1", "42.10", "ESSELUNGA MILANO", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs().get(0).getBankRuleId()).isEqualTo(r.getId());
+  }
+
+  @Test
+  void subscriptionMatch_recordsBankRuleIdOnMatchedTransaction() {
+    BankRule r = rule("Netflix", "netflix");
+    Subscription s = subOn("Netflix", r, false, DAY.plusDays(20));
+    Transaction own = subTx(s, DAY, false);
+    bankReturns(charge("r1", "12.99", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(transactionRepository.findById(own.getId()))
+        .hasValueSatisfying(t -> assertThat(t.getBankRuleId()).isEqualTo(r.getId()));
+  }
+
+  @Test
+  void twoRulesMatch_leavesBankRuleIdNull() {
+    rule("Amazon", "AMZN", tag("Food"), "Amazon");
+    rule("Amazon Prime", "AMZN MKTP", tag("Media"), null);
+    bankReturns(charge("r1", "9.99", "AMZN MKTP IT*2K4", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs().get(0).getBankRuleId()).isNull();
+  }
+
+  @Test
+  void ruleWithClearName_emptiesNameAndKeepsBankName() {
+    BankRule r = rule("Amazon", "AMZN", null, null);
+    r.setClearName(true);
+    bankRuleRepository.save(r);
+    bankReturns(charge("r1", "9.99", "AMZN MKTP IT*2K4", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction t = walletTxs().get(0);
+    assertThat(t.getName()).isEmpty();
+    assertThat(t.getNotes()).isEqualTo("Bank: AMZN MKTP IT*2K4");
+    assertThat(t.getTag().getName()).isEqualTo("To categorise");
+  }
+
+  @Test
+  void ruleWithClearName_winsOverRenameTo() {
+    BankRule r = rule("Amazon", "AMZN", null, "Amazon");
+    r.setClearName(true);
+    bankRuleRepository.save(r);
+    bankReturns(charge("r1", "9.99", "AMZN MKTP IT*2K4", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs().get(0).getName()).isEmpty();
+  }
+
+  @Test
   void ruleWithRename_renamesAndKeepsBankName() {
     rule("Amazon", "AMZN", null, "Amazon");
     bankReturns(charge("r1", "9.99", "AMZN MKTP IT*2K4", DAY));
@@ -1011,5 +1072,146 @@ class BankSyncServiceTest {
   void dateFromNameRule_implausibleDate_keepsBookingDate() {
     assertThat(syncDateRule(true, "PAGAMENTO POS DEL 25.10.2026 A ESSELUNGA").getTransactionDate())
         .isEqualTo(DAY);
+  }
+
+  /** A hand-entered (non-imported) transaction on the wallet. */
+  Transaction manual(String amount, LocalDate date, Transaction.Type type, Tag tag) {
+    return transactionRepository.save(
+        Transaction.builder()
+            .wallet(wallet)
+            .tag(tag)
+            .name("Manual")
+            .amount(new BigDecimal(amount))
+            .originalAmount(new BigDecimal(amount))
+            .originalCurrency("EUR")
+            .type(type)
+            .transactionDate(date)
+            .build());
+  }
+
+  @Test
+  void manualDuplicate_mergedNotDuplicated() {
+    afterBackfill();
+    Transaction manual = manual("12.50", DAY, Transaction.Type.EXPENSE, null);
+    bankReturns(charge("r1", "12.5", "NETFLIX.COM", DAY));
+
+    SyncResult res = service.syncConnection(conn, null);
+
+    assertThat(res.imported()).isZero();
+    assertThat(walletTxs())
+        .singleElement()
+        .satisfies(t -> assertThat(t.getId()).isEqualTo(manual.getId()));
+    Transaction merged = transactionRepository.findById(manual.getId()).orElseThrow();
+    assertThat(merged.isImported()).isTrue();
+    assertThat(merged.getName()).isEqualTo("Manual");
+    assertThat(merged.getNotes()).isEqualTo("Bank: NETFLIX.COM");
+    assertThat(ledger("r1").getMatchedTransactionId()).isEqualTo(manual.getId());
+    assertThat(events.stream(WalletActivityEvent.class)).isEmpty();
+  }
+
+  @Test
+  void differentAmountDateOrType_createsNewRow() {
+    transactionRepository.save(
+        Transaction.builder()
+            .wallet(wallet)
+            .name("A")
+            .amount(new BigDecimal("12.51"))
+            .originalAmount(new BigDecimal("12.51"))
+            .originalCurrency("EUR")
+            .type(Transaction.Type.EXPENSE)
+            .transactionDate(DAY)
+            .build());
+    transactionRepository.save(
+        Transaction.builder()
+            .wallet(wallet)
+            .name("B")
+            .amount(new BigDecimal("12.50"))
+            .originalAmount(new BigDecimal("12.50"))
+            .originalCurrency("EUR")
+            .type(Transaction.Type.EXPENSE)
+            .transactionDate(DAY.plusDays(1))
+            .build());
+    transactionRepository.save(
+        Transaction.builder()
+            .wallet(wallet)
+            .name("C")
+            .amount(new BigDecimal("12.50"))
+            .originalAmount(new BigDecimal("12.50"))
+            .originalCurrency("EUR")
+            .type(Transaction.Type.INCOME)
+            .transactionDate(DAY)
+            .build());
+    bankReturns(charge("r1", "12.50", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs()).hasSize(4);
+    assertThat(walletTxs().stream().filter(Transaction::isImported))
+        .singleElement()
+        .satisfies(t -> assertThat(t.getNotes()).isNull());
+  }
+
+  @Test
+  void alreadyImportedRowIsNotACandidate() {
+    Transaction old = manual("12.50", DAY, Transaction.Type.EXPENSE, null);
+    old.setImported(true);
+    transactionRepository.save(old);
+    bankReturns(charge("r1", "12.50", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs()).hasSize(2);
+  }
+
+  @Test
+  void twoCandidates_createsWithPossibleDuplicateNote() {
+    Transaction a = manual("12.50", DAY, Transaction.Type.EXPENSE, null);
+    Transaction b = manual("12.50", DAY, Transaction.Type.EXPENSE, null);
+    bankReturns(charge("r1", "12.50", "NETFLIX.COM", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs()).hasSize(3);
+    assertThat(transactionRepository.findById(a.getId()).orElseThrow().isImported()).isFalse();
+    assertThat(transactionRepository.findById(b.getId()).orElseThrow().isImported()).isFalse();
+    assertThat(walletTxs().stream().filter(Transaction::isImported))
+        .singleElement()
+        .satisfies(
+            t ->
+                assertThat(t.getNotes())
+                    .isEqualTo(
+                        "Possible duplicate: 2 transactions on this day with the same amount"));
+  }
+
+  @Test
+  void identicalBankRows_onlyOneMergesIntoManual() {
+    afterBackfill();
+    Transaction manual = manual("5.00", DAY, Transaction.Type.EXPENSE, null);
+    bankReturns(charge("r1", "5.00", "BOB", DAY), charge("r2", "5.00", "BOB", DAY));
+
+    service.syncConnection(conn, null);
+
+    assertThat(walletTxs()).hasSize(2);
+    assertThat(ledger("r1").getMatchedTransactionId()).isEqualTo(manual.getId());
+    assertThat(ledger("r2").getMatchedTransactionId()).isNull();
+    assertThat(walletTxs()).allSatisfy(t -> assertThat(t.isImported()).isTrue());
+  }
+
+  @Test
+  void ruleMatch_mergesKeepingManualTagAndSetsRuleId() {
+    afterBackfill();
+    BankRule r = rule("Supermarket", "ESSELUNGA", tag("Food"), null);
+    Tag groceries = tag("Groceries");
+    Transaction manual = manual("42.10", DAY, Transaction.Type.EXPENSE, groceries);
+    bankReturns(charge("r1", "42.10", "ESSELUNGA MILANO", DAY));
+
+    service.syncConnection(conn, null);
+
+    Transaction merged = transactionRepository.findById(manual.getId()).orElseThrow();
+    assertThat(walletTxs()).hasSize(1);
+    assertThat(merged.isImported()).isTrue();
+    assertThat(merged.getTag().getId()).isEqualTo(groceries.getId());
+    assertThat(merged.getBankRuleId()).isEqualTo(r.getId());
+    assertThat(merged.getNotes()).isEqualTo("Bank: ESSELUNGA MILANO");
   }
 }

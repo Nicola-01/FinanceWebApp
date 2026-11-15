@@ -60,10 +60,17 @@ export const BudgetTab: React.FC = () => {
         )}
         {canEdit &&
           (isV2 ? (
-            <Button variant="primary" ripple onClick={() => setCreating(true)}>
-              <FontAwesomeIcon icon={faPlus} />
-              New budget
-            </Button>
+            // The empty state carries its own CTA; one "New budget" is enough.
+            (isLoading || budgets.length > 0) && (
+              <Button
+                variant="primary"
+                ripple
+                onClick={() => setCreating(true)}
+              >
+                <FontAwesomeIcon icon={faPlus} />
+                New budget
+              </Button>
+            )
           ) : (
             <Button
               accentColor={wallet.color}
@@ -79,6 +86,7 @@ export const BudgetTab: React.FC = () => {
       {!isLoading && budgets.length === 0 && isV2 && (
         <EmptyState
           title="No budgets yet"
+          icon={<FontAwesomeIcon icon={faBullseye} />}
           description="Set a monthly limit for a category or the whole wallet."
           action={
             canEdit ? (

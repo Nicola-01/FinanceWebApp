@@ -28,6 +28,18 @@ export default defineConfig(({ mode }) => {
   console.log("-------------------------");
 
   return {
+    // Dev only: deps first imported from lazy chunks are otherwise discovered mid-session,
+    // which re-bundles them under a new hash and breaks the already-open tab.
+    optimizeDeps: {
+      include: [
+        "@base-ui/react/drawer",
+        "@base-ui/react/popover",
+        "@base-ui/react/progress",
+        "@base-ui/react/switch",
+        "@base-ui/react/tabs",
+        "fflate",
+      ],
+    },
     plugins: [
       react(),
       tailwindcss(),

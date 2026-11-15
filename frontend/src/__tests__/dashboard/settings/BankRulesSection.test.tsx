@@ -60,6 +60,7 @@ const rule: BankRule = {
   renameTo: "Netflix TV",
   reviewFirst: true,
   dateFromName: true,
+  clearName: true,
   usedBy: ["Netflix"],
 };
 
@@ -97,6 +98,7 @@ describe("BankRulesSection", () => {
     expect(screen.getByText("NETFLIX").tagName).toBe("CODE");
     expect(screen.getByText("Review first")).toBeInTheDocument();
     expect(screen.getByText("Date from name")).toBeInTheDocument();
+    expect(screen.getByText("Empty name")).toBeInTheDocument();
     expect(screen.getByText("Regex")).toBeInTheDocument();
     expect(screen.getByText("Used by Netflix")).toBeInTheDocument();
     expect(screen.getByText("Streaming")).toBeInTheDocument();

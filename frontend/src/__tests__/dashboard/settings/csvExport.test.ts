@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
+import { strFromU8, unzipSync } from "fflate";
 import {
   downloadCsv,
   sortTagsForExport,
@@ -6,11 +7,50 @@ import {
   tagsCsvRows,
   toCsv,
   transactionsCsvRows,
+  walletZipBlob,
 } from "../../../dashboard/settings/csvExport";
 import type { Subscription, Tag, Transaction } from "../../../types/domain";
 
 const tag = (name: string, parentName?: string): Tag =>
   ({ name, icon: "tag", colorHex: "#111111", parentName }) as Tag;
+
+describe("walletZipBlob", () => {
+  it("returns null when there is nothing to export", async () => {
+    expect(
+      await walletZipBlob("W", {
+        transactions: [],
+        subscriptions: [],
+        tags: [],
+      }),
+    ).toBeNull();
+  });
+
+  it("zips only the non-empty CSV exports", async () => {
+    const tx = {
+      transactionDate: "2026-01-01",
+      name: "a",
+      tag: { name: "T" },
+      amount: 5,
+      type: "EXPENSE",
+    } as unknown as Transaction;
+    const blob = await walletZipBlob("W", {
+      transactions: [tx],
+      subscriptions: [],
+      tags: [tag("T")],
+    });
+    expect(blob).not.toBeNull();
+    expect(blob!.type).toBe("application/zip");
+
+    const files = unzipSync(new Uint8Array(await blob!.arrayBuffer()));
+    expect(Object.keys(files).sort()).toEqual([
+      "W_tags.csv",
+      "W_transactions.csv",
+    ]);
+    expect(strFromU8(files["W_transactions.csv"])).toBe(
+      toCsv(transactionsCsvRows([tx])),
+    );
+  });
+});
 
 describe("toCsv", () => {
   it("quotes every cell, doubles inner quotes, joins rows with LF", () => {

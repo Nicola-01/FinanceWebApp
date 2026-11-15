@@ -43,15 +43,19 @@ export const ComingUpColumn: React.FC<ComingUpColumnProps> = ({
                 <div className="truncate font-semibold text-app-text">
                   {sub.name}
                 </div>
-                <div
-                  className={`tabular-nums text-[13px] ${sub.type === "INCOME" ? "text-app-income" : "text-app-muted"}`}
-                >
-                  {formatAmount(
-                    sub.type === "INCOME" ? sub.amount : -sub.amount,
-                    { signed: true },
-                  )}
-                  {symbol && ` ${symbol}`}
-                </div>
+                {sub.amountPending ? (
+                  <div className="text-[13px] text-app-muted">Reminder</div>
+                ) : (
+                  <div
+                    className={`tabular-nums text-[13px] ${sub.type === "INCOME" ? "text-app-income" : "text-app-muted"}`}
+                  >
+                    {formatAmount(
+                      sub.type === "INCOME" ? sub.amount : -sub.amount,
+                      { signed: true },
+                    )}
+                    {symbol && ` ${symbol}`}
+                  </div>
+                )}
               </div>
               <span
                 className={`text-[13px] tabular-nums ${soon ? "font-semibold text-app-warn" : "text-app-muted"}`}

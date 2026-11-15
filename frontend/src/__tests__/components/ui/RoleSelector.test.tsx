@@ -11,21 +11,27 @@ describe("RoleSelector v2", () => {
     localStorage.clear();
   });
 
-  it("marks the active role with the raised segment fill", () => {
+  it("marks the active role with the sliding highlight, not a segment fill", () => {
     render(<RoleSelector value="EDITOR" onChange={vi.fn()} />);
-    expect(screen.getByRole("button", { name: "Editor" }).className).toContain(
-      "bg-app-raised",
+    const highlight = document.querySelector(
+      '[data-slot="motion-highlight-indicator"]',
     );
-    expect(
-      screen.getByRole("button", { name: "Viewer" }).className,
-    ).not.toContain("bg-app-raised");
+    expect(highlight).toHaveClass("bg-app-card");
+    expect(screen.getByRole("tab", { name: "Editor" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tab", { name: "Viewer" })).toHaveAttribute(
+      "aria-selected",
+      "false",
+    );
   });
 
   it("still switches the role on click", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(<RoleSelector value="VIEWER" onChange={onChange} />);
-    await user.click(screen.getByRole("button", { name: "Editor" }));
+    await user.click(screen.getByRole("tab", { name: "Editor" }));
     expect(onChange).toHaveBeenCalledWith("EDITOR");
   });
 });

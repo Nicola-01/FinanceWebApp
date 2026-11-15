@@ -5,6 +5,8 @@ import * as walletOps from "../../../api/walletOps";
 import { DeleteModalContext } from "../../../modals/common/DeleteModalContext";
 import type { Transaction } from "../../../types/domain";
 import { setUiVersion } from "../../../utils/uiVersion";
+import { triggerToast } from "../../../components/ui/ToastNotification";
+import { openRuleDraft } from "../../../dashboard/settings/bankRuleDraft";
 
 const ctx = vi.hoisted(() => ({
   role: "EDITOR",
@@ -27,6 +29,9 @@ vi.mock("../../../api/walletOps", () => ({
 }));
 vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
+}));
+vi.mock("../../../dashboard/settings/bankRuleDraft.ts", () => ({
+  openRuleDraft: vi.fn(),
 }));
 vi.mock("../../../modals/transaction/TagPicker.tsx", () => ({
   TagPicker: ({
@@ -126,6 +131,20 @@ describe("ToCategoriseActions", () => {
       expect.objectContaining({ tag: "Food", name: "OpenAI" }),
       null,
     );
+  });
+
+  it("confirms the filing with a toast that opens the rule draft", async () => {
+    renderActions();
+    fireEvent.click(screen.getByText("pick-tag"));
+    await waitFor(() => expect(ctx.fetchData).toHaveBeenCalled());
+    expect(triggerToast).toHaveBeenCalledWith(
+      "Filed under Food",
+      true,
+      expect.objectContaining({ label: "Create rule" }),
+    );
+    const action = vi.mocked(triggerToast).mock.calls[0][2]!;
+    action.onClick();
+    expect(openRuleDraft).toHaveBeenCalledWith(tx, "Food");
   });
 
   it("deletes through the confirm modal", async () => {

@@ -8,10 +8,12 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +44,71 @@ public class ReportAggregator {
         balanceUpTo(settled, period.atEndOfMonth()),
         topCategories(inPeriod, Transaction.Type.EXPENSE, totals.expense(), Map.of()),
         topCategories(inPeriod, Transaction.Type.INCOME, totals.income(), Map.of()),
-        inPeriod.size());
+        inPeriod.size(),
+        charts(
+            inPeriod,
+            period.atDay(1),
+            period.atEndOfMonth(),
+            totals,
+            inPrevious.isEmpty() ? null : totals(inPrevious),
+            List.of(period)));
+  }
+
+  // ── charts ──────────────────────────────────────────────────────────────
+
+  static ReportCharts charts(
+      List<Transaction> inPeriod,
+      LocalDate from,
+      LocalDate to,
+      PeriodTotals totals,
+      PeriodTotals previousTotals,
+      List<YearMonth> months) {
+    Map<LocalDate, BigDecimal> daily = new TreeMap<>();
+    BigDecimal[] weekdaySum = new BigDecimal[7];
+    Arrays.fill(weekdaySum, BigDecimal.ZERO);
+    Map<YearMonth, BigDecimal[]> split = new LinkedHashMap<>();
+    for (YearMonth ym : months) split.put(ym, new BigDecimal[] {BigDecimal.ZERO, BigDecimal.ZERO});
+    for (Transaction t : inPeriod) {
+      if (t.getType() != Transaction.Type.EXPENSE) continue;
+      LocalDate d = t.getTransactionDate();
+      daily.merge(d, t.getAmount(), BigDecimal::add);
+      boolean fixed = t.getSubscription() != null;
+      if (!fixed) {
+        int i = d.getDayOfWeek().getValue() - 1;
+        weekdaySum[i] = weekdaySum[i].add(t.getAmount());
+      }
+      BigDecimal[] s = split.get(YearMonth.from(d));
+      if (s != null) s[fixed ? 0 : 1] = s[fixed ? 0 : 1].add(t.getAmount());
+    }
+    int[] occurrences = new int[7];
+    for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) {
+      occurrences[d.getDayOfWeek().getValue() - 1]++;
+    }
+    List<BigDecimal> weekdayAverages = new ArrayList<>(7);
+    for (int i = 0; i < 7; i++) {
+      weekdayAverages.add(
+          occurrences[i] == 0
+              ? BigDecimal.ZERO
+              : weekdaySum[i].divide(BigDecimal.valueOf(occurrences[i]), 2, RoundingMode.HALF_UP));
+    }
+    List<ReportCharts.FixedSplit> splits =
+        split.entrySet().stream()
+            .map(e -> new ReportCharts.FixedSplit(e.getKey(), e.getValue()[0], e.getValue()[1]))
+            .toList();
+    return new ReportCharts(
+        from,
+        to,
+        daily,
+        weekdayAverages,
+        splits,
+        savingsRate(totals),
+        previousTotals == null ? null : savingsRate(previousTotals));
+  }
+
+  /** Share of income kept, in %; null when there is no income (rate undefined). */
+  static Double savingsRate(PeriodTotals t) {
+    if (t.income().signum() <= 0) return null;
+    return percent(t.net(), t.income());
   }
 
   // ── shared helpers (package-private: reused by the yearly report) ─────────
@@ -177,7 +243,14 @@ public class ReportAggregator {
         topCategories(inYear, Transaction.Type.EXPENSE, totals.expense(), prevExpenseByCat),
         topCategories(inYear, Transaction.Type.INCOME, totals.income(), prevIncomeByCat),
         records(inYear, months, prevExpenseByCat, inPrevious.isEmpty()),
-        inYear.size());
+        inYear.size(),
+        charts(
+            inYear,
+            from,
+            to,
+            totals,
+            inPrevious.isEmpty() ? null : totals(inPrevious),
+            months.stream().map(MonthRow::month).toList()));
   }
 
   private static YearRecords records(

@@ -39,7 +39,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
       onClick={() => onDayClick(calendarDay)}
       className={`flex flex-col p-1 sm:p-2 cursor-pointer transition-all min-w-0 overflow-hidden ${
         v2
-          ? `rounded-[var(--r-sm)] ${
+          ? `aspect-square rounded-[var(--r-sm)] ${
               isCurrentMonth
                 ? `bg-app-card hover:bg-app-raised ${isToday ? "shadow-[var(--box-ring),inset_0_0_0_1.5px_var(--wallet)]" : "shadow-[var(--box-ring)]"}`
                 : "bg-transparent opacity-40"
@@ -67,8 +67,23 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({
         {format(calendarDay, "d")}
       </span>
 
+      {/* v2 phone: cells are too small for badges, show one dot per subscription */}
+      {v2 && visibleSubs.length > 0 && (
+        <div className="flex flex-wrap gap-0.5 sm:hidden" aria-hidden>
+          {visibleSubs.map((sub) => (
+            <span
+              key={sub.id}
+              className="size-1.5 rounded-full"
+              style={{ backgroundColor: sub.tag?.colorHex ?? color }}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Subscription badges — max 3, then +N */}
-      <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0 overflow-hidden">
+      <div
+        className={`flex-col gap-0.5 sm:gap-1 min-w-0 overflow-hidden ${v2 ? "hidden sm:flex" : "flex"}`}
+      >
         {visibleSubs.map((sub) => {
           const pastTx = sub.history?.find(
             (tx) => tx.transactionDate === format(calendarDay, "yyyy-MM-dd"),

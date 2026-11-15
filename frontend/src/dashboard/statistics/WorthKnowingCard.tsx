@@ -4,6 +4,8 @@ import type { Insight, InsightTone } from "./statisticsInsights.ts";
 
 interface WorthKnowingCardProps {
   insights: Insight[];
+  /** Render without the card shell + heading (the parent group card provides them). */
+  bare?: boolean;
 }
 
 const TONE_ICON: Record<InsightTone, { icon: string; color: string }> = {
@@ -15,18 +17,29 @@ const TONE_ICON: Record<InsightTone, { icon: string; color: string }> = {
 
 export const WorthKnowingCard: React.FC<WorthKnowingCardProps> = ({
   insights,
+  bare = false,
 }) => {
   if (insights.length === 0) return null;
 
   return (
-    <section className="bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4">
-      <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-        Worth knowing
-      </h3>
-      <p className="text-[13px] text-app-muted mt-0.5">
-        Computed from your transactions.
-      </p>
-      <ul className="mt-3">
+    <section
+      className={
+        bare
+          ? ""
+          : "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4"
+      }
+    >
+      {!bare && (
+        <>
+          <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
+            Worth knowing
+          </h3>
+          <p className="text-[13px] text-app-muted mt-0.5">
+            Computed from your transactions.
+          </p>
+        </>
+      )}
+      <ul className={bare ? "" : "mt-3"}>
         {insights.map((insight, index) => {
           const { icon, color } = TONE_ICON[insight.tone];
           return (

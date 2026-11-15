@@ -12,6 +12,7 @@ import { useDeleteModal } from "../../modals/common/DeleteModalContext";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { reviewTagName, suggestTagName } from "../wallet/toCategorize.ts";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
+import { openRuleDraft } from "../settings/bankRuleDraft.ts";
 
 /** Inline category picker + delete for a bank import still on the "To categorise" placeholder. */
 export const ToCategoriseActions: React.FC<{ transaction: Transaction }> = ({
@@ -25,7 +26,13 @@ export const ToCategoriseActions: React.FC<{ transaction: Transaction }> = ({
   const suggested = reviewTagName(tx, tags) || suggestTagName(tx, transactions);
 
   const changeTag = async (tagName: string) => {
-    if (await categoriseTransaction(wallet, tx, tagName)) fetchData();
+    if (await categoriseTransaction(wallet, tx, tagName)) {
+      triggerToast("Filed under " + tagName, true, {
+        label: "Create rule",
+        onClick: () => openRuleDraft(tx, tagName),
+      });
+      fetchData();
+    }
   };
 
   const remove = () =>

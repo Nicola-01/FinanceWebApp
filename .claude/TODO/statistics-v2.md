@@ -130,3 +130,4 @@ all-zero charts → "No data"; monotone curves. Open: Kept markers only show on 
 - [ ] Screenshots of the real tab, v2, dark + light, desktop + 390px phone, Demo Wallet and an
       empty wallet; compare with the mock; show Nicola; iterate.
 - [ ] Update this file + Phase 6b in `ui-redesign-v2.md`; `graphify update .`.
+- 2026-11-15: Fixed vs everyday removed from the page (Nicola) → report-charts.md.

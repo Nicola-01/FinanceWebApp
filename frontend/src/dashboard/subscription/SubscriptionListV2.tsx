@@ -5,9 +5,6 @@ import { groupSubscriptions } from "./subscriptionGroups";
 import { SubscriptionRowV2 } from "./SubscriptionRowV2";
 import { PastSubscriptionsSection } from "./PastSubscriptionsSection";
 
-/** Width cap for the v2 list column (and the summary above it). Change here only. */
-export const V2_LIST_MAX_WIDTH = "max-w-[880px]";
-
 /** Upcoming payments within this many days are "This month"; beyond, "Later". */
 const THIS_MONTH_DAYS = 31;
 
@@ -55,9 +52,7 @@ export const SubscriptionListV2: React.FC<SubscriptionListV2Props> = ({
     ));
 
   return (
-    <div
-      className={`mx-auto flex w-full ${V2_LIST_MAX_WIDTH} animate-[fadeIn_0.3s_ease-out] flex-col gap-8 pb-10`}
-    >
+    <div className="flex w-full animate-[fadeIn_0.3s_ease-out] flex-col gap-8 pb-10">
       {within7Days.length > 0 && (
         <Group title="Due now">{renderUpcoming(within7Days)}</Group>
       )}

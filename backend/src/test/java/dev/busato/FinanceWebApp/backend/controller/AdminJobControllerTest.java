@@ -30,6 +30,9 @@ class AdminJobControllerTest extends BaseWebMvcTest {
   @org.springframework.test.context.bean.override.mockito.MockitoBean
   private ScheduledJobService jobService;
 
+  @org.springframework.test.context.bean.override.mockito.MockitoBean
+  private dev.busato.FinanceWebApp.backend.report.ReportService reportService;
+
   private ScheduledJobDTO sampleDto() {
     return new ScheduledJobDTO(
         "backup",
@@ -112,5 +115,35 @@ class AdminJobControllerTest extends BaseWebMvcTest {
         .andExpect(jsonPath("$.key").value("backup"));
 
     verify(jobService).runNow(eq("backup"));
+  }
+
+  @Test
+  void sendTest_MonthlyReport_SendsToCallingAdmin() throws Exception {
+    when(reportService.sendTestMonthlyReport(any(), any())).thenReturn("sent 1");
+
+    mockMvc
+        .perform(post("/api/admin/jobs/{key}/test", "monthly-report"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value("sent 1"));
+
+    verify(reportService)
+        .sendTestMonthlyReport(any(), eq(java.time.YearMonth.now().minusMonths(1)));
+  }
+
+  @Test
+  void sendTest_YearlyReport_UsesLastYear() throws Exception {
+    when(reportService.sendTestYearlyReport(any(), org.mockito.ArgumentMatchers.anyInt()))
+        .thenReturn("sent 1");
+
+    mockMvc.perform(post("/api/admin/jobs/{key}/test", "yearly-report")).andExpect(status().isOk());
+
+    verify(reportService).sendTestYearlyReport(any(), eq(java.time.Year.now().getValue() - 1));
+  }
+
+  @Test
+  void sendTest_OtherJob_Returns400() throws Exception {
+    mockMvc
+        .perform(post("/api/admin/jobs/{key}/test", "backup"))
+        .andExpect(status().isBadRequest());
   }
 }

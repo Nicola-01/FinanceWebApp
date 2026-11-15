@@ -20,6 +20,7 @@ export function useJobSchedule(job: ScheduledJobDTO, onReload: () => void) {
   const [saving, setSaving] = useState(false);
   const [togglingEnabled, setTogglingEnabled] = useState(false);
   const [running, setRunning] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
 
   // Reset the draft whenever the server state changes (after save / reload).
   const serverSig = scheduleSig(job);
@@ -97,6 +98,21 @@ export function useJobSchedule(job: ScheduledJobDTO, onReload: () => void) {
     }
   };
 
+  /** Report jobs only: emails the last closed period to the calling admin. */
+  const handleSendTest = async () => {
+    setSendingTest(true);
+    try {
+      const resp = await api.post<{ message: string }>(
+        `/admin/jobs/${job.key}/test`,
+      );
+      triggerToast(`Test email: ${resp.data.message}`, true);
+    } catch (err: unknown) {
+      triggerToast(getApiErrorTitle(err, "Test send failed"), false);
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   const handleReset = () => {
     setFrequency(job.frequency);
     setHourOfDay(job.hourOfDay);
@@ -122,10 +138,12 @@ export function useJobSchedule(job: ScheduledJobDTO, onReload: () => void) {
     saving,
     togglingEnabled,
     running,
+    sendingTest,
     toggleDay,
     handleSave,
     handleToggleEnabled,
     handleRunNow,
+    handleSendTest,
     handleReset,
   };
 }

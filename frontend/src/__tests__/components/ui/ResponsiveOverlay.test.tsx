@@ -147,3 +147,51 @@ describe("ResponsiveOverlay — v2", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("ResponsiveOverlay — body flag for the mobile bottom bar", () => {
+  beforeEach(() => setDesktop(false));
+
+  it("sets data-overlay-open on body while open and removes it on close", () => {
+    const { rerender } = render(
+      <ResponsiveOverlay open={false} onClose={noop} title="Editor">
+        <p>Body</p>
+      </ResponsiveOverlay>,
+    );
+    expect(document.body).not.toHaveAttribute("data-overlay-open");
+
+    rerender(
+      <ResponsiveOverlay open onClose={noop} title="Editor">
+        <p>Body</p>
+      </ResponsiveOverlay>,
+    );
+    expect(document.body).toHaveAttribute("data-overlay-open");
+
+    rerender(
+      <ResponsiveOverlay open={false} onClose={noop} title="Editor">
+        <p>Body</p>
+      </ResponsiveOverlay>,
+    );
+    expect(document.body).not.toHaveAttribute("data-overlay-open");
+  });
+
+  it("keeps the flag while a nested overlay is still open", () => {
+    const tree = (innerOpen: boolean) => (
+      <>
+        <ResponsiveOverlay open onClose={noop} title="Outer">
+          <p>Outer body</p>
+        </ResponsiveOverlay>
+        <ResponsiveOverlay open={innerOpen} onClose={noop} title="Inner">
+          <p>Inner body</p>
+        </ResponsiveOverlay>
+      </>
+    );
+    const { rerender, unmount } = render(tree(true));
+    expect(document.body).toHaveAttribute("data-overlay-open");
+
+    rerender(tree(false));
+    expect(document.body).toHaveAttribute("data-overlay-open");
+
+    unmount();
+    expect(document.body).not.toHaveAttribute("data-overlay-open");
+  });
+});

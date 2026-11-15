@@ -27,7 +27,10 @@ describe("AppearanceSection", () => {
 
     await user.click(toggle);
 
-    expect(toggle).toHaveAttribute("aria-checked", "true");
+    // v2 renders a different element (the Base UI Switch), so re-query it.
+    expect(
+      screen.getByRole("switch", { name: "New interface (beta)" }),
+    ).toHaveAttribute("aria-checked", "true");
     expect(localStorage.getItem("ui-version")).toBe("v2");
     expect(document.documentElement.dataset.ui).toBe("v2");
   });

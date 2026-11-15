@@ -19,13 +19,15 @@ import {
   type ProjectionRow,
 } from "./balanceProjection.ts";
 import { compactAmount } from "./kitChartData.ts";
-import { KitLegend } from "./KitChartShared.tsx";
+import { InfoTip } from "../../components/ui/InfoTip.tsx";
 import { useChartPalette } from "./useChartPalette.ts";
 
 interface BalanceProjectionChartProps {
   /** End-of-month balances, oldest first; `date` is the 1st of the month. */
   history: { date: Date; balance: number }[];
   currencySymbol: string;
+  /** Render without the card shell + heading and sub-line (the parent group card provides them); the controls stay. */
+  bare?: boolean;
 }
 
 const HORIZON_OPTIONS: { value: ProjectionHorizon; label: string }[] = [
@@ -44,6 +46,7 @@ const monthYear = (d: Date) =>
 export const BalanceProjectionChart = ({
   history,
   currencySymbol,
+  bare = false,
 }: BalanceProjectionChartProps) => {
   const { warn } = useChartPalette();
   const [horizon, setHorizon] = useState<ProjectionHorizon>("1y");
@@ -92,37 +95,73 @@ export const BalanceProjectionChart = ({
     ];
   };
 
+  const infoTip = (
+    <InfoTip label="How the projection and range work">
+      <p>
+        <strong className="font-semibold">Projection:</strong> today&apos;s
+        balance plus your typical month for every month ahead. Typical = the
+        median net of the last 12 months, so a one-off month doesn&apos;t skew
+        it.
+      </p>
+      <p className="mt-2">
+        <strong className="font-semibold">Likely range:</strong> how much your
+        months usually swing around that typical value. It widens the further
+        ahead you look, and 8 in 10 outcomes would land between its low and
+        high.
+      </p>
+    </InfoTip>
+  );
+  const horizonSelector = (
+    <Selector
+      options={HORIZON_OPTIONS}
+      value={horizon}
+      onChange={setHorizon}
+      size="sm"
+      fullWidth={false}
+    />
+  );
+
   return (
-    <div className="bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-            {"Where you're heading"}
-          </h3>
-          <p className="text-[13px] text-app-muted mt-0.5">
-            At your usual pace of{" "}
-            <strong className="font-semibold text-app-text">
-              {signedPace}
-            </strong>{" "}
-            a month you&apos;d have about{" "}
-            <strong className="font-semibold text-app-text">
-              {whole(projection.end)}
-            </strong>{" "}
-            by{" "}
-            <strong className="font-semibold text-app-text">
-              {monthYear(projection.endDate)}
-            </strong>{" "}
-            (likely {whole(projection.endLow)} – {whole(projection.endHigh)}).
-          </p>
+    <div
+      className={
+        bare
+          ? ""
+          : "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4"
+      }
+    >
+      {bare ? (
+        <div className="flex items-center justify-end gap-1 flex-wrap">
+          {infoTip}
+          {horizonSelector}
         </div>
-        <Selector
-          options={HORIZON_OPTIONS}
-          value={horizon}
-          onChange={setHorizon}
-          size="sm"
-          fullWidth={false}
-        />
-      </div>
+      ) : (
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <div className="flex items-center gap-1">
+              <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
+                {"Where you're heading"}
+              </h3>
+              {infoTip}
+            </div>
+            <p className="text-[13px] text-app-muted mt-0.5">
+              At your usual pace of{" "}
+              <strong className="font-semibold text-app-text">
+                {signedPace}
+              </strong>{" "}
+              a month you&apos;d have about{" "}
+              <strong className="font-semibold text-app-text">
+                {whole(projection.end)}
+              </strong>{" "}
+              by{" "}
+              <strong className="font-semibold text-app-text">
+                {monthYear(projection.endDate)}
+              </strong>{" "}
+              (likely {whole(projection.endLow)} – {whole(projection.endHigh)}).
+            </p>
+          </div>
+          {horizonSelector}
+        </div>
+      )}
 
       <LineChart
         data={chartRows}
@@ -168,18 +207,6 @@ export const BalanceProjectionChart = ({
           )}
         />
       </LineChart>
-
-      <KitLegend
-        series={[
-          { key: "balance", label: "Balance", color: warn },
-          { key: "projected", label: "Projection", color: warn },
-          { key: "range", label: "Likely range", color: warn },
-        ]}
-      />
-      <p className="text-[12px] text-app-faint mt-3">
-        Based on your typical month over the last 12 (median), so one-off months
-        don&apos;t skew it. The range is where 8 in 10 outcomes would land.
-      </p>
     </div>
   );
 };

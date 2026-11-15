@@ -6,20 +6,24 @@ import {
   faUpload,
   faFileCsv,
   faCircleInfo,
+  faFileZipper,
 } from "@fortawesome/free-solid-svg-icons";
 import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { SettingsBox } from "./SettingsBox.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { BankAccountsSection } from "./BankAccountsSection.tsx";
 import { BankRulesSection } from "./BankRulesSection.tsx";
+import { BankEntryCard } from "./bank/BankEntryCard.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { CsvFormatModal } from "./CsvFormatModal.tsx";
 import { ImportReviewModal } from "../../modals/common/ImportReviewModal.tsx";
 import {
+  downloadBlob,
   downloadCsv,
   subscriptionsCsvRows,
   tagsCsvRows,
   transactionsCsvRows,
+  walletZipBlob,
 } from "./csvExport.ts";
 import { useCsvImport } from "./useCsvImport.ts";
 
@@ -36,6 +40,24 @@ export const DataTab: React.FC = () => {
     requestImport,
     handleFileSelected,
   } = useCsvImport();
+
+  const handleExportAll = async () => {
+    try {
+      const blob = await walletZipBlob(wallet.name, {
+        transactions,
+        subscriptions,
+        tags,
+      });
+      if (!blob) {
+        triggerToast("Nothing to export", false);
+        return;
+      }
+      downloadBlob(blob, `${wallet.name}_export.zip`);
+      triggerToast("Wallet exported", true);
+    } catch {
+      triggerToast("Export failed", false);
+    }
+  };
 
   const handleExportTransactions = () => {
     if (!transactions || transactions.length === 0) {
@@ -73,10 +95,14 @@ export const DataTab: React.FC = () => {
     triggerToast("Subscriptions exported successfully", true);
   };
 
-  // ui-v2-switch: export/import sit flat in the box, sentence-case headers.
+  // ui-v2-switch: bordered tiles like v1 (no fill), sentence-case headers.
   const tileClass = isV2
-    ? "flex flex-col gap-3"
+    ? "flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border p-4"
     : "flex flex-col gap-3 rounded-[var(--r-input)] border border-app-border bg-app-surface p-4";
+  // ui-v2-switch: v2 secondary is transparent in dark mode; force a raised fill.
+  const dataBtnClass = isV2
+    ? "!bg-app-raised !text-app-text hover:brightness-110"
+    : "";
   const headerClass = isV2
     ? "text-sm font-semibold text-app-text"
     : "text-sm font-bold uppercase tracking-wider text-app-text";
@@ -86,8 +112,14 @@ export const DataTab: React.FC = () => {
 
   return (
     <>
-      <BankAccountsSection />
-      <BankRulesSection />
+      {isV2 ? ( // ui-v2-switch
+        <BankEntryCard />
+      ) : (
+        <>
+          <BankAccountsSection />
+          <BankRulesSection />
+        </>
+      )}
       <SettingsBox
         title={isV2 ? "Data" : "Data Management"}
         description="Export your data to CSV, or import from a file"
@@ -159,11 +191,22 @@ export const DataTab: React.FC = () => {
               <span className={headerClass}>Export</span>
             </div>
             <p className={hintClass}>
-              Download your data as CSV for backups or external analysis.
+              Download everything as one .zip, or a single CSV for backups or
+              external analysis.
             </p>
             <div className="mt-auto flex flex-col gap-2">
               <Button
+                variant="primary"
+                accentColor={isV2 ? undefined : wallet.color}
+                fullWidth
+                onClick={handleExportAll}
+              >
+                <FontAwesomeIcon icon={faFileZipper} />
+                Download all (.zip)
+              </Button>
+              <Button
                 variant="secondary"
+                className={dataBtnClass}
                 fullWidth
                 onClick={handleExportTransactions}
               >
@@ -172,13 +215,19 @@ export const DataTab: React.FC = () => {
               </Button>
               <Button
                 variant="secondary"
+                className={dataBtnClass}
                 fullWidth
                 onClick={handleExportSubscriptions}
               >
                 <FontAwesomeIcon icon={faDownload} />
                 Subscriptions (.csv)
               </Button>
-              <Button variant="secondary" fullWidth onClick={handleExportTags}>
+              <Button
+                variant="secondary"
+                className={dataBtnClass}
+                fullWidth
+                onClick={handleExportTags}
+              >
                 <FontAwesomeIcon icon={faDownload} />
                 Tags (.csv)
               </Button>
@@ -203,6 +252,7 @@ export const DataTab: React.FC = () => {
             <div className="mt-auto flex flex-col gap-2">
               <Button
                 variant="secondary"
+                className={dataBtnClass}
                 fullWidth
                 onClick={() => requestImport("transactions")}
               >
@@ -211,6 +261,7 @@ export const DataTab: React.FC = () => {
               </Button>
               <Button
                 variant="secondary"
+                className={dataBtnClass}
                 fullWidth
                 onClick={() => requestImport("subscriptions")}
               >
@@ -219,6 +270,7 @@ export const DataTab: React.FC = () => {
               </Button>
               <Button
                 variant="secondary"
+                className={dataBtnClass}
                 fullWidth
                 onClick={() => requestImport("tags")}
               >

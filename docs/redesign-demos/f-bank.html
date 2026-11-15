@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bank accounts + rules — where it lives and how it scales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141312; --card: #1d1c1a; --raised: #262421; --border: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --wallet: #22c55e; --on-wallet: #0d1f12; --income: #7fcf95; --danger: #ff8a7a; --warn: #f0b85a;
+    --r-card: 18px; --r-input: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0c0b0b; color: var(--text); font-family: "Instrument Sans", system-ui, sans-serif; padding: 28px 24px 80px; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  h1.page { font: 600 22px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 75ch; line-height: 1.5; }
+  h2.sec { font: 600 18px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; margin: 48px 0 6px; }
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 20px; }
+  figure { flex: none; }
+  figcaption { margin-top: 14px; max-width: 375px; }
+  figcaption b { font-family: "Bricolage Grotesque", sans-serif; font-size: 16px; font-weight: 600; }
+  figcaption p { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 4px; }
+  .rec { display: inline-block; font-size: 11px; font-weight: 600; color: var(--on-wallet); background: var(--wallet); border-radius: 99px; padding: 2px 8px; margin-left: 6px; vertical-align: 2px; }
+
+  /* Frames */
+  .phone { position: relative; width: 375px; height: 760px; background: var(--bg); border-radius: 36px; overflow: hidden; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .5); display: flex; flex-direction: column; }
+  .status { height: 40px; flex: none; }
+  .scroll { flex: 1; overflow-y: auto; padding: 0 16px 24px; }
+  .desk { width: 1080px; height: 640px; background: var(--bg); border-radius: 14px; overflow: hidden; position: relative; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .5); }
+  .desk .page-in { padding: 28px 40px; opacity: .35; }
+  .scrim { position: absolute; inset: 0; background: rgb(0 0 0 / .5); }
+  .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: 520px; background: var(--card); border-radius: var(--r-card) 0 0 var(--r-card); display: flex; flex-direction: column; box-shadow: 0 8px 24px rgb(0 0 0 / .35); }
+
+  /* Overlay header */
+  .ohdr { display: flex; align-items: center; gap: 10px; height: 56px; padding: 0 16px; border-bottom: 1px solid var(--border); flex: none; }
+  .ohdr .bar { width: 6px; height: 24px; border-radius: 9px; background: var(--wallet); }
+  .ohdr h3 { font: 600 20px/1 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; flex: 1; }
+  .ohdr .x, .ohdr .back { width: 34px; height: 34px; display: grid; place-items: center; color: var(--muted); font-size: 18px; border-radius: 10px; }
+  .obody { flex: 1; overflow-y: auto; padding: 16px; }
+
+  /* Common bits */
+  .card { background: var(--card); border-radius: var(--r-card); }
+  .h { display: flex; align-items: center; gap: 8px; margin: 4px 2px 10px; }
+  .h .t { font: 600 16px/1 "Bricolage Grotesque", sans-serif; letter-spacing: -0.01em; }
+  .h .n { color: var(--faint); font-size: 13px; }
+  .h .sp { flex: 1; }
+  .btn { font: inherit; font-size: 13px; font-weight: 600; border: 0; border-radius: 10px; padding: 7px 11px; background: var(--raised); color: var(--text); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn.pri { background: var(--wallet); color: var(--on-wallet); }
+  .btn.ghost { background: none; color: var(--muted); }
+  .btn .c { background: rgb(0 0 0 / .18); border-radius: 99px; padding: 0 6px; font-size: 12px; }
+  .list { background: var(--raised); border-radius: 14px; overflow: hidden; }
+  .in-card .list { background: var(--bg); }
+  .li { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 8px 12px; }
+  .li + .li { border-top: 1px solid var(--border); }
+  .li .name { font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .li .sub { color: var(--muted); font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .li .grow { flex: 1; min-width: 0; }
+  .li .more { color: var(--faint); font-size: 18px; width: 28px; text-align: center; flex: none; }
+  .pill { font-size: 11px; font-weight: 600; border-radius: 99px; padding: 2px 8px; white-space: nowrap; flex: none; }
+  .ok { color: var(--income); background: rgb(127 207 149 / .14); }
+  .warnp { color: var(--warn); background: rgb(240 184 90 / .14); }
+  .pat { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--text); background: rgb(255 255 255 / .06); border-radius: 6px; padding: 2px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: inline-block; vertical-align: middle; }
+  .arrow { color: var(--faint); flex: none; }
+  .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 600; border-radius: 99px; padding: 2px 8px; white-space: nowrap; flex: none; }
+  .tag i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; font-style: normal; }
+  .meta { display: inline-flex; gap: 4px; color: var(--faint); font-size: 11px; flex: none; }
+  .meta span { border: 1px solid var(--border); border-radius: 6px; padding: 0 5px; }
+  .search { display: flex; align-items: center; gap: 8px; height: 40px; border-radius: 12px; background: var(--raised); padding: 0 12px; color: var(--faint); font-size: 14px; margin-bottom: 10px; }
+  .in-card .search { background: var(--bg); }
+  .grp { color: var(--muted); font-size: 12px; font-weight: 600; margin: 14px 4px 6px; display: flex; gap: 6px; align-items: center; }
+  .note { color: var(--faint); font-size: 12px; margin: 10px 4px 0; line-height: 1.5; }
+
+  /* Settings entry card (A) */
+  .entry { display: flex; gap: 14px; align-items: center; padding: 18px 20px; }
+  .entry .ic { width: 40px; height: 40px; border-radius: 11px; background: rgb(34 197 94 / .16); color: var(--wallet); display: grid; place-items: center; font-size: 18px; flex: none; }
+  .entry .t { font: 600 17px/1.2 "Bricolage Grotesque", sans-serif; }
+  .entry .s { color: var(--muted); font-size: 13px; margin-top: 3px; }
+  .entry .chev { color: var(--faint); font-size: 20px; }
+  .settings-mock { display: flex; flex-direction: column; gap: 12px; }
+  .ghostbox { height: 120px; border-radius: var(--r-card); background: var(--card); opacity: .45; padding: 18px 20px; color: var(--muted); font-size: 14px; }
+  .hl { box-shadow: 0 0 0 2px var(--wallet); }
+
+  /* Bottom dock + menu (B) */
+  .dock { flex: none; height: 64px; background: rgb(29 28 26 / .95); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(5, 1fr); font-size: 10.5px; color: var(--muted); text-align: center; align-items: center; position: relative; }
+  .dock span b { display: block; font-size: 15px; margin-bottom: 2px; }
+  .dock .on { color: var(--text); }
+  .menu { position: absolute; right: 12px; bottom: 72px; width: 200px; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-card); padding: 6px; box-shadow: 0 16px 40px -12px rgb(0 0 0 / .6); }
+  .menu div { padding: 12px; border-radius: 12px; font-size: 15px; display: flex; gap: 12px; align-items: center; }
+  .menu div.sel { background: var(--card); }
+  .menu div.sel b { color: var(--wallet); }
+
+  /* Sheet (C) */
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--card); border-radius: 24px 24px 0 0; padding: 10px 16px 24px; box-shadow: 0 -10px 30px rgb(0 0 0 / .5); }
+  .grab { width: 40px; height: 4px; border-radius: 9px; background: var(--border); margin: 0 auto 14px; }
+  .field { margin-top: 12px; }
+  .field label { display: block; color: var(--muted); font-size: 12.5px; margin-bottom: 6px; }
+  .field .v { background: var(--raised); border-radius: 12px; height: 44px; display: flex; align-items: center; padding: 0 12px; gap: 8px; font-size: 14.5px; }
+  .field .v .mark { background: rgb(240 184 90 / .25); border-radius: 4px; padding: 0 3px; }
+  .cta { width: 100%; height: 50px; border: 0; border-radius: 14px; background: var(--wallet); color: var(--on-wallet); font: inherit; font-size: 15.5px; font-weight: 600; margin-top: 16px; }
+  .tx { display: flex; align-items: center; gap: 12px; padding: 12px; }
+  .tx .ic { width: 40px; height: 40px; border-radius: 11px; background: var(--raised); display: grid; place-items: center; color: var(--warn); }
+  .tx .a { font-family: "JetBrains Mono", monospace; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<h1 class="page">Bank accounts and rules: where they live, and how the list scales</h1>
+<p class="lead">Same data as today (2 accounts, 6 rules). Each rule row is a single line: name, then the bank text it matches, then the category. Rename, regex and "used by a subscription" become small marks at the end of the row. Edit and delete move into the editor that opens on tap. Account actions move into a ⋯ menu, so Unlink is no longer the most visible button.</p>
+
+<!-- ============ A ============ -->
+<h2 class="sec">A. A small card in Settings that opens a Bank screen <span class="rec">recommended</span></h2>
+<p class="lead">Settings stays short. The card opens the shared <code>ResponsiveOverlay</code> shell: a side drawer on desktop, full screen on a phone. No new kind of window.</p>
+
+<div class="row">
+  <figure>
+    <div class="desk">
+      <div class="page-in">
+        <div class="settings-mock" style="max-width: 880px">
+          <div class="ghostbox">General</div>
+          <div class="card entry hl"><div class="ic">⌂</div><div style="flex:1"><div class="t">Bank</div><div class="s">2 accounts · synced 14 min ago · 6 rules · 3 to categorise</div></div><div class="chev">›</div></div>
+          <div class="ghostbox">Data</div>
+        </div>
+      </div>
+      <div class="scrim"></div>
+      <div class="drawer">
+        <div class="ohdr"><span class="bar"></span><h3>Bank</h3><span class="x">×</span></div>
+        <div class="obody">
+          <div class="h"><span class="t">Accounts</span><span class="sp"></span><button class="btn ghost">+ Link account</button></div>
+          <div class="list">
+            <div class="li"><div class="grow"><div class="name">Revolut</div><div class="sub"><span class="mono">IT••9923</span> · synced 14 min ago · consent until 28/04/2027</div></div><span class="pill ok">Active</span><span class="more">⋯</span></div>
+            <div class="li"><div class="grow"><div class="name">UniCredit</div><div class="sub"><span class="mono">IT••1313</span> · synced 14 min ago · consent until 28/04/2027</div></div><span class="pill ok">Active</span><span class="more">⋯</span></div>
+          </div>
+
+          <div class="h" style="margin-top: 22px"><span class="t">Rules</span><span class="n">6</span><span class="sp"></span><button class="btn">⚡ Apply <span class="c">3</span></button><button class="btn pri">+ Add rule</button></div>
+          <div class="search">⌕ Search by name, bank text or category</div>
+          <div class="list" id="rules-desk"></div>
+          <p class="note">Tap a rule to edit or delete it. "Apply" runs every rule on the 3 transactions still to categorise.</p>
+        </div>
+      </div>
+    </div>
+    <figcaption><b>Desktop: drawer over Settings</b><p>The drawer is 520px wide, so a rule fits on one line. Search, Add and Apply sit at the top, where they stay reachable with 50 rules.</p></figcaption>
+  </figure>
+</div>
+
+<div class="row">
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="scroll">
+        <div class="settings-mock" style="padding-top: 8px">
+          <div class="ghostbox" style="height: 150px">General</div>
+          <div class="card entry hl"><div class="ic">⌂</div><div style="flex:1;min-width:0"><div class="t">Bank</div><div class="s">2 accounts · 6 rules · 3 to categorise</div></div><div class="chev">›</div></div>
+          <div class="ghostbox">Members</div>
+          <div class="ghostbox">Data</div>
+        </div>
+      </div>
+    </div>
+    <figcaption><b>Phone: Settings with the Bank card</b><p>One line of status instead of two long sections. The amber "3 to categorise" makes pending work visible from here.</p></figcaption>
+  </figure>
+
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="ohdr"><span class="back">‹</span><span class="bar"></span><h3>Bank</h3></div>
+      <div class="obody">
+        <div class="h"><span class="t">Accounts</span><span class="sp"></span><button class="btn ghost">+ Link</button></div>
+        <div class="list">
+          <div class="li"><div class="grow"><div class="name">Revolut</div><div class="sub"><span class="mono">••9923</span> · 14 min ago</div></div><span class="pill ok">Active</span><span class="more">⋯</span></div>
+          <div class="li"><div class="grow"><div class="name">UniCredit</div><div class="sub"><span class="mono">••1313</span> · 14 min ago</div></div><span class="pill ok">Active</span><span class="more">⋯</span></div>
+        </div>
+        <div class="h" style="margin-top: 22px"><span class="t">Rules</span><span class="n">6</span><span class="sp"></span><button class="btn">⚡ <span class="c">3</span></button><button class="btn pri">+ Add</button></div>
+        <div class="search">⌕ Search rules</div>
+        <div class="list" id="rules-phone"></div>
+      </div>
+    </div>
+    <figcaption><b>Phone: the Bank screen</b><p>On a phone a rule row has two lines: name and category on top, the bank text underneath. Each row is about half the height it is today.</p></figcaption>
+  </figure>
+
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="ohdr"><span class="back">‹</span><span class="bar"></span><h3>Bank</h3></div>
+      <div class="obody" style="opacity:.35">
+        <div class="h"><span class="t">Accounts</span></div>
+        <div class="list">
+          <div class="li"><div class="grow"><div class="name">Revolut</div><div class="sub">••9923 · 14 min ago</div></div><span class="pill ok">Active</span><span class="more">⋯</span></div>
+          <div class="li"><div class="grow"><div class="name">UniCredit</div><div class="sub">••1313 · 14 min ago</div></div><span class="pill ok">Active</span><span class="more">⋯</span></div>
+        </div>
+      </div>
+      <div class="menu" style="top: 160px; bottom: auto; right: 22px; width: 220px">
+        <div>↻ Sync now</div>
+        <div>⟳ Renew consent</div>
+        <div style="color: var(--danger)">⊘ Unlink…</div>
+      </div>
+    </div>
+    <figcaption><b>Account ⋯ menu</b><p>Sync, Renew and Unlink move into the menu. Unlink is red and asks for confirmation, but it is no longer the loudest button on the page.</p></figcaption>
+  </figure>
+</div>
+
+<!-- ============ scale ============ -->
+<h2 class="sec">With many rules: search, or group by category</h2>
+<p class="lead">Grouping only turns on past a threshold, for example 15 rules. With 6 rules it isn't worth it. Searching narrows the list as you type and matches the name, the bank text and the category.</p>
+<div class="row">
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="ohdr"><span class="back">‹</span><span class="bar"></span><h3>Bank</h3></div>
+      <div class="obody">
+        <div class="h"><span class="t">Rules</span><span class="n">42</span><span class="sp"></span><button class="btn">⚡ <span class="c">3</span></button><button class="btn pri">+ Add</button></div>
+        <div class="search">⌕ Search rules</div>
+        <div id="groups"></div>
+      </div>
+    </div>
+    <figcaption><b>Grouped by category (42 rules)</b><p>Groups follow the category order, with the count next to each name. Rules with no category (only a rename) go last.</p></figcaption>
+  </figure>
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="ohdr"><span class="back">‹</span><span class="bar"></span><h3>Bank</h3></div>
+      <div class="obody">
+        <div class="h"><span class="t">Rules</span><span class="n">2 of 42</span><span class="sp"></span><button class="btn pri">+ Add</button></div>
+        <div class="search" style="color: var(--text); box-shadow: 0 0 0 2px rgb(34 197 94 / .4)">⌕ unipol</div>
+        <div class="list" id="search-res"></div>
+        <p class="note">No match? "+ Add" opens a new rule with "unipol" already filled in.</p>
+      </div>
+    </div>
+    <figcaption><b>Search</b><p>The search matches the name, the bank text and the category.</p></figcaption>
+  </figure>
+</div>
+
+<!-- ============ B ============ -->
+<h2 class="sec">B. Bank as its own section of the wallet</h2>
+<p class="lead">Same content as the Bank screen in A, but it opens from the More menu on a phone (and as a seventh top tab on desktop). It only shows when Open Banking is on. It is easier to find, but the tab bar gets more crowded.</p>
+<div class="row">
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="scroll" style="opacity:.35"><div class="ghostbox" style="height:180px;margin-top:8px">Net card</div><div class="ghostbox" style="margin-top:12px;height:300px">Transactions</div></div>
+      <div class="menu">
+        <div>▤ Statistics</div>
+        <div class="sel"><b>⌂</b> Bank <span class="pill warnp" style="margin-left:auto">3</span></div>
+        <div>⚙ Settings</div>
+      </div>
+      <div class="dock"><span><b>▤</b>Transactions</span><span><b>▦</b>Subscriptions</span><span><b>◔</b>Categories</span><span><b>◎</b>Budget</span><span class="on"><b>⋯</b>More</span></div>
+    </div>
+    <figcaption><b>Phone: Bank in the More menu</b><p>The badge shows how many transactions are left to categorise, so it doubles as a reminder.</p></figcaption>
+  </figure>
+</div>
+
+<!-- ============ C ============ -->
+<h2 class="sec">C. Add on top of A or B: "Create rule" from a transaction to categorise</h2>
+<p class="lead">You pick a category for an imported transaction, then one tap saves it as a rule. The editor opens pre-filled with the bank text and the category you just chose, and shows how many other pending transactions it would match.</p>
+<div class="row">
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="scroll" style="opacity:.35">
+        <div class="card tx" style="margin-top:8px"><div class="ic">?</div><div style="flex:1"><div style="font-weight:600">UNIPOLTECH SPA UNIPOLMOVE</div><div style="color:var(--muted);font-size:12.5px">To categorise · 12 Nov</div></div><div class="a">−4,40 €</div></div>
+      </div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div style="font: 600 18px/1.2 'Bricolage Grotesque', sans-serif">Create a rule</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:4px">From "UNIPOLTECH SPA UNIPOLMOVE", −4,40 €</div>
+        <div class="field"><label>When the bank text contains</label><div class="v mono" style="font-size:13px"><span class="mark">UNIPOLMOVE</span></div></div>
+        <div class="field"><label>Set the category</label><div class="v"><span class="tag" style="color:#9a958c;background:rgb(154 149 140/.16)"><i></i>Autostrada</span></div></div>
+        <div class="field"><label>Rename to (optional)</label><div class="v" style="color:var(--faint)">Unipolmove</div></div>
+        <p class="note" style="margin-left:0">Also matches 2 other transactions to categorise.</p>
+        <button class="cta">Save rule and apply to 3</button>
+      </div>
+    </div>
+    <figcaption><b>Phone: rule from an import</b><p>The suggested text is the most specific word in the bank description. You can edit it before saving.</p></figcaption>
+  </figure>
+</div>
+
+<script>
+const RULES = [
+  { name: "Finanziamento auto", pat: "STELLANTIS FINANCIAL SERVICES ITALIA", tag: ["Finanziamento", "#9a958c"], used: true },
+  { name: "Iliad ftth", pat: "Iliad", tag: ["Iliad FTTH", "#22c55e"], rename: true, used: true },
+  { name: "Investimento Unicredit", pat: "RATA PAC FONDO", tag: ["Unicredit", "#22b8cf"], used: true },
+  { name: "Stipendio", pat: "Reply", tag: ["Stipendio", "#22c55e"], used: true },
+  { name: "Unipolmove", pat: "UNIPOLTECH .* UNIPOLMOVE", tag: ["Autostrada", "#9a958c"], regex: true },
+  { name: "Zurich", pat: "Zurich", tag: ["Fondo Pensione", "#22b8cf"], used: true },
+];
+const tagHtml = ([n, c]) => `<span class="tag" style="color:${c};background:color-mix(in srgb, ${c} 16%, transparent)"><i></i>${n}</span>`;
+const metaHtml = (r) => {
+  const m = [r.rename && '<span title="Renames">✎</span>', r.regex && '<span title="Regex">.*</span>', r.used && '<span title="Used by a subscription">↻</span>'].filter(Boolean);
+  return m.length ? `<span class="meta">${m.join("")}</span>` : "";
+};
+// Desktop: one line per rule.
+document.getElementById("rules-desk").innerHTML = RULES.map((r) => `
+  <div class="li">
+    <div class="name" style="width:150px;flex:none">${r.name}</div>
+    <div class="grow"><span class="pat">${r.pat}</span></div>
+    ${metaHtml(r)}<span class="arrow">→</span>${tagHtml(r.tag)}
+  </div>`).join("");
+// Phone: two lines (name + tag, bank text + marks).
+const phoneRow = (r) => `
+  <div class="li">
+    <div class="grow">
+      <div style="display:flex;gap:8px;align-items:center"><div class="name" style="flex:1;min-width:0">${r.name}</div>${tagHtml(r.tag)}</div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:4px"><span class="pat" style="flex:0 1 auto;min-width:0">${r.pat}</span>${metaHtml(r)}</div>
+    </div>
+  </div>`;
+document.getElementById("rules-phone").innerHTML = RULES.map(phoneRow).join("");
+document.getElementById("search-res").innerHTML = [
+  RULES[4],
+  { name: "Unipol assicurazione", pat: "UNIPOLSAI", tag: ["Insurance", "#e8590c"] },
+].map(phoneRow).join("");
+// Grouped (fake 42 rules).
+const G = [
+  ["Autostrada", "#9a958c", [RULES[4], { name: "Telepass", pat: "TELEPASS", tag: ["Autostrada", "#9a958c"] }, { name: "Autostrade", pat: "AUTOSTRADE PER L'ITALIA", tag: ["Autostrada", "#9a958c"] }], 3],
+  ["Groceries", "#f59f00", [{ name: "Esselunga", pat: "ESSELUNGA", tag: ["Groceries", "#f59f00"] }, { name: "Lidl", pat: "LIDL", tag: ["Groceries", "#f59f00"] }], 9],
+  ["Stipendio", "#22c55e", [RULES[3]], 1],
+];
+document.getElementById("groups").innerHTML = G.map(([n, c, rows, count]) => `
+  <div class="grp"><span class="tag" style="color:${c};background:color-mix(in srgb, ${c} 16%, transparent)"><i></i>${n}</span><span>${count}</span></div>
+  <div class="list">${rows.map(phoneRow).join("")}${count > rows.length ? `<div class="li" style="min-height:38px;color:var(--muted);font-size:13px">Show ${count - rows.length} more</div>` : ""}</div>`).join("");
+</script>
+</body>
+</html>

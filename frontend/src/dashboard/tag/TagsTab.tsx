@@ -12,10 +12,14 @@ import { isCategorised } from "../wallet/toCategorize.ts";
 import { getCurrencySymbol } from "../../utils/currencies/index.ts";
 import { DateRangeBanner } from "../DateRangeBanner.tsx";
 import { useTheme } from "../../utils/ThemeContext.tsx";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import Button from "../../components/ui/Button.tsx";
 import { CategoryManagerDrawer } from "./CategoryManagerDrawer.tsx";
+import { CategoryStrip } from "./CategoryStrip.tsx";
 import { useTabLayout } from "../layout/useTabLayout.ts";
 import { WidgetGrid } from "../layout/WidgetGrid.tsx";
+import { CustomizePageButton } from "../layout/CustomizePageButton.tsx";
+import { LayoutEditBar } from "../layout/LayoutEditBar.tsx";
 import {
   CATEGORIES_TAB_ID,
   CATEGORIES_WIDGETS,
@@ -31,10 +35,11 @@ const darkTheme = createTheme({
 });
 
 export const TagsTab: React.FC = () => {
-  const { filteredTransactions, wallet } = useWalletContext();
+  const { filteredTransactions, wallet, tags } = useWalletContext();
   const { resolvedTheme } = useTheme();
   const [managerOpen, setManagerOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [ui] = useUiVersion(); // ui-v2-switch: v2 moves the range summary to the bottom
 
   const currencySymbol = getCurrencySymbol(wallet.currency);
 
@@ -53,47 +58,57 @@ export const TagsTab: React.FC = () => {
   return (
     <ThemeProvider theme={resolvedTheme === "dark" ? darkTheme : lightTheme}>
       <div className="relative flex flex-1 flex-col pb-10 animate-[fadeIn_0.3s_ease-out]">
-        <DateRangeBanner />
+        {ui !== "v2" && <DateRangeBanner />}
 
-        <div className="mb-4 mt-2 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-bold text-app-text">
-              Visual Distribution
-            </h2>
-            <p className="text-sm text-app-muted">
-              Analyze your income and expenses by category and sub-category.
-            </p>
+        {ui === "v2" ? ( // ui-v2-switch: the strip replaces the title row and its buttons
+          <div className="mb-4 mt-2">
+            <CategoryStrip
+              transactions={ctx.transactions}
+              tags={tags}
+              onManage={() => setManagerOpen(true)}
+            />
           </div>
+        ) : (
+          <div className="mb-4 mt-2 flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-app-text">
+                Visual Distribution
+              </h2>
+              <p className="text-sm text-app-muted">
+                Analyze your income and expenses by category and sub-category.
+              </p>
+            </div>
 
-          <div className="flex items-center gap-2">
-            {editing ? (
-              <>
-                <Button variant="ghost" onClick={layoutApi.reset}>
-                  <FontAwesomeIcon icon={faRotateLeft} />
-                  Reset
-                </Button>
-                <Button variant="primary" onClick={() => setEditing(false)}>
-                  <FontAwesomeIcon icon={faCheck} />
-                  Done
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="secondary" onClick={() => setEditing(true)}>
-                  <FontAwesomeIcon icon={faUpDownLeftRight} />
-                  Edit Layout
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => setManagerOpen(true)}
-                >
-                  <FontAwesomeIcon icon={faLayerGroup} />
-                  Manage Categories
-                </Button>
-              </>
-            )}
+            <div className="flex items-center gap-2">
+              {editing ? (
+                <>
+                  <Button variant="ghost" onClick={layoutApi.reset}>
+                    <FontAwesomeIcon icon={faRotateLeft} />
+                    Reset
+                  </Button>
+                  <Button variant="primary" onClick={() => setEditing(false)}>
+                    <FontAwesomeIcon icon={faCheck} />
+                    Done
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="secondary" onClick={() => setEditing(true)}>
+                    <FontAwesomeIcon icon={faUpDownLeftRight} />
+                    Edit Layout
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setManagerOpen(true)}
+                  >
+                    <FontAwesomeIcon icon={faLayerGroup} />
+                    Manage Categories
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <WidgetGrid
           defs={CATEGORIES_WIDGETS}
@@ -102,6 +117,21 @@ export const TagsTab: React.FC = () => {
           api={layoutApi}
           accentColor={wallet.color}
         />
+
+        {ui === "v2" && ( // ui-v2-switch
+          <>
+            {editing ? (
+              <LayoutEditBar
+                hiddenCount={layoutApi.layout.hiddenSlots.length}
+                onReset={layoutApi.reset}
+                onDone={() => setEditing(false)}
+              />
+            ) : (
+              <CustomizePageButton onClick={() => setEditing(true)} />
+            )}
+            <DateRangeBanner />
+          </>
+        )}
 
         <CategoryManagerDrawer
           open={managerOpen}

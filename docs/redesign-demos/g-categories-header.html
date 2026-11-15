@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Categories header: where Edit layout and Manage categories go</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141312; --card: #1d1c1a; --raised: #262421; --border: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --wallet: #8b5cf6; --on-wallet: #fff; --warn: #f0b85a;
+    --r-card: 18px; --r-input: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0c0b0b; color: var(--text); font-family: "Instrument Sans", system-ui, sans-serif; padding: 28px 24px 80px; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  h1.page { font: 600 22px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 78ch; line-height: 1.55; }
+  h2.sec { font: 600 18px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; margin: 52px 0 6px; }
+  .rec { display: inline-block; font-size: 11px; font-weight: 600; color: var(--on-wallet); background: var(--wallet); border-radius: 99px; padding: 2px 8px; margin-left: 6px; vertical-align: 2px; }
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 20px; }
+  figure { flex: none; }
+  figcaption { margin-top: 14px; max-width: 420px; }
+  figcaption b { font-family: "Bricolage Grotesque", sans-serif; font-size: 16px; font-weight: 600; }
+  figcaption p { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 4px; }
+  ul.pc { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 10px 0 0 18px; max-width: 78ch; }
+  ul.pc b { color: var(--text); font-weight: 600; }
+
+  .desk { width: 1000px; height: 430px; background: var(--bg); border-radius: 14px; overflow: hidden; position: relative; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .5); padding: 20px 28px; }
+  .phone { position: relative; width: 375px; height: 700px; background: var(--bg); border-radius: 36px; overflow: hidden; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .5); display: flex; flex-direction: column; }
+  .phone .in { flex: 1; overflow: hidden; padding: 48px 14px 0; }
+
+  /* Wallet tabs strip (context) */
+  .tabs { display: grid; grid-template-columns: repeat(6, 1fr); background: var(--card); border-radius: 16px; padding: 5px; margin-bottom: 18px; font-size: 14px; color: var(--muted); text-align: center; }
+  .tabs span { padding: 9px 0; border-radius: 11px; }
+  .tabs .on { background: var(--raised); color: var(--text); }
+  .tabs .on b { color: var(--wallet); }
+
+  /* Controls */
+  .bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .sp { flex: 1; }
+  .field { height: 44px; border-radius: var(--r-input); background: var(--raised); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 14px; font-weight: 500; gap: 10px; }
+  .field .ar { color: var(--muted); }
+  .ibtn { height: 44px; width: 44px; border-radius: var(--r-input); background: var(--raised); display: grid; place-items: center; color: var(--muted); font-size: 15px; flex: none; position: relative; }
+  .btn { height: 44px; border-radius: var(--r-input); display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 14px; font-weight: 600; background: var(--raised); color: var(--text); white-space: nowrap; }
+  .btn.pri { background: var(--wallet); color: var(--on-wallet); }
+  .btn.ghost { background: none; color: var(--muted); }
+  .btn .c { color: var(--muted); font-weight: 500; }
+  .ttl { font: 600 19px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .menu { position: absolute; width: 230px; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-card); padding: 6px; box-shadow: 0 16px 40px -12px rgb(0 0 0 / .6); z-index: 3; }
+  .menu div { padding: 11px 12px; border-radius: 12px; font-size: 14.5px; display: flex; gap: 12px; align-items: center; }
+  .menu div:first-child { background: var(--card); }
+  .menu small { display: block; color: var(--faint); font-size: 12px; margin-top: 1px; }
+  .hl { box-shadow: 0 0 0 2px var(--warn); }
+
+  /* Widgets (context) */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+  .w { background: var(--card); border-radius: var(--r-card); padding: 16px 18px; height: 220px; position: relative; }
+  .w h4 { font: 600 15px/1.2 "Bricolage Grotesque", sans-serif; }
+  .donut { width: 120px; height: 120px; border-radius: 50%; margin: 18px auto 0; background: conic-gradient(#7fcf95 0 45%, #7aaaf5 45% 70%, #f0b85a 70% 85%, #ec8a76 85% 100%); -webkit-mask: radial-gradient(circle, transparent 38px, #000 39px); mask: radial-gradient(circle, transparent 38px, #000 39px); }
+  .phone .grid { grid-template-columns: 1fr; }
+  .phone .w { height: 190px; }
+  .phone .donut { width: 104px; height: 104px; }
+
+  /* Category strip (proposal B) */
+  .cats { background: var(--card); border-radius: var(--r-card); padding: 14px 16px; display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+  .chips { display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden; flex: 1; min-width: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; border-radius: 99px; padding: 4px 10px; white-space: nowrap; }
+  .chip i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+  /* Edit mode */
+  .w.edit { box-shadow: 0 0 0 1.5px dashed; outline: 1.5px dashed var(--border); outline-offset: -1.5px; }
+  .grip { position: absolute; top: 12px; right: 12px; color: var(--faint); display: flex; gap: 6px; font-size: 13px; }
+  .grip span { width: 28px; height: 28px; border-radius: 8px; background: var(--raised); display: grid; place-items: center; }
+  .editbar { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--raised); border: 1px solid var(--border); border-radius: 16px; padding: 6px 6px 6px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 16px 40px -12px rgb(0 0 0 / .7); font-size: 14px; white-space: nowrap; }
+  .editbar .t { color: var(--muted); }
+  .phone .editbar { left: 12px; right: 12px; transform: none; bottom: 14px; justify-content: space-between; }
+  .dock { flex: none; height: 64px; background: rgb(29 28 26 / .95); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(5, 1fr); font-size: 10.5px; color: var(--muted); text-align: center; align-items: center; }
+  .dock b { display: block; font-size: 15px; margin-bottom: 2px; }
+  .dock .on { color: var(--text); }
+  .note { position: absolute; font-size: 11.5px; color: var(--warn); }
+</style>
+</head>
+<body>
+
+<h1 class="page">Categories: where Edit layout and Manage categories go</h1>
+<p class="lead">Today the period sits on one row and the two actions on another, next to a "Visual Distribution" title that just repeats the tab name. The proposals below follow two rules. One primary action per screen. Rare actions go in a menu instead of competing for attention. Whatever ends up holding Edit layout here also goes on Statistics, in the same place and with the same edit bar, so the two pages work the same way.</p>
+
+<!-- ============ A ============ -->
+<h2 class="sec">A. One toolbar row: Manage visible, Edit layout in ⋯ <span class="rec">recommended</span></h2>
+<p class="lead">The title row is gone: the active tab already says "Categories". One row holds the period and filter on the left, then "Manage categories" as a labelled button and a ⋯ menu with "Edit layout". Statistics gets the same row, with only the ⋯.</p>
+<div class="row">
+  <figure>
+    <div class="desk">
+      <div class="tabs"><span>Transactions</span><span>Subscriptions</span><span class="on"><b>◔</b> Categories</span><span>Statistics</span><span>Budget</span><span>Settings</span></div>
+      <div class="bar">
+        <div class="field" style="width: 260px"><span class="ar">‹</span>October 2026<span class="ar">›</span></div>
+        <div class="ibtn">⏷</div>
+        <div class="sp"></div>
+        <div class="btn hl">◫ Manage categories <span class="c">24</span></div>
+        <div class="ibtn hl" style="color: var(--text)">⋯</div>
+      </div>
+      <div class="menu" style="right: 28px; top: 132px">
+        <div>⊞ Edit layout<br></div>
+        <div>↺ Reset layout</div>
+      </div>
+      <div class="grid"><div class="w"><h4>Expense distribution</h4><div class="donut"></div></div><div class="w"><h4>Income distribution</h4><div class="donut"></div></div></div>
+    </div>
+    <figcaption><b>Desktop</b><p>"Manage categories" shows how many categories there are, so it reads as a place to go rather than a vague action. Edit layout is used once in a while, so it sits in the menu.</p></figcaption>
+  </figure>
+  <figure>
+    <div class="phone">
+      <div class="in">
+        <div class="bar">
+          <div class="field" style="flex: 1"><span class="ar">‹</span>Oct 2026<span class="ar">›</span></div>
+          <div class="ibtn">⏷</div>
+          <div class="ibtn hl" style="color: var(--text)">⋯</div>
+        </div>
+        <div class="menu" style="right: 14px; top: 100px; width: 240px">
+          <div>◫ Manage categories<span style="margin-left:auto;color:var(--faint)">24</span></div>
+          <div>⊞ Edit layout</div>
+        </div>
+        <div class="grid"><div class="w"><h4>Expense distribution</h4><div class="donut"></div></div><div class="w"><h4>Income distribution</h4></div></div>
+      </div>
+      <div class="dock"><span><b>▤</b>Transactions</span><span><b>▦</b>Subscriptions</span><span class="on"><b>◔</b>Categories</span><span><b>◎</b>Budget</span><span><b>⋯</b>More</span></div>
+    </div>
+    <figcaption><b>Phone</b><p>One row: period, filter, ⋯. Both actions go in the menu, with Manage first. Nothing wraps onto a second line.</p></figcaption>
+  </figure>
+</div>
+<ul class="pc">
+  <li><b>Pro:</b> the shortest header. Statistics and Categories are identical. Edit layout stops competing with content.</li>
+  <li><b>Con:</b> on a phone, Manage categories is one tap deeper, inside the ⋯ menu.</li>
+</ul>
+
+<!-- ============ B ============ -->
+<h2 class="sec">B. Categories become a strip at the top of the page</h2>
+<p class="lead">Managing categories moves next to the categories themselves. A strip above the charts shows the period's largest categories as chips, with the count and a "Manage" button. The strip is part of the page, so it's visible without looking for it. Edit layout becomes a quiet "Customize this page" link at the end of the widgets, as dashboards usually do.</p>
+<div class="row">
+  <figure>
+    <div class="desk">
+      <div class="tabs"><span>Transactions</span><span>Subscriptions</span><span class="on"><b>◔</b> Categories</span><span>Statistics</span><span>Budget</span><span>Settings</span></div>
+      <div class="bar">
+        <div class="field" style="width: 260px"><span class="ar">‹</span>October 2026<span class="ar">›</span></div>
+        <div class="ibtn">⏷</div>
+      </div>
+      <div class="cats hl">
+        <span style="font-weight:600">24 categories</span>
+        <div class="chips">
+          <span class="chip" style="color:#f0b85a;background:rgb(240 184 90/.15)"><i></i>Groceries 38%</span>
+          <span class="chip" style="color:#7aaaf5;background:rgb(122 170 245/.15)"><i></i>Home 21%</span>
+          <span class="chip" style="color:#ec8a76;background:rgb(236 138 118/.15)"><i></i>Car 12%</span>
+          <span class="chip" style="color:#7fcf95;background:rgb(127 207 149/.15)"><i></i>Food 9%</span>
+          <span class="chip" style="color:var(--muted);background:var(--raised)">+20</span>
+        </div>
+        <div class="btn">◫ Manage</div>
+      </div>
+      <div class="grid"><div class="w" style="height: 170px"><h4>Expense distribution</h4></div><div class="w" style="height: 170px"><h4>Income distribution</h4></div></div>
+      <div style="text-align:center;margin-top:14px;color:var(--muted);font-size:13.5px" class="hl-t">⊞ Customize this page</div>
+    </div>
+    <figcaption><b>Desktop</b><p>The strip doubles as a quick summary of the period. "Customize this page" at the bottom is easy to find when you look for it, and stays out of the way otherwise.</p></figcaption>
+  </figure>
+  <figure>
+    <div class="phone">
+      <div class="in">
+        <div class="bar"><div class="field" style="flex: 1"><span class="ar">‹</span>Oct 2026<span class="ar">›</span></div><div class="ibtn">⏷</div></div>
+        <div class="cats hl" style="flex-wrap: wrap">
+          <span style="font-weight:600;flex:1">24 categories</span>
+          <div class="btn" style="height:36px">◫ Manage</div>
+          <div class="chips" style="flex-basis:100%">
+            <span class="chip" style="color:#f0b85a;background:rgb(240 184 90/.15)"><i></i>Groceries</span>
+            <span class="chip" style="color:#7aaaf5;background:rgb(122 170 245/.15)"><i></i>Home</span>
+            <span class="chip" style="color:#ec8a76;background:rgb(236 138 118/.15)"><i></i>Car</span>
+            <span class="chip" style="color:var(--muted);background:var(--raised)">+21</span>
+          </div>
+        </div>
+        <div class="grid"><div class="w"><h4>Expense distribution</h4><div class="donut"></div></div></div>
+      </div>
+      <div class="dock"><span><b>▤</b>Transactions</span><span><b>▦</b>Subscriptions</span><span class="on"><b>◔</b>Categories</span><span><b>◎</b>Budget</span><span><b>⋯</b>More</span></div>
+    </div>
+    <figcaption><b>Phone</b><p>Manage is visible without opening anything. Customize sits at the end of the scroll.</p></figcaption>
+  </figure>
+</div>
+<ul class="pc">
+  <li><b>Pro:</b> Manage categories is as visible as it gets, and the strip adds information instead of just a button.</li>
+  <li><b>Con:</b> one more block on the page. On Statistics the strip makes no sense, so Statistics would only get "Customize this page".</li>
+</ul>
+
+<!-- ============ C ============ -->
+<h2 class="sec">C. Icon buttons in the toolbar, labels from desktop up</h2>
+<p class="lead">Same row as A, but both actions are separate buttons: "Manage categories" with a label, and Edit layout as a grid icon next to the filter. On a phone both shrink to icons with an accessible name and a tooltip on long press.</p>
+<div class="row">
+  <figure>
+    <div class="desk" style="height: 200px">
+      <div class="tabs"><span>Transactions</span><span>Subscriptions</span><span class="on"><b>◔</b> Categories</span><span>Statistics</span><span>Budget</span><span>Settings</span></div>
+      <div class="bar">
+        <div class="field" style="width: 260px"><span class="ar">‹</span>October 2026<span class="ar">›</span></div>
+        <div class="ibtn">⏷</div>
+        <div class="ibtn hl" title="Edit layout">⊞</div>
+        <div class="sp"></div>
+        <div class="btn hl">◫ Manage categories</div>
+      </div>
+    </div>
+    <figcaption><b>Desktop</b><p>Everything in view, no menu. The grid icon alone is less clear than a label, and these are the pitfalls the skill warns about with icon-only buttons.</p></figcaption>
+  </figure>
+  <figure>
+    <div class="phone" style="height: 260px">
+      <div class="in">
+        <div class="bar">
+          <div class="field" style="flex: 1"><span class="ar">‹</span>Oct 2026<span class="ar">›</span></div>
+          <div class="ibtn">⏷</div><div class="ibtn hl">⊞</div><div class="ibtn hl">◫</div>
+        </div>
+      </div>
+    </div>
+    <figcaption><b>Phone</b><p>Four controls on one row. They fit, but three of them are icons with no label.</p></figcaption>
+  </figure>
+</div>
+<ul class="pc">
+  <li><b>Pro:</b> no menu, one tap for each action.</li>
+  <li><b>Con:</b> icons with no label (⊞, ◫) are hard to recognise, and the phone row is crowded.</li>
+</ul>
+
+<!-- ============ Edit mode ============ -->
+<h2 class="sec">Edit mode, the same on Categories and Statistics (goes with A, B or C)</h2>
+<p class="lead">Today Reset and Done replace the buttons in the header, which scroll away with the page. In this version a floating bar stays at the bottom while you move the widgets, in place of the dock on a phone. Each widget shows a drag handle and a hide button.</p>
+<div class="row">
+  <figure>
+    <div class="desk" style="height: 380px">
+      <div class="bar"><div class="field" style="width: 260px; opacity:.4"><span class="ar">‹</span>October 2026<span class="ar">›</span></div></div>
+      <div class="grid">
+        <div class="w edit"><h4>Expense distribution</h4><div class="grip"><span>⠿</span><span>✕</span></div></div>
+        <div class="w edit"><h4>Income distribution</h4><div class="grip"><span>⠿</span><span>✕</span></div></div>
+      </div>
+      <div class="editbar"><span class="t">Editing layout · 2 hidden</span><span class="btn ghost" style="height:36px">↺ Reset</span><span class="btn pri" style="height:36px">✓ Done</span></div>
+    </div>
+    <figcaption><b>Desktop: editing</b><p>"2 hidden" opens the tray of hidden widgets. Done is the only primary button on screen.</p></figcaption>
+  </figure>
+  <figure>
+    <div class="phone" style="height: 560px">
+      <div class="in">
+        <div class="grid">
+          <div class="w edit"><h4>Expense distribution</h4><div class="grip"><span>⠿</span><span>✕</span></div></div>
+          <div class="w edit"><h4>Income distribution</h4><div class="grip"><span>⠿</span><span>✕</span></div></div>
+        </div>
+      </div>
+      <div class="editbar"><span class="t">Editing · 2 hidden</span><span style="display:flex;gap:6px"><span class="btn ghost" style="height:36px">↺</span><span class="btn pri" style="height:36px">✓ Done</span></span></div>
+    </div>
+    <figcaption><b>Phone: editing</b><p>The bar replaces the dock until you tap Done, so you can't switch tab halfway through editing.</p></figcaption>
+  </figure>
+</div>
+
+</body>
+</html>

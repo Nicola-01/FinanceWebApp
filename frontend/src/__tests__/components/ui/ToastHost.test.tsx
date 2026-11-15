@@ -3,6 +3,12 @@ import { setUiVersion } from "../../../utils/uiVersion";
 import { render, screen, act, cleanup } from "@testing-library/react";
 import { ToastHost } from "../../../components/ui/ToastHost";
 import { triggerToast } from "../../../components/ui/ToastNotification";
+import { toast } from "@/components/shadcn/sonner";
+
+vi.mock("@/components/shadcn/sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+  Toaster: () => <div data-testid="toaster" />,
+}));
 
 describe("ToastHost", () => {
   beforeEach(() => {
@@ -83,25 +89,34 @@ describe("ToastHost v2", () => {
     // Unmount before removing the portal target, or a late re-render throws.
     cleanup();
     setUiVersion("v1");
+    localStorage.clear();
     document.getElementById("toast-root")?.remove();
   });
 
-  it("drops the border and blur, and tints the status chip with its colour", () => {
+  it("routes success and error toasts to sonner", async () => {
     render(<ToastHost />);
+    // The sonner host is lazy-loaded.
+    await screen.findByTestId("toaster");
+
     act(() => triggerToast("Saved", true));
-    const toast = screen.getByText("Saved").parentElement as HTMLElement;
-    expect(toast.className).toContain("bg-app-card");
-    expect(toast.className).not.toContain("backdrop-blur-md");
-    expect(toast.className).not.toContain("border-app-green");
-    const chip = toast.querySelector('[aria-hidden="true"]') as HTMLElement;
-    expect(chip.className).toContain("text-app-income");
+    expect(toast.success).toHaveBeenCalledWith("Saved");
+
+    act(() => triggerToast("Nope", false));
+    expect(toast.error).toHaveBeenCalledWith("Nope");
   });
 
-  it("uses the danger status for failures", () => {
+  it("passes a toast action to sonner with a longer duration", async () => {
     render(<ToastHost />);
-    act(() => triggerToast("Failed", false));
-    const toast = screen.getByText("Failed").parentElement as HTMLElement;
-    const chip = toast.querySelector('[aria-hidden="true"]') as HTMLElement;
-    expect(chip.className).toContain("text-app-danger");
+    await screen.findByTestId("toaster");
+    const onClick = vi.fn();
+
+    act(() =>
+      triggerToast("Filed under Food", true, { label: "Create rule", onClick }),
+    );
+
+    expect(toast.success).toHaveBeenLastCalledWith("Filed under Food", {
+      duration: 6000,
+      action: { label: "Create rule", onClick },
+    });
   });
 });

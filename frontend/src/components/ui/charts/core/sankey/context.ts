@@ -113,6 +113,9 @@ export function createSankeyContext(): (input: SankeyContextInput) => SankeyChar
           .nodeWidth(nodeWidth)
           .nodePadding(nodePadding)
           .nodeAlign(sankeyCenter)
+          // LOCAL PATCH (FinanceWebApp): keep the caller's node order instead of d3's auto-sort,
+          // so sub-categories stay under their parent. Re-apply after a shadcn kit update.
+          .nodeSort(null)
           .extent([[0, 0], [innerWidth, innerHeight]])({ nodes: data.nodes.map((node) => ({ ...node })), links: data.links.map((link) => ({ ...link })) }),
     );
     const tooltipData = tooltipCell([focus, graph], () => tooltipDataOf(focus, graph));

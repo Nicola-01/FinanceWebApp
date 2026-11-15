@@ -14,7 +14,6 @@ import type { CurrencyCode } from "../../utils/currencies/index.ts";
 import { SubscriptionCalendar } from "./SubscriptionCalendar.tsx";
 import { SubscriptionList } from "./SubscriptionList.tsx";
 import { SubscriptionSummaryV2 } from "./SubscriptionSummaryV2.tsx";
-import { V2_LIST_MAX_WIDTH } from "./SubscriptionListV2.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
 import {
@@ -44,16 +43,26 @@ export const SubscriptionTab = () => {
   const txModalRef = useRef<TransactionModalHandle>(null);
 
   return (
-    <div className="flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out]">
+    <div
+      className={`flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] ${ui === "v2" ? "pb-24" : ""}`} // ui-v2-switch: room for the floating action button; full width like the other tabs
+    >
       {/* Header: view toggle (the add action lives in the FAB) */}
-      <div className="flex items-center justify-end gap-4 mb-6">
+      <div
+        className={`flex items-center gap-4 mb-6 ${ui === "v2" ? "flex-wrap justify-between" : "justify-end"}`} // ui-v2-switch
+      >
+        {ui === "v2" && (
+          <h2 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">
+            Subscriptions
+          </h2>
+        )}
         {/* Toggle View */}
         <Selector
           value={viewMode}
           onChange={(val) => setViewMode(val as ViewMode)}
           size="lg"
-          fullWidth={false}
-          className="w-full sm:w-auto"
+          // Equal segments: List and Calendar get the same width.
+          fullWidth
+          className="w-full sm:w-72"
           options={[
             {
               value: "list",
@@ -72,11 +81,9 @@ export const SubscriptionTab = () => {
         />
       </div>
 
-      {/* v2 summary box: recurring totals + cost split (capped like the list) */}
+      {/* v2 summary box: recurring totals + cost split */}
       {ui === "v2" && subscriptions.length > 0 && (
-        <div
-          className={`mb-6 w-full ${viewMode === "list" ? `mx-auto ${V2_LIST_MAX_WIDTH}` : ""}`}
-        >
+        <div className="mb-6 w-full">
           <SubscriptionSummaryV2
             subscriptions={subscriptions}
             currency={wallet.currency}

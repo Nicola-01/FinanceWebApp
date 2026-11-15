@@ -10,11 +10,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import {
-  applyBankRules,
   deleteBankRule,
   getWalletBank,
   listBankRules,
 } from "../../api/bankApi";
+import { applyRulesWithToast } from "./bank/applyRulesWithToast.ts";
 import { SettingsBox } from "./SettingsBox.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import Button from "../../components/ui/Button.tsx";
@@ -89,22 +89,8 @@ export function BankRulesSection({
 
   const applyToReview = async () => {
     setApplying(true);
-    try {
-      const { updated, collisions } = await applyBankRules(wallet.id);
-      const done =
-        updated === 0
-          ? "No imports to categorise matched a rule"
-          : `Updated ${updated} import${updated === 1 ? "" : "s"}`;
-      triggerToast(
-        collisions > 0
-          ? `${done}. ${collisions} skipped: more than one rule matched.`
-          : done,
-        true,
-      );
-      if (updated > 0) fetchData();
-    } catch (err) {
-      triggerToast(getApiErrorTitle(err, "Could not apply rules"), false);
-    }
+    const updated = await applyRulesWithToast(wallet.id);
+    if (updated > 0) fetchData();
     setApplying(false);
   };
 
@@ -138,6 +124,7 @@ export function BankRulesSection({
                 {r.regex && <Badge size="sm">Regex</Badge>}
                 {r.reviewFirst && <Badge size="sm">Review first</Badge>}
                 {r.dateFromName && <Badge size="sm">Date from name</Badge>}
+                {r.clearName && <Badge size="sm">Empty name</Badge>}
                 {r.renameTo && (
                   <>
                     <FontAwesomeIcon

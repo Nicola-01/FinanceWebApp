@@ -54,7 +54,7 @@ describe("Categories tab (v2)", () => {
     setUiVersion("v2");
     const onChange = vi.fn();
     render(<FlowTypeToggle value="INCOME" onChange={onChange} />);
-    expect(screen.getByRole("button", { name: "Income" })).toHaveClass(
+    expect(screen.getByRole("tab", { name: "Income" })).toHaveClass(
       "text-app-income",
     );
   });
@@ -62,7 +62,7 @@ describe("Categories tab (v2)", () => {
   it("FlowTypeToggle keeps the inactive Income label in the income hue", () => {
     setUiVersion("v2");
     render(<FlowTypeToggle value="EXPENSE" onChange={vi.fn()} />);
-    const income = screen.getByRole("button", { name: "Income" });
+    const income = screen.getByRole("tab", { name: "Income" });
     expect(income).toHaveClass("text-app-income", "opacity-70");
     expect(income.className).not.toContain("text-app-muted");
   });

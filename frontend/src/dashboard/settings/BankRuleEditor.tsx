@@ -9,7 +9,8 @@ import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { TagPicker } from "../../modals/transaction/TagPicker";
 import { createBankRule, updateBankRule } from "../../api/bankApi";
 import { getApiErrorDetail, getApiErrorTitle } from "../../utils/apiError.ts";
-import type { BankRule, Tag } from "../../types/domain";
+import type { BankRule, Tag, Transaction } from "../../types/domain";
+import { bankNameOf, ruleMatches } from "./bankRuleMatch";
 
 const REGEX_ERROR = "Invalid bank match regex";
 
@@ -18,10 +19,16 @@ interface Props {
   walletId: string;
   /** Rule to edit; null creates a new one. */
   rule: BankRule | null;
+  /** Pre-fills a new rule (only used when `rule` is null). */
+  draft?: Partial<Pick<BankRule, "name" | "matchText">> & { tagName?: string };
+  /** Imports still to categorise, to show how many the rule would match. */
+  pending?: Transaction[];
   tags: Tag[];
   accentColor?: string;
   onClose: () => void;
   onSaved: (rule: BankRule) => void;
+  /** Shows a "Delete rule" button when editing an existing rule. */
+  onDelete?: () => void;
 }
 
 /** Create/edit form for a wallet bank rule. */
@@ -29,10 +36,13 @@ export function BankRuleEditor({
   open,
   walletId,
   rule,
+  draft,
+  pending,
   tags,
   accentColor,
   onClose,
   onSaved,
+  onDelete,
 }: Props) {
   const [name, setName] = useState("");
   const [text, setText] = useState("");
@@ -42,25 +52,38 @@ export function BankRuleEditor({
   const [renameTo, setRenameTo] = useState("");
   const [reviewFirst, setReviewFirst] = useState(false);
   const [dateFromName, setDateFromName] = useState(false);
+  const [clearName, setClearName] = useState(false);
   const [textError, setTextError] = useState<string>();
   const [saving, setSaving] = useState(false);
 
+  // Draft fields are read as primitives: the parent passes a fresh object each render.
+  const draftName = draft?.name;
+  const draftText = draft?.matchText;
+  const draftTag = draft?.tagName;
+
   useEffect(() => {
     if (!open) return;
-    setName(rule?.name ?? "");
-    setText(rule?.matchText ?? "");
+    setName(rule?.name ?? draftName ?? "");
+    setText(rule?.matchText ?? draftText ?? "");
     setRegex(rule?.regex ?? false);
     setIgnoreCase(rule?.ignoreCase ?? true);
-    setTagName(rule?.tag?.name ?? "");
+    setTagName(rule?.tag?.name ?? draftTag ?? "");
     setRenameTo(rule?.renameTo ?? "");
     setReviewFirst(rule?.reviewFirst ?? false);
     setDateFromName(rule?.dateFromName ?? false);
+    setClearName(rule?.clearName ?? false);
     setTextError(undefined);
-  }, [open, rule]);
+  }, [open, rule, draftName, draftText, draftTag]);
 
   const [ui] = useUiVersion();
   const isV2 = ui === "v2"; // ui-v2-switch
   const canSave = name.trim() !== "" && text.trim() !== "" && !saving;
+  const matchCount =
+    pending && text.trim() !== ""
+      ? pending.filter((tx) =>
+          ruleMatches({ matchText: text, regex, ignoreCase }, bankNameOf(tx)),
+        ).length
+      : undefined;
 
   const save = async () => {
     setSaving(true);
@@ -71,9 +94,10 @@ export function BankRuleEditor({
       regex,
       ignoreCase,
       tag: tagName || null,
-      renameTo: renameTo.trim() || null,
+      renameTo: !clearName && renameTo.trim() ? renameTo.trim() : null,
       reviewFirst,
       dateFromName,
+      clearName,
     };
     try {
       const saved = rule
@@ -92,6 +116,21 @@ export function BankRuleEditor({
     }
   };
 
+  const saveButton = (
+    <Button
+      type="button"
+      onClick={save}
+      disabled={!canSave}
+      accentColor={accentColor}
+      fullWidth={!onDelete}
+      className={onDelete ? "flex-1" : undefined}
+      size="lg"
+      aria-label="Save rule"
+    >
+      {saving ? "Saving…" : rule ? "Save changes" : "Add rule"}
+    </Button>
+  );
+
   return (
     <ResponsiveOverlay
       open={open}
@@ -99,17 +138,22 @@ export function BankRuleEditor({
       title={rule ? "Edit bank rule" : "New bank rule"}
       accentColor={accentColor}
       footer={
-        <Button
-          type="button"
-          onClick={save}
-          disabled={!canSave}
-          accentColor={accentColor}
-          fullWidth
-          size="lg"
-          aria-label="Save rule"
-        >
-          {saving ? "Saving…" : rule ? "Save changes" : "Add rule"}
-        </Button>
+        onDelete && rule ? (
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              className="!text-app-danger hover:!text-app-danger"
+              onClick={onDelete}
+            >
+              Delete rule
+            </Button>
+            {saveButton}
+          </div>
+        ) : (
+          saveButton
+        )
       }
     >
       <div className="flex flex-col gap-5 text-left">
@@ -135,6 +179,13 @@ export function BankRuleEditor({
             onChange={(e) => setText(e.target.value)}
             aria-invalid={!!textError}
           />
+          {matchCount !== undefined && !textError && (
+            <p className="mt-1 text-xs text-app-muted">
+              {matchCount === 0
+                ? "No transaction to categorise matches yet"
+                : `Matches ${matchCount} transaction${matchCount === 1 ? "" : "s"} to categorise`}
+            </p>
+          )}
           {textError && (
             <p
               className={`mt-1 text-xs ${isV2 ? "text-app-danger" : "text-app-red"}`}
@@ -187,8 +238,19 @@ export function BankRuleEditor({
             placeholder="(Optional)"
             value={renameTo}
             maxLength={100}
+            disabled={clearName}
             onChange={(e) => setRenameTo(e.target.value)}
           />
+          <div className="mt-2">
+            <Toggle
+              checked={clearName}
+              onChange={setClearName}
+              accentColor={accentColor}
+              size="sm"
+              label="Leave the name empty"
+              aria-label="Leave the name empty"
+            />
+          </div>
         </div>
         <div>
           <Toggle

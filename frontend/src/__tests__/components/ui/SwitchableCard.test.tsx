@@ -48,7 +48,7 @@ describe("SwitchableCard", () => {
         Body
       </SwitchableCard>,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Yearly" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Yearly" }));
     expect(onTabChange).toHaveBeenCalledWith("yearly");
   });
 });

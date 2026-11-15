@@ -154,3 +154,15 @@ describe("YearWaterfallChart", () => {
     expect(calls.WaterfallChart).toBeUndefined();
   });
 });
+
+describe("YearWaterfallChart bare mode", () => {
+  it("drops the card shell and heading but keeps the chart", () => {
+    const { container } = render(
+      <YearWaterfallChart rows={rows} byYear={false} currencySymbol="€" bare />,
+    );
+    expect(screen.queryByRole("heading")).toBeNull();
+    expect(screen.queryByText("How the year added up")).toBeNull();
+    expect(container.firstElementChild).not.toHaveClass("bg-app-card");
+    expect(calls.WaterfallChart).toHaveLength(1);
+  });
+});

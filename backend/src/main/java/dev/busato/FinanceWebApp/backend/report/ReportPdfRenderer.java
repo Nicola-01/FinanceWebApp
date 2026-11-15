@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.report;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import com.openhtmltopdf.svgsupport.BatikSVGDrawer;
 import java.io.ByteArrayOutputStream;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +13,7 @@ public class ReportPdfRenderer {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       PdfRendererBuilder builder = new PdfRendererBuilder();
       builder.useFastMode();
+      builder.useSVGDrawer(new BatikSVGDrawer()); // savings-rate ring
       builder.withHtmlContent(xhtml, null);
       builder.toStream(out);
       builder.run();

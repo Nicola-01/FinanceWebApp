@@ -49,4 +49,17 @@ describe("ComingUpColumn", () => {
     expect(screen.getByText("in 2 days")).toHaveClass("text-app-warn");
     expect(screen.getByText("in 15 days")).toHaveClass("text-app-muted");
   });
+
+  it("shows Reminder instead of an amount for amount-pending subscriptions", () => {
+    render(
+      <ComingUpColumn
+        items={[item("r", { amount: 0, amountPending: true }, 5, "in 5 days")]}
+        currency="EUR"
+      />,
+    );
+    const reminder = screen.getByText("Reminder");
+    expect(reminder).toHaveClass("text-app-muted");
+    expect(reminder).not.toHaveClass("text-app-income");
+    expect(screen.queryByText(/0,00/)).not.toBeInTheDocument();
+  });
 });

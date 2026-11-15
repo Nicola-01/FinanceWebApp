@@ -1,22 +1,17 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { faBuildingColumns } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
-import {
-  getWalletBank,
-  syncConnection,
-  renewConnection,
-  deleteConnection,
-  type BankConnection,
-} from "../../api/bankApi";
+import { type BankConnection } from "../../api/bankApi";
 import { SettingsBox } from "./SettingsBox.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import Button from "../../components/ui/Button.tsx";
 import { Badge, type BadgeTone } from "../../components/ui/Badge.tsx";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
-import { triggerToast } from "../../components/ui/ToastNotification.tsx";
-import { getApiErrorTitle } from "../../utils/apiError.ts";
 import { ConfirmModal } from "../../modals/common/ConfirmModal.tsx";
 import { ConnectBankForm } from "./ConnectBankForm.tsx";
+import { useWalletBank } from "./bank/useWalletBank.ts";
+import { useBankConnectionActions } from "./bank/useBankConnectionActions.ts";
+import { relativeTime } from "./bank/bankFormat.ts";
 
 const DAY = 86_400_000;
 const STATUS_TONE: Partial<Record<BankConnection["status"], BadgeTone>> = {
@@ -31,43 +26,16 @@ const isExpiring = (c: BankConnection) =>
   c.status === "EXPIRED" ||
   (!!c.validUntil && new Date(c.validUntil).getTime() - Date.now() < 7 * DAY);
 
-const relativeTime = (iso?: string) => {
-  if (!iso) return "never";
-  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins} min ago`;
-  if (mins < 1440) return `${Math.round(mins / 60)} h ago`;
-  return `${Math.round(mins / 1440)} d ago`;
-};
-
 /** Bank connections for the active wallet; explains how to get access when not enabled. */
 export const BankAccountsSection: React.FC = () => {
-  const { wallet, fetchData } = useWalletContext();
+  const { wallet } = useWalletContext();
   const [ui] = useUiVersion();
   const isV2 = ui === "v2"; // ui-v2-switch
-  // null until the first load answers, so nothing flashes before we know.
-  const [enabled, setEnabled] = useState<boolean | null>(null);
-  const [connections, setConnections] = useState<BankConnection[]>([]);
+  const { enabled, connections, loadFailed, reload } = useWalletBank(wallet.id);
+  const { sync, renew, unlink } = useBankConnectionActions(reload);
   const [linking, setLinking] = useState(false);
-  const [loadFailed, setLoadFailed] = useState(false);
   const [unlinkTarget, setUnlinkTarget] = useState<BankConnection | null>(null);
   const [unlinking, setUnlinking] = useState(false);
-
-  const load = useCallback(
-    () =>
-      getWalletBank(wallet.id)
-        .then((r) => {
-          setLoadFailed(false);
-          setEnabled(r.enabled);
-          setConnections(r.connections);
-        })
-        .catch(() => setLoadFailed(true)),
-    [wallet.id],
-  );
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   const notice = (text: string) => (
     <SettingsBox
@@ -90,42 +58,10 @@ export const BankAccountsSection: React.FC = () => {
   const isOwner = wallet.userRole === "OWNER";
   const canSync = isOwner || wallet.userRole === "EDITOR";
 
-  const run = async (action: () => Promise<unknown>, fallback: string) => {
-    try {
-      await action();
-    } catch (e) {
-      triggerToast(getApiErrorTitle(e, fallback), false);
-    }
-  };
-
-  const sync = (c: BankConnection) =>
-    run(async () => {
-      const r = await syncConnection(c.id);
-      if (r.status !== "ACTIVE")
-        triggerToast(`Sync stopped: connection is ${r.status}`, false);
-      else if (r.imported > 0)
-        triggerToast(
-          `Imported ${r.imported} transaction${r.imported === 1 ? "" : "s"}`,
-          true,
-        );
-      else triggerToast("Nothing new", true);
-      await load();
-      fetchData();
-    }, "Sync failed");
-
-  const renew = (c: BankConnection) =>
-    run(async () => {
-      const { url } = await renewConnection(c.id);
-      window.location.assign(url);
-    }, "Could not renew consent");
-
   const confirmUnlink = async () => {
     if (!unlinkTarget) return;
     setUnlinking(true);
-    await run(async () => {
-      await deleteConnection(unlinkTarget.id);
-      await load();
-    }, "Could not unlink bank");
+    await unlink(unlinkTarget);
     setUnlinking(false);
     setUnlinkTarget(null);
   };

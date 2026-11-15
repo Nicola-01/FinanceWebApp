@@ -3,9 +3,18 @@ import { render, screen } from "@testing-library/react";
 import type { Transaction } from "../../../types/domain";
 
 const ctx = vi.hoisted(() => ({ value: {} as Record<string, unknown> }));
+const trendSpy = vi.hoisted(() => vi.fn());
 
 vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
   useWalletContext: () => ctx.value,
+}));
+
+// The chart kit cannot lay out in jsdom; record the rows the trend receives.
+vi.mock("../../../components/ui/LazyHeroTrend.tsx", () => ({
+  LazyHeroTrend: (props: unknown) => {
+    trendSpy(props);
+    return <div data-testid="trend" />;
+  },
 }));
 
 import { TransactionsHero } from "../../../dashboard/transaction/TransactionsHero";
@@ -92,5 +101,19 @@ describe("TransactionsHero", () => {
     setup([tx("1", "EXPENSE", 20)], "all");
     expect(screen.getByText("1 transaction")).toBeInTheDocument();
     expect(screen.queryByText(/% of income/)).toBeNull();
+  });
+
+  it("draws the daily trend when the period has movement", () => {
+    setup(march, "month");
+    expect(screen.getByTestId("trend")).toBeInTheDocument();
+    const { rows, color } = trendSpy.mock.calls[0][0];
+    expect(rows.length).toBeGreaterThanOrEqual(2);
+    expect(rows.some((r: { v: number }) => r.v !== 0)).toBe(true);
+    expect(color).toMatch(/^#/);
+  });
+
+  it("hides the trend when the period is empty", () => {
+    setup([], "all");
+    expect(screen.queryByTestId("trend")).toBeNull();
   });
 });

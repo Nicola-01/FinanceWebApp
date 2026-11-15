@@ -1,4 +1,12 @@
 import { forwardRef, useImperativeHandle, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCalendarDays,
+  faChevronDown,
+  faHashtag,
+  faStickyNote,
+  faTag,
+} from "@fortawesome/free-solid-svg-icons";
 import * as walletOps from "../../api/walletOps";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import Button from "../../components/ui/Button.tsx";
@@ -16,6 +24,9 @@ import CustomDatePicker from "../../components/datePicker/CustomDatePicker.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
 import { parseLocalIsoDate, toLocalIsoDate } from "../../utils/localDate";
 import { FieldLabel } from "../../components/ui/FieldLabel";
+import { Input } from "../../components/ui/Input";
+import { Textarea } from "../../components/ui/Textarea";
+import { useUiVersion } from "../../hooks/useUiVersion";
 import { reviewTagName } from "../../dashboard/wallet/toCategorize.ts";
 import { useAmountEntryForm } from "../common/useAmountEntryForm";
 
@@ -109,6 +120,11 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
 
     const canSave = form.hasAmount && selectedTagName !== "";
     const isEditing = !!editingTxId;
+    const [ui] = useUiVersion();
+    const isV2 = ui === "v2"; // ui-v2-switch
+    // v2 "More details" starts open when editing a row that already has notes or a foreign currency.
+    const hasForeignCurrency =
+      form.exchangeRateProps.selectedCurrency !== baseCurrency;
 
     const footer = (
       <Button
@@ -151,48 +167,150 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
             <TransactionTypeToggle type={type} setType={setType} />
           </div>
 
-          {/* 2. TAGS & DATE */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <TagPicker
-                tags={tags}
+          {isV2 ? ( // ui-v2-switch
+            <>
+              {/* 2-3. COMPACT LIST: category, date, name */}
+              <div className="divide-y divide-app-border overflow-visible rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+                <div className="flex min-h-14 items-center gap-3 px-4">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--r-sm)] bg-app-raised text-xs text-app-muted">
+                    <FontAwesomeIcon icon={faHashtag} />
+                  </span>
+                  <span className="text-[15px] text-app-text">Category</span>
+                  <div className="ml-auto flex min-w-0 flex-1 justify-end">
+                    <TagPicker
+                      tags={tags}
+                      selectedTagName={selectedTagName}
+                      onSelectTag={setSelectedTagName}
+                      showLabel={false}
+                      dropdownClassName="right-0 mt-1 w-full min-w-[min(20rem,calc(100vw-2rem))]"
+                      triggerClassName="bg-transparent shadow-none justify-end text-right px-0"
+                      triggerAlign="right"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex min-h-14 items-center gap-3 px-4">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--r-sm)] bg-app-raised text-xs text-app-muted">
+                    <FontAwesomeIcon icon={faCalendarDays} />
+                  </span>
+                  <span className="text-[15px] text-app-text">Date</span>
+                  <div className="ml-auto flex min-w-0 flex-1 justify-end">
+                    <CustomDatePicker
+                      isRange={false}
+                      color={wallet.color}
+                      initialPreset="custom"
+                      initialStartDate={date}
+                      onChange={(val) => {
+                        if (val instanceof Date) setDate(val);
+                      }}
+                      triggerClassName="bg-transparent shadow-none justify-end px-0"
+                      triggerAlign="right"
+                      dropdownAlign="right"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex min-h-14 items-center gap-3 px-4">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--r-sm)] bg-app-raised text-xs text-app-muted">
+                    <FontAwesomeIcon icon={faTag} />
+                  </span>
+                  <span className="text-[15px] text-app-text">Name</span>
+                  {/* The Input wrapper keeps its raised fill; flatten it so the row reads as plain text. */}
+                  <div className="ml-auto flex min-w-0 flex-1 justify-end [&>div]:w-full [&>div]:bg-transparent [&>div]:shadow-none">
+                    <Input
+                      type="text"
+                      aria-label="Name"
+                      placeholder="e.g. Coop"
+                      className="bg-transparent text-right shadow-none px-0"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. MORE DETAILS: notes + foreign currency */}
+              <details
+                className="group -mt-3"
+                open={isEditing && (!!notes || hasForeignCurrency)}
+              >
+                <summary className="flex cursor-pointer list-none items-center gap-2 py-3 text-sm text-app-muted">
+                  <FontAwesomeIcon
+                    icon={faChevronDown}
+                    className="transition-transform group-open:rotate-180"
+                  />
+                  More details
+                  <span className="text-app-faint">notes, other currency</span>
+                </summary>
+                <div className="flex flex-col gap-6 pt-2">
+                  <div>
+                    <FieldLabel>
+                      <FontAwesomeIcon icon={faStickyNote} className="mr-2" />
+                      Notes
+                    </FieldLabel>
+                    <Textarea
+                      className="min-h-[100px]"
+                      placeholder="Any details... (Optional)"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      accentColor={wallet.color}
+                    />
+                  </div>
+                  <ExchangeRateSection
+                    mode={isEditing ? "edit" : "create"}
+                    accentColor={wallet.color}
+                    walletId={wallet.id}
+                    {...form.exchangeRateProps}
+                  />
+                </div>
+              </details>
+            </>
+          ) : (
+            <>
+              {/* 2. TAGS & DATE */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <TagPicker
+                    tags={tags}
+                    selectedTagName={selectedTagName}
+                    onSelectTag={setSelectedTagName}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Date</FieldLabel>
+                  <CustomDatePicker
+                    isRange={false}
+                    color={wallet.color}
+                    initialPreset="custom"
+                    initialStartDate={date}
+                    onChange={(val) => {
+                      if (val instanceof Date) setDate(val);
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* 3. NAME & NOTES */}
+              <TransactionMetadataInputs
+                name={name}
+                setName={setName}
+                notes={notes}
+                setNotes={setNotes}
                 selectedTagName={selectedTagName}
-                onSelectTag={setSelectedTagName}
+                accentColor={wallet.color}
               />
-            </div>
-            <div>
-              <FieldLabel>Date</FieldLabel>
-              <CustomDatePicker
-                isRange={false}
-                color={wallet.color}
-                initialPreset="custom"
-                initialStartDate={date}
-                onChange={(val) => {
-                  if (val instanceof Date) setDate(val);
-                }}
+
+              <hr className="my-2 border-app-border" />
+
+              {/* 4. EXCHANGE RATE */}
+              <ExchangeRateSection
+                mode={isEditing ? "edit" : "create"}
+                accentColor={wallet.color}
+                walletId={wallet.id}
+                {...form.exchangeRateProps}
               />
-            </div>
-          </div>
-
-          {/* 3. NAME & NOTES */}
-          <TransactionMetadataInputs
-            name={name}
-            setName={setName}
-            notes={notes}
-            setNotes={setNotes}
-            selectedTagName={selectedTagName}
-            accentColor={wallet.color}
-          />
-
-          <hr className="my-2 border-app-border" />
-
-          {/* 4. EXCHANGE RATE */}
-          <ExchangeRateSection
-            mode={isEditing ? "edit" : "create"}
-            accentColor={wallet.color}
-            walletId={wallet.id}
-            {...form.exchangeRateProps}
-          />
+            </>
+          )}
         </div>
       </ResponsiveOverlay>
     );

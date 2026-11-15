@@ -1,6 +1,5 @@
 import type { Transaction } from "../../types/domain.ts";
 import { MONTH_LABELS } from "../../utils/months.ts";
-import { compactAmount } from "./kitChartData.ts";
 import {
   availableYears,
   filterByPeriod,
@@ -21,15 +20,6 @@ export interface WaterfallRow {
   label: string;
   value?: number;
   total?: true;
-}
-
-export interface FixedEverydayRow {
-  [key: string]: unknown;
-  date: Date;
-  subscriptions: number;
-  everyday: number;
-  everydayCapped: number;
-  overflow?: string;
 }
 
 /** One chart slot: a month of a year period, or a calendar year of the all-time period. */
@@ -137,40 +127,6 @@ export function waterfallRows(
       ? { label: "Now", total: true }
       : { label: "31 Dec", total: true };
   return [{ label: "1 Jan", value: opening, total: true }, ...months, closing];
-}
-
-/** Expense split into subscription-generated vs everyday, with an outlier cap. */
-export function fixedVsEverydayRows(
-  txs: Transaction[],
-  period: StatsPeriod,
-  today: Date,
-): FixedEverydayRow[] {
-  const slots = slotsOf(txs, period, today).map((slot) => {
-    const expenses = slot.txs.filter((tx) => tx.type === "EXPENSE");
-    const subscriptions = expenses
-      .filter((tx) => !!tx.subscriptionId)
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    const everyday = expenses
-      .filter((tx) => !tx.subscriptionId)
-      .reduce((sum, tx) => sum + tx.amount, 0);
-    return { date: slot.date, subscriptions, everyday };
-  });
-
-  // The 2nd-highest slot sets the cap so a single outlier month cannot raise it.
-  const totals = slots
-    .map((s) => s.subscriptions + s.everyday)
-    .sort((a, b) => b - a);
-  const cap = slots.length >= 3 ? 1.5 * totals[1] : Infinity;
-
-  return slots.map((s) => {
-    const total = s.subscriptions + s.everyday;
-    if (total <= cap) return { ...s, everydayCapped: s.everyday };
-    return {
-      ...s,
-      everydayCapped: Math.max(0, cap - s.subscriptions),
-      overflow: compactAmount(total) + " ↑",
-    };
-  });
 }
 
 /** End-of-month running balance from the first transaction's month up to today's month. */

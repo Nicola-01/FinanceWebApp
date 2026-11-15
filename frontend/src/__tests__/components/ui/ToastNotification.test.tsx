@@ -32,6 +32,22 @@ describe("ToastNotification module API", () => {
     unregister();
   });
 
+  it("forwards an optional action to the handler", () => {
+    const handler = vi.fn<(data: ToastData) => void>();
+    const unregister = registerToastHandler(handler);
+    const onClick = vi.fn();
+
+    triggerToast("Filed", true, { label: "Create rule", onClick });
+
+    expect(handler).toHaveBeenCalledWith({
+      message: "Filed",
+      success: true,
+      action: { label: "Create rule", onClick },
+    });
+
+    unregister();
+  });
+
   it("does nothing (and does not throw) when no handler is registered", () => {
     // Register then immediately unregister so no handler is active.
     const handler = vi.fn<(data: ToastData) => void>();

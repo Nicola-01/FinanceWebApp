@@ -216,3 +216,8 @@
   font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
 }
+
+/* v2: values (amounts, counts) in JetBrains Mono; text keeps the sans. */
+:root[data-ui="v2"] :is(.tabular-nums, number-flow-react) {
+  font-family: var(--font-mono);
+}

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import {
   render,
   screen,
@@ -9,6 +9,7 @@ import {
 import { createRef } from "react";
 import type { CurrencyCode } from "../../../utils/currencies";
 import type { Transaction, Wallet } from "../../../types/domain";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 // Isolate from the heavy form children (some are being refactored concurrently).
 vi.mock("../../../modals/transaction/TagPicker.tsx", () => ({
@@ -116,5 +117,69 @@ describe("TransactionModal", () => {
     expect(vi.mocked(api.put).mock.calls[0][1]).toMatchObject({
       transactionDate: "2026-09-10",
     });
+  });
+});
+
+describe("TransactionModal — v2 compact list", () => {
+  beforeEach(() => {
+    setUiVersion("v2");
+    vi.mocked(api.put).mockReset();
+  });
+  afterEach(() => {
+    setUiVersion("v1");
+    localStorage.clear();
+  });
+
+  const tx = (over: Partial<Transaction> = {}) =>
+    ({
+      id: "t1",
+      name: "Coffee",
+      type: "EXPENSE",
+      amount: 3,
+      transactionDate: "2026-09-10",
+      tag: { name: "Food", icon: "tag", colorHex: "#fff" },
+      ...over,
+    }) as unknown as Transaction;
+
+  it("renders the Category, Date and Name rows", () => {
+    const ref = renderModal();
+    act(() => ref.current!.openModal());
+    expect(screen.getByText("Category")).toBeInTheDocument();
+    expect(screen.getByText("Date")).toBeInTheDocument();
+    expect(screen.getByText("Name")).toBeInTheDocument();
+  });
+
+  it("offers a More details disclosure, closed for a plain transaction", () => {
+    const ref = renderModal();
+    act(() => ref.current!.openModal(tx()));
+    const summary = screen.getByText("More details").closest("summary");
+    expect(summary).toBeInTheDocument();
+    expect(summary!.closest("details")).not.toHaveAttribute("open");
+  });
+
+  it("opens More details when editing a transaction that has notes", () => {
+    const ref = renderModal();
+    act(() =>
+      ref.current!.openModal(
+        tx({ notes: "receipt #4" } as Partial<Transaction>),
+      ),
+    );
+    expect(screen.getByText("More details").closest("details")).toHaveAttribute(
+      "open",
+    );
+  });
+
+  it("sends the name typed in the Name field on save", async () => {
+    vi.mocked(api.put).mockResolvedValue({ data: {} });
+    const ref = renderModal();
+    act(() => ref.current!.openModal(tx()));
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Coop" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save transaction" }));
+
+    await waitFor(() => expect(api.put).toHaveBeenCalled());
+    expect(vi.mocked(api.put).mock.calls[0][1]).toMatchObject({ name: "Coop" });
   });
 });

@@ -21,6 +21,8 @@ export interface MonthByMonthChartProps {
   rows: MonthByMonthRow[];
   byYear: boolean;
   currencySymbol: string;
+  /** Render without the card shell + heading (the parent group card provides them). */
+  bare?: boolean;
 }
 
 const hasAmount = (row: MonthByMonthRow) =>
@@ -33,6 +35,7 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
   rows,
   byYear,
   currencySymbol,
+  bare = false,
 }) => {
   const { income, expense, kept } = useChartPalette();
   const bound = symmetricBound(rows);
@@ -109,11 +112,21 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
   );
 
   return (
-    <section className="bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4">
-      <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-        {title}
-      </h3>
-      <p className="text-[13px] text-app-muted mt-0.5">{sub}</p>
+    <section
+      className={
+        bare
+          ? ""
+          : "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4"
+      }
+    >
+      {!bare && (
+        <>
+          <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
+            {title}
+          </h3>
+          <p className="text-[13px] text-app-muted mt-0.5">{sub}</p>
+        </>
+      )}
       {rows.some(hasAmount) ? (
         <>
           <div className="relative">

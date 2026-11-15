@@ -202,4 +202,59 @@ class ReportAggregatorTest {
             .orElseThrow();
     assertEquals(new BigDecimal("500.00"), travelTotal.previousAmount());
   }
+
+  // ── charts ──────────────────────────────────────────────────────────────
+
+  @Test
+  void monthlyCharts_DailyWeekdayFixedAndSavings() {
+    Transaction sub =
+        tx("netflix", "15.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 1), null);
+    sub.setSubscription(new dev.busato.FinanceWebApp.backend.model.Subscription());
+    List<Transaction> all =
+        List.of(
+            tx("salary", "1000.00", Transaction.Type.INCOME, LocalDate.of(2026, 6, 1), null),
+            sub, // Monday 1 June
+            tx("coffee", "5.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 1), null),
+            tx("food", "80.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 8), null),
+            tx("May income", "500.00", Transaction.Type.INCOME, LocalDate.of(2026, 5, 4), null),
+            tx("May rent", "600.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 5, 5), null));
+
+    ReportCharts c = aggregator.monthly(wallet, all, YearMonth.of(2026, 6)).charts();
+
+    assertEquals(LocalDate.of(2026, 6, 1), c.from());
+    assertEquals(LocalDate.of(2026, 6, 30), c.to());
+    assertEquals(new BigDecimal("20.00"), c.dailyExpense().get(LocalDate.of(2026, 6, 1)));
+    assertEquals(2, c.dailyExpense().size());
+    // June 2026 has 5 Mondays; subscription excluded: (5 + 80) / 5
+    assertEquals(new BigDecimal("17.00"), c.weekdayAverages().get(0));
+    assertEquals(0, c.weekdayAverages().get(1).signum());
+    assertEquals(1, c.fixedVsEveryday().size());
+    assertEquals(new BigDecimal("15.00"), c.fixedVsEveryday().get(0).fixed());
+    assertEquals(new BigDecimal("85.00"), c.fixedVsEveryday().get(0).everyday());
+    assertEquals(90.0, c.savingsRate()); // (1000 - 100) / 1000
+    assertEquals(-20.0, c.previousSavingsRate()); // (500 - 600) / 500
+  }
+
+  @Test
+  void charts_SavingsRateNullWithoutIncome() {
+    List<Transaction> all =
+        List.of(tx("a", "10.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 5), null));
+
+    ReportCharts c = aggregator.monthly(wallet, all, YearMonth.of(2026, 6)).charts();
+
+    assertNull(c.savingsRate());
+    assertNull(c.previousSavingsRate());
+  }
+
+  @Test
+  void yearlyCharts_HaveTwelveMonthlySplits() {
+    List<Transaction> all =
+        List.of(tx("a", "10.00", Transaction.Type.EXPENSE, LocalDate.of(2025, 3, 5), null));
+
+    ReportCharts c = aggregator.yearly(wallet, all, 2025).charts();
+
+    assertEquals(12, c.fixedVsEveryday().size());
+    assertEquals(new BigDecimal("10.00"), c.fixedVsEveryday().get(2).everyday());
+    assertEquals(BigDecimal.ZERO, c.fixedVsEveryday().get(0).total());
+  }
 }

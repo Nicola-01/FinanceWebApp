@@ -114,7 +114,9 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
       </div>
 
       {/* Day grid */}
-      <div className="grid grid-cols-7 grid-rows-6 gap-px sm:gap-1 md:gap-2 flex-1">
+      <div
+        className={`grid grid-cols-7 gap-px sm:gap-1 md:gap-2 ${v2 ? "" : "grid-rows-6 flex-1"}`} // ui-v2-switch: v2 rows size from square cells
+      >
         {calendarDays.map((calendarDay, index) => {
           const dayStr = format(calendarDay, "yyyy-MM-dd");
           const calendarDayYear = calendarDay.getFullYear();

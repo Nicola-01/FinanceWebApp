@@ -221,12 +221,37 @@ describe("BalanceProjectionChart", () => {
       "Feb 2027",
       "Mar 2027",
     ]);
-    expect(screen.getByText("Projection")).toBeInTheDocument();
-    expect(screen.getByText("Likely range")).toBeInTheDocument();
+    // No legend: the series are explained by the info popover next to the title.
+    expect(screen.queryByText("Projection")).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "How the projection and range work" }),
+    ).toBeInTheDocument();
     expect(last("Band")).toMatchObject({
       lowerKey: "low",
       upperKey: "high",
       showInTooltip: false,
     });
+  });
+});
+
+describe("BalanceProjectionChart bare mode", () => {
+  it("drops the heading and sub-line but keeps the horizon selector and info tip", () => {
+    const { container } = render(
+      withTheme(
+        <BalanceProjectionChart
+          history={threeMonths}
+          currencySymbol="€"
+          bare
+        />,
+      ),
+    );
+    expect(screen.queryByRole("heading")).toBeNull();
+    expect(screen.queryByText(/usual pace/)).toBeNull();
+    expect(container.firstElementChild).not.toHaveClass("bg-app-card");
+    expect(screen.getByRole("button", { name: "1 year" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "How the projection and range work" }),
+    ).toBeInTheDocument();
+    expect(calls.LineChart).toHaveLength(1);
   });
 });

@@ -17,6 +17,8 @@ export const WalletHeroCard: React.FC<{
   kind?: AnimatedNumberProps["kind"];
   currency?: string;
   signed?: boolean;
+  /** Rendered under the value, e.g. a trend line; the cat stays on top-right of it. */
+  footer?: React.ReactNode;
   compact?: boolean;
   className?: string;
 }> = ({
@@ -29,6 +31,7 @@ export const WalletHeroCard: React.FC<{
   kind,
   currency,
   signed,
+  footer,
   compact = false,
   className,
 }) => (
@@ -44,7 +47,7 @@ export const WalletHeroCard: React.FC<{
       .join(" ")}
   >
     <img
-      src="/icon.svg"
+      src="/hero-cat.webp"
       alt=""
       aria-hidden="true"
       className="pointer-events-none absolute -bottom-[22px] -right-[18px] w-[150px] -rotate-[8deg] opacity-90"
@@ -81,5 +84,8 @@ export const WalletHeroCard: React.FC<{
         )}
       </div>
     </div>
+    {footer ? (
+      <div className="relative mr-[110px] max-sm:mr-[90px]">{footer}</div>
+    ) : null}
   </section>
 );

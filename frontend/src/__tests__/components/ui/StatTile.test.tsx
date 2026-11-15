@@ -37,9 +37,18 @@ describe("StatTile", () => {
     const { container, rerender } = render(<StatTile label="L" value="V" />);
     expect(container.querySelector(".max-sm\\:hidden")).toBeNull();
     rerender(<StatTile label="L" value="V" icon={<svg data-testid="ic" />} />);
-    const wrapper = screen.getByTestId("ic").parentElement;
-    expect(wrapper).toHaveClass("max-sm:hidden");
+    const [big, small] = screen
+      .getAllByTestId("ic")
+      .map((el) => el.parentElement);
+    expect(big).toHaveClass("max-sm:hidden");
+    expect(small).toHaveClass("sm:hidden");
+    expect(small).toHaveAttribute("aria-hidden", "true");
     expect(container.firstElementChild).toHaveClass("grid");
+  });
+
+  it("keeps the label text in the DOM once", () => {
+    render(<StatTile label="Income" value="V" icon={<svg />} />);
+    expect(screen.getAllByText("Income")).toHaveLength(1);
   });
 });
 

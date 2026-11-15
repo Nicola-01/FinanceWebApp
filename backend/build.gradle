@@ -55,6 +55,7 @@ dependencies {
 
     // HTML/CSS → PDF for the periodic report attachments
     implementation 'io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.24'
+    implementation 'io.github.openhtmltopdf:openhtmltopdf-svg-support:1.1.24'
 
     // Web Push (VAPID) — encrypts and delivers push messages to browser push services
     implementation 'nl.martijndwars:web-push:5.1.1'

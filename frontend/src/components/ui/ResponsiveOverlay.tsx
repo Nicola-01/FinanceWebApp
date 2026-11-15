@@ -7,6 +7,7 @@ import { useMediaQuery } from "../../hooks/useMediaQuery.ts";
 import { useEscapeKey } from "../../hooks/useEscapeKey.ts";
 import { registerOverlay } from "../../utils/overlayHistory.ts";
 import { useUiVersion } from "../../hooks/useUiVersion";
+import { useOverlayBodyLock } from "../../hooks/useOverlayBodyLock.ts";
 import Button from "./Button";
 
 export interface ResponsiveOverlayProps {
@@ -24,6 +25,8 @@ export interface ResponsiveOverlayProps {
   width?: number;
   children: React.ReactNode;
 }
+
+/** Number of open overlays, so nested ones keep the body flag until the last closes. */
 
 /** Desktop breakpoint: at/above this it's a right drawer, below it's full-screen. */
 const DESKTOP_QUERY = "(min-width: 768px)";
@@ -63,15 +66,7 @@ export const ResponsiveOverlay: React.FC<ResponsiveOverlayProps> = ({
   // Close on Escape.
   useEscapeKey(onClose, open);
 
-  // Lock body scroll while open.
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  useOverlayBodyLock(open);
 
   // Back button / gesture closes the top overlay (shared single-entry manager,
   // safe when one overlay closes as another opens — e.g. details → edit).

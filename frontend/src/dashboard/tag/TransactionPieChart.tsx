@@ -37,7 +37,14 @@ function V2CenterLabel({
 }): React.ReactElement {
   const { width, height, left, top } = useDrawingArea();
   return (
-    <foreignObject x={left} y={top} width={width} height={height}>
+    // Spans the whole drawing area above the arcs: let the pointer through to the slices (tooltip/highlight).
+    <foreignObject
+      x={left}
+      y={top}
+      width={width}
+      height={height}
+      pointerEvents="none"
+    >
       <div className="flex h-full flex-col items-center justify-center text-app-text">
         <div className="font-display text-[16px] leading-tight font-semibold tracking-[-0.02em]">
           <AnimatedNumber

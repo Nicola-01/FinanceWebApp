@@ -175,6 +175,7 @@ describe("summarizePeriod", () => {
     );
     expect(result.vsPrevious).toEqual({
       label: "2025",
+      earnedPct: -0.2,
       spentPct: 0.25,
       kept: 600,
       savingsRate: 0.6,
@@ -204,10 +205,41 @@ describe("summarizePeriod", () => {
     );
     expect(incomeOnly.vsPrevious).toEqual({
       label: "2025",
+      earnedPct: -1,
       spentPct: null,
       kept: 5,
       savingsRate: 1,
     });
+  });
+
+  it("earnedPct is null when the previous year earned nothing, and compares earned the same way as spent", () => {
+    const today = new Date(2026, 9, 15);
+    const spendOnly = summarizePeriod(
+      [
+        tx({ type: "EXPENSE", amount: 100, transactionDate: "2025-01-05" }),
+        tx({ type: "INCOME", amount: 300, transactionDate: "2026-01-05" }),
+        tx({ type: "EXPENSE", amount: 150, transactionDate: "2026-02-05" }),
+      ],
+      { kind: "year", year: 2026 },
+      today,
+    );
+    expect(spendOnly.vsPrevious).toEqual({
+      label: "2025",
+      earnedPct: null,
+      spentPct: 0.5,
+      kept: -100,
+      savingsRate: null,
+    });
+
+    const rising = summarizePeriod(
+      [
+        tx({ type: "INCOME", amount: 200, transactionDate: "2025-01-05" }),
+        tx({ type: "INCOME", amount: 300, transactionDate: "2026-01-05" }),
+      ],
+      { kind: "year", year: 2026 },
+      today,
+    );
+    expect(rising.vsPrevious?.earnedPct).toBeCloseTo(0.5);
   });
 
   it("months for the current year is today's month count", () => {
