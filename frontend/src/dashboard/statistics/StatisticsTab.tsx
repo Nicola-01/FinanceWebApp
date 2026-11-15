@@ -5,6 +5,8 @@ import { isCategorised } from "../wallet/toCategorize.ts";
 import { OverviewTable } from "./OverviewTable.tsx";
 import { StatisticsSummary } from "./StatisticsSummary.tsx";
 import { StatisticsV2 } from "./StatisticsV2.tsx";
+import { CustomizePageButton } from "../layout/CustomizePageButton.tsx";
+import { LayoutEditBar } from "../layout/LayoutEditBar.tsx";
 import { MonthlySnapshotChart } from "./MonthlySnapshotChart.tsx";
 import { CumulativeChart } from "./CumulativeChart.tsx";
 import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
@@ -82,7 +84,23 @@ export const StatisticsTab: React.FC = () => {
   // ui-v2-switch
   if (isV2)
     return (
-      <StatisticsV2 transactions={transactions} currency={wallet.currency} />
+      <StatisticsV2
+        transactions={transactions}
+        currency={wallet.currency}
+        walletId={wallet.id}
+        accentColor={wallet.color}
+        renderLayoutControls={({ editing, setEditing, hiddenCount, reset }) =>
+          editing ? (
+            <LayoutEditBar
+              hiddenCount={hiddenCount}
+              onReset={reset}
+              onDone={() => setEditing(false)}
+            />
+          ) : (
+            <CustomizePageButton onClick={() => setEditing(true)} />
+          )
+        }
+      />
     );
 
   const currentTab = CHART_TABS.find((t) => t.key === chartMode)!;

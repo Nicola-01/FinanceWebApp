@@ -1,9 +1,10 @@
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { useUiVersion } from "../../hooks/useUiVersion";
+import { useOverlayBodyLock } from "../../hooks/useOverlayBodyLock";
 import Button from "./Button";
 
 export interface WizardShellProps {
@@ -31,20 +32,13 @@ export function WizardShell({
   useEscapeKey(onClose, open);
   const [ui] = useUiVersion();
   const isV2 = ui === "v2";
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [open]);
+  useOverlayBodyLock(open);
 
   if (!open) return null;
   const root = document.getElementById("modal-root") ?? document.body;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col bg-app-bg">
+    <div className="fixed inset-0 z-[95] flex flex-col bg-app-bg">
       <header
         className={`flex ${subtitle ? "items-start" : "items-center"} justify-between gap-4 border-b border-app-border px-5 py-4 sm:px-8 lg:pt-2`}
       >

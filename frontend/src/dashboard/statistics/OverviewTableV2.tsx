@@ -6,6 +6,9 @@ import Button from "../../components/ui/Button.tsx";
 import { formatAmount } from "../../utils/format.ts";
 import { useOverviewData, type ViewMode } from "./useOverviewData.ts";
 
+const fullMonth = (m: number) =>
+  new Date(2000, m, 1).toLocaleString("en-US", { month: "long" });
+
 const TABS = [
   { key: "monthly", label: "Monthly", title: "Monthly overview" },
   { key: "yearly", label: "Yearly", title: "Yearly overview" },
@@ -21,8 +24,11 @@ const Amount: React.FC<{ value: number; kind: "income" | "spent" | "net" }> = ({
 }) => {
   if (value === 0) return <span className="text-app-faint">—</span>;
   const sign = kind === "spent" || (kind === "net" && value < 0) ? "-" : "+";
-  // Only income is green; expenses and net stay in the normal text colour.
-  const tone = kind === "income" ? "text-app-income" : "text-app-text";
+  // Income and a positive net are green; expenses and a negative net stay in the normal text colour.
+  const tone =
+    kind === "income" || (kind === "net" && value > 0)
+      ? "text-app-income"
+      : "text-app-text";
   return (
     <span className={tone}>{`${sign}${formatAmount(Math.abs(value))}`}</span>
   );
@@ -75,10 +81,6 @@ export const OverviewTableV2: React.FC<OverviewTableV2Props> = ({
     expense: dataItems[i].expense,
   }));
   const title = TABS.find((t) => t.key === viewMode)?.title;
-  const maxAbsNet = Math.max(
-    1,
-    ...periods.map((p) => Math.abs(p.income - p.expense)),
-  );
   // The current month (monthly view, this year) or the current year (yearly view).
   const now = new Date();
   const isCurrent = (key: string) =>
@@ -135,13 +137,11 @@ export const OverviewTableV2: React.FC<OverviewTableV2Props> = ({
             Spent
           </div>
           <div role="columnheader" className="text-right">
-            Net
+            Kept
           </div>
         </div>
         {periods.map((p) => {
           const net = p.income - p.expense;
-          // Track length = |net| relative to the busiest period; neutral colour (only income is green).
-          const pct = (Math.abs(net) / maxAbsNet) * 100;
           return (
             <div
               key={p.key}
@@ -152,17 +152,11 @@ export const OverviewTableV2: React.FC<OverviewTableV2Props> = ({
                 role="rowheader"
                 className="col-span-3 font-medium sm:col-span-1"
               >
-                {p.label}
-                <div className="mt-1.5 h-1.5 rounded-full bg-app-raised">
-                  <div
-                    className="h-full rounded-full bg-app-faint"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
+                {isMonthly ? fullMonth(Number(p.key)) : p.label}
               </div>
               <Value caption="Income" value={p.income} kind="income" />
               <Value caption="Spent" value={p.expense} kind="spent" />
-              <Value caption="Net" value={net} kind="net" />
+              <Value caption="Kept" value={net} kind="net" />
             </div>
           );
         })}
@@ -173,7 +167,7 @@ export const OverviewTableV2: React.FC<OverviewTableV2Props> = ({
           <Value caption="Income" value={totals.income} kind="income" />
           <Value caption="Spent" value={totals.expense} kind="spent" />
           <Value
-            caption="Net"
+            caption="Kept"
             value={totals.income - totals.expense}
             kind="net"
           />

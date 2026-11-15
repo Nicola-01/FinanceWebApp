@@ -4,8 +4,10 @@ import { filterTransactions } from "../wallet/useTransactionFilters.ts";
 import { WalletHeroCard } from "../../components/ui/WalletHeroCard.tsx";
 import { StatTile } from "../../components/ui/StatTile.tsx";
 import { CategoryIcon } from "../../components/ui/CategoryIcon.tsx";
-import { periodLabel, sumByType } from "../../utils/period.ts";
+import { dailyNetSeries, periodLabel, sumByType } from "../../utils/period.ts";
 import { getCurrencySymbol } from "../../utils/currencies/index.ts";
+import { onColor, toHex } from "../../utils/color.ts";
+import { LazyHeroTrend } from "../../components/ui/LazyHeroTrend.tsx";
 
 const countLabel = (n: number): string =>
   n === 0 ? "Nothing yet" : n === 1 ? "1 transaction" : `${n} transactions`;
@@ -25,6 +27,11 @@ export const TransactionsHero: React.FC = () => {
     [transactions, tags, dateRange],
   );
 
+  const trend = useMemo(
+    () => dailyNetSeries(periodTx, dateRange.start, dateRange.end),
+    [periodTx, dateRange.start, dateRange.end],
+  );
+
   const { income, expense } = sumByType(periodTx);
   const incomeCount = periodTx.filter((tx) => tx.type === "INCOME").length;
   const expenseCount = periodTx.length - incomeCount;
@@ -40,6 +47,11 @@ export const TransactionsHero: React.FC = () => {
         value={net}
         currency={symbol}
         signed
+        footer={
+          trend.length >= 2 && trend.some((r) => r.v !== 0) ? (
+            <LazyHeroTrend rows={trend} color={onColor(toHex(wallet.color))} />
+          ) : undefined
+        }
       />
       <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-1">
         <StatTile

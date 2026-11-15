@@ -50,6 +50,7 @@ export interface PeriodSeries {
 
 export interface PeriodComparison {
   label: string; // previous year, e.g. "2025"
+  earnedPct: number | null; // (earned - prevEarned) / prevEarned as a fraction; null when prevEarned is 0
   spentPct: number | null; // (spent - prevSpent) / prevSpent as a fraction; null when prevSpent is 0
   kept: number;
   savingsRate: number | null; // fraction; null when prev earned is 0
@@ -160,7 +161,7 @@ function previousComparison(
   txs: Transaction[],
   period: StatsPeriod,
   today: Date,
-  spentNow: number,
+  current: { earned: number; spent: number },
 ): PeriodComparison | null {
   if (period.kind === "all") return null;
   const prevYear = period.year - 1;
@@ -174,7 +175,8 @@ function previousComparison(
   const kept = earned - spent;
   return {
     label: String(prevYear),
-    spentPct: spent === 0 ? null : (spentNow - spent) / spent,
+    earnedPct: earned === 0 ? null : (current.earned - earned) / earned,
+    spentPct: spent === 0 ? null : (current.spent - spent) / spent,
     kept,
     savingsRate: earned === 0 ? null : kept / earned,
   };
@@ -198,6 +200,6 @@ export function summarizePeriod(
     months,
     avgEarnedPerMonth: months === 0 ? 0 : earned / months,
     series: buildSeries(inPeriod, period, today),
-    vsPrevious: previousComparison(txs, period, today, spent),
+    vsPrevious: previousComparison(txs, period, today, { earned, spent }),
   };
 }

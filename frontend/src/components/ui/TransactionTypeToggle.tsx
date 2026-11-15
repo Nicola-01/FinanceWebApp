@@ -1,5 +1,6 @@
 import React from "react";
 import { Selector } from "./Selector";
+import { SegmentedControl } from "./SegmentedControl";
 import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface Props {
@@ -9,8 +10,29 @@ interface Props {
 
 export const TransactionTypeToggle: React.FC<Props> = ({ type, setType }) => {
   const [ui] = useUiVersion();
-  // ui-v2-switch: expenses stay in the text colour; only income is green.
-  const isV2 = ui === "v2";
+
+  // ui-v2-switch
+  if (ui === "v2") {
+    // Expenses stay in the text colour; only income is green.
+    return (
+      <SegmentedControl<"EXPENSE" | "INCOME">
+        className="mt-4 w-full max-w-[260px]"
+        fullWidth
+        aria-label="Transaction type"
+        value={type}
+        onChange={setType}
+        options={[
+          { value: "EXPENSE", label: "Expense" },
+          {
+            value: "INCOME",
+            label: "Income",
+            activeClassName: "text-app-income",
+          },
+        ]}
+      />
+    );
+  }
+
   return (
     <Selector<"EXPENSE" | "INCOME">
       className="mt-4 max-w-[250px]"
@@ -20,14 +42,14 @@ export const TransactionTypeToggle: React.FC<Props> = ({ type, setType }) => {
         {
           value: "EXPENSE",
           label: "Expense",
-          activeBgClass: isV2 ? "bg-app-raised" : "bg-app-red/20",
-          activeColorClass: isV2 ? "text-app-text" : "text-app-red",
+          activeBgClass: "bg-app-red/20",
+          activeColorClass: "text-app-red",
         },
         {
           value: "INCOME",
           label: "Income",
-          activeBgClass: isV2 ? "bg-app-raised" : "bg-app-green/20",
-          activeColorClass: isV2 ? "text-app-income" : "text-app-green",
+          activeBgClass: "bg-app-green/20",
+          activeColorClass: "text-app-green",
         },
       ]}
     />

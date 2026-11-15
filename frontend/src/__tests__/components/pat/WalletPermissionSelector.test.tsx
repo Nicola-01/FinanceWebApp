@@ -212,7 +212,7 @@ describe("WalletPermissionSelector v2", () => {
         setPermission={setPermission}
       />,
     );
-    await user.click(screen.getByRole("button", { name: "Write" }));
+    await user.click(screen.getByRole("tab", { name: "Write" }));
     expect(setPermission).toHaveBeenCalledWith("w1", "write");
   });
 });

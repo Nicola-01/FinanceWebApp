@@ -3,7 +3,6 @@ import type { Transaction } from "../../../types/domain.ts";
 import {
   monthByMonthRows,
   waterfallRows,
-  fixedVsEverydayRows,
   balanceHistory,
   symmetricBound,
 } from "../../../dashboard/statistics/statsChartRows.ts";
@@ -159,72 +158,6 @@ describe("waterfallRows", () => {
 
   it("returns [] for all-time with no transactions", () => {
     expect(waterfallRows([], { kind: "all" }, today)).toEqual([]);
-  });
-});
-
-describe("fixedVsEverydayRows", () => {
-  // April: slots Jan..Apr. March is an outlier that should be capped.
-  const aprilToday = new Date(2026, 3, 15);
-
-  it("splits expenses and caps the outlier month at 1.5x the 2nd-highest slot", () => {
-    const txs = [
-      // Jan, Feb, Apr: 100 subscription + 100 everyday = 200
-      tx("2026-01-03", 100, "EXPENSE", { subscriptionId: "s1" }),
-      tx("2026-01-04", 100, "EXPENSE"),
-      tx("2026-02-03", 100, "EXPENSE", { subscriptionId: "s1" }),
-      tx("2026-02-04", 100, "EXPENSE"),
-      tx("2026-04-03", 100, "EXPENSE", { subscriptionId: "s1" }),
-      tx("2026-04-04", 100, "EXPENSE"),
-      // Mar outlier: 100 subscription + 1000 everyday = 1100
-      tx("2026-03-03", 100, "EXPENSE", { subscriptionId: "s1" }),
-      tx("2026-03-04", 1000, "EXPENSE"),
-      // Income is ignored
-      tx("2026-01-10", 5000, "INCOME"),
-    ];
-    const rows = fixedVsEverydayRows(
-      txs,
-      { kind: "year", year: 2026 },
-      aprilToday,
-    );
-
-    expect(rows).toHaveLength(4);
-    // cap = 1.5 * 200 = 300
-    expect(rows[0]).toEqual({
-      date: new Date(2026, 0, 1),
-      subscriptions: 100,
-      everyday: 100,
-      everydayCapped: 100,
-    });
-    expect(rows[0].overflow).toBeUndefined();
-    expect(rows[2]).toEqual({
-      date: new Date(2026, 2, 1),
-      subscriptions: 100,
-      everyday: 1000,
-      everydayCapped: 200,
-      overflow: "1.1k ↑",
-    });
-  });
-
-  it("applies no cap with fewer than 3 slots", () => {
-    const txs = [
-      tx("2026-01-03", 1000, "EXPENSE"),
-      tx("2026-02-03", 10, "EXPENSE", { subscriptionId: "s1" }),
-    ];
-    const rows = fixedVsEverydayRows(
-      txs,
-      { kind: "year", year: 2026 },
-      new Date(2026, 1, 15),
-    );
-
-    expect(rows).toHaveLength(2);
-    expect(rows[0]).toEqual({
-      date: new Date(2026, 0, 1),
-      subscriptions: 0,
-      everyday: 1000,
-      everydayCapped: 1000,
-    });
-    expect(rows[1].overflow).toBeUndefined();
-    expect(rows[1].everydayCapped).toBe(0);
   });
 });
 

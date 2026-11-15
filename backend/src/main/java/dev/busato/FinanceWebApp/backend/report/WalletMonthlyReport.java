@@ -17,4 +17,5 @@ public record WalletMonthlyReport(
     BigDecimal endBalance,
     List<CategoryTotal> topExpenseCategories,
     List<CategoryTotal> topIncomeCategories,
-    int transactionCount) {}
+    int transactionCount,
+    ReportCharts charts) {}

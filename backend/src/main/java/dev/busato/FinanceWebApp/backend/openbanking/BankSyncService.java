@@ -38,6 +38,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -242,6 +243,7 @@ public class BankSyncService {
     Tag tag = null;
     int n = 0;
     LocalDate retryFrom = null;
+    Set<UUID> merged = new HashSet<>();
     // The first sync backfills history: notifying each of those rows would flood the members.
     boolean notify = link.getLastSyncedAt() != null;
     List<BankRule> rules =
@@ -275,6 +277,7 @@ public class BankSyncService {
       String notes = m.notes();
       String name = m.name();
       Tag ruleTag = null;
+      UUID bankRuleId = null;
       boolean reviewFirst = false;
       List<BankRule> hits =
           rules.stream().filter(r -> BankMatchRule.matches(r, row.name())).toList();
@@ -299,7 +302,7 @@ public class BankSyncService {
         } else if (subs.size() == 1) {
           // Subscription path: its own naming/tag/notes win; the rule's actions never apply.
           Subscription s = subs.get(0);
-          UUID matched = matchSubscription(s, m, amount, currency, rate, notify);
+          UUID matched = matchSubscription(s, rule.getId(), m, amount, currency, rate, notify);
           if (matched != null) {
             saveLedger(link, m, now, matched);
             continue;
@@ -308,13 +311,39 @@ public class BankSyncService {
               joinNotes("Possible match: " + s.getName() + " (off schedule); " + FROM_BANK, notes);
         } else {
           ruleTag = rule.getTag();
+          bankRuleId = rule.getId();
           reviewFirst = rule.isReviewFirst();
-          if (rule.getRenameTo() != null) {
+          if (rule.isClearName()) {
+            name = "";
+            notes = joinNotes("Bank: " + m.name(), notes);
+          } else if (rule.getRenameTo() != null) {
             name = rule.getRenameTo();
             notes = joinNotes("Bank: " + m.name(), notes);
           }
         }
       }
+      // A manual entry on the same day, type and amount is most likely this same payment.
+      List<Transaction> dupes = manualDuplicates(wallet, m, amount, merged);
+      if (dupes.size() == 1) {
+        Transaction existing = dupes.get(0);
+        merged.add(existing.getId());
+        String bankNote = "Bank: " + m.name();
+        if (!hasNote(existing.getNotes(), bankNote))
+          existing.setNotes(joinNotes(bankNote, existing.getNotes()));
+        existing.setImported(true);
+        if (bankRuleId != null && existing.getBankRuleId() == null)
+          existing.setBankRuleId(bankRuleId);
+        transactionRepository.save(existing);
+        saveLedger(link, m, now, existing.getId());
+        continue; // not counted, like a subscription absorb
+      }
+      if (dupes.size() > 1)
+        notes =
+            joinNotes(
+                "Possible duplicate: "
+                    + dupes.size()
+                    + " transactions on this day with the same amount",
+                notes);
       if (ruleTag == null && tag == null) tag = reviewTag(wallet);
       Transaction saved =
           transactionRepository.save(
@@ -331,6 +360,7 @@ public class BankSyncService {
                   .transactionDate(m.date())
                   .imported(true)
                   .needsReview(ruleTag == null || reviewFirst)
+                  .bankRuleId(bankRuleId)
                   .build());
       if (notify)
         eventPublisher.publishEvent(
@@ -368,6 +398,28 @@ public class BankSyncService {
     return bankNotes == null || bankNotes.isBlank() ? head : head + "; " + bankNotes;
   }
 
+  /**
+   * Non-imported rows of the same day, type and amount, minus ones already merged this sync.
+   * Amounts compare with compareTo (scale differs); pending or null amounts never match.
+   */
+  private List<Transaction> manualDuplicates(
+      Wallet wallet, MappedTx m, BigDecimal amount, Set<UUID> merged) {
+    return transactionRepository
+        .findAllByWalletIdAndTransactionDateAndTypeAndImportedFalse(
+            wallet.getId(), m.date(), m.type())
+        .stream()
+        .filter(t -> t.getAmount() != null && !t.isAmountPending())
+        .filter(t -> t.getAmount().compareTo(amount) == 0)
+        .filter(t -> !merged.contains(t.getId()))
+        // Subscription rows absorbed by a bank row keep imported=false: the ledger marks them.
+        .filter(t -> !ledgerRepository.existsByMatchedTransactionId(t.getId()))
+        .toList();
+  }
+
+  private static boolean hasNote(String notes, String entry) {
+    return notes != null && List.of(notes.split("; ")).contains(entry);
+  }
+
   private static String collision(List<String> names, String notes) {
     return joinNotes("Collision: matches " + String.join(", ", names) + "; " + FROM_BANK, notes);
   }
@@ -386,15 +438,19 @@ public class BankSyncService {
    */
   private UUID matchSubscription(
       Subscription s,
+      UUID ruleId,
       MappedTx m,
       BigDecimal amount,
       String currency,
       BigDecimal rate,
       boolean notify) {
-    if (s.isBankDriven())
-      return subscriptionService
-          .executeFromBank(s, new BankFill(m.date(), amount, m.amount(), currency, rate), notify)
-          .getId();
+    if (s.isBankDriven()) {
+      Transaction executed =
+          subscriptionService.executeFromBank(
+              s, new BankFill(m.date(), amount, m.amount(), currency, rate), notify);
+      executed.setBankRuleId(ruleId);
+      return transactionRepository.save(executed).getId();
+    }
     LocalDate from = m.date().minusDays(MATCH_WINDOW_DAYS);
     LocalDate to = m.date().plusDays(MATCH_WINDOW_DAYS);
     Transaction own =
@@ -410,6 +466,7 @@ public class BankSyncService {
       own = subscriptionService.runScheduledOccurrence(s, notify);
     if (own == null) return null;
     own.setNotes(own.getNotes() == null ? FROM_BANK : own.getNotes() + "; " + FROM_BANK);
+    own.setBankRuleId(ruleId);
     if (own.isAmountPending()) {
       own.setAmount(amount);
       own.setOriginalAmount(m.amount());

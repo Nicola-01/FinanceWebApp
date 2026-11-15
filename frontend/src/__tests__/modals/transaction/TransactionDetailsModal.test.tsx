@@ -3,10 +3,24 @@ import { render, screen, act, fireEvent } from "@testing-library/react";
 import { createRef } from "react";
 import type { Transaction, Wallet } from "../../../types/domain";
 
-const { deleteObject, fetchData, categoriseTransaction } = vi.hoisted(() => ({
+const {
+  deleteObject,
+  fetchData,
+  categoriseTransaction,
+  openRuleDraft,
+  triggerToast,
+} = vi.hoisted(() => ({
   deleteObject: vi.fn(),
   fetchData: vi.fn(),
   categoriseTransaction: vi.fn(),
+  openRuleDraft: vi.fn(),
+  triggerToast: vi.fn(),
+}));
+vi.mock("../../../dashboard/settings/bankRuleDraft.ts", () => ({
+  openRuleDraft,
+}));
+vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
+  triggerToast,
 }));
 
 vi.mock("../../../modals/transaction/TransactionView", () => ({
@@ -86,6 +100,32 @@ describe("TransactionDetailsModal", () => {
       "Food",
     );
     expect(fetchData).toHaveBeenCalled();
+  });
+
+  it("offers an undo-style toast after filing that opens the rule draft", async () => {
+    categoriseTransaction.mockResolvedValue(true);
+    const ref = renderModal("OWNER");
+    const review = { ...tx, needsReview: true } as Transaction;
+    act(() => ref.current!.openModal(review));
+    await act(async () => fireEvent.click(screen.getByText("pick-tag")));
+    expect(triggerToast).toHaveBeenCalledWith(
+      "Filed under Food",
+      true,
+      expect.objectContaining({ label: "Create rule" }),
+    );
+    const action = triggerToast.mock.calls[0][2];
+    action.onClick();
+    expect(openRuleDraft).toHaveBeenCalledWith(review, "Food");
+  });
+
+  it("opens the rule draft from the details panel", () => {
+    const ref = renderModal("OWNER");
+    const review = { ...tx, needsReview: true } as Transaction;
+    act(() => ref.current!.openModal(review));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create rule from this" }),
+    );
+    expect(openRuleDraft).toHaveBeenCalledWith(review, undefined);
   });
 
   it("shows no picker for a categorised transaction or a viewer", () => {

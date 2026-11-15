@@ -77,20 +77,19 @@ describe("Toggle", () => {
       localStorage.clear();
     });
 
-    it("fills a checked track with the wallet colour and a raised off track", () => {
+    it("renders the shadcn Switch with wallet/raised track classes", () => {
       const { rerender } = render(
         <Toggle checked={false} onChange={() => {}} aria-label="wifi" />,
       );
-      const track = screen.getByRole("switch", { name: "wifi" })
-        .firstElementChild as HTMLElement;
-      expect(track.className).toContain("bg-app-raised");
-      expect(track.className).not.toContain("border-white/10");
+      const sw = screen.getByRole("switch", { name: "wifi" });
+      expect(sw).toHaveAttribute("data-slot", "switch");
+      expect(sw.className).toContain("data-unchecked:bg-app-raised");
+      expect(sw.className).not.toContain("border-white/10");
 
       rerender(<Toggle checked onChange={() => {}} aria-label="wifi" />);
-      const onTrack = screen.getByRole("switch", { name: "wifi" })
-        .firstElementChild as HTMLElement;
-      expect(onTrack.className).toContain("bg-wallet");
-      expect(onTrack.firstElementChild?.className).toContain("bg-on-wallet");
+      expect(screen.getByRole("switch", { name: "wifi" }).className).toContain(
+        "data-checked:bg-wallet",
+      );
     });
 
     it("sets the wallet vars for accentColor instead of a gradient", () => {
@@ -102,10 +101,49 @@ describe("Toggle", () => {
           aria-label="wifi"
         />,
       );
-      const track = screen.getByRole("switch", { name: "wifi" })
-        .firstElementChild as HTMLElement;
-      expect(track.style.getPropertyValue("--wallet")).toBe("#f2cc2f");
-      expect(track.className).not.toContain("from-[var(--brand-1)]");
+      const sw = screen.getByRole("switch", { name: "wifi" });
+      expect(sw.style.getPropertyValue("--wallet")).toBe("#f2cc2f");
+      expect(sw.className).not.toContain("from-[var(--brand-1)]");
+    });
+
+    it("renders the switch with data-slot and calls onChange(!checked) on click", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      const { rerender } = render(
+        <Toggle checked={false} onChange={onChange} aria-label="wifi" />,
+      );
+      const sw = screen.getByRole("switch", { name: "wifi" });
+      expect(sw).toHaveAttribute("data-slot", "switch");
+      await user.click(sw);
+      expect(onChange).toHaveBeenCalledWith(true);
+
+      rerender(<Toggle checked onChange={onChange} aria-label="wifi" />);
+      await user.click(screen.getByRole("switch", { name: "wifi" }));
+      expect(onChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it("does not toggle when disabled", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(
+        <Toggle
+          checked={false}
+          onChange={onChange}
+          disabled
+          aria-label="wifi"
+        />,
+      );
+      await user.click(screen.getByRole("switch", { name: "wifi" }));
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it("toggles when its label text is clicked", async () => {
+      const user = userEvent.setup();
+      const onChange = vi.fn();
+      render(<Toggle checked={false} onChange={onChange} label="Dark mode" />);
+      await user.click(screen.getByText("Dark mode"));
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(true);
     });
 
     it("renders a checked button variant as a solid wallet pill", async () => {

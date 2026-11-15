@@ -1,12 +1,22 @@
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 export interface ToastData {
   message: string;
   success: boolean;
+  action?: ToastAction;
 }
 
 let toastEvent: ((data: ToastData) => void) | null = null;
 
-export const triggerToast = (message: string, success: boolean) => {
-  toastEvent?.({ message, success });
+export const triggerToast = (
+  message: string,
+  success: boolean,
+  action?: ToastAction,
+) => {
+  toastEvent?.({ message, success, action });
 };
 
 /**

@@ -109,7 +109,7 @@ describe("CashFlowSankey (v2)", () => {
     expect(formatValue(1234.5)).toBe("1234,50 €");
   });
 
-  it("shows the savings rate under the chart", () => {
+  it("has no savings summary line under the chart", () => {
     render(
       <CashFlowSankey
         transactions={[
@@ -119,20 +119,18 @@ describe("CashFlowSankey (v2)", () => {
       />,
     );
 
-    expect(screen.getByText("Saved 25% of income")).toBeInTheDocument();
+    expect(screen.queryByText(/Saved 25% of income/)).not.toBeInTheDocument();
     expect(screen.getByText("Cash flow overview")).toBeInTheDocument();
   });
 
-  it("reports the overspend and paints the deficit with the expense mark", () => {
+  it("paints the deficit with the expense mark", () => {
     render(
       <CashFlowSankey
         transactions={[tx("INCOME", 500, "Salary"), tx("EXPENSE", 700, "Rent")]}
       />,
     );
 
-    expect(
-      screen.getByText("Spent 200,00 € more than earned"),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/more than earned/)).not.toBeInTheDocument();
     const deficit = lastSankeyData().nodes.findIndex(
       (n) => n.name === "Deficit",
     );
@@ -140,6 +138,52 @@ describe("CashFlowSankey (v2)", () => {
     expect(lastNodeProps().getNodeColor(undefined, deficit)).toBe(
       "var(--color-app-expense-mark)",
     );
+  });
+
+  it("compacts the graph on phones: no sub-tags, small expenses folded into Others", () => {
+    const original = window.matchMedia;
+    window.matchMedia = (query: string) =>
+      ({ ...original(query), matches: true }) as MediaQueryList;
+    try {
+      const expenses = ["A", "B", "C", "D", "E", "F", "G"].map((name, i) =>
+        tx("EXPENSE", 700 - i * 100, name),
+      );
+      render(
+        <CashFlowSankey
+          transactions={[
+            tx("INCOME", 5000, "Salary"),
+            tx("EXPENSE", 50, "Groceries", "Food"),
+            ...expenses,
+          ]}
+        />,
+      );
+
+      const names = lastSankeyData().nodes.map((n) => n.name);
+      expect(names).not.toContain("Groceries");
+      expect(names).not.toContain("Food");
+      expect(names).toContain("Others");
+      expect(names.filter((n) => n === "Others")).toHaveLength(1);
+    } finally {
+      window.matchMedia = original;
+    }
+  });
+
+  it("folds the smallest expense tags into Others on desktop", () => {
+    const names = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+    render(
+      <CashFlowSankey
+        transactions={[
+          tx("INCOME", 9000, "Salary"),
+          ...names.map((name, i) => tx("EXPENSE", 1000 - i * 50, name)),
+        ]}
+      />,
+    );
+
+    const nodeNames = lastSankeyData().nodes.map((n) => n.name);
+    expect(nodeNames.filter((n) => n === "Others")).toHaveLength(1);
+    expect(nodeNames).toContain("A");
+    expect(nodeNames).not.toContain("I");
+    expect(nodeNames).not.toContain("J");
   });
 
   it("renders nothing when there is no income or expense", () => {

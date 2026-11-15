@@ -85,3 +85,13 @@ describe("WorthKnowingCard", () => {
     }
   });
 });
+
+describe("WorthKnowingCard bare mode", () => {
+  it("drops the card shell and heading but keeps the insight list", () => {
+    const { container } = render(<WorthKnowingCard insights={insights} bare />);
+    expect(screen.queryByRole("heading")).toBeNull();
+    expect(screen.queryByText("Computed from your transactions.")).toBeNull();
+    expect(container.firstElementChild).not.toHaveClass("bg-app-card");
+    expect(screen.getAllByRole("listitem")).toHaveLength(insights.length);
+  });
+});

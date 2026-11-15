@@ -28,10 +28,13 @@ vi.mock("../../../api/axiosConfig", () => ({
   default: { post: vi.fn() },
 }));
 vi.mock("../../../dashboard/settings/BankAccountsSection.tsx", () => ({
-  BankAccountsSection: () => null,
+  BankAccountsSection: () => <div data-testid="legacy-accounts" />,
 }));
 vi.mock("../../../dashboard/settings/BankRulesSection.tsx", () => ({
-  BankRulesSection: () => null,
+  BankRulesSection: () => <div data-testid="legacy-rules" />,
+}));
+vi.mock("../../../dashboard/settings/bank/BankEntryCard.tsx", () => ({
+  BankEntryCard: () => <div data-testid="bank-card" />,
 }));
 vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
@@ -72,6 +75,7 @@ vi.mock("../../../modals/common/ImportReviewModal.tsx", () => ({
 }));
 
 import { DataTab } from "../../../dashboard/settings/DataTab";
+import { setUiVersion } from "../../../utils/uiVersion";
 import api from "../../../api/axiosConfig";
 import { triggerToast } from "../../../components/ui/ToastNotification.tsx";
 
@@ -160,6 +164,33 @@ describe("DataTab — subscription export", () => {
       "Subscriptions exported successfully",
       true,
     );
+  });
+});
+
+describe("DataTab — download all (.zip)", () => {
+  it("warns when there is nothing to export", async () => {
+    ctxRef.current.subscriptions = [];
+    render(<DataTab />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /Download all \(\.zip\)/ }),
+    );
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith("Nothing to export", false),
+    );
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
+  });
+
+  it("downloads the zip and confirms with a toast", async () => {
+    render(<DataTab />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /Download all \(\.zip\)/ }),
+    );
+    await waitFor(() =>
+      expect(toast).toHaveBeenCalledWith("Wallet exported", true),
+    );
+    const blob = (URL.createObjectURL as ReturnType<typeof vi.fn>).mock
+      .calls[0][0] as Blob;
+    expect(blob.type).toBe("application/zip");
   });
 });
 
@@ -333,5 +364,24 @@ describe("DataTab — CSV import", () => {
     // The modal never opens on a failed import.
     expect(screen.queryByTestId("review")).not.toBeInTheDocument();
     expect(ctxRef.current.fetchData).not.toHaveBeenCalled();
+  });
+});
+
+describe("DataTab — bank entry", () => {
+  afterEach(() => setUiVersion("v1"));
+
+  it("keeps the two bank sections in v1", () => {
+    render(<DataTab />);
+    expect(screen.getByTestId("legacy-accounts")).toBeInTheDocument();
+    expect(screen.getByTestId("legacy-rules")).toBeInTheDocument();
+    expect(screen.queryByTestId("bank-card")).toBeNull();
+  });
+
+  it("renders the single Bank card in v2", () => {
+    setUiVersion("v2");
+    render(<DataTab />);
+    expect(screen.getByTestId("bank-card")).toBeInTheDocument();
+    expect(screen.queryByTestId("legacy-accounts")).toBeNull();
+    expect(screen.queryByTestId("legacy-rules")).toBeNull();
   });
 });

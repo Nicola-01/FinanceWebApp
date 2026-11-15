@@ -24,7 +24,7 @@ public final class BankDtos {
 
   /**
    * {@code ignoreCase} null = true; {@code tag} is a tag name, null/blank = none; {@code
-   * reviewFirst} and {@code dateFromName} null = false.
+   * reviewFirst}, {@code dateFromName} and {@code clearName} null = false.
    */
   public record BankRuleRequest(
       String name,
@@ -34,7 +34,8 @@ public final class BankDtos {
       String tag,
       String renameTo,
       Boolean reviewFirst,
-      Boolean dateFromName) {}
+      Boolean dateFromName,
+      Boolean clearName) {}
 
   public record BankRuleResponse(
       UUID id,
@@ -46,6 +47,8 @@ public final class BankDtos {
       String renameTo,
       boolean reviewFirst,
       boolean dateFromName,
+      boolean clearName,
+      long transactionCount,
       List<String> usedBy,
       Instant updatedAt) {}
 

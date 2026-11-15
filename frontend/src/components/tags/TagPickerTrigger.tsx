@@ -4,6 +4,7 @@ import { faChevronDown, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import type { Tag } from "../../types/domain";
 import { Icon } from "../icon/Icon.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
+import { cn } from "../../lib/utils.ts";
 
 interface TagPickerTriggerProps {
   isOpen: boolean;
@@ -13,6 +14,10 @@ interface TagPickerTriggerProps {
   onSearchChange: (query: string) => void;
   onOpen: () => void;
   onToggle: () => void;
+  /** Merged after the defaults (e.g. a transparent, right-aligned inline trigger). */
+  triggerClassName?: string;
+  /** Where the closed trigger shows its value; "right" for inline form rows. */
+  triggerAlign?: "left" | "right";
 }
 
 /** Trigger of TagTreePicker: shows the selected tag, or a search input while open. */
@@ -24,17 +29,22 @@ export const TagPickerTrigger: React.FC<TagPickerTriggerProps> = ({
   onSearchChange,
   onOpen,
   onToggle,
+  triggerClassName,
+  triggerAlign = "left",
 }) => {
   const [ui] = useUiVersion();
   const v2 = ui === "v2"; // ui-v2-switch
   const placeholderClass = v2 ? "text-app-faint" : "text-app-muted"; // ui-v2-switch
   return (
     <div
-      className={`flex w-full items-center justify-between text-left transition-all ${
-        v2 // ui-v2-switch
-          ? `h-9 rounded-[var(--r-input)] bg-app-raised px-3 text-sm normal-case text-app-text ${isOpen ? "ring-2 ring-wallet/40" : ""}`
-          : `h-12 rounded-xl border bg-app-card px-4 ${isOpen ? "" : "border-app-border"}`
-      }`}
+      className={cn(
+        `flex w-full items-center justify-between text-left transition-all ${
+          v2 // ui-v2-switch
+            ? `h-9 rounded-[var(--r-input)] bg-app-raised px-3 text-sm normal-case text-app-text ${isOpen ? "ring-2 ring-wallet/40" : ""}`
+            : `h-12 rounded-xl border bg-app-card px-4 ${isOpen ? "" : "border-app-border"}`
+        }`,
+        triggerClassName,
+      )}
       style={
         isOpen && !v2 // ui-v2-switch: v2 open state is the wallet ring class
           ? {
@@ -45,7 +55,9 @@ export const TagPickerTrigger: React.FC<TagPickerTriggerProps> = ({
       }
       onClick={onOpen}
     >
-      <div className="relative flex h-full flex-1 items-center overflow-hidden">
+      <div
+        className={`relative flex h-full flex-1 items-center overflow-hidden ${triggerAlign === "right" ? "justify-end" : ""}`}
+      >
         {isOpen ? (
           // Search input only exists while open, and is NOT auto-focused: on
           // mobile the keyboard stays down until the user taps ("Tap to search").
@@ -59,7 +71,9 @@ export const TagPickerTrigger: React.FC<TagPickerTriggerProps> = ({
             }`}
           />
         ) : selectedTag ? (
-          <div className="pointer-events-none flex w-full cursor-pointer items-center gap-3">
+          <div
+            className={`pointer-events-none flex w-full cursor-pointer items-center gap-3 ${triggerAlign === "right" ? "justify-end" : ""}`}
+          >
             <div
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-app-input text-xs"
               style={{

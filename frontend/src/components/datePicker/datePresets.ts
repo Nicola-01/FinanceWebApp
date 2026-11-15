@@ -11,3 +11,9 @@ export const mainPresets: { id: PresetType; label: string }[] = [
   { id: "all", label: "All" },
   { id: "custom", label: "Custom" },
 ];
+
+/** Every preset; the picker's default when `allowedPresets` is not given. */
+export const ALL_PRESETS: PresetType[] = [
+  ...mainPresets.map((p) => p.id),
+  "today",
+];

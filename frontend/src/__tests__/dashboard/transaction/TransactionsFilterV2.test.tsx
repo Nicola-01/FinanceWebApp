@@ -95,6 +95,15 @@ describe("TransactionsFilter (v2)", () => {
     expect(button).toHaveTextContent("2");
   });
 
+  it("keeps the to-categorise accessible name when the label is visually hidden on phones", () => {
+    render(<TransactionsFilter />);
+    const button = screen.getByRole("button", { name: /to categorise/i });
+    expect(button).toHaveAccessibleName(/to categorise\s*2/i);
+    expect(button.querySelector(".max-sm\\:sr-only")).toHaveTextContent(
+      "To categorise",
+    );
+  });
+
   it("hides the to-categorise button when nothing is pending", () => {
     state.toCategorise = 0;
     render(<TransactionsFilter />);

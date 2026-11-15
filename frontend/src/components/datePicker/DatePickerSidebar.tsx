@@ -1,5 +1,5 @@
 import React from "react";
-import { mainPresets, type PresetType } from "./datePresets";
+import { ALL_PRESETS, mainPresets, type PresetType } from "./datePresets";
 import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface DatePickerSidebarProps {
@@ -7,6 +7,8 @@ export interface DatePickerSidebarProps {
   setPreset: React.Dispatch<React.SetStateAction<PresetType>>;
   color: string;
   isDark: boolean;
+  /** Presets to list; defaults to all. "today" sits below the divider. */
+  allowedPresets?: PresetType[];
 }
 
 /** Preset list (Last 30 Days / Month / Year / All / Custom + Today). */
@@ -15,7 +17,9 @@ export default function DatePickerSidebar({
   setPreset,
   color,
   isDark,
+  allowedPresets = ALL_PRESETS,
 }: DatePickerSidebarProps) {
+  const showToday = allowedPresets.includes("today");
   const [ui] = useUiVersion();
   // ui-v2-switch: v2 rows are flat; the active one is a raised fill, no accent text.
   const isV2 = ui === "v2";
@@ -57,15 +61,21 @@ export default function DatePickerSidebar({
       }`}
     >
       <div className="flex flex-row sm:flex-col gap-1 flex-1">
-        {mainPresets.map((p) => renderPreset(p.id, p.label))}
+        {mainPresets
+          .filter((p) => allowedPresets.includes(p.id))
+          .map((p) => renderPreset(p.id, p.label))}
       </div>
 
-      <div className={`hidden sm:block h-px w-full my-2 ${dividerBg}`} />
-      <div className={`sm:hidden w-px h-auto mx-2 ${dividerBg}`} />
+      {showToday && (
+        <>
+          <div className={`hidden sm:block h-px w-full my-2 ${dividerBg}`} />
+          <div className={`sm:hidden w-px h-auto mx-2 ${dividerBg}`} />
 
-      <div className="flex flex-row sm:flex-col gap-1">
-        {renderPreset("today", "Today")}
-      </div>
+          <div className="flex flex-row sm:flex-col gap-1">
+            {renderPreset("today", "Today")}
+          </div>
+        </>
+      )}
     </div>
   );
 }

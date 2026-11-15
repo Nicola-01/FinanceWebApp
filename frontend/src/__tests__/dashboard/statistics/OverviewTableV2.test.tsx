@@ -54,9 +54,13 @@ const rowFor = (name: string) =>
 
 describe("OverviewTableV2", () => {
   it("renders one row per month with income in green and the totals row", () => {
-    render(<OverviewTableV2 transactions={transactions} />);
+    const { container } = render(
+      <OverviewTableV2 transactions={transactions} />,
+    );
+    // The net bar under each month was removed.
+    expect(container.querySelector("div.h-full")).toBeNull();
 
-    const jan = within(rowFor("Jan"));
+    const jan = within(rowFor("January"));
     const income = jan.getByText(`+${formatAmount(1000)}`);
     expect(income).toHaveClass("text-app-income");
     expect(jan.getByText(`-${formatAmount(100)}`)).not.toHaveClass(
@@ -71,7 +75,7 @@ describe("OverviewTableV2", () => {
 
   it("shows a dash for months without data", () => {
     render(<OverviewTableV2 transactions={transactions} />);
-    expect(within(rowFor("Mar")).getAllByText("—")).toHaveLength(3);
+    expect(within(rowFor("March")).getAllByText("—")).toHaveLength(3);
   });
 
   it("switches to the yearly view and labels the year column", async () => {

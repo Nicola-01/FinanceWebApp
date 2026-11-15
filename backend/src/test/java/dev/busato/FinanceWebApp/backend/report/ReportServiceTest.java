@@ -58,7 +58,7 @@ class ReportServiceTest {
   private void wireHappyPath(int txCount) {
     WalletAccess access = new WalletAccess();
     access.setWallet(wallet);
-    when(userRepository.findAll()).thenReturn(List.of(user));
+    lenient().when(userRepository.findAll()).thenReturn(List.of(user));
     when(walletAccessRepository.findAllByUserIdAndStatus(user.getId(), InvitationStatus.ACCEPTED))
         .thenReturn(List.of(access));
     when(transactionRepository.getAllByWalletId(wallet.getId())).thenReturn(List.of());
@@ -74,7 +74,8 @@ class ReportServiceTest {
                 BigDecimal.ZERO,
                 List.of(),
                 List.of(),
-                txCount));
+                txCount,
+                null));
   }
 
   @Test
@@ -167,6 +168,31 @@ class ReportServiceTest {
   }
 
   @Test
+  void sendTestMonthlyReport_SendsOnlyToGivenUserIgnoringOptIn() throws Exception {
+    wireHappyPath(3);
+    user.setMonthlyReportEnabled(false);
+    when(htmlBuilder.monthlyEmailBody(any(), any(), anyList())).thenReturn("<body/>");
+    when(htmlBuilder.monthlyPdfHtml(any(), any(), anyList())).thenReturn("<pdf/>");
+    when(pdfRenderer.render(any())).thenReturn("%PDF".getBytes());
+
+    String summary = reportService.sendTestMonthlyReport(user, period);
+
+    assertEquals("sent 1, skipped 0 (no data), failed 0", summary);
+    verify(userRepository, never()).findAll();
+    verify(sendEmailService).sendReportEmail(eq("n@x.com"), any(), any(), any(), any());
+  }
+
+  @Test
+  void sendTestYearlyReport_NoDataIsSkipped() throws Exception {
+    user.setYearlyReportEnabled(false);
+
+    String summary = reportService.sendTestYearlyReport(user, 2025);
+
+    assertEquals("sent 0, skipped 1 (no data), failed 0", summary);
+    verifyNoInteractions(sendEmailService);
+  }
+
+  @Test
   void sendYearlyReports_SendsWrapEmail() throws Exception {
     WalletAccess access = new WalletAccess();
     access.setWallet(wallet);
@@ -189,7 +215,8 @@ class ReportServiceTest {
                 List.of(),
                 List.of(),
                 new YearRecords(null, null, null, null, null, null, 0, 5, null, null),
-                5));
+                5,
+                null));
     when(htmlBuilder.yearlyEmailBody(eq("nicola"), eq(2025), anyList())).thenReturn("<body/>");
     when(htmlBuilder.yearlyPdfHtml(eq("nicola"), eq(2025), anyList())).thenReturn("<pdf/>");
     when(pdfRenderer.render("<pdf/>")).thenReturn("%PDF".getBytes());

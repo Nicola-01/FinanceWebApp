@@ -90,7 +90,32 @@ describe("Selector", () => {
       localStorage.clear();
     });
 
-    it("uses a raised neutral active segment with no inline fill, even with accentColor", () => {
+    it("renders the animated SegmentedControl as a labelled tablist", () => {
+      render(<Selector options={options} value="a" onChange={() => {}} />);
+      expect(
+        screen.getByRole("tablist", { name: "Options" }),
+      ).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: "Alpha" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+    });
+
+    it("uses ariaLabel as the group's accessible name", () => {
+      render(
+        <Selector
+          options={options}
+          value="a"
+          onChange={() => {}}
+          ariaLabel="Transaction type"
+        />,
+      );
+      expect(
+        screen.getByRole("tablist", { name: "Transaction type" }),
+      ).toBeInTheDocument();
+    });
+
+    it("fills the sliding highlight with accentColor and turns the chosen text on-wallet", () => {
       render(
         <Selector
           options={options}
@@ -99,13 +124,25 @@ describe("Selector", () => {
           accentColor="#f2cc2f"
         />,
       );
-      const active = screen.getByRole("button", { name: "Alpha" });
-      expect(active.className).toContain("bg-app-raised");
-      expect(active.className).not.toContain("shadow-sm");
-      expect(active.style.backgroundColor).toBe("");
+      expect(
+        document.querySelector('[data-slot="motion-highlight-indicator"]'),
+      ).toHaveClass("bg-wallet");
+      expect(screen.getByRole("tab", { name: "Alpha" })).toHaveClass(
+        "text-on-wallet",
+      );
     });
 
-    it("colours the active icon with accentColor inline", () => {
+    it("keeps the default neutral highlight without accentColor", () => {
+      render(<Selector options={options} value="a" onChange={() => {}} />);
+      expect(
+        document.querySelector('[data-slot="motion-highlight-indicator"]'),
+      ).toHaveClass("bg-app-card");
+      expect(screen.getByRole("tab", { name: "Alpha" })).toHaveClass(
+        "text-app-text",
+      );
+    });
+
+    it("recolours the active icon through the on-wallet svg rule with accentColor", () => {
       render(
         <Selector
           options={iconOptions}
@@ -114,40 +151,37 @@ describe("Selector", () => {
           accentColor="#f2cc2f"
         />,
       );
-      const iconWrapper = screen.getByTestId("icon-a").parentElement!;
-      expect(iconWrapper.style.color).toBe("rgb(242, 204, 47)");
-      expect(iconWrapper.className).not.toContain("text-wallet");
+      expect(screen.getByRole("tab", { name: "Alpha" })).toHaveClass(
+        "[&[data-active]_svg]:text-on-wallet",
+      );
     });
 
-    it("falls back to the text-wallet class for the active icon without accentColor", () => {
+    it("falls back to the text-wallet svg rule for the active icon without accentColor", () => {
       render(<Selector options={iconOptions} value="a" onChange={() => {}} />);
-      const iconWrapper = screen.getByTestId("icon-a").parentElement!;
-      expect(iconWrapper.className).toContain("text-wallet");
-      expect(iconWrapper.style.color).toBe("");
-      // Inactive icons stay unstyled.
-      const inactiveWrapper = screen.getByTestId("icon-b").parentElement!;
-      expect(inactiveWrapper.className).not.toContain("text-wallet");
+      expect(screen.getByRole("tab", { name: "Alpha" })).toHaveClass(
+        "[&[data-active]_svg]:text-wallet",
+      );
     });
 
-    it("lets a per-option activeBgClass win over the raised default", () => {
+    it("applies activeColorClass to the chosen tab text", () => {
       render(
         <Selector
           options={[
-            { value: "a", label: "Alpha", activeBgClass: "bg-red-500" },
+            { value: "a", label: "Alpha", activeColorClass: "text-app-income" },
             { value: "b", label: "Beta" },
           ]}
           value="a"
           onChange={() => {}}
         />,
       );
-      const active = screen.getByRole("button", { name: "Alpha" });
-      expect(active.className).toContain("bg-red-500");
-      expect(active.className).not.toContain("bg-app-raised");
+      expect(screen.getByRole("tab", { name: "Alpha" })).toHaveClass(
+        "text-app-income",
+      );
     });
 
     it("marks inactive segments muted with a hover to text", () => {
       render(<Selector options={options} value="a" onChange={() => {}} />);
-      const inactive = screen.getByRole("button", { name: "Beta" });
+      const inactive = screen.getByRole("tab", { name: "Beta" });
       expect(inactive.className).toContain("text-app-muted");
       expect(inactive.className).toContain("hover:text-app-text");
     });
@@ -158,9 +192,30 @@ describe("Selector", () => {
         { value: "b", label: "Beta" },
       ];
       render(<Selector options={tinted} value="b" onChange={() => {}} />);
-      const inactive = screen.getByRole("button", { name: "Alpha" });
+      const inactive = screen.getByRole("tab", { name: "Alpha" });
       expect(inactive).toHaveClass("text-app-income", "opacity-70");
       expect(inactive.className).not.toContain("text-app-muted");
+    });
+
+    it("disables the tab and uses disabledTitle as its tooltip", () => {
+      render(
+        <Selector
+          options={[
+            { value: "a", label: "Alpha" },
+            {
+              value: "b",
+              label: "Beta",
+              disabled: true,
+              disabledTitle: "Nope",
+            },
+          ]}
+          value="a"
+          onChange={() => {}}
+        />,
+      );
+      const disabled = screen.getByRole("tab", { name: "Beta" });
+      expect(disabled).toHaveAttribute("title", "Nope");
+      expect(disabled).toHaveAttribute("aria-disabled", "true");
     });
   });
 });

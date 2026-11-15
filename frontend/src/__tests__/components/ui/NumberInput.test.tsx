@@ -234,9 +234,7 @@ describe("NumberInput", () => {
         target: { value: "3" },
       });
       expect(onChange).toHaveBeenCalledWith("3");
-      fireEvent.click(
-        screen.getByRole("button", { name: "Expense — money out" }),
-      );
+      fireEvent.click(screen.getByRole("tab", { name: "Expense — money out" }));
       expect(onTypeChange).toHaveBeenCalledWith("EXPENSE");
     });
   });

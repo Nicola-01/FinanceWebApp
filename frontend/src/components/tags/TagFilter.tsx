@@ -236,7 +236,7 @@ export const TagFilter: React.FC<TagFilterProps> = ({
         onClick={() => (isOpen ? close() : openFilter())}
         className={
           v2 // ui-v2-switch: borderless raised field, focus-style ring when open
-            ? `flex h-9 w-9 items-center justify-center rounded-[var(--r-input)] bg-app-raised transition-all ${
+            ? `flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--r-input)] bg-app-raised transition-all ${
                 isFilterActive || isOpen
                   ? "text-app-text"
                   : "text-app-faint hover:text-app-text"

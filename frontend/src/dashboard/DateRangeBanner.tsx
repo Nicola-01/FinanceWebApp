@@ -8,10 +8,12 @@ import {
 import { it } from "date-fns/locale";
 import { useWalletContext } from "./wallet/WalletContext.tsx";
 import { isCategorised } from "./wallet/toCategorize.ts";
+import { useUiVersion } from "../hooks/useUiVersion.ts";
 
 export const DateRangeBanner: React.FC = () => {
   const { filteredTransactions: all } = useWalletContext();
   const filteredTransactions = useMemo(() => all.filter(isCategorised), [all]);
+  const [ui] = useUiVersion(); // ui-v2-switch
 
   const info = useMemo(() => {
     if (filteredTransactions.length === 0) return null;
@@ -58,7 +60,13 @@ export const DateRangeBanner: React.FC = () => {
   if (!info) return null;
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center sm:gap-x-3 gap-y-1.5 text-sm text-app-muted bg-app-input border border-app-border rounded-xl px-4 py-2.5 mb-4">
+    <div
+      className={
+        ui === "v2" // ui-v2-switch: quiet footnote at the end of the page, no box
+          ? "flex flex-col sm:flex-row items-center justify-center sm:gap-x-3 gap-y-1.5 text-[13px] text-app-muted px-4 pt-6"
+          : "flex flex-col sm:flex-row items-center justify-center sm:gap-x-3 gap-y-1.5 text-sm text-app-muted bg-app-input border border-app-border rounded-xl px-4 py-2.5 mb-4"
+      }
+    >
       <div className="flex items-center gap-3">
         <span className="font-semibold text-app-text">{info.startStr}</span>
         <span>→</span>

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import type { Transaction, Wallet } from "../../../types/domain";
 import { setUiVersion } from "../../../utils/uiVersion";
 
@@ -93,18 +93,35 @@ describe("TransactionsTable (v2)", () => {
     expect(screen.getAllByRole("button")).toHaveLength(2);
   });
 
-  it("opens the transaction modal from the empty-state call to action", () => {
+  it("empty state has no add button (the floating action button is the only one)", () => {
     renderTable([]);
     expect(
       screen.getByText("No transactions in this period"),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "New transaction" }));
-    expect(modal.openModal).toHaveBeenCalledTimes(1);
+    // The FAB is mocked to null in this file, so the empty state must have no button at all
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("renders a surface skeleton while loading", () => {
     const { container } = renderTable([], { isLoading: true });
     expect(container.querySelector(".animate-pulse")).not.toBeNull();
     expect(screen.queryByText("No transactions in this period")).toBeNull();
+  });
+});
+
+describe("TransactionsTable loading fallback (v1)", () => {
+  beforeEach(() => {
+    setUiVersion("v1");
+    ctx.transactions = [];
+  });
+
+  it("shows the hand-rolled skeleton instead of real rows while loading", () => {
+    const { container } = renderTable([tx({ id: "a", name: "Shop" })], {
+      isLoading: true,
+    });
+    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.queryByText("Shop")).toBeNull();
   });
 });

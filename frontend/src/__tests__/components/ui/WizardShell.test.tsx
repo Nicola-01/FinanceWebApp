@@ -17,6 +17,21 @@ afterEach(() => {
 });
 
 describe("WizardShell", () => {
+  it("flags the body while open so the mobile bottom bar hides", () => {
+    const { rerender } = render(
+      <WizardShell open title="New wallet" onClose={vi.fn()}>
+        <p>Body</p>
+      </WizardShell>,
+    );
+    expect(document.body).toHaveAttribute("data-overlay-open");
+    rerender(
+      <WizardShell open={false} title="New wallet" onClose={vi.fn()}>
+        <p>Body</p>
+      </WizardShell>,
+    );
+    expect(document.body).not.toHaveAttribute("data-overlay-open");
+  });
+
   it("renders nothing while closed", () => {
     render(
       <WizardShell open={false} title="New wallet" onClose={vi.fn()}>

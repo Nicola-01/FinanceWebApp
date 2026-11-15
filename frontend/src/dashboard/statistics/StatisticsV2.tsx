@@ -1,51 +1,61 @@
 import React, { useMemo, useState } from "react";
 import type { Transaction } from "../../types/domain.ts";
-import {
-  Selector,
-  type SelectorOption,
-} from "../../components/ui/Selector.tsx";
-import { Collapse } from "../../components/ui/Collapse.tsx";
+import CustomDatePicker, {
+  type DateRangeValue,
+} from "../../components/datePicker/CustomDatePicker.tsx";
 import { EmptyState } from "../../components/ui/EmptyState.tsx";
+import { useTabLayout } from "../layout/useTabLayout.ts";
+import { WidgetGrid } from "../layout/WidgetGrid.tsx";
 import { StatisticsSummaryV2 } from "./StatisticsSummaryV2.tsx";
 import { MonthByMonthChart } from "./MonthByMonthChart.tsx";
 import { WorthKnowingCard } from "./WorthKnowingCard.tsx";
-import { YearWaterfallChart } from "./YearWaterfallChart.tsx";
-import { FixedVsEverydayChart } from "./FixedVsEverydayChart.tsx";
-import { BalanceProjectionChart } from "./BalanceProjectionChart.tsx";
-import { OverviewTableV2 } from "./OverviewTableV2.tsx";
+import {
+  STATISTICS_TAB_ID,
+  STATISTICS_WIDGETS,
+  type StatisticsWidgetCtx,
+} from "./statisticsWidgets.tsx";
 import { currencySymbolOf } from "./kitChartData.ts";
 import {
   balanceHistory,
-  fixedVsEverydayRows,
   monthByMonthRows,
   waterfallRows,
 } from "./statsChartRows.ts";
 import { buildInsights } from "./statisticsInsights.ts";
-import {
-  availableYears,
-  defaultPeriod,
-  type StatsPeriod,
-} from "./statsPeriod.ts";
+import { defaultPeriod, type StatsPeriod } from "./statsPeriod.ts";
 
-/** v2 Statistics page: period selector, summary, charts, insights and the numbers table. */
+/** v2 Statistics page: period selector, summary, and the customizable widget grid. */
 export const StatisticsV2: React.FC<{
   transactions: Transaction[];
   currency: string;
-}> = ({ transactions, currency }) => {
+  walletId: string;
+  /** Wallet colour — accents the widget grid's merge and tray highlights. */
+  accentColor: string;
+  /** Layout-edit controls, supplied by the orchestrator, rendered under the grid. */
+  renderLayoutControls?: (state: {
+    editing: boolean;
+    setEditing: (v: boolean) => void;
+    hiddenCount: number;
+    reset: () => void;
+  }) => React.ReactNode;
+}> = ({
+  transactions,
+  currency,
+  walletId,
+  accentColor,
+  renderLayoutControls,
+}) => {
   const today = useMemo(() => new Date(), []);
   const [period, setPeriod] = useState<StatsPeriod>(() => defaultPeriod(today));
+  const [editing, setEditing] = useState(false);
+  const layoutApi = useTabLayout(
+    STATISTICS_TAB_ID,
+    walletId,
+    STATISTICS_WIDGETS,
+  );
   const byYear = period.kind === "all";
+  // Year the picker opens on (its initial range); "All" keeps the current year.
+  const pickerYear = period.kind === "year" ? period.year : today.getFullYear();
   const currencySymbol = currencySymbolOf(currency);
-
-  const periodOptions = useMemo<SelectorOption<number | "all">[]>(() => {
-    const years = [
-      ...new Set([today.getFullYear(), ...availableYears(transactions)]),
-    ].sort((a, b) => b - a);
-    return [
-      ...years.map((year) => ({ value: year, label: String(year) })),
-      { value: "all", label: "All time" },
-    ];
-  }, [transactions, today]);
 
   const rows = useMemo(
     () => monthByMonthRows(transactions, period, today),
@@ -53,10 +63,6 @@ export const StatisticsV2: React.FC<{
   );
   const waterfall = useMemo(
     () => waterfallRows(transactions, period, today),
-    [transactions, period, today],
-  );
-  const fixedVsEveryday = useMemo(
-    () => fixedVsEverydayRows(transactions, period, today),
     [transactions, period, today],
   );
   const history = useMemo(
@@ -68,23 +74,49 @@ export const StatisticsV2: React.FC<{
     [transactions, period, currencySymbol],
   );
 
+  const ctx: StatisticsWidgetCtx = {
+    rows,
+    waterfall,
+    history,
+    insights,
+    transactions,
+    byYear,
+    currencySymbol,
+  };
+
   return (
     <div className="flex flex-col gap-[14px] pb-10 animate-[fadeIn_0.3s_ease-out]">
       <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
         <h2 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">
           Statistics
         </h2>
-        <Selector
-          size="sm"
-          fullWidth={false}
-          options={periodOptions}
-          value={period.kind === "all" ? "all" : period.year}
-          onChange={(value) =>
-            setPeriod(
-              value === "all" ? { kind: "all" } : { kind: "year", year: value },
-            )
-          }
-        />
+        <div className="w-full sm:w-auto sm:min-w-[16rem]">
+          <CustomDatePicker
+            isRange
+            color={accentColor}
+            allowedPresets={["year", "all"]}
+            initialPreset={period.kind === "all" ? "all" : "year"}
+            initialStartDate={new Date(pickerYear, 0, 1)}
+            initialEndDate={new Date(pickerYear, 11, 31)}
+            onChange={(val) => {
+              // "All" emits a null start; only a year range changes the period here.
+              const { start } = val as DateRangeValue;
+              if (!start) return;
+              const year = start.getFullYear();
+              setPeriod((p) =>
+                p.kind === "year" && p.year === year
+                  ? p
+                  : { kind: "year", year },
+              );
+            }}
+            // The picker calls this on every render (its effect depends on the callback):
+            // keep the same state object when nothing changed, or "All" loops forever.
+            onPresetChange={(preset) => {
+              if (preset === "all")
+                setPeriod((p) => (p.kind === "all" ? p : { kind: "all" }));
+            }}
+          />
+        </div>
       </div>
 
       {transactions.length === 0 ? (
@@ -103,6 +135,7 @@ export const StatisticsV2: React.FC<{
             currencySymbol={currencySymbol}
           />
 
+          {/* Pinned like before: month by month (2/3) with Worth knowing beside it (1/3). */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-[14px]">
             <div
               className={
@@ -118,26 +151,19 @@ export const StatisticsV2: React.FC<{
             <WorthKnowingCard insights={insights} />
           </div>
 
-          <YearWaterfallChart
-            rows={waterfall}
-            byYear={byYear}
-            currencySymbol={currencySymbol}
+          <WidgetGrid
+            defs={STATISTICS_WIDGETS}
+            ctx={ctx}
+            editing={editing}
+            api={layoutApi}
+            accentColor={accentColor}
           />
-
-          <FixedVsEverydayChart
-            rows={fixedVsEveryday}
-            byYear={byYear}
-            currencySymbol={currencySymbol}
-          />
-
-          <BalanceProjectionChart
-            history={history}
-            currencySymbol={currencySymbol}
-          />
-
-          <Collapse title="Show the numbers" size="sm">
-            <OverviewTableV2 transactions={transactions} />
-          </Collapse>
+          {renderLayoutControls?.({
+            editing,
+            setEditing,
+            hiddenCount: layoutApi.layout.hiddenSlots.length,
+            reset: layoutApi.reset,
+          })}
         </>
       )}
     </div>

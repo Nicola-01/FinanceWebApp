@@ -5,7 +5,14 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { "@": path.resolve(__dirname, "src") },
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+      // vite-plugin-pwa isn't loaded in tests; tests vi.mock this module.
+      "virtual:pwa-register/react": path.resolve(
+        __dirname,
+        "src/test/pwaRegisterStub.ts",
+      ),
+    },
   },
   test: {
     environment: "jsdom",

@@ -84,6 +84,8 @@ export interface BankRuleRequest {
   renameTo: string | null;
   reviewFirst: boolean;
   dateFromName: boolean;
+  /** Omitted = false. Imports matched by the rule get an empty name. */
+  clearName?: boolean;
 }
 
 export const listBankRules = (walletId: string) =>

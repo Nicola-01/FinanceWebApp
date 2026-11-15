@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import type { Transaction } from "../../../types/domain.ts";
 import { StatisticsSummaryV2 } from "../../../dashboard/statistics/StatisticsSummaryV2.tsx";
 import { setUiVersion } from "../../../utils/uiVersion.ts";
@@ -63,6 +63,16 @@ const transactions: Transaction[] = [
 const today = new Date(2026, 5, 15);
 const year2026 = { kind: "year", year: 2026 } as const;
 
+// AnimatedNumber with `intro` renders 0 and switches to the value one animation frame later.
+// Render, then flush that frame so the sub-line text is the settled value.
+const renderSettled = async (ui: React.ReactElement) => {
+  const result = render(ui);
+  await act(async () => {
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  });
+  return result;
+};
+
 describe("StatisticsSummaryV2", () => {
   beforeEach(() => {
     for (const k of Object.keys(calls)) delete calls[k];
@@ -73,8 +83,13 @@ describe("StatisticsSummaryV2", () => {
     setUiVersion("v1");
   });
 
+  // The sub-line of a tile: the text node after its label/value (the sparkline footer is not text).
+  const subOf = (label: string) =>
+    screen.getByText(label).parentElement!.querySelector(".text-app-faint");
+  const subText = (label: string) => subOf(label)?.textContent ?? null;
+
   it("renders the four tiles with period labels and per-month averages", async () => {
-    render(
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={transactions}
         period={year2026}
@@ -85,33 +100,80 @@ describe("StatisticsSummaryV2", () => {
     expect(screen.getByText("Spent in 2026")).toBeInTheDocument();
     expect(screen.getByText("Kept")).toBeInTheDocument();
     expect(screen.getByText("Savings rate")).toBeInTheDocument();
-    // 3000 over 6 elapsed months.
-    expect(screen.getByText("about 500 € a month")).toBeInTheDocument();
     expect(await screen.findByLabelText("+3000,00 €")).toBeInTheDocument();
     expect(await screen.findByLabelText("2000,00 €")).toBeInTheDocument();
     expect(await screen.findByLabelText("+1000,00 €")).toBeInTheDocument();
     expect(await screen.findByLabelText("33%")).toBeInTheDocument();
   });
 
-  it("colours the spent change red when spending rose vs the previous year", () => {
-    render(
+  it("shows the per-month average and the previous-year change in the earned and spent sub-lines", async () => {
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={transactions}
         period={year2026}
         today={today}
       />,
     );
-    const sub = screen.getByText("vs 2025");
-    expect(sub.querySelector("span")).toHaveClass("text-app-danger");
-    expect(sub.querySelector("span")).toHaveTextContent("+100%");
+    // 3000 over 6 elapsed months; earned +20% vs 2500.
+    expect(subText("Earned in 2026")).toBe(
+      "about 500 € a month · +20% vs 2025",
+    );
+    // 2000 over 6 months; spent +100% vs 1000.
+    expect(subText("Spent in 2026")).toBe(
+      "about 333 € a month · +100% vs 2025",
+    );
   });
 
-  it("colours the spent change green with a minus sign when spending fell", () => {
+  it("colours the earned change green when earnings rose and red when they fell", async () => {
+    const { unmount } = await renderSettled(
+      <StatisticsSummaryV2
+        transactions={transactions}
+        period={year2026}
+        today={today}
+      />,
+    );
+    expect(screen.getByText("+20%").parentElement).toHaveClass(
+      "text-app-income",
+    );
+    unmount();
+
+    const lower = [
+      tx("2025-01-10", "INCOME", 1000),
+      tx("2026-02-10", "INCOME", 500),
+    ];
+    await renderSettled(
+      <StatisticsSummaryV2
+        transactions={lower}
+        period={year2026}
+        today={today}
+      />,
+    );
+    // Earned -50% (kept also moves -50%, so scope the lookup to the earned tile).
+    expect(subText("Earned in 2026")).toBe("about 83 € a month · −50% vs 2025");
+    expect(
+      within(subOf("Earned in 2026")!).getByText("−50%").parentElement,
+    ).toHaveClass("text-app-danger");
+  });
+
+  it("colours the spent change red when spending rose vs the previous year", async () => {
+    await renderSettled(
+      <StatisticsSummaryV2
+        transactions={transactions}
+        period={year2026}
+        today={today}
+      />,
+    );
+    expect(screen.getByText("+100%").parentElement).toHaveClass(
+      "text-app-danger",
+    );
+  });
+
+  it("colours the spent change green with a minus sign when spending fell", async () => {
     const lower = [
       tx("2025-01-10", "EXPENSE", 1000),
       tx("2026-02-12", "EXPENSE", 500),
     ];
-    render(
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={lower}
         period={year2026}
@@ -119,39 +181,117 @@ describe("StatisticsSummaryV2", () => {
       />,
     );
     const pct = screen.getByText("−50%");
-    expect(pct).toHaveClass("text-app-income");
+    expect(pct.parentElement).toHaveClass("text-app-income");
   });
 
-  it("shows the previous-year kept and savings rate in the sub-lines", () => {
-    render(
+  it("shows the previous-year kept with its change and the previous savings rate with its change", async () => {
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={transactions}
         period={year2026}
         today={today}
       />,
     );
-    expect(screen.getByText("+1500 €")).toHaveClass("text-app-income");
-    expect(screen.getByText("2025: 60%")).toBeInTheDocument();
+    // Kept 1000 vs 1500: -33%. Rate 33% vs 60%: -44% of 60.
+    expect(subText("Kept")).toBe("+1500 € (−33%) vs 2025");
+    expect(screen.getByText("+1500 €").parentElement).toHaveClass(
+      "text-app-income",
+    );
+    expect(screen.getByText("−33%").parentElement).toHaveClass(
+      "text-app-danger",
+    );
+    expect(subText("Savings rate")).toBe("60% (−44%) vs 2025");
   });
 
-  it("colours a negative previous-year kept red", () => {
+  it("colours a negative previous-year kept red and a rise from it green", async () => {
     const losing = [
       tx("2025-01-10", "INCOME", 500),
       tx("2025-03-10", "EXPENSE", 1000),
       tx("2026-01-10", "INCOME", 1000),
     ];
-    render(
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={losing}
         period={year2026}
         today={today}
       />,
     );
-    expect(screen.getByText("−500 €")).toHaveClass("text-app-danger");
+    // Kept -500 -> 1000 is +300% of |-500|.
+    expect(subText("Kept")).toBe("−500 € (+300%) vs 2025");
+    expect(screen.getByText("−500 €").parentElement).toHaveClass(
+      "text-app-danger",
+    );
+    expect(screen.getByText("+300%").parentElement).toHaveClass(
+      "text-app-income",
+    );
   });
 
-  it("shows an em dash for the savings rate when nothing was earned", () => {
-    render(
+  it("omits the earned and spent changes when the previous year has nothing to compare", async () => {
+    // 2025 spent 1000 and earned nothing: no earned change; spent -50%.
+    const noPrevEarned = [
+      tx("2025-03-10", "EXPENSE", 1000),
+      tx("2026-01-10", "INCOME", 1500),
+      tx("2026-02-12", "EXPENSE", 500),
+    ];
+    await renderSettled(
+      <StatisticsSummaryV2
+        transactions={noPrevEarned}
+        period={year2026}
+        today={today}
+      />,
+    );
+    expect(subText("Earned in 2026")).toBe("about 250 € a month");
+    expect(subText("Spent in 2026")).toBe("about 83 € a month · −50% vs 2025");
+    // Kept -1000 -> 1000 is +200% of |-1000|.
+    expect(subText("Kept")).toBe("−1000 € (+200%) vs 2025");
+  });
+
+  it("omits the parenthesised change when the previous kept or savings rate is zero", async () => {
+    const breakEven = [
+      tx("2025-01-10", "INCOME", 100),
+      tx("2025-03-10", "EXPENSE", 100),
+      tx("2026-01-10", "INCOME", 300),
+    ];
+    await renderSettled(
+      <StatisticsSummaryV2
+        transactions={breakEven}
+        period={year2026}
+        today={today}
+      />,
+    );
+    expect(subText("Kept")).toBe("0 € vs 2025");
+    expect(subText("Savings rate")).toBe("0% vs 2025");
+  });
+
+  it("omits the previous-year kept and savings rate sub-lines when there is no previous year", async () => {
+    await renderSettled(
+      <StatisticsSummaryV2
+        transactions={[tx("2026-01-10", "INCOME", 300)]}
+        period={year2026}
+        today={today}
+      />,
+    );
+    expect(subOf("Kept")).toBeNull();
+    expect(subOf("Savings rate")).toBeNull();
+    expect(subText("Earned in 2026")).toBe("about 50 € a month");
+  });
+
+  it("omits the per-month average when no months have elapsed, keeping the change", async () => {
+    // 2027 has no elapsed months; every 2026 comparison is 100% down.
+    await renderSettled(
+      <StatisticsSummaryV2
+        transactions={transactions}
+        period={{ kind: "year", year: 2027 }}
+        today={today}
+      />,
+    );
+    expect(subText("Earned in 2027")).toBe("−100% vs 2026");
+    expect(subText("Spent in 2027")).toBe("−100% vs 2026");
+    expect(subOf("Savings rate")).toBeNull();
+  });
+
+  it("shows an em dash for the savings rate when nothing was earned", async () => {
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={[tx("2026-02-12", "EXPENSE", 500)]}
         period={year2026}
@@ -161,8 +301,8 @@ describe("StatisticsSummaryV2", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
-  it("uses plain labels for all time and drops the previous-year lines", () => {
-    render(
+  it("uses plain labels for all time and drops the previous-year lines", async () => {
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={transactions}
         period={{ kind: "all" }}
@@ -175,13 +315,13 @@ describe("StatisticsSummaryV2", () => {
     expect(screen.queryByText(/in 2026/)).toBeNull();
     expect(screen.queryByText(/All time/)).toBeNull();
     // 5500 earned over 18 months (Jan 2025 to Jun 2026).
-    expect(screen.getByText("about 306 $ a month")).toBeInTheDocument();
+    expect(subText("Earned")).toBe("about 306 $ a month");
     expect(screen.queryByText(/vs 2025/)).toBeNull();
-    expect(screen.queryByText(/^2025:/)).toBeNull();
+    expect(subOf("Kept")).toBeNull();
   });
 
-  it("feeds the sparklines the per-month series with the chart colours", () => {
-    render(
+  it("feeds the sparklines the per-month series with the chart colours", async () => {
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={transactions}
         period={year2026}
@@ -231,9 +371,9 @@ describe("StatisticsSummaryV2", () => {
     expect(spent).toMatchObject({ color: "#c-expense", dataKey: "v" });
   });
 
-  it("skips a sparkline whose points are all zero", () => {
+  it("skips a sparkline whose points are all zero", async () => {
     // Only spending in 2026: the earned series is all zeros, so no earned sparkline.
-    render(
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={[tx("2026-02-12", "EXPENSE", 500)]}
         period={year2026}
@@ -245,8 +385,8 @@ describe("StatisticsSummaryV2", () => {
     ]);
   });
 
-  it("skips a sparkline with fewer than two points", () => {
-    render(
+  it("skips a sparkline with fewer than two points", async () => {
+    await renderSettled(
       <StatisticsSummaryV2
         transactions={transactions}
         period={year2026}

@@ -22,6 +22,18 @@ describe("TagPickerTrigger", () => {
     expect(p.onOpen).toHaveBeenCalled();
   });
 
+  it("right-aligns the closed value when triggerAlign is right", () => {
+    render(
+      <TagPickerTrigger
+        {...props({
+          selectedTag: { name: "Food", icon: "x" } as Tag,
+          triggerAlign: "right",
+        })}
+      />,
+    );
+    expect(screen.getByText("Food").parentElement).toHaveClass("justify-end");
+  });
+
   it("shows the selected tag name when closed", () => {
     render(
       <TagPickerTrigger

@@ -449,3 +449,23 @@ describe("MonthByMonthChart", () => {
     expect(calls.ComposedChart).toBeUndefined();
   });
 });
+
+describe("MonthByMonthChart bare mode", () => {
+  it("drops the card shell and heading but keeps the chart and legend", () => {
+    const { container } = render(
+      withTheme(
+        <MonthByMonthChart
+          rows={monthRows}
+          byYear={false}
+          currencySymbol="€"
+          bare
+        />,
+      ),
+    );
+    expect(screen.queryByRole("heading")).toBeNull();
+    expect(screen.queryByText(/Earned above the line/)).toBeNull();
+    expect(container.firstElementChild).not.toHaveClass("bg-app-card");
+    expect(calls.ComposedChart).toHaveLength(2);
+    expect(screen.getByText("Earned")).toBeInTheDocument();
+  });
+});

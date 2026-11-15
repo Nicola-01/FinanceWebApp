@@ -31,7 +31,8 @@ class ReportHtmlBuilderTest {
         new BigDecimal("5400.00"),
         List.of(new CategoryTotal("Food", new BigDecimal("300.00"), 37.5, null)),
         List.of(new CategoryTotal("Salary", new BigDecimal("2000.00"), 100.0, null)),
-        12);
+        12,
+        null);
   }
 
   @Test
@@ -72,7 +73,8 @@ class ReportHtmlBuilderTest {
             new BigDecimal("-10.00"),
             List.of(),
             List.of(),
-            1);
+            1,
+            null);
 
     String html = builder.monthlyPdfHtml("nicola", YearMonth.of(2026, 6), List.of(r));
 
@@ -131,7 +133,8 @@ class ReportHtmlBuilderTest {
             20,
             "Food",
             new BigDecimal("50.00")),
-        20);
+        20,
+        null);
   }
 
   @Test

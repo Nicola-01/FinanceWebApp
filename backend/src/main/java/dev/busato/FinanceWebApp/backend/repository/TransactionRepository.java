@@ -24,12 +24,29 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
   Optional<Transaction> findByIdAndWalletId(UUID id, UUID walletId);
 
+  /** Manual (or subscription-generated) rows a bank import may merge into. */
+  List<Transaction> findAllByWalletIdAndTransactionDateAndTypeAndImportedFalse(
+      UUID walletId, LocalDate transactionDate, Transaction.Type type);
+
   List<Transaction> findAllBySubscriptionIdAndTransactionDateBetween(
       UUID subscriptionId, LocalDate from, LocalDate to);
 
   boolean existsByIdAndWalletId(UUID id, UUID walletId);
 
   long countByWalletId(UUID walletId);
+
+  long countByBankRuleId(UUID bankRuleId);
+
+  /** Per-rule transaction counts for one wallet; rules with no rows are absent from the result. */
+  @Query(
+      """
+      SELECT t.bankRuleId AS ruleId, COUNT(t) AS total
+      FROM Transaction t
+      WHERE t.wallet.id = :walletId
+        AND t.bankRuleId IS NOT NULL
+      GROUP BY t.bankRuleId
+      """)
+  List<Object[]> countByBankRule(@Param("walletId") UUID walletId);
 
   @Query(
       """

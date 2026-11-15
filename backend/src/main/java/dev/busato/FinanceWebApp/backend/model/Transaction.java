@@ -66,6 +66,12 @@ public class Transaction {
   @Builder.Default
   private boolean needsReview = false;
 
+  /**
+   * Bank rule that handled this import (tag/rename or subscription match); plain id, no FK on
+   * purpose.
+   */
+  private UUID bankRuleId;
+
   @Column(nullable = false, precision = 19, scale = 2)
   private BigDecimal originalAmount;
 

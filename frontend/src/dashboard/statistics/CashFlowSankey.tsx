@@ -18,7 +18,11 @@ import {
 } from "@/components/ui/charts";
 import { formatAmount } from "../../utils/format.ts";
 import { getCurrencySymbol } from "../../utils/currencies/meta.ts";
-import { cashFlowFooter, cashFlowTotals, toKitSankey } from "./sankeyKit.ts";
+import {
+  compactSankeyGraph,
+  limitSankeyGraph,
+  toKitSankey,
+} from "./sankeyKit.ts";
 
 interface CashFlowSankeyProps {
   transactions: Transaction[];
@@ -224,20 +228,21 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
   );
 };
 
-/** v2 card: the kit's Sankey with the same graph as v1, plus a savings summary line. */
+/** v2 card: the kit's Sankey with the same graph as v1; phones get a compacted graph, desktop a limited one. */
 const CashFlowSankeyV2: React.FC<CashFlowSankeyProps> = ({
   transactions,
   currency = "EUR",
   bare = false,
 }) => {
   const isMobile = useMediaQuery(useMuiTheme().breakpoints.down("sm"));
-  const graph = buildSankeyData(transactions, "var(--color-app-income)");
-  if (!graph) return null;
+  const full = buildSankeyData(transactions, "var(--color-app-income)");
+  if (!full) return null;
 
-  const { data, colors } = toKitSankey(graph);
+  const { data, colors } = toKitSankey(
+    isMobile ? compactSankeyGraph(full) : limitSankeyGraph(full),
+  );
   const symbol = getCurrencySymbol(currency);
   const money = (value: number) => `${formatAmount(value)} ${symbol}`;
-  const footer = cashFlowFooter(cashFlowTotals(transactions), money);
   // Side margins leave room for the node labels; the kit defaults are wider.
   const sideMargin = isMobile ? 96 : 150;
 
@@ -262,10 +267,10 @@ const CashFlowSankeyV2: React.FC<CashFlowSankeyProps> = ({
       <KitSankeyChart
         data={data}
         ariaLabel="Cash flow overview"
-        aspectRatio={isMobile ? "1 / 1" : "16 / 9"}
+        aspectRatio={isMobile ? "4 / 5" : "16 / 9"}
         margin={{ top: 20, bottom: 20, left: sideMargin, right: sideMargin }}
         nodeWidth={isMobile ? 8 : 12}
-        nodePadding={24}
+        nodePadding={isMobile ? 18 : 24}
       >
         <SankeyNode
           getNodeColor={(_node, index) => colors[index]}
@@ -274,9 +279,6 @@ const CashFlowSankeyV2: React.FC<CashFlowSankeyProps> = ({
         <SankeyLink strokeOpacity={0.35} />
         <SankeyTooltip formatValue={money} valueLabel="Amount" />
       </KitSankeyChart>
-      {footer !== null && (
-        <p className="mt-3 text-[13px] text-app-muted">{footer}</p>
-      )}
     </div>
   );
 };

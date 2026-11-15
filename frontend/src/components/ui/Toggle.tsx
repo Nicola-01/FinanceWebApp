@@ -1,6 +1,7 @@
 import React from "react";
 import { useUiVersion } from "../../hooks/useUiVersion";
 import { walletVars } from "../../utils/color";
+import { Switch } from "@/components/shadcn/switch"; // ui-v2-switch
 
 export type ToggleVariant = "switch" | "button";
 export type ToggleSize = "sm" | "md";
@@ -87,6 +88,36 @@ const Toggle: React.FC<ToggleProps> = ({
     );
   }
 
+  // ui-v2-switch: the shadcn (Base UI) Switch; the label wraps it so clicking text toggles.
+  if (isV2) {
+    return (
+      <label
+        className={`group inline-flex items-center gap-2.5 select-none ${
+          disabled ? "cursor-not-allowed" : "cursor-pointer"
+        } ${className}`}
+      >
+        <Switch
+          checked={checked}
+          onCheckedChange={(next) => onChange(next)}
+          disabled={disabled}
+          size={size === "sm" ? "sm" : "default"}
+          aria-label={ariaLabel}
+          style={checked && accentColor ? walletVars(accentColor) : undefined}
+          className="data-checked:bg-wallet data-unchecked:bg-app-raised dark:data-unchecked:bg-app-raised focus-visible:ring-2 focus-visible:ring-wallet/40 focus-visible:outline-none"
+        />
+        {label != null && (
+          <span
+            className={`text-sm text-app-muted transition-colors group-hover:text-app-text ${
+              disabled ? "opacity-60" : ""
+            }`}
+          >
+            {label}
+          </span>
+        )}
+      </label>
+    );
+  }
+
   // Switch variant: sliding pill.
   const dims =
     size === "sm"
@@ -117,35 +148,20 @@ const Toggle: React.FC<ToggleProps> = ({
     >
       <span
         style={
-          checked && accentColor
-            ? // ui-v2-switch
-              isV2
-              ? walletVars(accentColor)
-              : { backgroundColor: accentColor }
-            : undefined
+          checked && accentColor ? { backgroundColor: accentColor } : undefined
         }
-        className={`relative inline-flex ${dims.track} shrink-0 items-center rounded-full transition-colors duration-200 ${
-          isV2 // ui-v2-switch
-            ? checked
-              ? "bg-wallet" // accentColor reaches it through walletVars
-              : "bg-app-raised"
-            : `border border-white/10 ${
-                checked
-                  ? accentColor
-                    ? ""
-                    : "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)]"
-                  : "bg-app-hover"
-              }`
+        className={`relative inline-flex ${dims.track} shrink-0 items-center rounded-full transition-colors duration-200 border border-white/10 ${
+          checked
+            ? accentColor
+              ? ""
+              : "bg-gradient-to-r from-[var(--brand-1)] to-[var(--brand-2)]"
+            : "bg-app-hover"
         }`}
       >
         <span
-          className={`${dims.knob} inline-block rounded-full shadow-sm transition-transform duration-200 ${
-            isV2 // ui-v2-switch
-              ? checked
-                ? "bg-on-wallet"
-                : "bg-app-muted"
-              : "bg-white"
-          } ${checked ? dims.on : dims.off}`}
+          className={`${dims.knob} inline-block rounded-full shadow-sm transition-transform duration-200 bg-white ${
+            checked ? dims.on : dims.off
+          }`}
         />
       </span>
       {label != null && (

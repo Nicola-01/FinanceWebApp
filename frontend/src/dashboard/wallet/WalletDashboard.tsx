@@ -12,7 +12,7 @@ import { TransactionsFilter } from "../transaction/TransactionsFilter.tsx";
 import { TransactionsHero } from "../transaction/TransactionsHero.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion";
 import { walletVars } from "../../utils/color";
-import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
+import { BankRuleDraftHost } from "../settings/BankRuleDraftHost.tsx";
 
 interface WalletDashboardProps {
   _wallet: Wallet;
@@ -37,8 +37,6 @@ const WalletHeaderV2: React.FC<{ actions?: React.ReactNode }> = ({
   actions,
 }) => {
   const { wallet, activeTab } = useWalletContext();
-  const currencyName =
-    CURRENCY_META[wallet.currency as CurrencyCode]?.name ?? wallet.currency;
 
   return (
     <>
@@ -51,9 +49,6 @@ const WalletHeaderV2: React.FC<{ actions?: React.ReactNode }> = ({
             </span>
             <span className="truncate">{wallet.name}</span>
           </h1>
-          <div className="mt-0.5 text-[13px] text-app-muted">
-            {currencyName}
-          </div>
         </div>
         {actions}
       </div>
@@ -104,15 +99,8 @@ const WalletHeader: React.FC = () => {
 const WalletBody: React.FC<{ bare?: boolean }> = ({ bare = false }) => {
   const { activeTab } = useWalletContext();
 
-  return (
-    <div
-      className={
-        // ui-v2-switch: v2 pads at the page level (`bare`).
-        bare
-          ? "relative flex w-full flex-1 flex-col"
-          : "flex flex-col flex-1 min-h-full w-full max-w-350 mx-auto relative px-2 sm:px-4 lg:px-8 pb-4 lg:pb-8"
-      }
-    >
+  const content = (
+    <>
       {activeTab === "transactions" && <TransactionsTab />}
       {activeTab === "subscription" && <SubscriptionTab />}
       {activeTab === "category" && <TagsTab />}
@@ -125,6 +113,29 @@ const WalletBody: React.FC<{ bare?: boolean }> = ({ bare = false }) => {
         {activeTab === "budget" && <BudgetTab />}
       </Suspense>
       {activeTab === "settings" && <SettingsTab />}
+    </>
+  );
+
+  return (
+    <div
+      className={
+        // ui-v2-switch: v2 pads at the page level (`bare`).
+        bare
+          ? "relative flex w-full flex-1 flex-col"
+          : "flex flex-col flex-1 min-h-full w-full max-w-350 mx-auto relative px-2 sm:px-4 lg:px-8 pb-4 lg:pb-8"
+      }
+    >
+      {/* ui-v2-switch: opacity-only fade per tab; no transform, so the fixed FAB stays fixed. */}
+      {bare ? (
+        <div
+          key={activeTab}
+          className="flex flex-1 flex-col motion-safe:animate-[fadeIn_0.25s_ease-out]"
+        >
+          {content}
+        </div>
+      ) : (
+        content
+      )}
     </div>
   );
 };
@@ -147,6 +158,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({
         <WalletRootV2>
           <WalletHeaderV2 actions={headerActions} />
           <WalletBody bare />
+          <BankRuleDraftHost />
         </WalletRootV2>
       </WalletProvider>
     );
@@ -159,6 +171,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({
     >
       <WalletHeader />
       <WalletBody />
+      <BankRuleDraftHost />
     </WalletProvider>
   );
 };

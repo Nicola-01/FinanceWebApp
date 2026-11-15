@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mobile "New transaction" — layout & font options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Instrument+Sans:wght@400..700&family=Inter:opsz,wght@14..32,400..700&family=Plus+Jakarta+Sans:wght@400..700&family=Geist:wght@400..700&family=Manrope:wght@400..800&family=Geist+Mono:wght@400..700&family=JetBrains+Mono:wght@400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family: "La Cerchia"; src: url("fonts/La_Cerchia.otf") format("opentype"); }
+  :root {
+    --bg: #141312; --card: #1d1c1a; --raised: #262421; --border: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --wallet: #8b5cf6; --on-wallet: #fff; --income: #7fcf95; --danger: #ff8a7a;
+    --r-card: 18px; --r-input: 12px;
+    --body: "Instrument Sans"; --display: "Bricolage Grotesque"; --nums: var(--body);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0c0b0b; color: var(--text); font-family: var(--body), system-ui, sans-serif; padding: 28px 24px 60px; }
+  .num { font-family: var(--nums), var(--body), sans-serif; font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+  .amount .v.num, .spec .big.num { font-family: var(--nums), var(--display), sans-serif; }
+  .align { margin-top: 14px; text-align: right; width: 140px; margin-left: auto; font-size: 15px; line-height: 1.5; }
+  h1.page { font: 600 22px/1.2 var(--display), sans-serif; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 70ch; }
+
+  .fonts { display: flex; flex-wrap: wrap; gap: 6px; margin: 20px 0 8px; padding: 4px; background: var(--card); border-radius: 14px; width: fit-content; }
+  .fonts button { font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; padding: 9px 14px; border-radius: 10px; cursor: pointer; }
+  .fonts button[aria-pressed="true"] { background: var(--raised); color: var(--text); }
+  .fontnote { color: var(--muted); font-size: 13px; min-height: 1.4em; margin-bottom: 26px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+  figure { width: 375px; }
+  figcaption { margin-top: 14px; }
+  figcaption b { font-family: var(--display), sans-serif; font-size: 16px; font-weight: 600; }
+  figcaption p { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 4px; }
+
+  .phone { position: relative; width: 375px; height: 760px; background: var(--bg); border-radius: 36px; overflow: hidden; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .5); display: flex; flex-direction: column; }
+  .status { height: 40px; flex: none; }
+  .scroll { flex: 1; overflow-y: auto; padding: 0 18px 18px; }
+  .hdr { display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 18px; flex: none; }
+  .hdr .back { width: 32px; height: 32px; display: grid; place-items: center; color: var(--muted); font-size: 18px; }
+  .hdr h2 { font: 600 19px/1 var(--display), sans-serif; letter-spacing: -0.02em; flex: 1; }
+  .hdr .act { font: inherit; font-size: 15px; font-weight: 600; color: var(--on-wallet); background: var(--wallet); border: 0; border-radius: 10px; padding: 8px 14px; }
+
+  .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--raised); border-radius: 12px; padding: 3px; }
+  .seg span { text-align: center; padding: 9px 0; font-size: 14px; font-weight: 600; color: var(--muted); border-radius: 9px; }
+  .seg span.on { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgb(0 0 0 / .4); }
+
+  .amount { text-align: center; padding: 26px 0 22px; }
+  .amount .v { font: 600 52px/1 var(--display), sans-serif; letter-spacing: -0.03em; }
+  .amount .v small { font-size: 0.55em; color: var(--muted); font-weight: 500; margin-left: 6px; }
+  .amount .hint { color: var(--faint); font-size: 12px; margin-top: 8px; }
+
+  .list { background: var(--card); border-radius: var(--r-card); overflow: hidden; }
+  .li { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 0 16px; }
+  .li + .li { border-top: 1px solid var(--border); }
+  .li .ic { width: 28px; height: 28px; border-radius: 8px; background: var(--raised); display: grid; place-items: center; font-size: 13px; color: var(--muted); flex: none; }
+  .li .k { font-size: 15px; flex: 1; }
+  .li .val { color: var(--muted); font-size: 15px; }
+  .li .val.set { color: var(--text); }
+  .li .chev { color: var(--faint); }
+  .li .dot { width: 10px; height: 10px; border-radius: 50%; background: #f0b85a; display: inline-block; margin-right: 6px; }
+  .more { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; padding: 16px 4px; }
+
+  .lbl { font-size: 13px; color: var(--muted); margin: 18px 0 8px; display: block; }
+  .inp { background: var(--raised); border-radius: var(--r-input); height: 46px; display: flex; align-items: center; padding: 0 14px; font-size: 15px; color: var(--faint); }
+  .inp.c { justify-content: center; color: var(--text); }
+  .inp.tall { height: 84px; align-items: flex-start; padding-top: 13px; }
+  .tog { display: flex; gap: 40px; justify-content: center; color: var(--muted); font-size: 13px; margin-top: 14px; }
+  .tog .on { color: var(--text); font-weight: 600; }
+
+  .foot { flex: none; padding: 12px 18px calc(12px + 18px); background: linear-gradient(to top, var(--bg) 70%, transparent); }
+  .cta { width: 100%; height: 52px; border: 0; border-radius: 14px; background: var(--wallet); color: var(--on-wallet); font: inherit; font-size: 16px; font-weight: 600; }
+  .cta.dim { opacity: .45; }
+
+  /* Font specimen */
+  .spec { margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 20px; max-width: 1240px; }
+  .spec .card { background: var(--card); border-radius: var(--r-card); padding: 20px; }
+  .spec h3 { font: 600 18px/1.2 var(--display), sans-serif; letter-spacing: -0.02em; }
+  .spec .big { font: 600 40px/1 var(--display), sans-serif; letter-spacing: -0.03em; margin: 14px 0 4px; }
+  .tx { display: flex; align-items: center; gap: 12px; padding: 11px 0; }
+  .tx + .tx { border-top: 1px solid var(--border); }
+  .tx .ic { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-size: 15px; }
+  .tx .n { flex: 1; font-size: 15px; } .tx .n small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .tx .a { font-size: 15px; font-weight: 600; }
+</style>
+</head>
+<body>
+  <h1 class="page">New transaction on mobile</h1>
+  <p class="lead">Three layouts for the form, side by side. First row: the font for titles and text. Second row: a separate font for amounts only (monospace, every character the same width). Mix them freely. The bottom bar is hidden while the form is open in all three.</p>
+
+  <div class="fonts" role="group" aria-label="Font" id="text">
+    <button data-b="Instrument Sans" data-d="Bricolage Grotesque" data-n="Today: Bricolage Grotesque titles + Instrument Sans text." aria-pressed="true">Today</button>
+    <button data-b="Inter" data-d="Inter" data-n="Inter — what the project used at the start. Neutral, very legible, excellent figures. The most common choice.">Inter</button>
+    <button data-b="Plus Jakarta Sans" data-d="Plus Jakarta Sans" data-n="Plus Jakarta Sans — the v1 font, already self-hosted (no new files). Geometric, a bit softer.">Plus Jakarta Sans</button>
+    <button data-b="Geist" data-d="Geist" data-n="Geist — clean and technical, very crisp numbers. Modern fintech feel.">Geist</button>
+    <button data-b="Manrope" data-d="Manrope" data-n="Manrope — warmer and rounder, beautiful large amounts; titles less compact.">Manrope</button>
+  </div>
+  <div class="fonts" role="group" aria-label="Amounts font" id="nums">
+    <button data-f="" aria-pressed="true">Amounts: same as text</button>
+    <button data-f="Geist Mono">Geist Mono</button>
+    <button data-f="JetBrains Mono">JetBrains Mono</button>
+    <button data-f="IBM Plex Mono">IBM Plex Mono</button>
+    <button data-f="La Cerchia">La Cerchia</button>
+  </div>
+  <p class="fontnote" id="fontnote">Today: Bricolage Grotesque titles + Instrument Sans text.</p>
+
+  <div class="row">
+    <!-- A -->
+    <figure>
+      <div class="phone">
+        <div class="status"></div>
+        <div class="hdr"><span class="back">‹</span><h2>New transaction</h2></div>
+        <div class="scroll">
+          <div class="seg"><span class="on">Expense</span><span>Income</span></div>
+          <div class="amount"><div class="v num">−12,50<small>€</small></div><div class="hint">Tap to edit</div></div>
+          <div class="list">
+            <div class="li"><span class="ic">#</span><span class="k">Category</span><span class="val set"><span class="dot"></span>Groceries</span><span class="chev">›</span></div>
+            <div class="li"><span class="ic">▦</span><span class="k">Date</span><span class="val set num">Today</span><span class="chev">›</span></div>
+            <div class="li"><span class="ic">✎</span><span class="k">Name</span><span class="val">e.g. Coop</span></div>
+          </div>
+          <div class="more">▸ More details <span style="color:var(--faint)">notes, other currency</span></div>
+        </div>
+        <div class="foot"><button class="cta">Save transaction</button></div>
+      </div>
+      <figcaption><b>A · Compact list</b> <span style="color:var(--income);font-size:13px">recommended</span>
+        <p>Expense/Income on top, then the amount. Required fields sit together in one card. Notes and currency fold under "More details". Save stays under the thumb.</p></figcaption>
+    </figure>
+
+    <!-- B -->
+    <figure>
+      <div class="phone">
+        <div class="status"></div>
+        <div class="hdr"><span class="back">‹</span><h2>New transaction</h2></div>
+        <div class="scroll">
+          <div class="amount" style="padding-bottom:6px"><div class="v num" style="color:var(--faint)">0.00<small>€</small></div></div>
+          <div class="tog"><span class="on">Expense</span><span>Income</span></div>
+          <span class="lbl"># Category *</span><div class="inp">Select a category… <span style="margin-left:auto">⌄</span></div>
+          <span class="lbl">Date</span><div class="inp c num">Nov 15, 2026</div>
+          <span class="lbl">Name</span><div class="inp">e.g. Groceries</div>
+          <span class="lbl">Notes</span><div class="inp tall">Any details… (optional)</div>
+        </div>
+        <div class="foot"><button class="cta dim">Save</button></div>
+      </div>
+      <figcaption><b>B · Just the fix</b>
+        <p>Today's layout. The bottom bar hides, so the Save footer shows again at full width. Smallest change, but the form is still long and the amount leaves a lot of empty space.</p></figcaption>
+    </figure>
+
+    <!-- C -->
+    <figure>
+      <div class="phone">
+        <div class="status"></div>
+        <div class="hdr"><span class="back">‹</span><h2>New transaction</h2><button class="act">Save</button></div>
+        <div class="scroll">
+          <div class="seg"><span class="on">Expense</span><span>Income</span></div>
+          <div class="amount"><div class="v num">−12,50<small>€</small></div></div>
+          <div class="list">
+            <div class="li"><span class="ic">#</span><span class="k">Category</span><span class="val set"><span class="dot"></span>Groceries</span><span class="chev">›</span></div>
+            <div class="li"><span class="ic">▦</span><span class="k">Date</span><span class="val set num">Today</span><span class="chev">›</span></div>
+            <div class="li"><span class="ic">✎</span><span class="k">Name</span><span class="val">e.g. Coop</span></div>
+            <div class="li"><span class="ic">¶</span><span class="k">Notes</span><span class="val">Optional</span></div>
+            <div class="li"><span class="ic">$</span><span class="k">Other currency</span><span class="val">Off</span><span class="chev">›</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>C · Save in the header</b>
+        <p>Same list, everything visible at once, nothing pinned to the bottom. Save sits top-right: more room for fields, but farther from the thumb on tall phones.</p></figcaption>
+    </figure>
+  </div>
+
+  <!-- Font specimen on real app content -->
+  <div class="spec">
+    <div class="card">
+      <h3>Balance</h3>
+      <div class="big num">1.674,75 €</div>
+      <div style="color:var(--muted);font-size:13px">Kept this year <span class="num" style="color:var(--income)">+4.210,00 €</span></div>
+    </div>
+    <div class="card">
+      <h3>Today</h3>
+      <div class="tx"><span class="ic" style="background:#3a2f12;color:#f0b85a">🛒</span><span class="n">Coop<small>Groceries</small></span><span class="a num">−12,50 €</span></div>
+      <div class="tx"><span class="ic" style="background:#1f2a3d;color:#7aaaf5">♪</span><span class="n">Spotify<small>Subscriptions</small></span><span class="a num">−10,99 €</span></div>
+      <div class="tx"><span class="ic" style="background:#1d3326;color:#7fcf95">€</span><span class="n">Salary<small>Income</small></span><span class="a num" style="color:var(--income)">+1.850,00 €</span></div>
+    </div>
+    <div class="card">
+      <h3>Statistics</h3>
+      <p style="color:var(--muted);font-size:14px;line-height:1.55;margin-top:10px">You spent 8% less than in 2025 so far. Groceries is your biggest category, at about 310 € a month.</p>
+      <div class="align num">1.111,11 €<br>888,88 €<br>40,04 €<br><span style="border-top:1px solid var(--border);display:block">2.040,03 €</span></div>
+      <p style="color:var(--faint);font-size:12px;margin-top:6px;text-align:right">Digits should line up in columns.</p>
+    </div>
+  </div>
+
+<script>
+  const note = document.getElementById("fontnote");
+  document.querySelectorAll("#nums button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("#nums button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    document.documentElement.style.setProperty("--nums", b.dataset.f ? `"${b.dataset.f}"` : "var(--body)");
+  }));
+  document.querySelectorAll("#text button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("#text button").forEach((x) => x.setAttribute("aria-pressed", x === b));
+    document.documentElement.style.setProperty("--body", `"${b.dataset.b}"`);
+    document.documentElement.style.setProperty("--display", `"${b.dataset.d}"`);
+    note.textContent = b.dataset.n;
+  }));
+</script>
+</body>
+</html>

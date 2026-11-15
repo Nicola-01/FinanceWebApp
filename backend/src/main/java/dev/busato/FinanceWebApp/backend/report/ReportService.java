@@ -40,56 +40,65 @@ public class ReportService {
 
   public String sendMonthlyReports(YearMonth period) {
     return sendAll(
-        User::isMonthlyReportEnabled,
-        user -> {
-          List<WalletMonthlyReport> reports = new ArrayList<>();
-          for (Wallet wallet : acceptedWallets(user)) {
-            WalletMonthlyReport r =
-                aggregator.monthly(
-                    wallet, transactionRepository.getAllByWalletId(wallet.getId()), period);
-            if (r.transactionCount() > 0) reports.add(r);
-          }
-          if (reports.isEmpty()) return false;
-          byte[] pdf =
-              pdfRenderer.render(htmlBuilder.monthlyPdfHtml(user.getUsername(), period, reports));
-          sendEmailService.sendReportEmail(
-              user.getEmail(),
-              "Your FinanceWebApp report for " + ReportHtmlBuilder.monthLabel(period),
-              htmlBuilder.monthlyEmailBody(user.getUsername(), period, reports),
-              "FinanceWebApp-Report-" + period + ".pdf",
-              pdf);
-          notifyReportReady(
-              user,
-              NotificationType.MONTHLY_REPORT,
-              NotificationCopy.monthlyReportReady(ReportHtmlBuilder.monthLabel(period)));
-          return true;
-        });
+        userRepository.findAll(), User::isMonthlyReportEnabled, u -> sendMonthly(u, period));
   }
 
   public String sendYearlyReports(int year) {
-    return sendAll(
-        User::isYearlyReportEnabled,
-        user -> {
-          List<WalletYearlyReport> reports = new ArrayList<>();
-          for (Wallet wallet : acceptedWallets(user)) {
-            WalletYearlyReport r =
-                aggregator.yearly(
-                    wallet, transactionRepository.getAllByWalletId(wallet.getId()), year);
-            if (r.transactionCount() > 0) reports.add(r);
-          }
-          if (reports.isEmpty()) return false;
-          byte[] pdf =
-              pdfRenderer.render(htmlBuilder.yearlyPdfHtml(user.getUsername(), year, reports));
-          sendEmailService.sendReportEmail(
-              user.getEmail(),
-              "Your " + year + " FinanceWebApp wrap-up",
-              htmlBuilder.yearlyEmailBody(user.getUsername(), year, reports),
-              "FinanceWebApp-Wrap-" + year + ".pdf",
-              pdf);
-          notifyReportReady(
-              user, NotificationType.YEARLY_REPORT, NotificationCopy.yearlyReportReady(year));
-          return true;
-        });
+    return sendAll(userRepository.findAll(), User::isYearlyReportEnabled, u -> sendYearly(u, year));
+  }
+
+  /** Admin test send: only to {@code user}, ignoring the opt-in. */
+  public String sendTestMonthlyReport(User user, YearMonth period) {
+    return sendAll(List.of(user), u -> true, u -> sendMonthly(u, period));
+  }
+
+  /** Admin test send: only to {@code user}, ignoring the opt-in. */
+  public String sendTestYearlyReport(User user, int year) {
+    return sendAll(List.of(user), u -> true, u -> sendYearly(u, year));
+  }
+
+  private boolean sendMonthly(User user, YearMonth period) throws Exception {
+    List<WalletMonthlyReport> reports = new ArrayList<>();
+    for (Wallet wallet : acceptedWallets(user)) {
+      WalletMonthlyReport r =
+          aggregator.monthly(
+              wallet, transactionRepository.getAllByWalletId(wallet.getId()), period);
+      if (r.transactionCount() > 0) reports.add(r);
+    }
+    if (reports.isEmpty()) return false;
+    byte[] pdf =
+        pdfRenderer.render(htmlBuilder.monthlyPdfHtml(user.getUsername(), period, reports));
+    sendEmailService.sendReportEmail(
+        user.getEmail(),
+        "Your FinanceWebApp report for " + ReportHtmlBuilder.monthLabel(period),
+        htmlBuilder.monthlyEmailBody(user.getUsername(), period, reports),
+        "FinanceWebApp-Report-" + period + ".pdf",
+        pdf);
+    notifyReportReady(
+        user,
+        NotificationType.MONTHLY_REPORT,
+        NotificationCopy.monthlyReportReady(ReportHtmlBuilder.monthLabel(period)));
+    return true;
+  }
+
+  private boolean sendYearly(User user, int year) throws Exception {
+    List<WalletYearlyReport> reports = new ArrayList<>();
+    for (Wallet wallet : acceptedWallets(user)) {
+      WalletYearlyReport r =
+          aggregator.yearly(wallet, transactionRepository.getAllByWalletId(wallet.getId()), year);
+      if (r.transactionCount() > 0) reports.add(r);
+    }
+    if (reports.isEmpty()) return false;
+    byte[] pdf = pdfRenderer.render(htmlBuilder.yearlyPdfHtml(user.getUsername(), year, reports));
+    sendEmailService.sendReportEmail(
+        user.getEmail(),
+        "Your " + year + " FinanceWebApp wrap-up",
+        htmlBuilder.yearlyEmailBody(user.getUsername(), year, reports),
+        "FinanceWebApp-Wrap-" + year + ".pdf",
+        pdf);
+    notifyReportReady(
+        user, NotificationType.YEARLY_REPORT, NotificationCopy.yearlyReportReady(year));
+    return true;
   }
 
   /**
@@ -109,11 +118,11 @@ public class ReportService {
   }
 
   /** Shared batch loop: opt-in filter → build+send (true = sent, false = no data). */
-  private String sendAll(Predicate<User> optedIn, SendForUser sender) {
+  private String sendAll(Iterable<User> users, Predicate<User> optedIn, SendForUser sender) {
     int sent = 0;
     int skipped = 0;
     int failed = 0;
-    for (User user : userRepository.findAll()) {
+    for (User user : users) {
       if (user.isDemo() || !optedIn.test(user)) continue;
       try {
         if (sender.send(user)) sent++;

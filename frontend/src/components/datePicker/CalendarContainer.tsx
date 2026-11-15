@@ -5,7 +5,7 @@ import { useUiVersion } from "../../hooks/useUiVersion";
 import MonthGrid from "./MonthGrid";
 import MonthSelector from "./MonthSelector";
 import YearSelector from "./YearSelector";
-import type { PresetType } from "./datePresets";
+import { ALL_PRESETS, type PresetType } from "./datePresets";
 
 export interface CalendarContainerProps {
   currentDate: Date;
@@ -21,6 +21,7 @@ export interface CalendarContainerProps {
   isDark: boolean;
   weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   disableDaySelection?: boolean;
+  allowedPresets?: PresetType[];
 }
 
 type ViewState = "calendar" | "months" | "years";
@@ -39,8 +40,13 @@ export default function CalendarContainer({
   isDark,
   weekStartsOn,
   disableDaySelection,
+  allowedPresets = ALL_PRESETS,
 }: CalendarContainerProps) {
   const [view, setView] = useState<ViewState>("calendar");
+  // A day click switches to "custom" and a year-view month click to "month";
+  // when those presets are not allowed, the grid stays read-only instead.
+  const dayPickingDisabled =
+    disableDaySelection || !allowedPresets.includes("custom");
   const [direction, setDirection] = useState<"next" | "prev">("next");
 
   // Re-align the view when the preset changes (derived during render, no effect)
@@ -62,6 +68,8 @@ export default function CalendarContainer({
 
   const handleSelectMonth = (date: Date) => {
     if (preset === "year") {
+      // Picking a month would leave "year" for "month"; with "month" not allowed the click is a no-op.
+      if (!allowedPresets.includes("month")) return;
       setPreset("month");
       setCurrentDate(date);
       setView("calendar");
@@ -188,7 +196,7 @@ export default function CalendarContainer({
               color={color}
               isDark={isDark}
               weekStartsOn={weekStartsOn}
-              disableDaySelection={disableDaySelection}
+              disableDaySelection={dayPickingDisabled}
             />
           </div>
         </>

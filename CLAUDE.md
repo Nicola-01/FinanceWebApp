@@ -118,6 +118,7 @@ entities/DTOs.
   tag/rename never apply there; 2+ eligible subs → collision). One rule with no eligible subscription →
   its tag (leaves "To categorise") and/or rename (`Bank: <original>` in notes). A tag or rule in use
   can't be deleted. The form no longer offers `bankDriven` (backend path still exists).
+  Before creating a new import, a row with exactly one non-imported transaction on the same day with the same type and amount is merged into it (user data kept, `Bank: …` note added, marked imported); 2+ such rows → created with a `Possible duplicate` note.
 - **Email:** SMTP via `MAIL_*` env vars. `mailing/EmailService` (plain messages) and
   `service/SendEmailService` (HTML/MIME with templates in `resources/templates/`) back
   registration, password reset, admin user invites, and wallet-member invites.
@@ -169,6 +170,7 @@ entities/DTOs.
   placeholder tag, ignoring the period filter (`WalletContext` triggers
   `sync-if-stale` on wallet open), a **Bank accounts** section in wallet settings' Data tab (link/unlink,
   sync now), and the `/bank/callback` route that finishes the EnableBanking redirect.
+
 - **Routing (`src/App.tsx`):** `/dashboard/:walletId?` and `/settings` (protected;
   `src/settings/SettingsPage.tsx` with scroll-spied sections), `/admin/dashboard/*`
   (ADMIN only), `/oauth/authorize` (OAuth consent page the MCP flow redirects to);

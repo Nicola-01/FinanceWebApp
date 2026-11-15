@@ -65,10 +65,13 @@ describe("ThemeSelector v2 UI", () => {
   beforeEach(() => setUiVersion("v2"));
   afterEach(() => setUiVersion("v1"));
 
-  it("keeps the active segment on the neutral raised fill, not sky", () => {
+  it("keeps the active segment on the neutral highlight, not sky", () => {
     renderWithTheme({ theme: "light" });
     const active = screen.getByTitle("Light");
-    expect(active).toHaveClass("bg-app-raised");
+    expect(active).toHaveAttribute("aria-selected", "true");
+    expect(
+      document.querySelector('[data-slot="motion-highlight-indicator"]'),
+    ).toHaveClass("bg-app-card");
     expect(active.className).not.toContain("text-app-sky");
   });
 });

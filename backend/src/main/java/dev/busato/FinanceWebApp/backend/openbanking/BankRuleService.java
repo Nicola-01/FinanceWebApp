@@ -18,7 +18,9 @@ import dev.busato.FinanceWebApp.backend.repository.WalletRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -43,8 +45,9 @@ public class BankRuleService {
   @PreAuthorize("@walletSecurity.hasReadAccess(#userId, #walletId)")
   public List<BankRuleResponse> list(UUID userId, UUID walletId) {
     bankLinkService.requireFeature(userId);
+    Map<UUID, Long> counts = transactionCounts(walletId);
     return ruleRepository.findAllByWalletIdOrderByNameAsc(walletId).stream()
-        .map(this::toResponse)
+        .map(r -> toResponse(r, counts.getOrDefault(r.getId(), 0L)))
         .toList();
   }
 
@@ -58,7 +61,7 @@ public class BankRuleService {
             .orElseThrow(() -> new IllegalArgumentException("Wallet not found"));
     BankRule rule = BankRule.builder().wallet(wallet).build();
     apply(rule, req, walletId);
-    return toResponse(ruleRepository.save(rule));
+    return toResponse(ruleRepository.save(rule), 0);
   }
 
   @Transactional
@@ -67,7 +70,8 @@ public class BankRuleService {
     bankLinkService.requireFeature(userId);
     BankRule rule = find(ruleId, walletId);
     apply(rule, req, walletId);
-    return toResponse(ruleRepository.save(rule));
+    BankRule saved = ruleRepository.save(rule);
+    return toResponse(saved, transactionRepository.countByBankRuleId(saved.getId()));
   }
 
   @Transactional
@@ -98,7 +102,10 @@ public class BankRuleService {
       String bankName = bankName(tx);
       List<BankRule> hits = rules.stream().filter(r -> BankMatchRule.matches(r, bankName)).toList();
       if (hits.size() > 1) collisions++;
-      if (hits.size() == 1 && applyRule(hits.get(0), tx, bankName)) changed.add(tx);
+      if (hits.size() == 1 && applyRule(hits.get(0), tx, bankName)) {
+        tx.setBankRuleId(hits.get(0).getId());
+        changed.add(tx);
+      }
     }
     transactionRepository.saveAll(changed);
     return new ApplyRulesResponse(changed.size(), collisions);
@@ -119,10 +126,11 @@ public class BankRuleService {
       tx.setNeedsReview(rule.isReviewFirst());
       changed = true;
     }
-    if (rule.getRenameTo() != null && !rule.getRenameTo().equals(tx.getName())) {
+    String newName = rule.isClearName() ? "" : rule.getRenameTo();
+    if (newName != null && !newName.equals(tx.getName())) {
       if (tx.getNotes() == null || !tx.getNotes().startsWith(BANK_NOTE))
         tx.setNotes(BankSyncService.joinNotes(BANK_NOTE + bankName, tx.getNotes()));
-      tx.setName(rule.getRenameTo());
+      tx.setName(newName);
       changed = true;
     }
     if (rule.isDateFromName()) {
@@ -150,6 +158,7 @@ public class BankRuleService {
     rule.setRenameTo(req.renameTo());
     rule.setReviewFirst(Boolean.TRUE.equals(req.reviewFirst()));
     rule.setDateFromName(Boolean.TRUE.equals(req.dateFromName()));
+    rule.setClearName(Boolean.TRUE.equals(req.clearName()));
     rule.setTag(resolveTag(req.tag(), walletId));
     BankMatchRule.validate(rule);
     ruleRepository
@@ -176,7 +185,13 @@ public class BankRuleService {
         .toList();
   }
 
-  private BankRuleResponse toResponse(BankRule r) {
+  /** One query per wallet: rule id to the number of transactions it handled. */
+  private Map<UUID, Long> transactionCounts(UUID walletId) {
+    return transactionRepository.countByBankRule(walletId).stream()
+        .collect(Collectors.toMap(row -> (UUID) row[0], row -> ((Number) row[1]).longValue()));
+  }
+
+  private BankRuleResponse toResponse(BankRule r, long transactionCount) {
     return new BankRuleResponse(
         r.getId(),
         r.getName(),
@@ -187,6 +202,8 @@ public class BankRuleService {
         r.getRenameTo(),
         r.isReviewFirst(),
         r.isDateFromName(),
+        r.isClearName(),
+        transactionCount,
         usedBy(r),
         r.getUpdatedAt());
   }

@@ -13,14 +13,22 @@ import {
   faReceipt,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { Menu, MenuItem } from "@mui/material";
 import {
   BottomNavigation,
-  BottomNavigationAction,
-  Menu,
-  MenuItem,
-  Paper,
-} from "@mui/material";
-import { Selector } from "../../components/ui/Selector";
+  BottomNavigationItem,
+  BottomNavigationItemIcon,
+  BottomNavigationItemLabel,
+  BottomNavigationList,
+} from "@/components/shadcn/bottom-navigation";
+import {
+  MotionHighlight,
+  MotionHighlightItem,
+} from "@/components/shadcn/motion-highlight";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+
+const bottomItemClass =
+  "text-app-muted hover:text-app-text aria-selected:text-app-text aria-selected:[&_svg]:text-wallet";
 
 export const WalletTabs: React.FC = () => {
   const { activeTab, setActiveTab, wallet } = useWalletContext();
@@ -59,21 +67,13 @@ export const WalletTabs: React.FC = () => {
       ? activeTab
       : "more";
 
-    const v2ActionSx = {
-      color: "var(--color-app-muted)",
-      minWidth: 0,
-      fontFamily: "var(--font-sans)",
-      "& .MuiBottomNavigationAction-label": { fontSize: 11 },
-      "&.Mui-selected": { color: "var(--color-app-text)" },
-      "&.Mui-selected svg": { color: "var(--wallet)" },
-    };
-
     return (
       <>
-        <div className="hidden lg:block mb-6">
-          <Selector
+        <div className="hidden md:block mb-6">
+          <SegmentedControl
             size="lg"
-            fullWidth={false}
+            fullWidth
+            aria-label="Wallet sections"
             value={activeTab}
             onChange={setActiveTab}
             options={tabs.map((t) => ({
@@ -84,48 +84,56 @@ export const WalletTabs: React.FC = () => {
           />
         </div>
 
-        <Paper
-          elevation={0}
-          sx={{
-            position: "fixed",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 1100,
-            bgcolor: "var(--color-app-card)",
-            boxShadow: "var(--box-ring)",
-            borderTop: "1px solid var(--color-app-border)",
-            borderRadius: 0,
-            pb: "env(safe-area-inset-bottom)",
+        <BottomNavigation
+          value={bottomValue}
+          onValueChange={({ value }) => {
+            if (value !== "more") setActiveTab(value as TabType);
           }}
-          className="lg:hidden"
+          className="md:hidden min-h-0"
         >
-          <BottomNavigation
-            showLabels
-            value={bottomValue}
-            onChange={(_, value: string) => {
-              if (value !== "more") setActiveTab(value as TabType);
-            }}
-            sx={{ bgcolor: "transparent", height: 64 }}
+          <BottomNavigationList
+            aria-label="Wallet sections"
+            className="z-[1100] min-h-16 bg-app-card/90 backdrop-blur-md border-app-border shadow-[var(--box-ring)]"
           >
-            {bottomTabs.map((t) => (
-              <BottomNavigationAction
-                key={t.id}
-                value={t.id}
-                label={t.label}
-                icon={<FontAwesomeIcon icon={t.icon} />}
-                sx={v2ActionSx}
-              />
-            ))}
-            <BottomNavigationAction
-              value="more"
-              label="More"
-              icon={<FontAwesomeIcon icon={faEllipsis} />}
-              onClick={(e) => setMoreAnchor(e.currentTarget)}
-              sx={v2ActionSx}
-            />
-          </BottomNavigation>
-        </Paper>
+            {/* Inside the list: the highlight must paint above the list's background. */}
+            <MotionHighlight
+              value={bottomValue}
+              highlightClassName="rounded-[var(--r-input)] bg-app-raised"
+              className="flex w-full items-stretch justify-around px-2 py-1.5"
+            >
+              {bottomTabs.map((t) => (
+                <MotionHighlightItem key={t.id} value={t.id} asChild>
+                  <BottomNavigationItem
+                    value={t.id}
+                    className={bottomItemClass}
+                  >
+                    <BottomNavigationItemIcon>
+                      <FontAwesomeIcon icon={t.icon} />
+                    </BottomNavigationItemIcon>
+                    <BottomNavigationItemLabel className="text-[11px]">
+                      {t.label}
+                    </BottomNavigationItemLabel>
+                  </BottomNavigationItem>
+                </MotionHighlightItem>
+              ))}
+              {/* onClick goes on the item, not the child: asChild clones the item's handlers over the child's. */}
+              <MotionHighlightItem
+                value="more"
+                asChild
+                onClick={(e) => setMoreAnchor(e.currentTarget)}
+              >
+                <BottomNavigationItem value="more" className={bottomItemClass}>
+                  <BottomNavigationItemIcon>
+                    <FontAwesomeIcon icon={faEllipsis} />
+                  </BottomNavigationItemIcon>
+                  <BottomNavigationItemLabel className="text-[11px]">
+                    More
+                  </BottomNavigationItemLabel>
+                </BottomNavigationItem>
+              </MotionHighlightItem>
+            </MotionHighlight>
+          </BottomNavigationList>
+        </BottomNavigation>
 
         <Menu
           anchorEl={moreAnchor}
@@ -133,25 +141,46 @@ export const WalletTabs: React.FC = () => {
           onClose={() => setMoreAnchor(null)}
           anchorOrigin={{ vertical: "top", horizontal: "right" }}
           transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+          // Above the dock (z-1100), with a gap and a raised, bordered surface:
+          // --box-ring is transparent in dark, so the card colour alone vanished.
+          sx={{ zIndex: 1150 }}
           slotProps={{
             paper: {
               sx: {
-                bgcolor: "var(--color-app-card)",
-                color: "var(--color-app-text)",
-                borderRadius: "12px",
-                boxShadow: "var(--box-ring)",
+                mt: -1,
+                minWidth: 200,
+                bgcolor: "rgb(var(--bg-raised))",
+                color: "rgb(var(--text-primary))",
+                border: "1px solid rgb(var(--border-primary))",
+                borderRadius: "var(--r-card)",
+                boxShadow: "0 16px 40px -12px rgb(0 0 0 / 0.5)",
+                backgroundImage: "none",
               },
             },
+            list: { sx: { p: 0.75 } },
           }}
         >
           {moreTabs.map((t) => (
             <MenuItem
               key={t.id}
+              selected={activeTab === t.id}
               onClick={() => {
                 setActiveTab(t.id);
                 setMoreAnchor(null);
               }}
-              sx={{ gap: 1.5 }}
+              sx={{
+                gap: 1.5,
+                minHeight: 44,
+                borderRadius: "var(--r-input)",
+                fontFamily: "var(--font-sans)",
+                fontSize: 15,
+                fontWeight: 500,
+                "& svg": { width: 18, color: "rgb(var(--text-muted))" },
+                "&:hover, &.Mui-selected, &.Mui-selected:hover": {
+                  bgcolor: "rgb(var(--bg-card))",
+                },
+                "&.Mui-selected svg": { color: "var(--wallet)" },
+              }}
             >
               <FontAwesomeIcon icon={t.icon} />
               {t.label}

@@ -131,8 +131,9 @@ describe("BudgetTab (v2)", () => {
     setBudgets([]);
     render(<BudgetTab />);
     expect(screen.getByText("No budgets yet")).toBeInTheDocument();
+    // Only the empty-state CTA: the header button hides while there are no budgets.
     expect(screen.getAllByRole("button", { name: /new budget/i })).toHaveLength(
-      2,
+      1,
     );
   });
 

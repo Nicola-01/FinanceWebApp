@@ -72,7 +72,7 @@ class BankRuleServiceTest {
   }
 
   private static BankRuleRequest req(String name, String text) {
-    return new BankRuleRequest(name, text, false, null, null, null, null, null);
+    return new BankRuleRequest(name, text, false, null, null, null, null, null, null);
   }
 
   private BankRule existing(String name) {
@@ -150,7 +150,8 @@ class BankRuleServiceTest {
             service.create(
                 userId,
                 walletId,
-                new BankRuleRequest("A", "B", false, null, "To categorise", null, null, null)));
+                new BankRuleRequest(
+                    "A", "B", false, null, "To categorise", null, null, null, null)));
   }
 
   @Test
@@ -163,7 +164,7 @@ class BankRuleServiceTest {
             service.create(
                 userId,
                 walletId,
-                new BankRuleRequest("A", "B", false, null, "Nope", null, null, null)));
+                new BankRuleRequest("A", "B", false, null, "Nope", null, null, null, null)));
   }
 
   @Test
@@ -173,7 +174,9 @@ class BankRuleServiceTest {
     when(tagRepository.findByNameIgnoreCaseAndWalletId("Food", walletId))
         .thenReturn(Optional.of(food));
     service.create(
-        userId, walletId, new BankRuleRequest("A", "B", false, false, "Food", "Shop", null, null));
+        userId,
+        walletId,
+        new BankRuleRequest("A", "B", false, false, "Food", "Shop", null, null, null));
     verify(ruleRepository)
         .save(
             argThat(
@@ -196,7 +199,7 @@ class BankRuleServiceTest {
             service.create(
                 userId,
                 walletId,
-                new BankRuleRequest("A", "(", true, null, null, null, null, null)));
+                new BankRuleRequest("A", "(", true, null, null, null, null, null, null)));
   }
 
   @Test
@@ -206,6 +209,21 @@ class BankRuleServiceTest {
     when(subscriptionRepository.findAllByBankRuleId(a.getId()))
         .thenReturn(List.of(sub("Netflix"), sub("Spotify")));
     assertEquals(List.of("Netflix", "Spotify"), service.list(userId, walletId).get(0).usedBy());
+  }
+
+  @Test
+  void list_countsTransactionsPerRule_zeroWhenNone() {
+    BankRule a = existing("A");
+    BankRule b = existing("B");
+    when(ruleRepository.findAllByWalletIdOrderByNameAsc(walletId)).thenReturn(List.of(a, b));
+    when(transactionRepository.countByBankRule(walletId))
+        .thenReturn(List.<Object[]>of(new Object[] {a.getId(), 3L}));
+
+    List<BankRuleResponse> res = service.list(userId, walletId);
+
+    assertEquals(3L, res.get(0).transactionCount());
+    assertEquals(0L, res.get(1).transactionCount());
+    verify(transactionRepository, never()).countByBankRuleId(any());
   }
 
   @Test
@@ -275,6 +293,37 @@ class BankRuleServiceTest {
     assertEquals("Bank: CONAD 03.11.2026; ref 1", tx.getNotes());
     assertEquals(LocalDate.of(2026, 11, 3), tx.getTransactionDate());
     verify(transactionRepository).saveAll(List.of(tx));
+  }
+
+  @Test
+  void applyToReview_recordsBankRuleId() {
+    BankRule r = rule("Conad", "conad");
+    r.setRenameTo("Conad");
+    Transaction tx = toReview("CONAD 03.11.2026", "ref 1", LocalDate.of(2026, 11, 6));
+    when(ruleRepository.findAllByWalletIdOrderByNameAsc(walletId)).thenReturn(List.of(r));
+    when(transactionRepository.findAllByWalletIdAndImportedTrueAndTagPlaceholderTrue(walletId))
+        .thenReturn(List.of(tx));
+
+    service.applyToReview(userId, walletId);
+
+    assertEquals(r.getId(), tx.getBankRuleId());
+  }
+
+  @Test
+  void applyToReview_clearNameWinsOverRename() {
+    BankRule r = rule("Conad", "conad");
+    r.setRenameTo("Conad");
+    r.setClearName(true);
+    Transaction tx = toReview("CONAD 03.11.2026", "ref 1", LocalDate.of(2026, 11, 6));
+    when(ruleRepository.findAllByWalletIdOrderByNameAsc(walletId)).thenReturn(List.of(r));
+    when(transactionRepository.findAllByWalletIdAndImportedTrueAndTagPlaceholderTrue(walletId))
+        .thenReturn(List.of(tx));
+
+    var res = service.applyToReview(userId, walletId);
+
+    assertEquals(1, res.updated());
+    assertEquals("", tx.getName());
+    assertEquals("Bank: CONAD 03.11.2026; ref 1", tx.getNotes());
   }
 
   @Test

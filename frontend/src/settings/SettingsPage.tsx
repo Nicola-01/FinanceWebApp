@@ -58,7 +58,7 @@ const SettingsPage: React.FC = () => {
       <DashboardBackground fixed />
 
       {/* Fixed top bar — stays put while the page scrolls (matches the dashboard). */}
-      <div className="sticky top-0 z-[120]">
+      <div className="sticky top-0 z-[94]">
         <AppHeader page={{ text: "My", accent: "Settings" }} />
       </div>
 

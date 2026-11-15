@@ -1,6 +1,10 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faEdit,
+  faTrash,
+  faWandMagicSparkles,
+} from "@fortawesome/free-solid-svg-icons";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { useDeleteModal } from "../common/DeleteModalContext";
@@ -16,6 +20,8 @@ import { TransactionView } from "./TransactionView";
 import { TagPicker } from "./TagPicker.tsx";
 import { reviewTagName } from "../../dashboard/wallet/toCategorize.ts";
 import { categoriseTransaction } from "../../dashboard/transaction/categoriseTransaction.ts";
+import { openRuleDraft } from "../../dashboard/settings/bankRuleDraft.ts";
+import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 
 export interface TransactionDetailsModalHandle {
   openModal: (transaction: Transaction) => void;
@@ -88,10 +94,27 @@ export const TransactionDetailsModal = forwardRef<
           onSelectTag={async (tagName) => {
             if (await categoriseTransaction(wallet, tx, tagName)) {
               handleClose();
+              triggerToast("Filed under " + tagName, true, {
+                label: "Create rule",
+                onClick: () => openRuleDraft(tx, tagName),
+              });
               fetchData();
             }
           }}
         />
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="mt-2"
+          onClick={() => {
+            handleClose();
+            openRuleDraft(tx, reviewTagName(tx, tags) || undefined);
+          }}
+        >
+          <FontAwesomeIcon icon={faWandMagicSparkles} />
+          Create rule from this
+        </Button>
       </div>
     ) : undefined;
   const footer = canEdit ? (

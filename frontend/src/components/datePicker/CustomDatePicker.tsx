@@ -4,7 +4,11 @@ import DatePickerTrigger from "./DatePickerTrigger";
 import DatePickerSidebar from "./DatePickerSidebar";
 import DatePickerSurface from "./DatePickerSurface";
 import { useDatePicker } from "./useDatePicker";
-import type { DatePickerValue, PresetType } from "./datePresets";
+import {
+  ALL_PRESETS,
+  type DatePickerValue,
+  type PresetType,
+} from "./datePresets";
 
 export type {
   DateRangeValue,
@@ -25,8 +29,12 @@ export interface CustomDatePickerProps {
   weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   disableDaySelection?: boolean;
   triggerClassName?: string;
+  /** Single-date mode: where the closed trigger shows the date. */
+  triggerAlign?: "center" | "right";
   dropdownAlign?: "left" | "center" | "right";
   dropdownPosition?: "top" | "bottom";
+  /** Presets the sidebar lists (and the day grid may switch to). Default: all. */
+  allowedPresets?: PresetType[];
 }
 
 export default function CustomDatePicker({
@@ -42,8 +50,10 @@ export default function CustomDatePicker({
   weekStartsOn = 1,
   disableDaySelection = false,
   triggerClassName,
+  triggerAlign,
   dropdownAlign = "center",
   dropdownPosition = "bottom",
+  allowedPresets = ALL_PRESETS,
 }: CustomDatePickerProps) {
   const { resolvedTheme } = useTheme();
   const isDark =
@@ -91,6 +101,7 @@ export default function CustomDatePicker({
         endDate={endDate}
         onToggle={() => setIsOpen(!isOpen)}
         triggerClassName={triggerClassName}
+        triggerAlign={triggerAlign}
       />
 
       {/* Calendar popover */}
@@ -112,6 +123,7 @@ export default function CustomDatePicker({
               setPreset={setPreset}
               color={color}
               isDark={isDark}
+              allowedPresets={allowedPresets}
             />
           )}
 
@@ -131,6 +143,7 @@ export default function CustomDatePicker({
               isDark={isDark}
               weekStartsOn={weekStartsOn}
               disableDaySelection={disableDaySelection}
+              allowedPresets={allowedPresets}
             />
           </div>
         </DatePickerSurface>

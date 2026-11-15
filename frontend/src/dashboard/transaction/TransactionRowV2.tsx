@@ -51,7 +51,7 @@ export const TransactionRowV2: React.FC<TransactionRowV2Props> = ({
       tabIndex={0}
       onClick={() => onClick(tx)}
       onKeyDown={onKeyDown}
-      className={`grid cursor-pointer grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--r-input)] px-3 py-2.5 hover:bg-app-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-text ${tx.needsReview ? "shadow-[inset_3px_0_0_var(--color-app-warn)]" : ""}`}
+      className={`grid cursor-pointer ${tx.needsReview ? "grid-cols-[40px_minmax(0,1fr)_auto] sm:grid-cols-[40px_minmax(0,1fr)_auto_auto]" : "grid-cols-[40px_minmax(0,1fr)_auto]"} items-center gap-x-3 gap-y-1.5 rounded-[var(--r-input)] px-3 py-2.5 hover:bg-app-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-text ${tx.needsReview ? "shadow-[inset_3px_0_0_var(--color-app-warn)]" : ""}`}
     >
       {tx.needsReview ? (
         <span className="grid h-10 w-10 place-items-center rounded-[11px] bg-app-raised text-app-muted">
@@ -87,18 +87,19 @@ export const TransactionRowV2: React.FC<TransactionRowV2Props> = ({
         )}
       </div>
 
+      {tx.needsReview && (
+        // Inline before the amount from sm up; on phones its own row, indented under the text.
+        <div className="order-last col-span-full pl-[52px] sm:order-none sm:col-span-1 sm:pl-0">
+          <ToCategoriseActions transaction={tx} />
+        </div>
+      )}
+
       <div
         className={`whitespace-nowrap text-right font-semibold tabular-nums ${isIncome ? "text-app-income" : "text-app-text"}`}
       >
         {formatAmount(isIncome ? tx.amount : -tx.amount, { signed: true })}
         {symbol && ` ${symbol}`}
       </div>
-
-      {tx.needsReview && (
-        <div className="col-span-3 pt-1">
-          <ToCategoriseActions transaction={tx} />
-        </div>
-      )}
     </div>
   );
 };

@@ -20,18 +20,18 @@ vi.mock("../../../components/ui/SwitchableCard.tsx", () => ({
 const now = new Date();
 const thisYear = now.getFullYear();
 const thisMonthName = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
+  "January",
+  "February",
+  "March",
+  "April",
   "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ][now.getMonth()];
 
 const tx = (date: string, type: "INCOME" | "EXPENSE", amount: number) =>
@@ -55,21 +55,11 @@ const rowFor = (name: string) =>
   screen.getByRole("rowheader", { name }).parentElement!;
 
 describe("OverviewTableV2 net track and current month", () => {
-  it("sizes each month's track by |net| relative to the busiest month", () => {
-    setUiVersion("v2");
-    render(<OverviewTableV2 transactions={transactions} />);
-    const fill = (name: string) =>
-      rowFor(name).querySelector<HTMLElement>("div.h-full")!.style.width;
-    expect(fill("Jan")).toBe("100%");
-    expect(fill("Feb")).toBe("25%");
-    expect(fill("Mar")).toBe("0%");
-  });
-
   it("highlights the current month row", () => {
     setUiVersion("v2");
     render(<OverviewTableV2 transactions={transactions} />);
     expect(rowFor(thisMonthName).className).toContain("bg-app-raised");
-    const other = thisMonthName === "Jan" ? "Feb" : "Jan";
+    const other = thisMonthName === "January" ? "February" : "January";
     expect(rowFor(other).className).not.toContain("bg-app-raised");
   });
 });

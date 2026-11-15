@@ -31,6 +31,10 @@ export interface TagTreePickerProps {
   footerSlot?: (ctx: { currentParentName: string | null }) => React.ReactNode;
   /** Rendered inside the picker's root container (e.g. a manager drawer). */
   children?: React.ReactNode;
+  /** Extra classes merged onto the trigger (e.g. an inline, borderless value). */
+  triggerClassName?: string;
+  /** Where the closed trigger shows its value; "right" for inline form rows. */
+  triggerAlign?: "left" | "right";
 }
 
 /**
@@ -50,6 +54,8 @@ export const TagTreePicker: React.FC<TagTreePickerProps> = ({
   onOpen,
   footerSlot,
   children,
+  triggerClassName,
+  triggerAlign,
 }) => {
   const [ui] = useUiVersion();
   const v2 = ui === "v2"; // ui-v2-switch
@@ -233,6 +239,8 @@ export const TagTreePicker: React.FC<TagTreePickerProps> = ({
           if (isOpen) close();
           else openPicker();
         }}
+        triggerClassName={triggerClassName}
+        triggerAlign={triggerAlign}
       />
 
       {isOpen && (

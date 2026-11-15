@@ -19,4 +19,5 @@ public record WalletYearlyReport(
     List<CategoryTotal> topExpenseCategories,
     List<CategoryTotal> topIncomeCategories,
     YearRecords records,
-    int transactionCount) {}
+    int transactionCount,
+    ReportCharts charts) {}

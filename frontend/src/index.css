@@ -26,6 +26,16 @@ body,
     color 0.3s ease;
 }
 
+/* The fixed mobile bottom bar (z-1100) would cover full-screen overlays' footers. */
+body[data-overlay-open] [data-slot="bottom-navigation-list"] {
+  display: none;
+}
+
+/* The layout edit bar replaces the bottom dock while a page's layout is being edited. */
+body[data-layout-editing] [data-slot="bottom-navigation-list"] {
+  display: none;
+}
+
 @theme {
   --font-sans:
     "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI",

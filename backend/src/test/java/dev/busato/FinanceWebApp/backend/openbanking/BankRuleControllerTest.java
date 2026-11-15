@@ -88,6 +88,7 @@ class BankRuleControllerTest extends BaseIntegrationTest {
             .andExpect(jsonPath("$.ignoreCase").value(true))
             .andExpect(jsonPath("$.reviewFirst").value(true))
             .andExpect(jsonPath("$.dateFromName").value(true))
+            .andExpect(jsonPath("$.transactionCount").value(0))
             .andReturn()
             .getResponse()
             .getContentAsString();
@@ -97,7 +98,8 @@ class BankRuleControllerTest extends BaseIntegrationTest {
         .perform(get("/api/bank-rules/{w}", wallet.getId()).header("Authorization", jwt))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].matchText").value("AMZN"))
-        .andExpect(jsonPath("$[0].usedBy").isEmpty());
+        .andExpect(jsonPath("$[0].usedBy").isEmpty())
+        .andExpect(jsonPath("$[0].transactionCount").value(0));
 
     mockMvc
         .perform(
@@ -112,6 +114,33 @@ class BankRuleControllerTest extends BaseIntegrationTest {
         .perform(
             delete("/api/bank-rules/{w}/{id}", wallet.getId(), id).header("Authorization", jwt))
         .andExpect(status().isNoContent());
+  }
+
+  @Test
+  void clearName_roundTripsAndDefaultsToFalse() throws Exception {
+    String created =
+        mockMvc
+            .perform(
+                post("/api/bank-rules/{w}", wallet.getId())
+                    .header("Authorization", jwt)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"name\":\"Cleared\",\"matchText\":\"CLEAR\",\"clearName\":true}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.clearName").value(true))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String id = JsonPath.read(created, "$.id");
+
+    // Omitted on update means false (null = false, like dateFromName).
+    mockMvc
+        .perform(
+            put("/api/bank-rules/{w}/{id}", wallet.getId(), id)
+                .header("Authorization", jwt)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"name\":\"Cleared\",\"matchText\":\"CLEAR\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.clearName").value(false));
   }
 
   @Test

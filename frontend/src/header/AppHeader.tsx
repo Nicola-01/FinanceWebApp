@@ -14,7 +14,8 @@ interface AppHeaderProps {
 export const AppHeader: React.FC<AppHeaderProps> = ({ page, accentColor }) => {
   return (
     <>
-      <header className="top-0 z-[120] flex h-16 w-full items-center justify-between gap-3 border-b border-app-border bg-app-bg/80 px-4 backdrop-blur-md sm:px-6">
+      {/* z-94: above the sticky wallet tabs (z-90), below full-screen overlays (z-95). */}
+      <header className="top-0 z-[94] flex h-16 w-full items-center justify-between gap-3 border-b border-app-border bg-app-bg/80 px-4 backdrop-blur-md sm:px-6">
         {/* Logo & app name */}
         <div className="flex min-w-0 items-center gap-3">
           <img

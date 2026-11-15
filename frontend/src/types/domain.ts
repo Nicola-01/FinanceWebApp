@@ -94,8 +94,12 @@ export interface BankRule {
   /** Tag/name are applied but the import stays in "To categorise" to confirm. */
   reviewFirst: boolean;
   dateFromName: boolean;
+  /** Imports matched by the rule get an empty name. */
+  clearName: boolean;
   /** Names of the subscriptions using this rule. */
   usedBy: string[];
+  /** Transactions this rule has handled since counting started. */
+  transactionCount: number;
   updatedAt?: string;
 }
 

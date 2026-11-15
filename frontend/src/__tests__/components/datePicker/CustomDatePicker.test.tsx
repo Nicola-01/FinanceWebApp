@@ -285,3 +285,60 @@ describe("CustomDatePicker (UI v2)", () => {
     expectDate(value.end, 2026, 0, 20);
   });
 });
+
+describe("CustomDatePicker (allowedPresets)", () => {
+  it("lists only the allowed presets and hides Today", async () => {
+    const user = userEvent.setup();
+    renderPicker({
+      initialPreset: "year",
+      initialStartDate: JAN_15,
+      allowedPresets: ["year", "all"],
+    });
+
+    await user.click(screen.getByText("2026")); // open
+
+    expect(screen.getByRole("button", { name: "Year" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "All" })).toBeInTheDocument();
+    for (const hidden of ["Last 30 Days", "Month", "Custom", "Today"]) {
+      expect(
+        screen.queryByRole("button", { name: hidden }),
+      ).not.toBeInTheDocument();
+    }
+  });
+
+  it("does not switch to 'month' when a month is picked in the year view", async () => {
+    const user = userEvent.setup();
+    const onPresetChange = vi.fn();
+    renderPicker({
+      initialPreset: "year",
+      initialStartDate: JAN_15,
+      onPresetChange,
+      allowedPresets: ["year", "all"],
+    });
+
+    await user.click(screen.getByText("2026")); // open on the calendar
+    await user.click(screen.getByText("January")); // title -> months
+    await user.click(screen.getByText("Mar")); // no-op: "month" not allowed
+    expect(screen.getByText("Mar")).toBeInTheDocument();
+
+    expect(onPresetChange).not.toHaveBeenCalledWith("month");
+    expect(onPresetChange).not.toHaveBeenCalledWith("custom");
+  });
+
+  it("keeps the day grid read-only when 'custom' is not allowed", async () => {
+    const user = userEvent.setup();
+    const onPresetChange = vi.fn();
+    renderPicker({
+      initialPreset: "year",
+      initialStartDate: JAN_15,
+      onPresetChange,
+      allowedPresets: ["year", "all"],
+    });
+
+    await user.click(screen.getByText("2026")); // open on the calendar
+    await user.click(screen.getByText("20")); // day click would switch to "custom"
+
+    expect(onPresetChange).not.toHaveBeenCalledWith("custom");
+    expect(onPresetChange).toHaveBeenLastCalledWith("year");
+  });
+});

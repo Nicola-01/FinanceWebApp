@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
 import { render, screen } from "@testing-library/react";
@@ -39,13 +40,6 @@ vi.mock("../../../dashboard/statistics/YearWaterfallChart.tsx", () => ({
     </div>
   ),
 }));
-vi.mock("../../../dashboard/statistics/FixedVsEverydayChart.tsx", () => ({
-  FixedVsEverydayChart: (p: Record<string, unknown>) => (
-    <div data-testid="FixedVsEverydayChart">
-      {record("FixedVsEverydayChart", p)}
-    </div>
-  ),
-}));
 vi.mock("../../../dashboard/statistics/BalanceProjectionChart.tsx", () => ({
   BalanceProjectionChart: (p: Record<string, unknown>) => (
     <div data-testid="BalanceProjectionChart">
@@ -57,6 +51,43 @@ vi.mock("../../../dashboard/statistics/OverviewTableV2.tsx", () => ({
   OverviewTableV2: (p: Record<string, unknown>) => (
     <div data-testid="OverviewTableV2">{record("OverviewTableV2", p)}</div>
   ),
+}));
+
+// The picker is mocked: it records its props and exposes buttons that emit the
+// range/preset changes a user would make ("pick 2025" and "pick all").
+vi.mock("../../../components/datePicker/CustomDatePicker.tsx", () => ({
+  default: (p: Record<string, unknown>) => {
+    const onChange = p.onChange as (v: unknown) => void;
+    const onPresetChange = p.onPresetChange as (v: string) => void;
+    // Like the real picker: re-emits the preset whenever the callback changes (every render).
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+      onPresetChange(p.initialPreset as string);
+    }, [onPresetChange, p.initialPreset]);
+    return (
+      <div data-testid="CustomDatePicker">
+        {record("CustomDatePicker", p)}
+        <button
+          onClick={() =>
+            onChange({
+              start: new Date(2025, 0, 1),
+              end: new Date(2025, 11, 31),
+            })
+          }
+        >
+          pick 2025
+        </button>
+        <button
+          onClick={() => {
+            onChange({ start: null, end: null });
+            onPresetChange("all");
+          }}
+        >
+          pick all
+        </button>
+      </div>
+    );
+  },
 }));
 
 import { StatisticsV2 } from "../../../dashboard/statistics/StatisticsV2.tsx";
@@ -78,15 +109,27 @@ const transactions = [
   tx("2025-02-05", "EXPENSE", 300),
 ];
 
+const WALLET_ID = "wallet-1";
 const last = (name: string) => calls[name].at(-1)!;
 const renderPage = () =>
-  render(<StatisticsV2 transactions={transactions} currency="EUR" />);
-// The mocks render no buttons, so the only buttons are the period selector and the Collapse.
+  render(
+    <StatisticsV2
+      transactions={transactions}
+      currency="EUR"
+      walletId={WALLET_ID}
+      accentColor="#123456"
+    />,
+  );
+// The mocked picker's two buttons and the Collapse are the only buttons on the page.
+// The view selector is a v2 tab (SegmentedControl).
 const buttonLabels = () =>
-  screen.getAllByRole("button").map((b) => b.textContent);
+  Array.from(
+    document.querySelectorAll<HTMLElement>('button, [role="tab"]'),
+  ).map((b) => b.textContent);
 
 beforeEach(() => {
   for (const k of Object.keys(calls)) delete calls[k];
+  localStorage.clear();
   setUiVersion("v2");
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(new Date(2026, 9, 15));
@@ -109,24 +152,34 @@ describe("StatisticsV2", () => {
     expect(last("StatisticsSummaryV2").currencySymbol).toBe("€");
   });
 
-  it("lists the years descending, including today's year, then All time", () => {
+  it("gives the picker only whole years and All, opened on the current year", () => {
     renderPage();
+    expect(last("CustomDatePicker")).toMatchObject({
+      isRange: true,
+      color: "#123456",
+      allowedPresets: ["year", "all"],
+      initialPreset: "year",
+    });
+    expect(last("CustomDatePicker").initialStartDate).toEqual(
+      new Date(2026, 0, 1),
+    );
+    expect(last("CustomDatePicker").initialEndDate).toEqual(
+      new Date(2026, 11, 31),
+    );
     expect(buttonLabels()).toEqual([
-      "2026",
-      "2025",
-      "2024",
-      "All time",
+      "pick 2025",
+      "pick all",
       "Show the numbers",
     ]);
   });
 
-  it("passes byYear and one row per year when All time is chosen", async () => {
+  it("passes byYear and one row per year when All is picked", async () => {
     renderPage();
-    await userEvent.click(screen.getByRole("button", { name: "All time" }));
+    await userEvent.click(screen.getByRole("button", { name: "pick all" }));
 
+    expect(last("StatisticsSummaryV2").period).toEqual({ kind: "all" });
     expect(last("MonthByMonthChart").byYear).toBe(true);
     expect(last("YearWaterfallChart").byYear).toBe(true);
-    expect(last("FixedVsEverydayChart").byYear).toBe(true);
     const rows = last("MonthByMonthChart").rows as {
       date: Date;
       income: number;
@@ -139,7 +192,7 @@ describe("StatisticsV2", () => {
 
   it("switches back to a single year with one row per month", async () => {
     renderPage();
-    await userEvent.click(screen.getByRole("button", { name: "2025" }));
+    await userEvent.click(screen.getByRole("button", { name: "pick 2025" }));
 
     expect(last("MonthByMonthChart").byYear).toBe(false);
     expect((last("MonthByMonthChart").rows as unknown[]).length).toBe(12);
@@ -155,11 +208,11 @@ describe("StatisticsV2", () => {
       (el) => (el as HTMLElement).dataset.testid,
     );
     expect(ids).toEqual([
+      "CustomDatePicker",
       "StatisticsSummaryV2",
       "MonthByMonthChart",
       "WorthKnowingCard",
       "YearWaterfallChart",
-      "FixedVsEverydayChart",
       "BalanceProjectionChart",
     ]);
 
@@ -183,8 +236,46 @@ describe("StatisticsV2", () => {
     expect(last("OverviewTableV2").transactions).toBe(transactions);
   });
 
+  it("renders the layout controls under the grid with editing off and nothing hidden", () => {
+    const renderLayoutControls = vi.fn(() => <p>layout controls</p>);
+    render(
+      <StatisticsV2
+        transactions={transactions}
+        currency="EUR"
+        walletId={WALLET_ID}
+        accentColor="#123456"
+        renderLayoutControls={renderLayoutControls}
+      />,
+    );
+    expect(screen.getByText("layout controls")).toBeInTheDocument();
+    expect(renderLayoutControls).toHaveBeenLastCalledWith(
+      expect.objectContaining({ editing: false, hiddenCount: 0 }),
+    );
+  });
+
+  it("does not render the layout controls for a wallet with no transactions", () => {
+    const renderLayoutControls = vi.fn(() => <p>layout controls</p>);
+    render(
+      <StatisticsV2
+        transactions={[]}
+        currency="EUR"
+        walletId={WALLET_ID}
+        accentColor="#123456"
+        renderLayoutControls={renderLayoutControls}
+      />,
+    );
+    expect(renderLayoutControls).not.toHaveBeenCalled();
+  });
+
   it("shows only the header and an empty-state card for a wallet with no transactions", () => {
-    render(<StatisticsV2 transactions={[]} currency="EUR" />);
+    render(
+      <StatisticsV2
+        transactions={[]}
+        currency="EUR"
+        walletId={WALLET_ID}
+        accentColor="#123456"
+      />,
+    );
     expect(
       screen.getByRole("heading", { name: "Statistics" }),
     ).toBeInTheDocument();
@@ -196,7 +287,7 @@ describe("StatisticsV2", () => {
         "Add a few transactions and your charts will show up here.",
       ),
     ).toBeInTheDocument();
-    expect(buttonLabels()).toEqual(["2026", "All time"]);
+    expect(buttonLabels()).toEqual(["pick 2025", "pick all"]);
     expect(
       screen.queryByRole("button", { name: "Show the numbers" }),
     ).toBeNull();
@@ -205,7 +296,6 @@ describe("StatisticsV2", () => {
       "MonthByMonthChart",
       "WorthKnowingCard",
       "YearWaterfallChart",
-      "FixedVsEverydayChart",
       "BalanceProjectionChart",
       "OverviewTableV2",
     ]) {
