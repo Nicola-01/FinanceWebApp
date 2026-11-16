@@ -182,7 +182,6 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                       selectedTagName={selectedTagName}
                       onSelectTag={setSelectedTagName}
                       showLabel={false}
-                      dropdownClassName="right-0 mt-1 w-full min-w-[min(20rem,calc(100vw-2rem))]"
                       triggerClassName="bg-transparent shadow-none justify-end text-right px-0"
                       triggerAlign="right"
                     />

@@ -69,8 +69,6 @@ export const ToCategoriseActions: React.FC<{ transaction: Transaction }> = ({
           showLabel={false}
           selectedTagName={suggested}
           onSelectTag={changeTag}
-          // The inline trigger is narrow: widen the dropdown, growing leftwards inside the row.
-          dropdownClassName="right-0 mt-1 w-full min-w-80"
         />
       </div>
       {suggested && (

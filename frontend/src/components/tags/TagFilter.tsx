@@ -284,7 +284,10 @@ export const TagFilter: React.FC<TagFilterProps> = ({
 
       {isOpen && (
         <TagDropdownPanel
-          className="right-0 mt-4 w-72"
+          anchorRef={dropdownRef}
+          onClose={close}
+          align="end"
+          className="w-72"
           searchSlot={
             <div className="flex flex-col gap-2">
               {topSlot}

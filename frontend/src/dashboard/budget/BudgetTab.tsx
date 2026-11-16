@@ -20,6 +20,8 @@ export const BudgetTab: React.FC = () => {
   const deleteModalRef = useDeleteModal();
   const [ui] = useUiVersion();
   const isV2 = ui === "v2"; // ui-v2-switch
+  // ui-v2-switch: the dashed card is the only "New budget" control, in every state.
+  const showAddCard = isV2 && canEdit && !isLoading;
 
   const [editing, setEditing] = useState<Budget | null>(null);
   const [creating, setCreating] = useState(false);
@@ -58,44 +60,24 @@ export const BudgetTab: React.FC = () => {
         ) : (
           <h2 className="text-lg font-bold text-app-text">Budgets</h2>
         )}
-        {canEdit &&
-          (isV2 ? (
-            // The empty state carries its own CTA; one "New budget" is enough.
-            (isLoading || budgets.length > 0) && (
-              <Button
-                variant="primary"
-                ripple
-                onClick={() => setCreating(true)}
-              >
-                <FontAwesomeIcon icon={faPlus} />
-                New budget
-              </Button>
-            )
-          ) : (
-            <Button
-              accentColor={wallet.color}
-              ripple
-              onClick={() => setCreating(true)}
-            >
-              <FontAwesomeIcon icon={faPlus} />
-              New budget
-            </Button>
-          ))}
+        {/* ui-v2-switch: v2 uses the dashed card in the grid as its only "New budget". */}
+        {canEdit && !isV2 && (
+          <Button
+            accentColor={wallet.color}
+            ripple
+            onClick={() => setCreating(true)}
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            New budget
+          </Button>
+        )}
       </div>
 
-      {!isLoading && budgets.length === 0 && isV2 && (
+      {!isLoading && budgets.length === 0 && isV2 && !canEdit && (
         <EmptyState
           title="No budgets yet"
           icon={<FontAwesomeIcon icon={faBullseye} />}
           description="Set a monthly limit for a category or the whole wallet."
-          action={
-            canEdit ? (
-              <Button variant="primary" onClick={() => setCreating(true)}>
-                <FontAwesomeIcon icon={faPlus} />
-                New budget
-              </Button>
-            ) : undefined
-          }
         />
       )}
       {!isLoading && budgets.length === 0 && !isV2 && (
@@ -130,14 +112,30 @@ export const BudgetTab: React.FC = () => {
             onDelete={requestDelete}
           />
         ))}
-        {isV2 && canEdit && budgets.length > 0 && (
+        {showAddCard && (
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="flex min-h-[120px] flex-col items-center justify-center gap-2 rounded-[var(--r-card)] border-[1.5px] border-dashed border-app-border text-[13px] font-semibold text-app-muted transition-colors hover:text-app-text"
+            className="relative flex min-h-[120px] flex-col items-center justify-center gap-2 overflow-hidden rounded-[var(--r-card)] border-[1.5px] border-dashed border-app-border text-[13px] font-semibold text-app-muted transition-colors hover:text-app-text"
           >
-            <FontAwesomeIcon icon={faPlus} />
-            New budget
+            {/* Faint skeleton of a budget card: where your budgets will appear. */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 flex flex-col gap-3 p-4 opacity-[0.35]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 shrink-0 rounded-full bg-app-input" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 w-2/3 rounded bg-app-input" />
+                  <div className="h-2.5 w-1/3 rounded bg-app-input" />
+                </div>
+              </div>
+              <div className="mx-auto h-[100px] w-[180px] rounded-t-full bg-app-input" />
+            </div>
+            <span className="relative flex items-center gap-2 rounded-full bg-app-card/80 px-3 py-1.5">
+              <FontAwesomeIcon icon={faPlus} />
+              New budget
+            </span>
           </button>
         )}
       </div>

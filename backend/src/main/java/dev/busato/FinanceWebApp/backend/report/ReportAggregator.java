@@ -51,7 +51,9 @@ public class ReportAggregator {
             period.atEndOfMonth(),
             totals,
             inPrevious.isEmpty() ? null : totals(inPrevious),
-            List.of(period)));
+            List.of(period)),
+        ReportInsightsAggregator.compute(
+            settled, inPeriod, inPrevious, period.atDay(1), period.atEndOfMonth(), false));
   }
 
   // ── charts ──────────────────────────────────────────────────────────────
@@ -250,7 +252,8 @@ public class ReportAggregator {
             to,
             totals,
             inPrevious.isEmpty() ? null : totals(inPrevious),
-            months.stream().map(MonthRow::month).toList()));
+            months.stream().map(MonthRow::month).toList()),
+        ReportInsightsAggregator.compute(settled, inYear, inPrevious, from, to, true));
   }
 
   private static YearRecords records(

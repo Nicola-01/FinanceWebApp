@@ -46,12 +46,17 @@ final class ReportChartHtml {
     boolean yearly = ChronoUnit.DAYS.between(c.from(), c.to()) > 31;
     StringBuilder s = new StringBuilder();
     if (!c.dailyExpense().isEmpty()) {
-      s.append(yearly ? yearGrid(c, currency) : monthCalendar(c, currency));
+      s.append(keep(yearly ? yearGrid(c, currency) : monthCalendar(c, currency)));
     }
-    s.append(weekdayBars(c.weekdayAverages(), currency));
-    s.append(yearly ? fixedBarsYear(c.fixedVsEveryday(), currency) : fixedMonth(c, currency));
-    s.append(savings(c, yearly, svg));
+    s.append(keep(weekdayBars(c.weekdayAverages(), currency)));
+    s.append(keep(yearly ? fixedBarsYear(c.fixedVsEveryday(), currency) : fixedMonth(c, currency)));
+    s.append(keep(savings(c, yearly, svg)));
     return s.toString();
+  }
+
+  /** Keeps a chart's heading and body on the same PDF page (ignored by email clients). */
+  private static String keep(String section) {
+    return section.isEmpty() ? "" : "<div style=\"page-break-inside:avoid;\">" + section + "</div>";
   }
 
   // ── spending calendar ─────────────────────────────────────────────────────

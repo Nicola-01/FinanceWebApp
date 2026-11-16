@@ -11,19 +11,22 @@ import Button from "../../components/ui/Button";
 import { Menu } from "../../components/ui/Menu";
 import { useUiVersion } from "../../hooks/useUiVersion";
 import { CategoryIcon } from "../../components/ui/CategoryIcon";
-import { StatusPill } from "../../components/ui/StatusPill";
 import { Gauge } from "@/components/ui/charts";
 import { AnimatedNumber } from "../../components/ui/AnimatedNumber.tsx";
 import { getCurrencySymbol } from "../../utils/currencies/meta.ts";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { upcomingSubscriptionSpend } from "./budgetUpcoming";
 import {
   STATUS_META,
   STATUS_TEXT_V2,
+  arcPoint,
+  projectedCommitted,
   STATUS_TONE,
   barPercent,
   daysLeft,
   gaugeAriaLabel,
   gaugeColor,
+  gaugeAlertTicks,
   gaugeNumberFormat,
   periodLabel,
 } from "./budgetLogic";
@@ -143,7 +146,44 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
   );
 };
 
-/** v2 card: icon tile, status pill, progress bar, used/left lines. Same actions as v1. */
+/** Due-soon arc and figure colour: the mock's terracotta, kept apart from the amber WARNING arc. */
+// shortcut: no v2 theme token for this terracotta yet, so it is a literal; move it to theme-tokens.css if a second surface needs it.
+const DUE_COLOUR = "#c8705a";
+
+/** Header status text colour per tone (token-based, same tones as StatusPill). */
+const TONE_TEXT: Record<"ok" | "warn" | "danger", string> = {
+  ok: "text-app-income",
+  warn: "text-app-warn",
+  danger: "text-app-danger",
+};
+
+/** Radius of the Gauge's value arc inside the 100x100 overlay box (the mid-point of the alert ticks). */
+const ARC_RADIUS = 40;
+
+/** One figure under the hero: optional dot in an arc colour, amount, then label. */
+const Fact: React.FC<{
+  color?: string;
+  value: React.ReactNode;
+  label: string;
+}> = ({ color, value, label }) => (
+  <div className="min-w-0">
+    <b className="block whitespace-nowrap text-[15px] font-semibold text-app-text">
+      {value}
+    </b>
+    <span className="mt-0.5 flex items-center gap-1.5 whitespace-nowrap text-[12px] text-app-muted">
+      {color && (
+        <span
+          aria-hidden="true"
+          className="size-2 shrink-0 rounded-full"
+          style={{ backgroundColor: color }}
+        />
+      )}
+      {label}
+    </span>
+  </div>
+);
+
+/** v2 card (proposal C): status in the header, tighter arc with a pace marker, left-aligned hero and figures. Same actions as v1. */
 const BudgetCardV2: React.FC<BudgetCardProps> = ({
   budget,
   currency,
@@ -151,7 +191,32 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const { wallet, tags } = useWalletContext();
+  // `subscriptions` defaults to none so callers without it (older tests) still render.
+  const { wallet, tags, subscriptions = [] } = useWalletContext();
+  const upcoming = upcomingSubscriptionSpend(budget, subscriptions, tags);
+  // The due-soon segment starts where the spent arc ends and is capped at the limit.
+  const spentArc = barPercent(budget);
+  const dueArc =
+    budget.effectiveLimit > 0
+      ? Math.min(100, spentArc + (upcoming / budget.effectiveLimit) * 100)
+      : spentArc;
+  const showDue = upcoming > 0 && dueArc > spentArc;
+  const alertTicks = gaugeAlertTicks(
+    budget.alertThresholds,
+    budget.percentUsed,
+  );
+  // Money left after subscriptions still due; a negative value is the overspend.
+  const left = budget.remaining - upcoming;
+  const overspend = Math.max(0, -left);
+  // Pace marker: where committed spend lands by period end, pinned to the arc end.
+  const projected = projectedCommitted(budget, upcoming);
+  const pacePoint =
+    budget.effectiveLimit > 0
+      ? arcPoint(
+          Math.min(100, (projected / budget.effectiveLimit) * 100),
+          ARC_RADIUS,
+        )
+      : null;
   const tag = budget.tagName
     ? tags.find((t) => t.name === budget.tagName)
     : undefined;
@@ -159,10 +224,6 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
   const money = (v: number) =>
     new Intl.NumberFormat(undefined, { style: "currency", currency }).format(v);
   const symbol = getCurrencySymbol(currency);
-  const pillText =
-    budget.status === "EXCEEDED"
-      ? `${STATUS_TEXT_V2.EXCEEDED} ${money(budget.spent - budget.effectiveLimit)}`
-      : STATUS_TEXT_V2[budget.status];
 
   return (
     <div className="flex flex-col gap-3 rounded-[var(--r-card)] bg-app-card p-4 shadow-[var(--box-ring)]">
@@ -181,6 +242,12 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
             {budget.rollover && " · Rollover"}
           </p>
         </div>
+        <span
+          className={`mt-1 inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[12.5px] font-semibold ${TONE_TEXT[tone]}`}
+        >
+          <span aria-hidden="true" className="size-2 rounded-full bg-current" />
+          {STATUS_TEXT_V2[budget.status]}
+        </span>
         {canEdit && (
           <Menu width={176}>
             <Menu.Trigger>
@@ -214,10 +281,8 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
         )}
       </div>
 
-      <StatusPill status={tone}>{pillText}</StatusPill>
-
-      {/* Arc clamps at full; the centre shows the real percentage. */}
-      <div className="relative mx-auto w-full min-w-0 max-w-[180px] text-app-text">
+      {/* Arc clamps at full; the centre shows the real percentage (centerValue, not value). */}
+      <div className="relative mx-auto w-full min-w-0 max-w-[220px] text-app-text">
         <Gauge
           arcStyle="solid"
           arcThickness={0.05}
@@ -229,22 +294,94 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
           inactiveFillOpacity={0.6}
           minWidth={0}
           suffix="%"
-          value={barPercent(budget)}
+          value={showDue ? dueArc : spentArc}
           activeFill={gaugeColor(budget.status)}
+          zoneDisplay="fill"
+          zones={
+            showDue
+              ? [
+                  {
+                    from: spentArc,
+                    to: dueArc,
+                    color: DUE_COLOUR,
+                  },
+                ]
+              : undefined
+          }
         />
+        {/* Alert ticks: the Gauge kit has no per-value marks, so they sit in an overlay on the same 100x100 box. */}
+        {budget.alertThresholds.length > 0 && (
+          <svg
+            viewBox="0 0 100 100"
+            role="img"
+            aria-label={`Alerts at ${alertTicks.map((t) => `${t.pct}%`).join(", ")}`}
+            className="pointer-events-none absolute inset-0 h-full w-full"
+          >
+            {alertTicks.map((tick) => (
+              <line
+                key={tick.pct}
+                data-alert-tick={tick.pct}
+                x1={tick.x1}
+                y1={tick.y1}
+                x2={tick.x2}
+                y2={tick.y2}
+                stroke={
+                  tick.passed
+                    ? gaugeColor(budget.status)
+                    : "var(--color-app-faint)"
+                }
+                strokeWidth={1.5}
+                strokeLinecap="round"
+              />
+            ))}
+          </svg>
+        )}
+        {/* Pace marker: a dot on the arc at the projected end-of-period committed spend. */}
+        {pacePoint && (
+          <svg
+            viewBox="0 0 100 100"
+            role="img"
+            aria-label={`Pace: about ${money(projected)} committed by period end`}
+            className="pointer-events-none absolute inset-0 h-full w-full"
+          >
+            <circle
+              data-pace-marker
+              cx={pacePoint[0]}
+              cy={pacePoint[1]}
+              r={3.5}
+              fill="var(--color-app-card)"
+              stroke="var(--color-app-text)"
+              strokeWidth={1.5}
+            />
+          </svg>
+        )}
       </div>
-      <p className="text-center text-[12px] text-app-muted">
-        <AnimatedNumber value={budget.spent} currency={symbol} /> of{" "}
-        <AnimatedNumber value={budget.effectiveLimit} currency={symbol} />
-      </p>
 
-      <p className="text-[13px] tabular-nums text-app-muted">
-        <AnimatedNumber
-          value={Math.max(0, budget.remaining)}
-          currency={symbol}
-        />{" "}
-        left · {daysLeft(budget)} days left
-      </p>
+      {overspend > 0 ? (
+        <p
+          className={`font-display text-[34px] font-semibold leading-none tracking-[-0.02em] tabular-nums ${budget.status === "EXCEEDED" ? "text-app-danger" : "text-app-warn"}`}
+        >
+          Over by <AnimatedNumber value={overspend} currency={symbol} />
+        </p>
+      ) : (
+        <p className="font-display text-[34px] font-semibold leading-none tracking-[-0.02em] tabular-nums text-app-text">
+          <AnimatedNumber value={left} currency={symbol} /> left
+        </p>
+      )}
+
+      <div className="grid grid-cols-3 gap-2 tabular-nums">
+        <Fact
+          color={gaugeColor(budget.status)}
+          value={<AnimatedNumber value={budget.spent} currency={symbol} />}
+          label="spent"
+        />
+        <Fact
+          color={DUE_COLOUR}
+          value={<AnimatedNumber value={upcoming} currency={symbol} />}
+          label="still due"
+        />
+        <Fact value={`${daysLeft(budget)} days`} label="left in period" />
+      </div>
 
       {!budget.active && (
         <p className="text-xs text-app-muted">

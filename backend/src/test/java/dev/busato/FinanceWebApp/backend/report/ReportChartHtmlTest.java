@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.StringReader;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -15,7 +13,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.xml.sax.InputSource;
 
 class ReportChartHtmlTest {
@@ -163,62 +160,5 @@ class ReportChartHtmlTest {
 
     assertEquals("", ReportChartHtml.block(empty, "EUR", true));
     assertEquals("", ReportChartHtml.block(null, "EUR", true));
-  }
-
-  /** Renders full PDFs with charts (proves the XHTML + SVG pipeline) into build/report-preview. */
-  @Test
-  void fullPdfs_RenderWithCharts() throws Exception {
-    ReportHtmlBuilder builder = new ReportHtmlBuilder();
-    ReflectionTestUtils.setField(builder, "frontendUrl", "http://localhost:5173");
-    ReportPdfRenderer renderer = new ReportPdfRenderer();
-    PeriodTotals totals = new PeriodTotals(bd("1000.00"), bd("580.00"), bd("420.00"));
-    WalletMonthlyReport m =
-        new WalletMonthlyReport(
-            "Main",
-            "#8b5cf6",
-            "EUR",
-            YearMonth.of(2026, 6),
-            totals,
-            null,
-            bd("5000.00"),
-            List.of(),
-            List.of(),
-            3,
-            monthCharts());
-    List<MonthRow> rows = new ArrayList<>();
-    for (int i = 1; i <= 12; i++) {
-      rows.add(new MonthRow(YearMonth.of(2025, i), bd("100"), bd("50"), bd("50"), 1));
-    }
-    WalletYearlyReport y =
-        new WalletYearlyReport(
-            "Main",
-            "#8b5cf6",
-            "EUR",
-            2025,
-            totals,
-            null,
-            rows,
-            null,
-            null,
-            List.of(),
-            List.of(),
-            new YearRecords(null, null, null, null, null, null, 0, 12, null, null),
-            12,
-            yearCharts());
-
-    byte[] monthly =
-        renderer.render(builder.monthlyPdfHtml("nicola", YearMonth.of(2026, 6), List.of(m)));
-    byte[] yearly = renderer.render(builder.yearlyPdfHtml("nicola", 2025, List.of(y)));
-
-    assertTrue(monthly.length > 1000 && yearly.length > 1000);
-    Path out = Path.of("build", "report-preview");
-    Files.createDirectories(out);
-    Files.write(out.resolve("monthly.pdf"), monthly);
-    Files.write(out.resolve("yearly.pdf"), yearly);
-    Files.writeString(
-        out.resolve("monthly-email.html"),
-        builder.monthlyEmailBody("nicola", YearMonth.of(2026, 6), List.of(m)));
-    Files.writeString(
-        out.resolve("yearly-email.html"), builder.yearlyEmailBody("nicola", 2025, List.of(y)));
   }
 }

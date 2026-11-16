@@ -20,4 +20,5 @@ public record WalletYearlyReport(
     List<CategoryTotal> topIncomeCategories,
     YearRecords records,
     int transactionCount,
-    ReportCharts charts) {}
+    ReportCharts charts,
+    ReportInsights insights) {}

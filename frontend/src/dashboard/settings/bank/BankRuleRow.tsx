@@ -28,7 +28,7 @@ export function BankRuleRow({
       <span className="truncate text-sm font-semibold text-app-text max-sm:col-start-1 max-sm:row-start-1">
         {rule.name}
       </span>
-      <span className="min-w-0 truncate rounded-[var(--r-sm)] bg-app-raised px-2 py-0.5 text-[13px] text-app-text max-sm:col-start-1 max-sm:row-start-2">
+      <span className="min-w-0 truncate justify-self-start rounded-[var(--r-sm)] bg-app-card px-2 py-0.5 text-[13px] text-app-text max-sm:col-start-1 max-sm:row-start-2">
         {rule.matchText}
       </span>
       <span className="flex items-center gap-1.5 justify-self-end max-sm:col-start-2 max-sm:row-start-2">
@@ -64,10 +64,10 @@ export function BankRuleRow({
           {rule.transactionCount} tx
         </span>
       </span>
-      <FontAwesomeIcon
-        icon={faArrowRight}
-        className="hidden text-app-faint sm:block"
-      />
+      {/* Wrapped: FA's own svg display rule beats Tailwind's `hidden`. */}
+      <span className="hidden text-app-faint sm:block">
+        <FontAwesomeIcon icon={faArrowRight} />
+      </span>
       <span className="justify-self-end max-sm:col-start-2 max-sm:row-start-1">
         <TagBadge tag={rule.tag ?? undefined} showParent={false} />
       </span>

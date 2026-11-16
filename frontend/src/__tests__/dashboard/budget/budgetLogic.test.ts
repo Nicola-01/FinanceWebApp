@@ -11,6 +11,7 @@ import {
   gaugeNumberFormat,
   monthAside,
   periodLabel,
+  projectedCommitted,
   validateThresholds,
 } from "../../../dashboard/budget/budgetLogic";
 import type { Budget } from "../../../types/domain";
@@ -139,5 +140,32 @@ describe("gauge helpers", () => {
     // Locale-dependent compact form, so only the shape is asserted.
     expect(gaugeCenterText(22416)).toMatch(/%$/);
     expect(gaugeCenterText(22416)).not.toContain("22416");
+  });
+});
+
+describe("projectedCommitted", () => {
+  const november: Budget = {
+    ...base,
+    periodStart: "2026-11-01",
+    periodEnd: "2026-11-30",
+    spent: 480,
+  };
+
+  it("extrapolates spend linearly over the period and adds subscriptions due", () => {
+    // Nov 16 is day 16 of 30: 480 / 16 * 30 = 900, plus 120 due.
+    expect(
+      projectedCommitted(november, 120, new Date(2026, 10, 16, 12)),
+    ).toBeCloseTo(1020, 6);
+  });
+
+  it("clamps to the first day before the period starts and to the period end after it", () => {
+    expect(projectedCommitted(november, 0, new Date(2026, 9, 1))).toBeCloseTo(
+      480 * 30,
+      6,
+    );
+    expect(projectedCommitted(november, 0, new Date(2026, 11, 5))).toBeCloseTo(
+      480,
+      6,
+    );
   });
 });

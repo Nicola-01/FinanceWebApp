@@ -103,11 +103,11 @@ describe("BudgetTab (v2)", () => {
       screen.getByRole("heading", { name: "Budgets" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Close to the limit")).toBeInTheDocument();
-    expect(screen.getByText(/^Over by/)).toBeInTheDocument();
+    expect(screen.getByText("Over budget")).toBeInTheDocument();
     expect(screen.getByText("Whole wallet")).toBeInTheDocument();
-    // Header CTA plus the dashed card.
+    // The dashed card is the only "New budget" control, after the real cards.
     expect(screen.getAllByRole("button", { name: /new budget/i })).toHaveLength(
-      2,
+      1,
     );
   });
 
@@ -123,18 +123,39 @@ describe("BudgetTab (v2)", () => {
 
   it("opens the form from the dashed card", () => {
     render(<BudgetTab />);
-    fireEvent.click(screen.getAllByRole("button", { name: /new budget/i })[1]);
+    fireEvent.click(screen.getByRole("button", { name: /new budget/i }));
     expect(screen.getByText("Create budget")).toBeInTheDocument();
   });
 
-  it("renders the empty state with a New budget action for editors", () => {
+  it("shows exactly one New budget control when there are no budgets", () => {
     setBudgets([]);
     render(<BudgetTab />);
-    expect(screen.getByText("No budgets yet")).toBeInTheDocument();
-    // Only the empty-state CTA: the header button hides while there are no budgets.
+    // The dashed card is the only control; the header button stays hidden.
     expect(screen.getAllByRole("button", { name: /new budget/i })).toHaveLength(
       1,
     );
+  });
+
+  it("draws a faint, non-interactive budget skeleton inside the dashed card", () => {
+    setBudgets([]);
+    render(<BudgetTab />);
+    const card = screen.getByRole("button", { name: /new budget/i });
+    const ghost = card.querySelector('[aria-hidden="true"]');
+    expect(ghost).not.toBeNull();
+    expect(ghost).toHaveClass("pointer-events-none");
+  });
+
+  it("shows the empty-state copy to viewers without a CTA", () => {
+    setBudgets([]);
+    mockContext.mockReturnValue({
+      wallet: { ...wallet, userRole: "VIEWER" },
+      tags: [],
+    });
+    render(<BudgetTab />);
+    expect(screen.getByText("No budgets yet")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /new budget/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("hides New budget from viewers", () => {
