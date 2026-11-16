@@ -3,7 +3,6 @@ import type { BankRule, Tag } from "../../../../types/domain";
 import {
   filterRules,
   groupRules,
-  shouldGroup,
 } from "../../../../dashboard/settings/bank/bankRulesView";
 
 const tag = (name: string) =>
@@ -66,13 +65,5 @@ describe("groupRules", () => {
   it("omits the uncategorised group when every rule has a category", () => {
     const groups = groupRules(rules.filter((r) => r.tag));
     expect(groups.every((g) => g.tag !== null)).toBe(true);
-  });
-});
-
-describe("shouldGroup", () => {
-  it("groups only past 15 rules and never while searching", () => {
-    expect(shouldGroup(15, "")).toBe(false);
-    expect(shouldGroup(16, "")).toBe(true);
-    expect(shouldGroup(16, "net")).toBe(false);
   });
 });

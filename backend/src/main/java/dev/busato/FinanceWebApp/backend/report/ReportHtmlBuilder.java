@@ -11,7 +11,6 @@ import java.util.Locale;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.HtmlUtils;
 
 /**
  * Fills the report templates ({@code {{token}}} replace, same mechanism as SendEmailService).
@@ -39,7 +38,7 @@ public class ReportHtmlBuilder {
     }
     return load("templates/email/monthlyReportEmail.html")
         .replace("{{period}}", monthLabel(period))
-        .replace("{{username}}", HtmlUtils.htmlEscape(username))
+        .replace("{{username}}", esc(username))
         .replace("{{appUrl}}", frontendUrl)
         .replace("{{highlights}}", highlights.toString());
   }
@@ -52,7 +51,7 @@ public class ReportHtmlBuilder {
     }
     return load("templates/report/monthlyReportPdf.html")
         .replace("{{period}}", monthLabel(period))
-        .replace("{{username}}", HtmlUtils.htmlEscape(username))
+        .replace("{{username}}", esc(username))
         .replace("{{walletSections}}", sections.toString());
   }
 
@@ -65,7 +64,7 @@ public class ReportHtmlBuilder {
         <span style="font-weight:700; color:%s;">%s</span></div>"""
             .formatted(
                 sanitizeHexColor(r.walletColor()),
-                HtmlUtils.htmlEscape(r.walletName()),
+                esc(r.walletName()),
                 netClass,
                 formatAmount(r.totals().net(), r.currency()))
         + emailCharts(r.charts(), r.currency());
@@ -77,7 +76,7 @@ public class ReportHtmlBuilder {
     s.append("<h2 style=\"border-left-color:")
         .append(sanitizeHexColor(r.walletColor()))
         .append(";\">")
-        .append(HtmlUtils.htmlEscape(r.walletName()))
+        .append(esc(r.walletName()))
         .append("</h2>");
     s.append("<table class=\"kpi\">");
     s.append(
@@ -108,6 +107,9 @@ public class ReportHtmlBuilder {
     s.append(
         categoryBlock("Top income categories", r.topIncomeCategories(), r.currency(), "#059669"));
     s.append(ReportChartHtml.block(r.charts(), r.currency(), true));
+    s.append(
+        ReportInsightsHtml.block(
+            r.insights(), r.currency(), false, monthLabel(r.period().minusMonths(1))));
     s.append("</div>");
     return s.toString();
   }
@@ -141,7 +143,7 @@ public class ReportHtmlBuilder {
     StringBuilder s = new StringBuilder("<h3>").append(title).append("</h3>");
     for (CategoryTotal c : categories) {
       s.append("<div class=\"catrow\"><span class=\"catname\">")
-          .append(HtmlUtils.htmlEscape(c.name()))
+          .append(esc(c.name()))
           .append(
               "</span><span class=\"barwrap\"><span class=\"bar\" style=\"display:block; width:")
           .append(Math.max(2, Math.min(100, (int) Math.round(c.percentOfTotal()))))
@@ -169,6 +171,19 @@ public class ReportHtmlBuilder {
     return nf.format(amount) + " " + (currency == null ? "" : currency);
   }
 
+  /**
+   * Escapes only {@code & < > " '}. HtmlUtils.htmlEscape would emit named entities (é → {@code
+   * &eacute;}) that the PDF's XML parser rejects, failing the report for any accented name.
+   */
+  static String esc(String s) {
+    if (s == null) return "";
+    return s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+        .replace("'", "&#39;");
+  }
+
   static String sanitizeHexColor(String color) {
     return color != null && HEX_COLOR.matcher(color).matches() ? color : FALLBACK_COLOR;
   }
@@ -182,7 +197,7 @@ public class ReportHtmlBuilder {
     }
     return load("templates/email/yearlyReportEmail.html")
         .replace("{{year}}", String.valueOf(year))
-        .replace("{{username}}", HtmlUtils.htmlEscape(username))
+        .replace("{{username}}", esc(username))
         .replace("{{appUrl}}", frontendUrl)
         .replace("{{highlights}}", highlights.toString());
   }
@@ -194,7 +209,7 @@ public class ReportHtmlBuilder {
     }
     return load("templates/report/yearlyReportPdf.html")
         .replace("{{year}}", String.valueOf(year))
-        .replace("{{username}}", HtmlUtils.htmlEscape(username))
+        .replace("{{username}}", esc(username))
         .replace("{{walletSections}}", sections.toString());
   }
 
@@ -207,7 +222,7 @@ public class ReportHtmlBuilder {
         <span style="font-weight:700; color:%s;">%s</span></div>"""
             .formatted(
                 sanitizeHexColor(r.walletColor()),
-                HtmlUtils.htmlEscape(r.walletName()),
+                esc(r.walletName()),
                 netColor,
                 formatAmount(r.totals().net(), r.currency()))
         + emailCharts(r.charts(), r.currency());
@@ -224,7 +239,7 @@ public class ReportHtmlBuilder {
     s.append("<h2 style=\"border-left-color:")
         .append(sanitizeHexColor(r.walletColor()))
         .append(";\">")
-        .append(HtmlUtils.htmlEscape(r.walletName()))
+        .append(esc(r.walletName()))
         .append("</h2>");
     s.append("<table class=\"kpi\">");
     s.append(
@@ -255,6 +270,8 @@ public class ReportHtmlBuilder {
     s.append(
         categoryBlock("Top income categories", r.topIncomeCategories(), r.currency(), "#059669"));
     s.append(ReportChartHtml.block(r.charts(), r.currency(), true));
+    s.append(
+        ReportInsightsHtml.block(r.insights(), r.currency(), true, String.valueOf(r.year() - 1)));
     s.append(recordsBlock(r.records(), r.currency()));
     s.append("</div>");
     return s.toString();
@@ -299,7 +316,7 @@ public class ReportHtmlBuilder {
       s.append(
           record(
               "Biggest expense",
-              HtmlUtils.htmlEscape(rec.biggestExpenseName())
+              esc(rec.biggestExpenseName())
                   + " — "
                   + formatAmount(rec.biggestExpenseAmount(), currency)));
       s.append(
@@ -323,7 +340,7 @@ public class ReportHtmlBuilder {
       s.append(
           record(
               "Fastest growing category",
-              HtmlUtils.htmlEscape(rec.fastestGrowingCategory())
+              esc(rec.fastestGrowingCategory())
                   + " (+"
                   + formatAmount(rec.fastestGrowingIncrease(), currency)
                   + ")"));

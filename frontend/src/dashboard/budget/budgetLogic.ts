@@ -85,11 +85,11 @@ export function gaugeAriaLabel(budget: Budget): string {
   return `Budget used: ${budget.percentUsed}%`;
 }
 
-/** v2 pill copy; the over-budget label appends the overspend amount in the card. */
+/** v2 header status label; the overspend amount is shown in the gauge area, not here. */
 export const STATUS_TEXT_V2: Record<Budget["status"], string> = {
   OK: "On track",
   WARNING: "Close to the limit",
-  EXCEEDED: "Over by",
+  EXCEEDED: "Over budget",
 };
 
 /** Whole days from `today` to the budget's period end (0 once the period has ended). */
@@ -121,4 +121,67 @@ export function daysLeftInMonth(today: Date): number {
 export function monthAside(today: Date): string {
   const month = today.toLocaleDateString(undefined, { month: "long" });
   return `${month}, ${daysLeftInMonth(today)} days left`;
+}
+
+/** One alert tick on the v2 gauge arc: radial segment in a 100x100 box, plus whether it has been passed. */
+export interface AlertTick {
+  pct: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  passed: boolean;
+}
+
+/** Point on the 270° gauge arc (start 135°, clockwise) at `pct` of the scale, in the 100x100 box. */
+export function arcPoint(pct: number, radius: number): [number, number] {
+  const angle = ((135 + (270 * pct) / 100) * Math.PI) / 180;
+  return [50 + Math.cos(angle) * radius, 50 + Math.sin(angle) * radius];
+}
+
+/**
+ * Ticks at each alert threshold on the 270° arc (start 135°, clockwise, as the
+ * Gauge draws it). Thresholds above 100 pin to the end; duplicates collapse.
+ */
+export function gaugeAlertTicks(
+  thresholds: number[],
+  percentUsed: number,
+): AlertTick[] {
+  const pcts = [
+    ...new Set(thresholds.map((t) => Math.min(100, Math.max(0, t)))),
+  ];
+  return pcts.map((pct) => {
+    const [x1, y1] = arcPoint(pct, 34);
+    const [x2, y2] = arcPoint(pct, 46);
+    return { pct, x1, y1, x2, y2, passed: percentUsed >= pct };
+  });
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Projected committed spend at period end: spend to date extrapolated linearly
+ * over the period, plus subscriptions still due (the mock's "about 1.074 €").
+ */
+export function projectedCommitted(
+  budget: Budget,
+  upcoming: number,
+  today: Date = new Date(),
+): number {
+  const localDay = (iso: string) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d).getTime();
+  };
+  const start = localDay(budget.periodStart);
+  const total = Math.round((localDay(budget.periodEnd) - start) / DAY_MS) + 1;
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  ).getTime();
+  const elapsed = Math.min(
+    total,
+    Math.max(1, Math.round((todayStart - start) / DAY_MS) + 1),
+  );
+  return (budget.spent / elapsed) * total + upcoming;
 }

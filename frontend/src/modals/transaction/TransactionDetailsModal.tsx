@@ -106,7 +106,8 @@ export const TransactionDetailsModal = forwardRef<
           type="button"
           variant="ghost"
           size="sm"
-          className="mt-2"
+          // Ghost alone read as a caption; the wallet tint makes it look tappable.
+          className="mt-2 w-full bg-app-raised !text-wallet"
           onClick={() => {
             handleClose();
             openRuleDraft(tx, reviewTagName(tx, tags) || undefined);

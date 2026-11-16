@@ -34,7 +34,7 @@ const rowCheckbox = (name: string) =>
 describe("TagFilter", () => {
   it("opens the dropdown and lists All Tags plus root tags", async () => {
     await open([]);
-    expect(screen.getByText("All Tags")).toBeInTheDocument();
+    expect(await screen.findByText("All Tags")).toBeInTheDocument();
     expect(rowCheckbox("Food")).toBeInTheDocument();
     expect(rowCheckbox("Rent")).toBeInTheDocument();
     // Children are hidden until their parent is expanded.

@@ -6,32 +6,27 @@ import type { Tag } from "../../../types/domain";
 
 const tags = [{ name: "Food", icon: "tag", colorHex: "#999" }] as Tag[];
 
-const openPicker = (dropdownClassName?: string) => {
+const openPicker = async (triggerAlign?: "left" | "right") => {
   render(
     <TagTreePicker
       tags={tags}
       selectedTagName=""
       onSelectTag={vi.fn()}
-      dropdownClassName={dropdownClassName}
+      triggerAlign={triggerAlign}
     />,
   );
   fireEvent.click(screen.getByText("Select a category..."));
-  return screen.getByText("Food").closest(".absolute")!;
+  return (await screen.findByText("Food")).closest(".flex-col")!;
 };
 
 describe("TagTreePicker dropdown", () => {
-  it("grows rightwards from a narrow form column by default", () => {
-    const panel = openPicker();
+  it("is a portalled panel sized to the trigger, at least 20rem", async () => {
+    const panel = await openPicker();
     expect(panel).toHaveClass(
-      "left-0",
-      "w-full",
+      "w-[var(--anchor-width)]",
       "min-w-[min(20rem,calc(100vw-2rem))]",
     );
-    expect(panel).not.toHaveClass("right-0");
-  });
-
-  it("takes a custom placement when asked (inline row picker)", () => {
-    expect(openPicker("right-0 min-w-80")).toHaveClass("right-0", "min-w-80");
+    expect(panel).not.toHaveClass("absolute");
   });
 });
 
@@ -49,7 +44,7 @@ describe("TagTreePicker v2 UI", () => {
     },
   ] as unknown as Tag[];
 
-  it("marks the selected row with the raised fill and a check, not a tint", () => {
+  it("marks the selected row with the raised fill and a check, not a tint", async () => {
     render(
       <TagTreePicker
         tags={nested}
@@ -58,7 +53,7 @@ describe("TagTreePicker v2 UI", () => {
       />,
     );
     fireEvent.click(screen.getByText("Groceries"));
-    fireEvent.change(screen.getByPlaceholderText("Tap to search..."), {
+    fireEvent.change(await screen.findByPlaceholderText("Tap to search..."), {
       target: { value: "Groc" },
     });
     const row = screen
@@ -70,7 +65,7 @@ describe("TagTreePicker v2 UI", () => {
     expect(svgs[svgs.length - 1]).toHaveClass("text-app-text"); // trailing check
   });
 
-  it("still selects a row on click", () => {
+  it("still selects a row on click", async () => {
     const onSelectTag = vi.fn();
     render(
       <TagTreePicker
@@ -80,7 +75,7 @@ describe("TagTreePicker v2 UI", () => {
       />,
     );
     fireEvent.click(screen.getByText("Select a category..."));
-    fireEvent.change(screen.getByPlaceholderText("Tap to search..."), {
+    fireEvent.change(await screen.findByPlaceholderText("Tap to search..."), {
       target: { value: "Groc" },
     });
     fireEvent.click(screen.getByText("Groceries"));

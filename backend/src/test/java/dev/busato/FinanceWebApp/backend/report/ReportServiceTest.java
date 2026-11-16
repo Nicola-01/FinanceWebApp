@@ -75,6 +75,7 @@ class ReportServiceTest {
                 List.of(),
                 List.of(),
                 txCount,
+                null,
                 null));
   }
 
@@ -216,6 +217,7 @@ class ReportServiceTest {
                 List.of(),
                 new YearRecords(null, null, null, null, null, null, 0, 5, null, null),
                 5,
+                null,
                 null));
     when(htmlBuilder.yearlyEmailBody(eq("nicola"), eq(2025), anyList())).thenReturn("<body/>");
     when(htmlBuilder.yearlyPdfHtml(eq("nicola"), eq(2025), anyList())).thenReturn("<pdf/>");

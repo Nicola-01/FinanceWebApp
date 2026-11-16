@@ -1,11 +1,5 @@
 import type { BankRule, Tag } from "../../../types/domain";
 
-/** Above this many rules (and with no search) the list groups by category. */
-export const GROUP_THRESHOLD = 15;
-
-export const shouldGroup = (total: number, query: string) =>
-  total > GROUP_THRESHOLD && query.trim() === "";
-
 /** Case-insensitive match on rule name, bank text and category name. */
 export function filterRules(rules: BankRule[], query: string): BankRule[] {
   const q = query.trim().toLowerCase();

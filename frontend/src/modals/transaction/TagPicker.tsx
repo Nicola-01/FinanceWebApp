@@ -16,7 +16,6 @@ interface TagPickerProps {
   showLabel?: boolean;
   selectedTagName: string;
   onSelectTag: (tagName: string) => void;
-  dropdownClassName?: string;
   triggerClassName?: string;
   /** Where the closed trigger shows its value; "right" for inline form rows. */
   triggerAlign?: "left" | "right";
@@ -33,7 +32,6 @@ export const TagPicker: React.FC<TagPickerProps> = ({
   selectedTagName,
   onSelectTag,
   showLabel = true,
-  dropdownClassName,
   triggerClassName,
   triggerAlign,
 }) => {
@@ -60,7 +58,6 @@ export const TagPicker: React.FC<TagPickerProps> = ({
       selectedTagName={selectedTagName}
       onSelectTag={onSelectTag}
       showLabel={showLabel}
-      dropdownClassName={dropdownClassName}
       triggerClassName={triggerClassName}
       triggerAlign={triggerAlign}
       onOpen={() => setSortMode(readSortMode(wallet.id))}

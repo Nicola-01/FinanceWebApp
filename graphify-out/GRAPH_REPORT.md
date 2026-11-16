@@ -1,16 +1,16 @@
 # Graph Report - FinanceWebApp  (2026-11-16)
 
 ## Corpus Check
-- 1969 files · ~1,368,335 words
+- 1978 files · ~1,378,861 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 13785 nodes · 48537 edges · 302 communities (278 shown, 19 thin omitted)
-- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 2788 edges (avg confidence: 0.81)
+- 13881 nodes · 48836 edges · 308 communities (279 shown, 23 thin omitted)
+- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 2786 edges (avg confidence: 0.81)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f15ba24a`
+- Built from commit: `329f1b11`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -18,66 +18,66 @@
 - org.springframework.http.ResponseEntity
 - org.junit.jupiter.api.Test
 - mcp_server.py
-- distribution/controller.ts
-- charts/index.ts
-- vitest
-- PersonalAccessToken
-- org.springframework.security.access.prepost.PreAuthorize
-- User
-- BackupServiceTest
-- cartesian/controller.ts
-- el
-- Wallet
-- WidgetGrid.test.tsx
-- DemoServiceTest
-- erase
-- lombok.Data
-- domain.ts
-- triggerToast
-- table.ts
-- Tag
 - @tanstack/charts
+- charts/index.ts
+- Button.tsx
+- PersonalAccessToken
+- MemberServiceTest
+- WalletAccess
+- lombok.extern.slf4j.Slf4j
+- erase
+- route-map/definition.ts
+- Wallet
+- StatisticsV2.tsx
+- Frequency
+- theme.ts
+- lombok.Data
+- Subscription
+- react
+- bar/definition.ts
+- Tag
+- parseAspectRatio
 - FinanceWebApp Project
 - brush.tsx
-- bump-chart.tsx
+- gantt-chart.tsx
 - dependencies
 - SubscriptionServiceTest
-- memoCell
+- WalletSecurityTest
 - devDependencies
 - series-marks.ts
 - CustomDatePicker.tsx
 - compilerOptions
-- markup/node.ts
-- beeswarm-chart.tsx
+- markup/patterns.ts
+- ecdf-chart.tsx
 - compilerOptions
 - Frontend UI Redesign — TODO
-- pie/model.ts
-- useCsvImport.ts
-- TransactionServiceTest
-- a11y/describe.ts
+- Readable
+- funnel/marks.ts
+- Wallet
+- propsFor
 - JwtService
 - BankSyncServiceTest
 - frontend/package.json
 - sunburst/controller.ts
 - toCamel
 - <p align="center">FinanceWebApp - Portfolio Showcase</p>
-- clearAttribute
+- date-pill.ts
 - scripts
-- StyleObject
+- plot/controller.ts
 - Frontend Unit-Test Plan — `frontend/`
-- scatter/definition.ts
+- memoCell
 - BankConnection
 - spatial.ts
-- radar/context.ts
+- radar/model.ts
 - Registrations
 - package.json
 - React + TypeScript + Vite
 - tsconfig.json
 - cartesian/definition.ts
 - JobCard.tsx
-- Badge.tsx
+- NotificationsSection.tsx
 - FrankfurterExchangeRateService
-- Wallet
+- org.springframework.transaction.annotation.Transactional
 - cn
 - core/scales.ts
 - crosshair.ts
@@ -86,38 +86,38 @@
 - TagsTab.tsx
 - Phases D–I — String extraction by area
 - MonthlyChart.tsx
-- live-line/controller.ts
+- live-frame-build.ts
 - MFA (TOTP + Email code) — Implementation Plan / TODO
 - enter-transition.ts
-- Button.tsx
+- domain.ts
 - Budget
-- choropleth/controller.ts
+- pie-chart.tsx
 - Interactive Onboarding (guided tour) — Implementation Plan / TODO
 - layers/area.ts
-- funnel/marks.ts
+- live-line/controller.ts
 - Periodic Summary Reports — Implementation Plan
 - Frontend Restructure — Analysis & Execution Plan / TODO
-- route-map-chart.tsx
+- funnel/model.ts
 - heatmap/legend.tsx
 - progress-layer.ts
-- BackupRow.tsx
-- WalletProvider.test.tsx
+- Badge.tsx
+- replay.ts
 - org.springframework.context.annotation.Bean
 - heatmap.ts
-- ring/model.tsx
+- ring/model.ts
 - Landing Page Redesign — Design Spec
 - tooltip-primitives.tsx
 - Wallet Creation Wizard — Design Spec
-- NotificationsSection.tsx
+- overlays.ts
 - renderMarkup
 - Offline Sync Rework — Implementation Plan / TODO
 - Web Push Notifications — Implementation Plan / TODO
 - Exporter
-- BankLinkService
+- User
 - Phase A — Backend
 - heatmap/pass.ts
-- react
-- useTabLayout.ts
+- vitest
+- choropleth.ts
 - cartesian/range-overlays.ts
 - BankMatchRuleTest
 - diverging/diverging.ts
@@ -126,39 +126,39 @@
 - Wallet End-to-End Encryption — Implementation TODO
 - Settings Refactor — TODO
 - BudgetCard.tsx
-- StatisticsV2.tsx
+- summaryStats.ts
 - Appendix — full live call-site table
 - radial/geometry.ts
-- BudgetFormOverlay.tsx
-- helpers.ts
+- SubscriptionModal.tsx
+- projection-utils.ts
 - PWAProvider.test.tsx
 - sankey/marks.ts
 - chart-legend.tsx
-- pie-chart.tsx
+- guards.ts
 - Phase map
 - layers/axis.ts
-- CreateWalletWizard.tsx
-- WalletDashboard.tsx
-- ScheduledJobService
+- Menu.tsx
+- sunburst/definition.ts
+- .toDTO
 - 5. Epic: eliminare `no-explicit-any` (90 → 0)
 - EnableBankingClient
 - Wallet data unifier + client cache — Design
 - Invitations in the Wallet Sidebar — Design
 - live-line/definition.ts
-- registry.ts
+- table.ts
 - File map
 - Task 3 — GroupEditGrid mini-tiles + shared DnD (depends on 1 & 2)
 - Wallet End-to-End Encryption — Architecture Plan
 - Wallet Creation Wizard — Implementation Plan / TODO
 - Wallet slug leggibile nell'URL
 - Status
-- composed/definition.ts
+- camera.ts
 - core/gradients.ts
 - ReportChartHtml
 - Responsive Overlay Pattern — Implementation TODO
-- TagsStep.tsx
+- density/definition.ts
 - WalletRole
-- overlay-views.tsx
+- charts/range-overlays.ts
 - Decisioni per te (non le ho prese io)
 - sunburst-chart.tsx
 - cartesian-chart.tsx
@@ -185,140 +185,145 @@
 - Verifying FinanceWebApp changes at runtime
 - 9. Sharing, invitation, revocation
 - label.tsx
-- scene.ts
+- el
 - Open Banking: note notturne per la revisione
 - gradlew
 - EbTransaction
 - 7. E2EE data plane (new API, coexisting with the legacy plane)
-- sunburst/definition.ts
+- DistributionConceal
 - layers/types.ts
 - tree/tree.ts
 - frontend-checks.sh
 - runtime-env.d.ts
 - rules/graphify.md
 - workflows/graphify.md
-- waterfall-chart.tsx
-- choropleth.ts
+- choropleth/definition.ts
+- choropleth/controller.ts
 - backend-mark.sh
 - backend-tests.sh
 - frontend-mark.sh
 - open-banking-followups.md
 - 40-config.sh
-- grid-focus.ts
+- bar/pass.ts
 - separators.ts
 - .monthly
 - legend-compose.tsx
-- csvImport.ts
-- SubscriptionCronJob
+- arcs.ts
+- live-ylabels.ts
 - EnableBankingException
-- TagRequest
-- plot/describe.ts
+- csvImport.ts
+- stream-chart.tsx
 - LandingPage.tsx
-- gauge/transition.ts
+- gauge/model.ts
 - sparkline.tsx
-- heatmap/context.ts
-- gauge/geometry.ts
+- heatmap/chart.tsx
+- live-built.ts
 - text-measure.ts
 - sankey/hover-css.ts
 - HeroTrend.tsx
-- radial/context.tsx
+- radial/controller.ts
 - stream/stream.ts
 - NotificationTypeConverter
-- markers.ts
+- defineCarrier
 - heatmap/motion.ts
 - radial/index.ts
-- tooltip-glide.ts
-- layer.ts
-- core/format.ts
+- head-ease.ts
+- ReportInsightsHtml
+- surface.tsx
 - sparkline/controller.ts
-- series-layers.ts
-- waffle/waffle.ts
+- cartesian.ts
+- mark-chart/types.ts
 - springs.ts
 - treemap/treemap.ts
-- SpatialRow
+- bubble-map-chart.tsx
 - UI Redesign v2 — "Wallet card" — Implementation plan / TODO
-- push.ts
-- gantt-chart.tsx
-- gauge/model.ts
+- route-map-chart.tsx
+- line-chart-loading.tsx
+- markers.ts
 - statisticsInsights.ts
-- heatmap/chart.tsx
+- svg.ts
 - role.ts
-- SubscriptionRequest
+- ScheduledJobDTO
 - Statistics tab rework (v2) — Execution plan / TODO
 - components.json
-- ReportServiceTest
+- sankey/definition.ts
 - sunburst-mark.ts
-- fonts.ts
+- BalanceProjectionChart.tsx
 - sankey/focus.ts
-- surface.tsx
+- markup/node.ts
 - render-props.ts
 - y-domain-utils.ts
-- radar-chart.tsx
-- svg.ts
-- sankey/controller.ts
-- date-ranges.ts
+- radar/context.ts
+- sankeyKit.ts
+- sankey/context.ts
+- ReportHtmlBuilder
 - mark-chart/skeleton.ts
-- heatmap/colors.ts
-- gauge/props.ts
-- spring-animate.ts
-- radar/definition.ts
+- ScheduledJobServiceTest
+- exporter.ts
+- ReportInsightsAggregator
+- ScheduledJobService
 - CLAUDE.md
 - UI Redesign v2 — "Wallet card" design style (DRAFT)
-- walletCreation.ts
-- createFeatureHover
+- box-plot-chart.tsx
+- choropleth-chart.tsx
 - dot-bar.ts
 - paths.ts
 - tick-layout.ts
-- SegmentedControl.tsx
+- fonts.ts
 - markup.ts
 - sparkline/motion.ts
 - Frontend Style Guide — FinanceWebApp
-- exporter.ts
-- useWidgetGridDnd.ts
-- transactionTags.ts
-- csvExport.ts
-- radar/entrance.ts
-- ReportHtmlBuilder
-- WalletPermissionSelector.tsx
+- statsChartRows.ts
+- useTabLayout.ts
+- createFeatureHover
+- beeswarm-chart.tsx
+- dots.ts
+- triggerToast
+- bklit-tooltip-portal.ts
 - UI v2 — rules for implementation subagents
-- edge.ts
+- PathContext
 - 8. UI v2 "Wallet card" (beta — dual UI during the migration)
 - Statistics v2 — Wave 2 common rules (components)
-- legend/legend.tsx
+- style.ts
 - SpatialLoadingLayer
-- marimekko-chart.tsx
-- WebPushGateway
+- marimekko/marimekko.ts
+- tooltip-body.ts
 - Phase 6 — Web Push (greenfield)
-- ChartA11yLayer
-- radar/model.ts
+- SecurityConfig.java
 - Charts for the monthly & yearly reports — TODO
-- radar/hover.ts
-- MarkChartLoadingProps
+- chart-stat-flow.tsx
+- waffle/waffle.ts
 - discrete-event.ts
 - stats-v2-wave1-common.md
 - motion-highlight.tsx
-- arcs.ts
-- diverging-chart.tsx
-- lollipop-chart.tsx
-- slope-chart.tsx
+- live-tail.ts
+- sankey/hover.ts
+- enable-series-layers.ts
+- progress.ts
 - sw.ts
-- spatial/entrance.ts
+- live-host-style.ts
 - sonner.tsx
-- mark-renderer.ts
-- radar/focus.ts
-- tagDraft.ts
+- charts/sankey/data.ts
+- useAmountInput.ts
 - Status
-- TagCreateMode.test.tsx
-- data-updated.ts
+- LineChart
+- CrosshairSlot
+- panel-style.ts
 - Duration
 - refactor.ts
+- heatmap/tooltip.ts
+- sankey/context.tsx
+- ChartA11yLayer
+- hexbin/definition.ts
+- SpatialDrag
+- chartData.test.ts
 
 ## God Nodes (most connected - your core abstractions)
-1. `react` - 539 edges
-2. `vitest` - 308 edges
+1. `react` - 541 edges
+2. `vitest` - 311 edges
 3. `User` - 268 edges
 4. `useUiVersion()` - 246 edges
-5. `@testing-library/react` - 223 edges
+5. `@testing-library/react` - 225 edges
 6. `erase()` - 206 edges
 7. `propsFor()` - 195 edges
 8. `@fortawesome/free-solid-svg-icons` - 176 edges
@@ -330,12 +335,12 @@
   docker-compose.prod.yml → docker-compose.yml
 - `Glassmorphism Design System` --conceptually_related_to--> `PWA Icon Set`  [INFERRED]
   README.md → frontend/public/pwa-512x512.png
-- `setInvites()` --indirect_call--> `useInvitations()`  [INFERRED]
-  frontend/src/__tests__/dashboard/wallet/WalletsBar.test.tsx → frontend/src/dashboard/wallet/useInvitations.ts
 - `JWT Authentication Configuration` --conceptually_related_to--> `OAuth 2.0 Authentication Flow`  [INFERRED]
   docker-compose.yml → README.md
 - `SMTP Mail Configuration` --conceptually_related_to--> `Forgot Password Email Template`  [INFERRED]
   docker-compose.yml → backend/src/main/resources/templates/email/forgotPasswordEmail.html
+- `SMTP Mail Configuration` --conceptually_related_to--> `Registration Invite Email Template`  [INFERRED]
+  docker-compose.yml → backend/src/main/resources/templates/email/registrationInviteEmail.html
 
 ## Import Cycles
 - None detected.
@@ -345,119 +350,119 @@
 - **Four-Service Docker Architecture** — docker_compose_postgres_service, docker_compose_backend_service, docker_compose_frontend_service, docker_compose_mcp_service [EXTRACTED 1.00]
 - **Email Notification System** — docker_compose_mail_config, backend_src_main_resources_templates_email_forgotpasswordemail, backend_src_main_resources_templates_email_registrationinviteemail, backend_src_main_resources_templates_email_walletinviteemail [INFERRED 0.85]
 
-## Communities (302 total, 19 thin omitted)
+## Communities (308 total, 23 thin omitted)
 
 ### Community 0 - "org.springframework.http.ResponseEntity"
 Cohesion: 0.05
-Nodes (34): AdminDatabaseController, BackupEntry, DeleteMapping, GetMapping, PostMapping, RequestMapping, RestController, GlobalExceptionHandler (+26 more)
+Nodes (30): AdminUserController, DeleteMapping, PutMapping, RequestMapping, RestController, GlobalExceptionHandler, GetMapping, Pattern (+22 more)
 
 ### Community 1 - "org.junit.jupiter.api.Test"
-Cohesion: 0.01
-Nodes (76): AccessDeniedException, OAuthAuthorizeRequest, WalletRole, WalletAccessId, WalletRole, WalletSecurity, AuthCodeEntry, OAuthAuthCodeStore (+68 more)
+Cohesion: 0.02
+Nodes (74): AccessDeniedException, OAuthAuthorizeRequest, PatBulkPauseRequest, UpdateEnabledRequest, WalletAccessId, AuthCodeEntry, OAuthAuthCodeStore, BackendApplicationTests (+66 more)
 
 ### Community 2 - "mcp_server.py"
 Cohesion: 0.08
 Nodes (76): BaseHTTPMiddleware, Context, custom_route, description, FastMCP, Field, ge, gt (+68 more)
 
-### Community 3 - "distribution/controller.ts"
-Cohesion: 0.02
-Nodes (210): loadingDescription(), createChartA11yLayer(), descriptionOf(), BarControllerOptions, createBarController(), onFocusChange(), nextTask(), sameKeys() (+202 more)
+### Community 3 - "@tanstack/charts"
+Cohesion: 0.03
+Nodes (172): loadingDescription(), BarControllerOptions, createBarController(), onFocusChange(), nextTask(), sameKeys(), barA11y(), barFocusedRow() (+164 more)
 
 ### Community 4 - "charts/index.ts"
-Cohesion: 0.02
-Nodes (197): AreaChart(), AreaChartProps, AreaChartLoading(), Bar, BarColumnTrack, BarSquares, BarChartProps, BarDepthBack (+189 more)
+Cohesion: 0.03
+Nodes (127): BarChartProps, BarChartLoading(), EMPTY_DATA, Candlestick, CandlestickChartProps, BollingerBandsOptions, withBollingerBands(), computeLinearRegression() (+119 more)
 
-### Community 5 - "vitest"
-Cohesion: 0.02
-Nodes (89): InfoTip(), BankRuleRow(), InviteSection(), SettingsTab(), WalletTabs(), InvitesStep(), NumberFlowStubProps, JAN_15 (+81 more)
+### Community 5 - "Button.tsx"
+Cohesion: 0.03
+Nodes (59): TokenActionButtons(), TokenActionButtonsProps, TokenLastUsedInfo(), TokenLastUsedInfoProps, TokenListItem(), TokenListItemProps, TokenWalletBadges(), TokenWalletBadgesProps (+51 more)
 
 ### Community 6 - "PersonalAccessToken"
 Cohesion: 0.04
-Nodes (26): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, PatController, PatBulkDeleteRequest (+18 more)
+Nodes (23): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, PatController, PatBulkDeleteRequest (+15 more)
 
-### Community 7 - "org.springframework.security.access.prepost.PreAuthorize"
-Cohesion: 0.10
-Nodes (14): DeleteMapping, PostMapping, PutMapping, RequestMapping, RestController, MembersController, MemberRequest, InvitationStatus (+6 more)
+### Community 7 - "MemberServiceTest"
+Cohesion: 0.11
+Nodes (10): MemberRequest, InvitationStatus, InvitationStatus, User, Wallet, WalletAccessRepositoryTest, ApplicationEventPublisher, User (+2 more)
 
-### Community 8 - "User"
+### Community 8 - "WalletAccess"
 Cohesion: 0.02
-Nodes (136): DataInitializer, NotificationTypeConstraintCleanup, AdminJobController, RequestMapping, RestController, DemoController, GetMapping, NotificationController (+128 more)
+Nodes (128): DataInitializer, BackupCronJob, DemoCleanupCronJob, MonthlyReportCronJob, NotificationCleanupCronJob, SubscriptionCronJob, YearlyReportCronJob, MemberResponse (+120 more)
 
-### Community 9 - "BackupServiceTest"
+### Community 9 - "lombok.extern.slf4j.Slf4j"
+Cohesion: 0.04
+Nodes (23): NotificationTypeConstraintCleanup, AdminDatabaseController, BackupEntry, DeleteMapping, GetMapping, PostMapping, RequestMapping, RestController (+15 more)
+
+### Community 10 - "erase"
+Cohesion: 0.03
+Nodes (160): createBrush(), yScaleForAxis(), CartesianControllerOptions, createCartesianController(), onFocusChange(), publish(), enterOf(), FILL_HEIGHT (+152 more)
+
+### Community 11 - "route-map/definition.ts"
 Cohesion: 0.05
-Nodes (9): BackupService, BackupEntry, BackupEntry, R2StorageService, BackupCronJobTest, BackupServiceTest, R2StorageServiceTest, org.junit.jupiter.api.AfterEach (+1 more)
-
-### Community 10 - "cartesian/controller.ts"
-Cohesion: 0.03
-Nodes (130): BarController, BarLinkOptions, CandlestickContextInput, CandlestickController, createBrush(), CartesianContextInput, CartesianFocus, ChartContext (+122 more)
-
-### Community 11 - "el"
-Cohesion: 0.03
-Nodes (151): field(), BubbleMapProps, bubbleSkeleton(), createBubbleMapBuilder(), finite(), lastOf(), readable(), SpatialTip (+143 more)
+Nodes (79): BubbleMapProps, BubbleProperties, bubbleSkeleton(), createBubbleMapBuilder(), finite(), lastOf(), readable(), SpatialTip (+71 more)
 
 ### Community 12 - "Wallet"
-Cohesion: 0.04
-Nodes (67): FloatingActionButtonProps, ProgressBar(), ProgressBarProps, SIZE_CLASS, Status, STATUS_BG_CLASS, SplitBar(), SplitBarProps (+59 more)
-
-### Community 13 - "WidgetGrid.test.tsx"
-Cohesion: 0.09
-Nodes (29): GroupEditGrid(), GroupEditGridProps, MemberTile(), MemberTileProps, HiddenTray(), HiddenTrayProps, TrayChip(), TrayChipProps (+21 more)
-
-### Community 14 - "DemoServiceTest"
-Cohesion: 0.14
-Nodes (11): Frequency, DAILY, MONTHLY, WEEKLY, YEARLY, Tag, Transaction, Type (+3 more)
-
-### Community 15 - "erase"
 Cohesion: 0.05
-Nodes (144): fittingCategories(), fittingValueTicks(), labelWidth(), bumpSkeleton(), createBumpBuilder(), numberOf(), rank(), Series (+136 more)
+Nodes (49): FloatingActionButtonProps, ProgressBar(), ProgressBarProps, SIZE_CLASS, Status, STATUS_BG_CLASS, GrowBar(), UserDashboard() (+41 more)
+
+### Community 13 - "StatisticsV2.tsx"
+Cohesion: 0.04
+Nodes (37): EmptyState(), EmptyStateProps, CellType, OverviewCell(), OverviewCellContent(), OverviewCellContentProps, OverviewCellProps, DataItem (+29 more)
+
+### Community 14 - "Frequency"
+Cohesion: 0.20
+Nodes (9): Frequency, DAILY, MONTHLY, WEEKLY, YEARLY, Tag, Transaction, Type (+1 more)
+
+### Community 15 - "theme.ts"
+Cohesion: 0.04
+Nodes (165): fittingCategories(), fittingValueTicks(), labelWidth(), bumpFamily(), BumpInput, bumpSkeleton(), createBumpBuilder(), numberOf() (+157 more)
 
 ### Community 16 - "lombok.Data"
-Cohesion: 0.04
-Nodes (77): GetMapping, PostMapping, PutMapping, RequestMapping, RestController, SubscriptionController, DeleteMapping, GetMapping (+69 more)
-
-### Community 17 - "domain.ts"
-Cohesion: 0.02
-Nodes (126): MockTransactionRowProps, FloatingActionButton(), StatTile(), SwitchableCard(), MonthlyOverviewProps, OverviewTable(), TABS, Amount() (+118 more)
-
-### Community 18 - "triggerToast"
-Cohesion: 0.02
-Nodes (206): AdminDashboard(), UsersPageProps, AdminPageHeader(), AdminPageHeaderProps, Backups(), useBackups(), CreateInviteForm(), CreateInviteFormProps (+198 more)
-
-### Community 19 - "table.ts"
 Cohesion: 0.03
-Nodes (158): BarDepthProviderProps, BarDepthConfigContext, useBarDepthEntries(), BarContextInput, Size, StackOffsets, State, BandDomain (+150 more)
+Nodes (90): GetMapping, PostMapping, PutMapping, RequestMapping, RestController, SubscriptionController, DeleteMapping, GetMapping (+82 more)
+
+### Community 17 - "Subscription"
+Cohesion: 0.03
+Nodes (90): SplitBar(), SplitBarProps, BASE_DAYS, buildCalendarGrid(), CalendarDayCell(), CalendarDayCellProps, PastSubscriptionsSection(), PastSubscriptionsSectionProps (+82 more)
+
+### Community 18 - "react"
+Cohesion: 0.02
+Nodes (149): api, failedQueue, processQueue(), AdminDashboard, AdminRoute(), OAuthConsent, PushMessagesBridge(), RootRedirect() (+141 more)
+
+### Community 19 - "bar/definition.ts"
+Cohesion: 0.03
+Nodes (118): BandDomain, BandRange, barEnter(), BarFocus, barHoverTargets(), barKeySelector(), BarMarkList, BarMarksContext (+110 more)
 
 ### Community 20 - "Tag"
 Cohesion: 0.06
-Nodes (53): TagFilterProps, TagPickerTriggerProps, TagSelectorAddForm(), TagTreePickerProps, TagTreeSearchGroup, AccentHoverButton(), AccentHoverButtonProps, SyncStateIcon() (+45 more)
+Nodes (55): IconPickerButton(), TagFilterProps, TagSelectorAddForm(), TagSelectorAddFormProps, AddCategoryButton(), CategoryChildRow(), CategoryChildRowProps, buildChildParent() (+47 more)
 
-### Community 21 - "@tanstack/charts"
-Cohesion: 0.06
-Nodes (94): describeDistribution(), beeswarmPass(), boxPlotPass(), Series, summarize(), categoriesOf(), categoryFrame, DistributionOrientation (+86 more)
+### Community 21 - "parseAspectRatio"
+Cohesion: 0.07
+Nodes (84): describeDistribution(), beeswarmPass(), boxPlotPass(), Series, summarize(), categoriesOf(), categoryFrame, DistributionOrientation (+76 more)
 
 ### Community 22 - "FinanceWebApp Project"
 Cohesion: 0.09
 Nodes (29): Forgot Password Email Template, Registration Invite Email Template, Wallet Invite Email Template, Spring Boot Backend Service, Database Backup Configuration, Docker Compose Dev Environment, Vite + React Frontend Service, JWT Authentication Configuration (+21 more)
 
 ### Community 23 - "brush.tsx"
-Cohesion: 0.09
-Nodes (31): BRUSH_OVERLAY_LAYER, brushExtent(), brushTrackPanes(), brushWindow(), outsidePaneStyle(), toTime(), ChartBrushLayoutProps, ChartBrushLayoutState (+23 more)
+Cohesion: 0.10
+Nodes (30): BRUSH_OVERLAY_LAYER, brushExtent(), brushTrackPanes(), brushWindow(), outsidePaneStyle(), toTime(), ChartBrushLayoutProps, ChartBrushLayoutState (+22 more)
 
-### Community 24 - "bump-chart.tsx"
-Cohesion: 0.17
-Nodes (18): Bump, BumpChart, BumpChartLoading(), BumpChartProps, NO_DATA, BumpChartLoadingProps, BumpChartProps, BumpProps (+10 more)
+### Community 24 - "gantt-chart.tsx"
+Cohesion: 0.06
+Nodes (60): Bump, BumpChart, BumpChartLoading(), BumpChartProps, NO_DATA, BumpChartLoadingProps, BumpChartProps, BumpProps (+52 more)
 
 ### Community 25 - "dependencies"
 Cohesion: 0.05
 Nodes (39): dependencies, @ark-ui/react, axios, @base-ui/react, clsx, d3-geo, d3-hierarchy, d3-sankey (+31 more)
 
 ### Community 26 - "SubscriptionServiceTest"
-Cohesion: 0.05
-Nodes (6): Status, SubscriptionMapperTest, ApplicationEventPublisher, Subscription, Wallet, SubscriptionServiceTest
+Cohesion: 0.06
+Nodes (5): Status, ApplicationEventPublisher, Subscription, Wallet, SubscriptionServiceTest
 
-### Community 27 - "memoCell"
-Cohesion: 0.08
-Nodes (53): createBarContext(), createCandlestickContext(), CandlestickControllerProps, Derived, Candle, CANDLE_HOVER_CSS, CandlestickBuild, CandlestickHover (+45 more)
+### Community 27 - "WalletSecurityTest"
+Cohesion: 0.09
+Nodes (3): DeleteMapping, PermissionDeniedException, WalletSecurityTest
 
 ### Community 28 - "devDependencies"
 Cohesion: 0.05
@@ -465,23 +470,23 @@ Nodes (40): devDependencies, autoprefixer, eslint, eslint-config-prettier, @esli
 
 ### Community 29 - "series-marks.ts"
 Cohesion: 0.05
-Nodes (99): barHoverTargets(), barKeySelector(), fadeEntranceCss(), barDimCss(), cssAttr(), indexDimRules(), TickFade, tickRules() (+91 more)
+Nodes (85): markRendererOption(), onCanvas(), BuildState, keyAttr(), pushDecorative(), yScaleOf(), pillLayout, round2() (+77 more)
 
 ### Community 30 - "CustomDatePicker.tsx"
-Cohesion: 0.07
-Nodes (33): CalendarContainer(), CalendarContainerProps, ViewState, CustomDatePickerProps, DatePickerSidebar(), DatePickerSidebarProps, DatePickerTrigger(), DatePickerTriggerProps (+25 more)
+Cohesion: 0.06
+Nodes (37): CalendarContainer(), CalendarContainerProps, ViewState, CustomDatePickerProps, DatePickerSidebar(), DatePickerSidebarProps, DatePickerSurface(), DatePickerSurfaceProps (+29 more)
 
 ### Community 31 - "compilerOptions"
 Cohesion: 0.08
 Nodes (24): compilerOptions, allowImportingTsExtensions, baseUrl, erasableSyntaxOnly, jsx, lib, module, moduleDetection (+16 more)
 
-### Community 32 - "markup/node.ts"
-Cohesion: 0.04
-Nodes (80): ReferenceProps, ReferencePatternProps, joinClasses(), backgroundPatternLayerTree(), clampFade(), fadeStops(), escape(), ESCAPES (+72 more)
+### Community 32 - "markup/patterns.ts"
+Cohesion: 0.06
+Nodes (49): circlesPattern(), hexagonsPattern(), isOrientationList(), linesPattern(), OrientationInput, pathTile(), PathTileArgs, PatternCirclesProps (+41 more)
 
-### Community 33 - "beeswarm-chart.tsx"
-Cohesion: 0.04
-Nodes (107): Beeswarm, BeeswarmChart(), BeeswarmChartLoading(), BeeswarmChartProps, BeeswarmTooltip, BeeswarmTooltipProps, BeeswarmXAxis, BeeswarmYAxis (+99 more)
+### Community 33 - "ecdf-chart.tsx"
+Cohesion: 0.08
+Nodes (52): NO_ROWS, EcdfControllerProps, HistogramControllerProps, RidgelineControllerProps, DistributionChartLoadingProps, DistributionChartProps, DistributionSeriesProps, DistributionTooltipProps (+44 more)
 
 ### Community 34 - "compilerOptions"
 Cohesion: 0.10
@@ -491,81 +496,81 @@ Nodes (19): compilerOptions, allowImportingTsExtensions, erasableSyntaxOnly, lib
 Cohesion: 0.12
 Nodes (16): 10. Modals, 11. Create Wallet Wizard — 🟡 WIP (uncommitted), 1. Auth — ✅ DONE, 2. Dashboard shell — ✅ DONE, 3. Transactions — ✅ (mostly already tokenized), 4. Subscriptions — ✅ (tab migrated; modals deferred to §10), 5. Categories / Tags, 6. Statistics — ✅ DONE (brainstorm + plan → `statistics-redesign.md`) (+8 more)
 
-### Community 36 - "pie/model.ts"
-Cohesion: 0.04
-Nodes (106): FADE_OPACITY, HOVER_SPRING, buildBaseArc(), pieArcGenerator(), PieArcGeneratorOptions, pieArcPath(), PieArcRow, PieHoverEffect (+98 more)
+### Community 36 - "Readable"
+Cohesion: 0.03
+Nodes (105): FADE_OPACITY, isKeywordEase(), toMotionTransition(), buildBaseArc(), pieArcGenerator(), PieArcGeneratorOptions, pieArcPath(), PieArcRow (+97 more)
 
-### Community 37 - "useCsvImport.ts"
-Cohesion: 0.08
-Nodes (36): DedupOverwrite, DedupResult, detectSubscriptionOverwrites(), detectTagOverwrites(), detectTransactionOverwrites(), isoDate(), norm(), subscriptionKey() (+28 more)
+### Community 37 - "funnel/marks.ts"
+Cohesion: 0.07
+Nodes (43): measurePill(), pillTickReach(), alignedLeft(), edgeArea(), edgeRun(), findItem(), FontMetrics, Frame (+35 more)
 
-### Community 38 - "TransactionServiceTest"
-Cohesion: 0.04
-Nodes (20): DeleteMapping, TransactionMapper, IndexedTagRow, TagService, Subscription, Tag, Transaction, Type (+12 more)
+### Community 38 - "Wallet"
+Cohesion: 0.02
+Nodes (97): OpenBankingDisabledException, StaleWriteException, TagNotFoundException, SubscriptionMapper, TagMapper, TransactionMapper, BankAccountLink, AllArgsConstructor (+89 more)
 
-### Community 39 - "a11y/describe.ts"
-Cohesion: 0.10
-Nodes (31): dateFormatFor(), DescribedColumn, DescribedRow, describeHierarchy(), describeParts(), DistributionSpec, FlowSpec, HierarchySpec (+23 more)
+### Community 39 - "propsFor"
+Cohesion: 0.07
+Nodes (79): ChartDataTableProps, DATA_TABLE_ROLE, writeDataTable(), ChartDescriber, ChartDescription, dateFormatFor(), DescribedColumn, DescribedRow (+71 more)
 
 ### Community 40 - "JwtService"
-Cohesion: 0.03
-Nodes (52): SecurityConfig, AuthController, PostMapping, RequestMapping, RestController, DeleteMapping, GetMapping, PostMapping (+44 more)
+Cohesion: 0.04
+Nodes (29): AuthController, PostMapping, RequestMapping, RestController, ChangePasswordRequest, ForgotPasswordRequest, LoginRequest, JwtAuthenticationFilter (+21 more)
 
 ### Community 41 - "BankSyncServiceTest"
-Cohesion: 0.10
-Nodes (6): BankSyncServiceTest, Type, User, Wallet, org.springframework.test.context.event.ApplicationEvents, org.springframework.test.context.event.RecordApplicationEvents
+Cohesion: 0.11
+Nodes (5): BankSyncServiceTest, Type, User, org.springframework.test.context.event.ApplicationEvents, org.springframework.test.context.event.RecordApplicationEvents
 
 ### Community 42 - "frontend/package.json"
 Cohesion: 0.04
-Nodes (48): @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, name, private, type, version, @ark-ui/react (+40 more)
+Nodes (49): @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities, name, private, type, version, @ark-ui/react (+41 more)
 
 ### Community 43 - "sunburst/controller.ts"
-Cohesion: 0.06
-Nodes (61): KeyboardFocusHold, ArcDatum, defaultSunburstGrowPadding(), Focus, SunburstModel, createSunburstHoverStore(), hoveredArcId(), StableInput (+53 more)
+Cohesion: 0.04
+Nodes (81): ChartClock, ChartDom, HeatmapController, Pass, CellPoint, cellPointsByGrid(), GRID_STEPS, HeatmapGridFocus (+73 more)
 
 ### Community 44 - "toCamel"
-Cohesion: 0.09
-Nodes (72): BarChart(), BarChartLoading(), EMPTY_DATA, NO_SUBSCRIPTION(), readBarChildren(), bumpRender(), CandlestickChart, contextHookOf() (+64 more)
+Cohesion: 0.11
+Nodes (59): BarChart(), bumpRender(), CandlestickChart, contextHookOf(), ChoroplethChart, ComposedChart, warnOnce(), FunnelControllerProps (+51 more)
 
 ### Community 45 - "<p align="center">FinanceWebApp - Portfolio Showcase</p>"
 Cohesion: 0.15
 Nodes (12): 🏗️ Architecture Overview, 🚀 Automated Deployment, 🧩 Core Stack, ⚡ Demo & Onboarding Mode, ⚙️ Development Setup, Enabling Demo Features, 🚀 Engineering Highlights, 🛠️ Infrastructure & CI/CD (+4 more)
 
-### Community 46 - "clearAttribute"
+### Community 46 - "date-pill.ts"
 Cohesion: 0.03
-Nodes (90): BarLink, createBarLink(), samePillFocus(), syncPillHost(), writePillFocusX(), writePillSameLabel(), enableZoom(), writeSizeVars() (+82 more)
+Nodes (102): onRender(), CentreOf, crosshairRuleMark(), DEFAULT_PILL_NAMES, guideMark(), OWN_PILL_NAMES, PILL_LIVE_X, PillApplied (+94 more)
 
 ### Community 47 - "scripts"
 Cohesion: 0.29
 Nodes (7): scripts, build, dev, lint, preview, test, test:watch
 
-### Community 48 - "StyleObject"
+### Community 48 - "plot/controller.ts"
 Cohesion: 0.04
-Nodes (69): barSkeletonStyle(), BarSkeleton, createBumpController(), bumpFamily(), BumpInput, rangeTooltipFor(), cartesianHostVars(), LoadingGrid (+61 more)
+Nodes (63): BEESWARM, createBeeswarmController(), BOX_PLOT, createBoxPlotController(), createBumpController(), loadingHostVars(), ChartController, ChartEnv (+55 more)
 
 ### Community 49 - "Frontend Unit-Test Plan — `frontend/`"
 Cohesion: 0.05
 Nodes (42): 1.1 Cosa esiste già, 1.2 Convenzioni del repo da rispettare (da `CLAUDE.md` + `frontend/style.md`), 1.3 Convenzioni tecniche di mocking (pattern del repo, da riusare), 1.4 Dipendenze/decisioni da risolvere prima di S1/S3, 1.5 Politica di profondità di validazione (per tier), 1. Analisi dei requisiti, 2. Sezioni di test — ordinate per sicurezza (S1 → S4), 3. Ordine di esecuzione & tracking (+34 more)
 
-### Community 50 - "scatter/definition.ts"
+### Community 50 - "memoCell"
 Cohesion: 0.04
-Nodes (82): Brush, OWN_PILL_NAMES, pillMoveFadesAt(), readTickVar(), tickLabels(), writeLabelVar(), writeTickVar(), CartesianDescribeInput (+74 more)
+Nodes (121): BarContextInput, barInnerSize(), createBarContext(), Size, StackOffsets, BarController, BarLink, BarLinkOptions (+113 more)
 
 ### Community 51 - "BankConnection"
-Cohesion: 0.05
-Nodes (18): BankConnection, AllArgsConstructor, Data, Entity, NoArgsConstructor, Table, Transition, Copy (+10 more)
+Cohesion: 0.04
+Nodes (19): BankSyncCronJob, BankConnection, AllArgsConstructor, Data, Entity, NoArgsConstructor, Table, Transition (+11 more)
 
 ### Community 52 - "spatial.ts"
-Cohesion: 0.06
-Nodes (76): DENSITY_FAMILY, DENSITY_ROLES, AXIS_TITLE, Domain, PlaneInput, TICK_LABELS, DensityAxisProps, DensityChartLoadingProps (+68 more)
+Cohesion: 0.07
+Nodes (56): HEXBIN_FAMILY, HEXBIN_ROLES, AXIS_TITLE, axisOption(), Domain, gridOption(), PlaneInput, TICK_LABELS (+48 more)
 
-### Community 53 - "radar/context.ts"
-Cohesion: 0.16
-Nodes (26): createRadarProviderValue(), PointPosition, RADAR_HOVER_MISSING, RADAR_STABLE_MISSING, RadarContextInput, radarContextValue(), radarCssVars, RadarHoverHandle (+18 more)
+### Community 53 - "radar/model.ts"
+Cohesion: 0.05
+Nodes (77): EnterSpring, DEFAULT_RADAR_COLORS, RadarArea, radarAreaColor(), RadarAreaProps, RadarAxis, RadarAxisProps, RadarContextInput (+69 more)
 
 ### Community 54 - "Registrations"
 Cohesion: 0.04
-Nodes (30): AdminUserController, DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, GetMapping (+22 more)
+Nodes (19): GetMapping, PostMapping, GetMapping, AdminInviteRequest, AdminInviteResponse, RegisterInviteRequest, ResetPasswordRequest, EmailService (+11 more)
 
 ### Community 55 - "package.json"
 Cohesion: 0.25
@@ -581,75 +586,75 @@ Nodes (5): compilerOptions, baseUrl, paths, files, references
 
 ### Community 58 - "cartesian/definition.ts"
 Cohesion: 0.02
-Nodes (183): labelsThatFit(), barValueDomain(), buildCandlestickDefinition(), CANDLE_GROUPS, CANDLE_MARKS, CANDLE_RECTS, CandleMark, CandleMarkInput (+175 more)
+Nodes (188): labelsThatFit(), barValueDomain(), buildCandlestickDefinition(), CANDLE_GROUPS, CANDLE_HOVER_CSS, CANDLE_MARKS, CANDLE_RECTS, CandleMark (+180 more)
 
 ### Community 59 - "JobCard.tsx"
-Cohesion: 0.14
-Nodes (21): ScheduleDraft, SchedulePayload, JobCard(), JobRunHistory(), DAYS, DOM_OPTIONS, formatCountdown(), formatDuration() (+13 more)
+Cohesion: 0.13
+Nodes (25): buildSchedulePayload(), ScheduleDraft, SchedulePayload, JobCard(), JobRunHistory(), DAYS, DOM_OPTIONS, formatCountdown() (+17 more)
 
-### Community 60 - "Badge.tsx"
-Cohesion: 0.04
-Nodes (49): AdminTab, AdminTabs(), TABS, TokenListItem(), LONG_PRESS_MS, MOVE_TOLERANCE_PX, useLongPressSelect(), Badge() (+41 more)
+### Community 60 - "NotificationsSection.tsx"
+Cohesion: 0.10
+Nodes (32): WalletNotificationsCard(), fetchPublicKey(), getEnrollment(), isPushSupported(), keyToBase64(), PushEnrollment, subscribeThisDevice(), unsubscribeThisDevice() (+24 more)
 
 ### Community 61 - "FrankfurterExchangeRateService"
-Cohesion: 0.20
-Nodes (6): CachedRate, FrankfurterExchangeRateService, FrankfurterRate, FrankfurterExchangeRateServiceTest, org.springframework.test.web.client.MockRestServiceServer, org.springframework.web.client.RestClient
+Cohesion: 0.23
+Nodes (5): CachedRate, FrankfurterExchangeRateService, FrankfurterRate, FrankfurterExchangeRateServiceTest, org.springframework.web.client.RestClient
 
-### Community 62 - "Wallet"
-Cohesion: 0.02
-Nodes (108): OpenBankingDisabledException, TagNotFoundException, SubscriptionMapper, TagMapper, BankAccountLink, AllArgsConstructor, Data, Entity (+100 more)
+### Community 62 - "org.springframework.transaction.annotation.Transactional"
+Cohesion: 0.04
+Nodes (30): DemoController, NotificationController, NotificationPreferencesController, PushController, PushGateway, WebPushGateway, WebPushSender, PushSubscriptionRepository (+22 more)
 
 ### Community 63 - "cn"
-Cohesion: 0.11
-Nodes (25): BottomNavigation(), BottomNavigationContent(), BottomNavigationContext, BottomNavigationItem(), BottomNavigationItemIcon(), BottomNavigationItemLabel(), BottomNavigationList(), BottomNavigationRootProvider() (+17 more)
+Cohesion: 0.09
+Nodes (32): BottomNavigation(), BottomNavigationContent(), BottomNavigationContext, BottomNavigationItem(), BottomNavigationItemIcon(), BottomNavigationItemLabel(), BottomNavigationList(), BottomNavigationRootProvider() (+24 more)
 
 ### Community 67 - "core/scales.ts"
-Cohesion: 0.20
-Nodes (16): e10, e2, e5, families(), filtered(), intervalOf, make(), tickIncrement() (+8 more)
+Cohesion: 0.09
+Nodes (34): GridGuideProps, gridLineStyle, axisIdOf(), axisOptionOf(), formatTick(), placementOf(), primaryYAxis(), YAxisOption (+26 more)
 
 ### Community 68 - "crosshair.ts"
-Cohesion: 0.07
-Nodes (17): ChartCrosshairView, CrosshairPlot, DEFAULT_FORMAT, DIGIT_SPRING, formatterOf(), PillLabel, Tick, translateX() (+9 more)
+Cohesion: 0.08
+Nodes (16): ChartCrosshairView, DEFAULT_FORMAT, DIGIT_SPRING, formatterOf(), PillLabel, Tick, translateX(), translateY() (+8 more)
 
 ### Community 70 - "BankLinkServiceTest"
-Cohesion: 0.18
-Nodes (8): CallbackRequest, EbAccount, EbSession, BankLinkServiceTest, Aspsp, User, WalletRole, jakarta.persistence.EntityManager
+Cohesion: 0.12
+Nodes (11): CallbackRequest, BankLinkService, EbAccount, EbSession, FunctionalInterface, Sleeper, BankLinkServiceTest, Aspsp (+3 more)
 
 ### Community 71 - "TagsTab.tsx"
 Cohesion: 0.02
-Nodes (122): BackgroundSpheres(), SphereConfig, SPHERES, Features(), tagPreviewRows, ThemeSelector(), CustomizePageButton(), LayoutEditBar() (+114 more)
+Nodes (110): COLOR_PRESETS, ColorSelector(), ColorSelectorProps, PRESET_SET, AnimatedNumber(), AnimatedNumberProps, CategoryIcon(), CategoryIconProps (+102 more)
 
 ### Community 72 - "Phases D–I — String extraction by area"
 Cohesion: 0.06
 Nodes (30): Confirmed design decisions (from the interview — do not relitigate), Explicitly out of scope (do not build), Global Constraints (apply to every task), Localization (i18n) — Implementation Plan / TODO, Phase A — Infrastructure, Phase B — Central locale-aware formats, Phase C — Language UI + error mapping, Phase J — Final gates, docs, knowledge graph, manual QA (+22 more)
 
 ### Community 73 - "MonthlyChart.tsx"
-Cohesion: 0.14
-Nodes (32): bucketLabel(), MonthlyBucket, MonthlyChartRow, toCumulativeRows(), toSnapshotRows(), BALANCE_COLOR, ChartColors, darkTheme (+24 more)
+Cohesion: 0.12
+Nodes (34): bucketLabel(), buildMonthlyBuckets(), MonthlyBucket, MonthlyChartRow, toCumulativeRows(), toSnapshotRows(), BALANCE_COLOR, ChartColors (+26 more)
 
-### Community 74 - "live-line/controller.ts"
-Cohesion: 0.02
-Nodes (158): AnyRenderer, AnySurface, Pass, HeatmapHoverLook, added, applyHeatmapLabelClasses(), HeatmapLabelClasses, TARGETS (+150 more)
+### Community 74 - "live-frame-build.ts"
+Cohesion: 0.12
+Nodes (27): getDisplayFrameMs(), advanceDisplay(), buildFrame(), buildRows(), Domain, drawnJumped(), easedDomain(), easeY() (+19 more)
 
 ### Community 75 - "MFA (TOTP + Email code) — Implementation Plan / TODO"
 Cohesion: 0.07
 Nodes (29): Explicitly out of scope (do not build), Global Constraints (apply to every task), MFA (TOTP + Email code) — Implementation Plan / TODO, Phase A — Backend foundation, Phase B — Backend settings flows (enroll / disable / recovery codes), Phase C — Backend login flow + admin reset, Phase D — Ops / env plumbing, Phase E — Frontend: login second step (+21 more)
 
 ### Community 76 - "enter-transition.ts"
-Cohesion: 0.09
-Nodes (36): physicsCurve(), resolveEnterCurve(), DEFAULT_ENTER_MS, DEFAULT_ENTER_SPRING, enterCssCurve(), isBezier(), isEaseFn(), KEYWORD_EASES (+28 more)
+Cohesion: 0.10
+Nodes (32): DEFAULT_ENTER_MS, DEFAULT_ENTER_SPRING, enterCssCurve(), isBezier(), isEaseFn(), KEYWORD_EASES, KeywordEase, MOTION_NAMED_EASES (+24 more)
 
-### Community 77 - "Button.tsx"
-Cohesion: 0.03
-Nodes (130): applyBankRules(), ApplyRulesResult, BankAccountLink, BankConnection, BankRuleRequest, createBankRule(), deleteBankRule(), deleteConnection() (+122 more)
+### Community 77 - "domain.ts"
+Cohesion: 0.02
+Nodes (141): applyBankRules(), ApplyRulesResult, BankAccountLink, BankConnection, BankRuleRequest, createBankRule(), deleteBankRule(), deleteConnection() (+133 more)
 
 ### Community 78 - "Budget"
 Cohesion: 0.04
-Nodes (36): BudgetController, DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, BudgetRequest (+28 more)
+Nodes (38): BudgetController, DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, BudgetAlertCronJob (+30 more)
 
-### Community 79 - "choropleth/controller.ts"
-Cohesion: 0.04
-Nodes (90): Camera, CameraDeps, CameraFrame, CameraInput, createCamera(), DEFAULT_CHOROPLETH_ZOOM_EASE, edgeFadeActive(), edgeFadeOf() (+82 more)
+### Community 79 - "pie-chart.tsx"
+Cohesion: 0.08
+Nodes (34): PieController, CENTER_OVERLAY_STYLE, RING_MISSING, RING_CARRIER, defaultRingColors, PieChartProps, RingChartProps, classifyPolarChildren() (+26 more)
 
 ### Community 80 - "Interactive Onboarding (guided tour) — Implementation Plan / TODO"
 Cohesion: 0.07
@@ -657,11 +662,11 @@ Nodes (27): Decisions (locked 2026-07-11 — do not re-litigate during implement
 
 ### Community 81 - "layers/area.ts"
 Cohesion: 0.12
-Nodes (47): createRadialEdgeLookup(), areaLayer, AreaPoint, CURVES, easeOutCubic(), grow(), Range, Run (+39 more)
+Nodes (48): createRadialEdgeLookup(), areaLayer, AreaPoint, CURVES, easeOutCubic(), grow(), Range, Run (+40 more)
 
-### Community 82 - "funnel/marks.ts"
-Cohesion: 0.04
-Nodes (91): FunnelControllerProps, Pass, createFunnelFocus(), FunnelDatum, FunnelEntranceInput, funnelEntranceVars(), funnelHoverVars(), createFunnelHover() (+83 more)
+### Community 82 - "live-line/controller.ts"
+Cohesion: 0.03
+Nodes (108): createChartA11yLayer(), descriptionOf(), BarSkeleton, backgroundResourcesFor(), overlayResourcesFor(), DistributionView, AnyRenderer, AnySurface (+100 more)
 
 ### Community 83 - "Periodic Summary Reports — Implementation Plan"
 Cohesion: 0.09
@@ -671,37 +676,37 @@ Nodes (21): Final verification (after the last task), Global Constraints, Period
 Cohesion: 0.08
 Nodes (25): 5A — dashboard/tag, 5B — dashboard/statistics, 5C — dashboard/layout, 5D — dashboard/settings (CSV), 5E — dashboard core (wallet / transaction / subscription / root), 5F — modals (non-wizard), 5G — components/ui hot spots, 5H — components (pickers/selectors/landing/pat) (+17 more)
 
-### Community 85 - "route-map-chart.tsx"
-Cohesion: 0.14
-Nodes (27): PlaceProperties, ROUTE_MAP_FAMILY, ROUTE_MAP_ROLES, RouteProperties, RouteMapChartLoadingProps, RouteMapChartProps, RouteMapData, RouteMapGraticuleProps (+19 more)
+### Community 85 - "funnel/model.ts"
+Cohesion: 0.08
+Nodes (35): Pass, createFunnelFocus(), FunnelDatum, FunnelEntranceInput, funnelEntranceVars(), funnelHoverVars(), createFunnelHover(), EnterComplete (+27 more)
 
 ### Community 86 - "heatmap/legend.tsx"
-Cohesion: 0.09
-Nodes (45): HeatmapLevelStyle, resolveHeatmapHoverStyle(), ColorScale, buildHeatmapLegendGradient(), HEATMAP_LEGEND_LEVELS, HEATMAP_LEGEND_SWATCH_SVG_STYLE, heatmapLegendChrome, heatmapLegendGradientBoxStyle() (+37 more)
+Cohesion: 0.07
+Nodes (56): defaultHeatmapColorScale, HeatmapLevelStyle, HeatmapLevelStyles, HEATMAP_INACTIVE_OPACITY, HEATMAP_INACTIVE_TRANSITION_CSS, isHeatmapHoverEffectEnabled(), resolveHeatmapHoverStyle(), ColorScale (+48 more)
 
 ### Community 87 - "progress-layer.ts"
-Cohesion: 0.08
-Nodes (47): resolveEntranceOrigins(), createSvgLayer(), paintKeyed(), place(), setOrRemove(), STYLE_PROPERTIES, Surface, SVG_NS (+39 more)
+Cohesion: 0.07
+Nodes (54): resolveEntranceOrigins(), createSvgLayer(), paintKeyed(), place(), setOrRemove(), STYLE_PROPERTIES, Surface, SVG_NS (+46 more)
 
-### Community 88 - "BackupRow.tsx"
-Cohesion: 0.24
-Nodes (15): BackupConfirmModal(), Props, ageColorClass(), formatLabel(), formatSize(), parseKeyDate(), relativeAge(), BackupRow() (+7 more)
+### Community 88 - "Badge.tsx"
+Cohesion: 0.07
+Nodes (37): BackupConfirmModal(), Props, ageColorClass(), formatLabel(), formatSize(), parseKeyDate(), relativeAge(), BackupRow() (+29 more)
 
-### Community 89 - "WalletProvider.test.tsx"
-Cohesion: 0.02
-Nodes (121): syncWalletIfStale(), cache, Entry, fetchAndTrack(), fetchFromApi(), getWalletData(), inflight, invalidate() (+113 more)
+### Community 89 - "replay.ts"
+Cohesion: 0.04
+Nodes (82): syncWalletIfStale(), cache, Entry, fetchAndTrack(), fetchFromApi(), getWalletData(), inflight, invalidate() (+74 more)
 
 ### Community 90 - "org.springframework.context.annotation.Bean"
-Cohesion: 0.11
-Nodes (16): ApplicationConfig, AsyncConfig, CacheConfig, ThreadPoolTaskScheduler, SchedulingConfig, FunctionalInterface, Sleeper, FixedClock (+8 more)
+Cohesion: 0.13
+Nodes (14): ApplicationConfig, AsyncConfig, CacheConfig, ThreadPoolTaskScheduler, SchedulingConfig, FixedClock, FixedClock, org.springframework.cache.annotation.EnableCaching (+6 more)
 
 ### Community 91 - "heatmap.ts"
-Cohesion: 0.08
-Nodes (56): HeatmapLevelColors, HeatmapLevelStyles, HeatmapColumn, HeatmapDisplayRange, HeatmapContextFields, HEATMAP_DAY_LABELS, HeatmapWeekStartDay, HeatmapYAxisLabelFormat (+48 more)
+Cohesion: 0.06
+Nodes (75): HeatmapLevelColors, HeatmapBin, HeatmapColumn, HeatmapDisplayRange, ChartStatus, createHeatmapContext(), DEFAULT_MARGIN, EMPTY_INTERACTION (+67 more)
 
-### Community 92 - "ring/model.tsx"
-Cohesion: 0.05
-Nodes (89): EntranceOrigin, EnterTransition, HoverSource, isMotionNode(), ringArcGenerator(), RingArcRow, ringCenterOf(), RingCenterState (+81 more)
+### Community 92 - "ring/model.ts"
+Cohesion: 0.09
+Nodes (44): toCssEase(), polarBoxStyle(), polarHostStyle(), RingCenterState, RingContextInput, angleOf(), GRID_SPOKE_SPRING, isFullArc() (+36 more)
 
 ### Community 93 - "Landing Page Redesign — Design Spec"
 Cohesion: 0.09
@@ -709,15 +714,15 @@ Nodes (21): 10. Testing & verification, 11. Out of scope, 1. Goal & framing, 2. 
 
 ### Community 94 - "tooltip-primitives.tsx"
 Cohesion: 0.06
-Nodes (48): BarTooltipBody(), BarTooltipOptions, barTooltipPoints(), rowPoint(), intFmt(), hasText(), finite(), formatBandRange() (+40 more)
+Nodes (47): BarTooltipBody(), BarTooltipOptions, barTooltipPoints(), rowPoint(), hasText(), finite(), formatBandRange(), rangeRowValue() (+39 more)
 
 ### Community 95 - "Wallet Creation Wizard — Design Spec"
 Cohesion: 0.10
 Nodes (20): 10. Testing, 11. Style & copy constraints (`style.md`), 12. Implementation process, 1. Goal, 2. Scope & non-goals, 3. Codebase facts this design is built on, 4. Generic `Wizard` primitive, 5. Full-screen shell (+12 more)
 
-### Community 96 - "NotificationsSection.tsx"
-Cohesion: 0.11
-Nodes (30): WalletNotificationsCard(), fetchPublicKey(), getEnrollment(), isPushSupported(), keyToBase64(), PushEnrollment, subscribeThisDevice(), unsubscribeThisDevice() (+22 more)
+### Community 96 - "overlays.ts"
+Cohesion: 0.07
+Nodes (54): activeBackground(), BACKGROUND_PATTERN_ID, backgroundCss(), backgroundMarks(), fadeEdge(), NO_POINTS, enableBackground(), enableOverlays() (+46 more)
 
 ### Community 97 - "renderMarkup"
 Cohesion: 0.10
@@ -735,9 +740,9 @@ Nodes (19): Confirmed design decisions (from the interview — do not relitigate
 Cohesion: 0.25
 Nodes (4): Exporter, matrixText(), num(), parentOf()
 
-### Community 101 - "BankLinkService"
-Cohesion: 0.09
-Nodes (18): PermissionDeniedException, BankAccountResponse, BankConnectionResponse, BankDtos, ConnectRequest, Status, UrlResponse, WalletBankResponse (+10 more)
+### Community 101 - "User"
+Cohesion: 0.03
+Nodes (51): DeleteMapping, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, MembersController, DeleteMapping (+43 more)
 
 ### Community 102 - "Phase A — Backend"
 Cohesion: 0.11
@@ -745,27 +750,27 @@ Nodes (18): Budgeting — Implementation Plan / TODO, Global Constraints (apply 
 
 ### Community 103 - "heatmap/pass.ts"
 Cohesion: 0.08
-Nodes (39): getHeatmapDayLabels(), formatHeatmapContributionLabel(), formatHeatmapOrdinalDay(), formatHeatmapTooltipDate(), formatHeatmapTooltipWeekday(), heatmapMonthShortFmt, heatmapTooltipMonthFmt, heatmapTooltipWeekdayFmt (+31 more)
+Nodes (45): buildHeatmapColorScale(), buildHeatmapColorScaleFromStyles(), buildHeatmapFillScale(), HEATMAP_DEFAULT_LEVEL_STYLES, HEATMAP_LEVEL_CSS_VARS, heatmapLevelCellFillOpacity(), HeatmapLevelFillMode, heatmapLevelPatternId() (+37 more)
 
-### Community 104 - "react"
-Cohesion: 0.02
-Nodes (171): AdminStats(), AdminStatsProps, StatCard(), StatCardProps, SortConfig, UserDirectory(), UserDirectoryProps, UserRow() (+163 more)
+### Community 104 - "vitest"
+Cohesion: 0.01
+Nodes (229): AdminStats(), AdminStatsProps, StatCard(), StatCardProps, SortConfig, UserDirectoryProps, UserRow(), UserRowProps (+221 more)
 
-### Community 105 - "useTabLayout.ts"
-Cohesion: 0.24
-Nodes (19): useTabLayout(), WIDGETS, WIDGETS, hideSlot(), mergeSlots(), moveSlotToIndex(), nextGroupId(), popWidgetTo() (+11 more)
+### Community 105 - "choropleth.ts"
+Cohesion: 0.10
+Nodes (33): ChoroplethContext, ChoroplethProvider(), constant(), DEFAULT_STORE, noopSubscribe(), useChoropleth(), ChoroplethContextValue, CHOROPLETH_CONTEXT_DEFAULT (+25 more)
 
 ### Community 106 - "cartesian/range-overlays.ts"
-Cohesion: 0.04
-Nodes (95): declaredBefore(), activeBackground(), BACKGROUND_PATTERN_ID, backgroundCss(), backgroundMarks(), fadeEdge(), NO_POINTS, bandConfigOf() (+87 more)
+Cohesion: 0.07
+Nodes (55): declaredBefore(), bandConfigOf(), bandConfigsOf(), bandGroupKey(), DEFAULT_BAND_FILL, defaultBandLabel(), isTable(), nonEmpty() (+47 more)
 
 ### Community 107 - "BankMatchRuleTest"
-Cohesion: 0.08
-Nodes (7): BankMatchRule, Deadline, RegexTimeout, NameDateParser, BankMatchRuleTest, NameDateParserTest, java.util.regex.Pattern
+Cohesion: 0.12
+Nodes (6): BankMatchRule, Deadline, RegexTimeout, NameDateParser, BankMatchRuleTest, java.util.regex.Pattern
 
 ### Community 108 - "diverging/diverging.ts"
-Cohesion: 0.11
-Nodes (39): Center, DIVERGING_FAMILY, DIVERGING_ROLES, divergingSkeleton(), Enter, layoutDiverging(), negativeOf(), Resolved (+31 more)
+Cohesion: 0.12
+Nodes (29): Center, DIVERGING_FAMILY, DIVERGING_ROLES, Enter, layoutDiverging(), negativeOf(), Resolved, Row (+21 more)
 
 ### Community 109 - "svg-css-mask.ts"
 Cohesion: 0.07
@@ -784,12 +789,12 @@ Cohesion: 0.11
 Nodes (17): 1. AppHeader — `frontend/src/header/AppHeader.tsx`  🔧 modifica, 2. Routing — `frontend/src/App.tsx`  🔧 modifica, 3. Shell pagina — `frontend/src/settings/SettingsPage.tsx`  ✨ nuovo, 4. Sezione **Account** — `frontend/src/settings/sections/AccountSection.tsx`  ✅ FATTA (2026-07-05, backend incluso), 5. Sezione **Security** — `frontend/src/settings/sections/SecuritySection.tsx`  ✨ nuovo, 6. Sezione **Tokens & Connections** — `frontend/src/settings/sections/TokensSection.tsx`  ✨ nuovo · ✅, 7. Sezione **About** — `frontend/src/settings/sections/AboutSection.tsx`  ✨ nuovo · ✅, 7b. Sezione **Delete account** — `frontend/src/settings/sections/DeleteAccountSection.tsx`  ✨ nuovo · BE ✅ / FE ✅ (2026-07-05) (+9 more)
 
 ### Community 113 - "BudgetCard.tsx"
-Cohesion: 0.07
-Nodes (41): EmptyState(), EmptyStateProps, DEFAULT_ICON, Status, STATUS_BG_CLASS, STATUS_TEXT_CLASS, StatusPill(), StatusPillProps (+33 more)
+Cohesion: 0.06
+Nodes (45): BudgetCard(), BudgetCardProps, BudgetCardV2(), TONE_TEXT, BudgetFormOverlay(), BudgetFormOverlayProps, AlertTick, arcPoint() (+37 more)
 
-### Community 114 - "StatisticsV2.tsx"
-Cohesion: 0.12
-Nodes (35): drawable(), pct(), StatisticsSummaryV2(), StatisticsSummaryV2Props, StatisticsV2(), balanceHistory(), expense(), income() (+27 more)
+### Community 114 - "summaryStats.ts"
+Cohesion: 0.17
+Nodes (20): drawable(), pct(), StatisticsSummaryV2(), availableYears(), defaultPeriod(), filterByPeriod(), periodLabel(), previousPeriod() (+12 more)
 
 ### Community 115 - "Appendix — full live call-site table"
 Cohesion: 0.13
@@ -797,51 +802,51 @@ Nodes (14): Admin, Appendix — full live call-site table, Auth & onboarding, Da
 
 ### Community 116 - "radial/geometry.ts"
 Cohesion: 0.10
-Nodes (32): Pass, createRadialRowScale(), ArcTextAnchor, createRadialScale(), defaultRadialLayout, degreesToRadians(), isFullArc(), niceRadialDomain() (+24 more)
+Nodes (32): createRadialRowScale(), ArcTextAnchor, createRadialScale(), defaultRadialLayout, degreesToRadians(), isFullArc(), niceRadialDomain(), polarToCartesian() (+24 more)
 
-### Community 117 - "BudgetFormOverlay.tsx"
-Cohesion: 0.05
-Nodes (55): Aspsp, connectBank(), listAspsps(), CustomDatePicker(), AmountInput(), AmountInputProps, AmountType, evaluateSignedAmount() (+47 more)
+### Community 117 - "SubscriptionModal.tsx"
+Cohesion: 0.02
+Nodes (94): Aspsp, connectBank(), listAspsps(), CurrencyOptionRowProps, CurrencySelectorProps, buildCurrencyLists(), MAIN_SET, useCurrencyList() (+86 more)
 
-### Community 118 - "helpers.ts"
-Cohesion: 0.04
-Nodes (79): ArcGeometry, arcPath(), arcPathFromRadii(), BKLIT_TOOLTIP_BOX, buildRevealDelays(), buildRevealSchedule(), buildSunburstEnterTiming(), centroidAngle() (+71 more)
+### Community 118 - "projection-utils.ts"
+Cohesion: 0.09
+Nodes (42): isFiniteNumber(), mergeProjectionXDomainMax(), mergeProjectionYDomain(), projectionDateExtents(), ProjectionTimeBounds, ProjectionValueBounds, projectionValueExtents(), trackProjectionTime() (+34 more)
 
 ### Community 119 - "PWAProvider.test.tsx"
 Cohesion: 0.24
 Nodes (8): Consumer(), BeforeInstallPromptEvent, Window, WindowEventMap, PWAContext, PWAContextType, usePWA(), PWAProvider()
 
 ### Community 120 - "sankey/marks.ts"
-Cohesion: 0.05
-Nodes (84): Transition, SNAPPY_HOVER_MS, BUMP_CURVE, Point, SankeyContextInput, SankeyFocusStore, FocusRow, rowOf() (+76 more)
+Cohesion: 0.08
+Nodes (33): buildSankeyDefinition(), toNativeTransition(), BaselineShift, buildSankeyGradients(), ColumnArea, ColumnLayout, createSankeyMark(), enterMotion() (+25 more)
 
 ### Community 121 - "chart-legend.tsx"
 Cohesion: 0.17
 Nodes (19): ChartLegendProps, LegendItem, ChartLegend, ChartLegendProps, CustomLegendRow(), CustomLegendRowProps, LEGEND_BUTTON_RESET, DefaultLegendBodyOptions (+11 more)
 
-### Community 122 - "pie-chart.tsx"
-Cohesion: 0.08
-Nodes (48): extractChildren(), PatternProps, scopePatterns(), isChoroplethRole(), roleOf(), isFunction(), isNumber(), isRecord() (+40 more)
+### Community 122 - "guards.ts"
+Cohesion: 0.18
+Nodes (21): readBarChildren(), extractChildren(), PatternProps, scopePatterns(), rowFor(), roleOf(), isFunction(), isRecord() (+13 more)
 
 ### Community 123 - "Phase map"
 Cohesion: 0.14
 Nodes (13): Design decisions (agreed in grilling, 2026-07-07), Global Constraints, Phase map, Reminder Subscriptions (Amount-less) Implementation Plan, Task 1: Entity flags + DTO/mapper plumbing (backend), Task 2: SubscriptionService — create/update reminder subscriptions, Task 3: Cron — generate pending transactions, Task 4: Fill endpoint + pending-clearing on update/bulk (backend) (+5 more)
 
 ### Community 124 - "layers/axis.ts"
-Cohesion: 0.08
-Nodes (36): arcStartLabelLayout(), polarToCartesian(), radialArcPath(), radialLabelFontSize(), radialValueTicks(), AngleLabel, axisLayer(), bandLabel() (+28 more)
+Cohesion: 0.09
+Nodes (33): arcStartLabelLayout(), radialLabelFontSize(), radialValueTicks(), AngleLabel, axisLayer(), bandLabel(), computeTimeTicks(), DEFAULT_LABELS (+25 more)
 
-### Community 125 - "CreateWalletWizard.tsx"
-Cohesion: 0.05
-Nodes (38): Menu, MenuContent(), MenuContentProps, MenuContext, MenuContextValue, MenuItem(), MenuItemProps, MenuItemTone (+30 more)
+### Community 125 - "Menu.tsx"
+Cohesion: 0.10
+Nodes (18): Menu, MenuContent(), MenuContentProps, MenuContext, MenuContextValue, MenuItem(), MenuItemProps, MenuItemTone (+10 more)
 
-### Community 126 - "WalletDashboard.tsx"
-Cohesion: 0.08
-Nodes (33): COLOR_PRESETS, ColorSelector(), ColorSelectorProps, PRESET_SET, AnimatedNumber(), AnimatedNumberProps, StatTileProps, WalletHeroCard() (+25 more)
+### Community 126 - "sunburst/definition.ts"
+Cohesion: 0.11
+Nodes (32): layerIdPrefix(), buildRows(), arcColor(), defaultSunburstColors, isUrl(), opacityForRelativeDepth(), segmentFillOf(), segmentFillOpacityOf() (+24 more)
 
-### Community 127 - "ScheduledJobService"
-Cohesion: 0.06
-Nodes (25): GetMapping, PostMapping, PutMapping, JobRunDTO, ScheduledJobDTO, UpdateEnabledRequest, UpdateScheduleRequest, Entity (+17 more)
+### Community 127 - ".toDTO"
+Cohesion: 0.15
+Nodes (4): JobRunDTO, ScheduledJobDTO, jakarta.annotation.PostConstruct, PushService
 
 ### Community 128 - "5. Epic: eliminare `no-explicit-any` (90 → 0)"
 Cohesion: 0.09
@@ -849,7 +854,7 @@ Nodes (21): 1. Causa radice, 2. Strategia (Ibrido), 3. TODO, 4. Debito tecnico t
 
 ### Community 129 - "EnableBankingClient"
 Cohesion: 0.07
-Nodes (24): Aspsp, EbDtos, EbTransactionPage, EnableBankingClient, RawAccount, RawAmount, RawAspsps, RawAuth (+16 more)
+Nodes (23): Aspsp, EnableBankingClient, RawAccount, RawAmount, RawAspsps, RawAuth, RawIban, RawParty (+15 more)
 
 ### Community 130 - "Wallet data unifier + client cache — Design"
 Cohesion: 0.15
@@ -860,12 +865,12 @@ Cohesion: 0.15
 Nodes (12): Backend contract (already implemented — `MembersController` @ `/api/invitations`), Components (all new files under `src/dashboard/wallet/`), Count badge & empty state, Edge cases, Files, Goals, Invitations in the Wallet Sidebar — Design, Non-goals (YAGNI) (+4 more)
 
 ### Community 132 - "live-line/definition.ts"
-Cohesion: 0.04
-Nodes (75): tooltipPlacement(), DEFAULT_CHART_CONFIG, cartesianTooltip(), GridGuideProps, Anchor, AnchorArgs, createTooltipFollow(), Point (+67 more)
+Cohesion: 0.09
+Nodes (32): AnchorPoint, areaFillRamp(), buildLiveDefinition(), drawnRows, drawnValueAt(), FocusPoint, FocusTail, line() (+24 more)
 
-### Community 133 - "registry.ts"
-Cohesion: 0.07
-Nodes (41): at(), carrierEqual(), isPlain(), Path, Props, trampolined(), CarrierHandle, CarrierRegistry (+33 more)
+### Community 133 - "table.ts"
+Cohesion: 0.08
+Nodes (37): at(), carrierEqual(), isPlain(), Path, Props, trampolined(), CarrierHandle, CarrierRegistry (+29 more)
 
 ### Community 134 - "File map"
 Cohesion: 0.17
@@ -891,13 +896,13 @@ Nodes (11): 1. Helper `src/utils/walletSlug.ts` (nuovo), 2. Risoluzione slug →
 Cohesion: 0.50
 Nodes (4): Status, ACTIVE, COMPLETED, PAUSED
 
-### Community 140 - "composed/definition.ts"
-Cohesion: 0.11
-Nodes (40): declarationOf(), yScaleForAxis(), Y_DOMAIN_GLIDE, isTable(), projectionLineConfigsOf(), axisId(), axisGeometry(), barEasing (+32 more)
+### Community 140 - "camera.ts"
+Cohesion: 0.09
+Nodes (31): Camera, CameraDeps, CameraFrame, CameraInput, createCamera(), DEFAULT_CHOROPLETH_ZOOM_EASE, mainland(), CameraView (+23 more)
 
 ### Community 141 - "core/gradients.ts"
-Cohesion: 0.28
-Nodes (12): gradientsOfRole(), isPresetName(), Length, linear(), LinearGradientInput, PRESETS, radial(), RadialGradientInput (+4 more)
+Cohesion: 0.09
+Nodes (36): GradientInput, GradientPresetName, gradientPresetRole(), gradientsOfRole(), isPresetName(), Length, linear(), LinearGradientInput (+28 more)
 
 ### Community 142 - "ReportChartHtml"
 Cohesion: 0.11
@@ -907,29 +912,29 @@ Nodes (4): ReportChartHtml, FixedSplit, ReportCharts, ReportChartHtmlTest
 Cohesion: 0.18
 Nodes (10): Decisions (from brainstorming), Definition of done, Open / defer, Responsive Overlay Pattern — Implementation TODO, S1 — The `ResponsiveOverlay` primitive (evolve `components/ui/Drawer.tsx`), S2 — Trigger model (keep call sites imperative), S3 — Per-surface migration, S4 — What stays `ModalDialog` (unchanged) (+2 more)
 
-### Community 144 - "TagsStep.tsx"
-Cohesion: 0.11
-Nodes (29): groupTagRequests(), groupToTagRequests(), RECOMMENDED_TAG_GROUPS, RecommendedTagGroup, fetchTagSources(), MOCK_SOURCE_WALLETS, SourceWallet, StagedTagTreeProps (+21 more)
+### Community 144 - "density/definition.ts"
+Cohesion: 0.13
+Nodes (32): CLUSTERS, DENSITY_FAMILY, DENSITY_ROLES, DensityProps, finite(), groupsOf(), lastOf(), LEVELS (+24 more)
 
 ### Community 145 - "WalletRole"
 Cohesion: 0.50
 Nodes (4): WalletRole, EDITOR, OWNER, VIEWER
 
-### Community 146 - "overlay-views.tsx"
-Cohesion: 0.08
-Nodes (27): ChartHoverState, ChartHoverStore, ChartInteraction, ChartInteractionHandlers, ChartInteractionParams, chartX(), createChartHoverStore(), createChartInteraction() (+19 more)
+### Community 146 - "charts/range-overlays.ts"
+Cohesion: 0.04
+Nodes (59): CHART_CLIP_PASSTHROUGH, isTable(), ProjectionLike, projectionLineConfigsOf(), ChartHoverState, ChartHoverStore, ChartInteraction, ChartInteractionHandlers (+51 more)
 
 ### Community 147 - "Decisioni per te (non le ho prese io)"
 Cohesion: 0.14
 Nodes (13): Convenzioni, Cosa NON ho fatto, Cosa è stato fatto, Decisioni per te (non le ho prese io), Dipendenze npm inutilizzate (F22) — non rimosse, File più grossi prima → dopo, Frontend restructure — notte del 2026-10-27, Le tue modifiche non committate (+5 more)
 
 ### Community 148 - "sunburst-chart.tsx"
-Cohesion: 0.10
-Nodes (36): SunburstNode, breadcrumbItemsOf(), hintTextFor(), sunburstHoverValue(), Carriers, SUNBURST_HINT_STYLE, SUNBURST_ROLES, SunburstBreadcrumbItem (+28 more)
+Cohesion: 0.11
+Nodes (29): breadcrumbItemsOf(), hintTextFor(), sunburstHoverValue(), SUNBURST_HINT_STYLE, SunburstBreadcrumbItem, SunburstBreadcrumbProps, SunburstCenterProps, SunburstHintProps (+21 more)
 
 ### Community 149 - "cartesian-chart.tsx"
-Cohesion: 0.10
-Nodes (28): BarDepthConfigProvider, BarSizedLayer(), BarSizedLayerProps, barInnerSize(), markerListsFor(), brushPanesShown(), ChartHoverContextValue, BrushPanes() (+20 more)
+Cohesion: 0.12
+Nodes (22): BarSizedLayer(), contextHookOf(), ComposedChartProps, brushPanesShown(), BrushPanes(), contextHookOf(), reactMarkers(), ChartContextValue (+14 more)
 
 ### Community 150 - "Admin Section Redesign — TODO"
 Cohesion: 0.22
@@ -948,8 +953,8 @@ Cohesion: 0.22
 Nodes (8): Execution Handoff, Global Constraints, Invitations in the Wallet Sidebar — Implementation Plan, Self-Review, Task 1: `useInvitations` hook, Task 2: `InviteCard` presentational tile, Task 3: `WalletInvites` placed pieces (badge, mobile panel, desktop section), Task 4: Wire into `WalletsBar` + retire the old `InvitationsModal`
 
 ### Community 154 - "MonthByMonthChart.tsx"
-Cohesion: 0.12
-Nodes (22): BarXAxis, BarYAxis, ChartTooltip, compactAmount(), currencySymbolOf(), formatKitAmount(), KitSeries, monthLabel() (+14 more)
+Cohesion: 0.19
+Nodes (14): compactAmount(), currencySymbolOf(), formatKitAmount(), KitSeries, monthLabel(), KitLegend(), KitNoData(), hasAmount() (+6 more)
 
 ### Community 155 - "Kickoff prompt — SETTINGS redesign (copy into a new session)"
 Cohesion: 0.25
@@ -964,12 +969,12 @@ Cohesion: 0.46
 Nodes (7): CloseFn, ensureListening(), onPopState(), reconcile(), reconcileSoon(), registerOverlay(), stack
 
 ### Community 158 - "AssignableUuidV7Generator"
-Cohesion: 0.39
-Nodes (4): AssignableUuidV7Generator, org.hibernate.engine.spi.SharedSessionContractImplementor, org.hibernate.generator.BeforeExecutionGenerator, org.hibernate.generator.EventType
+Cohesion: 0.29
+Nodes (5): AssignableUuidV7Generator, org.hibernate.engine.spi.SharedSessionContractImplementor, org.hibernate.generator.BeforeExecutionGenerator, org.hibernate.generator.EventType, org.hibernate.id.uuid.UuidValueGenerator
 
 ### Community 159 - "java.time.YearMonth"
-Cohesion: 0.13
-Nodes (8): CategoryTotal, MonthRow, PeriodTotals, WalletMonthlyReport, WalletYearlyReport, YearRecords, ReportHtmlBuilderTest, java.time.YearMonth
+Cohesion: 0.10
+Nodes (10): CategoryTotal, MonthRow, PeriodTotals, ReportPdfRenderer, WalletMonthlyReport, WalletYearlyReport, YearRecords, ReportHtmlBuilderTest (+2 more)
 
 ### Community 160 - "1. What I extracted from the codebase"
 Cohesion: 0.29
@@ -977,10 +982,10 @@ Nodes (7): 1.1 Entities (backend `model/`, PostgreSQL via `ddl-auto=update`, no 
 
 ### Community 161 - "heatmap/definition.ts"
 Cohesion: 0.09
-Nodes (37): heatmapLevelCellFillOpacity(), getHeatmapColumnMonthAnchor(), isHeatmapGhostBin(), formatHeatmapYAxisLabel(), shouldShowHeatmapYAxisTick(), buildCellData(), buildHeatmapDefinition(), CellGroup (+29 more)
+Nodes (37): getHeatmapColumnMonthAnchor(), isHeatmapGhostBin(), formatHeatmapYAxisLabel(), getHeatmapDayLabels(), HEATMAP_DAY_LABELS, shouldShowHeatmapYAxisTick(), buildCellData(), buildHeatmapDefinition() (+29 more)
 
 ### Community 162 - "AccountDeletionServiceTest"
-Cohesion: 0.27
+Cohesion: 0.17
 Nodes (5): AccountDeletionServiceTest, InvitationStatus, User, Wallet, WalletRole
 
 ### Community 163 - "Categories (Tags) tab — charts plan"
@@ -996,8 +1001,8 @@ Cohesion: 0.33
 Nodes (5): Global Constraints, Self-Review, Task 1: Helper `walletSlug` con test, Task 2: Usare lo slug in `UserDashboard.tsx`, Wallet Slug URL Implementation Plan
 
 ### Community 166 - "network/network.ts"
-Cohesion: 0.11
-Nodes (29): describeFlows(), drawIn(), fadeIn(), popIn(), colorOf(), DragState, Graph, layoutNetwork() (+21 more)
+Cohesion: 0.09
+Nodes (27): describeFlows(), chartCssVars, defaultScatterColors, schemeColor(), drawIn(), fadeIn(), popIn(), paletteColor() (+19 more)
 
 ### Community 167 - "uncertainty.ts"
 Cohesion: 0.19
@@ -1023,9 +1028,9 @@ Nodes (5): 9.1 Invite A → B (encrypted wallet), 9.2 Invitee without a keypair 
 Cohesion: 0.10
 Nodes (31): ALIGN_ITEMS, COLUMN_STYLES, GAUGE_CENTER_STYLES, GAUGE_LABEL_FILL, GAUGE_STAT_CLASSES, GAUGE_STAT_STYLES, gaugeLabelBoxes, LABEL_SELF_STYLES (+23 more)
 
-### Community 173 - "scene.ts"
-Cohesion: 0.17
-Nodes (35): nonEmpty(), notchFills(), usesThemeGradient(), annularSectorPath(), arcNotchPoints(), arcStrokePath(), clamp01(), lerp() (+27 more)
+### Community 173 - "el"
+Cohesion: 0.07
+Nodes (78): DEFAULT_ACTIVE_FILL_OPACITY, DEFAULT_INACTIVE_FILL_OPACITY, DEFAULT_LINEAR_HEIGHT, FillOptions, mixColor(), nonEmpty(), notchFills(), parseHex() (+70 more)
 
 ### Community 174 - "Open Banking: note notturne per la revisione"
 Cohesion: 0.25
@@ -1036,83 +1041,83 @@ Cohesion: 0.83
 Nodes (3): gradlew script, die(), warn()
 
 ### Community 176 - "EbTransaction"
-Cohesion: 0.23
-Nodes (3): BankTransactionMapper, EbTransaction, BankTransactionMapperTest
+Cohesion: 0.19
+Nodes (5): BankTransactionMapper, EbDtos, EbTransaction, EbTransactionPage, BankTransactionMapperTest
 
 ### Community 177 - "7. E2EE data plane (new API, coexisting with the legacy plane)"
 Cohesion: 0.50
 Nodes (4): 7.1 Why a separate plane, 7.2 Endpoints (`controller/E2eeController`, service `E2eeSyncService`), 7.3 Change-log append (correctness details), 7. E2EE data plane (new API, coexisting with the legacy plane)
 
-### Community 178 - "sunburst/definition.ts"
-Cohesion: 0.12
-Nodes (29): layerIdPrefix(), buildRows(), arcColor(), defaultSunburstColors, isUrl(), opacityForRelativeDepth(), segmentFillOf(), segmentFillOpacityOf() (+21 more)
-
 ### Community 179 - "layers/types.ts"
-Cohesion: 0.11
-Nodes (25): buildRadialDefinition(), centeredMargins(), createRadialFocus(), HitPoint, RadialHitRow, cartesianToAngle(), EMPTY_LAYER, HoverDotSpec (+17 more)
+Cohesion: 0.12
+Nodes (22): Pass, buildRadialDefinition(), centeredMargins(), createRadialFocus(), HitPoint, RadialHitRow, cartesianToAngle(), EMPTY_LAYER (+14 more)
 
 ### Community 180 - "tree/tree.ts"
+Cohesion: 0.14
+Nodes (24): Info, layoutTree(), leafLabelsHeight(), linkKey(), NO_COLLAPSED, nodeKey(), NONE_COLLAPSED, place() (+16 more)
+
+### Community 185 - "choropleth/definition.ts"
 Cohesion: 0.12
-Nodes (29): boneDot(), boneLink(), boneShare(), networkSkeleton(), Info, layoutTree(), leafLabelsHeight(), linkKey() (+21 more)
+Nodes (31): Plane, createDefinition(), DefinitionInput, markerFeature(), FeatureHoverDeps, boundsOf(), Box, BoxContext (+23 more)
 
-### Community 185 - "waterfall-chart.tsx"
-Cohesion: 0.38
-Nodes (8): WaterfallChartLoadingProps, WaterfallChartProps, WaterfallProps, NO_DATA, Waterfall, WaterfallChart, WaterfallChartLoading(), WaterfallChartProps
+### Community 186 - "choropleth/controller.ts"
+Cohesion: 0.06
+Nodes (60): edgeFadeActive(), edgeFadeOf(), apply(), cameraTransform(), compose(), invert(), planeCss(), perspectiveOn() (+52 more)
 
-### Community 186 - "choropleth.ts"
+### Community 193 - "bar/pass.ts"
 Cohesion: 0.04
-Nodes (107): HIDDEN_DEFS_STYLE, tick(), ChoroplethContext, ChoroplethProvider(), constant(), DEFAULT_STORE, noopSubscribe(), useChoropleth() (+99 more)
-
-### Community 193 - "grid-focus.ts"
-Cohesion: 0.10
-Nodes (16): HeatmapCellLayer, HeatmapProps, CellDatum, HeatmapScene, CellPoint, cellPointsByGrid(), GRID_STEPS, HeatmapGridFocus (+8 more)
+Nodes (86): BarSizedLayerProps, State, BarDefinition, BarInput, barDepthConfigOf(), hasDepth(), BarFocusInput, PlotRect (+78 more)
 
 ### Community 194 - "separators.ts"
-Cohesion: 0.09
-Nodes (43): countHeatmapWeekDaysOnOrAfter(), getHeatmapCalendarRangeStart(), getHeatmapWeekCount(), getHeatmapWeekStartAlignedToRange(), getHeatmapWeekStartSunday(), getHeatmapYearStartMonth(), HEATMAP_MONTHS_ONE_YEAR, HEATMAP_MONTHS_SIX (+35 more)
+Cohesion: 0.12
+Nodes (32): filterHeatmapColumns(), getHeatmapColumnEndDate(), getHeatmapColumnStartDate(), getHeatmapTimeExtent(), heatmapToday(), inferHeatmapCalendarRangeStart(), readHeatmapDisplayGridBase(), readHeatmapLastColumnEnd() (+24 more)
 
 ### Community 195 - ".monthly"
-Cohesion: 0.16
+Cohesion: 0.17
 Nodes (4): Type, ReportAggregator, Type, ReportAggregatorTest
 
 ### Community 196 - "legend-compose.tsx"
 Cohesion: 0.08
 Nodes (37): formatWholePercent(), hasLegendMax(), LEGEND_CUSTOM_ROW_BUTTON_STYLE, LEGEND_ROW_BUTTON_STYLE, legendCssVars, legendItemContexts(), LEGEND_ALIGN_CLASSES, PROFIT_LOSS_LEGEND_ITEMS (+29 more)
 
-### Community 197 - "csvImport.ts"
+### Community 197 - "arcs.ts"
+Cohesion: 0.10
+Nodes (33): buildArcs(), BuildContext, hoverGrowForPathSegment(), hubScale(), ID_SEP, layoutNode(), LayoutParams, nodeId() (+25 more)
+
+### Community 198 - "live-ylabels.ts"
+Cohesion: 0.13
+Nodes (27): LabelsPass, buildLiveYAxisDefinition(), LiveRow, LiveFocusInput, LiveFrameBuilder, Frame, FrameState, pickStep() (+19 more)
+
+### Community 200 - "csvImport.ts"
+Cohesion: 0.02
+Nodes (174): RFC-4180, Icon(), DedupOverwrite, DedupResult, detectSubscriptionOverwrites(), detectTagOverwrites(), detectTransactionOverwrites(), isoDate() (+166 more)
+
+### Community 201 - "stream-chart.tsx"
 Cohesion: 0.15
-Nodes (27): RFC-4180, CsvColumn, dataRows(), DurationType, FrequencyType, optionalNumber(), optionalRaw(), optionalTrimmed() (+19 more)
-
-### Community 200 - "TagRequest"
-Cohesion: 0.12
-Nodes (22): TagRequest, MissingTagActions(), MissingTagActionsProps, MissingTagChip(), RecommendedMatch, MissingTransactionTags(), MissingTransactionTagsProps, findRecommendedTagWithParent() (+14 more)
-
-### Community 201 - "plot/describe.ts"
-Cohesion: 0.17
-Nodes (29): describeSeries(), extent(), formatCell(), formatNumber(), headersFor(), humanize(), numberField(), rangeText() (+21 more)
+Nodes (23): NETWORK_FAMILY, Resolved, MarkChartLoadingProps, NetworkChartLoadingProps, NetworkChartProps, NetworkData, NetworkLink, NetworkPoint (+15 more)
 
 ### Community 202 - "LandingPage.tsx"
 Cohesion: 0.04
-Nodes (44): LandingPage, ToDoPage, Sphere(), SphereProps, BackgroundBlobs(), CTASection(), Footer(), STACK (+36 more)
+Nodes (61): LandingPage, WalletIconProps, ColorSelectorPropsProps, IconColorSelector(), IconPickerButtonProps, IconSelector(), IconSelectorProps, BackgroundSpheres() (+53 more)
 
-### Community 203 - "gauge/transition.ts"
-Cohesion: 0.07
-Nodes (34): Pass, appendChild(), createGaugeDial(), DialInput, GaugeDial, sizeOf(), toDom(), GaugeModel (+26 more)
+### Community 203 - "gauge/model.ts"
+Cohesion: 0.06
+Nodes (52): Pass, appendChild(), createGaugeDial(), DialInput, GaugeDial, sizeOf(), toDom(), ARC_ASPECT (+44 more)
 
 ### Community 204 - "sparkline.tsx"
 Cohesion: 0.16
 Nodes (24): DEFAULT_SPARKLINE_ANIMATION_DURATION_MS, DEFAULT_SPARKLINE_DATA_TRANSITION_MS, DEFAULT_SPARKLINE_HOVER_SPRING, sparklineHostAttrs, AreaSparklineProps, BarSparklineProps, LineSparklineProps, SparklineBaseProps (+16 more)
 
-### Community 205 - "heatmap/context.ts"
-Cohesion: 0.09
-Nodes (30): ChartStatus, createHeatmapContext(), createHeatmapHoverCoordinator(), DEFAULT_MARGIN, EMPTY_INTERACTION, HEATMAP_INACTIVE_OPACITY, HEATMAP_INACTIVE_TRANSITION_CSS, HeatmapContextInput (+22 more)
+### Community 205 - "heatmap/chart.tsx"
+Cohesion: 0.20
+Nodes (12): ChartLoadingLabel(), ChartLoadingLabelProps, HeatmapChart, tooltipBody(), useViewCommits(), useHeatmapCoordinatorOptional(), charKeyframes(), charStyle() (+4 more)
 
-### Community 206 - "gauge/geometry.ts"
-Cohesion: 0.14
-Nodes (26): arcLayout, ArcLayoutInput, ArcNotchInput, clamp(), LinearNotchInput, NotchPoints, ringExtent(), rulerFontSize() (+18 more)
+### Community 206 - "live-built.ts"
+Cohesion: 0.13
+Nodes (24): Walks, smoothStepsFor(), HeadLabel, headLabels(), introEasing(), sampledEasing(), createLiveBuilt(), LIVE_CSS (+16 more)
 
 ### Community 207 - "text-measure.ts"
-Cohesion: 0.10
+Cohesion: 0.11
 Nodes (21): createLiveHover(), fixed(), LiveHover, LiveHoverPoint, Nodes, svgEl(), livePillFilter(), livePillFilterElement() (+13 more)
 
 ### Community 208 - "sankey/hover-css.ts"
@@ -1123,97 +1128,97 @@ Nodes (26): byIndex(), clearLayer(), CloneLayer, cloneOf(), createFader(), creat
 Cohesion: 0.40
 Nodes (3): AreaSparkline, HeroTrend, LazyHeroTrend()
 
-### Community 210 - "radial/context.tsx"
-Cohesion: 0.06
-Nodes (42): chartCenterContainerClassName, chartCenterLabelClassName, chartCenterValueClassName, ChartStatFlow, ChartStatFlowProps, defaultChartStatFlowFormat, formatStatValue(), StatFlowRollContext (+34 more)
+### Community 210 - "radial/controller.ts"
+Cohesion: 0.07
+Nodes (41): RADIAL_LEGEND_CLASS, RADIAL_MISSING, radialCenterState(), radialCenterValue(), RadialChartContextValue, RadialLegendItem, radialLegendItems(), createRadialController() (+33 more)
 
 ### Community 211 - "stream/stream.ts"
-Cohesion: 0.12
-Nodes (24): CURVES, dayFmt, Layer, monthFmt, monthYearFmt, niceTicks(), OFFSETS, ORDERS (+16 more)
+Cohesion: 0.10
+Nodes (29): divergingSkeleton(), marimekkoSkeleton(), fractions(), gridRule(), boneBand(), boneKey(), boneLabel(), boneLink() (+21 more)
 
 ### Community 212 - "NotificationTypeConverter"
 Cohesion: 0.26
 Nodes (5): NotificationTypeConverter, JobFrequencyConverter, NotificationTypeConverterTest, jakarta.persistence.AttributeConverter, jakarta.persistence.Converter
 
-### Community 213 - "markers.ts"
-Cohesion: 0.15
-Nodes (22): Backdrop, createBackdrop(), fadeEdge(), Point, DotGrid, enableChoroplethBackdrop(), enableChoroplethDots(), enableChoroplethMarkers() (+14 more)
+### Community 213 - "defineCarrier"
+Cohesion: 0.14
+Nodes (25): ChoroplethBackground, ChoroplethDotGrid, ChoroplethFeatureComponent, ChoroplethGraticule, ChoroplethMarker, ChoroplethTooltip, ExtractedChildren, ChoroplethChartProps (+17 more)
 
 ### Community 214 - "heatmap/motion.ts"
-Cohesion: 0.12
-Nodes (23): canAnimate(), cellKeyOf(), cellRect(), createHeatmapCellLayer(), HeatmapCellLayerInput, sceneCells(), sceneHasCells(), SceneNode (+15 more)
+Cohesion: 0.09
+Nodes (26): canAnimate(), cellKeyOf(), cellRect(), createHeatmapCellLayer(), HeatmapCellLayer, HeatmapCellLayerInput, sceneCells(), sceneHasCells() (+18 more)
 
 ### Community 215 - "radial/index.ts"
-Cohesion: 0.11
-Nodes (38): computeRadialDotGrid(), RadialDotGridInput, radialDotRowRadius(), RadialDotSlot, stackRadialRows(), enableRadialArea(), enableRadialAxis(), enableRadialBar() (+30 more)
-
-### Community 216 - "tooltip-glide.ts"
-Cohesion: 0.39
-Nodes (5): createHeatmapTooltipGlide(), HeatmapTooltipGlide, pxOf(), translateOf(), HeatmapTooltipGlideCurve
-
-### Community 217 - "layer.ts"
-Cohesion: 0.20
-Nodes (16): ChartDataTableProps, DATA_TABLE_ROLE, writeDataTable(), ChartDescriber, ChartDescription, ChartA11yInput, described, KEYBOARD_HINT (+8 more)
-
-### Community 218 - "core/format.ts"
 Cohesion: 0.13
-Nodes (24): CartesianBuild, HoverVisuals, activeMarkers(), buildHoverOverlayModel(), dotFill(), seriesDotShapes(), TooltipProps, valueOfSeries() (+16 more)
+Nodes (35): RadialDotGridInput, enableRadialArea(), enableRadialAxis(), enableRadialBar(), enableRadialDotBar(), enableRadialLine(), enableRadialRingBar(), enableRadialScrubber() (+27 more)
+
+### Community 216 - "head-ease.ts"
+Cohesion: 0.15
+Nodes (22): COMMIT_MS, commitSteps(), FRAME_MS, headEasing(), linearEase(), settleFrames(), stairEasing(), settleMs() (+14 more)
+
+### Community 217 - "ReportInsightsHtml"
+Cohesion: 0.16
+Nodes (9): Bucket, CategoryRow, Payee, ReportInsights, Slice, Stats, SubBreakdown, TxLine (+1 more)
+
+### Community 218 - "surface.tsx"
+Cohesion: 0.11
+Nodes (24): ACTIVE_ROW_STYLE, defaultTooltipBody(), ROW_STYLE, swatch(), SWATCH_STYLE, TITLE_ALONE_STYLE, TITLE_STYLE, TITLE_WITH_ROWS_STYLE (+16 more)
 
 ### Community 219 - "sparkline/controller.ts"
 Cohesion: 0.13
 Nodes (24): attrs(), BAR_FADE, createSparklineController(), EMPTY, FADED, HIGHLIGHT_FADE, HIGHLIGHT_SPRING, nextId() (+16 more)
 
-### Community 221 - "series-layers.ts"
-Cohesion: 0.10
-Nodes (29): enableLineBackdrop(), enableTrendLine(), registerBackdrop(), registerTrend(), DEFAULT_Y_AXIS_ID, backdropBox, backdropMark(), backdropMarks() (+21 more)
+### Community 221 - "cartesian.ts"
+Cohesion: 0.06
+Nodes (67): CandlestickInput, ChartMarkRenderer, CartesianProps, AreaProps, AreaSeries, backdropBox, backdropMark(), DEFAULT_BACKDROP_STOPS (+59 more)
 
-### Community 222 - "waffle/waffle.ts"
-Cohesion: 0.10
-Nodes (25): hitContains(), inPolygon(), itemAt(), MARK_FOCUS, Point, paletteColor(), MarkBuildInput, MarkChartFamily (+17 more)
+### Community 222 - "mark-chart/types.ts"
+Cohesion: 0.14
+Nodes (16): hitContains(), inPolygon(), itemAt(), MARK_FOCUS, Point, MarkBuildInput, MarkChartFamily, MarkChartHandle (+8 more)
 
 ### Community 223 - "springs.ts"
-Cohesion: 0.12
-Nodes (25): OverlayFeature, groupMarkerItems(), actOf(), actScale(), clusterOf(), entranceLeftMs(), HOT_SHADOW, installMarkerSprings() (+17 more)
+Cohesion: 0.04
+Nodes (76): DEFAULT_CHART_CONFIG, groupMarkerItems(), createFunnelPop(), dimOf(), FunnelPop, FunnelPopOptions, ringsOf(), ringSpring() (+68 more)
 
 ### Community 224 - "treemap/treemap.ts"
 Cohesion: 0.13
-Nodes (24): STRONG_LABEL, cellTint(), Info, keyOf(), layoutTreemap(), NO_ATTRS, pointOf(), Resolved (+16 more)
+Nodes (25): fitText(), STRONG_LABEL, cellTint(), Info, keyOf(), layoutTreemap(), NO_ATTRS, pointOf() (+17 more)
 
-### Community 225 - "SpatialRow"
+### Community 225 - "bubble-map-chart.tsx"
 Cohesion: 0.09
-Nodes (47): BubbleMapBubbles, BubbleMapChart, BubbleMapChartLoading(), BubbleMapChartProps, BubbleMapGraticule, BubbleMapLand, BubbleMapLegend, BubbleMapTooltip (+39 more)
+Nodes (44): BubbleMapBubbles, BubbleMapChart, BubbleMapChartLoading(), BubbleMapChartProps, BubbleMapGraticule, BubbleMapLand, BubbleMapLegend, BubbleMapTooltip (+36 more)
 
 ### Community 226 - "UI Redesign v2 — "Wallet card" — Implementation plan / TODO"
 Cohesion: 0.10
 Nodes (21): D17 — Component library: MUI (2026-11-12), Decisions log, Dual UI (temporary), Findings (to handle in their phase), Ground rules, Phase 0 — Foundations  *(orchestrator-led, needs sign-off)*, Phase 10 — Pages outside the wallet  *(SEE-AT-THE-TIME, mock first)*, Phase 11 — Cut-over & cleanup (+13 more)
 
-### Community 227 - "push.ts"
-Cohesion: 0.13
-Nodes (27): hoverGrowForPathSegment(), hubScale(), ID_SEP, ringOptions, reapplyPushOnPaint(), ancestorPush(), applyOn(), ArcKind (+19 more)
+### Community 227 - "route-map-chart.tsx"
+Cohesion: 0.18
+Nodes (23): RouteMapChartLoadingProps, RouteMapChartProps, RouteMapData, RouteMapGraticuleProps, RouteMapLandProps, RouteMapLegendProps, RouteMapPlace, RouteMapPlacesProps (+15 more)
 
-### Community 228 - "gantt-chart.tsx"
-Cohesion: 0.22
-Nodes (18): GanttChartProps, GanttDate, GanttDependenciesProps, GanttTask, GanttTasksProps, GanttTodayProps, GanttXAxisProps, GanttYAxisProps (+10 more)
+### Community 228 - "line-chart-loading.tsx"
+Cohesion: 0.14
+Nodes (18): AreaChart(), AreaChartProps, AreaChartLoading(), DEFAULT_LOADING_GRID_SHIMMER_STROKE, DEFAULT_LOADING_GRID_STROKE, DEFAULT_LOADING_STROKE, DEFAULT_LOADING_STROKE_OPACITY, LoadingGrid (+10 more)
 
-### Community 229 - "gauge/model.ts"
-Cohesion: 0.23
-Nodes (18): ARC_ASPECT, createGaugeModel(), GaugeModelInput, GaugeStyles, keyOf(), NOMINAL_ARC, layer(), resolveDisc() (+10 more)
+### Community 229 - "markers.ts"
+Cohesion: 0.16
+Nodes (20): Backdrop, createBackdrop(), fadeEdge(), Point, DotGrid, enableChoroplethBackdrop(), ChoroplethLayers, layers (+12 more)
 
 ### Community 230 - "statisticsInsights.ts"
-Cohesion: 0.11
-Nodes (27): bestMonth(), buildInsights(), dayLabel(), expensiveMonth(), FULL_MONTHS, groupByMonth(), incomeSteady(), Insight (+19 more)
+Cohesion: 0.13
+Nodes (24): bestMonth(), buildInsights(), dayLabel(), expensiveMonth(), FULL_MONTHS, groupByMonth(), incomeSteady(), Insight (+16 more)
 
-### Community 231 - "heatmap/chart.tsx"
-Cohesion: 0.17
-Nodes (15): ChartLoadingLabel(), heatmapLoadingXDomain(), heatmapSkeletonColumns(), ChartLoadingLabelProps, HeatmapChart, HeatmapChartLoading(), tooltipBody(), useViewCommits() (+7 more)
+### Community 231 - "svg.ts"
+Cohesion: 0.12
+Nodes (20): exportColor, exportPaint(), fromCanvas(), hex2(), TRANSPARENT, UsedFont, backgroundOf(), Box (+12 more)
 
 ### Community 232 - "role.ts"
-Cohesion: 0.05
-Nodes (46): Candlestick, ChoroplethBackground, ChoroplethDotGrid, ChoroplethFeatureComponent, ChoroplethGraticule, ChoroplethMarker, ChoroplethTooltip, ExtractedChildren (+38 more)
+Cohesion: 0.04
+Nodes (67): Bar, BarColumnTrack, BarDepthProviderProps, BarSquares, BarXAxis, BarYAxis, BarDepthBack, BarDepthFront (+59 more)
 
-### Community 233 - "SubscriptionRequest"
+### Community 233 - "ScheduledJobDTO"
 Cohesion: 0.13
-Nodes (18): SubscriptionRequest, RecommendedTag, RECOMMENDED_CONTEXT_TAGS, RecommendedSubscriptionPicker(), RecommendedSubscriptionPickerProps, RECOMMENDED_SUBSCRIPTIONS, RecommendedSubscription, RecommendedSubscriptionTag (+10 more)
+Nodes (8): AdminJobController, GetMapping, PostMapping, PutMapping, RequestMapping, RestController, ScheduledJobDTO, ResponseStatusException
 
 ### Community 234 - "Statistics tab rework (v2) — Execution plan / TODO"
 Cohesion: 0.12
@@ -1223,25 +1228,25 @@ Nodes (13): How you work, Read first, Known bug to kill, Open questions — ask 
 Cohesion: 0.11
 Nodes (17): aliases, components, hooks, lib, ui, utils, iconLibrary, rsc (+9 more)
 
-### Community 236 - "ReportServiceTest"
-Cohesion: 0.15
-Nodes (3): ReportPdfRenderer, ReportPdfRendererTest, ReportServiceTest
+### Community 236 - "sankey/definition.ts"
+Cohesion: 0.11
+Nodes (40): Transition, SankeyContextInput, FocusRow, sanitizeSankeyData(), valid(), SankeyDefinition, SankeyDefinitionInput, sankeyNodeColor() (+32 more)
 
 ### Community 237 - "sunburst-mark.ts"
-Cohesion: 0.14
-Nodes (26): collapsedArc(), fitSectorPush(), addGhost(), addSector(), decorateGroup(), depthOf(), ghostOf(), GroupBuild (+18 more)
+Cohesion: 0.13
+Nodes (28): collapsedArc(), fitSectorPush(), LABEL_BOX_CLASS, addGhost(), addSector(), decorateGroup(), depthOf(), ghostOf() (+20 more)
 
-### Community 238 - "fonts.ts"
-Cohesion: 0.23
-Nodes (15): base64(), coversRange(), coversStyle(), coversWeight(), dataUrl(), embeddedFontFaces(), faceRules(), FaceUse (+7 more)
+### Community 238 - "BalanceProjectionChart.tsx"
+Cohesion: 0.13
+Nodes (16): XAxis, YAxis, BalanceProjection, horizonMonths(), median(), projectBalance(), ProjectionHorizon, ProjectionRow (+8 more)
 
 ### Community 239 - "sankey/focus.ts"
 Cohesion: 0.21
 Nodes (16): Centre, centreAt(), createSankeyFocus(), distanceToCentre(), FlowBox, flowOrder(), hitFlow(), hitNode() (+8 more)
 
-### Community 240 - "surface.tsx"
-Cohesion: 0.11
-Nodes (23): ACTIVE_ROW_STYLE, defaultTooltipBody(), ROW_STYLE, swatch(), SWATCH_STYLE, TITLE_ALONE_STYLE, TITLE_STYLE, TITLE_WITH_ROWS_STYLE (+15 more)
+### Community 240 - "markup/node.ts"
+Cohesion: 0.10
+Nodes (28): charKeyframes(), charStyle(), EXITING_STYLE, LoadingLabelInput, loadingLabelTree(), SHOWN_STYLE, SR_ONLY, escape() (+20 more)
 
 ### Community 241 - "render-props.ts"
 Cohesion: 0.16
@@ -1249,43 +1254,35 @@ Nodes (14): BRUSH_LAYOUT, CENTER, content, fields(), node(), PER_ITEM_CHILDREN, 
 
 ### Community 242 - "y-domain-utils.ts"
 Cohesion: 0.15
-Nodes (21): animatedYDestination(), AnimatedYDomains, animatedYDomainsFor(), createAnimatedYDomains(), domainsEqual(), FALLBACK, mayTween(), signatureOf() (+13 more)
+Nodes (22): animatedYDestination(), AnimatedYDomains, animatedYDomainsFor(), createAnimatedYDomains(), domainsEqual(), FALLBACK, mayTween(), signatureOf() (+14 more)
 
-### Community 243 - "radar-chart.tsx"
+### Community 243 - "radar/context.ts"
 Cohesion: 0.16
-Nodes (17): DEFAULT_RADAR_COLORS, RadarArea, RadarAreaProps, RadarAxis, RadarAxisProps, RadarGrid, RadarGridProps, RadarHoverProps (+9 more)
+Nodes (20): TAU, createRadarProviderValue(), PointPosition, RADAR_HOVER_MISSING, RADAR_STABLE_MISSING, radarContextValue(), radarCssVars, RadarHoverHandle (+12 more)
 
-### Community 244 - "svg.ts"
-Cohesion: 0.12
-Nodes (20): exportColor, exportPaint(), fromCanvas(), hex2(), TRANSPARENT, UsedFont, backgroundOf(), Box (+12 more)
+### Community 244 - "sankeyKit.ts"
+Cohesion: 0.24
+Nodes (15): LinkDef, NodeDef, byValueDesc(), compactSankeyGraph(), dropIds(), foldSubTags(), foldTags(), Graph (+7 more)
 
-### Community 245 - "sankey/controller.ts"
-Cohesion: 0.08
-Nodes (39): bumpPath(), createPath(), createSankeyContext(), createSankeyFocusStore(), hoveredNodeOf(), sameFocus(), SankeyChartContext, SankeyContainerRef (+31 more)
-
-### Community 246 - "date-ranges.ts"
-Cohesion: 0.20
-Nodes (11): addDays(), computeWeekendIndexRuns(), computeWeekendRanges(), ComputeWeekendRangesOptions, DateRange, DateRangeAlign, DEFAULT_WEEKEND_DAYS, isWeekendDate() (+3 more)
+### Community 245 - "sankey/context.ts"
+Cohesion: 0.18
+Nodes (13): BUMP_CURVE, bumpPath(), Point, createPath(), createSankeyContext(), hoveredNodeOf(), sameFocus(), SankeyContainerRef (+5 more)
 
 ### Community 247 - "mark-chart/skeleton.ts"
-Cohesion: 0.13
-Nodes (16): DROPPED_ATTRS, MarkLoadingLayer, BONE_CLASS, BONE_PULSE, boneBand(), boneKey(), bonePhases(), bonePulseTiming() (+8 more)
-
-### Community 248 - "heatmap/colors.ts"
-Cohesion: 0.17
-Nodes (19): buildHeatmapColorScale(), buildHeatmapColorScaleFromStyles(), buildHeatmapFillScale(), defaultHeatmapColorScale, defaultHeatmapFillScale, HEATMAP_DEFAULT_LEVEL_STYLES, HEATMAP_LEVEL_CSS_VARS, HeatmapLevelFillMode (+11 more)
-
-### Community 249 - "gauge/props.ts"
 Cohesion: 0.14
-Nodes (15): DEFAULT_ACTIVE_FILL_OPACITY, DEFAULT_INACTIVE_FILL_OPACITY, DEFAULT_LINEAR_HEIGHT, FillOptions, mixColor(), parseHex(), THEME_GRADIENT, TRACK_FILL (+7 more)
+Nodes (14): DROPPED_ATTRS, MarkLoadingLayer, BONE_CLASS, BONE_PULSE, bonePhases(), bonePulseTiming(), centreOf(), SKELETON_CLASS (+6 more)
 
-### Community 250 - "spring-animate.ts"
-Cohesion: 0.16
-Nodes (19): Axis, AxisSample, Band, bands, read(), retarget(), setIfChanged(), springBand() (+11 more)
+### Community 248 - "ScheduledJobServiceTest"
+Cohesion: 0.21
+Nodes (4): Entity, Table, ScheduledJobConfig, ScheduledJobServiceTest
 
-### Community 251 - "radar/definition.ts"
-Cohesion: 0.16
-Nodes (17): buildDefinition(), enterMotion(), GRID_SPRING, GRID_STAGGER_MS, INSTANT, LABEL_FILL, LABEL_TWEEN, Motion (+9 more)
+### Community 249 - "exporter.ts"
+Cohesion: 0.23
+Nodes (16): createChartExporter(), downloadChart(), elementOf(), exportChartPng(), exportChartSvg(), exportSvg(), fileOf(), isElement() (+8 more)
+
+### Community 251 - "ScheduledJobService"
+Cohesion: 0.27
+Nodes (7): UpdateScheduleRequest, JobRunRepository, ScheduledJobConfigRepository, ScheduledJobService, java.util.concurrent.ScheduledFuture, org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler, org.springframework.web.server.ResponseStatusException
 
 ### Community 252 - "CLAUDE.md"
 Cohesion: 0.15
@@ -1295,17 +1292,17 @@ Nodes (9): Backend architecture, Common commands, Conventions & gotchas, Fronten
 Cohesion: 0.15
 Nodes (12): 1. The idea in one paragraph, 2. Do / don't, 3. Tokens, 4. Components (spec → primitive), 5. Charts (MUI X-Charts stays — restyle via `statistics/chartTheme.ts`), 6. Copy, 7. Still allowed from v1, Dark (default, validated in mockup) (+4 more)
 
-### Community 254 - "walletCreation.ts"
-Cohesion: 0.15
-Nodes (13): bulkOutcome(), BulkResponse, createWalletFromDraft(), invitesTask(), ResourceKey, ResourceOutcome, WalletBasics, WalletCreateError (+5 more)
+### Community 254 - "box-plot-chart.tsx"
+Cohesion: 0.23
+Nodes (16): BoxPlot, BoxPlotChart(), BoxPlotChartLoading(), BoxPlotChartProps, BoxPlotTooltip, BoxPlotTooltipProps, BoxPlotXAxis, BoxPlotYAxis (+8 more)
 
-### Community 255 - "createFeatureHover"
-Cohesion: 0.24
-Nodes (6): createFeatureHover(), FeatureHighlight, GeoNode, indexes, nodeIndex(), Scene
+### Community 255 - "choropleth-chart.tsx"
+Cohesion: 0.19
+Nodes (11): HIDDEN_DEFS_STYLE, tick(), CAMERA_DEFAULT, ChoroplethCameraContext, ChoroplethZoomContext, NO_ZOOM, useChoroplethCamera(), useChoroplethZoom() (+3 more)
 
 ### Community 256 - "dot-bar.ts"
-Cohesion: 0.20
-Nodes (14): DotRow, fitTileCount(), ResolvedFill, resolveDotFill(), attr(), DEFS, LEGACY, PresetDef (+6 more)
+Cohesion: 0.15
+Nodes (19): computeRadialDotGrid(), radialDotRowRadius(), RadialDotSlot, stackRadialRows(), TAU, DotRow, fitTileCount(), ResolvedFill (+11 more)
 
 ### Community 257 - "paths.ts"
 Cohesion: 0.32
@@ -1315,9 +1312,9 @@ Nodes (13): series(), controlPoints(), r(), run(), runs(), sign(), slope2(), slo
 Cohesion: 0.33
 Nodes (11): allIndexLayouts(), binomial(), composePositiveSum(), gapsToIndices(), indexGaps(), indicesForTickCount(), isBetter(), LayoutScore (+3 more)
 
-### Community 259 - "SegmentedControl.tsx"
-Cohesion: 0.14
-Nodes (12): MotionHighlightItem(), Tabs(), TabsContent(), TabsList(), tabsListVariants, tabsRootClassName, TabsTrigger(), SegmentedControlProps (+4 more)
+### Community 259 - "fonts.ts"
+Cohesion: 0.23
+Nodes (15): base64(), coversRange(), coversStyle(), coversWeight(), dataUrl(), embeddedFontFaces(), faceRules(), FaceUse (+7 more)
 
 ### Community 260 - "markup.ts"
 Cohesion: 0.14
@@ -1331,29 +1328,33 @@ Nodes (9): createSpring(), FrameStep, observeWidth(), onFrames(), SparkSpring, s
 Cohesion: 0.17
 Nodes (12): 1. Shared primitives — `src/components/ui/`, 2. Design tokens — `src/theme-tokens.css`, 3. Colours & theme — tokens, not random hex, 4. "De-vibecode" aesthetic rules, 5. Auth screens = always dark, 6. Quality & CI, 7. Checklist for a new UI component, `Button` (+4 more)
 
-### Community 263 - "exporter.ts"
-Cohesion: 0.23
-Nodes (16): createChartExporter(), downloadChart(), elementOf(), exportChartPng(), exportChartSvg(), exportSvg(), fileOf(), isElement() (+8 more)
+### Community 263 - "statsChartRows.ts"
+Cohesion: 0.27
+Nodes (11): expense(), income(), lastMonthOf(), monthByMonthRows(), netOf(), Slot, slotsOf(), waterfallRows() (+3 more)
 
-### Community 264 - "useWidgetGridDnd.ts"
-Cohesion: 0.25
-Nodes (11): Box, boxContains(), eventPointer(), popInsertionIndex(), slotInsertionIndex(), SlotRow, slotRows(), useWidgetGridDnd() (+3 more)
+### Community 264 - "useTabLayout.ts"
+Cohesion: 0.09
+Nodes (42): groupBodyId(), isSlotId(), MERGE_PREFIX, mergeAwareCollision(), parseMemberId(), Box, boxContains(), eventPointer() (+34 more)
 
-### Community 265 - "transactionTags.ts"
-Cohesion: 0.22
-Nodes (9): TransactionRequest, TransactionsStep(), TransactionsStepProps, groupMissingTransactionTags(), missingTransactionTagCount(), reassignTransactionTag(), removeTransactionsWithTag(), tagKey() (+1 more)
+### Community 265 - "createFeatureHover"
+Cohesion: 0.24
+Nodes (6): createFeatureHover(), FeatureHighlight, GeoNode, indexes, nodeIndex(), Scene
 
-### Community 266 - "csvExport.ts"
-Cohesion: 0.26
-Nodes (13): CsvRow, downloadBlob(), downloadCsv(), sortTagsForExport(), subscriptionsCsvRows(), tagsCsvRows(), toCsv(), transactionsCsvRows() (+5 more)
+### Community 266 - "beeswarm-chart.tsx"
+Cohesion: 0.11
+Nodes (33): Beeswarm, BeeswarmChart(), BeeswarmChartLoading(), BeeswarmChartProps, BeeswarmTooltip, BeeswarmTooltipProps, BeeswarmXAxis, BeeswarmYAxis (+25 more)
 
-### Community 267 - "radar/entrance.ts"
-Cohesion: 0.15
-Nodes (13): EnterSpring, isKeywordEase(), toMotionTransition(), enterCurve(), LABEL_GLIDE, RADAR_ENTRANCE_CSS, RADAR_ENTRANCE_ORIGINS, radarEntranceVars() (+5 more)
+### Community 267 - "dots.ts"
+Cohesion: 0.29
+Nodes (11): buildChoroplethLattice(), clampSize(), colorOf(), configOf(), createDotGrid(), Dot, DotGridConfig, fadeMask() (+3 more)
 
-### Community 269 - "WalletPermissionSelector.tsx"
-Cohesion: 0.23
-Nodes (8): WalletPermissionSelector(), WalletPermissionSelectorProps, PatFormView(), PatFormViewProps, FormOverrides, renderForm(), wp(), WalletPermState
+### Community 268 - "triggerToast"
+Cohesion: 0.03
+Nodes (110): AdminDashboard(), UsersPageProps, AdminPageHeader(), AdminPageHeaderProps, AdminTab, AdminTabs(), TABS, Backups() (+102 more)
+
+### Community 269 - "bklit-tooltip-portal.ts"
+Cohesion: 0.21
+Nodes (13): Anchor, AnchorArgs, createTooltipFollow(), Point, BKLIT_INITIAL_SIZE, BklitPortalOptions, bklitTooltipPortal, sizedTooltipPortal (+5 more)
 
 ### Community 270 - "UI v2 — rules for implementation subagents"
 Cohesion: 0.29
@@ -1367,89 +1368,85 @@ Nodes (7): 8. UI v2 "Wallet card" (beta — dual UI during the migration), Chart
 Cohesion: 0.33
 Nodes (5): Kit (shadcn.io / bklit on TanStack Charts) — import from `"@/components/ui/charts"`, Rules, Shape of every component, Statistics v2 — Wave 2 common rules (components), Tests
 
-### Community 274 - "legend/legend.tsx"
-Cohesion: 0.21
-Nodes (11): chartLegendHoverValue, NO_HOVER, NO_LEGEND_HOVER, NO_PROFIT_LOSS_HOVER, profitLossLegendHoverValue, LegendHostSync(), ChartLegendHoverContext, ChartLegendHoverProvider() (+3 more)
+### Community 274 - "style.ts"
+Cohesion: 0.13
+Nodes (20): NO_SUBSCRIPTION(), chartLegendHoverValue, LegendHover, NO_HOVER, NO_LEGEND_HOVER, NO_PROFIT_LOSS_HOVER, profitLossLegendHoverValue, TooltipContentProp (+12 more)
 
-### Community 276 - "marimekko-chart.tsx"
-Cohesion: 0.28
-Nodes (12): MARIMEKKO_FAMILY, MARIMEKKO_ROLES, MarimekkoChartLoadingProps, MarimekkoChartProps, MarimekkoLabelsProps, MarimekkoPoint, MarimekkoSegmentProps, MarimekkoChart (+4 more)
-
-### Community 277 - "WebPushGateway"
+### Community 276 - "marimekko/marimekko.ts"
 Cohesion: 0.20
-Nodes (6): PushGateway, WebPushGateway, WebPushSenderTest, jakarta.annotation.PostConstruct, nl.martijndwars.webpush.PushService, PushService
+Nodes (18): layoutMarimekko(), MARIMEKKO_FAMILY, MARIMEKKO_ROLES, Resolved, Series, valueOf(), growIn(), percentText() (+10 more)
+
+### Community 277 - "tooltip-body.ts"
+Cohesion: 0.40
+Nodes (9): TooltipCard(), useTooltipBody(), featureTitle(), featureValueRows(), markerRows(), tooltipFeatureOf(), tooltipMarkerOf(), TooltipPoint (+1 more)
 
 ### Community 278 - "Phase 6 — Web Push (greenfield)"
 Cohesion: 0.40
 Nodes (5): Phase 6 — Web Push (greenfield), Task 13: Backend push infrastructure (VAPID, subscriptions, PushService), Task 14: Custom service worker (injectManifest) with push handlers, Task 15: Push preferences + “Enable on this device” UI, Task 16: Wire push into the report jobs
 
-### Community 280 - "radar/model.ts"
-Cohesion: 0.17
-Nodes (14): radarAreaColor(), LABEL_OFFSET, MS_BASE_DURATION, SERIES_BASE_MS, createRadarModel(), DEFAULT_ENTER_MS, DEFAULT_LEVELS, DEFAULT_MARGIN (+6 more)
+### Community 279 - "SecurityConfig.java"
+Cohesion: 0.36
+Nodes (6): SecurityConfig, org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity, org.springframework.security.config.annotation.web.builders.HttpSecurity, org.springframework.security.config.annotation.web.configuration.EnableWebSecurity, org.springframework.security.web.SecurityFilterChain, org.springframework.web.cors.CorsConfigurationSource
 
 ### Community 281 - "Charts for the monthly & yearly reports — TODO"
 Cohesion: 0.40
 Nodes (5): Charts for the monthly & yearly reports — TODO, Constraints (read before designing), Implementation (2026-11-16), Steps, What to add
 
-### Community 282 - "radar/hover.ts"
-Cohesion: 0.21
-Nodes (10): isAreaPoint(), LABEL_MARK_ID, MAX_SERIES, RADAR_HOVER_CSS, RadarHover, RadarPoint, RadarRenderContext, springRadarHover() (+2 more)
+### Community 282 - "chart-stat-flow.tsx"
+Cohesion: 0.18
+Nodes (13): chartCenterContainerClassName, chartCenterLabelClassName, chartCenterValueClassName, ChartStatFlow, ChartStatFlowProps, defaultChartStatFlowFormat, formatStatValue(), StatFlowRollContext (+5 more)
 
-### Community 283 - "MarkChartLoadingProps"
-Cohesion: 0.27
-Nodes (10): MarkChartLoadingProps, WaffleChartLoadingProps, WaffleChartProps, WaffleDatum, WafflePoint, Resolved, createMarkChartLoading(), WaffleChart (+2 more)
+### Community 283 - "waffle/waffle.ts"
+Cohesion: 0.19
+Nodes (16): boneDot(), WaffleChartLoadingProps, WaffleChartProps, WaffleDatum, WafflePoint, Allocation, colorOf(), gridOf() (+8 more)
 
 ### Community 286 - "motion-highlight.tsx"
 Cohesion: 0.22
 Nodes (11): ark, itemsOf(), MotionHighlight(), MotionHighlightContext, MotionHighlightContextValue, MotionHighlightItemProps, MotionHighlightProps, offsetIn() (+3 more)
 
-### Community 287 - "arcs.ts"
-Cohesion: 0.24
-Nodes (11): TAU, buildArcs(), BuildContext, buildEnterDelays(), clockwiseFraction(), layoutNode(), LayoutParams, nodeId() (+3 more)
+### Community 287 - "live-tail.ts"
+Cohesion: 0.43
+Nodes (7): fmt(), line(), liveTail(), LiveTailOptions, Point, polygon(), tailPaths()
 
-### Community 288 - "diverging-chart.tsx"
-Cohesion: 0.35
-Nodes (10): DivergingBarChartLoadingProps, DivergingBarChartProps, DivergingLabelsProps, DivergingPoint, DivergingSegmentProps, DivergingBarChart, DivergingBarChartLoading, DivergingBarChartProps (+2 more)
+### Community 288 - "sankey/hover.ts"
+Cohesion: 0.13
+Nodes (16): SankeyFocus, SankeyFocusStore, rowOf(), createSankeyHover(), SankeyHoverFocus, SankeyHoverSets, hoverFocusOf(), isNodeMark() (+8 more)
 
-### Community 289 - "lollipop-chart.tsx"
+### Community 289 - "enable-series-layers.ts"
+Cohesion: 0.48
+Nodes (6): enableLineBackdrop(), enableTrendLine(), registerBackdrop(), registerTrend(), backdropMarks(), trendMarks()
+
+### Community 290 - "progress.ts"
 Cohesion: 0.38
-Nodes (8): LollipopChartLoadingProps, LollipopChartProps, LollipopProps, Lollipop, LollipopChart, LollipopChartLoading(), LollipopChartProps, NO_DATA
-
-### Community 290 - "slope-chart.tsx"
-Cohesion: 0.38
-Nodes (8): SlopeChartLoadingProps, SlopeChartProps, SlopeProps, NO_DATA, Slope, SlopeChart, SlopeChartLoading(), SlopeChartProps
+Nodes (6): clamp(), formatPercent(), PROGRESS_HIDDEN_STYLE, PROGRESS_HIDDEN_TEXT, progressParts, ProgressStatus
 
 ### Community 291 - "sw.ts"
 Cohesion: 0.24
 Nodes (7): notificationTargetUrl(), PushPayload, workbox-cacheable-response, workbox-expiration, workbox-precaching, workbox-routing, workbox-strategies
 
-### Community 292 - "spatial/entrance.ts"
-Cohesion: 0.36
-Nodes (8): anchorOf(), canAnimate(), playMark(), playSpatialEntrance(), Point, Stagger, staggerOf(), viewBoxOf()
+### Community 292 - "live-host-style.ts"
+Cohesion: 0.33
+Nodes (6): stepEase(), LIVE_HOST_VARS, LIVE_VARS_CSS, liveHostVars(), LiveHostVarsArgs, VAR_PATH
 
 ### Community 293 - "sonner.tsx"
 Cohesion: 0.36
 Nodes (6): readPageTheme(), readServerTheme(), Theme, Toaster(), watchPageTheme(), sonner
 
-### Community 294 - "mark-renderer.ts"
-Cohesion: 0.25
-Nodes (6): canvasRenderer, CanvasSurface, kitCanvas, tanstackCanvas, TOKENS, ChartCanvasRenderer
+### Community 294 - "charts/sankey/data.ts"
+Cohesion: 0.43
+Nodes (6): SANKEY_ROLES, isConfigCarrier(), lastProps(), ROLE_OF, roleOf(), sankeyTable()
 
-### Community 295 - "radar/focus.ts"
-Cohesion: 0.36
-Nodes (7): createRadarFocus(), distanceToSegment(), inside(), onSegment(), RadarHitShape, RadarPoint, Vertex
+### Community 295 - "useAmountInput.ts"
+Cohesion: 0.23
+Nodes (9): AmountType, evaluateSignedAmount(), useAmountInput(), UseAmountInputArgs, AmountType, Harness(), formatAmountString(), hasOperators() (+1 more)
 
-### Community 296 - "tagDraft.ts"
-Cohesion: 0.48
-Nodes (4): addTagToDraft(), DEFAULT_TAG_COLOR, DEFAULT_TAG_ICON, tagKey()
-
-### Community 297 - "Status"
+### Community 296 - "Status"
 Cohesion: 0.33
 Nodes (6): Status, ACTIVE, ERROR, EXPIRED, PAUSED, PENDING
 
-### Community 299 - "data-updated.ts"
-Cohesion: 0.60
-Nodes (4): createDataUpdated(), Rows, sameRows(), sameValue()
+### Community 299 - "panel-style.ts"
+Cohesion: 0.53
+Nodes (5): applyPanelStyle(), kebab(), panelDeclarations(), UNITLESS, valueOf()
 
 ### Community 300 - "Duration"
 Cohesion: 0.50
@@ -1459,25 +1456,37 @@ Nodes (4): Duration, FOREVER, TIMES, UNTIL
 Cohesion: 0.50
 Nodes (3): fileMoves, project, ts-morph
 
+### Community 302 - "heatmap/tooltip.ts"
+Cohesion: 0.11
+Nodes (22): CellDatum, formatHeatmapContributionLabel(), formatHeatmapOrdinalDay(), formatHeatmapTooltipDate(), formatHeatmapTooltipWeekday(), heatmapMonthShortFmt, heatmapTooltipMonthFmt, heatmapTooltipWeekdayFmt (+14 more)
+
+### Community 303 - "sankey/context.tsx"
+Cohesion: 0.32
+Nodes (7): count(), noFocus(), SankeyContext, SankeyContextLayer(), SankeyContextValue, SankeyProvider(), useSankey()
+
+### Community 305 - "hexbin/definition.ts"
+Cohesion: 0.08
+Nodes (49): createDensityBuilder(), skeletonBands(), binValue(), createHexbinBuilder(), finite(), HexbinProps, hexbinSkeleton(), lastOf() (+41 more)
+
 ## Knowledge Gaps
-- **2344 isolated node(s):** `backend-mark.sh script`, `backend-tests.sh script`, `frontend-mark.sh script`, `PENDING`, `ACTIVE` (+2339 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3244 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **2347 isolated node(s):** `backend-mark.sh script`, `backend-tests.sh script`, `frontend-mark.sh script`, `PENDING`, `ACTIVE` (+2342 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3260 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `react` connect `react` to `distribution/controller.ts`, `charts/index.ts`, `vitest`, `Wallet`, `WidgetGrid.test.tsx`, `domain.ts`, `triggerToast`, `table.ts`, `Tag`, `brush.tsx`, `bump-chart.tsx`, `CustomDatePicker.tsx`, `markup/node.ts`, `beeswarm-chart.tsx`, `pie/model.ts`, `useCsvImport.ts`, `frontend/package.json`, `toCamel`, `spatial.ts`, `radar/context.ts`, `JobCard.tsx`, `Badge.tsx`, `cn`, `TagsTab.tsx`, `MonthlyChart.tsx`, `Button.tsx`, `route-map-chart.tsx`, `heatmap/legend.tsx`, `BackupRow.tsx`, `WalletProvider.test.tsx`, `heatmap.ts`, `ring/model.tsx`, `tooltip-primitives.tsx`, `NotificationsSection.tsx`, `renderMarkup`, `useTabLayout.ts`, `BudgetCard.tsx`, `StatisticsV2.tsx`, `BudgetFormOverlay.tsx`, `PWAProvider.test.tsx`, `sankey/marks.ts`, `chart-legend.tsx`, `pie-chart.tsx`, `CreateWalletWizard.tsx`, `WalletDashboard.tsx`, `registry.ts`, `TagsStep.tsx`, `overlay-views.tsx`, `sunburst-chart.tsx`, `cartesian-chart.tsx`, `MonthByMonthChart.tsx`, `uncertainty.ts`, `export.tsx`, `label.tsx`, `waterfall-chart.tsx`, `choropleth.ts`, `legend-compose.tsx`, `TagRequest`, `LandingPage.tsx`, `sparkline.tsx`, `heatmap/context.ts`, `HeroTrend.tsx`, `radial/context.tsx`, `SpatialRow`, `gantt-chart.tsx`, `statisticsInsights.ts`, `heatmap/chart.tsx`, `role.ts`, `SubscriptionRequest`, `surface.tsx`, `y-domain-utils.ts`, `radar-chart.tsx`, `SegmentedControl.tsx`, `useWidgetGridDnd.ts`, `transactionTags.ts`, `WalletPermissionSelector.tsx`, `legend/legend.tsx`, `motion-highlight.tsx`, `lollipop-chart.tsx`, `slope-chart.tsx`, `sonner.tsx`, `TagCreateMode.test.tsx`?**
-  _High betweenness centrality (0.193) - this node is a cross-community bridge._
-- **Why does `@tanstack/charts` connect `@tanstack/charts` to `distribution/controller.ts`, `live-line/definition.ts`, `charts/index.ts`, `cartesian/controller.ts`, `el`, `composed/definition.ts`, `core/gradients.ts`, `radar/entrance.ts`, `erase`, `table.ts`, `radar/model.ts`, `radar/hover.ts`, `memoCell`, `series-marks.ts`, `heatmap/definition.ts`, `pie/model.ts`, `network/network.ts`, `radar/focus.ts`, `frontend/package.json`, `sunburst/controller.ts`, `clearAttribute`, `StyleObject`, `scatter/definition.ts`, `layers/types.ts`, `sunburst/definition.ts`, `tree/tree.ts`, `choropleth.ts`, `cartesian/definition.ts`, `grid-focus.ts`, `live-line/controller.ts`, `enter-transition.ts`, `choropleth/controller.ts`, `text-measure.ts`, `funnel/marks.ts`, `stream/stream.ts`, `progress-layer.ts`, `layer.ts`, `ring/model.tsx`, `series-layers.ts`, `waffle/waffle.ts`, `treemap/treemap.ts`, `heatmap/pass.ts`, `cartesian/range-overlays.ts`, `diverging/diverging.ts`, `sunburst-mark.ts`, `sankey/focus.ts`, `surface.tsx`, `sankey/controller.ts`, `mark-chart/skeleton.ts`, `sankey/marks.ts`, `radar/definition.ts`?**
-  _High betweenness centrality (0.049) - this node is a cross-community bridge._
-- **Why does `vitest` connect `vitest` to `SegmentedControl.tsx`, `charts/index.ts`, `useWidgetGridDnd.ts`, `transactionTags.ts`, `csvExport.ts`, `Wallet`, `WalletPermissionSelector.tsx`, `WidgetGrid.test.tsx`, `TagsStep.tsx`, `domain.ts`, `triggerToast`, `Tag`, `MonthByMonthChart.tsx`, `CustomDatePicker.tsx`, `sw.ts`, `useCsvImport.ts`, `tagDraft.ts`, `frontend/package.json`, `TagCreateMode.test.tsx`, `JobCard.tsx`, `Badge.tsx`, `cn`, `csvImport.ts`, `TagsTab.tsx`, `TagRequest`, `MonthlyChart.tsx`, `LandingPage.tsx`, `Button.tsx`, `PWAProvider.test.tsx`, `BackupRow.tsx`, `WalletProvider.test.tsx`, `NotificationsSection.tsx`, `statisticsInsights.ts`, `react`, `role.ts`, `SubscriptionRequest`, `useTabLayout.ts`, `BudgetCard.tsx`, `StatisticsV2.tsx`, `BudgetFormOverlay.tsx`, `walletCreation.ts`, `CreateWalletWizard.tsx`, `WalletDashboard.tsx`?**
-  _High betweenness centrality (0.034) - this node is a cross-community bridge._
+- **Why does `react` connect `react` to `@tanstack/charts`, `charts/index.ts`, `Button.tsx`, `erase`, `Wallet`, `StatisticsV2.tsx`, `Subscription`, `Tag`, `brush.tsx`, `gantt-chart.tsx`, `CustomDatePicker.tsx`, `markup/patterns.ts`, `ecdf-chart.tsx`, `Readable`, `frontend/package.json`, `toCamel`, `spatial.ts`, `radar/model.ts`, `JobCard.tsx`, `NotificationsSection.tsx`, `cn`, `TagsTab.tsx`, `MonthlyChart.tsx`, `domain.ts`, `pie-chart.tsx`, `heatmap/legend.tsx`, `Badge.tsx`, `replay.ts`, `heatmap.ts`, `tooltip-primitives.tsx`, `renderMarkup`, `vitest`, `choropleth.ts`, `BudgetCard.tsx`, `SubscriptionModal.tsx`, `PWAProvider.test.tsx`, `chart-legend.tsx`, `guards.ts`, `Menu.tsx`, `table.ts`, `core/gradients.ts`, `density/definition.ts`, `charts/range-overlays.ts`, `sunburst-chart.tsx`, `cartesian-chart.tsx`, `MonthByMonthChart.tsx`, `uncertainty.ts`, `export.tsx`, `label.tsx`, `el`, `legend-compose.tsx`, `csvImport.ts`, `LandingPage.tsx`, `sparkline.tsx`, `heatmap/chart.tsx`, `HeroTrend.tsx`, `radial/controller.ts`, `defineCarrier`, `surface.tsx`, `bubble-map-chart.tsx`, `route-map-chart.tsx`, `line-chart-loading.tsx`, `statisticsInsights.ts`, `role.ts`, `sankey/definition.ts`, `BalanceProjectionChart.tsx`, `y-domain-utils.ts`, `radar/context.ts`, `box-plot-chart.tsx`, `choropleth-chart.tsx`, `useTabLayout.ts`, `beeswarm-chart.tsx`, `triggerToast`, `style.ts`, `tooltip-body.ts`, `chart-stat-flow.tsx`, `motion-highlight.tsx`, `sonner.tsx`, `charts/sankey/data.ts`, `useAmountInput.ts`, `sankey/context.tsx`?**
+  _High betweenness centrality (0.197) - this node is a cross-community bridge._
+- **Why does `@tanstack/charts` connect `@tanstack/charts` to `live-line/definition.ts`, `erase`, `route-map/definition.ts`, `bklit-tooltip-portal.ts`, `core/gradients.ts`, `theme.ts`, `density/definition.ts`, `bar/definition.ts`, `marimekko/marimekko.ts`, `parseAspectRatio`, `waffle/waffle.ts`, `series-marks.ts`, `live-tail.ts`, `sankey/hover.ts`, `heatmap/definition.ts`, `Readable`, `funnel/marks.ts`, `network/network.ts`, `propsFor`, `frontend/package.json`, `sunburst/controller.ts`, `date-pill.ts`, `heatmap/tooltip.ts`, `plot/controller.ts`, `hexbin/definition.ts`, `memoCell`, `layers/types.ts`, `tree/tree.ts`, `radar/model.ts`, `choropleth/definition.ts`, `choropleth/controller.ts`, `cartesian/definition.ts`, `bar/pass.ts`, `core/scales.ts`, `live-ylabels.ts`, `enter-transition.ts`, `live-built.ts`, `text-measure.ts`, `live-line/controller.ts`, `radial/controller.ts`, `stream/stream.ts`, `funnel/model.ts`, `progress-layer.ts`, `surface.tsx`, `ring/model.ts`, `cartesian.ts`, `mark-chart/types.ts`, `overlays.ts`, `treemap/treemap.ts`, `choropleth.ts`, `cartesian/range-overlays.ts`, `diverging/diverging.ts`, `sankey/definition.ts`, `sunburst-mark.ts`, `sankey/focus.ts`, `sankey/context.ts`, `mark-chart/skeleton.ts`, `sankey/marks.ts`, `sunburst/definition.ts`?**
+  _High betweenness centrality (0.047) - this node is a cross-community bridge._
+- **Why does `vitest` connect `vitest` to `Button.tsx`, `statsChartRows.ts`, `useTabLayout.ts`, `triggerToast`, `StatisticsV2.tsx`, `Wallet`, `Subscription`, `react`, `Tag`, `MonthByMonthChart.tsx`, `CustomDatePicker.tsx`, `sw.ts`, `useAmountInput.ts`, `frontend/package.json`, `chartData.test.ts`, `JobCard.tsx`, `NotificationsSection.tsx`, `cn`, `TagsTab.tsx`, `csvImport.ts`, `MonthlyChart.tsx`, `LandingPage.tsx`, `domain.ts`, `Badge.tsx`, `replay.ts`, `statisticsInsights.ts`, `role.ts`, `BalanceProjectionChart.tsx`, `BudgetCard.tsx`, `summaryStats.ts`, `SubscriptionModal.tsx`, `PWAProvider.test.tsx`, `Menu.tsx`?**
+  _High betweenness centrality (0.037) - this node is a cross-community bridge._
 - **Are the 34 inferred relationships involving `User` (e.g. with `.run()` and `.memberWithEmail()`) actually correct?**
   _`User` has 34 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 3 inferred relationships involving `useUiVersion()` (e.g. with `getUiVersion()` and `setUiVersion()`) actually correct?**
   _`useUiVersion()` has 3 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `backend-mark.sh script`, `backend-tests.sh script`, `frontend-mark.sh script` to the rest of the system?**
-  _2344 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _2347 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `org.springframework.http.ResponseEntity` be split into smaller, more focused modules?**
-  _Cohesion score 0.05006662859318484 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05460526315789474 - nodes in this community are weakly interconnected._

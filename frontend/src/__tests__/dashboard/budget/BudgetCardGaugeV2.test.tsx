@@ -145,23 +145,23 @@ describe("BudgetCard gauge (v2)", () => {
     });
   });
 
-  it("captions the amounts with the currency symbol", () => {
+  // The "of limit" caption was removed with proposal C; the figures row shows spent instead.
+  it("shows spent with the currency symbol in the figures row", () => {
     renderCard(makeBudget({ spent: 250, effectiveLimit: 300 }));
 
-    expect(screen.getByLabelText("250,00 €").closest("p")).toHaveTextContent(
-      "250,00 € of 300,00 €",
-    );
+    expect(screen.getByLabelText("250,00 €")).toBeInTheDocument();
+    expect(screen.getByText("spent")).toBeInTheDocument();
   });
 
   it("formats the left line like the caption (formatAmount plus symbol)", () => {
     renderCard(makeBudget({ remaining: 50 }));
 
     expect(screen.getByLabelText("50,00 €").closest("p")).toHaveTextContent(
-      /^50,00 € left · /,
+      /^50,00 € left$/,
     );
   });
 
-  it("shows 0,00 € left once the budget is exceeded", () => {
+  it("shows the overspend in the gauge area once the budget is exceeded", () => {
     renderCard(
       makeBudget({
         spent: 400,
@@ -171,8 +171,6 @@ describe("BudgetCard gauge (v2)", () => {
       }),
     );
 
-    expect(screen.getByLabelText("0,00 €").closest("p")).toHaveTextContent(
-      /^0,00 € left · /,
-    );
+    expect(screen.getByText(/Over by/)).toHaveTextContent("Over by 100,00 €");
   });
 });

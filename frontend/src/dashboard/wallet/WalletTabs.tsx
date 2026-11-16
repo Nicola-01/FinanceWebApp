@@ -13,7 +13,7 @@ import {
   faReceipt,
 } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
-import { Menu, MenuItem } from "@mui/material";
+import { Menu, MenuItem, Tooltip } from "@mui/material";
 import {
   BottomNavigation,
   BottomNavigationItem,
@@ -26,6 +26,23 @@ import {
   MotionHighlightItem,
 } from "@/components/shadcn/motion-highlight";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
+
+// Icon-only dock: the name shows on long press (MUI Tooltip's touch delay) and stays for screen readers.
+const DockIcon: React.FC<{ label: string; icon: IconDefinition }> = ({
+  label,
+  icon,
+}) => (
+  <>
+    <Tooltip title={label} placement="top">
+      <BottomNavigationItemIcon className="px-4 py-2 text-lg">
+        <FontAwesomeIcon icon={icon} />
+      </BottomNavigationItemIcon>
+    </Tooltip>
+    <BottomNavigationItemLabel className="sr-only">
+      {label}
+    </BottomNavigationItemLabel>
+  </>
+);
 
 const bottomItemClass =
   "text-app-muted hover:text-app-text aria-selected:text-app-text aria-selected:[&_svg]:text-wallet";
@@ -93,7 +110,7 @@ export const WalletTabs: React.FC = () => {
         >
           <BottomNavigationList
             aria-label="Wallet sections"
-            className="z-[1100] min-h-16 bg-app-card/90 backdrop-blur-md border-app-border shadow-[var(--box-ring)]"
+            className="z-[1100] min-h-14 select-none [-webkit-touch-callout:none] bg-app-card/90 backdrop-blur-md border-app-border shadow-[var(--box-ring)]"
           >
             {/* Inside the list: the highlight must paint above the list's background. */}
             <MotionHighlight
@@ -107,12 +124,7 @@ export const WalletTabs: React.FC = () => {
                     value={t.id}
                     className={bottomItemClass}
                   >
-                    <BottomNavigationItemIcon>
-                      <FontAwesomeIcon icon={t.icon} />
-                    </BottomNavigationItemIcon>
-                    <BottomNavigationItemLabel className="text-[11px]">
-                      {t.label}
-                    </BottomNavigationItemLabel>
+                    <DockIcon label={t.label} icon={t.icon} />
                   </BottomNavigationItem>
                 </MotionHighlightItem>
               ))}
@@ -123,12 +135,7 @@ export const WalletTabs: React.FC = () => {
                 onClick={(e) => setMoreAnchor(e.currentTarget)}
               >
                 <BottomNavigationItem value="more" className={bottomItemClass}>
-                  <BottomNavigationItemIcon>
-                    <FontAwesomeIcon icon={faEllipsis} />
-                  </BottomNavigationItemIcon>
-                  <BottomNavigationItemLabel className="text-[11px]">
-                    More
-                  </BottomNavigationItemLabel>
+                  <DockIcon label="More" icon={faEllipsis} />
                 </BottomNavigationItem>
               </MotionHighlightItem>
             </MotionHighlight>
@@ -147,7 +154,7 @@ export const WalletTabs: React.FC = () => {
           slotProps={{
             paper: {
               sx: {
-                mt: -1,
+                mt: -2,
                 minWidth: 200,
                 bgcolor: "rgb(var(--bg-raised))",
                 color: "rgb(var(--text-primary))",

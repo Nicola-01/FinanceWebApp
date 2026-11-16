@@ -17,7 +17,7 @@ import { BankRuleEditor } from "../BankRuleEditor.tsx";
 import type { BankRule } from "../../../types/domain";
 import { applyRulesWithToast } from "./applyRulesWithToast.ts";
 import { BankRuleRow } from "./BankRuleRow.tsx";
-import { filterRules, groupRules, shouldGroup } from "./bankRulesView.ts";
+import { filterRules, groupRules } from "./bankRulesView.ts";
 
 /** The wallet's rules: search, optional category groups, and the editor for each one. */
 export function BankRulesPanel({
@@ -45,7 +45,8 @@ export function BankRulesPanel({
   }, [childOpen, onChildOpenChange]);
 
   const visible = filterRules(rules, query);
-  const groups = shouldGroup(rules.length, query) ? groupRules(visible) : null;
+  // Grouped by category unless searching: a search result reads better as one flat list.
+  const groups = query.trim() ? null : groupRules(visible);
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;

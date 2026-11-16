@@ -179,19 +179,23 @@ describe("BankRulesPanel", () => {
     expect(reload).toHaveBeenCalled();
   });
 
-  it("groups by category only above 15 rules", () => {
-    const many = Array.from({ length: 16 }, (_, i) =>
-      rule(`x${i}`, `Rule ${i}`, `TXT${i}`, i < 8 ? "Groceries" : undefined),
-    );
-    setup(many);
+  it("always groups by category", () => {
+    setup([
+      rule("x1", "Rule 1", "TXT1", "Groceries"),
+      rule("x2", "Rule 2", "TXT2"),
+    ]);
     expect(screen.getByText("No category")).toBeInTheDocument();
   });
 
-  it("keeps the flat list at 15 rules", () => {
-    const fifteen = Array.from({ length: 15 }, (_, i) =>
-      rule(`x${i}`, `Rule ${i}`, `TXT${i}`, "Groceries"),
+  it("shows a flat list while searching", async () => {
+    setup([
+      rule("x1", "Rule 1", "TXT1", "Groceries"),
+      rule("x2", "Rule 2", "TXT2"),
+    ]);
+    await userEvent.type(
+      screen.getByPlaceholderText("Search by name, bank text or category"),
+      "Rule",
     );
-    setup(fifteen);
     expect(screen.queryByText("No category")).toBeNull();
   });
 
