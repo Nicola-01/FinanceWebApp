@@ -15,6 +15,8 @@ import { CategoryIcon } from "../../components/ui/CategoryIcon.tsx";
 import { AnimatedNumber } from "../../components/ui/AnimatedNumber.tsx";
 import { useGrowIn } from "../../hooks/useGrowIn.ts";
 import { toSentenceCase } from "../../utils/format.ts";
+import { isInvestmentTx } from "../../utils/investments.ts";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 
 const INITIAL_VISIBLE = 7;
 const STEP = 5;
@@ -134,10 +136,13 @@ export const CategoryRanking: React.FC<CategoryRankingProps> = ({
   currency,
   bare = false,
 }) => {
+  const invest = useInvestmentTags();
   const { items, total } = useMemo(() => {
-    const txs = transactions.filter((t) => t.type === type);
+    const txs = transactions.filter(
+      (t) => t.type === type && !isInvestmentTx(t, invest),
+    );
     return buildRanking(txs);
-  }, [transactions, type]);
+  }, [transactions, type, invest]);
 
   const [ui] = useUiVersion();
   const v2 = ui === "v2"; // ui-v2-switch

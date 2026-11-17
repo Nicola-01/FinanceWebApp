@@ -1,4 +1,5 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import Toggle from "../../components/ui/Toggle.tsx";
 import {
   ChartTooltip,
   ComposedChart,
@@ -25,8 +26,31 @@ export interface MonthByMonthChartProps {
   bare?: boolean;
 }
 
-const hasAmount = (row: MonthByMonthRow) =>
-  !!(row.income || row.expense || row.kept);
+const INVEST_KEY = "statistics.monthByMonth.showInvestments";
+const INVEST_COLOR = "var(--color-app-invest)";
+
+/** Row with the investment segments ready to stack: bought is drawn below Spent, so negative. */
+type ChartRow = MonthByMonthRow & { boughtBelow?: number };
+
+/** The Investments chip's on/off state, remembered on this device. */
+function useShowInvestments(): [boolean, (next: boolean) => void] {
+  const [on, setOn] = useState(
+    () => localStorage.getItem(INVEST_KEY) === "true",
+  );
+  const set = (next: boolean) => {
+    setOn(next);
+    localStorage.setItem(INVEST_KEY, String(next));
+  };
+  return [on, set];
+}
+
+const hasAmount = (row: MonthByMonthRow, invest: boolean) =>
+  !!(
+    row.income ||
+    row.expense ||
+    row.kept ||
+    (invest && (row.bought || row.cashedOut))
+  );
 
 const margin = { top: 16, right: 12, bottom: 28, left: 44 };
 
@@ -38,7 +62,28 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
   bare = false,
 }) => {
   const { income, expense, kept } = useChartPalette();
-  const bound = symmetricBound(rows);
+  const [showInvestments, setShowInvestments] = useShowInvestments();
+  const data = useMemo<ChartRow[]>(
+    () =>
+      showInvestments
+        ? rows.map((r) => ({ ...r, boughtBelow: -(r.bought ?? 0) }))
+        : rows,
+    [rows, showInvestments],
+  );
+  // The bound must cover the stacks: Earned + cashed out, and Spent + bought.
+  const bound = useMemo(
+    () =>
+      symmetricBound(
+        showInvestments
+          ? data.map((r) => ({
+              ...r,
+              income: (r.income ?? 0) + (r.cashedOut ?? 0),
+              expense: (r.expense ?? 0) + (r.boughtBelow ?? 0),
+            }))
+          : rows,
+      ),
+    [data, rows, showInvestments],
+  );
   // Each bar sits alone on its own axis: non-stacked bars would otherwise grow from the domain minimum.
   const yDomains = useMemo(
     () => ({
@@ -106,9 +151,18 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
     () => [
       { key: "income", label: "Earned", color: income },
       { key: "expense", label: "Spent", color: expense },
+      ...(showInvestments
+        ? [
+            {
+              key: "invested",
+              label: "Invested (out ↓ · back ↑)",
+              color: INVEST_COLOR,
+            },
+          ]
+        : []),
       { key: "kept", label: "Kept", color: kept },
     ],
-    [income, expense, kept],
+    [income, expense, kept, showInvestments],
   );
 
   return (
@@ -120,19 +174,27 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
       }
     >
       {!bare && (
-        <>
-          <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-            {title}
-          </h3>
-          <p className="text-[13px] text-app-muted mt-0.5">{sub}</p>
-        </>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
+              {title}
+            </h3>
+            <p className="text-[13px] text-app-muted mt-0.5">{sub}</p>
+          </div>
+          <Toggle
+            variant="button"
+            checked={showInvestments}
+            onChange={setShowInvestments}
+            label="↗ Investments"
+          />
+        </div>
       )}
-      {rows.some(hasAmount) ? (
+      {rows.some((r) => hasAmount(r, showInvestments)) ? (
         <>
           <div className="relative">
             {/* The kit paints Line marks beneath SeriesBars, so the Kept line and dots live in the overlay below. */}
             <ComposedChart
-              data={rows}
+              data={data}
               xDataKey="date"
               stacked
               yDomains={yDomains}
@@ -148,6 +210,14 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
                 fill={income}
                 radius={4}
               />
+              {showInvestments && (
+                <SeriesBar
+                  dataKey="cashedOut"
+                  label="Cashed out"
+                  fill={INVEST_COLOR}
+                  radius={4}
+                />
+              )}
               <SeriesBar
                 dataKey="expense"
                 label="Spent"
@@ -155,6 +225,15 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
                 radius={4}
                 yAxisId="spent"
               />
+              {showInvestments && (
+                <SeriesBar
+                  dataKey="boughtBelow"
+                  label="Bought"
+                  fill={INVEST_COLOR}
+                  radius={4}
+                  yAxisId="spent"
+                />
+              )}
               <XAxis
                 numTicks={rows.length}
                 tickMode="data"
@@ -195,11 +274,21 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
                 ariaLabel="Kept per month"
               >
                 <SeriesBar dataKey="income" fill="transparent" />
+                {showInvestments && (
+                  <SeriesBar dataKey="cashedOut" fill="transparent" />
+                )}
                 <SeriesBar
                   dataKey="expense"
                   fill="transparent"
                   yAxisId="spent"
                 />
+                {showInvestments && (
+                  <SeriesBar
+                    dataKey="boughtBelow"
+                    fill="transparent"
+                    yAxisId="spent"
+                  />
+                )}
                 <Line
                   dataKey="kept"
                   label="Kept"
@@ -208,6 +297,18 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
                   curve={curveMonotoneX}
                   showMarkers={false}
                 />
+                {showInvestments && (
+                  <Line
+                    dataKey="liquidity"
+                    label="Liquidity left"
+                    stroke={kept}
+                    strokeWidth={2}
+                    curve={curveMonotoneX}
+                    showMarkers={false}
+                    // shortcut: the kit dashes only a tail from a data index, so the first Jan-Feb segment stays solid.
+                    dashFromIndex={1}
+                  />
+                )}
                 <Scatter
                   dataKey="kept"
                   label="Kept"
@@ -221,6 +322,20 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
             </div>
           </div>
           <KitLegend series={series} />
+          {showInvestments && (
+            <div className="flex justify-center mt-1">
+              <div className="flex items-center gap-1.5">
+                <span
+                  aria-hidden="true"
+                  className="w-3.5 border-t-2 border-dashed"
+                  style={{ borderColor: kept }}
+                />
+                <span className="text-[13px] text-app-muted">
+                  Liquidity left
+                </span>
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <KitNoData />

@@ -23,6 +23,8 @@ export interface CategoriesWidgetCtx {
   currencyCode: string;
   /** Currency symbol for row amounts (e.g. "€"). */
   currencySymbol: string;
+  /** Names of the wallet's investment tags (the pies' "↗ Investments" chip). */
+  investmentTags: Set<string>;
 }
 
 /**
@@ -44,6 +46,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
         title="Income Distribution"
         currency={ctx.currencyCode}
         bare={bare}
+        investmentTags={ctx.investmentTags}
       />
     ),
   },
@@ -61,6 +64,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
         title="Expense Distribution"
         currency={ctx.currencyCode}
         bare={bare}
+        investmentTags={ctx.investmentTags}
       />
     ),
   },
@@ -141,6 +145,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
         transactions={ctx.transactions}
         currency={ctx.currencyCode}
         bare={bare}
+        investmentTags={ctx.investmentTags}
       />
     ),
   },

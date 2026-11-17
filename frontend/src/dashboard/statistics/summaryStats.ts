@@ -1,5 +1,6 @@
 import type { Transaction } from "../../types/domain.ts";
 import { MONTH_LABELS } from "../../utils/months.ts";
+import { isInvestmentTx, sumFlows } from "../../utils/investments.ts";
 import { buildMonthlyBuckets } from "./chartData.ts";
 import {
   availableYears,
@@ -17,26 +18,21 @@ export interface SummaryStats {
   avgNet: number;
 }
 
-/** Totals over the given transactions, with per-active-month averages. */
-export function summarize(transactions: Transaction[]): SummaryStats {
-  const totals = transactions.reduce(
-    (acc, tx) => {
-      if (tx.type === "INCOME") acc.income += tx.amount;
-      else if (tx.type === "EXPENSE") acc.expense += tx.amount;
-      return acc;
-    },
-    { income: 0, expense: 0 },
-  );
-  const net = totals.income - totals.expense;
-  const activeMonths = buildMonthlyBuckets(transactions).length;
+/** Income/expense totals (investment tags excluded), with per-active-month averages. */
+export function summarize(
+  transactions: Transaction[],
+  invest: Set<string>,
+): SummaryStats {
+  const flows = sumFlows(transactions, invest);
+  const activeMonths = buildMonthlyBuckets(transactions, invest).length;
   const per = (v: number) => (activeMonths > 0 ? v / activeMonths : 0);
   return {
-    income: totals.income,
-    expense: totals.expense,
-    net,
-    avgIncome: per(totals.income),
-    avgExpense: per(totals.expense),
-    avgNet: per(net),
+    income: flows.income,
+    expense: flows.spent,
+    net: flows.net,
+    avgIncome: per(flows.income),
+    avgExpense: per(flows.spent),
+    avgNet: per(flows.net),
   };
 }
 
@@ -53,29 +49,32 @@ export interface PeriodComparison {
   earnedPct: number | null; // (earned - prevEarned) / prevEarned as a fraction; null when prevEarned is 0
   spentPct: number | null; // (spent - prevSpent) / prevSpent as a fraction; null when prevSpent is 0
   kept: number;
-  savingsRate: number | null; // fraction; null when prev earned is 0
+  savingsRate: number | null; // fraction; null when prev earned is 0 or below
 }
 
 export interface PeriodSummary {
   earned: number;
   spent: number;
   kept: number;
-  savingsRate: number | null; // kept / earned fraction (e.g. -0.3); null when earned is 0
+  savingsRate: number | null; // kept / earned fraction (e.g. -0.3); null when earned is 0 or below
+  bought: number; // expenses on investment tags
+  cashedOut: number; // income on investment tags
+  invested: number; // bought - cashedOut (negative when cashing out more than buying)
   months: number; // elapsed months in the period
   avgEarnedPerMonth: number; // earned / months; 0 when months is 0
   series: PeriodSeries;
   vsPrevious: PeriodComparison | null;
 }
 
-function sumEarnedSpent(txs: Transaction[]): { earned: number; spent: number } {
-  return txs.reduce(
-    (acc, tx) => {
-      if (tx.type === "INCOME") acc.earned += tx.amount;
-      else if (tx.type === "EXPENSE") acc.spent += tx.amount;
-      return acc;
-    },
-    { earned: 0, spent: 0 },
-  );
+/** Earned/spent exclude investment tags; bought/cashed out are only those. */
+function sumEarnedSpent(txs: Transaction[], invest: Set<string>) {
+  const flows = sumFlows(txs, invest);
+  return {
+    earned: flows.income,
+    spent: flows.spent,
+    bought: flows.bought,
+    cashedOut: flows.cashedOut,
+  };
 }
 
 function finishSeries(
@@ -101,6 +100,7 @@ function buildSeries(
   txs: Transaction[],
   period: StatsPeriod,
   today: Date,
+  invest: Set<string>,
 ): PeriodSeries {
   if (period.kind === "all") {
     const years = availableYears(txs);
@@ -113,7 +113,7 @@ function buildSeries(
     const spent = new Array<number>(count).fill(0);
     for (const tx of txs) {
       const slot = txYearMonth(tx).year - oldest;
-      const { earned: e, spent: s } = sumEarnedSpent([tx]);
+      const { earned: e, spent: s } = sumEarnedSpent([tx], invest);
       earned[slot] += e;
       spent[slot] += s;
     }
@@ -125,7 +125,7 @@ function buildSeries(
   const spent = new Array<number>(12).fill(0);
   for (const tx of txs) {
     const slot = txYearMonth(tx).month;
-    const { earned: e, spent: s } = sumEarnedSpent([tx]);
+    const { earned: e, spent: s } = sumEarnedSpent([tx], invest);
     earned[slot] += e;
     spent[slot] += s;
   }
@@ -162,6 +162,7 @@ function previousComparison(
   period: StatsPeriod,
   today: Date,
   current: { earned: number; spent: number },
+  invest: Set<string>,
 ): PeriodComparison | null {
   if (period.kind === "all") return null;
   const prevYear = period.year - 1;
@@ -171,35 +172,50 @@ function previousComparison(
     return year === prevYear && month <= lastMonth;
   });
   if (prevTxs.length === 0) return null;
-  const { earned, spent } = sumEarnedSpent(prevTxs);
+  const { earned, spent } = sumEarnedSpent(prevTxs, invest);
   const kept = earned - spent;
   return {
     label: String(prevYear),
     earnedPct: earned === 0 ? null : (current.earned - earned) / earned,
     spentPct: spent === 0 ? null : (current.spent - spent) / spent,
     kept,
-    savingsRate: earned === 0 ? null : kept / earned,
+    savingsRate: earned <= 0 ? null : kept / earned,
   };
 }
 
-/** Totals, savings rate, monthly series and previous-year comparison for a period. */
+/**
+ * Totals, savings rate, monthly series and previous-year comparison for a period.
+ * Earned and spent exclude investment tags; the investment flows are reported apart.
+ */
 export function summarizePeriod(
   txs: Transaction[],
   period: StatsPeriod,
   today: Date,
+  invest: Set<string>,
 ): PeriodSummary {
   const inPeriod = filterByPeriod(txs, period);
-  const { earned, spent } = sumEarnedSpent(inPeriod);
+  const { earned, spent, bought, cashedOut } = sumEarnedSpent(inPeriod, invest);
   const kept = earned - spent;
-  const months = elapsedMonths(inPeriod, period, today);
+  // Months with only investment activity are not "elapsed" for the averages.
+  const flowTxs = inPeriod.filter((tx) => !isInvestmentTx(tx, invest));
+  const months = elapsedMonths(flowTxs, period, today);
   return {
     earned,
     spent,
     kept,
-    savingsRate: earned === 0 ? null : kept / earned,
+    savingsRate: earned <= 0 ? null : kept / earned,
+    bought,
+    cashedOut,
+    invested: bought - cashedOut,
     months,
     avgEarnedPerMonth: months === 0 ? 0 : earned / months,
-    series: buildSeries(inPeriod, period, today),
-    vsPrevious: previousComparison(txs, period, today, { earned, spent }),
+    series: buildSeries(inPeriod, period, today, invest),
+    vsPrevious: previousComparison(
+      txs,
+      period,
+      today,
+      { earned, spent },
+      invest,
+    ),
   };
 }

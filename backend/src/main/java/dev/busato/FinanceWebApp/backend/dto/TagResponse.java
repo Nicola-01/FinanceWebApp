@@ -12,5 +12,6 @@ public class TagResponse {
   private String colorHex;
   //    private String description;
   private String parentName;
+  private boolean investment;
   private Instant updatedAt;
 }

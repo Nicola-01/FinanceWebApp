@@ -93,4 +93,79 @@ describe("buildSankeyData", () => {
       color: "source",
     });
   });
+
+  describe("investments", () => {
+    const invest = new Set(["PAC"]);
+
+    it("adds Invested and Liquidity left nodes and a Cashed out source", () => {
+      const data = buildSankeyData(
+        [
+          tx("INCOME", 1000, "Salary"),
+          tx("EXPENSE", 100, "Rent"),
+          tx("EXPENSE", 300, "PAC"),
+          tx("INCOME", 50, "PAC"),
+        ],
+        "#bbbbbb",
+        invest,
+      )!;
+      const ids = data.nodes.map((n) => n.id);
+
+      expect(ids).toEqual(
+        expect.arrayContaining([
+          "Invested",
+          "INV-PAC",
+          "Cashed out",
+          "Savings",
+        ]),
+      );
+      expect(ids).not.toContain("OUT-PAC");
+      expect(data.nodes.find((n) => n.id === "Savings")?.label).toBe(
+        "Liquidity left",
+      );
+      expect(data.nodes.find((n) => n.id === "INV-PAC")?.parentId).toBe(
+        "Invested",
+      );
+      // Liquidity = Income 1000 - Spent 100 - (Bought 300 - Cashed out 50).
+      expect(data.links).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            source: "Income",
+            target: "Invested",
+            value: 300,
+          }),
+          expect.objectContaining({
+            source: "Invested",
+            target: "INV-PAC",
+            value: 300,
+          }),
+          expect.objectContaining({
+            source: "Cashed out",
+            target: "Income",
+            value: 50,
+          }),
+          expect.objectContaining({
+            source: "Income",
+            target: "Savings",
+            value: 650,
+          }),
+        ]),
+      );
+    });
+
+    it("feeds a Deficit into Income when the invested money outruns income", () => {
+      const data = buildSankeyData(
+        [tx("INCOME", 1000, "Salary"), tx("EXPENSE", 1500, "PAC")],
+        "#bbbbbb",
+        invest,
+      )!;
+      expect(data.nodes.map((n) => n.id)).toContain("Deficit");
+      expect(data.links).toContainEqual(
+        expect.objectContaining({
+          source: "Deficit",
+          target: "Income",
+          value: 500,
+        }),
+      );
+    });
+  });
 });

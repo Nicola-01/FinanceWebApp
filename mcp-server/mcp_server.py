@@ -402,6 +402,28 @@ async def get_transactions(
     return json.dumps(optimized_transactions, indent=2, default=str)
 
 
+def investment_tag_names(tags: list[dict]) -> set[str]:
+    """Names of tags that are investments: flagged themselves or under a flagged ancestor."""
+    by_name = {t.get("name"): t for t in tags}
+    names: set[str] = set()
+    for tag in tags:
+        seen: set[str] = set()
+        cur = tag
+        # Walk up the parent chain; `seen` stops the walk on a corrupt cycle.
+        while cur is not None and cur.get("name") not in seen:
+            seen.add(cur.get("name"))
+            if cur.get("investment"):
+                names.add(tag.get("name"))
+                break
+            cur = by_name.get(cur.get("parentName"))
+    return names
+
+
+def is_investment_tx(tx: dict, investments: set[str]) -> bool:
+    tag_info = tx.get("tag")
+    return isinstance(tag_info, dict) and tag_info.get("name") in investments
+
+
 # ──────────────────────────────────────────────────────────────────────
 # Tool — get_wallet_statistics
 # ──────────────────────────────────────────────────────────────────────
@@ -425,6 +447,9 @@ async def get_wallet_statistics(
     if not isinstance(raw_transactions, list):
         return json.dumps({"error": "Failed to retrieve transactions"}, indent=2)
 
+    raw_tags = await _backend_request(ctx, method="GET", path=f"/api/tags/{wallet_id}")
+    investments = investment_tag_names(raw_tags if isinstance(raw_tags, list) else [])
+
     # 1. Filter by date
     filtered_txs = []
     for tx in raw_transactions:
@@ -442,7 +467,7 @@ async def get_wallet_statistics(
         parents = {}
 
         for tx in filtered_txs:
-            if tx.get("type") == tx_type:
+            if tx.get("type") == tx_type and not is_investment_tx(tx, investments):
                 amt = float(tx.get("amount", 0.0))
                 total += amt
 
@@ -495,12 +520,23 @@ async def get_wallet_statistics(
     total_income, income_categories = aggregate_by_type("INCOME")
     total_expense, expense_categories = aggregate_by_type("EXPENSE")
 
+    # Investment flows: expenses on investment tags are "invested", incomes are "cashed out"
+    invested = sum(float(tx.get("amount", 0.0)) for tx in filtered_txs
+                   if tx.get("type") == "EXPENSE" and is_investment_tx(tx, investments))
+    cashed_out = sum(float(tx.get("amount", 0.0)) for tx in filtered_txs
+                     if tx.get("type") == "INCOME" and is_investment_tx(tx, investments))
+    invested_net = invested - cashed_out
+
     # 4. Final JSON Structure
     result = {
         "summary": {
             "totalIncome": total_income,
             "totalExpense": total_expense,
-            "difference": round(total_income - total_expense, 2)
+            "difference": round(total_income - total_expense, 2),
+            "invested": round(invested, 2),
+            "cashedOut": round(cashed_out, 2),
+            "investedNet": round(invested_net, 2),
+            "liquidityLeft": round(total_income - total_expense - invested_net, 2),
         },
         "incomeByCategory": income_categories,
         "expenseByCategory": expense_categories
@@ -625,7 +661,7 @@ async def get_tags(
     )
 
     if isinstance(raw_tags, list):
-        allowed_keys = {"name", "icon", "colorHex", "parentName"}
+        allowed_keys = {"name", "icon", "colorHex", "parentName", "investment"}
         optimized_tags = [
             {key: tag[key] for key in allowed_keys if key in tag}
             for tag in raw_tags
@@ -647,6 +683,7 @@ async def create_tag(
         icon: Annotated[str, Field(description="Optional icon identifier for the tag.")] = "",
         color_hex: Annotated[str, Field(description="Optional hex color for the tag, e.g. '#FF5733'.")] = "",
         parent_name: Annotated[str | None, Field(description="Optional parent tag name for hierarchical categorization.")] = None,
+        investment: Annotated[bool | None, Field(description="Mark the tag (and all its subtags) as an investment: its expenses count as invested, its incomes as cashed out.")] = None,
 ) -> str:
     """
     Create a new tag (category) in the specified wallet. Requires WRITE permission.
@@ -659,6 +696,8 @@ async def create_tag(
     }
     if parent_name:
         body["parentName"] = parent_name
+    if investment is not None:
+        body["investment"] = investment
 
     result = await _backend_request(
         ctx,
@@ -682,6 +721,7 @@ async def update_tag(
         icon: Annotated[str, Field(description="Optional new icon.")] = "",
         color_hex: Annotated[str, Field(description="Optional new hex color.")] = "",
         parent_name: Annotated[str | None, Field(description="Optional new parent tag name.")] = None,
+        investment: Annotated[bool | None, Field(description="Mark the tag (and all its subtags) as an investment: its expenses count as invested, its incomes as cashed out. Null to keep unchanged.")] = None,
 ) -> str:
     """Update an existing tag. Requires WRITE permission."""
     body: dict = {
@@ -691,6 +731,8 @@ async def update_tag(
     }
     if parent_name:
         body["parentName"] = parent_name
+    if investment is not None:
+        body["investment"] = investment
 
     result = await _backend_request(
         ctx,
@@ -1076,6 +1118,9 @@ async def get_financial_timeseries(
     if not isinstance(raw_transactions, list):
         return json.dumps({"error": "Failed to retrieve transactions"}, indent=2)
 
+    raw_tags = await _backend_request(ctx, method="GET", path=f"/api/tags/{wallet_id}")
+    investments = investment_tag_names(raw_tags if isinstance(raw_tags, list) else [])
+
     # -- Parse date boundaries --
     today = date.today()
     if date_from:
@@ -1105,6 +1150,8 @@ async def get_financial_timeseries(
     buckets: dict[str, dict] = defaultdict(lambda: {
         "income": 0.0,
         "expense": 0.0,
+        "invested": 0.0,
+        "cashedOut": 0.0,
         "transaction_count": 0,
         "tags": defaultdict(float),
     })
@@ -1121,7 +1168,12 @@ async def get_financial_timeseries(
         amount = float(tx.get("amount", 0.0))
         tx_type = tx.get("type", "")
 
-        if tx_type == "INCOME":
+        if is_investment_tx(tx, investments):
+            if tx_type == "EXPENSE":
+                buckets[key]["invested"] += amount
+            elif tx_type == "INCOME":
+                buckets[key]["cashedOut"] += amount
+        elif tx_type == "INCOME":
             buckets[key]["income"] += amount
         elif tx_type == "EXPENSE":
             buckets[key]["expense"] += amount
@@ -1150,6 +1202,8 @@ async def get_financial_timeseries(
             "period": key,
             "income": round(b["income"], 2),
             "expense": round(b["expense"], 2),
+            "invested": round(b["invested"], 2),
+            "cashedOut": round(b["cashedOut"], 2),
             "net": net,
             "cumulativeBalance": round(cumulative_balance, 2),
             "transactionCount": b["transaction_count"],

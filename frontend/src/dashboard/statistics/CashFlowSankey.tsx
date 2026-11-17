@@ -30,6 +30,8 @@ interface CashFlowSankeyProps {
   currency?: string;
   /** Render without the card shell + title (the parent group card provides them). */
   bare?: boolean;
+  /** Investment tag names: their money leaves the income/expense flows (see buildSankeyData). */
+  investmentTags?: Set<string>;
 }
 
 const CHART_HEIGHT = 600;
@@ -38,6 +40,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
   transactions,
   currency = "EUR",
   bare = false,
+  investmentTags,
 }) => {
   const { resolvedTheme } = useTheme();
   const muiTheme = useMuiTheme();
@@ -53,12 +56,14 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
         transactions={transactions}
         currency={currency}
         bare={bare}
+        investmentTags={investmentTags}
       />
     );
 
   const data = buildSankeyData(
     transactions,
     isV2 ? palette.income : resolvedTheme === "dark" ? "#ffffff" : "#bbbbbb",
+    investmentTags,
   );
   if (!data) return null;
 
@@ -233,9 +238,14 @@ const CashFlowSankeyV2: React.FC<CashFlowSankeyProps> = ({
   transactions,
   currency = "EUR",
   bare = false,
+  investmentTags,
 }) => {
   const isMobile = useMediaQuery(useMuiTheme().breakpoints.down("sm"));
-  const full = buildSankeyData(transactions, "var(--color-app-income)");
+  const full = buildSankeyData(
+    transactions,
+    "var(--color-app-income)",
+    investmentTags,
+  );
   if (!full) return null;
 
   const { data, colors } = toKitSankey(

@@ -69,3 +69,20 @@ describe("useOverviewData", () => {
     expect(result.current.totals).toEqual({ income: 0, expense: 0 });
   });
 });
+
+describe("useOverviewData with investment tags", () => {
+  it("excludes investment tags from the monthly and yearly income and expense", () => {
+    const stocks = { name: "Stocks", icon: "tag", colorHex: "#fff" };
+    const txs = [
+      ...transactions,
+      { ...tx("2024-01-20T12:00:00", "EXPENSE", 700), tag: stocks },
+      { ...tx("2024-01-21T12:00:00", "INCOME", 300), tag: stocks },
+    ];
+    const { result } = renderHook(() =>
+      useOverviewData(txs, "monthly", new Set(["Stocks"])),
+    );
+    // Stocks income (300) and expense (700) are dropped; the base fixture's 150 expense remains.
+    expect(result.current.totals).toEqual({ income: 1000, expense: 150 });
+    expect(result.current.dataItems[0]).toEqual({ income: 1000, expense: 100 });
+  });
+});

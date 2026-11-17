@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ThemeContext } from "../../../utils/ThemeContext.tsx";
 import { formatAmount } from "../../../utils/format.ts";
 import { setUiVersion } from "../../../utils/uiVersion.ts";
@@ -467,5 +468,126 @@ describe("MonthByMonthChart bare mode", () => {
     expect(container.firstElementChild).not.toHaveClass("bg-app-card");
     expect(calls.ComposedChart).toHaveLength(2);
     expect(screen.getByText("Earned")).toBeInTheDocument();
+  });
+});
+
+describe("MonthByMonthChart investments chip", () => {
+  const investRows: MonthByMonthRow[] = [
+    {
+      date: new Date(2026, 0, 1),
+      income: 1000,
+      expense: -300,
+      kept: 700,
+      bought: 200,
+      cashedOut: 0,
+      liquidity: 500,
+    },
+    {
+      date: new Date(2026, 1, 1),
+      income: 500,
+      expense: -100,
+      kept: 400,
+      bought: 100,
+      cashedOut: 400,
+      liquidity: 700,
+    },
+  ];
+  const chip = () => screen.getByRole("switch", { name: /Investments/ });
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("is off by default and keeps the plain stacks and a single kept line", () => {
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={investRows}
+          byYear={false}
+          currencySymbol="€"
+        />,
+      ),
+    );
+    expect(chip()).toHaveAttribute("aria-checked", "false");
+    const { base, overlay } = baseAndOverlay();
+    expect(kids(base, SeriesBar).map((p) => p.dataKey)).toEqual([
+      "income",
+      "expense",
+    ]);
+    expect(kids(overlay, Line).map((p) => p.dataKey)).toEqual(["kept"]);
+    expect(screen.queryByText("Liquidity left")).toBeNull();
+  });
+
+  it("stacks cashed out above Earned and bought below Spent, adds the dashed liquidity line and legend entries", async () => {
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={investRows}
+          byYear={false}
+          currencySymbol="€"
+        />,
+      ),
+    );
+    await userEvent.click(chip());
+    expect(chip()).toHaveAttribute("aria-checked", "true");
+
+    // Re-renders record again: read the latest base/overlay pair.
+    const { length } = calls.ComposedChart;
+    const base = calls.ComposedChart[length - 2];
+    const overlay = calls.ComposedChart[length - 1];
+    expect(kids(base, SeriesBar).map((p) => [p.dataKey, p.yAxisId])).toEqual([
+      ["income", undefined],
+      ["cashedOut", undefined],
+      ["expense", "spent"],
+      ["boughtBelow", "spent"],
+    ]);
+    const cashed = kids(base, SeriesBar).find((p) => p.dataKey === "cashedOut");
+    expect(cashed?.fill).toBe("var(--color-app-invest)");
+
+    // Bought hangs below the spent bar, so it is stored negative.
+    expect((base.data as Record<string, unknown>[])[0]).toMatchObject({
+      boughtBelow: -200,
+    });
+
+    // The kept line is untouched; liquidity joins it as a dashed line in the kept colour.
+    const lines = kids(overlay, Line);
+    expect(lines).toEqual([
+      expect.objectContaining({ dataKey: "kept", stroke: "#3b82f6" }),
+      expect.objectContaining({
+        dataKey: "liquidity",
+        label: "Liquidity left",
+        stroke: "#3b82f6",
+        dashFromIndex: 1,
+      }),
+    ]);
+
+    // Stack peak is Earned + cashed out (1000 + 0 vs 500 + 400 = 900), so the bound is 1000 * 1.1.
+    const { yDomains } = base as { yDomains: Record<string, [number, number]> };
+    expect(yDomains.left[1]).toBeCloseTo(1100);
+    expect(yDomains.spent[0]).toBeCloseTo(-1100);
+
+    expect(screen.getByText("Invested (out ↓ · back ↑)")).toBeInTheDocument();
+    expect(screen.getByText("Liquidity left")).toBeInTheDocument();
+  });
+
+  it("restores the persisted choice and saves each toggle", async () => {
+    localStorage.setItem("statistics.monthByMonth.showInvestments", "true");
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={investRows}
+          byYear={false}
+          currencySymbol="€"
+        />,
+      ),
+    );
+    expect(chip()).toHaveAttribute("aria-checked", "true");
+
+    await userEvent.click(chip());
+    expect(chip()).toHaveAttribute("aria-checked", "false");
+    expect(
+      localStorage.getItem("statistics.monthByMonth.showInvestments"),
+    ).toBe("false");
+    expect(screen.queryByText("Liquidity left")).toBeNull();
   });
 });

@@ -379,4 +379,143 @@ class BudgetServiceTest {
     assertEquals(
         Set.of(a.getId(), b.getId()), Set.copyOf(ids.getValue())); // finite, both ids, no dupes
   }
+
+  private Tag investments() {
+    return Tag.builder()
+        .id(UUID.randomUUID())
+        .name("Investments")
+        .wallet(wallet)
+        .investment(true)
+        .build();
+  }
+
+  @Test
+  void walletBudget_excludesInvestmentExpenses() {
+    Tag invest = investments();
+    Tag stocks =
+        Tag.builder().id(UUID.randomUUID()).name("Stocks").wallet(wallet).parent(invest).build();
+    Budget budget = monthlyBudget(null, "1000.00", false);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(food, invest, stocks));
+    when(transactionRepository.sumAmountByWalletAndDateRange(
+            eq(walletId), eq(Transaction.Type.EXPENSE), any(), any()))
+        .thenReturn(new BigDecimal("500.00"));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId),
+            eq(Transaction.Type.EXPENSE),
+            any(),
+            any(),
+            eq(Set.of(invest.getId(), stocks.getId()))))
+        .thenReturn(new BigDecimal("200.00"));
+
+    BudgetStatusResponse status = budgetService.computeStatus(budget, LocalDate.of(2026, 7, 8));
+
+    assertEquals(0, new BigDecimal("300.00").compareTo(status.getSpent()));
+    assertFalse(status.isGoal());
+  }
+
+  @Test
+  void walletBudget_allInvestment_spentZero() {
+    Tag invest = investments();
+    Budget budget = monthlyBudget(null, "1000.00", false);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(invest));
+    when(transactionRepository.sumAmountByWalletAndDateRange(
+            eq(walletId), eq(Transaction.Type.EXPENSE), any(), any()))
+        .thenReturn(new BigDecimal("200.00"));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.EXPENSE), any(), any(), anyCollection()))
+        .thenReturn(new BigDecimal("200.00"));
+
+    BudgetStatusResponse status = budgetService.computeStatus(budget, LocalDate.of(2026, 7, 8));
+
+    assertEquals(0, BigDecimal.ZERO.compareTo(status.getSpent()));
+    assertEquals(0, status.getPercentUsed());
+    assertEquals("OK", status.getStatus());
+  }
+
+  @Test
+  void goalBudget_progressIsInvestedNet() {
+    Tag invest = investments();
+    Budget budget = monthlyBudget(invest, "300.00", false);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(invest));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.EXPENSE), any(), any(), anyCollection()))
+        .thenReturn(new BigDecimal("100.00"));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.INCOME), any(), any(), anyCollection()))
+        .thenReturn(new BigDecimal("30.00"));
+
+    BudgetStatusResponse status = budgetService.computeStatus(budget, LocalDate.of(2026, 7, 8));
+
+    assertTrue(status.isGoal());
+    assertEquals(0, new BigDecimal("70.00").compareTo(status.getSpent())); // invested net
+    assertEquals(0, new BigDecimal("230.00").compareTo(status.getRemaining())); // to go
+    assertEquals(23, status.getPercentUsed());
+    assertEquals("OK", status.getStatus());
+    assertEquals(List.of(), status.getCrossedThresholds());
+  }
+
+  @Test
+  void goalBudget_negativeInvestedNet_floorsPercentAtZero() {
+    Tag invest = investments();
+    Budget budget = monthlyBudget(invest, "300.00", false);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(invest));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.EXPENSE), any(), any(), anyCollection()))
+        .thenReturn(BigDecimal.ZERO);
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.INCOME), any(), any(), anyCollection()))
+        .thenReturn(new BigDecimal("50.00"));
+
+    BudgetStatusResponse status = budgetService.computeStatus(budget, LocalDate.of(2026, 7, 8));
+
+    assertEquals(0, new BigDecimal("-50.00").compareTo(status.getSpent()));
+    assertEquals(0, status.getPercentUsed());
+    assertEquals("OK", status.getStatus());
+  }
+
+  @Test
+  void goalBudget_reached() {
+    Tag invest = investments();
+    Budget budget = monthlyBudget(invest, "300.00", false);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(invest));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.EXPENSE), any(), any(), anyCollection()))
+        .thenReturn(new BigDecimal("300.00"));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.INCOME), any(), any(), anyCollection()))
+        .thenReturn(BigDecimal.ZERO);
+
+    BudgetStatusResponse status = budgetService.computeStatus(budget, LocalDate.of(2026, 7, 8));
+
+    assertEquals("GOAL_REACHED", status.getStatus());
+    assertEquals(100, status.getPercentUsed());
+    assertEquals(0, BigDecimal.ZERO.compareTo(status.getRemaining()));
+  }
+
+  @Test
+  void goalBudget_ignoresRollover() {
+    // Rollover is on and the anchor is months back: a plain budget would carry over
+    // previous periods, a goal must not query them nor change its limit.
+    Tag invest = investments();
+    Budget budget = monthlyBudget(invest, "300.00", true);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(invest));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.EXPENSE), any(), any(), anyCollection()))
+        .thenReturn(new BigDecimal("60.00"));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.INCOME), any(), any(), anyCollection()))
+        .thenReturn(BigDecimal.ZERO);
+
+    BudgetStatusResponse status = budgetService.computeStatus(budget, LocalDate.of(2026, 7, 8));
+
+    assertEquals(0, new BigDecimal("300.00").compareTo(status.getEffectiveLimit()));
+    assertEquals(20, status.getPercentUsed());
+    verify(transactionRepository, never())
+        .sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId),
+            eq(Transaction.Type.EXPENSE),
+            eq(LocalDate.of(2026, 5, 1)),
+            any(),
+            anyCollection());
+  }
 }

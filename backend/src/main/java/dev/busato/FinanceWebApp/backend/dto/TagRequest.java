@@ -16,6 +16,9 @@ public class TagRequest {
   //    private String description;
   private String parentName;
 
+  /** Null = unchanged on update (false on create). */
+  private Boolean investment;
+
   /** updatedAt the offline edit was based on; server rejects with 409 if newer. */
   private Instant baseUpdatedAt;
 }

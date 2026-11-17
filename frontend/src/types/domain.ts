@@ -33,6 +33,8 @@ export interface Tag {
   colorHex: string;
   parentName?: string | null;
   parent?: Tag | null;
+  /** Investment tag, or any tag under one: its expenses are "bought", its income "cashed out". */
+  investment?: boolean;
   updatedAt?: string;
   syncState?: SyncState;
 }
@@ -161,9 +163,11 @@ export interface Budget {
   effectiveLimit: number;
   remaining: number;
   percentUsed: number;
-  status: "OK" | "WARNING" | "EXCEEDED";
+  status: "OK" | "WARNING" | "EXCEEDED" | "GOAL_REACHED";
   crossedThresholds: number[];
   active: boolean;
+  /** Investment goal: spent is the invested net, remaining is the amount still to go. */
+  goal?: boolean;
 }
 
 export interface BudgetPayload {

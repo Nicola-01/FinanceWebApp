@@ -115,3 +115,27 @@ describe("buildMonthlyBuckets", () => {
     expect(buckets[0].date.getMonth()).toBe(6);
   });
 });
+
+describe("buildMonthlyBuckets with investment tags", () => {
+  it("leaves investment flows out of the buckets and skips months with only investments", () => {
+    const stocks = { name: "Stocks", icon: "tag", colorHex: "#fff" };
+    const buckets = buildMonthlyBuckets(
+      [
+        tx({
+          type: "INCOME",
+          amount: 100,
+          transactionDate: "2024-01-10T12:00:00",
+        }),
+        tx({
+          type: "EXPENSE",
+          amount: 999,
+          tag: stocks,
+          transactionDate: "2024-02-10T12:00:00",
+        }),
+      ],
+      new Set(["Stocks"]),
+    );
+    expect(buckets).toHaveLength(1);
+    expect(buckets[0]).toMatchObject({ income: 100, expense: 0 });
+  });
+});

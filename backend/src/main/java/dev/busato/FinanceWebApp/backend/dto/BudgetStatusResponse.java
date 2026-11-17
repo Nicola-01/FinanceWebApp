@@ -29,7 +29,8 @@ public class BudgetStatusResponse {
   private BigDecimal effectiveLimit; // limitAmount + rollover carry
   private BigDecimal remaining;
   private int percentUsed; // floored; pinned to 100 when effectiveLimit <= 0
-  private String status; // "OK" | "WARNING" | "EXCEEDED"
+  private String status; // "OK" | "WARNING" | "EXCEEDED" (budgets) | "OK" | "GOAL_REACHED" (goals)
   private List<Integer> crossedThresholds;
   private boolean active;
+  private boolean goal; // true when the budget targets an investment tag (progress = invested net)
 }

@@ -11,6 +11,7 @@ import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import { OverviewRow } from "./OverviewRow.tsx";
 import { OverviewCellContent } from "./OverviewCell.tsx";
 import { useOverviewData, type ViewMode } from "./useOverviewData.ts";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 
 const TABS = [
   { key: "monthly", label: "Monthly", title: "Monthly Overview" },
@@ -25,6 +26,7 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({
   transactions,
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
+  const invest = useInvestmentTags();
 
   const {
     selectedYear,
@@ -35,7 +37,7 @@ export const OverviewTable: React.FC<MonthlyOverviewProps> = ({
     dataItems,
     totals,
     scrollContainerRef,
-  } = useOverviewData(transactions, viewMode);
+  } = useOverviewData(transactions, viewMode, invest);
 
   const isMonthly = viewMode === "monthly";
 

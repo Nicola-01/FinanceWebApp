@@ -92,6 +92,7 @@ describe("v2 helpers", () => {
       OK: "ok",
       WARNING: "warn",
       EXCEEDED: "danger",
+      GOAL_REACHED: "ok",
     });
   });
 

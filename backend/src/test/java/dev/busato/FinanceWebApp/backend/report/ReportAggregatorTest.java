@@ -203,6 +203,90 @@ class ReportAggregatorTest {
     assertEquals(new BigDecimal("500.00"), travelTotal.previousAmount());
   }
 
+  // ── investments ─────────────────────────────────────────────────────────
+
+  private static Tag investmentTag(String name) {
+    return Tag.builder().name(name).investment(true).build();
+  }
+
+  @Test
+  void monthly_excludesInvestmentsFromExpense() {
+    Tag etf = investmentTag("ETF");
+    List<Transaction> all =
+        List.of(
+            tx("rent", "1000.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 3), null),
+            tx("buy ETF", "500.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 4), etf));
+
+    WalletMonthlyReport r = aggregator.monthly(wallet, all, YearMonth.of(2026, 6));
+
+    assertEquals(new BigDecimal("1000.00"), r.totals().expense());
+    assertEquals(1, r.topExpenseCategories().size());
+    assertEquals("Uncategorized", r.topExpenseCategories().get(0).name());
+    assertEquals(
+        new BigDecimal("1000.00"),
+        r.charts().dailyExpense().values().stream().reduce(BigDecimal::add).orElseThrow());
+  }
+
+  @Test
+  void monthly_totalsInvestedAndLiquidity() {
+    Tag etf = investmentTag("ETF");
+    List<Transaction> all =
+        List.of(
+            tx("salary", "2400.00", Transaction.Type.INCOME, LocalDate.of(2026, 6, 1), null),
+            tx("spent", "1380.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 5), null),
+            tx("bought", "500.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 6), etf),
+            tx("cashed out", "200.00", Transaction.Type.INCOME, LocalDate.of(2026, 6, 7), etf));
+
+    PeriodTotals t = aggregator.monthly(wallet, all, YearMonth.of(2026, 6)).totals();
+
+    assertEquals(new BigDecimal("2400.00"), t.income());
+    assertEquals(new BigDecimal("1380.00"), t.expense());
+    assertEquals(new BigDecimal("1020.00"), t.net());
+    assertEquals(new BigDecimal("500.00"), t.invested());
+    assertEquals(new BigDecimal("200.00"), t.cashedOut());
+    assertEquals(new BigDecimal("300.00"), t.investedNet());
+    assertEquals(new BigDecimal("720.00"), t.liquidityLeft());
+    // The running balance still counts every transaction, investments included.
+    assertEquals(
+        new BigDecimal("720.00"),
+        aggregator.monthly(wallet, all, YearMonth.of(2026, 6)).endBalance());
+  }
+
+  @Test
+  void monthly_insightsNeverListInvestmentTags() {
+    Tag etf = investmentTag("ETF");
+    List<Transaction> all =
+        List.of(
+            tx("rent", "100.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 3), null),
+            tx("buy ETF", "900.00", Transaction.Type.EXPENSE, LocalDate.of(2026, 6, 4), etf),
+            tx("sell ETF", "300.00", Transaction.Type.INCOME, LocalDate.of(2026, 6, 5), etf));
+
+    ReportInsights in = aggregator.monthly(wallet, all, YearMonth.of(2026, 6)).insights();
+
+    assertEquals(1, in.expenseCategories().size());
+    assertEquals("Uncategorized", in.expenseCategories().get(0).name());
+    assertTrue(in.incomeCategories().isEmpty());
+    assertEquals(1, in.biggestExpenses().size());
+    assertEquals("rent", in.biggestExpenses().get(0).name());
+    assertTrue(in.biggestIncomes().isEmpty());
+  }
+
+  @Test
+  void yearly_excludesInvestmentsFromRecords() {
+    Tag etf = investmentTag("ETF");
+    List<Transaction> all =
+        List.of(
+            tx("laptop", "950.00", Transaction.Type.EXPENSE, LocalDate.of(2025, 4, 2), null),
+            tx("big buy", "5000.00", Transaction.Type.EXPENSE, LocalDate.of(2025, 4, 3), etf));
+
+    WalletYearlyReport r = aggregator.yearly(wallet, all, 2025);
+
+    assertEquals(new BigDecimal("950.00"), r.totals().expense());
+    assertEquals("laptop", r.records().biggestExpenseName());
+    assertEquals(new BigDecimal("950.00"), r.records().mostExpensiveDayTotal());
+    assertEquals(new BigDecimal("5000.00"), r.totals().invested());
+  }
+
   // ── charts ──────────────────────────────────────────────────────────────
 
   @Test

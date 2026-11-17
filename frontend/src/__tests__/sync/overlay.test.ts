@@ -260,6 +260,22 @@ describe("applyPendingOps", () => {
     expect(result.transactions[0].tag.name).toBe("Food");
   });
 
+  it("6b. a pending tag update keeps the investment flag", () => {
+    const data = buildData();
+    const op = makeOp({
+      entityType: "tag",
+      entityKey: "Food",
+      op: "update",
+      payload: { investment: true },
+    });
+
+    const result = applyPendingOps(data, [op]);
+
+    const flagged = result.tags.find((t) => t.name === "Food");
+    expect(flagged?.investment).toBe(true);
+    expect(flagged?.icon).toBe(foodTag.icon);
+  });
+
   it("7. tag delete drops the tag and its children (parentName match)", () => {
     const data = buildData();
     const op = makeOp({

@@ -89,6 +89,11 @@ export const CategoryTreeList: React.FC<CategoryTreeListProps> = ({
                           readOnly={readOnly}
                           draggable={dragEnabled}
                           occurrences={counts[c.name] ?? 0}
+                          inheritedFrom={
+                            node.parent.investment
+                              ? node.parent.name
+                              : undefined
+                          }
                           onUpdateTag={onUpdateTag}
                           onRequestDelete={onRequestDelete}
                         />

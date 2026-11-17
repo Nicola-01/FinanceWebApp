@@ -5,6 +5,13 @@ import userEvent from "@testing-library/user-event";
 import type { Transaction } from "../../../types/domain.ts";
 import { formatAmount } from "../../../utils/format.ts";
 
+const { investTags } = vi.hoisted(() => ({
+  investTags: { current: new Set<string>() },
+}));
+vi.mock("../../../dashboard/wallet/useInvestmentTags.ts", () => ({
+  useInvestmentTags: () => investTags.current,
+}));
+
 vi.mock("../../../components/ui/SwitchableCard.tsx", () => ({
   SwitchableCard: (props: {
     tabs: { key: string; label: string }[];
@@ -102,5 +109,28 @@ describe("OverviewTableV2", () => {
       screen.getByRole("button", { name: "Previous year" }),
     );
     expect(screen.getByText("2023")).toBeInTheDocument();
+  });
+
+  it("leaves investment tags out of the monthly income and spent", () => {
+    investTags.current = new Set(["Stocks"]);
+    render(
+      <OverviewTableV2
+        transactions={[
+          ...transactions,
+          {
+            ...tx({
+              transactionDate: "2024-01-20T12:00:00",
+              type: "EXPENSE",
+              amount: 700,
+            }),
+            tag: { name: "Stocks", icon: "tag", colorHex: "#fff" },
+          },
+        ]}
+      />,
+    );
+    const jan = rowFor("January");
+    expect(jan.textContent).toContain(formatAmount(100));
+    expect(jan.textContent).not.toContain(formatAmount(800));
+    investTags.current = new Set();
   });
 });

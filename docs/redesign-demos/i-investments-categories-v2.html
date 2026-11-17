@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investments: Categories tab, show/hide toggle</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141312; --card: #1d1c1a; --raised: #262421; --border: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --wallet: #6d8cf0; --on-wallet: #0c1230; --income: #7fcf95; --expense: #ec8a76;
+    --invest: #b39cf5; --r-card: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0c0b0b; color: var(--text); font-family: "Instrument Sans", system-ui, sans-serif; padding: 28px 24px 80px; }
+  h1.page { font: 600 22px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 80ch; line-height: 1.5; }
+  h2.sec { font: 600 18px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; margin: 48px 0 6px; }
+  .rec { display: inline-block; font-size: 11px; font-weight: 600; color: var(--on-wallet); background: var(--wallet); border-radius: 99px; padding: 2px 8px; margin-left: 6px; vertical-align: 3px; }
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 20px; }
+  .pick { cursor: pointer; border-radius: 14px; padding: 10px; outline: 2px solid transparent; }
+  .pick.selected { outline-color: var(--wallet); }
+  .cap { color: var(--muted); font-size: 12.5px; margin-bottom: 8px; }
+
+  .phone { width: 375px; background: var(--bg); border-radius: 36px; padding: 40px 16px 24px; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .5); display: flex; flex-direction: column; gap: 12px; }
+  .desk { width: 860px; background: var(--bg); border-radius: 14px; padding: 22px; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .5); }
+  .desk .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+  .strip { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+  .strip b { font: 600 20px/1.2 "Bricolage Grotesque", sans-serif; }
+  .card { background: var(--card); border-radius: var(--r-card); padding: 16px; }
+  .card h3 { font: 600 16px/1.2 "Bricolage Grotesque", sans-serif; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .sb { display: block; width: 100%; max-width: 300px; margin: 8px auto 0; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font: 600 12.5px "Instrument Sans"; border-radius: 99px; padding: 5px 10px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+  .chip.on { color: var(--invest); border-color: color-mix(in srgb, var(--invest) 45%, transparent); background: color-mix(in srgb, var(--invest) 12%, transparent); }
+  .sw { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .sw .tg { width: 34px; height: 20px; border-radius: 99px; background: var(--invest); position: relative; }
+  .sw .tg::after { content: ""; position: absolute; right: 3px; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: #1a1430; }
+  .legrow { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .legrow span { display: inline-flex; align-items: center; gap: 5px; }
+  .legrow i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+  .legrow .off { opacity: .45; text-decoration: line-through; }
+</style>
+</head>
+<body>
+<h1 class="page">Categories tab: investments in the pies, with a show/hide toggle</h1>
+<p class="lead">Proposal B from before, extended both ways: with investments shown, the <b>Expense</b> sunburst gets a violet "Investments" parent slice (what you <b>bought</b>: PAC 300, ETF 200), and the <b>Income</b> sunburst gets one for what you <b>cashed out</b> (ETF 200). Children keep the tag tree as today (inner ring = parent, outer ring = subtag). The centre total follows the toggle: “1.380 € spent” ↔ “1.880 € out · 500 invested”.</p>
+<p class="lead">Three places for the toggle. Default <b>off</b> (so the pies match the “Spent” tile), remembered per device.</p>
+
+<div id="out"></div>
+
+<script>
+// Sunburst: [parent, value, colour, [[child, value], ...]]
+function sunburst(data, centre, sub) {
+  const tot = data.reduce((a, d) => a + d[1], 0), cx = 150, cy = 150;
+  const arc = (r0, r1, a0, a1, c, op = 1) => {
+    const p = (r, a) => `${(cx + r * Math.cos(a)).toFixed(1)} ${(cy + r * Math.sin(a)).toFixed(1)}`, lg = a1 - a0 > Math.PI ? 1 : 0;
+    return `<path d="M${p(r1, a0)} A${r1} ${r1} 0 ${lg} 1 ${p(r1, a1)} L${p(r0, a1)} A${r0} ${r0} 0 ${lg} 0 ${p(r0, a0)}Z" fill="${c}" opacity="${op}" stroke="#1d1c1a" stroke-width="2"/>`;
+  };
+  let a = -Math.PI / 2, s = "", labels = "";
+  for (const [n, v, c, kids] of data) {
+    const a1 = a + v / tot * Math.PI * 2; s += arc(36, 104, a, a1, c);
+    const m = (a + a1) / 2; labels += `<text x="${cx + 72 * Math.cos(m)}" y="${cy + 72 * Math.sin(m) + 4}" text-anchor="middle" font-size="11" font-weight="600" fill="#141312">${n}</text>`;
+    let b = a;
+    for (const [kn, kv] of kids) { const b1 = b + kv / tot * Math.PI * 2; s += arc(108, 122, b, b1, c, .6);
+      const km = (b + b1) / 2; labels += `<text x="${cx + 138 * Math.cos(km)}" y="${cy + 138 * Math.sin(km) + 4}" text-anchor="middle" font-size="10.5" fill="${c === '#b39cf5' ? '#b39cf5' : '#c9c4bb'}">${kn}</text>`; b = b1; }
+    a = a1;
+  }
+  return `<svg class="sb" viewBox="0 0 300 300">${s}<circle cx="${cx}" cy="${cy}" r="34" fill="#1d1c1a"/>${labels}<text x="${cx}" y="${cy + 1}" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="600" font-size="15" fill="#efece6">${centre}</text><text x="${cx}" y="${cy + 16}" text-anchor="middle" font-size="9.5" fill="#9a958c">${sub}</text></svg>`;
+}
+const EXP = [["Home", 700, "#61b3f5", [["Rent", 700]]], ["Groceries", 380, "#ffb44f", [["Food", 380]]], ["Car", 300, "#ff8a65", [["Gasoline", 220], ["Car Tax", 80]]]];
+const INV_OUT = ["Investments", 500, "#b39cf5", [["PAC", 300], ["ETF", 200]]];
+const INC = [["Salary", 2400, "#7fcf95", [["Salary", 2400]]]];
+const INV_IN = ["Investments", 200, "#b39cf5", [["ETF", 200]]];
+
+const expOn = sunburst([...EXP, INV_OUT], "1.880 €", "out · 500 invested");
+const incOn = sunburst([...INC, INV_IN], "2.600 €", "in · 200 cashed out");
+
+const P = {
+  A: { t: "A. One switch for the whole tab, in the header strip", l: "“Investments” switch next to the period, drives both pies, the ranking and the trend at once. One decision, one place; on the phone it sits in the strip above the cards.",
+       head: `<div class="strip"><b>Categories</b><span class="sw">Investments <span class="tg"></span></span></div>`, chip: "" },
+  B: { t: "B. A chip in each chart's header", l: "Each card has its own “↗ Investments” chip. You can show them in Expenses and keep Income clean. More control, but two switches that can disagree.",
+       head: `<div class="strip"><b>Categories</b></div>`, chip: `<span class="chip on">↗ Investments</span>` },
+  C: { t: "C. Legend chip under each pie", l: "Each pie gets a legend row; the violet “Investments” entry is tappable to hide/show it (struck through when hidden). Feels like a chart legend; least visible as a switch.",
+       head: `<div class="strip"><b>Categories</b></div>`, chip: "", legend: true },
+};
+let html = "";
+for (const [k, p] of Object.entries(P)) {
+  const leg = (rows) => p.legend ? `<div class="legrow">${rows.map(([n, , c]) => `<span><i style="background:${c}"></i>${n}</span>`).join("")}</div>` : "";
+  const exp = `<div class="card"><h3>Expense distribution ${p.chip}</h3>${expOn}${leg([...EXP, INV_OUT])}</div>`;
+  const inc = `<div class="card"><h3>Income distribution ${p.chip}</h3>${incOn}${leg([...INC, INV_IN])}</div>`;
+  html += `<h2 class="sec">${p.t}${k === "A" ? '<span class="rec">Recommended</span>' : ""}</h2><p class="lead">${p.l}</p>
+  <div class="row pick" data-choice="${k}" onclick="document.querySelectorAll('.pick').forEach(e=>e.classList.remove('selected'));this.classList.add('selected');window.brainstorm&&brainstorm.send({type:'click',choice:'${k}'})">
+    <div><div class="cap">Phone (investments shown)</div><div class="phone">${p.head}${exp}</div></div>
+    <div><div class="cap">Desktop (investments shown)</div><div class="desk">${p.head}<div class="pair">${exp}${inc}</div></div></div></div>`;
+}
+document.getElementById("out").innerHTML = html;
+</script>
+</body>
+</html>

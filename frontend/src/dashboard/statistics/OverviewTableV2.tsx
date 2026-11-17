@@ -5,6 +5,7 @@ import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { formatAmount } from "../../utils/format.ts";
 import { useOverviewData, type ViewMode } from "./useOverviewData.ts";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 
 const fullMonth = (m: number) =>
   new Date(2000, m, 1).toLocaleString("en-US", { month: "long" });
@@ -63,6 +64,7 @@ export const OverviewTableV2: React.FC<OverviewTableV2Props> = ({
   transactions,
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
+  const invest = useInvestmentTags();
   const {
     selectedYear,
     setSelectedYear,
@@ -71,7 +73,7 @@ export const OverviewTableV2: React.FC<OverviewTableV2Props> = ({
     columns,
     dataItems,
     totals,
-  } = useOverviewData(transactions, viewMode);
+  } = useOverviewData(transactions, viewMode, invest);
 
   const isMonthly = viewMode === "monthly";
   const periods: Period[] = columns.map((c, i) => ({

@@ -77,6 +77,32 @@ describe("summarizeSubscriptions", () => {
     expect(s.costSegments.map((x) => x.id)).toEqual(["a", "b"]);
   });
 
+  it("splits investment subscriptions out of the cost and income totals", () => {
+    const invest = new Set(["Fund"]);
+    const s = summarizeSubscriptions(
+      [
+        sub({ id: "rent", amount: 420 }),
+        sub({
+          id: "pac",
+          amount: 300,
+          tag: { name: "Fund", icon: "tag", colorHex: "#b39cf5" },
+        }),
+        sub({
+          id: "dividends",
+          type: "INCOME",
+          amount: 50,
+          tag: { name: "Fund", icon: "tag", colorHex: "#b39cf5" },
+        }),
+      ] as Subscription[],
+      invest,
+    );
+    expect(s.monthlyCost).toBeCloseTo(420);
+    expect(s.yearlyCost).toBeCloseTo(5040);
+    expect(s.monthlyInvested).toBeCloseTo(300);
+    expect(s.monthlyIncome).toBeCloseTo(0);
+    expect(s.costSegments.map((x) => x.id)).toEqual(["rent"]);
+  });
+
   it("keeps the top 5 costs and folds the rest into Other", () => {
     const subs = [1, 2, 3, 4, 5, 6, 7].map((i) =>
       sub({ id: `s${i}`, name: `S${i}`, amount: i }),

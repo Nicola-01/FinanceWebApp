@@ -5,6 +5,7 @@ import { StatTile } from "../../components/ui/StatTile.tsx";
 import { AnimatedNumber } from "../../components/ui/AnimatedNumber.tsx";
 import { useChartPalette } from "./useChartPalette.ts";
 import { summarizePeriod } from "./summaryStats.ts";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 import { defaultPeriod, periodLabel, type StatsPeriod } from "./statsPeriod.ts";
 
 interface StatisticsSummaryV2Props {
@@ -19,7 +20,7 @@ const pct = (fraction: number) => Math.round(fraction * 100);
 const drawable = (rows: { v: number }[]) =>
   rows.length >= 2 && rows.some((r) => r.v !== 0);
 
-/** v2 headline: earned / spent / kept / savings rate for a period, with previous-year deltas. */
+/** v2 headline: earned / spent / invested / kept / savings rate for a period, with previous-year deltas. */
 export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
   transactions,
   period: periodProp,
@@ -32,9 +33,10 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
     () => periodProp ?? defaultPeriod(today),
     [periodProp, today],
   );
+  const invest = useInvestmentTags();
   const summary = useMemo(
-    () => summarizePeriod(transactions, period, today),
-    [transactions, period, today],
+    () => summarizePeriod(transactions, period, today, invest),
+    [transactions, period, today, invest],
   );
   const palette = useChartPalette();
 
@@ -152,7 +154,7 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
   const rateRows = useMemo(() => toRows(series.rate, 100), [series.rate]);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-[14px]">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-[14px]">
       <StatTile
         label={isAll ? "Earned" : `Earned in ${label}`}
         value={summary.earned}
@@ -197,6 +199,17 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
         }
       />
       <StatTile
+        label={isAll ? "Invested" : `Invested in ${label}`}
+        value={summary.invested}
+        currency={currencySymbol}
+        signed
+        sub={
+          <>
+            {amount(summary.bought)} in · {amount(summary.cashedOut)} out
+          </>
+        }
+      />
+      <StatTile
         label="Kept"
         value={summary.kept}
         currency={currencySymbol}
@@ -221,6 +234,7 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
         label="Savings rate"
         value={summary.savingsRate === null ? "—" : summary.savingsRate * 100}
         kind="percent"
+        className="col-span-2 lg:col-span-1"
         sub={rateSub}
         footer={
           drawable(rateRows) ? (

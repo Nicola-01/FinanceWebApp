@@ -51,4 +51,23 @@ describe("TransactionRow", () => {
     renderRow(tx(false, "Plus plan"));
     expect(screen.getByText("Plus plan")).toBeInTheDocument();
   });
+
+  it("marks an investment row with a badge and the invest colour instead of green or red", () => {
+    render(
+      <TransactionRow
+        transaction={tx(false)}
+        onClick={vi.fn()}
+        isFirst
+        isLast={false}
+        isInvestment
+      />,
+    );
+    expect(screen.getByText("Invested")).toBeInTheDocument();
+    expect(screen.getByText(/^-10\.00/).parentElement).toHaveClass(
+      "text-app-invest",
+    );
+    expect(screen.getByText(/^-10\.00/).parentElement).not.toHaveClass(
+      "text-app-red",
+    );
+  });
 });

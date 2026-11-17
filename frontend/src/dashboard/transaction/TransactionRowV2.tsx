@@ -17,11 +17,14 @@ interface TransactionRowV2Props {
   // Same signature as TransactionRow so the table can switch in one place; v2 draws no dividers.
   isFirst: boolean;
   isLast: boolean;
+  /** Investment flow: violet amount with an Invested / Cashed out badge, no green/red. */
+  isInvestment?: boolean;
 }
 
 export const TransactionRowV2: React.FC<TransactionRowV2Props> = ({
   transaction: tx,
   onClick,
+  isInvestment = false,
 }) => {
   const isIncome = tx.type === "INCOME";
   // Older bank imports may carry the counterparty again as the note.
@@ -62,7 +65,14 @@ export const TransactionRowV2: React.FC<TransactionRowV2Props> = ({
       )}
 
       <div className="min-w-0">
-        <div className="truncate font-semibold text-app-text">{title}</div>
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-semibold text-app-text">{title}</span>
+          {isInvestment && (
+            <span className="shrink-0 rounded-full bg-app-invest/15 px-2 py-px text-[11px] font-semibold text-app-invest">
+              {isIncome ? "Cashed out" : "Invested"}
+            </span>
+          )}
+        </div>
         {showSub && (
           <div className="flex min-w-0 items-center gap-1.5 text-[13px] text-app-muted">
             {tx.subscriptionId && (
@@ -95,7 +105,7 @@ export const TransactionRowV2: React.FC<TransactionRowV2Props> = ({
       )}
 
       <div
-        className={`whitespace-nowrap text-right font-semibold tabular-nums ${isIncome ? "text-app-income" : "text-app-text"}`}
+        className={`whitespace-nowrap text-right font-semibold tabular-nums ${isInvestment ? "text-app-invest" : isIncome ? "text-app-income" : "text-app-text"}`}
       >
         {formatAmount(isIncome ? tx.amount : -tx.amount, { signed: true })}
         {symbol && ` ${symbol}`}

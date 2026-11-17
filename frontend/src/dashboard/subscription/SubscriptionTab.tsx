@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarDays, faList } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 import {
   SubscriptionModal,
   type SubscriptionModalHandle,
@@ -36,6 +37,7 @@ export const SubscriptionTab = () => {
   const [ui] = useUiVersion(); // ui-v2-switch
 
   const { wallet, tags } = useWalletContext();
+  const invest = useInvestmentTags();
 
   const modalRef = useRef<SubscriptionModalHandle>(null);
   const detailsModalRef = useRef<SubscriptionDetailsModalHandle>(null);
@@ -87,6 +89,7 @@ export const SubscriptionTab = () => {
           <SubscriptionSummaryV2
             subscriptions={subscriptions}
             currency={wallet.currency}
+            invest={invest}
           />
         </div>
       )}

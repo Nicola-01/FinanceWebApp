@@ -118,6 +118,14 @@ export const CategoryParentRow: React.FC<CategoryParentRowProps> = ({
           onColorChange={edit.setColorVal}
           isOpen={edit.iconOpen}
           onToggle={edit.onIconToggle}
+          investment={
+            readOnly
+              ? undefined
+              : {
+                  checked: edit.isInvestment,
+                  onChange: edit.onInvestmentChange,
+                }
+          }
         />
 
         {edit.isEditing ? (
@@ -151,6 +159,15 @@ export const CategoryParentRow: React.FC<CategoryParentRowProps> = ({
           >
             {parent.name}
           </button>
+        )}
+        {parent.investment && (
+          <span
+            role="img"
+            aria-label="Investment"
+            className="shrink-0 text-app-invest"
+          >
+            ↗
+          </span>
         )}
 
         <SyncStateIcon state={parent.syncState} />

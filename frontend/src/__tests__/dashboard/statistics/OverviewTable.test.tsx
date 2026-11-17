@@ -37,6 +37,13 @@ vi.mock("../../../components/ui/SwitchableCard.tsx", () => ({
   ),
 }));
 
+const { investTags } = vi.hoisted(() => ({
+  investTags: { current: new Set<string>() },
+}));
+vi.mock("../../../dashboard/wallet/useInvestmentTags.ts", () => ({
+  useInvestmentTags: () => investTags.current,
+}));
+
 import { OverviewTable } from "../../../dashboard/statistics/OverviewTable.tsx";
 
 // jsdom does not implement Element.scrollTo; the auto-scroll effect calls it.
@@ -147,5 +154,27 @@ describe("OverviewTable", () => {
     render(<OverviewTable transactions={[]} />);
     const currentYear = String(new Date().getFullYear());
     expect(screen.getByTestId("center")).toHaveTextContent(currentYear);
+  });
+
+  it("leaves investment tags out of the monthly cells and totals", () => {
+    investTags.current = new Set(["Stocks"]);
+    render(
+      <OverviewTable
+        transactions={[
+          ...transactions2024,
+          {
+            ...tx({
+              transactionDate: "2024-01-20T12:00:00",
+              type: "EXPENSE",
+              amount: 700,
+            }),
+            tag: { name: "Stocks", icon: "tag", colorHex: "#fff" },
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText(`-${fmt(100)}`)).toBeInTheDocument();
+    expect(screen.queryByText(`-${fmt(800)}`)).toBeNull();
+    investTags.current = new Set();
   });
 });

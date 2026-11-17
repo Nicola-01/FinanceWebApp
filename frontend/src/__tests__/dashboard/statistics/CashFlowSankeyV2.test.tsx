@@ -84,7 +84,7 @@ describe("CashFlowSankey (v2)", () => {
       "Salary",
       "Income",
       "Rent",
-      "Savings",
+      "Liquidity left",
     ]);
     expect(data.links).toEqual([
       { source: 0, target: 1, value: 1000 },

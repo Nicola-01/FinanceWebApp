@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -122,5 +123,47 @@ class DemoServiceTest {
                     sub.getStatus() == Subscription.Status.ACTIVE
                         && sub.getDuration() == Subscription.Duration.FOREVER
                         && sub.getNextExecutionDate() != null));
+  }
+
+  @Test
+  void generateDemoWallet_HasFlaggedInvestmentsTagWithPacTransactions() {
+    when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+    when(walletRepository.save(any(Wallet.class)))
+        .thenAnswer(
+            i -> {
+              Wallet w = i.getArgument(0);
+              w.setId(UUID.randomUUID());
+              return w;
+            });
+    when(tagRepository.save(any(Tag.class))).thenAnswer(i -> i.getArgument(0));
+
+    demoService.generateDemoWallet(userId);
+
+    ArgumentCaptor<Tag> tagCaptor = ArgumentCaptor.forClass(Tag.class);
+    verify(tagRepository, atLeastOnce()).save(tagCaptor.capture());
+    Tag investments =
+        tagCaptor.getAllValues().stream()
+            .filter(t -> "Investments".equals(t.getName()))
+            .findFirst()
+            .orElseThrow();
+    Tag pac =
+        tagCaptor.getAllValues().stream()
+            .filter(t -> "PAC".equals(t.getName()))
+            .findFirst()
+            .orElseThrow();
+    assertTrue(investments.isInvestment());
+    assertSame(investments, pac.getParent());
+
+    verify(transactionRepository)
+        .saveAll(
+            argThat(
+                transactions -> {
+                  for (Transaction tx : transactions) {
+                    if (tx.getTag() != null
+                        && "PAC".equals(tx.getTag().getName())
+                        && tx.getType() == Transaction.Type.EXPENSE) return true;
+                  }
+                  return false;
+                }));
   }
 }

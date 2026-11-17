@@ -26,6 +26,7 @@ import {
   tooltipSxV2,
 } from "./chartTheme.ts";
 import { useChartPalette } from "./useChartPalette.ts";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 
 export type MonthlyChartSeries = AllSeriesType[];
 
@@ -67,6 +68,8 @@ export const MonthlyChart: React.FC<
   const { resolvedTheme } = useTheme();
   const { isV2, grid, axis } = useChartPalette();
   const clipPathId = useId();
+  // Investment tags are left out of the income/expense rows.
+  const invest = useInvestmentTags();
   // ui-v2-switch: v2 drops the axis lines and uses the faint 12px labels.
   const xAxisV2 = isV2
     ? {
@@ -90,8 +93,8 @@ export const MonthlyChart: React.FC<
       };
 
   const dataset = useMemo(
-    () => buildRows(buildMonthlyBuckets(transactions)),
-    [transactions, buildRows],
+    () => buildRows(buildMonthlyBuckets(transactions, invest)),
+    [transactions, buildRows, invest],
   );
 
   if (dataset.length === 0) {

@@ -1,6 +1,7 @@
 package dev.busato.FinanceWebApp.backend.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -582,5 +583,63 @@ class TagServiceTest {
     assertThrows(
         IllegalArgumentException.class,
         () -> tagService.updateTag("OriginalName", request, walletId, userId));
+  }
+
+  // ==================== investment flag ====================
+
+  @Test
+  void createTag_withInvestment_persists() {
+    TagRequest request = TagRequest.builder().name("Investments").investment(true).build();
+
+    when(tagRepository.existsByNameIgnoreCaseAndWalletId("Investments", walletId))
+        .thenReturn(false);
+    when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+
+    tagService.createTag(request, walletId, userId);
+
+    ArgumentCaptor<Tag> captor = ArgumentCaptor.forClass(Tag.class);
+    verify(tagRepository).save(captor.capture());
+    assertTrue(captor.getValue().isInvestment());
+  }
+
+  @Test
+  void updateTag_investmentNull_unchanged() {
+    Tag tag = Tag.builder().name("Investments").investment(true).build();
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Investments", walletId))
+        .thenReturn(Optional.of(tag));
+
+    tagService.updateTag("Investments", TagRequest.builder().build(), walletId, userId);
+
+    assertTrue(tag.isInvestment());
+  }
+
+  @Test
+  void updateTag_investmentFalse_clears() {
+    Tag tag = Tag.builder().name("Investments").investment(true).build();
+    when(tagRepository.findByNameIgnoreCaseAndWalletId("Investments", walletId))
+        .thenReturn(Optional.of(tag));
+
+    tagService.updateTag(
+        "Investments", TagRequest.builder().investment(false).build(), walletId, userId);
+
+    assertFalse(tag.isInvestment());
+  }
+
+  @Test
+  void bulkUpsert_investmentCarried() {
+    Tag existingInvestments = Tag.builder().name("Investments").investment(true).build();
+    Tag existingBills = Tag.builder().name("Bills").build();
+    when(walletRepository.getReferenceById(walletId)).thenReturn(wallet);
+    when(tagRepository.getTagsByWalletId(walletId))
+        .thenReturn(List.of(existingInvestments, existingBills));
+
+    // Null flag leaves an existing investment tag alone; an explicit true flags another one.
+    TagRequest keep = TagRequest.builder().name("Investments").build();
+    TagRequest flag = TagRequest.builder().name("bills").investment(true).build();
+
+    tagService.createTagsBulk(List.of(keep, flag), walletId, userId);
+
+    assertTrue(existingInvestments.isInvestment());
+    assertTrue(existingBills.isInvestment());
   }
 }

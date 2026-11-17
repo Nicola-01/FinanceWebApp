@@ -6,21 +6,25 @@ import {
   CURRENCY_META,
   type CurrencyCode,
 } from "../../utils/currencies/index.ts";
+import { AnimatedNumber } from "../../components/ui/AnimatedNumber.tsx";
 import { summarizeSubscriptions } from "./subscriptionSummary";
 
 interface SubscriptionSummaryV2Props {
   subscriptions: Subscription[];
   currency: string;
+  /** Investment tag names (see useInvestmentTags); their subscriptions are invested, not cost. */
+  invest?: Set<string>;
 }
 
 /** v2 top box: recurring cost, yearly cost and income tiles, plus the cost split by subscription. */
 export const SubscriptionSummaryV2: React.FC<SubscriptionSummaryV2Props> = ({
   subscriptions,
   currency,
+  invest,
 }) => {
   const summary = useMemo(
-    () => summarizeSubscriptions(subscriptions),
-    [subscriptions],
+    () => summarizeSubscriptions(subscriptions, invest),
+    [subscriptions, invest],
   );
   const symbol = CURRENCY_META[currency as CurrencyCode]?.symbol ?? "";
 
@@ -31,6 +35,17 @@ export const SubscriptionSummaryV2: React.FC<SubscriptionSummaryV2Props> = ({
           label="Recurring cost / month"
           value={summary.monthlyCost}
           currency={symbol}
+          sub={
+            summary.monthlyInvested > 0 ? (
+              <>
+                <AnimatedNumber
+                  value={summary.monthlyInvested}
+                  currency={symbol}
+                />{" "}
+                <span>Invested / month</span>
+              </>
+            ) : undefined
+          }
         />
         <StatTile
           label="Over a year"

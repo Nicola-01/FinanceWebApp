@@ -100,6 +100,7 @@ public class ReportHtmlBuilder {
             r.previousTotals() == null ? null : r.previousTotals().net(),
             r.currency(),
             true));
+    s.append(investedRows(r.totals(), r.currency()));
     s.append(kpiRow("Balance at end of month", r.endBalance(), null, r.currency(), true));
     s.append("</table>");
     s.append(
@@ -135,6 +136,20 @@ public class ReportHtmlBuilder {
     }
     row.append("</td></tr>");
     return row.toString();
+  }
+
+  /** Invested / Liquidity rows; omitted entirely when the period has no investment flows. */
+  static String investedRows(PeriodTotals t, String currency) {
+    if (t.invested().signum() == 0 && t.cashedOut().signum() == 0) return "";
+    return "<tr><td class=\"label\">Invested</td><td class=\"amount\">"
+        + formatAmount(t.investedNet(), currency)
+        + " ("
+        + formatAmount(t.invested(), currency)
+        + " in · "
+        + formatAmount(t.cashedOut(), currency)
+        + " out)</td></tr><tr><td class=\"label\">Liquidity left</td><td class=\"amount\">"
+        + formatAmount(t.liquidityLeft(), currency)
+        + "</td></tr>";
   }
 
   String categoryBlock(
@@ -263,6 +278,7 @@ public class ReportHtmlBuilder {
             r.previousTotals() == null ? null : r.previousTotals().net(),
             r.currency(),
             true));
+    s.append(investedRows(r.totals(), r.currency()));
     s.append("</table>");
     s.append(monthTable(r));
     s.append(

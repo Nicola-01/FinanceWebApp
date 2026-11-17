@@ -6,6 +6,8 @@ import {
 } from "../../../dashboard/statistics/summaryStats.ts";
 import { MONTH_LABELS } from "../../../utils/months.ts";
 
+const NONE = new Set<string>();
+
 const tag = { name: "General", icon: "tag", colorHex: "#fff" };
 const tx = (over: Partial<Transaction>): Transaction => ({
   id: Math.random().toString(36).slice(2),
@@ -19,23 +21,26 @@ const tx = (over: Partial<Transaction>): Transaction => ({
 
 describe("summarize", () => {
   it("totals income and expense and averages over active months", () => {
-    const result = summarize([
-      tx({
-        type: "INCOME",
-        amount: 1000,
-        transactionDate: "2024-01-10T12:00:00",
-      }),
-      tx({
-        type: "EXPENSE",
-        amount: 300,
-        transactionDate: "2024-01-11T12:00:00",
-      }),
-      tx({
-        type: "INCOME",
-        amount: 500,
-        transactionDate: "2024-03-10T12:00:00",
-      }),
-    ]);
+    const result = summarize(
+      [
+        tx({
+          type: "INCOME",
+          amount: 1000,
+          transactionDate: "2024-01-10T12:00:00",
+        }),
+        tx({
+          type: "EXPENSE",
+          amount: 300,
+          transactionDate: "2024-01-11T12:00:00",
+        }),
+        tx({
+          type: "INCOME",
+          amount: 500,
+          transactionDate: "2024-03-10T12:00:00",
+        }),
+      ],
+      NONE,
+    );
     expect(result).toEqual({
       income: 1500,
       expense: 300,
@@ -47,7 +52,7 @@ describe("summarize", () => {
   });
 
   it("returns zeros without transactions", () => {
-    expect(summarize([])).toEqual({
+    expect(summarize([], NONE)).toEqual({
       income: 0,
       expense: 0,
       net: 0,
@@ -72,6 +77,7 @@ describe("summarizePeriod", () => {
       ],
       { kind: "year", year: 2026 },
       today,
+      NONE,
     );
     expect(result.series.labels).toEqual(MONTH_LABELS);
     expect(result.series.earned).toEqual([1000, 500, 0, ...nulls(9)]);
@@ -95,6 +101,7 @@ describe("summarizePeriod", () => {
       ],
       { kind: "year", year: 2025 },
       today,
+      NONE,
     );
     expect(result.series.earned).toEqual([
       0,
@@ -113,6 +120,7 @@ describe("summarizePeriod", () => {
       [],
       { kind: "year", year: 2027 },
       new Date(2026, 10, 13),
+      NONE,
     );
     expect(result.series.earned).toEqual(nulls(12));
     expect(result.series.rate).toEqual(nulls(12));
@@ -130,6 +138,7 @@ describe("summarizePeriod", () => {
       ],
       { kind: "all" },
       today,
+      NONE,
     );
     expect(result.series.labels).toEqual([
       "2022",
@@ -153,6 +162,7 @@ describe("summarizePeriod", () => {
       [tx({ type: "EXPENSE", amount: 100, transactionDate: "2026-03-01" })],
       { kind: "year", year: 2026 },
       new Date(2026, 10, 13),
+      NONE,
     );
     expect(result.earned).toBe(0);
     expect(result.savingsRate).toBeNull();
@@ -172,6 +182,7 @@ describe("summarizePeriod", () => {
       ],
       { kind: "year", year: 2026 },
       today,
+      NONE,
     );
     expect(result.vsPrevious).toEqual({
       label: "2025",
@@ -188,6 +199,7 @@ describe("summarizePeriod", () => {
       [tx({ type: "EXPENSE", amount: 5, transactionDate: "2026-01-05" })],
       { kind: "year", year: 2026 },
       today,
+      NONE,
     );
     expect(none.vsPrevious).toBeNull();
 
@@ -195,6 +207,7 @@ describe("summarizePeriod", () => {
       [tx({ type: "EXPENSE", amount: 5, transactionDate: "2025-12-05" })],
       { kind: "year", year: 2026 },
       today,
+      NONE,
     );
     expect(onlyDecember.vsPrevious).toBeNull();
 
@@ -202,6 +215,7 @@ describe("summarizePeriod", () => {
       [tx({ type: "INCOME", amount: 5, transactionDate: "2025-01-05" })],
       { kind: "year", year: 2026 },
       today,
+      NONE,
     );
     expect(incomeOnly.vsPrevious).toEqual({
       label: "2025",
@@ -222,6 +236,7 @@ describe("summarizePeriod", () => {
       ],
       { kind: "year", year: 2026 },
       today,
+      NONE,
     );
     expect(spendOnly.vsPrevious).toEqual({
       label: "2025",
@@ -238,6 +253,7 @@ describe("summarizePeriod", () => {
       ],
       { kind: "year", year: 2026 },
       today,
+      NONE,
     );
     expect(rising.vsPrevious?.earnedPct).toBeCloseTo(0.5);
   });
@@ -247,21 +263,150 @@ describe("summarizePeriod", () => {
       [],
       { kind: "year", year: 2026 },
       new Date(2026, 10, 13),
+      NONE,
     );
     expect(result.months).toBe(11);
   });
 
   it("empty input yields zeros, empty all-time series and no comparison", () => {
     const today = new Date(2026, 10, 13);
-    expect(summarizePeriod([], { kind: "all" }, today)).toEqual({
+    expect(summarizePeriod([], { kind: "all" }, today, NONE)).toEqual({
       earned: 0,
       spent: 0,
       kept: 0,
       savingsRate: null,
+      bought: 0,
+      cashedOut: 0,
+      invested: 0,
       months: 0,
       avgEarnedPerMonth: 0,
       series: { labels: [], earned: [], spent: [], kept: [], rate: [] },
       vsPrevious: null,
+    });
+  });
+});
+
+describe("investment flows", () => {
+  const INVEST = new Set(["Stocks"]);
+  const stocks = { name: "Stocks", icon: "tag", colorHex: "#fff" };
+  const year2026 = { kind: "year", year: 2026 } as const;
+  const today = new Date(2026, 10, 13);
+
+  it("summarizePeriod excludes investment tags from earned and spent and reports bought, cashed out and invested", () => {
+    const result = summarizePeriod(
+      [
+        tx({ type: "INCOME", amount: 2400, transactionDate: "2026-01-05" }),
+        tx({ type: "EXPENSE", amount: 1380, transactionDate: "2026-01-06" }),
+        tx({
+          type: "EXPENSE",
+          amount: 500,
+          tag: stocks,
+          transactionDate: "2026-01-07",
+        }),
+        tx({
+          type: "INCOME",
+          amount: 200,
+          tag: stocks,
+          transactionDate: "2026-02-07",
+        }),
+      ],
+      year2026,
+      today,
+      INVEST,
+    );
+    expect(result.earned).toBe(2400);
+    expect(result.spent).toBe(1380);
+    expect(result.kept).toBe(1020);
+    expect(result.savingsRate).toBeCloseTo(1020 / 2400);
+    expect(result.bought).toBe(500);
+    expect(result.cashedOut).toBe(200);
+    expect(result.invested).toBe(300);
+    expect(result.series.spent.slice(0, 2)).toEqual([1380, 0]);
+    expect(result.series.earned.slice(0, 2)).toEqual([2400, 0]);
+  });
+
+  it("a period where cashed out exceeds bought has a negative invested", () => {
+    const result = summarizePeriod(
+      [
+        tx({
+          type: "INCOME",
+          amount: 500,
+          tag: stocks,
+          transactionDate: "2026-03-01",
+        }),
+        tx({ type: "INCOME", amount: 1000, transactionDate: "2026-03-02" }),
+      ],
+      year2026,
+      today,
+      INVEST,
+    );
+    expect(result.bought).toBe(0);
+    expect(result.cashedOut).toBe(500);
+    expect(result.invested).toBe(-500);
+    expect(result.earned).toBe(1000);
+  });
+
+  it("savings rate is null when earned is zero, even with investment activity", () => {
+    const result = summarizePeriod(
+      [
+        tx({
+          type: "EXPENSE",
+          amount: 500,
+          tag: stocks,
+          transactionDate: "2026-03-01",
+        }),
+      ],
+      year2026,
+      today,
+      INVEST,
+    );
+    expect(result.earned).toBe(0);
+    expect(result.savingsRate).toBeNull();
+    expect(result.invested).toBe(500);
+    expect(result.spent).toBe(0);
+  });
+
+  it("the previous-year comparison excludes investment tags too", () => {
+    const result = summarizePeriod(
+      [
+        tx({ type: "INCOME", amount: 1000, transactionDate: "2025-03-10" }),
+        tx({
+          type: "EXPENSE",
+          amount: 9000,
+          tag: stocks,
+          transactionDate: "2025-04-10",
+        }),
+        tx({ type: "INCOME", amount: 1000, transactionDate: "2026-03-10" }),
+      ],
+      year2026,
+      today,
+      INVEST,
+    );
+    expect(result.vsPrevious?.earnedPct).toBe(0);
+    expect(result.vsPrevious?.spentPct).toBeNull();
+  });
+
+  it("summarize excludes investment tags from income, expense and the monthly averages", () => {
+    const result = summarize(
+      [
+        tx({ type: "INCOME", amount: 1000, transactionDate: "2024-01-10" }),
+        tx({ type: "EXPENSE", amount: 300, transactionDate: "2024-01-11" }),
+        tx({
+          type: "EXPENSE",
+          amount: 5000,
+          tag: stocks,
+          transactionDate: "2024-02-11",
+        }),
+      ],
+      INVEST,
+    );
+    expect(result).toEqual({
+      income: 1000,
+      expense: 300,
+      net: 700,
+      avgIncome: 1000,
+      avgExpense: 300,
+      avgNet: 700,
     });
   });
 });

@@ -124,6 +124,20 @@ describe("upcomingSubscriptionSpend", () => {
     ).toBe(110);
   });
 
+  it("skips subscriptions on investment tags, including children of a flagged tag", () => {
+    const tags: Tag[] = [
+      { ...tag("Fund"), investment: true },
+      tag("Index", "Fund"),
+      tag("Health"),
+    ];
+    const subs = [
+      sub({ id: "pac", tag: tag("Fund"), amount: 200 }),
+      sub({ id: "pac-child", tag: tag("Index", "Fund"), amount: 100 }),
+      sub({ id: "gym", tag: tag("Health"), amount: 50 }),
+    ];
+    expect(upcomingSubscriptionSpend(budget(), subs, tags, today)).toBe(50);
+  });
+
   it("skips income, paused, ended, bank-driven and amount-less subscriptions", () => {
     const subs = [
       sub({ id: "income", type: "INCOME", amount: 500 }),

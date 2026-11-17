@@ -17,6 +17,14 @@ const { calls, record } = vi.hoisted(() => {
   return { calls, record };
 });
 
+// The investment tag set comes from WalletContext; tests set it per case.
+const { investTags } = vi.hoisted(() => ({
+  investTags: { current: new Set<string>() },
+}));
+vi.mock("../../../dashboard/wallet/useInvestmentTags.ts", () => ({
+  useInvestmentTags: () => investTags.current,
+}));
+
 vi.mock("@/components/ui/charts", () => ({
   AreaSparkline: (p: Record<string, unknown>) => record("AreaSparkline", p),
   LineSparkline: (p: Record<string, unknown>) => record("LineSparkline", p),
@@ -76,6 +84,7 @@ const renderSettled = async (ui: React.ReactElement) => {
 describe("StatisticsSummaryV2", () => {
   beforeEach(() => {
     for (const k of Object.keys(calls)) delete calls[k];
+    investTags.current = new Set();
     setUiVersion("v2");
   });
 
@@ -395,5 +404,71 @@ describe("StatisticsSummaryV2", () => {
     );
     expect(calls.AreaSparkline ?? []).toHaveLength(0);
     expect(calls.LineSparkline ?? []).toHaveLength(0);
+  });
+
+  describe("with investment tags", () => {
+    const stocks = { name: "Stocks", icon: "tag", colorHex: "#fff" };
+    const investing = [
+      ...transactions,
+      { ...tx("2026-03-10", "EXPENSE", 500), tag: stocks },
+      { ...tx("2026-03-11", "INCOME", 200), tag: stocks },
+    ];
+
+    it("renders five tiles in order, with Invested between Spent and Kept", async () => {
+      investTags.current = new Set(["Stocks"]);
+      await renderSettled(
+        <StatisticsSummaryV2
+          transactions={investing}
+          period={year2026}
+          today={today}
+        />,
+      );
+      const order = screen
+        .getAllByText(/^(Earned|Spent|Invested|Kept|Savings rate)( in 2026)?$/)
+        .map((el) => el.textContent);
+      expect(order).toEqual([
+        "Earned in 2026",
+        "Spent in 2026",
+        "Invested in 2026",
+        "Kept",
+        "Savings rate",
+      ]);
+    });
+
+    it("shows invested net with bought and cashed out in its sub-line, and keeps earned and spent free of investments", async () => {
+      investTags.current = new Set(["Stocks"]);
+      await renderSettled(
+        <StatisticsSummaryV2
+          transactions={investing}
+          period={year2026}
+          today={today}
+        />,
+      );
+      expect(await screen.findByLabelText("+300,00 €")).toBeInTheDocument();
+      expect(subText("Invested in 2026")).toBe("500 € in · 200 € out");
+      // Spent stays at 2000 (the 500 bought is not spending) and earned at 3000.
+      expect(subText("Spent in 2026")).toBe(
+        "about 333 € a month · +100% vs 2025",
+      );
+      expect(subText("Earned in 2026")).toBe(
+        "about 500 € a month · +20% vs 2025",
+      );
+    });
+
+    it("spans the savings rate tile across two phone columns only", async () => {
+      await renderSettled(
+        <StatisticsSummaryV2
+          transactions={transactions}
+          period={year2026}
+          today={today}
+        />,
+      );
+      const rate = screen.getByText("Savings rate").closest(".col-span-2");
+      expect(rate).not.toBeNull();
+      expect(rate).toHaveClass("lg:col-span-1");
+      expect(
+        screen.getByText("Invested in 2026").closest(".col-span-2"),
+      ).toBeNull();
+    });
   });
 });

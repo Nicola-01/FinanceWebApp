@@ -68,16 +68,27 @@ export interface SubscriptionSummary {
   monthlyCost: number;
   yearlyCost: number;
   monthlyIncome: number;
+  /** Monthly amount of the investment (PAC-style) subscriptions; kept out of cost and income. */
+  monthlyInvested: number;
   /** Cost share per subscription, top N by value, the rest folded into "Other". */
   costSegments: SplitSegment[];
 }
 
 export const summarizeSubscriptions = (
   subscriptions: Subscription[],
+  invest: Set<string> = new Set(),
   top = TOP_SEGMENTS,
 ): SubscriptionSummary => {
-  const expenses = subscriptions.filter((s) => s.type !== "INCOME");
-  const incomes = subscriptions.filter((s) => s.type === "INCOME");
+  const isInvest = (s: Subscription) => invest.has(s.tag.name);
+  const expenses = subscriptions.filter(
+    (s) => s.type !== "INCOME" && !isInvest(s),
+  );
+  const incomes = subscriptions.filter(
+    (s) => s.type === "INCOME" && !isInvest(s),
+  );
+  const invested = subscriptions.filter(
+    (s) => s.type !== "INCOME" && isInvest(s),
+  );
 
   const costs = expenses
     .map((s) => ({ sub: s, value: monthlyEquivalent(s) }))
@@ -86,6 +97,10 @@ export const summarizeSubscriptions = (
 
   const monthlyCost = costs.reduce((sum, c) => sum + c.value, 0);
   const monthlyIncome = incomes.reduce(
+    (sum, s) => sum + monthlyEquivalent(s),
+    0,
+  );
+  const monthlyInvested = invested.reduce(
     (sum, s) => sum + monthlyEquivalent(s),
     0,
   );
@@ -112,6 +127,7 @@ export const summarizeSubscriptions = (
     monthlyCost,
     yearlyCost: monthlyCost * 12,
     monthlyIncome,
+    monthlyInvested,
     costSegments,
   };
 };
