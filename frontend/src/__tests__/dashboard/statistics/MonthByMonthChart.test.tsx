@@ -139,8 +139,8 @@ describe("MonthByMonthChart", () => {
         />,
       ),
     );
-    // Two plots (without and with investments), each a base chart plus its overlay.
-    expect(calls.ComposedChart).toHaveLength(4);
+    // One plot: a base chart plus its overlay.
+    expect(calls.ComposedChart).toHaveLength(2);
     const { base, overlay } = baseAndOverlay();
 
     // Overlay bars are transparent: they only fix the x inset.
@@ -170,9 +170,8 @@ describe("MonthByMonthChart", () => {
     // The base chart carries no Kept series, so the kit cannot paint it under the bars.
     expect(kids(base, Line)).toEqual([]);
     expect(kids(base, Scatter)).toEqual([]);
-    // The hidden investments copy also draws its Liquidity line, so Line runs three times in total.
-    expect(calls.Line).toHaveLength(3);
-    expect(calls.Scatter).toHaveLength(2);
+    expect(calls.Line).toHaveLength(1);
+    expect(calls.Scatter).toHaveLength(1);
   });
 
   it("wraps the overlay in an aria-hidden, pointer-events-none layer", () => {
@@ -209,7 +208,7 @@ describe("MonthByMonthChart", () => {
     const { base, overlay } = baseAndOverlay();
     expect(kids(base, ChartTooltip)).toHaveLength(1);
     expect(kids(overlay, ChartTooltip)).toEqual([]);
-    expect(calls.ChartTooltip).toHaveLength(2);
+    expect(calls.ChartTooltip).toHaveLength(1);
   });
 
   it("gives the overlay the same geometry as the base so the Kept line lines up with the bars", () => {
@@ -489,7 +488,7 @@ describe("MonthByMonthChart bare mode", () => {
     expect(screen.queryByRole("heading")).toBeNull();
     expect(screen.queryByText(/Earned above the line/)).toBeNull();
     expect(container.firstElementChild).not.toHaveClass("bg-app-card");
-    expect(calls.ComposedChart).toHaveLength(4);
+    expect(calls.ComposedChart).toHaveLength(2);
     expect(screen.getByText("Earned")).toBeInTheDocument();
   });
 });
@@ -595,17 +594,60 @@ describe("MonthByMonthChart investments chip", () => {
   });
 });
 
-describe("MonthByMonthChart investments crossfade", () => {
+describe("MonthByMonthChart investments toggle", () => {
   beforeEach(() => {
     localStorage.clear();
   });
 
   const chip = () => screen.getByRole("switch", { name: /Investments/ });
-  const copies = (container: HTMLElement) =>
-    Array.from(container.querySelectorAll<HTMLElement>(".grid > div"));
 
-  it("sizes the shared scale with the investment stacks even while the chip is off", async () => {
-    // Cashed out (900) stacks on Earned (100): the bound must cover 1000 even with the chip off.
+  it("remounts the plot on toggle so the kit replays its entrance animation", async () => {
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={investRows}
+          byYear={false}
+          currencySymbol="€"
+        />,
+      ),
+    );
+    const before = screen.getAllByTestId("composed");
+    expect(before).toHaveLength(2);
+
+    await userEvent.click(chip());
+
+    const after = screen.getAllByTestId("composed");
+    expect(after).toHaveLength(2);
+    // New DOM nodes: the old plot unmounted and a fresh one mounted.
+    expect(after[0]).not.toBe(before[0]);
+    expect(after[1]).not.toBe(before[1]);
+  });
+
+  it("keeps the kit entrance default on first render and replays faster after a toggle", async () => {
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={investRows}
+          byYear={false}
+          currencySymbol="€"
+        />,
+      ),
+    );
+    // Page load: both charts keep the kit default duration.
+    expect(calls.ComposedChart.map((c) => c.animationDuration)).toEqual([
+      undefined,
+      undefined,
+    ]);
+
+    await userEvent.click(chip());
+
+    // After the toggle, the remounted base and overlay both replay at 450 ms.
+    const latest = calls.ComposedChart.slice(-2);
+    expect(latest.map((c) => c.animationDuration)).toEqual([450, 450]);
+  });
+
+  it("bounds the scale on the base stacks when off and includes investment stacks when on", async () => {
+    // Cashed out (900) stacks on Earned (100): only the investment stacks reach 1000.
     const rows: MonthByMonthRow[] = [
       {
         date: new Date(2026, 0, 1),
@@ -625,17 +667,18 @@ describe("MonthByMonthChart investments crossfade", () => {
       string,
       [number, number]
     >;
-    expect(off.left[1]).toBeCloseTo(1100);
-    expect(off.spent[0]).toBeCloseTo(-1100);
+    expect(off.left[1]).toBeCloseTo(110);
+    expect(off.spent[0]).toBeCloseTo(-110);
 
     await userEvent.click(chip());
-    for (const call of calls.ComposedChart) {
-      expect(call.yDomains).toEqual(off);
-    }
+    const latest = calls.ComposedChart.at(-2)!;
+    const on = latest.yDomains as Record<string, [number, number]>;
+    expect(on.left[1]).toBeCloseTo(1100);
+    expect(on.spent[0]).toBeCloseTo(-1100);
   });
 
-  it("keeps both copies mounted and swaps which one is visible on toggle", async () => {
-    const { container } = render(
+  it("adds the investment rows to the tooltip only when the chip is on", async () => {
+    render(
       withTheme(
         <MonthByMonthChart
           rows={investRows}
@@ -644,36 +687,37 @@ describe("MonthByMonthChart investments crossfade", () => {
         />,
       ),
     );
-    const [offCopy, onCopy] = copies(container);
-    const composedBefore = screen.getAllByTestId("composed");
+    type Row = { label: string; value: string; color: string };
+    const tooltipOf = (row: MonthByMonthRow) =>
+      (
+        calls.ChartTooltip.at(-1)!.rows as (p: Record<string, unknown>) => Row[]
+      )(row).map((r) => [r.label, r.color, r.value]);
 
-    expect(offCopy).toHaveClass("opacity-100");
-    expect(offCopy).not.toHaveAttribute("aria-hidden");
-    expect(offCopy).not.toHaveAttribute("inert");
-    expect(onCopy).toHaveClass("opacity-0", "pointer-events-none");
-    expect(onCopy).toHaveAttribute("aria-hidden", "true");
-    expect(onCopy).toHaveAttribute("inert");
-    for (const copy of [offCopy, onCopy]) {
-      expect(copy).toHaveClass(
-        "[grid-area:1/1]",
-        "transition-opacity",
-        "duration-300",
-        "ease-out",
-        "motion-reduce:transition-none",
-      );
-    }
+    // Chip off: the tooltip keeps Earned, Spent and Kept only.
+    expect(tooltipOf(investRows[1]).map((r) => r[0])).toEqual([
+      "Earned",
+      "Spent",
+      "Kept",
+    ]);
 
     await userEvent.click(chip());
-
-    expect(copies(container)).toEqual([offCopy, onCopy]);
-    expect(offCopy).toHaveClass("opacity-0", "pointer-events-none");
-    expect(offCopy).toHaveAttribute("aria-hidden", "true");
-    expect(offCopy).toHaveAttribute("inert");
-    expect(onCopy).toHaveClass("opacity-100");
-    expect(onCopy).not.toHaveAttribute("aria-hidden");
-    expect(onCopy).not.toHaveAttribute("inert");
-    // Same DOM nodes: the kit charts were not remounted.
-    expect(screen.getAllByTestId("composed")).toEqual(composedBefore);
+    // Chip on, month with cashed out and bought: investment rows follow Spent, and Liquidity follows Kept.
+    expect(tooltipOf(investRows[1])).toEqual([
+      ["Earned", "#34d399", `${formatAmount(500)} €`],
+      ["Spent", "#f87171", `${formatAmount(100)} €`],
+      ["Cashed out", "var(--color-app-invest)", `${formatAmount(400)} €`],
+      ["Bought", "var(--color-app-invest)", `${formatAmount(100)} €`],
+      ["Kept", "#3b82f6", `+${formatAmount(400)} €`],
+      ["Liquidity left", "#3b82f6", `+${formatAmount(700)} €`],
+    ]);
+    // Zero cashed out is omitted.
+    expect(tooltipOf(investRows[0]).map((r) => r[0])).toEqual([
+      "Earned",
+      "Spent",
+      "Bought",
+      "Kept",
+      "Liquidity left",
+    ]);
   });
 
   it("puts the Liquidity left swatch on the same row as the legend", async () => {

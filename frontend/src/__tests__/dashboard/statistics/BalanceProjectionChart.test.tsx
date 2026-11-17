@@ -17,9 +17,9 @@ const { calls, record } = vi.hoisted(() => {
 
 vi.mock("@/components/ui/charts", () => ({
   curveMonotoneX: "monotoneX",
-  LineChart: (props: { children?: React.ReactNode; data: unknown }) => (
-    <div data-testid="line-chart">
-      {record("LineChart", props as Record<string, unknown>)}
+  ComposedChart: (props: { children?: React.ReactNode; data: unknown }) => (
+    <div data-testid="composed">
+      {record("ComposedChart", props as Record<string, unknown>)}
       {props.children}
     </div>
   ),
@@ -43,7 +43,8 @@ const withTheme = (ui: React.ReactElement) => (
 const last = (name: string) => calls[name].at(-1)!;
 
 /** Date of the last plotted row, i.e. the projection's end month. */
-const endDate = () => (last("LineChart").data as { date: Date }[]).at(-1)!.date;
+const endDate = () =>
+  (last("ComposedChart").data as { date: Date }[]).at(-1)!.date;
 
 /** Monthly history starting January of `year`; balance grows by `step` each month. */
 const monthly = (count: number, step: number, year = 2025) =>
@@ -67,7 +68,7 @@ describe("BalanceProjectionChart", () => {
       ),
     );
     expect(container).toBeEmptyDOMElement();
-    expect(calls.LineChart).toBeUndefined();
+    expect(calls.ComposedChart).toBeUndefined();
   });
 
   it("states the pace, the end balance, the month and the likely range", () => {
@@ -110,7 +111,10 @@ describe("BalanceProjectionChart", () => {
         />,
       ),
     );
-    const data = last("LineChart").data as { date: Date; balance?: number }[];
+    const data = last("ComposedChart").data as {
+      date: Date;
+      balance?: number;
+    }[];
     expect(data).toHaveLength(12 + 12);
     expect(data[0].date).toEqual(new Date(2025, 3, 1));
     expect(data[11].balance).toBe(1000 + 100 * 14);
@@ -125,7 +129,7 @@ describe("BalanceProjectionChart", () => {
         <BalanceProjectionChart history={threeMonths} currencySymbol="€" />,
       ),
     );
-    const data = last("LineChart").data as {
+    const data = last("ComposedChart").data as {
       balance?: number;
       projected?: number;
       value?: number;
@@ -252,6 +256,6 @@ describe("BalanceProjectionChart bare mode", () => {
     expect(
       screen.getByRole("button", { name: "How the projection and range work" }),
     ).toBeInTheDocument();
-    expect(calls.LineChart).toHaveLength(1);
+    expect(calls.ComposedChart).toHaveLength(1);
   });
 });

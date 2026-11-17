@@ -296,28 +296,56 @@ describe("symmetricBound", () => {
 });
 
 describe("monthByMonthBound", () => {
-  it("covers the investment stacks: Earned + cashed out and Spent + bought", () => {
-    const date = new Date(2026, 0, 1);
+  const date = new Date(2026, 0, 1);
+
+  it("covers the investment stacks when on: Earned + cashed out and Spent + bought", () => {
     // Earned + cashed out = 1000, Spent + bought = 500: the larger stack sets the bound.
     expect(
-      monthByMonthBound([
-        {
-          date,
-          income: 100,
-          expense: -300,
-          kept: 0,
-          cashedOut: 900,
-          bought: 200,
-        },
-      ]),
+      monthByMonthBound(
+        [
+          {
+            date,
+            income: 100,
+            expense: -300,
+            kept: 0,
+            cashedOut: 900,
+            bought: 200,
+          },
+        ],
+        true,
+      ),
     ).toBeCloseTo(1100);
     // Spent + bought = 700 is the peak here.
     expect(
-      monthByMonthBound([{ date, income: 100, expense: -500, bought: 200 }]),
+      monthByMonthBound(
+        [{ date, income: 100, expense: -500, bought: 200 }],
+        true,
+      ),
     ).toBeCloseTo(770);
   });
 
+  it("excludes the investment stacks when off: only Earned and Spent count", () => {
+    const row = {
+      date,
+      income: 100,
+      expense: -300,
+      cashedOut: 900,
+      bought: 200,
+    };
+    // Earned 100 and spent 300 are the peak; the 1000 and 500 stacks are ignored.
+    expect(monthByMonthBound([row], false)).toBeCloseTo(330);
+    expect(
+      monthByMonthBound(
+        [{ date, income: 100, expense: -500, bought: 200 }],
+        false,
+      ),
+    ).toBeCloseTo(550);
+  });
+
   it("falls back to 100 when no row has an amount", () => {
-    expect(monthByMonthBound([{ date: new Date(2026, 0, 1) }])).toBe(100);
+    expect(monthByMonthBound([{ date: new Date(2026, 0, 1) }], true)).toBe(100);
+    expect(monthByMonthBound([{ date: new Date(2026, 0, 1) }], false)).toBe(
+      100,
+    );
   });
 });

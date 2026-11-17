@@ -31,6 +31,8 @@ export interface MonthByMonthPlotProps {
   tickLabels: string[];
   tooltipLabels: string[];
   tooltipRows: NonNullable<React.ComponentProps<typeof ChartTooltip>["rows"]>;
+  /** Entrance duration in ms; undefined keeps the kit default. */
+  animationDuration?: number;
 }
 
 /** The main ComposedChart plus its transparent Kept overlay, on the same geometry. */
@@ -43,6 +45,7 @@ export const MonthByMonthPlot: React.FC<MonthByMonthPlotProps> = ({
   tickLabels,
   tooltipLabels,
   tooltipRows,
+  animationDuration,
 }) => {
   const { income, expense, kept } = useChartPalette();
   return (
@@ -56,6 +59,7 @@ export const MonthByMonthPlot: React.FC<MonthByMonthPlotProps> = ({
         aspectRatio="5 / 2"
         margin={margin}
         maxBarSize={28}
+        animationDuration={animationDuration}
         ariaLabel="Earned, spent and kept per month"
       >
         <Grid horizontal />
@@ -114,6 +118,7 @@ export const MonthByMonthPlot: React.FC<MonthByMonthPlotProps> = ({
           aspectRatio="5 / 2"
           margin={margin}
           maxBarSize={28}
+          animationDuration={animationDuration}
           ariaLabel="Kept per month"
         >
           <SeriesBar dataKey="income" fill="transparent" />

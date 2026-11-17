@@ -32,8 +32,13 @@ function useShowInvestments(): [boolean, (next: boolean) => void] {
   return [on, set];
 }
 
-const hasAmount = (row: MonthByMonthRow) =>
-  !!(row.income || row.expense || row.kept || row.bought || row.cashedOut);
+const hasAmount = (row: MonthByMonthRow, withInvestments: boolean) =>
+  !!(
+    row.income ||
+    row.expense ||
+    row.kept ||
+    (withInvestments && (row.bought || row.cashedOut))
+  );
 
 /** Earned bars above the line, spent bars below it, and a kept dot per period. */
 export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
@@ -44,19 +49,24 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
 }) => {
   const { income, expense, kept } = useChartPalette();
   const [showInvestments, setShowInvestments] = useShowInvestments();
+  // Page-load entrance keeps the kit default; a chip toggle remounts the plot, so replay it faster.
+  const [toggled, setToggled] = useState(false);
+  const onChipChange = (next: boolean) => {
+    setToggled(true);
+    setShowInvestments(next);
+  };
   const investData = useMemo<ChartRow[]>(
     () => rows.map((r) => ({ ...r, boughtBelow: -(r.bought ?? 0) })),
     [rows],
   );
-  // Both plots share one scale that always covers the investment stacks, so toggling never rescales the bars.
   // Each bar sits alone on its own axis: non-stacked bars would otherwise grow from the domain minimum.
   const yDomains = useMemo(() => {
-    const bound = monthByMonthBound(rows);
+    const bound = monthByMonthBound(rows, showInvestments);
     return {
       left: [-bound, bound] as [number, number],
       spent: [-bound, bound] as [number, number],
     };
-  }, [rows]);
+  }, [rows, showInvestments]);
   const tickLabels = useMemo(
     () =>
       rows.map((r) =>
@@ -95,6 +105,24 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
               },
             ]
           : []),
+        ...(showInvestments && (p.cashedOut ?? 0) > 0
+          ? [
+              {
+                color: INVEST_COLOR,
+                label: "Cashed out",
+                value: formatKitAmount(p.cashedOut!, currencySymbol),
+              },
+            ]
+          : []),
+        ...(showInvestments && (p.bought ?? 0) > 0
+          ? [
+              {
+                color: INVEST_COLOR,
+                label: "Bought",
+                value: formatKitAmount(p.bought!, currencySymbol),
+              },
+            ]
+          : []),
         ...(p.kept !== undefined
           ? [
               {
@@ -104,9 +132,18 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
               },
             ]
           : []),
+        ...(showInvestments && p.liquidity !== undefined
+          ? [
+              {
+                color: kept,
+                label: "Liquidity left",
+                value: formatKitAmount(p.liquidity, currencySymbol, true),
+              },
+            ]
+          : []),
       ];
     },
-    [income, expense, kept, currencySymbol],
+    [income, expense, kept, currencySymbol, showInvestments],
   );
 
   const title = byYear ? "Year by year" : "Month by month";
@@ -149,40 +186,26 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
           <Toggle
             variant="button"
             checked={showInvestments}
-            onChange={setShowInvestments}
+            onChange={onChipChange}
             label="↗ Investments"
           />
         </div>
       )}
-      {rows.some(hasAmount) ? (
+      {rows.some((r) => hasAmount(r, showInvestments)) ? (
         <>
-          {/* Both plots stay mounted in one grid cell; the chip only swaps which one is visible, so the kit never remounts. */}
-          <div className="grid">
-            {[false, true].map((withInvestments) => {
-              const active = withInvestments === showInvestments;
-              return (
-                <div
-                  key={String(withInvestments)}
-                  className={`[grid-area:1/1] transition-opacity duration-300 ease-out motion-reduce:transition-none ${
-                    active ? "opacity-100" : "opacity-0 pointer-events-none"
-                  }`}
-                  aria-hidden={active ? undefined : "true"}
-                  inert={!active}
-                >
-                  <MonthByMonthPlot
-                    rows={rows}
-                    data={withInvestments ? investData : rows}
-                    showInvestments={withInvestments}
-                    yDomains={yDomains}
-                    byYear={byYear}
-                    tickLabels={tickLabels}
-                    tooltipLabels={tooltipLabels}
-                    tooltipRows={tooltipRows}
-                  />
-                </div>
-              );
-            })}
-          </div>
+          {/* Keyed so toggling the chip remounts the plot and the kit replays its entrance animation. */}
+          <MonthByMonthPlot
+            key={showInvestments ? "with-investments" : "base"}
+            rows={rows}
+            data={showInvestments ? investData : rows}
+            showInvestments={showInvestments}
+            yDomains={yDomains}
+            byYear={byYear}
+            tickLabels={tickLabels}
+            tooltipLabels={tooltipLabels}
+            tooltipRows={tooltipRows}
+            animationDuration={toggled ? 450 : undefined}
+          />
           {/* The legend's own top margin moves to this row; the swatch shares its centred line. */}
           <div className="flex flex-wrap items-center justify-center gap-x-4 mt-3 [&>*]:mt-0">
             <KitLegend series={series} />

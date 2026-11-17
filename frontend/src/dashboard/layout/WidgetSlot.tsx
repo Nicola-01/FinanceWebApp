@@ -9,6 +9,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import Button from "../../components/ui/Button.tsx";
+import { RevealOnView } from "../../components/ui/RevealOnView.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { GroupEditGrid } from "./GroupEditGrid.tsx";
 import type { WidgetDef } from "./widgetTypes.ts";
@@ -246,10 +247,12 @@ export function WidgetSlot<Ctx>({
               title={activeDef.title}
               subtitle={activeDef.subtitle}
             >
-              {activeDef.render(ctx, true)}
+              <RevealOnView>{activeDef.render(ctx, true)}</RevealOnView>
             </SwitchableCard>
           ) : (
-            first.render(ctx, false)
+            <RevealOnView className="h-full">
+              {first.render(ctx, false)}
+            </RevealOnView>
           )}
 
           {editing && (
