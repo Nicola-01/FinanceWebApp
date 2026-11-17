@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investments: tag flag, three proposals</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141312; --card: #1d1c1a; --raised: #262421; --border: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --wallet: #6d8cf0; --on-wallet: #0c1230; --income: #7fcf95; --expense: #ec8a76;
+    --invest: #b39cf5; --r-card: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0c0b0b; color: var(--text); font-family: "Instrument Sans", system-ui, sans-serif; padding: 28px 24px 80px; }
+  h1.page { font: 600 22px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 80ch; line-height: 1.5; }
+  h2.sec { font: 600 18px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; margin: 48px 0 6px; }
+  .rec { display: inline-block; font-size: 11px; font-weight: 600; color: var(--on-wallet); background: var(--wallet); border-radius: 99px; padding: 2px 8px; margin-left: 6px; vertical-align: 3px; }
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 20px; }
+  .pick { cursor: pointer; border-radius: 14px; padding: 10px; outline: 2px solid transparent; }
+  .pick.selected { outline-color: var(--wallet); }
+  .cap { color: var(--muted); font-size: 12.5px; margin-bottom: 8px; }
+
+  .phone { width: 375px; height: 640px; background: var(--bg); border-radius: 36px; overflow: hidden; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .5); display: flex; flex-direction: column; }
+  .drawer { width: 440px; background: var(--bg); border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .5); }
+  .dh { padding: 16px 18px 12px; border-top: 3px solid var(--wallet); }
+  .phone .dh { padding-top: 44px; }
+  .dh b { font: 600 18px/1.2 "Bricolage Grotesque", sans-serif; display: block; }
+  .dh span { font-size: 12.5px; color: var(--muted); }
+  .list { padding: 6px 12px 18px; display: flex; flex-direction: column; gap: 6px; }
+
+  .r { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: 12px; padding: 9px 10px; position: relative; }
+  .r.child { margin-left: 26px; background: transparent; padding: 6px 10px; }
+  .r.child::before { content: ""; position: absolute; left: -12px; top: 0; bottom: 50%; width: 10px; border-left: 1.5px solid var(--border); border-bottom: 1.5px solid var(--border); border-bottom-left-radius: 6px; }
+  .ic { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 15px; flex: none; }
+  .child .ic { width: 26px; height: 26px; font-size: 13px; }
+  .nm { flex: 1; font-size: 14.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .child .nm { font-weight: 500; font-size: 14px; }
+  .cnt { font-size: 12px; color: var(--faint); font-weight: 400; }
+  .act { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--muted); font-size: 14px; flex: none; }
+  .act.on { color: var(--invest); background: color-mix(in srgb, var(--invest) 16%, transparent); }
+  .act.inh { color: color-mix(in srgb, var(--invest) 55%, transparent); }
+  .badge { font-size: 10.5px; font-weight: 600; color: var(--invest); background: color-mix(in srgb, var(--invest) 15%, transparent); border-radius: 99px; padding: 1px 7px; white-space: nowrap; }
+  .badge.inh { background: transparent; border: 1px dashed color-mix(in srgb, var(--invest) 50%, transparent); }
+  .glyph { color: var(--invest); font-size: 12px; }
+
+  .pop { margin: 0 12px 0 54px; background: var(--raised); border-radius: 14px; padding: 12px; box-shadow: 0 12px 30px rgb(0 0 0 / .45); }
+  .pop .sw { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+  .pop .sw i { aspect-ratio: 1; border-radius: 7px; display: block; }
+  .switch { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13.5px; }
+  .switch .tg { width: 36px; height: 21px; border-radius: 99px; background: var(--invest); position: relative; flex: none; }
+  .switch .tg::after { content: ""; position: absolute; right: 3px; top: 3px; width: 15px; height: 15px; border-radius: 50%; background: #1a1430; }
+  .switch small { display: block; color: var(--muted); font-size: 12px; }
+
+  .picker { width: 340px; background: var(--raised); border-radius: 14px; padding: 8px; box-shadow: 0 12px 30px rgb(0 0 0 / .45); }
+  .picker .p { display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 9px; font-size: 14px; }
+  .picker .p.sub { padding-left: 34px; color: var(--muted); }
+</style>
+</head>
+<body>
+<h1 class="page">Flagging a tag as an investment: three proposals</h1>
+<p class="lead">The Manage Categories drawer (phone full-screen, desktop side drawer). "Investments" is flagged; its children PAC and ETF inherit; "Pension fund" under "Savings" is flagged on its own. Inherited children can't be toggled (no opt-out), they show where the flag comes from.</p>
+
+<div id="out"></div>
+
+<h2 class="sec">Pickers (same in every proposal)</h2>
+<p class="lead">In the transaction tag picker a flagged tag, and every tag under it, gets a small violet ↗ after the name. No extra text, so the picker stays compact.</p>
+<div class="row"><div class="picker">
+  <div class="p"><div class="ic" style="background:#f59f0022">🛒</div>Groceries</div>
+  <div class="p"><div class="ic" style="background:#b39cf522">📈</div>Investments <span class="glyph">↗</span></div>
+  <div class="p sub">PAC <span class="glyph">↗</span></div>
+  <div class="p sub">ETF <span class="glyph">↗</span></div>
+  <div class="p"><div class="ic" style="background:#4cc9f022">🐷</div>Savings</div>
+  <div class="p sub">Emergency fund</div>
+  <div class="p sub">Pension fund <span class="glyph">↗</span></div>
+</div></div>
+
+<script>
+// kind: "A" action button | "B" name badge | "C" switch in the edit popover
+function list(kind) {
+  const btn = (state) => kind === "A"
+    ? `<div class="act ${state}" title="${state === 'inh' ? 'Inherited from Investments' : 'Counts as investment'}">↗</div>` : "";
+  const badge = (state) => {
+    if (kind === "A") return state === "on" ? `<span class="badge">Investment</span>` : state === "inh" ? `<span class="badge inh">Investment</span>` : "";
+    if (kind === "B") return state === "on" ? `<span class="badge">↗ Investment</span>` : state === "inh" ? `<span class="badge inh">↗ inherited</span>` : `<span class="badge" style="color:var(--faint);background:transparent;border:1px dashed var(--border)">+ Investment</span>`;
+    return state ? `<span class="glyph">↗</span>` : "";
+  };
+  const tools = `<div class="act">✎</div><div class="act">🗑</div>`;
+  const parent = (ic, bg, n, c, s) => `<div class="r"><div class="ic" style="background:${bg}">${ic}</div><div class="nm">${n}${badge(s)}<span class="cnt">${c}</span></div>${btn(s)}${tools}</div>`;
+  const child = (n, c, s) => `<div class="r child"><div class="ic" style="background:#ffffff10">•</div><div class="nm">${n}${badge(s)}<span class="cnt">${c}</span></div>${s === 'inh' && kind === 'A' ? btn('inh') : btn(s)}${tools}</div>`;
+  let h = parent("🛒", "#f59f0022", "Groceries", "42", "") +
+          parent("📈", "#b39cf522", "Investments", "18", "on");
+  if (kind === "C") h += `<div class="pop"><div class="sw">${["#ec8a76","#f59f00","#f0d35a","#7fcf95","#4cc9f0","#6d8cf0","#b39cf5","#e879b9"].map(c => `<i style="background:${c}"></i>`).join("")}</div>
+    <div class="switch"><div class="tg"></div><div>Counts as investment<small>Covers PAC and ETF too</small></div></div></div>`;
+  h += child("PAC", "12", "inh") + child("ETF", "6", "inh") +
+       parent("🐷", "#4cc9f022", "Savings", "9", "") +
+       child("Emergency fund", "5", "") + child("Pension fund", "4", "on");
+  return h;
+}
+const P = {
+  A: ["A. A ↗ toggle in each row's actions", "One more icon button next to edit and delete. On = filled violet + an “Investment” badge; inherited = dashed badge and a dimmed, disabled button (tooltip: “Inherited from Investments”). Most discoverable; costs one icon per row."],
+  B: ["B. The badge itself is the toggle", "Unflagged rows show a faint “+ Investment” chip you tap to flag. Zero new buttons, but every row gets a chip, which is noisy on a long list."],
+  C: ["C. A switch in the icon/colour popover", "The row stays clean (just a small ↗ after the name); the switch lives where you already edit the tag's look. Tidiest, but hidden: you have to know it's there."],
+};
+let html = "";
+for (const [k, [t, l]] of Object.entries(P)) {
+  html += `<h2 class="sec">${t}${k === "A" ? '<span class="rec">Recommended</span>' : ""}</h2><p class="lead">${l}</p>
+  <div class="row pick" data-choice="${k}" onclick="document.querySelectorAll('.pick').forEach(e=>e.classList.remove('selected'));this.classList.add('selected');window.brainstorm&&brainstorm.send({type:'click',choice:'${k}'})">
+    <div><div class="cap">Phone</div><div class="phone"><div class="dh"><b>Manage Categories</b><span>Personal · 3 categories</span></div><div class="list">${list(k)}</div></div></div>
+    <div><div class="cap">Desktop drawer</div><div class="drawer"><div class="dh"><b>Manage Categories</b><span>Personal · 3 categories</span></div><div class="list">${list(k)}</div></div></div>
+  </div>`;
+}
+document.getElementById("out").innerHTML = html;
+</script>
+</body>
+</html>

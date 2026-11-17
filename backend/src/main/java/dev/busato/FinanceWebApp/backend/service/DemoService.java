@@ -101,6 +101,12 @@ public class DemoService {
     saveTag("Sushi", food, "sushi", "#ba68c8", wallet, allTags);
     saveTag("Ice Cream", food, "dessert", "#4fc3f7", wallet, allTags);
 
+    // INVESTMENTS (flagged root; PAC inherits the flag)
+    Tag investments = saveTag("Investments", null, "invest", "#b39cf5", wallet, allTags);
+    investments.setInvestment(true);
+    tagRepository.save(investments);
+    saveTag("PAC", investments, "invest", "#9575cd", wallet, allTags);
+
     return allTags;
   }
 
@@ -191,6 +197,17 @@ public class DemoService {
           "Spotify Premium",
           10.99,
           currentDate.withDayOfMonth(20),
+          Transaction.Type.EXPENSE);
+
+      // Monthly investment plan (PAC) on the 5th
+      addTx(
+          transactions,
+          wallet,
+          tags,
+          "PAC",
+          "PAC instalment",
+          200.0,
+          currentDate.withDayOfMonth(5),
           Transaction.Type.EXPENSE);
 
       // Bills (Bi-monthly)

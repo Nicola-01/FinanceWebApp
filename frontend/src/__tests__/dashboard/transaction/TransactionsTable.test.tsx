@@ -4,7 +4,10 @@ import type { Transaction, Wallet } from "../../../types/domain";
 import { setUiVersion } from "../../../utils/uiVersion";
 
 const modal = vi.hoisted(() => ({ openModal: vi.fn() }));
-const ctx = vi.hoisted(() => ({ transactions: [] as unknown[] }));
+const ctx = vi.hoisted(() => ({
+  transactions: [] as unknown[],
+  tags: [] as unknown[],
+}));
 
 vi.mock(
   "../../../dashboard/wallet/WalletContext.tsx",
@@ -12,7 +15,10 @@ vi.mock(
     ...(await importOriginal<
       typeof import("../../../dashboard/wallet/WalletContext.tsx")
     >()),
-    useWalletContext: () => ({ transactions: ctx.transactions }),
+    useWalletContext: () => ({
+      transactions: ctx.transactions,
+      tags: ctx.tags,
+    }),
   }),
 );
 vi.mock("../../../dashboard/transaction/ToCategoriseActions.tsx", () => ({
@@ -80,6 +86,9 @@ describe("TransactionsTable (v2)", () => {
   beforeEach(() => {
     setUiVersion("v2");
     ctx.transactions = [];
+    ctx.tags = [
+      { name: "PAC", icon: "invest", colorHex: "#b39cf5", investment: true },
+    ];
     modal.openModal.mockClear();
   });
   afterEach(() => setUiVersion("v1"));
@@ -91,6 +100,36 @@ describe("TransactionsTable (v2)", () => {
     ]);
     expect(screen.getByText(/^\+69,50/)).toBeInTheDocument();
     expect(screen.getAllByRole("button")).toHaveLength(2);
+  });
+
+  it("day header excludes investment flows and appends them in the invest colour", () => {
+    renderTable([
+      tx({ id: "a", type: "INCOME", amount: 2400 }),
+      tx({ id: "b", type: "EXPENSE", amount: 100 }),
+      tx({
+        id: "c",
+        name: "PAC Fineco",
+        amount: 500,
+        tag: { name: "PAC", icon: "invest", colorHex: "#b39cf5" },
+      }),
+      tx({
+        id: "d",
+        name: "Sold VWCE",
+        type: "INCOME",
+        amount: 200,
+        tag: { name: "PAC", icon: "invest", colorHex: "#b39cf5" },
+      }),
+    ]);
+    // Income - Spent ignores the two investment rows.
+    expect(screen.getByText(/^\+2300,00/)).toBeInTheDocument();
+    expect(screen.getByText("· 500,00 € invested")).toHaveClass(
+      "text-app-invest",
+    );
+    expect(screen.getByText("· 200,00 € cashed out")).toHaveClass(
+      "text-app-invest",
+    );
+    expect(screen.getByText("Invested")).toBeInTheDocument();
+    expect(screen.getByText("Cashed out")).toBeInTheDocument();
   });
 
   it("empty state has no add button (the floating action button is the only one)", () => {

@@ -1,5 +1,6 @@
 import type { Budget, Subscription, Tag } from "../../types/domain";
 import { generateSubscriptionOccurrences } from "../../utils/subscriptionHelper";
+import { investmentTagNames } from "../../utils/investments";
 
 /** Local midnight of a `YYYY-MM-DD` string (the shape the budget dates use). */
 const parseLocalDay = (iso: string): Date => {
@@ -33,6 +34,7 @@ const inScope = (budget: Budget, sub: Subscription, tags: Tag[]): boolean => {
  * and the budget's period end (inclusive), in the wallet currency. Uses the
  * same occurrence expansion as the Transactions "Coming up" column; bank-driven
  * subscriptions and reminders without an amount are skipped, as there.
+ * Investment subscriptions (PAC-style) are skipped too: they are not spend.
  */
 export function upcomingSubscriptionSpend(
   budget: Budget,
@@ -47,6 +49,7 @@ export function upcomingSubscriptionSpend(
   );
   const periodEnd = parseLocalDay(budget.periodEnd);
 
+  const invest = investmentTagNames(tags);
   let total = 0;
   for (const sub of subscriptions) {
     if (
@@ -55,6 +58,7 @@ export function upcomingSubscriptionSpend(
       sub.bankDriven ||
       sub.amountPending ||
       !sub.amount ||
+      invest.has(sub.tag.name) ||
       !inScope(budget, sub, tags)
     )
       continue;

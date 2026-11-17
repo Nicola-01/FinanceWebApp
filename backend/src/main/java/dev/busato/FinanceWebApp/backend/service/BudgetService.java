@@ -151,6 +151,9 @@ public class BudgetService {
   public BudgetStatusResponse computeStatus(Budget budget, LocalDate today) {
     boolean active = BudgetPeriods.isActive(budget, today);
     BudgetPeriods.Period period = BudgetPeriods.currentPeriod(budget, today);
+    if (budget.getTag() != null && InvestmentTags.isInvestment(budget.getTag())) {
+      return computeGoalStatus(budget, period, active);
+    }
     List<Integer> thresholds = budgetMapper.thresholdsFromJson(budget.getAlertThresholds());
 
     BigDecimal spent = sumExpenses(budget, period.start(), period.end());
@@ -198,14 +201,68 @@ public class BudgetService {
         .build();
   }
 
+  /**
+   * A budget on an investment tag is a goal: progress is the invested net (bought minus cashed out)
+   * for the current period. Rollover does not apply and goals never send threshold alerts.
+   */
+  private BudgetStatusResponse computeGoalStatus(
+      Budget budget, BudgetPeriods.Period period, boolean active) {
+    UUID walletId = budget.getWallet().getId();
+    List<UUID> subtree = subtreeTagIds(budget.getTag(), walletId);
+    BigDecimal bought =
+        transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            walletId, Transaction.Type.EXPENSE, period.start(), period.end(), subtree);
+    BigDecimal cashedOut =
+        transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            walletId, Transaction.Type.INCOME, period.start(), period.end(), subtree);
+    BigDecimal investedNet = bought.subtract(cashedOut); // may be negative
+
+    BigDecimal limit = budget.getLimitAmount();
+    int percentUsed =
+        limit.compareTo(BigDecimal.ZERO) > 0
+            ? Math.max(
+                0,
+                investedNet
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(limit, 0, RoundingMode.DOWN)
+                    .intValue())
+            : 100;
+
+    return budgetMapper
+        .baseResponse(budget)
+        .goal(true)
+        .periodStart(period.start())
+        .periodEnd(period.end())
+        .spent(investedNet)
+        .effectiveLimit(limit)
+        .remaining(limit.subtract(investedNet))
+        .percentUsed(percentUsed)
+        .status(percentUsed >= 100 ? "GOAL_REACHED" : "OK")
+        .crossedThresholds(List.of())
+        .active(active)
+        .build();
+  }
+
   private BigDecimal sumExpenses(Budget budget, LocalDate from, LocalDate to) {
     UUID walletId = budget.getWallet().getId();
     if (budget.getTag() == null) {
-      return transactionRepository.sumAmountByWalletAndDateRange(
-          walletId, Transaction.Type.EXPENSE, from, to);
+      BigDecimal total =
+          transactionRepository.sumAmountByWalletAndDateRange(
+              walletId, Transaction.Type.EXPENSE, from, to);
+      // Whole-wallet budgets exclude money put into investments.
+      Set<UUID> investmentIds =
+          InvestmentTags.investmentTagIds(tagRepository.getTagsByWalletId(walletId));
+      if (investmentIds.isEmpty()) return total;
+      return total.subtract(
+          transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+              walletId, Transaction.Type.EXPENSE, from, to, investmentIds));
     }
+    // Category budgets also exclude investment subtrees nested under a non-investment tag.
+    List<UUID> ids = subtreeTagIds(budget.getTag(), walletId);
+    ids.removeAll(InvestmentTags.investmentTagIds(tagRepository.getTagsByWalletId(walletId)));
+    if (ids.isEmpty()) return BigDecimal.ZERO; // never hand an empty IN list to the query
     return transactionRepository.sumAmountByWalletAndDateRangeAndTags(
-        walletId, Transaction.Type.EXPENSE, from, to, subtreeTagIds(budget.getTag(), walletId));
+        walletId, Transaction.Type.EXPENSE, from, to, ids);
   }
 
   /** The tag's id plus every descendant's, resolved from the wallet's (small) tag list. */

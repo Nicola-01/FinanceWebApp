@@ -1,7 +1,9 @@
 import type { Transaction } from "../../types/domain";
+import { isInvestmentTx } from "../../utils/investments";
 
 const SAVINGS_COLOR = "url(#savingsPattern)";
 const DEFICIT_COLOR = "url(#deficitPattern)";
+const INVEST_COLOR = "var(--color-app-invest)";
 
 export type NodeDef = {
   id: string;
@@ -19,27 +21,39 @@ export type LinkDef = {
 /**
  * Builds the cash-flow Sankey graph: income sub-tags -> income tags -> the
  * central "Income" node -> expense tags -> expense sub-tags, plus a Savings
- * (or Deficit) node balancing the two sides. Nodes are sorted largest-first
- * and links ordered to avoid crossings. Returns null when no transaction has
- * a positive INCOME/EXPENSE amount.
+ * (labelled "Liquidity left", or Deficit) node balancing the two sides.
+ * Investment tags leave the income/expense side: money bought goes to one
+ * "Invested" node (split by tag), money cashed out enters as a "Cashed out"
+ * source. Nodes are sorted largest-first and links ordered to avoid crossings.
+ * Returns null when no transaction has a positive INCOME/EXPENSE amount.
  */
 export function buildSankeyData(
   transactions: Transaction[],
   incomeColor: string,
+  invest: Set<string> = new Set(),
 ): { nodes: NodeDef[]; links: LinkDef[] } | null {
   const incomeSubNodes = new Map<string, NodeDef>();
   const incomeNodes = new Map<string, NodeDef>();
   const expenseNodes = new Map<string, NodeDef>();
   const expenseSubNodes = new Map<string, NodeDef>();
+  const investNodes = new Map<string, NodeDef>();
   const linksMap = new Map<string, LinkDef>();
   const nodeTotals = new Map<string, number>();
 
   let totalIncome = 0;
   let totalExpenses = 0;
+  let bought = 0;
+  let cashedOut = 0;
   let hasData = false;
 
   const addToNodeTotal = (id: string, amount: number) => {
     nodeTotals.set(id, (nodeTotals.get(id) || 0) + amount);
+  };
+
+  const addLink = (source: string, target: string, amount: number) => {
+    const key = `${source}->${target}`;
+    const ex = linksMap.get(key);
+    linksMap.set(key, { source, target, value: (ex?.value ?? 0) + amount });
   };
 
   transactions.forEach((tx) => {
@@ -48,6 +62,27 @@ export function buildSankeyData(
     const isExpense = tx.type === "EXPENSE";
     if (!isIncome && !isExpense) return;
     hasData = true;
+
+    if (isInvestmentTx(tx, invest)) {
+      if (isIncome) {
+        cashedOut += tx.amount;
+        addLink("Cashed out", "Income", tx.amount);
+      } else {
+        bought += tx.amount;
+        const investId = `INV-${tx.tag.name}`;
+        if (!investNodes.has(investId))
+          investNodes.set(investId, {
+            id: investId,
+            label: tx.tag.name,
+            color: tx.tag.colorHex || "#595b63",
+            parentId: "Invested",
+          });
+        addToNodeTotal(investId, tx.amount);
+        addLink("Income", "Invested", tx.amount);
+        addLink("Invested", investId, tx.amount);
+      }
+      return;
+    }
 
     if (isIncome) totalIncome += tx.amount;
     if (isExpense) totalExpenses += tx.amount;
@@ -96,12 +131,6 @@ export function buildSankeyData(
     addToNodeTotal(mainId, tx.amount);
     if (subId) addToNodeTotal(subId, tx.amount);
 
-    const addLink = (source: string, target: string, amount: number) => {
-      const key = `${source}->${target}`;
-      const ex = linksMap.get(key);
-      linksMap.set(key, { source, target, value: (ex?.value ?? 0) + amount });
-    };
-
     if (isIncome) {
       if (subName && subId) addLink(subId, mainId, tx.amount);
       addLink(mainId, "Income", tx.amount);
@@ -113,7 +142,8 @@ export function buildSankeyData(
 
   if (!hasData) return null;
 
-  const savings = totalIncome - totalExpenses;
+  // Liquidity left = Income - Spent - Invested net (bought - cashed out).
+  const savings = totalIncome - totalExpenses - (bought - cashedOut);
   if (savings > 0) addToNodeTotal("Savings", savings);
 
   // --- Sort nodes largest to smallest ---
@@ -128,6 +158,9 @@ export function buildSankeyData(
   };
 
   const nodesArray: NodeDef[] = [
+    ...(cashedOut > 0
+      ? [{ id: "Cashed out", label: "Cashed out", color: INVEST_COLOR }]
+      : []),
     ...Array.from(incomeSubNodes.values()).sort(sortSubNodes),
     ...Array.from(incomeNodes.values()).sort(sortByTotalDesc),
     {
@@ -137,8 +170,12 @@ export function buildSankeyData(
     },
     ...Array.from(expenseNodes.values()).sort(sortByTotalDesc),
     ...Array.from(expenseSubNodes.values()).sort(sortSubNodes),
+    ...(bought > 0
+      ? [{ id: "Invested", label: "Invested", color: INVEST_COLOR }]
+      : []),
+    ...Array.from(investNodes.values()).sort(sortByTotalDesc),
     ...(savings > 0
-      ? [{ id: "Savings", label: "Savings", color: SAVINGS_COLOR }]
+      ? [{ id: "Savings", label: "Liquidity left", color: SAVINGS_COLOR }]
       : [
           {
             id: "Deficit",
@@ -168,7 +205,9 @@ export function buildSankeyData(
   const linksArray: LinkDef[] = Array.from(linksMap.values())
     .map((link) => {
       const rightSide =
-        link.source === "Income" || link.source.startsWith("OUT-");
+        link.source === "Income" ||
+        link.source === "Invested" ||
+        link.source.startsWith("OUT-");
       return { ...link, color: rightSide ? "target" : "source" };
     })
     .sort((a, b) => {

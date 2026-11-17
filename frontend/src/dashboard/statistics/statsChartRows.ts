@@ -1,5 +1,6 @@
 import type { Transaction } from "../../types/domain.ts";
 import { MONTH_LABELS } from "../../utils/months.ts";
+import { sumFlows } from "../../utils/investments.ts";
 import {
   availableYears,
   filterByPeriod,
@@ -13,6 +14,12 @@ export interface MonthByMonthRow {
   income?: number;
   expense?: number;
   kept?: number;
+  /** Investment outflow (expenses on investment tags), positive. */
+  bought?: number;
+  /** Investment inflow (income on investment tags), positive. */
+  cashedOut?: number;
+  /** Income + cashed out − spent − bought: what is left to spend. */
+  liquidity?: number;
 }
 
 export interface WaterfallRow {
@@ -75,20 +82,23 @@ function netOf(txs: Transaction[]): number {
   return income(txs) - expense(txs);
 }
 
-/** Month by month: income, expense (negative) and kept per slot. */
+/** Month by month: income, expense (negative), kept and the investment flows per slot. */
 export function monthByMonthRows(
   txs: Transaction[],
   period: StatsPeriod,
   today: Date,
+  invest: Set<string>,
 ): MonthByMonthRow[] {
   const toRow = (slot: Slot): MonthByMonthRow => {
-    const inc = income(slot.txs);
-    const exp = expense(slot.txs);
+    const f = sumFlows(slot.txs, invest);
     return {
       date: slot.date,
-      income: inc,
-      expense: exp === 0 ? 0 : -exp,
-      kept: inc - exp,
+      income: f.income,
+      expense: f.spent === 0 ? 0 : -f.spent,
+      kept: f.net,
+      bought: f.bought,
+      cashedOut: f.cashedOut,
+      liquidity: f.liquidityLeft,
     };
   };
   const slots = slotsOf(txs, period, today);
@@ -167,4 +177,21 @@ export function symmetricBound(rows: MonthByMonthRow[]): number {
     }
   }
   return peak === 0 ? 100 : peak * 1.1;
+}
+
+/**
+ * Month by month y bound. With investments, the stacks count too (Earned + cashed out, Spent + bought).
+ */
+export function monthByMonthBound(
+  rows: MonthByMonthRow[],
+  withInvestments: boolean,
+): number {
+  return symmetricBound(
+    rows.map((r) => ({
+      ...r,
+      income: (r.income ?? 0) + (withInvestments ? (r.cashedOut ?? 0) : 0),
+      // Expense is stored negative, bought is positive: the stack magnitude is spent + bought.
+      expense: (r.expense ?? 0) - (withInvestments ? (r.bought ?? 0) : 0),
+    })),
+  );
 }

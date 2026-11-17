@@ -41,7 +41,7 @@ const setup = (transactions: Transaction[], datePreset: string) => {
   ctx.value = {
     wallet: { color: "#8b5cf6", currency: "EUR" },
     transactions,
-    tags: [{ name: "Food" }],
+    tags: [{ name: "Food" }, { name: "PAC", investment: true }],
     dateRange: {
       start: new Date(2026, 2, 1),
       end: new Date(2026, 2, 31),
@@ -114,6 +114,37 @@ describe("TransactionsHero", () => {
 
   it("hides the trend when the period is empty", () => {
     setup([], "all");
+    expect(screen.queryByTestId("trend")).toBeNull();
+  });
+
+  it("renders four tiles: Income, Spent, Invested and Liquidity left", () => {
+    setup(
+      [
+        tx("1", "INCOME", 2400),
+        tx("2", "EXPENSE", 1380),
+        tx("3", "EXPENSE", 500, { tag: { name: "PAC" } as Transaction["tag"] }),
+        tx("4", "INCOME", 200, { tag: { name: "PAC" } as Transaction["tag"] }),
+      ],
+      "month",
+    );
+    // Net = Income - Spent = 1020; Invested net = 500 bought - 200 cashed out = 300.
+    expect(screen.getByText("+1020,00 €")).toBeInTheDocument();
+    expect(screen.getByText("+2400,00 €")).toBeInTheDocument();
+    expect(screen.getByText("1380,00 €")).toBeInTheDocument();
+    expect(screen.getByText("57% of income")).toBeInTheDocument();
+    expect(screen.getByText("Invested")).toBeInTheDocument();
+    expect(screen.getByText("300,00 €")).toBeInTheDocument();
+    expect(screen.getByText("500,00 in · 200,00 out")).toBeInTheDocument();
+    expect(screen.getByText("Liquidity left")).toBeInTheDocument();
+    expect(screen.getByText("720,00 €")).toBeInTheDocument();
+    expect(screen.getByText("Net − Invested")).toBeInTheDocument();
+  });
+
+  it("keeps investment flows out of the trend", () => {
+    setup(
+      [tx("1", "EXPENSE", 500, { tag: { name: "PAC" } as Transaction["tag"] })],
+      "month",
+    );
     expect(screen.queryByTestId("trend")).toBeNull();
   });
 });

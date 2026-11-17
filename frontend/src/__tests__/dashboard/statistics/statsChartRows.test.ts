@@ -5,6 +5,7 @@ import {
   waterfallRows,
   balanceHistory,
   symmetricBound,
+  monthByMonthBound,
 } from "../../../dashboard/statistics/statsChartRows.ts";
 
 const tag = { name: "General", icon: "tag", colorHex: "#fff" };
@@ -35,7 +36,12 @@ describe("monthByMonthRows", () => {
       tx("2026-03-05", 200, "EXPENSE"),
       tx("2026-08-01", 50, "INCOME"),
     ];
-    const rows = monthByMonthRows(txs, { kind: "year", year: 2026 }, today);
+    const rows = monthByMonthRows(
+      txs,
+      { kind: "year", year: 2026 },
+      today,
+      new Set(),
+    );
 
     expect(rows).toHaveLength(12);
     expect(rows[0]).toEqual({
@@ -43,12 +49,18 @@ describe("monthByMonthRows", () => {
       income: 1000,
       expense: -300,
       kept: 700,
+      bought: 0,
+      cashedOut: 0,
+      liquidity: 700,
     });
     expect(rows[2]).toEqual({
       date: new Date(2026, 2, 1),
       income: 0,
       expense: -200,
       kept: -200,
+      bought: 0,
+      cashedOut: 0,
+      liquidity: -200,
     });
     expect(rows[5].income).toBe(0);
     expect(rows[6]).toEqual({ date: new Date(2026, 6, 1) });
@@ -58,7 +70,12 @@ describe("monthByMonthRows", () => {
 
   it("fills all 12 months for a past year", () => {
     const txs = [tx("2025-12-31", 40, "EXPENSE")];
-    const rows = monthByMonthRows(txs, { kind: "year", year: 2025 }, today);
+    const rows = monthByMonthRows(
+      txs,
+      { kind: "year", year: 2025 },
+      today,
+      new Set(),
+    );
 
     expect(rows).toHaveLength(12);
     expect(rows[11]).toEqual({
@@ -66,6 +83,9 @@ describe("monthByMonthRows", () => {
       income: 0,
       expense: -40,
       kept: -40,
+      bought: 0,
+      cashedOut: 0,
+      liquidity: -40,
     });
     expect(rows[0].expense).toBe(0);
   });
@@ -75,6 +95,7 @@ describe("monthByMonthRows", () => {
       [tx("2026-01-10", 10, "INCOME")],
       { kind: "year", year: 2027 },
       today,
+      new Set(),
     );
     expect(rows).toHaveLength(12);
     rows.forEach((r) => expect(r).not.toHaveProperty("income"));
@@ -85,17 +106,88 @@ describe("monthByMonthRows", () => {
       tx("2022-05-01", 100, "INCOME"),
       tx("2024-02-01", 30, "EXPENSE"),
     ];
-    const rows = monthByMonthRows(txs, { kind: "all" }, today);
+    const rows = monthByMonthRows(txs, { kind: "all" }, today, new Set());
 
     expect(rows).toEqual([
-      { date: new Date(2022, 0, 1), income: 100, expense: 0, kept: 100 },
-      { date: new Date(2023, 0, 1), income: 0, expense: 0, kept: 0 },
-      { date: new Date(2024, 0, 1), income: 0, expense: -30, kept: -30 },
+      {
+        date: new Date(2022, 0, 1),
+        income: 100,
+        expense: 0,
+        kept: 100,
+        bought: 0,
+        cashedOut: 0,
+        liquidity: 100,
+      },
+      {
+        date: new Date(2023, 0, 1),
+        income: 0,
+        expense: 0,
+        kept: 0,
+        bought: 0,
+        cashedOut: 0,
+        liquidity: 0,
+      },
+      {
+        date: new Date(2024, 0, 1),
+        income: 0,
+        expense: -30,
+        kept: -30,
+        bought: 0,
+        cashedOut: 0,
+        liquidity: -30,
+      },
     ]);
   });
 
   it("returns [] for all-time with no transactions", () => {
-    expect(monthByMonthRows([], { kind: "all" }, today)).toEqual([]);
+    expect(monthByMonthRows([], { kind: "all" }, today, new Set())).toEqual([]);
+  });
+
+  it("moves investment tags out of income and spent into bought and cashed out", () => {
+    const invest = new Set(["Brokerage"]);
+    const brokerage = { name: "Brokerage", icon: "tag", colorHex: "#fff" };
+    const txs = [
+      tx("2026-03-01", 1000, "INCOME"),
+      tx("2026-03-02", 200, "EXPENSE"),
+      tx("2026-03-03", 300, "EXPENSE", { tag: brokerage }),
+      tx("2026-03-04", 500, "INCOME", { tag: brokerage }),
+    ];
+    const rows = monthByMonthRows(
+      txs,
+      { kind: "year", year: 2026 },
+      today,
+      invest,
+    );
+
+    expect(rows[2]).toEqual({
+      date: new Date(2026, 2, 1),
+      income: 1000,
+      expense: -200,
+      kept: 800,
+      bought: 300,
+      cashedOut: 500,
+      liquidity: 1000 + 500 - 200 - 300,
+    });
+  });
+
+  it("gives a month with cashed out above bought a liquidity above its kept", () => {
+    const invest = new Set(["Brokerage"]);
+    const brokerage = { name: "Brokerage", icon: "tag", colorHex: "#fff" };
+    const txs = [
+      tx("2026-02-01", 100, "EXPENSE", { tag: brokerage }),
+      tx("2026-02-02", 400, "INCOME", { tag: brokerage }),
+    ];
+    const [, feb] = monthByMonthRows(
+      txs,
+      { kind: "year", year: 2026 },
+      today,
+      invest,
+    );
+
+    expect(feb.bought).toBe(100);
+    expect(feb.cashedOut).toBe(400);
+    expect(feb.kept).toBe(0);
+    expect(feb.liquidity).toBe(300);
   });
 });
 
@@ -200,5 +292,60 @@ describe("symmetricBound", () => {
         { date: new Date(2026, 1, 1) },
       ]),
     ).toBe(100);
+  });
+});
+
+describe("monthByMonthBound", () => {
+  const date = new Date(2026, 0, 1);
+
+  it("covers the investment stacks when on: Earned + cashed out and Spent + bought", () => {
+    // Earned + cashed out = 1000, Spent + bought = 500: the larger stack sets the bound.
+    expect(
+      monthByMonthBound(
+        [
+          {
+            date,
+            income: 100,
+            expense: -300,
+            kept: 0,
+            cashedOut: 900,
+            bought: 200,
+          },
+        ],
+        true,
+      ),
+    ).toBeCloseTo(1100);
+    // Spent + bought = 700 is the peak here.
+    expect(
+      monthByMonthBound(
+        [{ date, income: 100, expense: -500, bought: 200 }],
+        true,
+      ),
+    ).toBeCloseTo(770);
+  });
+
+  it("excludes the investment stacks when off: only Earned and Spent count", () => {
+    const row = {
+      date,
+      income: 100,
+      expense: -300,
+      cashedOut: 900,
+      bought: 200,
+    };
+    // Earned 100 and spent 300 are the peak; the 1000 and 500 stacks are ignored.
+    expect(monthByMonthBound([row], false)).toBeCloseTo(330);
+    expect(
+      monthByMonthBound(
+        [{ date, income: 100, expense: -500, bought: 200 }],
+        false,
+      ),
+    ).toBeCloseTo(550);
+  });
+
+  it("falls back to 100 when no row has an amount", () => {
+    expect(monthByMonthBound([{ date: new Date(2026, 0, 1) }], true)).toBe(100);
+    expect(monthByMonthBound([{ date: new Date(2026, 0, 1) }], false)).toBe(
+      100,
+    );
   });
 });

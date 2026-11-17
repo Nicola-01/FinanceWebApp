@@ -21,6 +21,8 @@ interface TransactionRowProps {
   onClick: (tx: Transaction) => void;
   isFirst: boolean;
   isLast: boolean;
+  /** Investment flow: violet amount with an Invested / Cashed out badge, no green/red. */
+  isInvestment?: boolean;
 }
 
 export const TransactionRow: React.FC<TransactionRowProps> = ({
@@ -28,6 +30,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
   onClick,
   isFirst,
   isLast,
+  isInvestment = false,
 }) => {
   const isIncome = transaction.type === "INCOME";
   // Older bank imports may carry the counterparty again as the note.
@@ -80,6 +83,11 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
               {transaction.name}
             </span>
           )}
+          {isInvestment && (
+            <span className="shrink-0 self-start rounded-full bg-app-invest/15 px-2 py-px text-[11px] font-semibold text-app-invest md:self-auto">
+              {isIncome ? "Cashed out" : "Invested"}
+            </span>
+          )}
           <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
             {transaction.subscriptionId && (
               <FontAwesomeIcon
@@ -114,7 +122,7 @@ export const TransactionRow: React.FC<TransactionRowProps> = ({
       )}
 
       <div
-        className={`shrink-0 pl-3 text-right text-lg font-bold font-app-mono inline-flex items-baseline justify-end gap-1 ${isIncome ? "text-app-green" : "text-app-red"}`}
+        className={`shrink-0 pl-3 text-right text-lg font-bold font-app-mono inline-flex items-baseline justify-end gap-1 ${isInvestment ? "text-app-invest" : isIncome ? "text-app-green" : "text-app-red"}`}
       >
         <span>
           {isIncome ? "+" : "-"}

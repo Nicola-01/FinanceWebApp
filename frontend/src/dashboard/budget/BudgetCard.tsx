@@ -61,6 +61,9 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
   }
 
   const meta = STATUS_META[budget.status];
+  // Investment goal: the amount to go (or the reached pill) replaces the spent-of-limit line.
+  const goal = budget.goal === true;
+  const reached = budget.status === "GOAL_REACHED";
   // No shared currency-format util exists yet in `utils/` (Transactions/Subscriptions
   // tabs each format money inline too) — minimal local Intl formatter.
   const money = (v: number) =>
@@ -78,9 +81,12 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <Badge size="md" shape="square" color={meta.color}>
-            {meta.label}
-          </Badge>
+          {/* A goal carries its status in the line below, so no badge. */}
+          {!goal && (
+            <Badge size="md" shape="square" color={meta.color}>
+              {meta.label}
+            </Badge>
+          )}
           {canEdit && (
             <Menu width={176}>
               <Menu.Trigger>
@@ -120,17 +126,29 @@ export const BudgetCard: React.FC<BudgetCardProps> = ({
           className="h-full rounded-full transition-all"
           style={{
             width: `${barPercent(budget)}%`,
-            backgroundColor: meta.color,
+            backgroundColor: goal ? "var(--color-app-invest)" : meta.color,
           }}
         />
       </div>
 
       <div className="flex items-center justify-between text-sm">
         <span className="text-app-text font-semibold font-app-mono tabular-nums">
-          {money(budget.spent)}{" "}
-          <span className="text-app-muted font-normal">
-            of {money(budget.effectiveLimit)}
-          </span>
+          {goal ? (
+            reached ? (
+              <span className="rounded-full bg-app-income/15 px-2.5 py-0.5 font-sans font-semibold text-app-income">
+                Goal reached
+              </span>
+            ) : (
+              <>{money(budget.remaining)} to go</>
+            )
+          ) : (
+            <>
+              {money(budget.spent)}{" "}
+              <span className="text-app-muted font-normal">
+                of {money(budget.effectiveLimit)}
+              </span>
+            </>
+          )}
         </span>
         <span className="text-app-muted font-app-mono tabular-nums">
           {budget.percentUsed}%
@@ -167,10 +185,10 @@ const Fact: React.FC<{
   label: string;
 }> = ({ color, value, label }) => (
   <div className="min-w-0">
-    <b className="block whitespace-nowrap text-[15px] font-semibold text-app-text">
+    <b className="block whitespace-nowrap font-semibold text-app-text">
       {value}
     </b>
-    <span className="mt-0.5 flex items-center gap-1.5 whitespace-nowrap text-[12px] text-app-muted">
+    <span className="mt-0.5 flex items-center gap-1.5 whitespace-nowrap text-[13px] text-app-muted">
       {color && (
         <span
           aria-hidden="true"
@@ -193,7 +211,12 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
 }) => {
   // `subscriptions` defaults to none so callers without it (older tests) still render.
   const { wallet, tags, subscriptions = [] } = useWalletContext();
-  const upcoming = upcomingSubscriptionSpend(budget, subscriptions, tags);
+  // A goal has no commitments: subscriptions due do not apply to it.
+  const goal = budget.goal === true;
+  const reached = budget.status === "GOAL_REACHED";
+  const upcoming = goal
+    ? 0
+    : upcomingSubscriptionSpend(budget, subscriptions, tags);
   // The due-soon segment starts where the spent arc ends and is capped at the limit.
   const spentArc = barPercent(budget);
   const dueArc =
@@ -211,7 +234,7 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
   // Pace marker: where committed spend lands by period end, pinned to the arc end.
   const projected = projectedCommitted(budget, upcoming);
   const pacePoint =
-    budget.effectiveLimit > 0
+    !goal && budget.effectiveLimit > 0
       ? arcPoint(
           Math.min(100, (projected / budget.effectiveLimit) * 100),
           ARC_RADIUS,
@@ -224,6 +247,17 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
   const money = (v: number) =>
     new Intl.NumberFormat(undefined, { style: "currency", currency }).format(v);
   const symbol = getCurrencySymbol(currency);
+  const goalHero = !goal ? null : reached ? (
+    <p>
+      <span className="inline-flex rounded-full bg-app-income/15 px-3 py-1 font-display text-[15px] font-semibold text-app-income">
+        Goal reached
+      </span>
+    </p>
+  ) : (
+    <p className="font-display text-[26px] font-[650] leading-[1.1] tracking-[-0.02em] tabular-nums text-app-text">
+      <AnimatedNumber value={budget.remaining} currency={symbol} /> to go
+    </p>
+  );
 
   return (
     <div className="flex flex-col gap-3 rounded-[var(--r-card)] bg-app-card p-4 shadow-[var(--box-ring)]">
@@ -242,12 +276,18 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
             {budget.rollover && " · Rollover"}
           </p>
         </div>
-        <span
-          className={`mt-1 inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[12.5px] font-semibold ${TONE_TEXT[tone]}`}
-        >
-          <span aria-hidden="true" className="size-2 rounded-full bg-current" />
-          {STATUS_TEXT_V2[budget.status]}
-        </span>
+        {/* A goal carries its status in the hero line below, so the header stays quiet. */}
+        {!goal && (
+          <span
+            className={`mt-1 inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] font-semibold ${TONE_TEXT[tone]}`}
+          >
+            <span
+              aria-hidden="true"
+              className="size-2 rounded-full bg-current"
+            />
+            {STATUS_TEXT_V2[budget.status]}
+          </span>
+        )}
         {canEdit && (
           <Menu width={176}>
             <Menu.Trigger>
@@ -282,7 +322,7 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
       </div>
 
       {/* Arc clamps at full; the centre shows the real percentage (centerValue, not value). */}
-      <div className="relative mx-auto w-full min-w-0 max-w-[220px] text-app-text">
+      <div className="relative mx-auto w-full min-w-0 max-w-[180px] text-app-text [&_.ts-bkm-center-stat-value]:!text-[26px]">
         <Gauge
           arcStyle="solid"
           arcThickness={0.05}
@@ -295,7 +335,9 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
           minWidth={0}
           suffix="%"
           value={showDue ? dueArc : spentArc}
-          activeFill={gaugeColor(budget.status)}
+          activeFill={
+            goal ? "var(--color-app-invest)" : gaugeColor(budget.status)
+          }
           zoneDisplay="fill"
           zones={
             showDue
@@ -310,7 +352,7 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
           }
         />
         {/* Alert ticks: the Gauge kit has no per-value marks, so they sit in an overlay on the same 100x100 box. */}
-        {budget.alertThresholds.length > 0 && (
+        {budget.alertThresholds.length > 0 && !goal && (
           <svg
             viewBox="0 0 100 100"
             role="img"
@@ -357,29 +399,34 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
         )}
       </div>
 
-      {overspend > 0 ? (
-        <p
-          className={`font-display text-[34px] font-semibold leading-none tracking-[-0.02em] tabular-nums ${budget.status === "EXCEEDED" ? "text-app-danger" : "text-app-warn"}`}
-        >
-          Over by <AnimatedNumber value={overspend} currency={symbol} />
-        </p>
-      ) : (
-        <p className="font-display text-[34px] font-semibold leading-none tracking-[-0.02em] tabular-nums text-app-text">
-          <AnimatedNumber value={left} currency={symbol} /> left
-        </p>
-      )}
+      {goalHero ??
+        (overspend > 0 ? (
+          <p
+            className={`font-display text-[26px] font-[650] leading-[1.1] tracking-[-0.02em] tabular-nums ${budget.status === "EXCEEDED" ? "text-app-danger" : "text-app-warn"}`}
+          >
+            Over by <AnimatedNumber value={overspend} currency={symbol} />
+          </p>
+        ) : (
+          <p className="font-display text-[26px] font-[650] leading-[1.1] tracking-[-0.02em] tabular-nums text-app-text">
+            <AnimatedNumber value={left} currency={symbol} /> left
+          </p>
+        ))}
 
-      <div className="grid grid-cols-3 gap-2 tabular-nums">
+      <div
+        className={`grid ${goal ? "grid-cols-2" : "grid-cols-3"} gap-2 tabular-nums`}
+      >
         <Fact
           color={gaugeColor(budget.status)}
           value={<AnimatedNumber value={budget.spent} currency={symbol} />}
           label="spent"
         />
-        <Fact
-          color={DUE_COLOUR}
-          value={<AnimatedNumber value={upcoming} currency={symbol} />}
-          label="still due"
-        />
+        {!goal && (
+          <Fact
+            color={DUE_COLOUR}
+            value={<AnimatedNumber value={upcoming} currency={symbol} />}
+            label="still due"
+          />
+        )}
         <Fact value={`${daysLeft(budget)} days`} label="left in period" />
       </div>
 

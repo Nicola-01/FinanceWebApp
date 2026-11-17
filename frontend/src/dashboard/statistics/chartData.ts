@@ -1,5 +1,6 @@
 import type { Transaction } from "../../types/domain.ts";
 import { MONTH_LABELS } from "../../utils/months.ts";
+import { isInvestmentTx } from "../../utils/investments.ts";
 
 export interface MonthlyBucket {
   date: Date;
@@ -8,16 +9,19 @@ export interface MonthlyBucket {
 }
 
 /**
- * Groups transactions into monthly buckets, sorted by date ascending.
+ * Groups transactions into monthly buckets, sorted by date ascending. Investment
+ * tags are left out, so a month with only investment activity gets no bucket.
  */
 export function buildMonthlyBuckets(
   transactions: Transaction[],
+  invest: Set<string> = new Set(),
 ): MonthlyBucket[] {
-  if (transactions.length === 0) return [];
+  const flowTxs = transactions.filter((tx) => !isInvestmentTx(tx, invest));
+  if (flowTxs.length === 0) return [];
 
   const bucketsMap = new Map<string, MonthlyBucket>();
 
-  transactions.forEach((tx) => {
+  flowTxs.forEach((tx) => {
     const d = new Date(tx.transactionDate);
     const year = d.getFullYear();
     const month = d.getMonth();

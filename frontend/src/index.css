@@ -58,6 +58,7 @@ body[data-layout-editing] [data-slot="bottom-navigation-list"] {
   --color-app-raised: rgb(var(--bg-raised, var(--bg-hover)));
   --color-app-faint: rgb(var(--text-faint, var(--text-muted)));
   --color-app-income: rgb(var(--v2-income, var(--app-green)));
+  --color-app-invest: rgb(var(--v2-invest, var(--app-purple)));
   --color-app-expense-mark: rgb(var(--v2-expense-mark, var(--app-red)));
   --color-app-warn: rgb(var(--v2-warn, var(--app-yellow)));
   --color-app-warn-fill: rgb(var(--v2-warn-fill, var(--app-yellow)));

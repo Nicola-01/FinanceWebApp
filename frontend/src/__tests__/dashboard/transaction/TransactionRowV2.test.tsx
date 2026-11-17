@@ -152,4 +152,34 @@ describe("TransactionRowV2", () => {
     expect(screen.getByText("Plus plan")).toBeInTheDocument();
     expect(screen.getAllByText("Food")).toHaveLength(1);
   });
+
+  it("marks an investment expense with an Invested badge and the invest colour", () => {
+    render(
+      <TransactionRowV2
+        transaction={tx({ name: "PAC Fineco" })}
+        onClick={vi.fn()}
+        isFirst
+        isLast
+        isInvestment
+      />,
+    );
+    expect(screen.getByText("Invested")).toBeInTheDocument();
+    expect(screen.getByText(/^−10,00/)).toHaveClass("text-app-invest");
+    expect(screen.getByText(/^−10,00/)).not.toHaveClass("text-app-text");
+  });
+
+  it("marks a cashed-out investment income with a Cashed out badge", () => {
+    render(
+      <TransactionRowV2
+        transaction={tx({ name: "Sold VWCE", type: "INCOME", amount: 200 })}
+        onClick={vi.fn()}
+        isFirst
+        isLast
+        isInvestment
+      />,
+    );
+    expect(screen.getByText("Cashed out")).toBeInTheDocument();
+    expect(screen.getByText(/^\+200,00/)).toHaveClass("text-app-invest");
+    expect(screen.getByText(/^\+200,00/)).not.toHaveClass("text-app-income");
+  });
 });

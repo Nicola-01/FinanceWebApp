@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investments: Month by month with the investments chip</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #141312; --card: #1d1c1a; --border: #2e2c29; --text: #efece6; --muted: #9a958c; --invest: #b39cf5; --wallet: #6d8cf0; --r-card: 18px; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0c0b0b; color: var(--text); font-family: "Instrument Sans", system-ui, sans-serif; padding: 28px 24px 80px; }
+  h1.page { font: 600 22px/1.2 "Bricolage Grotesque", sans-serif; }
+  .lead { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 85ch; line-height: 1.5; }
+  h2.sec { font: 600 18px/1.2 "Bricolage Grotesque", sans-serif; margin: 40px 0 6px; }
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 16px; }
+  .cap { color: var(--muted); font-size: 12.5px; margin-bottom: 8px; }
+  .phone { width: 375px; background: var(--bg); border-radius: 36px; padding: 40px 16px 24px; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .5); }
+  .desk { width: 800px; background: var(--bg); border-radius: 14px; padding: 22px; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .5); }
+  .card { background: var(--card); border-radius: var(--r-card); padding: 16px; }
+  .card h3 { font: 600 17px/1.2 "Bricolage Grotesque", sans-serif; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .card .sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font: 600 12.5px "Instrument Sans"; border-radius: 99px; padding: 5px 10px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; cursor: pointer; }
+  .chip.on { color: var(--invest); border-color: color-mix(in srgb, var(--invest) 45%, transparent); background: color-mix(in srgb, var(--invest) 12%, transparent); }
+  svg { width: 100%; height: auto; display: block; margin-top: 10px; }
+  .legend { display: flex; gap: 14px; justify-content: center; font-size: 12.5px; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+</style>
+</head>
+<body>
+<h1 class="page">Month by month: investments stacked in the same column</h1>
+<p class="lead">Same chart as today (earned above the line, spent below, dot = kept). The <b>↗ Investments</b> chip in the header works like the one on Categories: off by default. When on, each month's column gets violet segments <b>stacked on the outside</b>: what you <b>cashed out</b> on top of Earned, what you <b>bought</b> under Spent. The dot stays <b>Kept = Earned − Spent</b> either way (investing counts as saving), so turning the chip on never moves the line. With the chip on, a <b>dashed blue line</b> adds <b>Liquidity left = Earned + cashed out − Spent − bought</b>. Click the chip to toggle.</p>
+
+<h2 class="sec">Chip on</h2>
+<div class="row">
+  <div><div class="cap">Phone</div><div class="phone"><div class="card" data-w="340"></div></div></div>
+  <div><div class="cap">Desktop</div><div class="desk"><div class="card" data-w="760"></div></div></div>
+</div>
+
+<script>
+const M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const earned = [2400,2400,2400,2400,2400,2400,2400,2400,2400,2400,2400,null];
+const spent  = [1500,1300,1420,1250,1380,1600,1700,1100,1280,1270,1380,null];
+const bought = [300,300,300,800,300,300,300,0,300,300,900,null];
+const cashed = [0,0,0,0,0,0,0,500,0,0,300,null];
+function chart(w, on) {
+  const h = 260, z = 130, k = 100 / 3500, left = 34, step = (w - left) / 12, bw = Math.min(26, step * .55);
+  let g = "";
+  for (const v of [3000, 0, -3000]) { const y = z - v * k; g += `<line x1="${left}" y1="${y}" x2="${w}" y2="${y}" stroke="#2e2c29" stroke-dasharray="${v ? '3 4' : ''}"/><text x="${left - 6}" y="${y + 4}" text-anchor="end" font-size="10.5" fill="#9a958c">${v ? (v / 1000) + 'k' : 0}</text>`; }
+  const pts = [], liq = [];
+  M.forEach((m, i) => {
+    const x = left + i * step + (step - bw) / 2, cx = x + bw / 2;
+    g += `<text x="${cx}" y="${h - 4}" text-anchor="middle" font-size="10.5" fill="#9a958c">${w < 400 ? m[0] : m}</text>`;
+    if (earned[i] == null) return;
+    const eh = earned[i] * k, sh = spent[i] * k;
+    g += `<rect x="${x}" y="${z - eh}" width="${bw}" height="${eh}" rx="3" fill="#7fcf95"/>`;
+    g += `<rect x="${x}" y="${z}" width="${bw}" height="${sh}" rx="3" fill="#ec8a76"/>`;
+    if (on && cashed[i]) g += `<rect x="${x}" y="${z - eh - cashed[i] * k - 1.5}" width="${bw}" height="${cashed[i] * k}" rx="3" fill="#b39cf5"/>`;
+    if (on && bought[i]) g += `<rect x="${x}" y="${z + sh + 1.5}" width="${bw}" height="${bought[i] * k}" rx="3" fill="#b39cf5"/>`;
+    pts.push([cx, z - (earned[i] - spent[i]) * k]);
+    liq.push([cx, z - (earned[i] + cashed[i] - spent[i] - bought[i]) * k]);
+  });
+  g += `<polyline points="${pts.map(p => p.join(',')).join(' ')}" fill="none" stroke="#6d8cf0" stroke-width="2"/>` + pts.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.5" fill="#6d8cf0"/>`).join("");
+  if (on) g += `<polyline points="${liq.map(p => p.join(',')).join(' ')}" fill="none" stroke="#6d8cf0" stroke-width="2" stroke-dasharray="5 4" opacity=".85"/>`;
+  return `<svg viewBox="0 0 ${w} ${h}">${g}</svg>`;
+}
+function render(card, on) {
+  const w = +card.dataset.w;
+  card.innerHTML = `<h3>Month by month <span class="chip ${on ? 'on' : ''}">↗ Investments</span></h3><p class="sub">Earned above the line, spent below it. The dot is what you kept.</p>${chart(w, on)}
+    <div class="legend"><span><i style="background:#7fcf95"></i>Earned</span><span><i style="background:#ec8a76"></i>Spent</span>${on ? '<span><i style="background:#b39cf5"></i>Invested (out ↓ · back ↑)</span>' : ''}<span><i style="background:#6d8cf0"></i>Kept</span>${on ? '<span><i style="background:transparent;border:1.5px dashed #6d8cf0;border-radius:2px"></i>Liquidity left</span>' : ''}</div>`;
+  card.querySelector(".chip").onclick = () => render(card, !on);
+}
+document.querySelectorAll(".card[data-w]").forEach(c => render(c, true));
+</script>
+</body>
+</html>

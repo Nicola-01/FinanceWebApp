@@ -48,4 +48,12 @@ class TagMapperTest {
     assertEquals("#FFFFFF", response.getColorHex());
     assertNull(response.getParentName());
   }
+
+  @Test
+  void mapToResponse_InvestmentFlag_IsMapped() {
+    Tag tag = new Tag();
+    tag.setName("Investments");
+    tag.setInvestment(true);
+    assertTrue(tagMapper.mapToResponse(tag).isInvestment());
+  }
 }

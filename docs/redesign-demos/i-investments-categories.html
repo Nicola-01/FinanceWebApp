@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investments: Categories tab, three proposals</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141312; --card: #1d1c1a; --raised: #262421; --border: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --wallet: #6d8cf0; --on-wallet: #0c1230; --income: #7fcf95; --expense: #ec8a76;
+    --invest: #b39cf5; --r-card: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0c0b0b; color: var(--text); font-family: "Instrument Sans", system-ui, sans-serif; padding: 28px 24px 80px; }
+  h1.page { font: 600 22px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 80ch; line-height: 1.5; }
+  h2.sec { font: 600 18px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; margin: 48px 0 6px; }
+  .rec { display: inline-block; font-size: 11px; font-weight: 600; color: var(--on-wallet); background: var(--wallet); border-radius: 99px; padding: 2px 8px; margin-left: 6px; vertical-align: 3px; }
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 20px; }
+  .pick { cursor: pointer; border-radius: 14px; padding: 10px; outline: 2px solid transparent; }
+  .pick.selected { outline-color: var(--wallet); }
+  .cap { color: var(--muted); font-size: 12.5px; margin-bottom: 8px; }
+
+  .phone { width: 375px; background: var(--bg); border-radius: 36px; padding: 40px 16px 24px; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .5); }
+  .desk { width: 720px; background: var(--bg); border-radius: 14px; padding: 22px; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .5); }
+  .card { background: var(--card); border-radius: var(--r-card); padding: 16px; }
+  .card h3 { font: 600 16px/1.2 "Bricolage Grotesque", sans-serif; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .seg { display: inline-flex; background: var(--raised); border-radius: 10px; padding: 3px; font-size: 12.5px; font-weight: 600; }
+  .seg span { padding: 5px 10px; border-radius: 8px; color: var(--muted); }
+  .seg span.on { background: var(--bg); color: var(--text); }
+  .body { display: flex; gap: 18px; align-items: center; margin-top: 14px; }
+  .phone .body { flex-direction: column; }
+  .donut { width: 170px; flex: none; }
+  .leg { flex: 1; width: 100%; display: flex; flex-direction: column; gap: 7px; font-size: 13.5px; }
+  .leg div { display: flex; align-items: center; gap: 8px; }
+  .leg i { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+  .leg span { flex: 1; }
+  .leg b { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .leg em { font-style: normal; color: var(--muted); font-size: 12px; width: 38px; text-align: right; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .sk { width: 100%; height: auto; margin-top: 14px; }
+</style>
+</head>
+<body>
+<h1 class="page">Investments on the Categories tab: three proposals</h1>
+<p class="lead">Same month: Spent 1.380 € (Home 700, Groceries 380, Transport 300), Invested net 300 € (PAC 300, ETF 200 bought − 200 cashed out = 0 net). Income 2.400 € from Salary only.</p>
+
+<div id="out"></div>
+
+<h2 class="sec">Sankey (same in every proposal)</h2>
+<p class="lead">Income flows into the expense categories, into one violet <b>Invested</b> node (split by investment tag), and into <b>Liquidity left</b>. A month where you cash out more than you buy shows a violet "Cashed out" source on the left instead.</p>
+<div class="row"><div class="desk"><div class="card"><h3>Where income went</h3>
+<svg class="sk" viewBox="0 0 680 260">
+  <g font-size="12" fill="#efece6" font-family="Instrument Sans">
+  <rect x="20" y="20" width="12" height="220" rx="3" fill="#7fcf95"/><text x="40" y="132">Salary 2.400</text>
+  <path d="M32 20 C260 20 260 20 420 20 L420 84 C260 84 260 84 32 84Z" fill="#ec8a76" opacity=".35"/>
+  <path d="M32 84 C260 84 260 98 420 98 L420 133 C260 133 260 119 32 119Z" fill="#f59f00" opacity=".35"/>
+  <path d="M32 119 C260 119 260 147 420 147 L420 174 C260 174 260 146 32 146Z" fill="#4cc9f0" opacity=".35"/>
+  <path d="M32 146 C260 146 260 188 420 188 L420 215 C260 215 260 173 32 173Z" fill="#b39cf5" opacity=".45"/>
+  <path d="M32 173 C260 173 260 229 420 229 L420 240 C260 240 260 240 32 240Z" fill="#9a958c" opacity=".3"/>
+  <rect x="420" y="20" width="12" height="64" rx="3" fill="#ec8a76"/><text x="440" y="56">Home 700</text>
+  <rect x="420" y="98" width="12" height="35" rx="3" fill="#f59f00"/><text x="440" y="120">Groceries 380</text>
+  <rect x="420" y="147" width="12" height="27" rx="3" fill="#4cc9f0"/><text x="440" y="165">Transport 300</text>
+  <rect x="420" y="188" width="12" height="27" rx="3" fill="#b39cf5"/><text x="440" y="206" fill="#b39cf5">Invested 300 → PAC 300 · ETF 0</text>
+  <rect x="420" y="229" width="12" height="11" rx="3" fill="#9a958c"/><text x="440" y="239" fill="#9a958c">Liquidity left 720</text>
+  </g>
+</svg></div></div></div>
+
+<script>
+function donut(slices) {
+  const tot = slices.reduce((a, s) => a + s[1], 0); let a0 = -Math.PI / 2, out = "";
+  for (const [, v, c] of slices) {
+    const a1 = a0 + (v / tot) * Math.PI * 2, r = 70, R = 46, cx = 85, cy = 85, lg = a1 - a0 > Math.PI ? 1 : 0;
+    const p = (r, a) => `${cx + r * Math.cos(a)} ${cy + r * Math.sin(a)}`;
+    out += `<path d="M${p(r, a0 + .02)} A${r} ${r} 0 ${lg} 1 ${p(r, a1 - .02)} L${p(R, a1 - .02)} A${R} ${R} 0 ${lg} 0 ${p(R, a0 + .02)}Z" fill="${c}"/>`;
+    a0 = a1;
+  }
+  return `<svg class="donut" viewBox="0 0 170 170">${out}<text x="85" y="82" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="600" font-size="20" fill="#efece6">${tot.toLocaleString('it')}</text><text x="85" y="100" text-anchor="middle" font-size="11" fill="#9a958c">€ total</text></svg>`;
+}
+const legend = (s) => { const t = s.reduce((a, x) => a + x[1], 0); return `<div class="leg">${s.map(([n, v, c]) => `<div><i style="background:${c}"></i><span ${c === '#b39cf5' ? 'style="color:#b39cf5"' : ''}>${n}</span><b>${v.toLocaleString('it')} €</b><em>${Math.round(v / t * 100)}%</em></div>`).join("")}</div>`; };
+const exp = [["Home", 700, "#ec8a76"], ["Groceries", 380, "#f59f00"], ["Transport", 300, "#4cc9f0"]];
+const inv = [["PAC", 300, "#b39cf5"], ["ETF (500 in · 200 out)", 0.0001, "#8f78d9"]];
+
+const P = {
+  A: { t: "A. A third segment: Income · Expenses · Investments", l: "Expenses no longer include investment tags. The Investments view shows the invested net split by investment tag, with bought/cashed out per tag. Clean separation, one more segment.",
+       seg: ["Income", "Expenses", "Investments"], on: 2,
+       chart: donut([["PAC", 300, "#b39cf5"], ["ETF", 1, "#8f78d9"]]) + `<div class="leg"><div><i style="background:#b39cf5"></i><span>PAC</span><b>300 €</b><em>300 in</em></div><div><i style="background:#8f78d9"></i><span>ETF</span><b>0 €</b><em>200/200</em></div></div>`,
+       note: "Invested net 300 € · 500 bought · 200 cashed out" },
+  B: { t: "B. Toggle stays Income · Expenses; investments as one violet slice in Expenses", l: "No new segment. Investments appear as a single violet slice inside the Expenses donut, so you see them next to spending. Mixes two things the rest of the app now separates.",
+       seg: ["Income", "Expenses"], on: 1,
+       chart: donut([...exp, ["Invested", 300, "#b39cf5"]]) + legend([...exp, ["Invested", 300, "#b39cf5"]]),
+       note: "Tap the violet slice to see PAC / ETF" },
+  C: { t: "C. Toggle stays Income · Expenses; investments only on Statistics", l: "Categories shows only real spending and income; investments get their own section on Statistics. Least work here, but nowhere on this tab shows where the money went.",
+       seg: ["Income", "Expenses"], on: 1,
+       chart: donut(exp) + legend(exp),
+       note: "Investment tags are hidden from this tab" },
+};
+let html = "";
+for (const [k, p] of Object.entries(P)) {
+  const card = `<div class="card"><h3>By category <span class="seg">${p.seg.map((s, i) => `<span class="${i === p.on ? 'on' : ''}" ${s === 'Investments' && i === p.on ? 'style="color:#b39cf5"' : ''}>${s}</span>`).join("")}</span></h3><div class="body">${p.chart}</div><div class="note">${p.note}</div></div>`;
+  html += `<h2 class="sec">${p.t}${k === "A" ? '<span class="rec">Recommended</span>' : ""}</h2><p class="lead">${p.l}</p>
+  <div class="row pick" data-choice="${k}" onclick="document.querySelectorAll('.pick').forEach(e=>e.classList.remove('selected'));this.classList.add('selected');window.brainstorm&&brainstorm.send({type:'click',choice:'${k}'})">
+    <div><div class="cap">Phone</div><div class="phone">${card}</div></div>
+    <div><div class="cap">Desktop</div><div class="desk">${card}</div></div></div>`;
+}
+document.getElementById("out").innerHTML = html;
+</script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, Scale } from "lucide-react";
 import type { Transaction } from "../../types/domain.ts";
 import { summarize } from "./summaryStats.ts";
 import { formatAmount } from "../../utils/format.ts";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 
 interface StatisticsSummaryProps {
   transactions: Transaction[];
@@ -51,7 +52,11 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
 export const StatisticsSummary: React.FC<StatisticsSummaryProps> = ({
   transactions,
 }) => {
-  const stats = useMemo(() => summarize(transactions), [transactions]);
+  const invest = useInvestmentTags();
+  const stats = useMemo(
+    () => summarize(transactions, invest),
+    [transactions, invest],
+  );
 
   const netClass = stats.net >= 0 ? "text-app-green" : "text-app-red";
   const signed = (v: number) =>

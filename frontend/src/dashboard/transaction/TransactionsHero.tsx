@@ -4,9 +4,12 @@ import { filterTransactions } from "../wallet/useTransactionFilters.ts";
 import { WalletHeroCard } from "../../components/ui/WalletHeroCard.tsx";
 import { StatTile } from "../../components/ui/StatTile.tsx";
 import { CategoryIcon } from "../../components/ui/CategoryIcon.tsx";
-import { dailyNetSeries, periodLabel, sumByType } from "../../utils/period.ts";
+import { dailyNetSeries, periodLabel } from "../../utils/period.ts";
+import { isInvestmentTx, sumFlows } from "../../utils/investments.ts";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 import { getCurrencySymbol } from "../../utils/currencies/index.ts";
 import { onColor, toHex } from "../../utils/color.ts";
+import { formatAmount } from "../../utils/format.ts";
 import { LazyHeroTrend } from "../../components/ui/LazyHeroTrend.tsx";
 
 const countLabel = (n: number): string =>
@@ -27,15 +30,23 @@ export const TransactionsHero: React.FC = () => {
     [transactions, tags, dateRange],
   );
 
-  const trend = useMemo(
-    () => dailyNetSeries(periodTx, dateRange.start, dateRange.end),
-    [periodTx, dateRange.start, dateRange.end],
+  const invest = useInvestmentTags();
+  const flows = useMemo(() => sumFlows(periodTx, invest), [periodTx, invest]);
+  // Income and Spent rows only: the trend and counts leave investment rows out.
+  const regular = useMemo(
+    () => periodTx.filter((tx) => !isInvestmentTx(tx, invest)),
+    [periodTx, invest],
   );
 
-  const { income, expense } = sumByType(periodTx);
-  const incomeCount = periodTx.filter((tx) => tx.type === "INCOME").length;
-  const expenseCount = periodTx.length - incomeCount;
-  const net = income - expense;
+  const trend = useMemo(
+    () => dailyNetSeries(regular, dateRange.start, dateRange.end),
+    [regular, dateRange.start, dateRange.end],
+  );
+
+  const { income, spent, investedNet, liquidityLeft, bought, cashedOut, net } =
+    flows;
+  const incomeCount = regular.filter((tx) => tx.type === "INCOME").length;
+  const expenseCount = regular.length - incomeCount;
   const symbol = getCurrencySymbol(wallet.currency);
   const label = periodLabel(dateRange, datePreset);
 
@@ -53,7 +64,7 @@ export const TransactionsHero: React.FC = () => {
           ) : undefined
         }
       />
-      <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-1">
+      <div className="grid grid-cols-2 gap-3.5">
         <StatTile
           label="Income"
           tone="income"
@@ -65,16 +76,30 @@ export const TransactionsHero: React.FC = () => {
         />
         <StatTile
           label="Spent"
-          value={expense}
+          value={spent}
           currency={symbol}
           sub={
             income > 0
-              ? `${Math.round((expense / income) * 100)}% of income`
+              ? `${Math.round((spent / income) * 100)}% of income`
               : countLabel(expenseCount)
           }
           icon={
             <CategoryIcon icon="cart" color="var(--color-app-expense-mark)" />
           }
+        />
+        <StatTile
+          label="Invested"
+          value={investedNet}
+          currency={symbol}
+          sub={`${formatAmount(bought)} in · ${formatAmount(cashedOut)} out`}
+          icon={<CategoryIcon icon="invest" color="var(--color-app-invest)" />}
+        />
+        <StatTile
+          label="Liquidity left"
+          value={liquidityLeft}
+          currency={symbol}
+          sub="Net − Invested"
+          icon={<CategoryIcon icon="wallet" color="var(--color-app-muted)" />}
         />
       </div>
     </div>

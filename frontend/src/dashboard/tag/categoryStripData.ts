@@ -1,4 +1,5 @@
 import type { Tag, Transaction } from "../../types/domain.ts";
+import { isInvestmentTx } from "../../utils/investments.ts";
 import { OTHER_COLOR, mainCategoryName } from "./categoryAgg.ts";
 
 export interface StripCategory {
@@ -10,16 +11,18 @@ export interface StripCategory {
 
 /**
  * The top-level categories that had spending in the period, largest first. Expenses only,
- * grouped the way the charts group them. Empty when nothing was spent.
+ * grouped the way the charts group them. Investment-tag spending is not spending and is
+ * skipped. Empty when nothing was spent.
  */
 export function rankExpenseCategories(
   transactions: Transaction[],
   tags: Tag[],
+  invest: Set<string>,
 ): StripCategory[] {
   const totals = new Map<string, number>();
   let total = 0;
   for (const tx of transactions) {
-    if (tx.type !== "EXPENSE") continue;
+    if (tx.type !== "EXPENSE" || isInvestmentTx(tx, invest)) continue;
     const main = mainCategoryName(tx);
     totals.set(main, (totals.get(main) ?? 0) + tx.amount);
     total += tx.amount;

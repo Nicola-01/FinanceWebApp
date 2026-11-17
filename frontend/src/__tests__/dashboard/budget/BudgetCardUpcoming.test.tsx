@@ -256,6 +256,78 @@ describe("BudgetCard header, hero and pace (v2)", () => {
   });
 });
 
+describe("BudgetCard goals (v1 and v2)", () => {
+  const goalBudget = (overrides: Partial<Budget> = {}) =>
+    makeBudget({
+      goal: true,
+      status: "OK",
+      spent: 250,
+      remaining: 50,
+      percentUsed: 83,
+      alertThresholds: [80, 100],
+      ...overrides,
+    });
+
+  beforeEach(() => {
+    gaugeSpy.mockClear();
+    walletCtx.subscriptions = [monthlyGym];
+    walletCtx.tags = [];
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 10, 16, 12));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    setUiVersion("v1");
+  });
+
+  it("v1: shows the amount to go, fills the bar in invest and drops the status badge", () => {
+    setUiVersion("v1");
+    renderCard(goalBudget());
+
+    expect(screen.getByText(/to go$/)).toHaveTextContent(/50[.,]00.*to go/);
+    expect(screen.queryByText("On track")).not.toBeInTheDocument();
+    expect(screen.queryByText("Goal reached")).not.toBeInTheDocument();
+    expect(
+      document.querySelector('[style*="--color-app-invest"]'),
+    ).not.toBeNull();
+    expect(document.querySelector("[data-alert-tick]")).toBeNull();
+    expect(screen.queryByText("still due")).not.toBeInTheDocument();
+    expect(screen.queryByText("120,00 €")).not.toBeInTheDocument();
+  });
+
+  it("v1: shows a reached goal as a single Goal reached pill", () => {
+    setUiVersion("v1");
+    renderCard(
+      goalBudget({ status: "GOAL_REACHED", spent: 320, remaining: -20 }),
+    );
+
+    expect(screen.getAllByText("Goal reached")).toHaveLength(1);
+    expect(screen.queryByText(/to go/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Over/)).not.toBeInTheDocument();
+  });
+
+  it("v2: hides the still-due figure, due arc and pace marker for a goal", () => {
+    setUiVersion("v2");
+    renderCard(goalBudget());
+
+    expect(screen.queryByText("still due")).not.toBeInTheDocument();
+    expect(document.querySelector("[data-pace-marker]")).toBeNull();
+    expect(
+      screen.queryByRole("img", { name: /^Pace:/ }),
+    ).not.toBeInTheDocument();
+    expect(lastGaugeProps()).toMatchObject({
+      value: 83,
+      activeFill: "var(--color-app-invest)",
+    });
+    expect(lastGaugeProps().zones).toBeUndefined();
+    // The hero stays the plain amount to go, not reduced by the subscription.
+    expect(screen.getByLabelText("50,00 €").closest("p")).toHaveTextContent(
+      /^50,00 € to go$/,
+    );
+  });
+});
+
 describe("BudgetCard alert ticks (v2)", () => {
   beforeEach(() => {
     setUiVersion("v2");

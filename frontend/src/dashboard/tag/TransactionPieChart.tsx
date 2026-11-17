@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useTheme } from "../../utils/ThemeContext.tsx";
 import {
   PieArcLabel,
@@ -16,6 +16,32 @@ import { toSentenceCase } from "../../utils/format.ts";
 import { getCurrencySymbol } from "../../utils/currencies/index.ts";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { AnimatedNumber } from "../../components/ui/AnimatedNumber.tsx";
+import Button from "../../components/ui/Button.tsx";
+import { isInvestmentTx } from "../../utils/investments.ts";
+
+const NO_INVESTMENTS = new Set<string>();
+
+/** Investment slices are drawn in the violet token, whatever the tag's own colour (children at 60%, as the shading below). */
+const INVEST_COLOR = "var(--color-app-invest)";
+const INVEST_CHILD_COLOR =
+  "color-mix(in srgb, var(--color-app-invest) 60%, transparent)";
+
+/** Per-device "↗ Investments" chip state; unavailable storage reads as off. */
+const readInvestmentFlag = (key: string): boolean => {
+  try {
+    return localStorage.getItem(key) === "true";
+  } catch {
+    return false;
+  }
+};
+
+const writeInvestmentFlag = (key: string, on: boolean): void => {
+  try {
+    localStorage.setItem(key, String(on));
+  } catch {
+    // Storage unavailable: the chip still works for this page load.
+  }
+};
 
 const StyledText = styled("text")(() => ({
   fill: "currentColor",
@@ -92,6 +118,7 @@ export const TransactionPieChart = ({
   title,
   currency = "EUR",
   bare = false,
+  investmentTags,
 }: {
   transactions: Transaction[];
   type: "INCOME" | "EXPENSE";
@@ -100,14 +127,29 @@ export const TransactionPieChart = ({
   currency?: string;
   /** Render without the card shell + title (the parent group card provides them). */
   bare?: boolean;
+  /** Investment tag names. Given on the Categories tab: shows the "↗ Investments" chip; omitted: no chip. */
+  investmentTags?: Set<string>;
 }) => {
   const { resolvedTheme } = useTheme();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const [ui] = useUiVersion();
   const v2 = ui === "v2"; // ui-v2-switch
-  const txs = transactions.filter((t) => t.type === type);
+  const storageKey = `categories.showInvestments.${type}`;
+  const [showInvestments, setShowInvestments] = useState(() =>
+    readInvestmentFlag(storageKey),
+  );
+  const invest = investmentTags ?? NO_INVESTMENTS;
+  const txs = transactions.filter(
+    (t) => t.type === type && (showInvestments || !isInvestmentTx(t, invest)),
+  );
   const totalAmount = txs.reduce((acc, t) => acc + t.amount, 0);
+
+  const toggleInvestments = () => {
+    const next = !showInvestments;
+    setShowInvestments(next);
+    writeInvestmentFlag(storageKey, next);
+  };
 
   const shellClass = bare
     ? "flex flex-col items-center w-full h-full text-app-text"
@@ -116,23 +158,45 @@ export const TransactionPieChart = ({
       : "flex flex-col items-center w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border py-3 md:p-6 text-app-text";
 
   const titleClass = v2 // ui-v2-switch
-    ? "mb-6 w-full font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text"
-    : "text-xl font-bold text-app-text mb-6 uppercase tracking-wider";
+    ? "font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text"
+    : "text-xl font-bold text-app-text uppercase tracking-wider";
   const shownTitle = v2 ? toSentenceCase(title) : title; // ui-v2-switch
+
+  // No investment tags in the wallet: nothing to toggle, so no chip.
+  const chip = investmentTags && investmentTags.size > 0 && (
+    <Button
+      variant="secondary"
+      size="sm"
+      aria-pressed={showInvestments}
+      onClick={toggleInvestments}
+      className={`!rounded-full ${
+        showInvestments
+          ? "!border-app-invest/45 !bg-app-invest/12 !text-app-invest"
+          : ""
+      }`}
+    >
+      ↗ Investments
+    </Button>
+  );
+
+  // Title (unless the group card shows it) and the investments chip share one row.
+  const header = (headingClass: string) =>
+    !bare || chip ? (
+      <div
+        className={`flex w-full items-center gap-3 ${bare ? "mb-3 justify-end" : "mb-6 justify-between"}`}
+      >
+        {!bare && <h3 className={headingClass}>{shownTitle}</h3>}
+        {chip}
+      </div>
+    ) : null;
 
   if (totalAmount === 0) {
     return (
       <div className={shellClass}>
-        {!bare && (
-          <h3
-            className={
-              v2 // ui-v2-switch
-                ? titleClass
-                : "text-xl font-bold text-app-text mb-6 uppercase tracking-wider opacity-50"
-            }
-          >
-            {shownTitle}
-          </h3>
+        {header(
+          v2 // ui-v2-switch
+            ? titleClass
+            : "text-xl font-bold text-app-text uppercase tracking-wider opacity-50",
         )}
 
         <div
@@ -176,7 +240,7 @@ export const TransactionPieChart = ({
       label: id,
       value: data.value,
       percentage: (data.value / totalAmount) * 100,
-      color: data.color,
+      color: invest.has(id) ? INVEST_COLOR : data.color,
     }));
 
   const outerData: typeof innerData = [];
@@ -191,8 +255,13 @@ export const TransactionPieChart = ({
         label: subId,
         value: subData.value,
         percentage: (subData.value / totalAmount) * 100,
-        color:
-          subId === mainItem.id ? subData.color : hexToRgba(subData.color, 0.6),
+        color: invest.has(subId)
+          ? subId === mainItem.id
+            ? INVEST_COLOR
+            : INVEST_CHILD_COLOR
+          : subId === mainItem.id
+            ? subData.color
+            : hexToRgba(subData.color, 0.6),
       });
     });
   });
@@ -203,7 +272,7 @@ export const TransactionPieChart = ({
 
   return (
     <div className={shellClass}>
-      {!bare && <h3 className={titleClass}>{shownTitle}</h3>}
+      {header(titleClass)}
 
       <div className="w-full flex justify-center h-[400px]">
         <PieChart

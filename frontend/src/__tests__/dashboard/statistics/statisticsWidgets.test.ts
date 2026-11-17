@@ -11,8 +11,9 @@ describe("STATISTICS_WIDGETS", () => {
   });
 
   // Month by month + Worth knowing are pinned above the grid (2/3 + 1/3), not widgets.
-  it("lists the three customizable cards in the default order with their spans", () => {
+  it("lists the four customizable cards in the default order with their spans", () => {
     expect(STATISTICS_WIDGETS.map(({ id, span }) => [id, span])).toEqual([
+      ["investments", "half"],
       ["year-waterfall", "full"],
       ["balance-projection", "full"],
       ["numbers", "full"],
@@ -22,6 +23,7 @@ describe("STATISTICS_WIDGETS", () => {
   it("starts every card visible and gives each a short label", () => {
     expect(STATISTICS_WIDGETS.some((w) => w.hiddenByDefault)).toBe(false);
     expect(STATISTICS_WIDGETS.map((w) => w.label)).toEqual([
+      "Investments",
       "Year",
       "Projection",
       "Numbers",

@@ -3,6 +3,7 @@ package dev.busato.FinanceWebApp.backend.report;
 import dev.busato.FinanceWebApp.backend.model.Tag;
 import dev.busato.FinanceWebApp.backend.model.Transaction;
 import dev.busato.FinanceWebApp.backend.model.Wallet;
+import dev.busato.FinanceWebApp.backend.service.InvestmentTags;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -71,7 +72,7 @@ public class ReportAggregator {
     Map<YearMonth, BigDecimal[]> split = new LinkedHashMap<>();
     for (YearMonth ym : months) split.put(ym, new BigDecimal[] {BigDecimal.ZERO, BigDecimal.ZERO});
     for (Transaction t : inPeriod) {
-      if (t.getType() != Transaction.Type.EXPENSE) continue;
+      if (t.getType() != Transaction.Type.EXPENSE || isInvestment(t)) continue;
       LocalDate d = t.getTransactionDate();
       daily.merge(d, t.getAmount(), BigDecimal::add);
       boolean fixed = t.getSubscription() != null;
@@ -131,9 +132,22 @@ public class ReportAggregator {
   }
 
   static PeriodTotals totals(List<Transaction> transactions) {
-    BigDecimal income = sumByType(transactions, Transaction.Type.INCOME);
-    BigDecimal expense = sumByType(transactions, Transaction.Type.EXPENSE);
-    return new PeriodTotals(income, expense, income.subtract(expense));
+    List<Transaction> flows = transactions.stream().filter(t -> !isInvestment(t)).toList();
+    List<Transaction> investments =
+        transactions.stream().filter(ReportAggregator::isInvestment).toList();
+    BigDecimal income = sumByType(flows, Transaction.Type.INCOME);
+    BigDecimal expense = sumByType(flows, Transaction.Type.EXPENSE);
+    return new PeriodTotals(
+        income,
+        expense,
+        income.subtract(expense),
+        sumByType(investments, Transaction.Type.EXPENSE),
+        sumByType(investments, Transaction.Type.INCOME));
+  }
+
+  /** Investment-tagged transactions are money moved into/out of investments, not spending. */
+  static boolean isInvestment(Transaction t) {
+    return InvestmentTags.isInvestment(t.getTag());
   }
 
   static BigDecimal sumByType(List<Transaction> transactions, Transaction.Type type) {
@@ -160,7 +174,7 @@ public class ReportAggregator {
   static Map<String, BigDecimal> byCategory(List<Transaction> transactions, Transaction.Type type) {
     Map<String, BigDecimal> out = new LinkedHashMap<>();
     for (Transaction t : transactions) {
-      if (t.getType() != type) continue;
+      if (t.getType() != type || isInvestment(t)) continue;
       out.merge(rootCategory(t), t.getAmount(), BigDecimal::add);
     }
     return out;
@@ -263,13 +277,13 @@ public class ReportAggregator {
       boolean previousYearEmpty) {
     Transaction biggest =
         inYear.stream()
-            .filter(t -> t.getType() == Transaction.Type.EXPENSE)
+            .filter(t -> t.getType() == Transaction.Type.EXPENSE && !isInvestment(t))
             .max(Comparator.comparing(Transaction::getAmount))
             .orElse(null);
 
     Map.Entry<LocalDate, BigDecimal> costliestDay =
         inYear.stream()
-            .filter(t -> t.getType() == Transaction.Type.EXPENSE)
+            .filter(t -> t.getType() == Transaction.Type.EXPENSE && !isInvestment(t))
             .collect(
                 Collectors.groupingBy(
                     Transaction::getTransactionDate,

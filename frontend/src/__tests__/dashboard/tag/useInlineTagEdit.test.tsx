@@ -66,4 +66,81 @@ describe("useInlineTagEdit", () => {
 
     expect(onUpdateTag).not.toHaveBeenCalled();
   });
+
+  describe("investment flag", () => {
+    it("toggling calls the update path with { investment }", async () => {
+      const onUpdateTag = vi.fn().mockResolvedValue(true);
+      const { result } = renderHook(() =>
+        useInlineTagEdit(tag("#111111"), onUpdateTag),
+      );
+
+      await act(async () => {
+        await result.current.onInvestmentChange(true);
+      });
+
+      expect(onUpdateTag).toHaveBeenCalledWith(
+        "Food",
+        expect.objectContaining({ investment: true }),
+      );
+      expect(result.current.isInvestment).toBe(true);
+    });
+
+    it("reverts the optimistic value when the save fails", async () => {
+      const onUpdateTag = vi.fn().mockResolvedValue(false);
+      const { result } = renderHook(() =>
+        useInlineTagEdit(tag("#111111"), onUpdateTag),
+      );
+
+      await act(async () => result.current.onInvestmentChange(true));
+
+      expect(result.current.isInvestment).toBe(false);
+    });
+
+    it("ignores toggles in read-only mode", async () => {
+      const onUpdateTag = vi.fn().mockResolvedValue(true);
+      const { result } = renderHook(() =>
+        useInlineTagEdit(tag("#111111"), onUpdateTag, true),
+      );
+
+      await act(async () => {
+        await result.current.onInvestmentChange(true);
+      });
+
+      expect(onUpdateTag).not.toHaveBeenCalled();
+      expect(result.current.isInvestment).toBe(false);
+    });
+
+    it("keeps a pending investment flag when the colour is saved on close", async () => {
+      // Regression: the icon/colour save spreads the stale tag prop, which would
+      // overwrite a flag toggled a moment earlier.
+      const onUpdateTag = vi.fn().mockResolvedValue(true);
+      const { result } = renderHook(() =>
+        useInlineTagEdit(tag("#111111"), onUpdateTag),
+      );
+
+      await act(async () => {
+        await result.current.onInvestmentChange(true);
+      });
+      act(() => result.current.onIconToggle(true));
+      act(() => result.current.setColorVal("#ff0000"));
+      act(() => result.current.onIconToggle(false));
+
+      expect(onUpdateTag).toHaveBeenLastCalledWith(
+        "Food",
+        expect.objectContaining({ colorHex: "#ff0000", investment: true }),
+      );
+    });
+
+    it("adopts an external investment change from the prop", () => {
+      const { result, rerender } = renderHook(
+        ({ t }: { t: Tag }) =>
+          useInlineTagEdit(t, vi.fn().mockResolvedValue(true)),
+        { initialProps: { t: tag("#111111") } },
+      );
+
+      rerender({ t: { ...tag("#111111"), investment: true } });
+
+      expect(result.current.isInvestment).toBe(true);
+    });
+  });
 });

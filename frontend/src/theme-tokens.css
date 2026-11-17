@@ -160,6 +160,7 @@
   --bg-input: 238 236 232;
   --bg-hover: 238 236 232;
   --v2-income: 47 143 85; /* #2f8f55 */
+  --v2-invest: 109 79 194; /* #6d4fc2 deeper violet: #b39cf5 is too faint on white */
   --v2-kept: 52 120 198; /* #3478c6 */
   --v2-expense-mark: 236 138 118; /* #ec8a76 */
   --v2-warn: 154 95 0; /* #9a5f00 text (D11) */
@@ -205,6 +206,7 @@
   --bg-input: 38 36 33;
   --bg-hover: 38 36 33;
   --v2-income: 127 207 149; /* #7fcf95 */
+  --v2-invest: 179 156 245; /* #b39cf5 */
   --v2-kept: 122 170 245; /* #7aaaf5 */
   --v2-warn: 240 184 90; /* #f0b85a */
   --v2-warn-fill: 240 184 90;

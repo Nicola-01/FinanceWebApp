@@ -21,7 +21,8 @@ import {
 } from "../../utils/currencies/index.ts";
 import { EmptyState } from "../../components/ui/EmptyState.tsx"; // ui-v2-switch
 import { useUiVersion } from "../../hooks/useUiVersion.ts"; // ui-v2-switch
-import { sumByType } from "../../utils/period.ts"; // ui-v2-switch
+import { isInvestmentTx, sumFlows } from "../../utils/investments.ts"; // ui-v2-switch
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 import { formatAmount } from "../../utils/format.ts"; // ui-v2-switch
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
 import { getApiErrorTitle } from "../../utils/apiError";
@@ -84,22 +85,38 @@ const DayGroupV2 = ({
   date,
   currency,
   rows,
+  invest,
   onOpen,
 }: {
   date: string;
   currency: CurrencyCode;
   rows: Transaction[];
+  invest: Set<string>;
   onOpen: (tx: Transaction) => void;
 }) => {
-  const { income, expense } = sumByType(rows);
+  const flows = sumFlows(rows, invest);
   const symbol = CURRENCY_META[currency]?.symbol;
+  const withSymbol = (n: number) =>
+    `${formatAmount(n)}${symbol ? ` ${symbol}` : ""}`;
   return (
     <div className="mb-3.5 rounded-[var(--r-card)] bg-app-card p-2 shadow-[var(--box-ring)]">
       <div className="flex justify-between px-3 pb-2 pt-1 text-[13px] text-app-muted">
         <span>{formatDateHeader(date)}</span>
         <span className="tabular-nums">
-          {formatAmount(income - expense, { signed: true })}
+          {formatAmount(flows.net, { signed: true })}
           {symbol && ` ${symbol}`}
+          {flows.bought !== 0 && (
+            <span className="text-app-invest">
+              {" "}
+              · {withSymbol(flows.bought)} invested
+            </span>
+          )}
+          {flows.cashedOut !== 0 && (
+            <span className="text-app-invest">
+              {" "}
+              · {withSymbol(flows.cashedOut)} cashed out
+            </span>
+          )}
         </span>
       </div>
       <div className="flex flex-col">
@@ -110,6 +127,7 @@ const DayGroupV2 = ({
             onClick={onOpen}
             isFirst={index === 0}
             isLast={index === array.length - 1}
+            isInvestment={isInvestmentTx(tx, invest)}
           />
         ))}
       </div>
@@ -128,6 +146,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
   const detailsModalRef = useRef<TransactionDetailsModalHandle>(null);
   const transactionModalRef = useRef<TransactionModalHandle>(null);
   const [ui] = useUiVersion(); // ui-v2-switch
+  const invest = useInvestmentTags();
 
   // Search every wallet transaction, not just this filtered list: a notified row may sit
   // outside the selected period.
@@ -221,6 +240,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                 date={date}
                 currency={wallet.currency as CurrencyCode}
                 rows={groupedTransactions[date]}
+                invest={invest}
                 onOpen={(tx) => detailsModalRef.current?.openModal(tx)}
               />
             ) : (
@@ -242,6 +262,7 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({
                       onClick={(tx) => detailsModalRef.current?.openModal(tx)}
                       isFirst={index === 0}
                       isLast={index === array.length - 1}
+                      isInvestment={isInvestmentTx(tx, invest)}
                     />
                   ))}
                 </div>

@@ -25,9 +25,17 @@ class ReportHtmlBuilderTest {
         "EUR",
         YearMonth.of(2026, 6),
         new PeriodTotals(
-            new BigDecimal("2000.00"), new BigDecimal("800.00"), new BigDecimal("1200.00")),
+            new BigDecimal("2000.00"),
+            new BigDecimal("800.00"),
+            new BigDecimal("1200.00"),
+            BigDecimal.ZERO,
+            BigDecimal.ZERO),
         new PeriodTotals(
-            new BigDecimal("1500.00"), new BigDecimal("900.00"), new BigDecimal("600.00")),
+            new BigDecimal("1500.00"),
+            new BigDecimal("900.00"),
+            new BigDecimal("600.00"),
+            BigDecimal.ZERO,
+            BigDecimal.ZERO),
         new BigDecimal("5400.00"),
         List.of(new CategoryTotal("Food", new BigDecimal("300.00"), 37.5, null)),
         List.of(new CategoryTotal("Salary", new BigDecimal("2000.00"), 100.0, null)),
@@ -69,7 +77,12 @@ class ReportHtmlBuilderTest {
             "#8b5cf6",
             "EUR",
             YearMonth.of(2026, 6),
-            new PeriodTotals(BigDecimal.ZERO, new BigDecimal("10.00"), new BigDecimal("-10.00")),
+            new PeriodTotals(
+                BigDecimal.ZERO,
+                new BigDecimal("10.00"),
+                new BigDecimal("-10.00"),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO),
             null,
             new BigDecimal("-10.00"),
             List.of(),
@@ -81,6 +94,58 @@ class ReportHtmlBuilderTest {
     String html = builder.monthlyPdfHtml("nicola", YearMonth.of(2026, 6), List.of(r));
 
     assertFalse(html.contains("vs previous month"), "no delta row without previous data");
+  }
+
+  @Test
+  void html_showsInvestedRows_onlyWhenNonZero() {
+    WalletMonthlyReport withInvestments =
+        new WalletMonthlyReport(
+            "Main",
+            "#8b5cf6",
+            "EUR",
+            YearMonth.of(2026, 6),
+            new PeriodTotals(
+                new BigDecimal("2400.00"),
+                new BigDecimal("1380.00"),
+                new BigDecimal("1020.00"),
+                new BigDecimal("500.00"),
+                new BigDecimal("200.00")),
+            null,
+            new BigDecimal("720.00"),
+            List.of(),
+            List.of(),
+            3,
+            null,
+            null);
+    WalletMonthlyReport withoutInvestments =
+        new WalletMonthlyReport(
+            "Main",
+            "#8b5cf6",
+            "EUR",
+            YearMonth.of(2026, 6),
+            new PeriodTotals(
+                new BigDecimal("2400.00"),
+                new BigDecimal("1380.00"),
+                new BigDecimal("1020.00"),
+                BigDecimal.ZERO,
+                BigDecimal.ZERO),
+            null,
+            new BigDecimal("720.00"),
+            List.of(),
+            List.of(),
+            2,
+            null,
+            null);
+
+    String shown =
+        builder.monthlyPdfHtml("nicola", YearMonth.of(2026, 6), List.of(withInvestments));
+    String hidden =
+        builder.monthlyPdfHtml("nicola", YearMonth.of(2026, 6), List.of(withoutInvestments));
+
+    assertTrue(shown.contains("<td class=\"label\">Invested</td>"));
+    assertTrue(shown.contains("<td class=\"label\">Liquidity left</td>"));
+    assertFalse(hidden.contains("<td class=\"label\">Invested</td>"));
+    assertFalse(hidden.contains("<td class=\"label\">Liquidity left</td>"));
   }
 
   @Test
@@ -116,7 +181,11 @@ class ReportHtmlBuilderTest {
         "EUR",
         2025,
         new PeriodTotals(
-            new BigDecimal("1200.00"), new BigDecimal("600.00"), new BigDecimal("600.00")),
+            new BigDecimal("1200.00"),
+            new BigDecimal("600.00"),
+            new BigDecimal("600.00"),
+            BigDecimal.ZERO,
+            BigDecimal.ZERO),
         null,
         months,
         YearMonth.of(2025, 1),

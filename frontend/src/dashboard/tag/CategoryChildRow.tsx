@@ -23,6 +23,8 @@ interface CategoryChildRowProps {
   draggable?: boolean;
   /** Transactions tagged with this sub-category. */
   occurrences?: number;
+  /** Name of the flagged parent this child inherits its investment status from. */
+  inheritedFrom?: string;
   onUpdateTag: (oldName: string, updated: Partial<Tag>) => Promise<boolean>;
   onRequestDelete: (tag: Tag) => void;
 }
@@ -33,6 +35,7 @@ export const CategoryChildRow: React.FC<CategoryChildRowProps> = ({
   readOnly = false,
   draggable = true,
   occurrences = 0,
+  inheritedFrom,
   onUpdateTag,
   onRequestDelete,
 }) => {
@@ -85,6 +88,15 @@ export const CategoryChildRow: React.FC<CategoryChildRowProps> = ({
         onColorChange={edit.setColorVal}
         isOpen={edit.iconOpen}
         onToggle={edit.onIconToggle}
+        investment={
+          readOnly
+            ? undefined
+            : {
+                checked: edit.isInvestment,
+                inheritedFrom,
+                onChange: edit.onInvestmentChange,
+              }
+        }
       />
 
       {edit.isEditing ? (
@@ -115,6 +127,15 @@ export const CategoryChildRow: React.FC<CategoryChildRowProps> = ({
           onDoubleClick={edit.startEditing}
         >
           {child.name}
+        </span>
+      )}
+      {(child.investment || inheritedFrom) && (
+        <span
+          role="img"
+          aria-label="Investment"
+          className="shrink-0 text-app-invest"
+        >
+          ↗
         </span>
       )}
 

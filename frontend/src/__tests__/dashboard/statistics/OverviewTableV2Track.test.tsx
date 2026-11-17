@@ -5,6 +5,11 @@ import type { Transaction } from "../../../types/domain.ts";
 import { OverviewTableV2 } from "../../../dashboard/statistics/OverviewTableV2.tsx";
 import { setUiVersion } from "../../../utils/uiVersion.ts";
 
+// The table reads the wallet's investment tags; this test has no wallet.
+vi.mock("../../../dashboard/wallet/useInvestmentTags.ts", () => ({
+  useInvestmentTags: () => new Set<string>(),
+}));
+
 vi.mock("../../../components/ui/SwitchableCard.tsx", () => ({
   SwitchableCard: (props: {
     centerElement?: React.ReactNode;

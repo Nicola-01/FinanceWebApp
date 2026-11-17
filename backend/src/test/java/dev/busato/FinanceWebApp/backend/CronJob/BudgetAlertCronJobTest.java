@@ -262,4 +262,20 @@ class BudgetAlertCronJobTest {
     assertTrue(result.contains("1 budget alert(s) sent"));
     assertTrue(result.contains("1 alert(s) failed"));
   }
+
+  @Test
+  void goalBudget_noAlerts() throws Exception {
+    // Goals report no crossed thresholds, so the job must neither email nor push nor log.
+    when(budgetRepository.findAllWithWalletAndTag()).thenReturn(List.of(budget));
+    BudgetStatusResponse goal = status(List.of(), true);
+    goal.setGoal(true);
+    goal.setStatus("GOAL_REACHED");
+    when(budgetService.computeStatus(eq(budget), any())).thenReturn(goal);
+    job.run();
+
+    verify(walletAccessRepository, never()).findAllByWalletIdAndStatus(any(), any());
+    verify(sendEmailService, never()).sendBudgetAlert(any(), any(), anyInt(), anyList());
+    verify(notificationService, never()).notifyUser(any(), any(), any(), any());
+    verify(alertLogRepository, never()).save(any());
+  }
 }

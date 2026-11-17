@@ -4,6 +4,8 @@ import type { Transaction } from "../../types/domain.ts";
 import { buildTrend, type FlowType } from "./categoryChartData.ts";
 import { useRecentMonthsZoom } from "./useRecentMonthsZoom.ts";
 import { formatAmount } from "../../utils/format.ts";
+import { isInvestmentTx } from "../../utils/investments.ts";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 import { ChartCard } from "./ChartCard.tsx";
 import { FlowTypeToggle } from "./FlowTypeToggle.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
@@ -38,9 +40,14 @@ export const CategoryTrendChart: React.FC<CategoryTrendChartProps> = ({
   const v2 = ui === "v2"; // ui-v2-switch
   const [type, setType] = useState<FlowType>("EXPENSE");
 
+  const invest = useInvestmentTags();
   const { dataset, series } = useMemo(
-    () => buildTrend(transactions, type),
-    [transactions, type],
+    () =>
+      buildTrend(
+        transactions.filter((t) => !isInvestmentTx(t, invest)),
+        type,
+      ),
+    [transactions, type, invest],
   );
 
   const periods = useMemo(

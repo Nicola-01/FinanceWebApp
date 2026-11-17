@@ -46,8 +46,31 @@ export function useInlineTagEdit(
     }
     setIconOpen(false);
     if (iconVal !== tag.icon || colorVal !== tag.colorHex) {
-      onUpdateTag(tag.name, { ...tag, icon: iconVal, colorHex: colorVal });
+      // investment: the spread would otherwise send the stale prop and undo a pending toggle.
+      onUpdateTag(tag.name, {
+        ...tag,
+        icon: iconVal,
+        colorHex: colorVal,
+        investment: investVal,
+      });
     }
+  };
+
+  // --- investment flag ---
+  // Local value so the switch flips at once, even while the save is queued offline
+  // (the tag prop only updates once the write lands); adopts external changes like icon/colour.
+  const [investVal, setInvestVal] = useState(!!tag.investment);
+  const [seenInvest, setSeenInvest] = useState(!!tag.investment);
+  if (seenInvest !== !!tag.investment) {
+    setSeenInvest(!!tag.investment);
+    setInvestVal(!!tag.investment);
+  }
+
+  const onInvestmentChange = async (next: boolean) => {
+    if (readOnly) return;
+    setInvestVal(next);
+    const ok = await onUpdateTag(tag.name, { ...tag, investment: next });
+    if (!ok) setInvestVal(!!tag.investment);
   };
 
   // --- inline name ---
@@ -71,7 +94,11 @@ export function useInlineTagEdit(
     }
     const next = nameVal.trim();
     if (next && next !== tag.name) {
-      const ok = await onUpdateTag(tag.name, { ...tag, name: next });
+      const ok = await onUpdateTag(tag.name, {
+        ...tag,
+        name: next,
+        investment: investVal,
+      });
       if (!ok) setNameVal(tag.name);
     } else {
       setNameVal(tag.name);
@@ -95,6 +122,9 @@ export function useInlineTagEdit(
     setIconVal,
     setColorVal,
     onIconToggle,
+    // investment flag (own flag only; inheritance is resolved by the row)
+    isInvestment: investVal,
+    onInvestmentChange,
     // inline name
     isEditing,
     nameVal,

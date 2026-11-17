@@ -5,6 +5,7 @@ import CustomDatePicker, {
 } from "../../components/datePicker/CustomDatePicker.tsx";
 import { EmptyState } from "../../components/ui/EmptyState.tsx";
 import { useTabLayout } from "../layout/useTabLayout.ts";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 import { WidgetGrid } from "../layout/WidgetGrid.tsx";
 import { StatisticsSummaryV2 } from "./StatisticsSummaryV2.tsx";
 import { MonthByMonthChart } from "./MonthByMonthChart.tsx";
@@ -52,14 +53,15 @@ export const StatisticsV2: React.FC<{
     walletId,
     STATISTICS_WIDGETS,
   );
+  const invest = useInvestmentTags();
   const byYear = period.kind === "all";
   // Year the picker opens on (its initial range); "All" keeps the current year.
   const pickerYear = period.kind === "year" ? period.year : today.getFullYear();
   const currencySymbol = currencySymbolOf(currency);
 
   const rows = useMemo(
-    () => monthByMonthRows(transactions, period, today),
-    [transactions, period, today],
+    () => monthByMonthRows(transactions, period, today, invest),
+    [transactions, period, today, invest],
   );
   const waterfall = useMemo(
     () => waterfallRows(transactions, period, today),
@@ -70,8 +72,8 @@ export const StatisticsV2: React.FC<{
     [transactions, today],
   );
   const insights = useMemo(
-    () => buildInsights(transactions, period, currencySymbol),
-    [transactions, period, currencySymbol],
+    () => buildInsights(transactions, period, currencySymbol, invest),
+    [transactions, period, currencySymbol, invest],
   );
 
   const ctx: StatisticsWidgetCtx = {

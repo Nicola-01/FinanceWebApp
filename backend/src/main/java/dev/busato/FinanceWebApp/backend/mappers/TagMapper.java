@@ -14,6 +14,7 @@ public class TagMapper {
         .icon(tag.getIcon())
         .colorHex(tag.getColorHex())
         .parentName(Optional.ofNullable(tag.getParent()).map(Tag::getName).orElse(null))
+        .investment(tag.isInvestment())
         .updatedAt(tag.getUpdatedAt())
         .build();
   }

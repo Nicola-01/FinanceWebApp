@@ -161,6 +161,45 @@ describe("BudgetCard gauge (v2)", () => {
     );
   });
 
+  it("shows a goal in progress as the amount to go, filled in the invest colour", () => {
+    renderCard(
+      makeBudget({
+        goal: true,
+        spent: 250,
+        remaining: 50,
+        percentUsed: 83,
+        status: "OK",
+        alertThresholds: [80, 100],
+      }),
+    );
+
+    expect(lastGaugeProps()).toMatchObject({
+      value: 83,
+      activeFill: "var(--color-app-invest)",
+    });
+    expect(screen.getByLabelText("50,00 €").closest("p")).toHaveTextContent(
+      /^50,00 € to go$/,
+    );
+    expect(screen.queryByText("Goal reached")).not.toBeInTheDocument();
+    expect(document.querySelector("[data-alert-tick]")).toBeNull();
+  });
+
+  it("shows a reached goal as a Goal reached pill instead of an amount", () => {
+    renderCard(
+      makeBudget({
+        goal: true,
+        spent: 320,
+        remaining: -20,
+        percentUsed: 107,
+        status: "GOAL_REACHED",
+      }),
+    );
+
+    expect(screen.getByText("Goal reached")).toBeInTheDocument();
+    expect(screen.queryByText(/to go/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Over by/)).not.toBeInTheDocument();
+  });
+
   it("shows the overspend in the gauge area once the budget is exceeded", () => {
     renderCard(
       makeBudget({

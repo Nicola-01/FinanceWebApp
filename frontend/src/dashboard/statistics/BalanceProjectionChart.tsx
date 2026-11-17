@@ -4,7 +4,7 @@ import {
   ChartTooltip,
   Grid,
   Line,
-  LineChart,
+  ComposedChart,
   TooltipContent,
   XAxis,
   YAxis,
@@ -163,7 +163,7 @@ export const BalanceProjectionChart = ({
         </div>
       )}
 
-      <LineChart
+      <ComposedChart
         data={chartRows}
         xDataKey="date"
         aspectRatio="5 / 2"
@@ -206,7 +206,7 @@ export const BalanceProjectionChart = ({
             />
           )}
         />
-      </LineChart>
+      </ComposedChart>
     </div>
   );
 };

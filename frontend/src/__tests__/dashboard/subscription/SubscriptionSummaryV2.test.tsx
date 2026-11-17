@@ -38,4 +38,25 @@ describe("SubscriptionSummaryV2", () => {
     expect(screen.getByLabelText("144,00 €")).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();
   });
+
+  it("adds an Invested / month line for investment subscriptions", () => {
+    setUiVersion("v2");
+    render(
+      <SubscriptionSummaryV2
+        currency="EUR"
+        invest={new Set(["Fund"])}
+        subscriptions={[
+          sub({ id: "rent", amount: 420 }),
+          sub({
+            id: "pac",
+            amount: 300,
+            tag: { name: "Fund", icon: "tag", colorHex: "#b39cf5" },
+          }),
+        ]}
+      />,
+    );
+    expect(screen.getByLabelText("420,00 €")).toBeInTheDocument();
+    expect(screen.getByText("Invested / month")).toBeInTheDocument();
+    expect(screen.getByLabelText("300,00 €")).toBeInTheDocument();
+  });
 });

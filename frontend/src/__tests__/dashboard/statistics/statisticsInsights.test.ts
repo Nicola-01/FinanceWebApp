@@ -203,3 +203,22 @@ describe("buildInsights", () => {
     expect(insights[0].title).toBe("March cost 300 €");
   });
 });
+
+describe("buildInsights with investment tags", () => {
+  it("never cites an investment tag as spending", () => {
+    const stocks = { name: "Stocks", icon: "tag", colorHex: "#fff" };
+    const txs = [
+      ...fourMonths(),
+      tx("2026-03-20", 500, "EXPENSE", { tag: stocks }),
+    ];
+    const period = { kind: "year", year: 2026 } as const;
+
+    // Without the set, March (800 €) is the expensive month.
+    expect(buildInsights(txs, period, "€")[0].title).toBe("March cost 800 €");
+
+    const insights = buildInsights(txs, period, "€", new Set(["Stocks"]));
+    expect(insights[0].title).toBe("March cost 300 €");
+    expect(JSON.stringify(insights)).not.toContain("Stocks");
+    expect(insights.find((i) => i.id === "subscriptions")).toBeUndefined();
+  });
+});

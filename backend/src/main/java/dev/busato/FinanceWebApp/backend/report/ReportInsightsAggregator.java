@@ -330,8 +330,11 @@ final class ReportInsightsAggregator {
         byRoot(expenses).size());
   }
 
+  /** Spending/income rows only: investment-tagged flows are excluded from every insight. */
   private static List<Transaction> ofType(List<Transaction> txs, Transaction.Type type) {
-    return txs.stream().filter(t -> t.getType() == type).toList();
+    return txs.stream()
+        .filter(t -> t.getType() == type && !ReportAggregator.isInvestment(t))
+        .toList();
   }
 
   private static BigDecimal sum(List<Transaction> txs) {

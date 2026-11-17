@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import type { Transaction } from "../../types/domain.ts";
 import { MONTH_LABELS } from "../../utils/months.ts";
+import { isInvestmentTx } from "../../utils/investments.ts";
 
 export type ViewMode = "monthly" | "yearly";
 
@@ -9,18 +10,27 @@ export type ViewMode = "monthly" | "yearly";
  * per-year income/expense buckets with their totals, the table columns, and a
  * ref whose container auto-scrolls to the rightmost column holding data.
  */
+const NO_INVEST = new Set<string>();
+
 export const useOverviewData = (
-  transactions: Transaction[],
+  allTransactions: Transaction[],
   viewMode: ViewMode,
+  invest: Set<string> = NO_INVEST,
 ) => {
   const availableYears = useMemo(() => {
     const years = new Set<number>();
-    transactions.forEach((tx) =>
+    allTransactions.forEach((tx) =>
       years.add(new Date(tx.transactionDate).getFullYear()),
     );
     const sorted = Array.from(years).sort((a, b) => b - a);
     return sorted.length > 0 ? sorted : [new Date().getFullYear()];
-  }, [transactions]);
+  }, [allTransactions]);
+
+  // Income and expense figures leave out investment tags.
+  const transactions = useMemo(
+    () => allTransactions.filter((tx) => !isInvestmentTx(tx, invest)),
+    [allTransactions, invest],
+  );
 
   const [selectedYear, setSelectedYear] = useState<number>(availableYears[0]);
 

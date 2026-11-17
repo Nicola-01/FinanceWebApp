@@ -54,6 +54,11 @@ public class Tag {
   @Builder.Default
   private boolean placeholder = false;
 
+  /** Marks the tag (and, by inheritance, its subtree) as an investment money flow. */
+  @ColumnDefault("false")
+  @Builder.Default
+  private boolean investment = false;
+
   /** Server-side last-write timestamp; optimistic precondition for offline replays. */
   @UpdateTimestamp @Column private Instant updatedAt;
 }

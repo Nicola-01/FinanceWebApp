@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investments: Transactions tab, three proposals</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Instrument+Sans:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141312; --card: #1d1c1a; --raised: #262421; --border: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --wallet: #6d8cf0; --on-wallet: #0c1230; --income: #7fcf95; --expense: #ec8a76;
+    --invest: #b39cf5; --r-card: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0c0b0b; color: var(--text); font-family: "Instrument Sans", system-ui, sans-serif; padding: 28px 24px 80px; }
+  h1.page { font: 600 22px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 80ch; line-height: 1.5; }
+  h2.sec { font: 600 18px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; margin: 48px 0 6px; }
+  .rec { display: inline-block; font-size: 11px; font-weight: 600; color: var(--on-wallet); background: var(--wallet); border-radius: 99px; padding: 2px 8px; margin-left: 6px; vertical-align: 3px; }
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 20px; }
+  .pick { cursor: pointer; border-radius: 14px; padding: 10px; outline: 2px solid transparent; }
+  .pick.selected { outline-color: var(--wallet); }
+
+  .phone { width: 375px; height: 720px; background: var(--bg); border-radius: 36px; overflow: hidden; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .5); display: flex; flex-direction: column; }
+  .status { height: 36px; flex: none; }
+  .scroll { flex: 1; overflow-y: auto; scrollbar-width: none; padding: 0 16px 24px; display: flex; flex-direction: column; gap: 12px; }
+  .desk { width: 760px; background: var(--bg); border-radius: 14px; padding: 24px; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .5); }
+  .desk-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 14px; }
+
+  .hero { background: var(--wallet); color: var(--on-wallet); border-radius: var(--r-card); padding: 18px; }
+  .hero .l { font-size: 13px; opacity: .75; }
+  .hero .v { font: 600 40px/1.05 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .hero .v small { font-size: 20px; margin-left: 4px; }
+  .hero .s { font-size: 13px; margin-top: 4px; opacity: .8; }
+  .spark { height: 38px; margin-top: 12px; }
+  .hero .split { display: flex; height: 10px; border-radius: 5px; overflow: hidden; gap: 2px; margin-top: 14px; background: rgb(12 18 48 / .15); }
+  .hero .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; margin-top: 8px; }
+  .hero .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; }
+  .hero .line { display: flex; justify-content: space-between; border-top: 1px solid rgb(12 18 48 / .2); margin-top: 14px; padding-top: 10px; font-size: 14px; }
+  .hero .line b { font-variant-numeric: tabular-nums; }
+
+  .tiles { display: grid; gap: 12px; }
+  .t2 { grid-template-columns: 1fr 1fr; }
+  .t3 { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .tile { background: var(--card); border-radius: var(--r-card); padding: 14px; }
+  .t3 .tile { padding: 12px 10px; }
+  .tile .l { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .tile .l i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .tile .v { font: 600 22px/1.1 "Bricolage Grotesque", sans-serif; margin-top: 8px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .t3 .tile .v { font-size: 18px; }
+  .tile .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .day { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); padding: 8px 4px 0; }
+  .day b { color: var(--text); font-weight: 600; }
+  .tx { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 14px; padding: 10px 12px; }
+  .ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; font-size: 17px; flex: none; }
+  .tx .n { flex: 1; min-width: 0; }
+  .tx .n b { display: block; font-size: 14.5px; font-weight: 600; }
+  .tx .n span { font-size: 12.5px; color: var(--muted); }
+  .badge { font-size: 11px; font-weight: 600; color: var(--invest); background: color-mix(in srgb, var(--invest) 15%, transparent); border-radius: 99px; padding: 1px 7px; margin-left: 4px; }
+  .amt { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+</style>
+</head>
+<body>
+<h1 class="page">Investments on the Transactions tab: three proposals</h1>
+<p class="lead">Same month in every proposal: Income 2.400 €, Spent 1.380 €, bought 500 € (PAC + ETF) and cashed out 200 € → <b>Invested net 300 €</b>. Net = Income − Spent = <b>1.020 €</b> (investing counts as saving). Liquidity left = Net − Invested = <b>720 €</b>.</p>
+<p class="lead">Investment rows use a new violet tone (<span style="color:var(--invest)">●</span>), neither red nor green, plus an "Invested"/"Cashed out" badge. The day total excludes them and shows them apart.</p>
+
+<div id="out"></div>
+
+<script>
+const rows = `
+  <div class="day"><span>Today</span><b>−45,20 € · <span style="color:var(--invest)">300,00 € invested</span></b></div>
+  <div class="tx"><div class="ic" style="background:#f59f0022;color:#f59f00">🛒</div><div class="n"><b>Esselunga</b><span>Groceries</span></div><div class="amt" style="color:var(--expense)">−45,20 €</div></div>
+  <div class="tx"><div class="ic" style="background:#b39cf522;color:#b39cf5">↗</div><div class="n"><b>PAC Fineco<span class="badge">Invested</span></b><span>Investments › PAC</span></div><div class="amt" style="color:var(--invest)">300,00 €</div></div>
+  <div class="day"><span>Mon 9</span><b>+2.400,00 € · <span style="color:var(--invest)">200,00 € cashed out</span></b></div>
+  <div class="tx"><div class="ic" style="background:#7fcf9522;color:#7fcf95">€</div><div class="n"><b>Salary</b><span>Income › Salary</span></div><div class="amt" style="color:var(--income)">+2.400,00 €</div></div>
+  <div class="tx"><div class="ic" style="background:#b39cf522;color:#b39cf5">↙</div><div class="n"><b>Sold VWCE<span class="badge">Cashed out</span></b><span>Investments › ETF</span></div><div class="amt" style="color:var(--invest)">200,00 €</div></div>`;
+const spark = `<svg class="spark" viewBox="0 0 300 38" preserveAspectRatio="none" width="100%"><path d="M0 34 L40 30 L80 31 L120 12 L160 14 L200 18 L240 16 L300 8" stroke="#0c1230" stroke-opacity=".55" stroke-width="2" fill="none"/></svg>`;
+
+const P = {
+  A: {
+    title: "A. Net hero + three tiles (Income, Spent, Invested); liquidity as a footer line",
+    lead: "Smallest change from today: a third tile, and the hero gets one line under the trend for the liquidity left.",
+    hero: `<div class="hero"><div class="l">Net in November</div><div class="v">+1.020<small>€</small></div><div class="s">42% of income kept</div>${spark}<div class="line"><span>Liquidity left</span><b>720,00 €</b></div></div>`,
+    tilesPhone: `<div class="tiles t3">${tile('Income','2.400','var(--income)','4 transactions')}${tile('Spent','1.380','var(--expense)','58% of income')}${tile('Invested','300','var(--invest)','500 in · 200 out')}</div>`,
+    tilesDesk: `<div class="tiles">${tile('Income','2.400 €','var(--income)','4 transactions')}${tile('Spent','1.380 €','var(--expense)','58% of income')}${tile('Invested','300 €','var(--invest)','500 in · 200 out')}</div>`,
+  },
+  B: {
+    title: "B. Net hero + 2×2 tiles (Income, Spent, Invested, Liquidity left)",
+    lead: "Four equal tiles. Liquidity left gets the same weight as the others; the hero stays untouched.",
+    hero: `<div class="hero"><div class="l">Net in November</div><div class="v">+1.020<small>€</small></div><div class="s">42% of income kept</div>${spark}</div>`,
+    tilesPhone: `<div class="tiles t2">${tile('Income','2.400 €','var(--income)','4 transactions')}${tile('Spent','1.380 €','var(--expense)','58% of income')}${tile('Invested','300 €','var(--invest)','500 in · 200 out')}${tile('Liquidity left','720 €','var(--muted)','Net − Invested')}</div>`,
+    tilesDesk: `<div class="tiles t2">${tile('Income','2.400 €','var(--income)','4 transactions')}${tile('Spent','1.380 €','var(--expense)','58% of income')}${tile('Invested','300 €','var(--invest)','500 in · 200 out')}${tile('Liquidity left','720 €','var(--muted)','Net − Invested')}</div>`,
+  },
+  C: {
+    title: "C. Net hero with a “where income went” bar; tiles unchanged",
+    lead: "The hero shows one bar splitting income into Spent / Invested / Liquidity left. The two tiles stay as today. Most informative, but the trend line goes.",
+    hero: `<div class="hero"><div class="l">Net in November</div><div class="v">+1.020<small>€</small></div><div class="s">42% of income kept</div>
+      <div class="split"><i style="flex:1380;background:#0c1230;opacity:.75"></i><i style="flex:300;background:#4a2f9a"></i><i style="flex:720;background:#fff;opacity:.65"></i></div>
+      <div class="legend"><span><i style="background:#0c1230;opacity:.75"></i>Spent 1.380</span><span><i style="background:#4a2f9a"></i>Invested 300</span><span><i style="background:#fff;opacity:.65"></i>Liquidity left 720</span></div></div>`,
+    tilesPhone: `<div class="tiles t2">${tile('Income','2.400 €','var(--income)','4 transactions')}${tile('Spent','1.380 €','var(--expense)','58% of income')}</div>`,
+    tilesDesk: `<div class="tiles">${tile('Income','2.400 €','var(--income)','4 transactions')}${tile('Spent','1.380 €','var(--expense)','58% of income')}</div>`,
+  },
+};
+function tile(l, v, c, s) { return `<div class="tile"><div class="l"><i style="background:${c}"></i>${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`; }
+
+let html = "";
+for (const [k, p] of Object.entries(P)) {
+  html += `<h2 class="sec">${p.title}${k === "A" ? '<span class="rec">Recommended</span>' : ""}</h2><p class="lead">${p.lead}</p>
+  <div class="row pick" data-choice="${k}" onclick="document.querySelectorAll('.pick').forEach(e=>e.classList.remove('selected'));this.classList.add('selected');window.brainstorm&&brainstorm.send&&brainstorm.send({type:'click',choice:'${k}'})">
+    <div class="phone"><div class="status"></div><div class="scroll">${p.hero}${p.tilesPhone}${rows}</div></div>
+    <div class="desk"><div class="desk-grid">${p.hero}${p.tilesDesk}</div><div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">${rows}</div></div>
+  </div>`;
+}
+document.getElementById("out").innerHTML = html;
+</script>
+</body>
+</html>

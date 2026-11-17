@@ -1,4 +1,5 @@
 import {
+  faArrowTrendUp,
   faChartLine,
   faChartSimple,
   faTableCells,
@@ -9,8 +10,10 @@ import { Collapse } from "../../components/ui/Collapse.tsx";
 import { YearWaterfallChart } from "./YearWaterfallChart.tsx";
 import { BalanceProjectionChart } from "./BalanceProjectionChart.tsx";
 import { OverviewTableV2 } from "./OverviewTableV2.tsx";
+import { LazyInvestmentsWidget } from "./LazyInvestmentsWidget.tsx";
 import type { MonthByMonthRow, WaterfallRow } from "./statsChartRows.ts";
 import type { Insight } from "./statisticsInsights.ts";
+import type { StatsPeriod } from "./statsPeriod.ts";
 
 export const STATISTICS_TAB_ID = "statistics";
 
@@ -26,8 +29,30 @@ export interface StatisticsWidgetCtx {
   currencySymbol: string;
 }
 
+/** The period the widget ctx describes: all-time when `byYear`, else the year of the month rows. */
+const periodOf = (ctx: StatisticsWidgetCtx): StatsPeriod =>
+  ctx.byYear
+    ? { kind: "all" }
+    : { kind: "year", year: ctx.rows[0].date.getFullYear() };
+
 /** The v2 Statistics registry (below the pinned summary + month-by-month row). Order here = the default layout. */
 export const STATISTICS_WIDGETS: WidgetDef<StatisticsWidgetCtx>[] = [
+  {
+    id: "investments",
+    span: "half",
+    title: "Investments",
+    subtitle: "What you put in, what came back, and where.",
+    label: "Investments",
+    icon: faArrowTrendUp,
+    render: (ctx, bare) => (
+      <LazyInvestmentsWidget
+        transactions={ctx.transactions}
+        period={periodOf(ctx)}
+        currencySymbol={ctx.currencySymbol}
+        bare={bare}
+      />
+    ),
+  },
   {
     id: "year-waterfall",
     span: "full",

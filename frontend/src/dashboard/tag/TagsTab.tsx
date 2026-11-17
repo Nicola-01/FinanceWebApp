@@ -8,6 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
+import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 import { isCategorised } from "../wallet/toCategorize.ts";
 import { getCurrencySymbol } from "../../utils/currencies/index.ts";
 import { DateRangeBanner } from "../DateRangeBanner.tsx";
@@ -42,6 +43,7 @@ export const TagsTab: React.FC = () => {
   const [ui] = useUiVersion(); // ui-v2-switch: v2 moves the range summary to the bottom
 
   const currencySymbol = getCurrencySymbol(wallet.currency);
+  const investmentTags = useInvestmentTags();
 
   const layoutApi = useTabLayout(
     CATEGORIES_TAB_ID,
@@ -53,6 +55,7 @@ export const TagsTab: React.FC = () => {
     transactions: filteredTransactions.filter(isCategorised),
     currencyCode: wallet.currency,
     currencySymbol,
+    investmentTags,
   };
 
   return (
@@ -65,6 +68,7 @@ export const TagsTab: React.FC = () => {
             <CategoryStrip
               transactions={ctx.transactions}
               tags={tags}
+              invest={investmentTags}
               onManage={() => setManagerOpen(true)}
             />
           </div>

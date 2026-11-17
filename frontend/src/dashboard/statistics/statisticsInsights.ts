@@ -1,5 +1,6 @@
 import type { Transaction } from "../../types/domain.ts";
 import { MONTH_LABELS } from "../../utils/months.ts";
+import { isInvestmentTx } from "../../utils/investments.ts";
 import {
   filterByPeriod,
   txYearMonth,
@@ -173,13 +174,20 @@ function incomeSteady(
   };
 }
 
-/** Up to four plain-language insights for the period; [] below 3 months of data. */
+/**
+ * Up to four plain-language insights for the period; [] below 3 months of data.
+ * Investment tags are left out so they never read as spending.
+ */
 export function buildInsights(
   txs: Transaction[],
   period: StatsPeriod,
   currencySymbol: string,
+  invest: Set<string> = new Set(),
 ): Insight[] {
-  const months = groupByMonth(filterByPeriod(txs, period));
+  const flowTxs = filterByPeriod(txs, period).filter(
+    (tx) => !isInvestmentTx(tx, invest),
+  );
+  const months = groupByMonth(flowTxs);
   if (months.length < 3) return [];
 
   return [

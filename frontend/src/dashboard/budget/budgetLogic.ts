@@ -8,6 +8,7 @@ export const STATUS_META: Record<
   OK: { color: "#34d399", label: "On track" },
   WARNING: { color: "#fbbf24", label: "Near limit" },
   EXCEEDED: { color: "#f87171", label: "Over budget" },
+  GOAL_REACHED: { color: "#34d399", label: "Goal reached" },
 };
 
 export function periodLabel(budget: Budget): string {
@@ -50,6 +51,7 @@ export const STATUS_TONE: Record<Budget["status"], "ok" | "warn" | "danger"> = {
   OK: "ok",
   WARNING: "warn",
   EXCEEDED: "danger",
+  GOAL_REACHED: "ok",
 };
 
 /** v2 gauge value-arc fill per status, as CSS (SVG `fill` set via CSS resolves var()). */
@@ -90,6 +92,7 @@ export const STATUS_TEXT_V2: Record<Budget["status"], string> = {
   OK: "On track",
   WARNING: "Close to the limit",
   EXCEEDED: "Over budget",
+  GOAL_REACHED: "Goal reached",
 };
 
 /** Whole days from `today` to the budget's period end (0 once the period has ended). */

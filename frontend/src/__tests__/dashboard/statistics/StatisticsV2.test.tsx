@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { Transaction } from "../../../types/domain.ts";
 import { setUiVersion } from "../../../utils/uiVersion.ts";
@@ -15,6 +15,11 @@ const { calls, record } = vi.hoisted(() => {
   };
   return { calls, record };
 });
+
+// Investment tags come from the wallet context; the page only needs the names.
+vi.mock("../../../dashboard/wallet/useInvestmentTags.ts", () => ({
+  useInvestmentTags: () => new Set(["Brokerage"]),
+}));
 
 vi.mock("../../../dashboard/statistics/StatisticsSummaryV2.tsx", () => ({
   StatisticsSummaryV2: (p: Record<string, unknown>) => (
@@ -190,6 +195,30 @@ describe("StatisticsV2", () => {
     expect(rows[0]).toMatchObject({ income: 1000, expense: -200, kept: 800 });
   });
 
+  it("routes investment-tagged flows into bought and cashed out month rows", () => {
+    renderPage();
+    const brokerage = {
+      id: "inv-1",
+      name: "buy",
+      tag: { name: "Brokerage", icon: "tag", colorHex: "#fff" },
+      amount: 500,
+      transactionDate: "2026-03-10T12:00:00",
+      type: "EXPENSE",
+    } as Transaction;
+    cleanup();
+    calls.MonthByMonthChart = [];
+    render(
+      <StatisticsV2
+        transactions={[...transactions, brokerage]}
+        currency="EUR"
+        walletId={WALLET_ID}
+        accentColor="#123456"
+      />,
+    );
+    const rows = last("MonthByMonthChart").rows as Record<string, unknown>[];
+    expect(rows[2]).toMatchObject({ expense: 0, bought: 500, liquidity: -500 });
+  });
+
   it("switches back to a single year with one row per month", async () => {
     renderPage();
     await userEvent.click(screen.getByRole("button", { name: "pick 2025" }));
@@ -311,5 +340,40 @@ describe("StatisticsV2", () => {
     }[];
     expect(history[0]).toEqual({ date: new Date(2024, 2, 1), balance: 800 });
     expect(history.at(-1)!.date).toEqual(new Date(2026, 9, 1));
+  });
+
+  it("keeps investment-tagged spending out of the insights", () => {
+    const months = [
+      tx("2026-01-05", "INCOME", 1000),
+      tx("2026-01-10", "EXPENSE", 100),
+      tx("2026-02-05", "INCOME", 1000),
+      tx("2026-02-10", "EXPENSE", 100),
+      tx("2026-03-05", "INCOME", 1000),
+      tx("2026-03-10", "EXPENSE", 100),
+      tx("2026-04-05", "INCOME", 1000),
+      tx("2026-04-10", "EXPENSE", 100),
+    ];
+    const brokerage = {
+      id: "inv-big",
+      name: "buy",
+      tag: { name: "Brokerage", icon: "tag", colorHex: "#fff" },
+      amount: 5000,
+      transactionDate: "2026-03-20T12:00:00",
+      type: "EXPENSE",
+    } as Transaction;
+    cleanup();
+    render(
+      <StatisticsV2
+        transactions={[...months, brokerage]}
+        currency="EUR"
+        walletId={WALLET_ID}
+        accentColor="#123456"
+      />,
+    );
+    const insights = last("WorthKnowingCard").insights as unknown[];
+    expect(JSON.stringify(insights)).not.toContain("Brokerage");
+    expect(
+      (insights as { id: string }[]).some((i) => i.id === "expensive-month"),
+    ).toBe(false);
   });
 });
