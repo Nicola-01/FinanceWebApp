@@ -136,13 +136,13 @@ describe("BudgetTab (v2)", () => {
     );
   });
 
-  it("draws a faint, non-interactive budget skeleton inside the dashed card", () => {
+  it("renders the dashed card as plain text, with no skeleton inside", () => {
     setBudgets([]);
     render(<BudgetTab />);
     const card = screen.getByRole("button", { name: /new budget/i });
-    const ghost = card.querySelector('[aria-hidden="true"]');
-    expect(ghost).not.toBeNull();
-    expect(ghost).toHaveClass("pointer-events-none");
+    // Only the plus icon (an svg) and the label: no ghost budget markup divs.
+    expect(card.querySelector("div")).toBeNull();
+    expect(card.textContent).toBe("New budget");
   });
 
   it("shows the empty-state copy to viewers without a CTA", () => {

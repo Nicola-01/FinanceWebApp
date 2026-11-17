@@ -116,26 +116,10 @@ export const BudgetTab: React.FC = () => {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="relative flex min-h-[120px] flex-col items-center justify-center gap-2 overflow-hidden rounded-[var(--r-card)] border-[1.5px] border-dashed border-app-border text-[13px] font-semibold text-app-muted transition-colors hover:text-app-text"
+            className="flex min-h-[120px] items-center justify-center gap-2 rounded-[var(--r-card)] border-[1.5px] border-dashed border-app-border text-[13px] font-semibold text-app-muted transition-colors hover:text-app-text"
           >
-            {/* Faint skeleton of a budget card: where your budgets will appear. */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 flex flex-col gap-3 p-4 opacity-[0.35]"
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-9 w-9 shrink-0 rounded-full bg-app-input" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3.5 w-2/3 rounded bg-app-input" />
-                  <div className="h-2.5 w-1/3 rounded bg-app-input" />
-                </div>
-              </div>
-              <div className="mx-auto h-[100px] w-[180px] rounded-t-full bg-app-input" />
-            </div>
-            <span className="relative flex items-center gap-2 rounded-full bg-app-card/80 px-3 py-1.5">
-              <FontAwesomeIcon icon={faPlus} />
-              New budget
-            </span>
+            <FontAwesomeIcon icon={faPlus} />
+            New budget
           </button>
         )}
       </div>
