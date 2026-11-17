@@ -30,7 +30,12 @@ describe("CategoryStrip", () => {
   it("shows the number of categories and a Manage button that opens the manager", () => {
     const onManage = vi.fn();
     render(
-      <CategoryStrip transactions={spend} tags={tags} onManage={onManage} />,
+      <CategoryStrip
+        transactions={spend}
+        tags={tags}
+        invest={new Set()}
+        onManage={onManage}
+      />,
     );
 
     expect(screen.getByText("5 categories")).toBeInTheDocument();
@@ -40,14 +45,24 @@ describe("CategoryStrip", () => {
 
   it("uses the singular for a single category", () => {
     render(
-      <CategoryStrip transactions={[]} tags={[tags[0]]} onManage={vi.fn()} />,
+      <CategoryStrip
+        transactions={[]}
+        tags={[tags[0]]}
+        invest={new Set()}
+        onManage={vi.fn()}
+      />,
     );
     expect(screen.getByText("1 category")).toBeInTheDocument();
   });
 
   it("shows the top four expense categories with their share", () => {
     render(
-      <CategoryStrip transactions={spend} tags={tags} onManage={vi.fn()} />,
+      <CategoryStrip
+        transactions={spend}
+        tags={tags}
+        invest={new Set()}
+        onManage={vi.fn()}
+      />,
     );
 
     // Shares: 100, 90, 80, 70, 60 of 400 total.
@@ -59,7 +74,12 @@ describe("CategoryStrip", () => {
 
   it("collapses the rest into a +K chip for each breakpoint", () => {
     render(
-      <CategoryStrip transactions={spend} tags={tags} onManage={vi.fn()} />,
+      <CategoryStrip
+        transactions={spend}
+        tags={tags}
+        invest={new Set()}
+        onManage={vi.fn()}
+      />,
     );
 
     // Five categories with spending: +1 on wide screens, +2 on phones (the 4th chip is hidden there).
@@ -72,6 +92,7 @@ describe("CategoryStrip", () => {
       <CategoryStrip
         transactions={spend.slice(0, 3)}
         tags={tags}
+        invest={new Set()}
         onManage={vi.fn()}
       />,
     );
@@ -79,7 +100,14 @@ describe("CategoryStrip", () => {
   });
 
   it("shows a muted line instead of chips when nothing was spent", () => {
-    render(<CategoryStrip transactions={[]} tags={tags} onManage={vi.fn()} />);
+    render(
+      <CategoryStrip
+        transactions={[]}
+        tags={tags}
+        invest={new Set()}
+        onManage={vi.fn()}
+      />,
+    );
     expect(screen.getByText("No spending in this period")).toBeInTheDocument();
     expect(screen.queryByText(/%$/)).not.toBeInTheDocument();
   });

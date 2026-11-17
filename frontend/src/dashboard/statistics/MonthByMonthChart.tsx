@@ -1,21 +1,10 @@
 import React, { useMemo, useState } from "react";
 import Toggle from "../../components/ui/Toggle.tsx";
-import {
-  ChartTooltip,
-  ComposedChart,
-  Grid,
-  Line,
-  Scatter,
-  SeriesBar,
-  TooltipContent,
-  XAxis,
-  YAxis,
-  curveMonotoneX,
-} from "@/components/ui/charts";
 import { MONTH_LABELS } from "../../utils/months.ts";
-import { compactAmount, formatKitAmount } from "./kitChartData.ts";
+import { formatKitAmount } from "./kitChartData.ts";
 import { KitLegend, KitNoData } from "./KitChartShared.tsx";
-import { symmetricBound, type MonthByMonthRow } from "./statsChartRows.ts";
+import { INVEST_COLOR, MonthByMonthPlot } from "./MonthByMonthPlot.tsx";
+import { monthByMonthBound, type MonthByMonthRow } from "./statsChartRows.ts";
 import { useChartPalette } from "./useChartPalette.ts";
 
 export interface MonthByMonthChartProps {
@@ -27,7 +16,6 @@ export interface MonthByMonthChartProps {
 }
 
 const INVEST_KEY = "statistics.monthByMonth.showInvestments";
-const INVEST_COLOR = "var(--color-app-invest)";
 
 /** Row with the investment segments ready to stack: bought is drawn below Spent, so negative. */
 type ChartRow = MonthByMonthRow & { boughtBelow?: number };
@@ -44,15 +32,8 @@ function useShowInvestments(): [boolean, (next: boolean) => void] {
   return [on, set];
 }
 
-const hasAmount = (row: MonthByMonthRow, invest: boolean) =>
-  !!(
-    row.income ||
-    row.expense ||
-    row.kept ||
-    (invest && (row.bought || row.cashedOut))
-  );
-
-const margin = { top: 16, right: 12, bottom: 28, left: 44 };
+const hasAmount = (row: MonthByMonthRow) =>
+  !!(row.income || row.expense || row.kept || row.bought || row.cashedOut);
 
 /** Earned bars above the line, spent bars below it, and a kept dot per period. */
 export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
@@ -63,35 +44,19 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
 }) => {
   const { income, expense, kept } = useChartPalette();
   const [showInvestments, setShowInvestments] = useShowInvestments();
-  const data = useMemo<ChartRow[]>(
-    () =>
-      showInvestments
-        ? rows.map((r) => ({ ...r, boughtBelow: -(r.bought ?? 0) }))
-        : rows,
-    [rows, showInvestments],
+  const investData = useMemo<ChartRow[]>(
+    () => rows.map((r) => ({ ...r, boughtBelow: -(r.bought ?? 0) })),
+    [rows],
   );
-  // The bound must cover the stacks: Earned + cashed out, and Spent + bought.
-  const bound = useMemo(
-    () =>
-      symmetricBound(
-        showInvestments
-          ? data.map((r) => ({
-              ...r,
-              income: (r.income ?? 0) + (r.cashedOut ?? 0),
-              expense: (r.expense ?? 0) + (r.boughtBelow ?? 0),
-            }))
-          : rows,
-      ),
-    [data, rows, showInvestments],
-  );
+  // Both plots share one scale that always covers the investment stacks, so toggling never rescales the bars.
   // Each bar sits alone on its own axis: non-stacked bars would otherwise grow from the domain minimum.
-  const yDomains = useMemo(
-    () => ({
+  const yDomains = useMemo(() => {
+    const bound = monthByMonthBound(rows);
+    return {
       left: [-bound, bound] as [number, number],
       spent: [-bound, bound] as [number, number],
-    }),
-    [bound],
-  );
+    };
+  }, [rows]);
   const tickLabels = useMemo(
     () =>
       rows.map((r) =>
@@ -189,141 +154,39 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
           />
         </div>
       )}
-      {rows.some((r) => hasAmount(r, showInvestments)) ? (
+      {rows.some(hasAmount) ? (
         <>
-          <div className="relative">
-            {/* The kit paints Line marks beneath SeriesBars, so the Kept line and dots live in the overlay below. */}
-            <ComposedChart
-              data={data}
-              xDataKey="date"
-              stacked
-              yDomains={yDomains}
-              aspectRatio="5 / 2"
-              margin={margin}
-              maxBarSize={28}
-              ariaLabel="Earned, spent and kept per month"
-            >
-              <Grid horizontal />
-              <SeriesBar
-                dataKey="income"
-                label="Earned"
-                fill={income}
-                radius={4}
-              />
-              {showInvestments && (
-                <SeriesBar
-                  dataKey="cashedOut"
-                  label="Cashed out"
-                  fill={INVEST_COLOR}
-                  radius={4}
-                />
-              )}
-              <SeriesBar
-                dataKey="expense"
-                label="Spent"
-                fill={expense}
-                radius={4}
-                yAxisId="spent"
-              />
-              {showInvestments && (
-                <SeriesBar
-                  dataKey="boughtBelow"
-                  label="Bought"
-                  fill={INVEST_COLOR}
-                  radius={4}
-                  yAxisId="spent"
-                />
-              )}
-              <XAxis
-                numTicks={rows.length}
-                tickMode="data"
-                labels={tickLabels}
-              />
-              <YAxis numTicks={5} formatValue={compactAmount} />
-              <ChartTooltip
-                dateLabels={tooltipLabels}
-                rows={tooltipRows}
-                content={({ point }) => {
-                  const d = point.date as Date;
-                  return (
-                    <TooltipContent
-                      title={
-                        byYear
-                          ? String(d.getFullYear())
-                          : `${MONTH_LABELS[d.getMonth()]} ${d.getFullYear()}`
-                      }
-                      rows={tooltipRows(point)}
-                    />
-                  );
-                }}
-              />
-            </ComposedChart>
-            {/* Transparent twin on the same geometry: its bars only match the x inset; the Kept line and dots draw on top. */}
-            <div
-              className="pointer-events-none absolute inset-0"
-              aria-hidden="true"
-            >
-              <ComposedChart
-                data={rows}
-                xDataKey="date"
-                stacked
-                yDomains={yDomains}
-                aspectRatio="5 / 2"
-                margin={margin}
-                maxBarSize={28}
-                ariaLabel="Kept per month"
-              >
-                <SeriesBar dataKey="income" fill="transparent" />
-                {showInvestments && (
-                  <SeriesBar dataKey="cashedOut" fill="transparent" />
-                )}
-                <SeriesBar
-                  dataKey="expense"
-                  fill="transparent"
-                  yAxisId="spent"
-                />
-                {showInvestments && (
-                  <SeriesBar
-                    dataKey="boughtBelow"
-                    fill="transparent"
-                    yAxisId="spent"
+          {/* Both plots stay mounted in one grid cell; the chip only swaps which one is visible, so the kit never remounts. */}
+          <div className="grid">
+            {[false, true].map((withInvestments) => {
+              const active = withInvestments === showInvestments;
+              return (
+                <div
+                  key={String(withInvestments)}
+                  className={`[grid-area:1/1] transition-opacity duration-300 ease-out motion-reduce:transition-none ${
+                    active ? "opacity-100" : "opacity-0 pointer-events-none"
+                  }`}
+                  aria-hidden={active ? undefined : "true"}
+                  inert={!active}
+                >
+                  <MonthByMonthPlot
+                    rows={rows}
+                    data={withInvestments ? investData : rows}
+                    showInvestments={withInvestments}
+                    yDomains={yDomains}
+                    byYear={byYear}
+                    tickLabels={tickLabels}
+                    tooltipLabels={tooltipLabels}
+                    tooltipRows={tooltipRows}
                   />
-                )}
-                <Line
-                  dataKey="kept"
-                  label="Kept"
-                  stroke={kept}
-                  strokeWidth={2}
-                  curve={curveMonotoneX}
-                  showMarkers={false}
-                />
-                {showInvestments && (
-                  <Line
-                    dataKey="liquidity"
-                    label="Liquidity left"
-                    stroke={kept}
-                    strokeWidth={2}
-                    curve={curveMonotoneX}
-                    showMarkers={false}
-                    // shortcut: the kit dashes only a tail from a data index, so the first Jan-Feb segment stays solid.
-                    dashFromIndex={1}
-                  />
-                )}
-                <Scatter
-                  dataKey="kept"
-                  label="Kept"
-                  fill={kept}
-                  stroke={kept}
-                  strokeWidth={0}
-                  ringGap={0}
-                  radius={4}
-                />
-              </ComposedChart>
-            </div>
+                </div>
+              );
+            })}
           </div>
-          <KitLegend series={series} />
-          {showInvestments && (
-            <div className="flex justify-center mt-1">
+          {/* The legend's own top margin moves to this row; the swatch shares its centred line. */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 mt-3 [&>*]:mt-0">
+            <KitLegend series={series} />
+            {showInvestments && (
               <div className="flex items-center gap-1.5">
                 <span
                   aria-hidden="true"
@@ -334,8 +197,8 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
                   Liquidity left
                 </span>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </>
       ) : (
         <KitNoData />

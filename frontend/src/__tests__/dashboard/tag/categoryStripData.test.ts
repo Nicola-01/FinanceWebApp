@@ -34,6 +34,7 @@ describe("rankExpenseCategories", () => {
         tx("EXPENSE", 60, home),
       ],
       [food, groceries, home],
+      new Set(),
     );
 
     expect(result.map((c) => c.name)).toEqual(["Home", "Food"]);
@@ -45,6 +46,7 @@ describe("rankExpenseCategories", () => {
     const result = rankExpenseCategories(
       [tx("EXPENSE", 1, home), tx("EXPENSE", 2, food)],
       [food, home],
+      new Set(),
     );
     expect(result.map((c) => c.percent)).toEqual([67, 33]);
   });
@@ -53,18 +55,36 @@ describe("rankExpenseCategories", () => {
     const result = rankExpenseCategories(
       [tx("INCOME", 100, home), tx("EXPENSE", 10, food)],
       [food, home],
+      new Set(),
+    );
+    expect(result.map((c) => c.name)).toEqual(["Food"]);
+    expect(result[0].percent).toBe(100);
+  });
+
+  it("never ranks spending filed under an investment tag", () => {
+    const stocks = tag("Stocks", null, "#22c55e");
+    const result = rankExpenseCategories(
+      [tx("EXPENSE", 90, stocks), tx("EXPENSE", 10, food)],
+      [food, stocks],
+      new Set(["Stocks"]),
     );
     expect(result.map((c) => c.name)).toEqual(["Food"]);
     expect(result[0].percent).toBe(100);
   });
 
   it("returns nothing when there is no expense in the period", () => {
-    expect(rankExpenseCategories([tx("INCOME", 10, home)], [home])).toEqual([]);
-    expect(rankExpenseCategories([], [home])).toEqual([]);
+    expect(
+      rankExpenseCategories([tx("INCOME", 10, home)], [home], new Set()),
+    ).toEqual([]);
+    expect(rankExpenseCategories([], [home], new Set())).toEqual([]);
   });
 
   it("falls back to a neutral colour for a category missing from the tag list", () => {
-    const result = rankExpenseCategories([tx("EXPENSE", 5, tag("Orphan"))], []);
+    const result = rankExpenseCategories(
+      [tx("EXPENSE", 5, tag("Orphan"))],
+      [],
+      new Set(),
+    );
     expect(result[0].color).toBe("#9ca3af");
   });
 });

@@ -5,6 +5,7 @@ import {
   waterfallRows,
   balanceHistory,
   symmetricBound,
+  monthByMonthBound,
 } from "../../../dashboard/statistics/statsChartRows.ts";
 
 const tag = { name: "General", icon: "tag", colorHex: "#fff" };
@@ -291,5 +292,32 @@ describe("symmetricBound", () => {
         { date: new Date(2026, 1, 1) },
       ]),
     ).toBe(100);
+  });
+});
+
+describe("monthByMonthBound", () => {
+  it("covers the investment stacks: Earned + cashed out and Spent + bought", () => {
+    const date = new Date(2026, 0, 1);
+    // Earned + cashed out = 1000, Spent + bought = 500: the larger stack sets the bound.
+    expect(
+      monthByMonthBound([
+        {
+          date,
+          income: 100,
+          expense: -300,
+          kept: 0,
+          cashedOut: 900,
+          bought: 200,
+        },
+      ]),
+    ).toBeCloseTo(1100);
+    // Spent + bought = 700 is the peak here.
+    expect(
+      monthByMonthBound([{ date, income: 100, expense: -500, bought: 200 }]),
+    ).toBeCloseTo(770);
+  });
+
+  it("falls back to 100 when no row has an amount", () => {
+    expect(monthByMonthBound([{ date: new Date(2026, 0, 1) }])).toBe(100);
   });
 });

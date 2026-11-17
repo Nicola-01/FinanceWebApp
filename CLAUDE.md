@@ -10,6 +10,16 @@ Transactions; **Tags** are per-wallet (hierarchical) categories. Wallets are sha
 with other users under per-wallet RBAC. Three deployable services share one PostgreSQL
 DB and one root `.env`.
 
+**Investments** are a third money flow driven by a tag flag, not a transaction type:
+`Tag.investment` covers the tag's whole subtree (no opt-out). EXPENSE on an investment
+tag = bought, INCOME = cashed out; Income/Spent exclude them everywhere, Net/Kept =
+Income − Spent (investing counts as saving), Invested net = bought − cashed out,
+Liquidity left = Income − Spent − Invested net; the balance still sums everything. Only
+the raw flag is stored — each side resolves inheritance itself: Java
+`service/InvestmentTags`, TS `utils/investments.ts` (`sumFlows`, `useInvestmentTags`),
+Python `investment_tag_names` in the MCP server. Budgets on investment tags are goals
+(`goal:true`, `GOAL_REACHED`, no alerts). Spec: `docs/superpowers/specs/2026-11-17-investments-design.md`.
+
 ## Repository layout
 
 - `backend/` — Spring Boot 3.5 API (Java 21, Gradle). Base package `dev.busato.FinanceWebApp.backend`.

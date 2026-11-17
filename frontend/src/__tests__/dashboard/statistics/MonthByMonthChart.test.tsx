@@ -55,6 +55,27 @@ const yearRows: MonthByMonthRow[] = [
   { date: new Date(2025, 0, 1), income: 3000, expense: -3500, kept: -500 },
 ];
 
+const investRows: MonthByMonthRow[] = [
+  {
+    date: new Date(2026, 0, 1),
+    income: 1000,
+    expense: -300,
+    kept: 700,
+    bought: 200,
+    cashedOut: 0,
+    liquidity: 500,
+  },
+  {
+    date: new Date(2026, 1, 1),
+    income: 500,
+    expense: -100,
+    kept: 400,
+    bought: 100,
+    cashedOut: 400,
+    liquidity: 700,
+  },
+];
+
 const withTheme = (ui: React.ReactElement) => (
   <ThemeContext.Provider
     value={{ theme: "light", setTheme: vi.fn(), resolvedTheme: "light" }}
@@ -118,7 +139,8 @@ describe("MonthByMonthChart", () => {
         />,
       ),
     );
-    expect(calls.ComposedChart).toHaveLength(2);
+    // Two plots (without and with investments), each a base chart plus its overlay.
+    expect(calls.ComposedChart).toHaveLength(4);
     const { base, overlay } = baseAndOverlay();
 
     // Overlay bars are transparent: they only fix the x inset.
@@ -148,8 +170,9 @@ describe("MonthByMonthChart", () => {
     // The base chart carries no Kept series, so the kit cannot paint it under the bars.
     expect(kids(base, Line)).toEqual([]);
     expect(kids(base, Scatter)).toEqual([]);
-    expect(calls.Line).toHaveLength(1);
-    expect(calls.Scatter).toHaveLength(1);
+    // The hidden investments copy also draws its Liquidity line, so Line runs three times in total.
+    expect(calls.Line).toHaveLength(3);
+    expect(calls.Scatter).toHaveLength(2);
   });
 
   it("wraps the overlay in an aria-hidden, pointer-events-none layer", () => {
@@ -186,7 +209,7 @@ describe("MonthByMonthChart", () => {
     const { base, overlay } = baseAndOverlay();
     expect(kids(base, ChartTooltip)).toHaveLength(1);
     expect(kids(overlay, ChartTooltip)).toEqual([]);
-    expect(calls.ChartTooltip).toHaveLength(1);
+    expect(calls.ChartTooltip).toHaveLength(2);
   });
 
   it("gives the overlay the same geometry as the base so the Kept line lines up with the bars", () => {
@@ -466,32 +489,12 @@ describe("MonthByMonthChart bare mode", () => {
     expect(screen.queryByRole("heading")).toBeNull();
     expect(screen.queryByText(/Earned above the line/)).toBeNull();
     expect(container.firstElementChild).not.toHaveClass("bg-app-card");
-    expect(calls.ComposedChart).toHaveLength(2);
+    expect(calls.ComposedChart).toHaveLength(4);
     expect(screen.getByText("Earned")).toBeInTheDocument();
   });
 });
 
 describe("MonthByMonthChart investments chip", () => {
-  const investRows: MonthByMonthRow[] = [
-    {
-      date: new Date(2026, 0, 1),
-      income: 1000,
-      expense: -300,
-      kept: 700,
-      bought: 200,
-      cashedOut: 0,
-      liquidity: 500,
-    },
-    {
-      date: new Date(2026, 1, 1),
-      income: 500,
-      expense: -100,
-      kept: 400,
-      bought: 100,
-      cashedOut: 400,
-      liquidity: 700,
-    },
-  ];
   const chip = () => screen.getByRole("switch", { name: /Investments/ });
 
   beforeEach(() => {
@@ -589,5 +592,103 @@ describe("MonthByMonthChart investments chip", () => {
       localStorage.getItem("statistics.monthByMonth.showInvestments"),
     ).toBe("false");
     expect(screen.queryByText("Liquidity left")).toBeNull();
+  });
+});
+
+describe("MonthByMonthChart investments crossfade", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  const chip = () => screen.getByRole("switch", { name: /Investments/ });
+  const copies = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll<HTMLElement>(".grid > div"));
+
+  it("sizes the shared scale with the investment stacks even while the chip is off", async () => {
+    // Cashed out (900) stacks on Earned (100): the bound must cover 1000 even with the chip off.
+    const rows: MonthByMonthRow[] = [
+      {
+        date: new Date(2026, 0, 1),
+        income: 100,
+        expense: -50,
+        kept: 50,
+        cashedOut: 900,
+        bought: 0,
+      },
+    ];
+    render(
+      withTheme(
+        <MonthByMonthChart rows={rows} byYear={false} currencySymbol="€" />,
+      ),
+    );
+    const off = baseAndOverlay().base.yDomains as Record<
+      string,
+      [number, number]
+    >;
+    expect(off.left[1]).toBeCloseTo(1100);
+    expect(off.spent[0]).toBeCloseTo(-1100);
+
+    await userEvent.click(chip());
+    for (const call of calls.ComposedChart) {
+      expect(call.yDomains).toEqual(off);
+    }
+  });
+
+  it("keeps both copies mounted and swaps which one is visible on toggle", async () => {
+    const { container } = render(
+      withTheme(
+        <MonthByMonthChart
+          rows={investRows}
+          byYear={false}
+          currencySymbol="€"
+        />,
+      ),
+    );
+    const [offCopy, onCopy] = copies(container);
+    const composedBefore = screen.getAllByTestId("composed");
+
+    expect(offCopy).toHaveClass("opacity-100");
+    expect(offCopy).not.toHaveAttribute("aria-hidden");
+    expect(offCopy).not.toHaveAttribute("inert");
+    expect(onCopy).toHaveClass("opacity-0", "pointer-events-none");
+    expect(onCopy).toHaveAttribute("aria-hidden", "true");
+    expect(onCopy).toHaveAttribute("inert");
+    for (const copy of [offCopy, onCopy]) {
+      expect(copy).toHaveClass(
+        "[grid-area:1/1]",
+        "transition-opacity",
+        "duration-300",
+        "ease-out",
+        "motion-reduce:transition-none",
+      );
+    }
+
+    await userEvent.click(chip());
+
+    expect(copies(container)).toEqual([offCopy, onCopy]);
+    expect(offCopy).toHaveClass("opacity-0", "pointer-events-none");
+    expect(offCopy).toHaveAttribute("aria-hidden", "true");
+    expect(offCopy).toHaveAttribute("inert");
+    expect(onCopy).toHaveClass("opacity-100");
+    expect(onCopy).not.toHaveAttribute("aria-hidden");
+    expect(onCopy).not.toHaveAttribute("inert");
+    // Same DOM nodes: the kit charts were not remounted.
+    expect(screen.getAllByTestId("composed")).toEqual(composedBefore);
+  });
+
+  it("puts the Liquidity left swatch on the same row as the legend", async () => {
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={investRows}
+          byYear={false}
+          currencySymbol="€"
+        />,
+      ),
+    );
+    await userEvent.click(chip());
+    const row = screen.getByText("Liquidity left").closest(".flex-wrap");
+    expect(row).toHaveClass("gap-x-4", "justify-center");
+    expect(row).toContainElement(screen.getByText("Kept"));
   });
 });

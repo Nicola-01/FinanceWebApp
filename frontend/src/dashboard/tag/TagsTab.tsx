@@ -68,6 +68,7 @@ export const TagsTab: React.FC = () => {
             <CategoryStrip
               transactions={ctx.transactions}
               tags={tags}
+              invest={investmentTags}
               onManage={() => setManagerOpen(true)}
             />
           </div>

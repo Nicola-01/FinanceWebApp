@@ -1193,7 +1193,8 @@ async def get_financial_timeseries(
     for key in sorted_keys:
         b = buckets[key]
         net = round(b["income"] - b["expense"], 2)
-        cumulative_balance += net
+        # Wallet balance moves with every transaction, investments included.
+        cumulative_balance += b["income"] + b["cashedOut"] - b["expense"] - b["invested"]
 
         # Top tags for this period
         top_tags = sorted(b["tags"].items(), key=lambda x: x[1], reverse=True)[:5]
@@ -1267,6 +1268,9 @@ async def get_financial_timeseries(
     # -- Compute summary statistics --
     total_income = sum(p["income"] for p in timeseries)
     total_expense = sum(p["expense"] for p in timeseries)
+    total_invested = sum(p["invested"] for p in timeseries)
+    total_cashed_out = sum(p["cashedOut"] for p in timeseries)
+    invested_net = total_invested - total_cashed_out
     period_count = len(timeseries)
 
     result = {
@@ -1284,6 +1288,10 @@ async def get_financial_timeseries(
             "avgIncomePerPeriod": round(total_income / period_count, 2) if period_count > 0 else 0,
             "avgExpensePerPeriod": round(total_expense / period_count, 2) if period_count > 0 else 0,
             "avgNetPerPeriod": round((total_income - total_expense) / period_count, 2) if period_count > 0 else 0,
+            "invested": round(total_invested, 2),
+            "cashedOut": round(total_cashed_out, 2),
+            "investedNet": round(invested_net, 2),
+            "liquidityLeft": round(total_income - total_expense - invested_net, 2),
         },
         "timeseries": timeseries,
     }

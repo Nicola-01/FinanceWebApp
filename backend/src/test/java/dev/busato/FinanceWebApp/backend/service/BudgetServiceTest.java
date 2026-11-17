@@ -380,6 +380,29 @@ class BudgetServiceTest {
         Set.of(a.getId(), b.getId()), Set.copyOf(ids.getValue())); // finite, both ids, no dupes
   }
 
+  @Test
+  void categoryBudget_excludesFlaggedChildInvestments() {
+    Tag savings = Tag.builder().id(UUID.randomUUID()).name("Savings").wallet(wallet).build();
+    Tag pension =
+        Tag.builder()
+            .id(UUID.randomUUID())
+            .name("Pension")
+            .wallet(wallet)
+            .parent(savings)
+            .investment(true)
+            .build();
+    Budget budget = monthlyBudget(savings, "1000.00", false);
+    when(tagRepository.getTagsByWalletId(walletId)).thenReturn(List.of(savings, pension));
+    when(transactionRepository.sumAmountByWalletAndDateRangeAndTags(
+            eq(walletId), eq(Transaction.Type.EXPENSE), any(), any(), eq(List.of(savings.getId()))))
+        .thenReturn(new BigDecimal("100.00"));
+
+    BudgetStatusResponse status = budgetService.computeStatus(budget, LocalDate.of(2026, 7, 8));
+
+    assertFalse(status.isGoal());
+    assertEquals(0, new BigDecimal("100.00").compareTo(status.getSpent()));
+  }
+
   private Tag investments() {
     return Tag.builder()
         .id(UUID.randomUUID())

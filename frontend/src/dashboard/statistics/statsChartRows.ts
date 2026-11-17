@@ -178,3 +178,18 @@ export function symmetricBound(rows: MonthByMonthRow[]): number {
   }
   return peak === 0 ? 100 : peak * 1.1;
 }
+
+/**
+ * Month by month y bound including the investment stacks (Earned + cashed out, Spent + bought).
+ * Always computed with investments, so the scale does not move when the chip toggles.
+ */
+export function monthByMonthBound(rows: MonthByMonthRow[]): number {
+  return symmetricBound(
+    rows.map((r) => ({
+      ...r,
+      income: (r.income ?? 0) + (r.cashedOut ?? 0),
+      // Expense is stored negative, bought is positive: the stack magnitude is spent + bought.
+      expense: (r.expense ?? 0) - (r.bought ?? 0),
+    })),
+  );
+}

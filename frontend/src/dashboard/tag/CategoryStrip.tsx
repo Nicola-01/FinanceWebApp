@@ -13,6 +13,8 @@ interface CategoryStripProps {
   transactions: Transaction[];
   /** The wallet's tags; the hidden "To categorise" placeholder is never among them. */
   tags: Tag[];
+  /** Investment tag names; their spending is not counted as a category. */
+  invest: Set<string>;
   onManage: () => void;
 }
 
@@ -39,11 +41,12 @@ const Chip: React.FC<{ category: StripCategory; className?: string }> = ({
 export const CategoryStrip: React.FC<CategoryStripProps> = ({
   transactions,
   tags,
+  invest,
   onManage,
 }) => {
   const ranked = useMemo(
-    () => rankExpenseCategories(transactions, tags),
-    [transactions, tags],
+    () => rankExpenseCategories(transactions, tags, invest),
+    [transactions, tags, invest],
   );
   const count = tags.length;
 

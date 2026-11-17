@@ -257,8 +257,12 @@ public class BudgetService {
           transactionRepository.sumAmountByWalletAndDateRangeAndTags(
               walletId, Transaction.Type.EXPENSE, from, to, investmentIds));
     }
+    // Category budgets also exclude investment subtrees nested under a non-investment tag.
+    List<UUID> ids = subtreeTagIds(budget.getTag(), walletId);
+    ids.removeAll(InvestmentTags.investmentTagIds(tagRepository.getTagsByWalletId(walletId)));
+    if (ids.isEmpty()) return BigDecimal.ZERO; // never hand an empty IN list to the query
     return transactionRepository.sumAmountByWalletAndDateRangeAndTags(
-        walletId, Transaction.Type.EXPENSE, from, to, subtreeTagIds(budget.getTag(), walletId));
+        walletId, Transaction.Type.EXPENSE, from, to, ids);
   }
 
   /** The tag's id plus every descendant's, resolved from the wallet's (small) tag list. */
