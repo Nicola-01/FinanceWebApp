@@ -16,6 +16,11 @@ import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";
 import { useInlineTagEdit } from "./useInlineTagEdit.ts";
 import { Input } from "../../components/ui/Input.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
+import { InvestmentToggle } from "./InvestmentToggle.tsx";
+import {
+  investmentState,
+  type InvestmentCoverage,
+} from "../../utils/investments.ts";
 
 interface CategoryParentRowProps {
   parent: Tag;
@@ -31,6 +36,8 @@ interface CategoryParentRowProps {
   isDropTarget?: boolean;
   onUpdateTag: (oldName: string, updated: Partial<Tag>) => Promise<boolean>;
   onRequestDelete: (tag: Tag) => void;
+  /** Investment coverage from the wallet's flags (ancestor / descendant flags). */
+  coverage?: InvestmentCoverage;
   /** The expandable sub-tree; rendered inside the sortable node so it travels with the parent. */
   children?: React.ReactNode;
 }
@@ -51,6 +58,7 @@ export const CategoryParentRow: React.FC<CategoryParentRowProps> = ({
   isDropTarget = false,
   onUpdateTag,
   onRequestDelete,
+  coverage,
   children,
 }) => {
   const {
@@ -118,14 +126,6 @@ export const CategoryParentRow: React.FC<CategoryParentRowProps> = ({
           onColorChange={edit.setColorVal}
           isOpen={edit.iconOpen}
           onToggle={edit.onIconToggle}
-          investment={
-            readOnly
-              ? undefined
-              : {
-                  checked: edit.isInvestment,
-                  onChange: edit.onInvestmentChange,
-                }
-          }
         />
 
         {edit.isEditing ? (
@@ -193,6 +193,14 @@ export const CategoryParentRow: React.FC<CategoryParentRowProps> = ({
             {childCount}
           </Badge>
         </div>
+
+        {!readOnly && !edit.isEditing && (
+          <InvestmentToggle
+            state={investmentState(edit.isInvestment, coverage)}
+            inheritedFrom={coverage?.inheritedFrom}
+            onChange={edit.onInvestmentChange}
+          />
+        )}
 
         {!readOnly && !edit.isEditing && (
           <div className="flex shrink-0 items-center gap-1 opacity-40 transition-opacity group-hover/parent:opacity-100">

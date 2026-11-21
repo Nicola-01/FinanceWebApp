@@ -178,14 +178,18 @@ const TONE_TEXT: Record<"ok" | "warn" | "danger", string> = {
 /** Radius of the Gauge's value arc inside the 100x100 overlay box (the mid-point of the alert ticks). */
 const ARC_RADIUS = 40;
 
+/** v2 hero amount, sized like StatTile values (22px display, 650). */
+const HERO =
+  "min-w-0 break-words font-display text-[22px] font-[650] leading-[1.1] tracking-[-0.02em] text-app-text";
+
 /** One figure under the hero: optional dot in an arc colour, amount, then label. */
 const Fact: React.FC<{
   color?: string;
   value: React.ReactNode;
   label: string;
 }> = ({ color, value, label }) => (
-  <div className="min-w-0">
-    <b className="block whitespace-nowrap font-semibold text-app-text">
+  <div className="min-w-0 max-w-full">
+    <b className="block truncate text-[15px] font-semibold tracking-[-0.01em] text-app-text tabular-nums">
       {value}
     </b>
     <span className="mt-0.5 flex items-center gap-1.5 whitespace-nowrap text-[13px] text-app-muted">
@@ -249,18 +253,21 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
   const symbol = getCurrencySymbol(currency);
   const goalHero = !goal ? null : reached ? (
     <p>
-      <span className="inline-flex rounded-full bg-app-income/15 px-3 py-1 font-display text-[15px] font-semibold text-app-income">
+      <span className="inline-flex rounded-full bg-app-income/15 px-3 py-1 text-[13px] font-semibold text-app-income">
         Goal reached
       </span>
     </p>
   ) : (
-    <p className="font-display text-[26px] font-[650] leading-[1.1] tracking-[-0.02em] tabular-nums text-app-text">
-      <AnimatedNumber value={budget.remaining} currency={symbol} /> to go
+    <p className={HERO}>
+      <span className="tabular-nums">
+        <AnimatedNumber value={budget.remaining} currency={symbol} />
+      </span>{" "}
+      <span className="text-[13px] font-normal text-app-muted">to go</span>
     </p>
   );
 
   return (
-    <div className="flex flex-col gap-3 rounded-[var(--r-card)] bg-app-card p-4 shadow-[var(--box-ring)]">
+    <div className="flex flex-col gap-3 rounded-[var(--r-card)] bg-app-card p-5 shadow-[var(--box-ring)] sm:p-6">
       <div className="flex items-start gap-3">
         <CategoryIcon
           icon={tag ? tag.icon : wallet.icon}
@@ -321,113 +328,135 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
         )}
       </div>
 
-      {/* Arc clamps at full; the centre shows the real percentage (centerValue, not value). */}
-      <div className="relative mx-auto w-full min-w-0 max-w-[180px] text-app-text [&_.ts-bkm-center-stat-value]:!text-[26px]">
-        <Gauge
-          arcStyle="solid"
-          arcThickness={0.05}
-          ariaLabel={gaugeAriaLabel(budget)}
-          ariaDescription={`${budget.percentUsed}%`}
-          centerValue={budget.percentUsed}
-          defaultLabel="used"
-          formatOptions={gaugeNumberFormat(budget.percentUsed)}
-          inactiveFillOpacity={0.6}
-          minWidth={0}
-          suffix="%"
-          value={showDue ? dueArc : spentArc}
-          activeFill={
-            goal ? "var(--color-app-invest)" : gaugeColor(budget.status)
-          }
-          zoneDisplay="fill"
-          zones={
-            showDue
-              ? [
-                  {
-                    from: spentArc,
-                    to: dueArc,
-                    color: DUE_COLOUR,
-                  },
-                ]
-              : undefined
-          }
-        />
-        {/* Alert ticks: the Gauge kit has no per-value marks, so they sit in an overlay on the same 100x100 box. */}
-        {budget.alertThresholds.length > 0 && !goal && (
-          <svg
-            viewBox="0 0 100 100"
-            role="img"
-            aria-label={`Alerts at ${alertTicks.map((t) => `${t.pct}%`).join(", ")}`}
-            className="pointer-events-none absolute inset-0 h-full w-full"
-          >
-            {alertTicks.map((tick) => (
-              <line
-                key={tick.pct}
-                data-alert-tick={tick.pct}
-                x1={tick.x1}
-                y1={tick.y1}
-                x2={tick.x2}
-                y2={tick.y2}
-                stroke={
-                  tick.passed
-                    ? gaugeColor(budget.status)
-                    : "var(--color-app-faint)"
-                }
-                strokeWidth={1.5}
-                strokeLinecap="round"
-              />
-            ))}
-          </svg>
-        )}
-        {/* Pace marker: a dot on the arc at the projected end-of-period committed spend. */}
-        {pacePoint && (
-          <svg
-            viewBox="0 0 100 100"
-            role="img"
-            aria-label={`Pace: about ${money(projected)} committed by period end`}
-            className="pointer-events-none absolute inset-0 h-full w-full"
-          >
-            <circle
-              data-pace-marker
-              cx={pacePoint[0]}
-              cy={pacePoint[1]}
-              r={3.5}
-              fill="var(--color-app-card)"
-              stroke="var(--color-app-text)"
-              strokeWidth={1.5}
-            />
-          </svg>
-        )}
-      </div>
-
-      {goalHero ??
-        (overspend > 0 ? (
-          <p
-            className={`font-display text-[26px] font-[650] leading-[1.1] tracking-[-0.02em] tabular-nums ${budget.status === "EXCEEDED" ? "text-app-danger" : "text-app-warn"}`}
-          >
-            Over by <AnimatedNumber value={overspend} currency={symbol} />
-          </p>
-        ) : (
-          <p className="font-display text-[26px] font-[650] leading-[1.1] tracking-[-0.02em] tabular-nums text-app-text">
-            <AnimatedNumber value={left} currency={symbol} /> left
-          </p>
-        ))}
-
-      <div
-        className={`grid ${goal ? "grid-cols-2" : "grid-cols-3"} gap-2 tabular-nums`}
-      >
-        <Fact
-          color={gaugeColor(budget.status)}
-          value={<AnimatedNumber value={budget.spent} currency={symbol} />}
-          label="spent"
-        />
-        {!goal && (
-          <Fact
-            color={DUE_COLOUR}
-            value={<AnimatedNumber value={upcoming} currency={symbol} />}
-            label="still due"
+      <div className="flex items-center gap-4 max-[379px]:flex-col">
+        {/* Arc clamps at full; the centre shows the real percentage (centerValue, not value). */}
+        <div className="relative w-[120px] shrink-0 text-app-text sm:w-[128px] max-[379px]:self-center [&_.ts-bkm-center-stat-value]:!text-[20px]">
+          <Gauge
+            arcStyle="solid"
+            arcThickness={0.05}
+            ariaLabel={gaugeAriaLabel(budget)}
+            ariaDescription={`${budget.percentUsed}%`}
+            centerValue={budget.percentUsed}
+            defaultLabel="used"
+            formatOptions={gaugeNumberFormat(budget.percentUsed)}
+            inactiveFillOpacity={0.6}
+            minWidth={0}
+            suffix="%"
+            value={showDue ? dueArc : spentArc}
+            activeFill={
+              goal ? "var(--color-app-invest)" : gaugeColor(budget.status)
+            }
+            zoneDisplay="fill"
+            zones={
+              showDue
+                ? [
+                    {
+                      from: spentArc,
+                      to: dueArc,
+                      color: DUE_COLOUR,
+                    },
+                  ]
+                : undefined
+            }
           />
-        )}
-        <Fact value={`${daysLeft(budget)} days`} label="left in period" />
+          {/* Alert ticks: the Gauge kit has no per-value marks, so they sit in an overlay on the same 100x100 box. */}
+          {budget.alertThresholds.length > 0 && !goal && (
+            <svg
+              viewBox="0 0 100 100"
+              role="img"
+              aria-label={`Alerts at ${alertTicks.map((t) => `${t.pct}%`).join(", ")}`}
+              className="pointer-events-none absolute inset-0 h-full w-full"
+            >
+              {alertTicks.map((tick) => (
+                <line
+                  key={tick.pct}
+                  data-alert-tick={tick.pct}
+                  x1={tick.x1}
+                  y1={tick.y1}
+                  x2={tick.x2}
+                  y2={tick.y2}
+                  stroke={
+                    tick.passed
+                      ? gaugeColor(budget.status)
+                      : "var(--color-app-faint)"
+                  }
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                />
+              ))}
+            </svg>
+          )}
+          {/* Pace marker: a dot on the arc at the projected end-of-period committed spend. */}
+          {pacePoint && (
+            <svg
+              viewBox="0 0 100 100"
+              role="img"
+              aria-label={`Pace: about ${money(projected)} committed by period end`}
+              className="pointer-events-none absolute inset-0 h-full w-full"
+            >
+              <circle
+                data-pace-marker
+                cx={pacePoint[0]}
+                cy={pacePoint[1]}
+                r={3.5}
+                fill="var(--color-app-card)"
+                stroke="var(--color-app-text)"
+                strokeWidth={1.5}
+              />
+            </svg>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col gap-2.5 max-[379px]:w-full">
+          {goalHero ??
+            (overspend > 0 ? (
+              <p
+                className={`${HERO} ${budget.status === "EXCEEDED" ? "!text-app-danger" : "!text-app-warn"}`}
+              >
+                <span className="text-[13px] font-normal text-app-muted">
+                  Over by
+                </span>{" "}
+                <span className="tabular-nums">
+                  <AnimatedNumber value={overspend} currency={symbol} />
+                </span>
+              </p>
+            ) : (
+              <p className={HERO}>
+                <span className="tabular-nums">
+                  <AnimatedNumber value={left} currency={symbol} />
+                </span>{" "}
+                <span className="text-[13px] font-normal text-app-muted">
+                  left
+                </span>
+              </p>
+            ))}
+
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            <Fact
+              color={gaugeColor(budget.status)}
+              value={<AnimatedNumber value={budget.spent} currency={symbol} />}
+              label="spent"
+            />
+            {!goal && (
+              <Fact
+                color={DUE_COLOUR}
+                value={<AnimatedNumber value={upcoming} currency={symbol} />}
+                label="still due"
+              />
+            )}
+            <Fact
+              value={
+                <>
+                  <span className="tabular-nums">{daysLeft(budget)}</span>{" "}
+                  <span className="text-[13px] font-normal text-app-muted">
+                    days
+                  </span>
+                </>
+              }
+              label="left in period"
+            />
+          </div>
+        </div>
       </div>
 
       {!budget.active && (

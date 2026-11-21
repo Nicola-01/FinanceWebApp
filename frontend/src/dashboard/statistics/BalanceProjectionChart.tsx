@@ -21,6 +21,7 @@ import {
 import { compactAmount } from "./kitChartData.ts";
 import { InfoTip } from "../../components/ui/InfoTip.tsx";
 import { useChartPalette } from "./useChartPalette.ts";
+import { StatCard } from "./StatCard.tsx";
 
 interface BalanceProjectionChartProps {
   /** End-of-month balances, oldest first; `date` is the 1st of the month. */
@@ -122,52 +123,36 @@ export const BalanceProjectionChart = ({
   );
 
   return (
-    <div
-      className={
-        bare
-          ? ""
-          : "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4"
+    <StatCard
+      title="Where you're heading"
+      subtitle={
+        <>
+          At your usual pace of{" "}
+          <strong className="font-semibold text-app-text">{signedPace}</strong>{" "}
+          a month you&apos;d have about{" "}
+          <strong className="font-semibold text-app-text">
+            {whole(projection.end)}
+          </strong>{" "}
+          by{" "}
+          <strong className="font-semibold text-app-text">
+            {monthYear(projection.endDate)}
+          </strong>{" "}
+          (likely {whole(projection.endLow)} – {whole(projection.endHigh)}).
+        </>
       }
-    >
-      {bare ? (
-        <div className="flex items-center justify-end gap-1 flex-wrap">
+      action={
+        <>
           {infoTip}
           {horizonSelector}
-        </div>
-      ) : (
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <div className="flex items-center gap-1">
-              <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-                {"Where you're heading"}
-              </h3>
-              {infoTip}
-            </div>
-            <p className="text-[13px] text-app-muted mt-0.5">
-              At your usual pace of{" "}
-              <strong className="font-semibold text-app-text">
-                {signedPace}
-              </strong>{" "}
-              a month you&apos;d have about{" "}
-              <strong className="font-semibold text-app-text">
-                {whole(projection.end)}
-              </strong>{" "}
-              by{" "}
-              <strong className="font-semibold text-app-text">
-                {monthYear(projection.endDate)}
-              </strong>{" "}
-              (likely {whole(projection.endLow)} – {whole(projection.endHigh)}).
-            </p>
-          </div>
-          {horizonSelector}
-        </div>
-      )}
-
+        </>
+      }
+      bare={bare}
+    >
       <ComposedChart
         data={chartRows}
         xDataKey="date"
         aspectRatio="5 / 2"
-        margin={{ top: 16, right: 16, bottom: 28, left: 44 }}
+        margin={{ top: 16, right: 24, bottom: 28, left: 44 }}
         ariaLabel="Balance and projected balance"
       >
         <Grid horizontal />
@@ -207,6 +192,6 @@ export const BalanceProjectionChart = ({
           )}
         />
       </ComposedChart>
-    </div>
+    </StatCard>
   );
 };

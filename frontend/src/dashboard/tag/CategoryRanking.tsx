@@ -159,7 +159,7 @@ export const CategoryRanking: React.FC<CategoryRankingProps> = ({
         bare
           ? "flex flex-col w-full h-full text-app-text"
           : v2 // ui-v2-switch
-            ? "flex flex-col w-full h-full bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 md:p-6 text-app-text"
+            ? "flex flex-col w-full h-full bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 sm:p-6 text-app-text"
             : "flex flex-col w-full h-full bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border p-4 md:p-6 text-app-text"
       }
     >

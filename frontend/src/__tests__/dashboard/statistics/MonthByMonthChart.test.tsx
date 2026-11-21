@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeContext } from "../../../utils/ThemeContext.tsx";
 import { formatAmount } from "../../../utils/format.ts";
@@ -504,6 +504,7 @@ describe("MonthByMonthChart investments chip", () => {
     render(
       withTheme(
         <MonthByMonthChart
+          hasInvestments
           rows={investRows}
           byYear={false}
           currencySymbol="€"
@@ -524,6 +525,7 @@ describe("MonthByMonthChart investments chip", () => {
     render(
       withTheme(
         <MonthByMonthChart
+          hasInvestments
           rows={investRows}
           byYear={false}
           currencySymbol="€"
@@ -577,6 +579,7 @@ describe("MonthByMonthChart investments chip", () => {
     render(
       withTheme(
         <MonthByMonthChart
+          hasInvestments
           rows={investRows}
           byYear={false}
           currencySymbol="€"
@@ -605,6 +608,7 @@ describe("MonthByMonthChart investments toggle", () => {
     render(
       withTheme(
         <MonthByMonthChart
+          hasInvestments
           rows={investRows}
           byYear={false}
           currencySymbol="€"
@@ -627,6 +631,7 @@ describe("MonthByMonthChart investments toggle", () => {
     render(
       withTheme(
         <MonthByMonthChart
+          hasInvestments
           rows={investRows}
           byYear={false}
           currencySymbol="€"
@@ -660,7 +665,12 @@ describe("MonthByMonthChart investments toggle", () => {
     ];
     render(
       withTheme(
-        <MonthByMonthChart rows={rows} byYear={false} currencySymbol="€" />,
+        <MonthByMonthChart
+          hasInvestments
+          rows={rows}
+          byYear={false}
+          currencySymbol="€"
+        />,
       ),
     );
     const off = baseAndOverlay().base.yDomains as Record<
@@ -681,6 +691,7 @@ describe("MonthByMonthChart investments toggle", () => {
     render(
       withTheme(
         <MonthByMonthChart
+          hasInvestments
           rows={investRows}
           byYear={false}
           currencySymbol="€"
@@ -724,6 +735,7 @@ describe("MonthByMonthChart investments toggle", () => {
     render(
       withTheme(
         <MonthByMonthChart
+          hasInvestments
           rows={investRows}
           byYear={false}
           currencySymbol="€"
@@ -734,5 +746,102 @@ describe("MonthByMonthChart investments toggle", () => {
     const row = screen.getByText("Liquidity left").closest(".flex-wrap");
     expect(row).toHaveClass("gap-x-4", "justify-center");
     expect(row).toContainElement(screen.getByText("Kept"));
+  });
+});
+
+describe("MonthByMonthChart without a flagged investment tag", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("hides the chip and ignores a saved on-state", () => {
+    localStorage.setItem("statistics.monthByMonth.showInvestments", "true");
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={investRows}
+          byYear={false}
+          currencySymbol="€"
+          hasInvestments={false}
+        />,
+      ),
+    );
+    expect(screen.queryByRole("switch", { name: /Investments/ })).toBeNull();
+    const { base, overlay } = baseAndOverlay();
+    expect(kids(base, SeriesBar).map((p) => p.dataKey)).toEqual([
+      "income",
+      "expense",
+    ]);
+    expect(kids(overlay, Line).map((p) => p.dataKey)).toEqual(["kept"]);
+    expect(screen.queryByText("Liquidity left")).toBeNull();
+  });
+});
+
+describe("MonthByMonthChart reveal", () => {
+  type IOCallback = (entries: Partial<IntersectionObserverEntry>[]) => void;
+  let callback: IOCallback = () => {};
+
+  beforeEach(() => {
+    localStorage.clear();
+    class MockIO {
+      constructor(cb: IOCallback) {
+        callback = cb;
+      }
+      observe() {}
+      disconnect() {}
+      unobserve() {}
+    }
+    vi.stubGlobal("IntersectionObserver", MockIO);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("does not mount the plot until the chart scrolls into view", () => {
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={monthRows}
+          byYear={false}
+          currencySymbol="€"
+          hasInvestments={false}
+        />,
+      ),
+    );
+    expect(screen.queryByTestId("composed")).not.toBeInTheDocument();
+
+    act(() => callback([{ isIntersecting: true }]));
+    expect(screen.getAllByTestId("composed")).toHaveLength(2);
+  });
+
+  it("mounts no plot without amounts, then waits for view once data arrives", () => {
+    const { rerender } = render(
+      withTheme(
+        <MonthByMonthChart
+          rows={[{ date: new Date(2026, 0, 1) }]}
+          byYear={false}
+          currencySymbol="€"
+          hasInvestments={false}
+        />,
+      ),
+    );
+    expect(screen.queryByTestId("composed")).not.toBeInTheDocument();
+    expect(screen.getByText("No data available.")).toBeInTheDocument();
+
+    rerender(
+      withTheme(
+        <MonthByMonthChart
+          rows={monthRows}
+          byYear={false}
+          currencySymbol="€"
+          hasInvestments={false}
+        />,
+      ),
+    );
+    expect(screen.queryByTestId("composed")).not.toBeInTheDocument();
+
+    act(() => callback([{ isIntersecting: true }]));
+    expect(screen.getAllByTestId("composed")).toHaveLength(2);
   });
 });

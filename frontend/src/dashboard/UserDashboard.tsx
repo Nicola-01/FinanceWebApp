@@ -113,7 +113,7 @@ const UserDashboard: React.FC = () => {
           onRefreshAll={fetchData}
           actions={isDesktop ? undefined : actions}
         />
-        <main className="min-w-0 flex-1 px-4 pb-28 pt-2 lg:px-10 lg:pb-12 lg:pt-6">
+        <main className="min-w-0 flex-1 px-4 pb-28 pt-2 lg:px-8 lg:pb-12 lg:pt-6">
           <OfflineBanner />
           <div className="mx-auto w-full max-w-[1180px]">
             {selectedWallet ? (

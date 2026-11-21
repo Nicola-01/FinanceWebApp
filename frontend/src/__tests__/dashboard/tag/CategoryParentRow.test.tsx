@@ -46,14 +46,13 @@ describe("CategoryParentRow investment flag", () => {
     expect(screen.queryByLabelText("Investment")).not.toBeInTheDocument();
   });
 
-  it("toggling the switch calls update with { investment: true }", () => {
+  it("the toggle calls update with { investment: true } when off", () => {
     const onUpdateTag = vi.fn().mockResolvedValue(true);
     renderRow({ onUpdateTag });
 
-    openPicker();
-    fireEvent.click(
-      screen.getByRole("switch", { name: /counts as investment/i }),
-    );
+    const btn = screen.getByRole("button", { name: "Counts as investment" });
+    expect(btn).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(btn);
 
     expect(onUpdateTag).toHaveBeenCalledWith(
       "Investments",
@@ -61,9 +60,26 @@ describe("CategoryParentRow investment flag", () => {
     );
   });
 
-  it("renders no switch in read-only mode", () => {
+  it("the toggle calls update with { investment: false } when on", () => {
+    const onUpdateTag = vi.fn().mockResolvedValue(true);
+    renderRow({ onUpdateTag, parent: parent({ investment: true }) });
+
+    const btn = screen.getByRole("button", { name: "Counts as investment" });
+    expect(btn).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(btn);
+
+    expect(onUpdateTag).toHaveBeenCalledWith(
+      "Investments",
+      expect.objectContaining({ investment: false }),
+    );
+  });
+
+  it("renders no toggle and no picker switch in read-only mode", () => {
     renderRow({ readOnly: true });
 
+    expect(
+      screen.queryByRole("button", { name: "Counts as investment" }),
+    ).not.toBeInTheDocument();
     openPicker();
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });

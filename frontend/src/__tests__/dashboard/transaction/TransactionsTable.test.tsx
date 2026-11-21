@@ -102,7 +102,7 @@ describe("TransactionsTable (v2)", () => {
     expect(screen.getAllByRole("button")).toHaveLength(2);
   });
 
-  it("day header excludes investment flows and appends them in the invest colour", () => {
+  it("day header shows only the net, without invested or cashed-out amounts", () => {
     renderTable([
       tx({ id: "a", type: "INCOME", amount: 2400 }),
       tx({ id: "b", type: "EXPENSE", amount: 100 }),
@@ -121,13 +121,11 @@ describe("TransactionsTable (v2)", () => {
       }),
     ]);
     // Income - Spent ignores the two investment rows.
-    expect(screen.getByText(/^\+2300,00/)).toBeInTheDocument();
-    expect(screen.getByText("· 500,00 € invested")).toHaveClass(
-      "text-app-invest",
-    );
-    expect(screen.getByText("· 200,00 € cashed out")).toHaveClass(
-      "text-app-invest",
-    );
+    const header = screen.getByText(/^\+2300,00/);
+    expect(header.textContent).not.toMatch(/invested|cashed out/);
+    expect(header.textContent).toBe("+2300,00 €");
+    expect(screen.queryByText(/500,00 € invested/)).toBeNull();
+    expect(screen.queryByText(/200,00 € cashed out/)).toBeNull();
     expect(screen.getByText("Invested")).toBeInTheDocument();
     expect(screen.getByText("Cashed out")).toBeInTheDocument();
   });

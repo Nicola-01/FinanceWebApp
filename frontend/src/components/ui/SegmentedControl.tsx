@@ -119,7 +119,8 @@ export function SegmentedControl<T extends string | number>({
                     !opt.activeClassName &&
                       (accentColor
                         ? "[&[data-active]_svg]:text-on-wallet"
-                        : "[&[data-active]_svg]:text-wallet"),
+                        : // Light: darken like category glyphs (70% + #000) so pale wallet colours stay legible; dark keeps the raw wallet colour.
+                          "[&[data-active]_svg]:text-[color-mix(in_srgb,var(--wallet),#000_30%)] [.dark_&[data-active]_svg]:text-wallet"),
                   )}
                 >
                   {opt.icon}

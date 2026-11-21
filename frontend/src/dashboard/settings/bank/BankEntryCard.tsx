@@ -5,21 +5,23 @@ import {
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../../wallet/WalletContext.tsx";
-import { useWalletBank, useBankRules } from "./useWalletBank.ts";
+import { useBankRules, type WalletBank } from "./useWalletBank.ts";
 import { latestSync, relativeTime } from "./bankFormat.ts";
 import { BankOverlay } from "./BankOverlay.tsx";
 
 /**
  * Settings entry for bank imports (UI v2): one line of status, opens the Bank overlay.
  * Renders nothing when Open Banking is off for the wallet or the load fails.
+ * Rules only show once a bank is linked.
  */
-export function BankEntryCard() {
+export function BankEntryCard({ bank }: { bank: WalletBank }) {
   const { wallet, toCategorise } = useWalletContext();
-  const { enabled, connections, loadFailed, reload } = useWalletBank(wallet.id);
-  const { rules, reload: reloadRules } = useBankRules(wallet.id, enabled);
+  const { enabled, connections, loadFailed, reload } = bank;
+  const linked = enabled === true && connections.length > 0;
+  const { rules, reload: reloadRules } = useBankRules(wallet.id, linked);
   const [open, setOpen] = useState(false);
 
-  if (loadFailed || enabled !== true || rules === null) return null;
+  if (loadFailed || enabled !== true) return null;
 
   const accounts = connections.reduce((n, c) => n + c.accounts.length, 0);
   const plural = (n: number, word: string) =>
@@ -43,7 +45,7 @@ export function BankEntryCard() {
             {plural(accounts, "account")}
             {accounts > 0 &&
               ` · synced ${relativeTime(latestSync(connections))}`}
-            {` · ${plural(rules.length, "rule")}`}
+            {linked && rules !== null && ` · ${plural(rules.length, "rule")}`}
             {toCategorise.length > 0 && (
               <>
                 {" · "}
@@ -61,7 +63,7 @@ export function BankEntryCard() {
         onClose={() => setOpen(false)}
         connections={connections}
         reloadAccounts={reload}
-        rules={rules}
+        rules={rules ?? []}
         reloadRules={reloadRules}
       />
     </>

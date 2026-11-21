@@ -149,3 +149,29 @@ describe("formatDueRelative / dueToneClass", () => {
     expect(dueToneClass(4)).toBe("text-app-muted");
   });
 });
+
+describe("summarizeSubscriptions activeCount", () => {
+  it("counts only active expense subscriptions", () => {
+    const row = (over: Record<string, unknown>) =>
+      ({
+        id: String(over.id),
+        type: "EXPENSE",
+        amount: 10,
+        status: "ACTIVE",
+        frequencyType: "MONTHLY",
+        frequencyInterval: 1,
+        tag: { name: "Fun" },
+        ...over,
+      }) as unknown as Subscription;
+    const s = summarizeSubscriptions(
+      [
+        row({ id: "a" }),
+        row({ id: "paused", status: "PAUSED" }),
+        row({ id: "income", type: "INCOME" }),
+        row({ id: "pac", tag: { name: "Fund" } }),
+      ],
+      new Set(["Fund"]),
+    );
+    expect(s.activeCount).toBe(1);
+  });
+});

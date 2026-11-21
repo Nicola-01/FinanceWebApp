@@ -41,7 +41,7 @@ const WalletHeaderV2: React.FC<{ actions?: React.ReactNode }> = ({
   return (
     <>
       {/* Own stacking context above the sticky tabs (z-90) and toolbar (z-80), so the profile/bell/sync dropdowns open over them. */}
-      <div className="relative z-[91] mb-3.5 hidden items-center justify-between gap-4 lg:flex">
+      <div className="relative z-[91] mb-6 hidden items-center justify-between gap-4 lg:flex">
         <div className="min-w-0">
           <h1 className="flex items-center gap-2.5 font-display text-[28px] leading-[1.1] font-bold tracking-[-0.02em]">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-wallet text-base text-on-wallet">

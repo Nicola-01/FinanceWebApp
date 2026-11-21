@@ -17,18 +17,18 @@ export const ComingUpColumn: React.FC<ComingUpColumnProps> = ({
   const symbol = CURRENCY_META[currency]?.symbol;
   return (
     <section>
-      <h2 className="mb-2.5 font-display text-[19px] font-semibold tracking-[-0.02em] text-app-text">
+      <h2 className="mb-4 font-display text-lg font-semibold tracking-[-0.02em] text-app-text">
         Coming up{" "}
         <small className="text-[13px] font-normal text-app-muted">
           next {COMING_UP_DAYS} days
         </small>
       </h2>
       {items.length === 0 ? (
-        <p className="rounded-[var(--r-card)] bg-app-card p-4 text-[13px] text-app-muted shadow-[var(--box-ring)]">
+        <p className="rounded-[var(--r-card)] bg-app-card p-5 text-[13px] sm:p-6 text-app-muted shadow-[var(--box-ring)]">
           Nothing due in the next {COMING_UP_DAYS} days
         </p>
       ) : (
-        <ul className="flex flex-col rounded-[var(--r-card)] bg-app-card px-3.5 py-1 shadow-[var(--box-ring)]">
+        <ul className="flex flex-col rounded-[var(--r-card)] bg-app-card px-5 py-1 shadow-[var(--box-ring)] sm:px-6">
           {items.map(({ sub, label, soon }) => (
             <li
               key={sub.id}

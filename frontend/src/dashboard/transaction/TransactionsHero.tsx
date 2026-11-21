@@ -1,4 +1,5 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
+import { useSharedFitFont } from "../../hooks/useSharedFitFont.ts";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { filterTransactions } from "../wallet/useTransactionFilters.ts";
 import { WalletHeroCard } from "../../components/ui/WalletHeroCard.tsx";
@@ -31,6 +32,8 @@ export const TransactionsHero: React.FC = () => {
   );
 
   const invest = useInvestmentTags();
+  // Invested and Liquidity tiles only once a tag is flagged as investment.
+  const hasInvestments = invest.size > 0;
   const flows = useMemo(() => sumFlows(periodTx, invest), [periodTx, invest]);
   // Income and Spent rows only: the trend and counts leave investment rows out.
   const regular = useMemo(
@@ -48,6 +51,14 @@ export const TransactionsHero: React.FC = () => {
   const incomeCount = regular.filter((tx) => tx.type === "INCOME").length;
   const expenseCount = regular.length - incomeCount;
   const symbol = getCurrencySymbol(wallet.currency);
+  const tilesRef = useRef<HTMLDivElement>(null);
+  useSharedFitFont(tilesRef, { max: 22, min: 14 }, [
+    income,
+    spent,
+    investedNet,
+    liquidityLeft,
+    symbol,
+  ]);
   const label = periodLabel(dateRange, datePreset);
 
   return (
@@ -64,7 +75,10 @@ export const TransactionsHero: React.FC = () => {
           ) : undefined
         }
       />
-      <div className="grid grid-cols-2 gap-3.5">
+      <div
+        ref={tilesRef}
+        className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3.5"
+      >
         <StatTile
           label="Income"
           tone="income"
@@ -87,20 +101,28 @@ export const TransactionsHero: React.FC = () => {
             <CategoryIcon icon="cart" color="var(--color-app-expense-mark)" />
           }
         />
-        <StatTile
-          label="Invested"
-          value={investedNet}
-          currency={symbol}
-          sub={`${formatAmount(bought)} in · ${formatAmount(cashedOut)} out`}
-          icon={<CategoryIcon icon="invest" color="var(--color-app-invest)" />}
-        />
-        <StatTile
-          label="Liquidity left"
-          value={liquidityLeft}
-          currency={symbol}
-          sub="Net − Invested"
-          icon={<CategoryIcon icon="wallet" color="var(--color-app-muted)" />}
-        />
+        {hasInvestments && (
+          <>
+            <StatTile
+              label="Invested"
+              value={investedNet}
+              currency={symbol}
+              sub={`${formatAmount(bought)} in · ${formatAmount(cashedOut)} out`}
+              icon={
+                <CategoryIcon icon="invest" color="var(--color-app-invest)" />
+              }
+            />
+            <StatTile
+              label="Liquidity left"
+              value={liquidityLeft}
+              currency={symbol}
+              sub="Net − Invested"
+              icon={
+                <CategoryIcon icon="wallet" color="var(--color-app-muted)" />
+              }
+            />
+          </>
+        )}
       </div>
     </div>
   );

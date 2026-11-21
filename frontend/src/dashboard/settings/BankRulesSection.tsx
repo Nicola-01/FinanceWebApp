@@ -9,11 +9,7 @@ import {
   faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
-import {
-  deleteBankRule,
-  getWalletBank,
-  listBankRules,
-} from "../../api/bankApi";
+import { deleteBankRule, listBankRules } from "../../api/bankApi";
 import { applyRulesWithToast } from "./bank/applyRulesWithToast.ts";
 import { SettingsBox } from "./SettingsBox.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
@@ -25,19 +21,24 @@ import { triggerToast } from "../../components/ui/ToastNotification.tsx";
 import { getApiErrorDetail, getApiErrorTitle } from "../../utils/apiError.ts";
 import { ConfirmModal } from "../../modals/common/ConfirmModal.tsx";
 import { BankRuleEditor } from "./BankRuleEditor.tsx";
+import { useWalletBank, type WalletBank } from "./bank/useWalletBank.ts";
 import type { BankRule } from "../../types/domain";
 
 /** The wallet's bank rules: tag/rename imports, or route them to subscriptions. */
 export function BankRulesSection({
+  bank,
   embedded = false,
 }: {
+  /** Settings tab's shared state; omitted (subscription modal) to fetch its own. */
+  bank?: WalletBank;
   /** Inside an overlay that already shows the title: drop the card header. */
   embedded?: boolean;
 } = {}) {
   const { wallet, tags, fetchData } = useWalletContext();
   const [ui] = useUiVersion();
   const isV2 = ui === "v2"; // ui-v2-switch
-  const [enabled, setEnabled] = useState(false);
+  const own = useWalletBank(wallet.id, !bank);
+  const enabled = (bank ?? own).enabled;
   const [rules, setRules] = useState<BankRule[]>([]);
   // undefined = editor closed, null = creating, a rule = editing it.
   const [editing, setEditing] = useState<BankRule | null | undefined>();
@@ -55,18 +56,8 @@ export function BankRulesSection({
   );
 
   useEffect(() => {
-    let alive = true;
-    getWalletBank(wallet.id)
-      .then((b) => {
-        if (!alive) return;
-        setEnabled(b.enabled);
-        if (b.enabled) load();
-      })
-      .catch(() => alive && setEnabled(false));
-    return () => {
-      alive = false;
-    };
-  }, [wallet.id, load]);
+    if (enabled) load();
+  }, [enabled, load]);
 
   if (!enabled) return null;
 

@@ -6,8 +6,8 @@ import {
 } from "../../../api/bankApi";
 import type { BankRule } from "../../../types/domain";
 
-/** Open Banking state and linked accounts for a wallet. */
-export function useWalletBank(walletId: string) {
+/** Open Banking state and linked accounts for a wallet; `active: false` skips the fetch. */
+export function useWalletBank(walletId: string, active = true) {
   // null until the first load answers, so nothing flashes before we know.
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [connections, setConnections] = useState<BankConnection[]>([]);
@@ -26,11 +26,14 @@ export function useWalletBank(walletId: string) {
   );
 
   useEffect(() => {
-    reload();
-  }, [reload]);
+    if (active) reload();
+  }, [active, reload]);
 
   return { enabled, connections, loadFailed, reload };
 }
+
+/** Shared Open Banking state, lifted into the settings tab and passed down. */
+export type WalletBank = ReturnType<typeof useWalletBank>;
 
 /** The wallet's bank rules; fetched only once Open Banking is known to be enabled. */
 export function useBankRules(walletId: string, enabled: boolean | null) {

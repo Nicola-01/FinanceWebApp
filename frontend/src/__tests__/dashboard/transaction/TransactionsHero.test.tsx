@@ -37,11 +37,15 @@ const tx = (
     ...extra,
   }) as unknown as Transaction;
 
-const setup = (transactions: Transaction[], datePreset: string) => {
+const setup = (
+  transactions: Transaction[],
+  datePreset: string,
+  tags: unknown[] = [{ name: "Food" }, { name: "PAC", investment: true }],
+) => {
   ctx.value = {
     wallet: { color: "#8b5cf6", currency: "EUR" },
     transactions,
-    tags: [{ name: "Food" }, { name: "PAC", investment: true }],
+    tags,
     dateRange: {
       start: new Date(2026, 2, 1),
       end: new Date(2026, 2, 31),
@@ -117,6 +121,21 @@ describe("TransactionsHero", () => {
     expect(screen.queryByTestId("trend")).toBeNull();
   });
 
+  it("shares one fitted value size across the four tiles", () => {
+    setup(march, "march");
+    const grid = screen
+      .getByText("Income")
+      .closest(".gap-3\\.5") as HTMLElement;
+    expect(grid.style.getPropertyValue("--stat-value-size")).toBe("22px");
+  });
+
+  it("formats Liquidity left with the same it-IT money format as the other tiles", () => {
+    setup([tx("1", "INCOME", 16250)], "month");
+    // Net and Income both read +16.250,00 €; Liquidity left is the unsigned one.
+    expect(screen.getAllByText("+16.250,00 €")).toHaveLength(2);
+    expect(screen.getByText("16.250,00 €")).toBeInTheDocument();
+  });
+
   it("renders four tiles: Income, Spent, Invested and Liquidity left", () => {
     setup(
       [
@@ -146,5 +165,21 @@ describe("TransactionsHero", () => {
       "month",
     );
     expect(screen.queryByTestId("trend")).toBeNull();
+  });
+});
+
+describe("TransactionsHero without a flagged investment tag", () => {
+  it("shows only Income and Spent tiles", () => {
+    setup(march, "month", [{ name: "Food" }]);
+    expect(screen.getByText("Income")).toBeInTheDocument();
+    expect(screen.getByText("Spent")).toBeInTheDocument();
+    expect(screen.queryByText("Invested")).toBeNull();
+    expect(screen.queryByText("Liquidity left")).toBeNull();
+  });
+
+  it("shows the Invested and Liquidity tiles once a tag is flagged", () => {
+    setup(march, "month");
+    expect(screen.getByText("Invested")).toBeInTheDocument();
+    expect(screen.getByText("Liquidity left")).toBeInTheDocument();
   });
 });

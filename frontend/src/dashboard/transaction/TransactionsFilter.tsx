@@ -61,7 +61,7 @@ export const TransactionsFilter: React.FC = () => {
   // ui-v2-switch: the same controls, laid out as a plain toolbar in the page flow.
   if (isV2) {
     return (
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-6 flex flex-wrap items-center gap-2">
         {/* Categories has no search: its page title sits on the left, like Statistics. */}
         {!showSearch && (
           <h2 className="basis-full sm:mr-auto sm:basis-auto font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">

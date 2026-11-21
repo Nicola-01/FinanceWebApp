@@ -36,6 +36,8 @@ vi.mock("../../../dashboard/settings/BankRulesSection.tsx", () => ({
 vi.mock("../../../dashboard/settings/bank/BankEntryCard.tsx", () => ({
   BankEntryCard: () => <div data-testid="bank-card" />,
 }));
+const { bankApi } = vi.hoisted(() => ({ bankApi: { getWalletBank: vi.fn() } }));
+vi.mock("../../../api/bankApi", () => bankApi);
 vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
   triggerToast: vi.fn(),
 }));
@@ -123,6 +125,7 @@ beforeEach(() => {
   };
   apiPost.mockReset();
   toast.mockReset();
+  bankApi.getWalletBank.mockResolvedValue({ enabled: true, connections: [] });
   // jsdom implements neither of these; the export path needs both.
   URL.createObjectURL = vi.fn(() => "blob:mock");
   URL.revokeObjectURL = vi.fn();
@@ -370,17 +373,40 @@ describe("DataTab — CSV import", () => {
 describe("DataTab — bank entry", () => {
   afterEach(() => setUiVersion("v1"));
 
-  it("keeps the two bank sections in v1", () => {
+  it("shows only the accounts section when enabled with no bank linked", async () => {
     render(<DataTab />);
-    expect(screen.getByTestId("legacy-accounts")).toBeInTheDocument();
-    expect(screen.getByTestId("legacy-rules")).toBeInTheDocument();
+    expect(await screen.findByTestId("legacy-accounts")).toBeInTheDocument();
+    expect(screen.queryByTestId("legacy-rules")).toBeNull();
     expect(screen.queryByTestId("bank-card")).toBeNull();
   });
 
-  it("renders the single Bank card in v2", () => {
+  it("shows both bank sections in v1 once a bank is linked", async () => {
+    bankApi.getWalletBank.mockResolvedValue({
+      enabled: true,
+      connections: [{ id: "c1", accounts: [] }],
+    });
+    render(<DataTab />);
+    expect(await screen.findByTestId("legacy-rules")).toBeInTheDocument();
+    expect(screen.getByTestId("legacy-accounts")).toBeInTheDocument();
+    expect(screen.queryByTestId("bank-card")).toBeNull();
+  });
+
+  it("hides the rules section when Open Banking is off", async () => {
+    bankApi.getWalletBank.mockResolvedValue({
+      enabled: false,
+      connections: [],
+    });
+    render(<DataTab />);
+    await waitFor(() =>
+      expect(bankApi.getWalletBank).toHaveBeenCalledWith("w1"),
+    );
+    expect(screen.queryByTestId("legacy-rules")).toBeNull();
+  });
+
+  it("renders the single Bank card in v2", async () => {
     setUiVersion("v2");
     render(<DataTab />);
-    expect(screen.getByTestId("bank-card")).toBeInTheDocument();
+    expect(await screen.findByTestId("bank-card")).toBeInTheDocument();
     expect(screen.queryByTestId("legacy-accounts")).toBeNull();
     expect(screen.queryByTestId("legacy-rules")).toBeNull();
   });

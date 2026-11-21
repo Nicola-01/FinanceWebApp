@@ -66,7 +66,9 @@ export const Card: React.FC<CardProps> = ({
 
   // ui-v2-switch: flat warm surface + hairline ring (none in dark); no border, no blur.
   const surface = isV2
-    ? "bg-app-card shadow-[var(--box-ring)]"
+    ? isDanger
+      ? "bg-app-card shadow-[inset_3px_0_0_var(--color-app-danger),var(--box-ring)]"
+      : "bg-app-card shadow-[var(--box-ring)]"
     : isDanger
       ? "border-app-red/30 bg-app-red/5 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_14px_34px_-20px_rgba(0,0,0,0.22)] backdrop-blur-md"
       : "border-app-border bg-app-card/80 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_14px_34px_-20px_rgba(0,0,0,0.22)] backdrop-blur-md";
@@ -82,7 +84,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       style={style}
-      className={`relative flex flex-col gap-4 rounded-[var(--r-card)] ${isV2 ? "" : "border"} ${PADDING[padding]} sm:gap-5 ${surface} ${className}`}
+      className={`relative flex flex-col gap-4 rounded-[var(--r-card)] ${isV2 ? "" : "border"} ${PADDING[padding]} ${isV2 ? "" : "sm:gap-5"} ${surface} ${className}`}
     >
       {hasHeader && (
         <div
@@ -113,7 +115,7 @@ export const Card: React.FC<CardProps> = ({
               <h2
                 className={
                   isV2
-                    ? `font-display text-lg font-semibold ${isDanger ? "text-app-danger" : "text-app-text"}`
+                    ? `font-display text-lg font-semibold tracking-[-0.02em] ${isDanger ? "text-app-danger" : "text-app-text"}`
                     : `text-lg font-bold ${isDanger ? "text-app-red" : "text-app-text"}`
                 }
               >
@@ -123,7 +125,7 @@ export const Card: React.FC<CardProps> = ({
           </div>
           {subtitle && (
             <p
-              className={`text-sm text-app-muted ${headerCentered ? "text-center" : ""}`}
+              className={`${isV2 ? "text-[13px]" : "text-sm"} text-app-muted ${headerCentered ? "text-center" : ""}`}
             >
               {subtitle}
             </p>

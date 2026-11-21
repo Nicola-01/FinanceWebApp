@@ -60,11 +60,13 @@ export const TagsTab: React.FC = () => {
 
   return (
     <ThemeProvider theme={resolvedTheme === "dark" ? darkTheme : lightTheme}>
-      <div className="relative flex flex-1 flex-col pb-10 animate-[fadeIn_0.3s_ease-out]">
+      <div
+        className={`relative flex flex-1 flex-col animate-[fadeIn_0.3s_ease-out] ${ui === "v2" ? "" : "pb-10"}`} // ui-v2-switch: main's pb-28 clears the dock; v1 keeps its own pb-10
+      >
         {ui !== "v2" && <DateRangeBanner />}
 
         {ui === "v2" ? ( // ui-v2-switch: the strip replaces the title row and its buttons
-          <div className="mb-4 mt-2">
+          <div className="mb-6">
             <CategoryStrip
               transactions={ctx.transactions}
               tags={tags}

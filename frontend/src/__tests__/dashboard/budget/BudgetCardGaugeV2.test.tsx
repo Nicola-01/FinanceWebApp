@@ -210,6 +210,8 @@ describe("BudgetCard gauge (v2)", () => {
       }),
     );
 
-    expect(screen.getByText(/Over by/)).toHaveTextContent("Over by 100,00 €");
+    expect(screen.getByText(/Over by/).closest("p")).toHaveTextContent(
+      "Over by 100,00 €",
+    );
   });
 });

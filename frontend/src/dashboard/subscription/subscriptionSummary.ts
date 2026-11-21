@@ -70,6 +70,8 @@ export interface SubscriptionSummary {
   monthlyIncome: number;
   /** Monthly amount of the investment (PAC-style) subscriptions; kept out of cost and income. */
   monthlyInvested: number;
+  /** Active expense subscriptions (investments and income excluded), whatever their amount. */
+  activeCount: number;
   /** Cost share per subscription, top N by value, the rest folded into "Other". */
   costSegments: SplitSegment[];
 }
@@ -95,6 +97,7 @@ export const summarizeSubscriptions = (
     .filter((c) => c.value > 0)
     .sort((a, b) => b.value - a.value);
 
+  const activeCount = expenses.filter((s) => s.status === "ACTIVE").length;
   const monthlyCost = costs.reduce((sum, c) => sum + c.value, 0);
   const monthlyIncome = incomes.reduce(
     (sum, s) => sum + monthlyEquivalent(s),
@@ -128,6 +131,7 @@ export const summarizeSubscriptions = (
     yearlyCost: monthlyCost * 12,
     monthlyIncome,
     monthlyInvested,
+    activeCount,
     costSegments,
   };
 };

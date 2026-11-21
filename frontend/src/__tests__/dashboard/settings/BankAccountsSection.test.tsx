@@ -24,6 +24,13 @@ vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
 
 import { triggerToast } from "../../../components/ui/ToastNotification.tsx";
 import { BankAccountsSection } from "../../../dashboard/settings/BankAccountsSection";
+import { useWalletBank } from "../../../dashboard/settings/bank/useWalletBank";
+
+// Mirrors DataTab: one shared bank state, passed to the section.
+function Harness() {
+  const bank = useWalletBank("w1");
+  return <BankAccountsSection bank={bank} />;
+}
 
 const wallet = (userRole: Wallet["userRole"]): Wallet => ({
   id: "w1",
@@ -72,26 +79,36 @@ beforeEach(() => {
 describe("BankAccountsSection", () => {
   it("renders nothing while loading", () => {
     bank.getWalletBank.mockReturnValue(new Promise(() => {}));
-    const { container } = render(<BankAccountsSection />);
+    const { container } = render(<Harness />);
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("explains how to get access when not enabled", async () => {
+  it("renders nothing when Open Banking is not enabled", async () => {
     bank.getWalletBank.mockResolvedValue({ enabled: false, connections: [] });
-    render(<BankAccountsSection />);
+    const { container } = render(<Harness />);
+    await waitFor(() => expect(bank.getWalletBank).toHaveBeenCalledWith("w1"));
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it("shows the link entry point when enabled with no bank linked", async () => {
+    bank.getWalletBank.mockResolvedValue({ enabled: true, connections: [] });
+    render(<Harness />);
     expect(
-      await screen.findByText(
-        "Open Banking is not enabled for your account. Ask an admin to turn it on.",
-      ),
+      await screen.findByRole("button", { name: /link bank/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("Bank accounts")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /link bank/i }),
-    ).not.toBeInTheDocument();
+  });
+
+  it("hides the card for a non-owner when no bank is linked", async () => {
+    ctxRef.current = { wallet: wallet("VIEWER"), fetchData: vi.fn() };
+    bank.getWalletBank.mockResolvedValue({ enabled: true, connections: [] });
+    const { container } = render(<Harness />);
+    await waitFor(() => expect(bank.getWalletBank).toHaveBeenCalledWith("w1"));
+    expect(container).toBeEmptyDOMElement();
   });
 
   it("OWNER sees link, renew, sync and unlink", async () => {
-    render(<BankAccountsSection />);
+    render(<Harness />);
     expect(await screen.findByText("Intesa")).toBeInTheDocument();
     expect(screen.getByText("IT60 **** 1234")).toBeInTheDocument();
     expect(screen.getByText("consent expired")).toBeInTheDocument();
@@ -102,7 +119,7 @@ describe("BankAccountsSection", () => {
 
   it("EDITOR sees Sync now but not Link/Unlink/Renew", async () => {
     ctxRef.current = { wallet: wallet("EDITOR"), fetchData: vi.fn() };
-    render(<BankAccountsSection />);
+    render(<Harness />);
     await screen.findByText("Intesa");
     expect(
       screen.getByRole("button", { name: /sync now/i }),
@@ -114,7 +131,7 @@ describe("BankAccountsSection", () => {
 
   it("VIEWER has no actions", async () => {
     ctxRef.current = { wallet: wallet("VIEWER"), fetchData: vi.fn() };
-    render(<BankAccountsSection />);
+    render(<Harness />);
     await screen.findByText("Intesa");
     expect(screen.queryAllByRole("button")).toHaveLength(0);
   });
@@ -130,7 +147,7 @@ describe("BankAccountsSection", () => {
     ],
   ])("Sync now toasts the result %#", async (result, message, ok) => {
     bank.syncConnection.mockResolvedValue({ connectionId: "c1", ...result });
-    render(<BankAccountsSection />);
+    render(<Harness />);
     await userEvent.click(
       await screen.findByRole("button", { name: /sync now/i }),
     );
@@ -139,7 +156,7 @@ describe("BankAccountsSection", () => {
 
   it("Sync now calls the API and refreshes wallet data", async () => {
     bank.syncConnection.mockResolvedValue({ imported: 0, status: "ACTIVE" });
-    render(<BankAccountsSection />);
+    render(<Harness />);
     await userEvent.click(
       await screen.findByRole("button", { name: /sync now/i }),
     );
@@ -149,7 +166,7 @@ describe("BankAccountsSection", () => {
 
   it("Unlink confirms, deletes and reloads the list", async () => {
     bank.deleteConnection.mockResolvedValue(undefined);
-    render(<BankAccountsSection />);
+    render(<Harness />);
     await userEvent.click(
       await screen.findByRole("button", { name: /^unlink$/i }),
     );
@@ -166,7 +183,7 @@ describe("BankAccountsSection", () => {
 
   it("shows an inline message when loading fails", async () => {
     bank.getWalletBank.mockRejectedValue(new Error("x"));
-    render(<BankAccountsSection />);
+    render(<Harness />);
     expect(
       await screen.findByText(/could not load bank accounts/i),
     ).toBeInTheDocument();

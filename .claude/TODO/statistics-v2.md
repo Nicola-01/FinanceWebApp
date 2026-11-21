@@ -126,7 +126,7 @@ y axis (`left` / `spent`) sharing a symmetric domain. Screenshots via temporary 
 (demo data; delete before commit) — real-app check pending (Nicola). Fixed after review: empty wallet → one EmptyState card;
 all-zero charts → "No data"; monotone curves. Open: Kept markers only show on the last point; 4-digit amounts ungrouped (it-IT rule).
 - [ ] Read every diff. `npm run lint && npm test && npm run build` in `frontend/`.
-- [ ] Bundle: main chunk still under the PWA precache cap (compare `dist/` sizes before/after).
+- [x] Bundle: main chunk still under the PWA precache cap (compare `dist/` sizes before/after). Checked 2026-11-21: 2,040,795 B < 2,097,152 B.
 - [ ] Screenshots of the real tab, v2, dark + light, desktop + 390px phone, Demo Wallet and an
       empty wallet; compare with the mock; show Nicola; iterate.
 - [ ] Update this file + Phase 6b in `ui-redesign-v2.md`; `graphify update .`.

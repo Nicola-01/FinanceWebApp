@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowDownAZ,
+  faChartLine,
   faFire,
   faGripVertical,
   faLayerGroup,
@@ -21,6 +22,7 @@ import { useCategoryTreeDnd } from "./useCategoryTreeDnd.ts";
 import { AddCategoryButton } from "./AddCategoryButton.tsx";
 import { CategoryTreeList } from "./CategoryTreeList.tsx";
 import { CategoryDragOverlay } from "./CategoryDragOverlay.tsx";
+import { investmentCoverage } from "../../utils/investments.ts";
 
 interface CategoryManagerDrawerProps {
   open: boolean;
@@ -50,6 +52,40 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
 
   const { tree, setTree, sortMode, changeSort, counts, orderedTree } =
     useCategoryTree(wallet.id, tags, transactions);
+
+  // Investment flags switched in this drawer but not yet reflected in `tags`
+  // (the save is in flight). Coverage reads these so a parent's flag reaches its
+  // children at once, instead of after the round-trip.
+  const [pendingInvest, setPendingInvest] = useState<Record<string, boolean>>(
+    {},
+  );
+  const coverage = useMemo(
+    () =>
+      investmentCoverage(
+        tags.map((t) =>
+          t.name in pendingInvest
+            ? { ...t, investment: pendingInvest[t.name] }
+            : t,
+        ),
+      ),
+    [tags, pendingInvest],
+  );
+  const updateTag = async (
+    oldName: string,
+    updated: Partial<Tag>,
+  ): Promise<boolean> => {
+    if (!("investment" in updated)) return handleUpdateTag(oldName, updated);
+    setPendingInvest((p) => ({ ...p, [oldName]: !!updated.investment }));
+    try {
+      return await handleUpdateTag(oldName, updated);
+    } finally {
+      setPendingInvest((p) => {
+        const next = { ...p };
+        delete next[oldName];
+        return next;
+      });
+    }
+  };
   const dragEnabled = !readOnly && sortMode === "custom";
   const dnd = useCategoryTreeDnd({
     walletId: wallet.id,
@@ -145,6 +181,13 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
               ]}
             />
           </div>
+          {!readOnly && (
+            <p className="mt-1.5 flex flex-wrap items-center gap-1 text-[13px] text-app-faint">
+              Tap{" "}
+              <FontAwesomeIcon icon={faChartLine} className="text-app-invest" />{" "}
+              on a category to count it as an investment
+            </p>
+          )}
         </div>
 
         {!readOnly && (
@@ -203,8 +246,9 @@ export const CategoryManagerDrawer: React.FC<CategoryManagerDrawerProps> = ({
             addingChildFor={addingChildFor}
             setAddingChildFor={setAddingChildFor}
             accentColor={wallet.color}
-            onUpdateTag={handleUpdateTag}
+            onUpdateTag={updateTag}
             onRequestDelete={requestDelete}
+            coverage={coverage}
           />
         )}
 

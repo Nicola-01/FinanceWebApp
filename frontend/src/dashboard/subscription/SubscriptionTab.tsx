@@ -44,11 +44,41 @@ export const SubscriptionTab = () => {
   const txDetailsModalRef = useRef<TransactionDetailsModalHandle>(null);
   const txModalRef = useRef<TransactionModalHandle>(null);
 
+  // v1 keeps the wallet-coloured active labels and the large size; v2's
+  // SegmentedControl already colours the active segment itself.
+  const activeStyle = (mode: ViewMode) =>
+    ui !== "v2" && viewMode === mode ? { color: wallet.color } : undefined;
+
+  const viewToggle = (
+    <Selector
+      value={viewMode}
+      onChange={(val) => setViewMode(val as ViewMode)}
+      size={ui === "v2" ? undefined : "lg"}
+      // Equal segments: List and Calendar get the same width.
+      fullWidth
+      className={ui === "v2" ? "sm:w-72" : "w-full sm:w-72"}
+      options={[
+        {
+          value: "list",
+          label: "List",
+          icon: <FontAwesomeIcon icon={faList} />,
+          style: activeStyle("list"),
+        },
+        {
+          value: "calendar",
+          label: "Calendar",
+          icon: <FontAwesomeIcon icon={faCalendarDays} />,
+          style: activeStyle("calendar"),
+        },
+      ]}
+    />
+  );
+
   return (
     <div
-      className={`flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] ${ui === "v2" ? "pb-24" : ""}`} // ui-v2-switch: room for the floating action button; full width like the other tabs
+      className={`flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] ${ui === "v2" ? "pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8" : ""}`} // ui-v2-switch: main's pb-28 already clears the dock; this only lifts the last row above the FAB (top at 136px phone, 80px lg)
     >
-      {/* Header: view toggle (the add action lives in the FAB) */}
+      {/* Header: v1 keeps the view toggle here; v2 only holds the title */}
       <div
         className={`flex items-center gap-4 mb-6 ${ui === "v2" ? "flex-wrap justify-between" : "justify-end"}`} // ui-v2-switch
       >
@@ -57,30 +87,7 @@ export const SubscriptionTab = () => {
             Subscriptions
           </h2>
         )}
-        {/* Toggle View */}
-        <Selector
-          value={viewMode}
-          onChange={(val) => setViewMode(val as ViewMode)}
-          size="lg"
-          // Equal segments: List and Calendar get the same width.
-          fullWidth
-          className="w-full sm:w-72"
-          options={[
-            {
-              value: "list",
-              label: "List",
-              icon: <FontAwesomeIcon icon={faList} />,
-              style: viewMode === "list" ? { color: wallet.color } : undefined,
-            },
-            {
-              value: "calendar",
-              label: "Calendar",
-              icon: <FontAwesomeIcon icon={faCalendarDays} />,
-              style:
-                viewMode === "calendar" ? { color: wallet.color } : undefined,
-            },
-          ]}
-        />
+        {ui !== "v2" && viewToggle}
       </div>
 
       {/* v2 summary box: recurring totals + cost split */}
@@ -93,6 +100,9 @@ export const SubscriptionTab = () => {
           />
         </div>
       )}
+
+      {/* v2 view toggle: below the summary, block-level so it can span the width on mobile */}
+      {ui === "v2" && <div className="mb-6">{viewToggle}</div>}
 
       {/* Active view */}
       <div className="flex-1 relative">

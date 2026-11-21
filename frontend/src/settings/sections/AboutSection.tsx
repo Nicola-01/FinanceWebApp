@@ -1,6 +1,7 @@
 import React from "react";
 import { Card } from "../../components/ui/Card";
 import { formatLongLocalDate } from "../../utils/longDate";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 const REPO_URL = "https://github.com/Nicola-01/FinanceWebApp/";
 
@@ -22,6 +23,8 @@ export const AboutSection: React.FC = () => {
   const appVersion = window.__ENV__?.version || "Local Development";
   const rawDate = window.__ENV__?.date || "";
   const parsedDate = rawDate ? formatLongLocalDate(rawDate) : "Unknown";
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   return (
     <Card>
@@ -48,7 +51,13 @@ export const AboutSection: React.FC = () => {
       </div>
 
       {/* Info box — full width below the header. */}
-      <div className="mt-5 space-y-3 rounded-xl border border-app-border bg-app-input p-4">
+      <div
+        className={
+          isV2
+            ? "mt-4 space-y-3 rounded-[var(--r-input)] bg-app-input p-4"
+            : "mt-5 space-y-3 rounded-xl border border-app-border bg-app-input p-4"
+        }
+      >
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-app-muted">
             Version

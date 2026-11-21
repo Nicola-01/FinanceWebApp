@@ -7,6 +7,7 @@ import {
   WaterfallChart,
 } from "@/components/ui/charts";
 import { KitNoData } from "./KitChartShared.tsx";
+import { StatCard } from "./StatCard.tsx";
 import { compactAmount } from "./kitChartData.ts";
 import type { WaterfallRow } from "./statsChartRows.ts";
 import { useChartPalette } from "./useChartPalette.ts";
@@ -39,21 +40,7 @@ export function YearWaterfallChart({
     currencySymbol;
 
   return (
-    <section
-      className={
-        bare
-          ? ""
-          : "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4"
-      }
-    >
-      {!bare && (
-        <>
-          <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-            {title}
-          </h3>
-          <p className="text-[13px] text-app-muted mt-0.5">{sub}</p>
-        </>
-      )}
+    <StatCard title={title} subtitle={sub} bare={bare}>
       {rows.length === 0 || rows.every((r) => !r.value) ? (
         <KitNoData />
       ) : (
@@ -81,6 +68,6 @@ export function YearWaterfallChart({
           <ChartTooltip />
         </WaterfallChart>
       )}
-    </section>
+    </StatCard>
   );
 }

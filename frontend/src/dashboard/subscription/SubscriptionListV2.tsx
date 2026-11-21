@@ -52,7 +52,7 @@ export const SubscriptionListV2: React.FC<SubscriptionListV2Props> = ({
     ));
 
   return (
-    <div className="flex w-full animate-[fadeIn_0.3s_ease-out] flex-col gap-8 pb-10">
+    <div className="flex w-full animate-[fadeIn_0.3s_ease-out] flex-col gap-6">
       {within7Days.length > 0 && (
         <Group title="Due now">{renderUpcoming(within7Days)}</Group>
       )}
@@ -62,7 +62,7 @@ export const SubscriptionListV2: React.FC<SubscriptionListV2Props> = ({
       {later.length > 0 && <Group title="Later">{renderUpcoming(later)}</Group>}
 
       {hasPast && (
-        <section className="flex flex-col gap-4">
+        <section className="flex flex-col gap-2">
           <h3 className="px-1 text-[13px] text-app-muted">Paid</h3>
           <PastSubscriptionsSection {...past} />
         </section>
