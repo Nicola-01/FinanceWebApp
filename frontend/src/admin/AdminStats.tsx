@@ -34,6 +34,8 @@ export const AdminStats: React.FC<AdminStatsProps> = ({
   const [ui] = useUiVersion();
   if (ui === "v2") {
     // ui-v2-switch: StatTile strip (2×2 on phone, 4-up on desktop).
+    // Counts are integers: pre-format (AnimatedNumber always adds fraction digits).
+    const count = (n: number) => n.toLocaleString("it-IT");
     const tileIcon = (icon: typeof faUsers) => (
       <span className="flex items-center justify-center rounded-[11px] bg-app-raised text-app-muted">
         <FontAwesomeIcon icon={icon} />
@@ -43,22 +45,22 @@ export const AdminStats: React.FC<AdminStatsProps> = ({
       <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
         <StatTile
           label="Total users"
-          value={users.length}
+          value={count(users.length)}
           icon={tileIcon(faUsers)}
         />
         <StatTile
           label="Wallets"
-          value={totalWallets}
+          value={count(totalWallets)}
           icon={tileIcon(faWallet)}
         />
         <StatTile
           label="Transactions"
-          value={totalTransactions}
+          value={count(totalTransactions)}
           icon={tileIcon(faExchangeAlt)}
         />
         <StatTile
           label="Pending invites"
-          value={pendingInvites}
+          value={count(pendingInvites)}
           icon={tileIcon(faEnvelopeOpenText)}
         />
       </div>

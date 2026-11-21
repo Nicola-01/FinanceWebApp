@@ -234,19 +234,21 @@ const AdminDashboard: React.FC = () => {
           : "flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-app-bg text-app-text transition-colors"
       }
     >
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <Sphere
-          style={{
-            height: "400px",
-            width: "400px",
-            background: "#ff2299",
-            top: "-100px",
-            right: "-100px",
-            position: "absolute",
-          }}
-          animate={{ x: [0, 0], y: [0, 0] }}
-        />
-      </div>
+      {!isV2 && ( // ui-v2-switch: no decorative glow in v2 (style.md de-vibecode)
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <Sphere
+            style={{
+              height: "400px",
+              width: "400px",
+              background: "#ff2299",
+              top: "-100px",
+              right: "-100px",
+              position: "absolute",
+            }}
+            animate={{ x: [0, 0], y: [0, 0] }}
+          />
+        </div>
+      )}
 
       <AppHeader page={{ text: "Admin", accent: "Panel" }} />
 

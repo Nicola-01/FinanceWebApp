@@ -250,7 +250,7 @@ source proposals). Order top → bottom. Period selector in the header: one year
 
 ## Phase 10 — Pages outside the wallet  *(SEE-AT-THE-TIME, mock first)*
 - [ ] Auth (login/register/forgot/reset): DECIDED (Nicola 2026-11-21) v2 follows the theme (light/dark), no longer always-dark.
-- 2026-11-21: /settings sections v2 done; auth v2 (follows theme) done; admin v2 = mock B of `docs/redesign-demos/j-admin.html` + job sort (default A→Z) done (no email/role/last-login: API lacks them); landing: `k-landing.html` rejected, `l-landing-benefits.html` V1 approved (benefit-led, bold copy, keeps the problem band) → implementing.
+- 2026-11-21: /settings sections v2 done; auth v2 (follows theme) done; admin v2 = mock B of `docs/redesign-demos/j-admin.html` + job sort (default A→Z) done (no email/role/last-login: API lacks them); landing: `k-landing.html` rejected, `l-landing-benefits.html` V1 approved (benefit-led, bold copy, keeps the problem band) → done (b22acd4). ToDo page v2 done; admin count tiles are integers, no Sphere glow in v2. Phase 10 DONE except `AppHeader` v1 removal (→ phase 11).
 - [ ] OAuth consent page (MCP flow) · BankCallback · global `/settings` · admin
       dashboard (18 files in `admin/`) · landing `/about` (15 files) · ToDo page · `/settings` sections
       (account, security, tokens, notifications, about) · `AppHeader` v1 removal.

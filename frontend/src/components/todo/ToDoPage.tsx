@@ -5,9 +5,40 @@ import Navbar from "../landing/Navbar";
 import Footer from "../landing/Footer";
 import { useLandingCta } from "../landing/useLandingCta";
 import ToDoList from "./ToDoList";
+import ToDoListV2 from "./ToDoListV2";
+import NavbarV2 from "../landing/v2/NavbarV2";
+import FooterV2 from "../landing/v2/FooterV2";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 const ToDoPage: React.FC = () => {
-  const { navCtaLabel, onPrimaryCta } = useLandingCta();
+  const [ui] = useUiVersion(); // ui-v2-switch
+  const { navCtaLabel, demoLoading, onPrimaryCta } = useLandingCta();
+
+  // ui-v2-switch: flat theme-token page, no blobs; same copy as v1.
+  if (ui === "v2") {
+    return (
+      <div className="min-h-screen bg-app-bg text-app-text font-sans overflow-x-hidden">
+        <NavbarV2
+          navCtaLabel={navCtaLabel}
+          demoLoading={demoLoading}
+          onPrimaryCta={onPrimaryCta}
+        />
+        <main className="mx-auto max-w-6xl px-4 pt-10 lg:px-8">
+          <h1 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text sm:text-[32px]">
+            Roadmap & future improvements
+          </h1>
+          <p className="mt-2 text-[14px] text-app-muted">
+            Here's a look at what I've shipped, what I'm working on, and where
+            I'm going.
+          </p>
+          <div className="mt-8">
+            <ToDoListV2 />
+          </div>
+        </main>
+        <FooterV2 />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-app-bg min-h-screen text-app-text font-sans overflow-x-hidden selection:bg-app-purple/30">

@@ -18,7 +18,6 @@ vi.mock("../../modals/common/DeleteModalContext", () => ({
 }));
 vi.mock("@number-flow/react", () => import("../../test/numberFlowStub"));
 vi.mock("../../header/AppHeader.tsx", () => ({ AppHeader: () => null }));
-vi.mock("../../assets/Sphere", () => ({ default: () => null }));
 vi.mock("../../admin/Backups.tsx", () => ({
   default: () => <div>Backups panel</div>,
 }));
@@ -114,6 +113,11 @@ describe("AdminDashboard (v2)", () => {
     expect(screen.getByText("Wallets")).toBeInTheDocument();
     expect(screen.getByText("Transactions")).toBeInTheDocument();
     expect(screen.getByText("Pending invites")).toBeInTheDocument();
+    // Counts render as integers: 2 users, 4 wallets, 16 transactions, 1 pending invite.
+    const values = Array.from(
+      document.querySelectorAll("[data-stat-value]"),
+    ).map((el) => el.textContent);
+    expect(values).toEqual(["2", "4", "16", "1"]);
   });
 
   it("renders user rows and an action calls its handler", async () => {
