@@ -74,7 +74,7 @@ public class OAuthController {
    * addresses (localhost / 127.0.0.1 / ::1) are always allowed for local MCP clients; every other
    * host must be https and appear in this list. Override via {@code OAUTH_ALLOWED_REDIRECT_HOSTS}.
    */
-  @Value("${application.oauth.allowed-redirect-hosts:claude.ai,claude.com}")
+  @Value("${application.oauth.allowed-redirect-hosts:claude.ai,claude.com,chatgpt.com}")
   private String allowedRedirectHosts;
 
   // ──────────────────────────────────────────────────────────────────────

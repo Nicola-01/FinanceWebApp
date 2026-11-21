@@ -157,6 +157,18 @@ class OAuthControllerTest extends BaseWebMvcTest {
   }
 
   @Test
+  void authorizeRedirect_WithChatGptConnector_ShouldRedirect() throws Exception {
+    mockMvc
+        .perform(
+            get("/oauth/authorize")
+                .param("client_id", "ChatGPT")
+                .param("redirect_uri", "https://chatgpt.com/connector/oauth/YQ2NFnOiTton")
+                .param("code_challenge", "challenge123")
+                .param("state", "xyz"))
+        .andExpect(status().isFound());
+  }
+
+  @Test
   void authorizeConfirm_WithUntrustedExternalHost_ShouldReturn400() throws Exception {
     // The security-critical check: even if the GET step is bypassed by posting directly, an
     // untrusted redirect_uri must not have a token bound to it / an auth code issued.
