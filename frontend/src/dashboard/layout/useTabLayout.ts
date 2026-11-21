@@ -51,10 +51,12 @@ export function useTabLayout(
     readLayout(tabId, walletId, widgets),
   );
 
-  // Re-read when the wallet changes, without an effect (avoids a stale flash).
-  const [syncKey, setSyncKey] = useState(walletId);
-  if (syncKey !== walletId) {
-    setSyncKey(walletId);
+  // Re-read when the wallet or the registry's widget set changes (e.g. a widget
+  // gated on data that loads late), without an effect (avoids a stale flash).
+  const syncKey = `${walletId}|${widgets.map((w) => w.id).join(",")}`;
+  const [lastKey, setLastKey] = useState(syncKey);
+  if (lastKey !== syncKey) {
+    setLastKey(syncKey);
     setLayout(readLayout(tabId, walletId, widgets));
   }
 

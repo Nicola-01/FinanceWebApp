@@ -4,12 +4,10 @@ import {
   STATUS_TONE,
   barPercent,
   daysLeft,
-  daysLeftInMonth,
   gaugeAriaLabel,
   gaugeCenterText,
   gaugeColor,
   gaugeNumberFormat,
-  monthAside,
   periodLabel,
   projectedCommitted,
   validateThresholds,
@@ -101,12 +99,6 @@ describe("v2 helpers", () => {
     expect(daysLeft(budget, new Date(2026, 6, 29, 15))).toBe(2);
     expect(daysLeft(budget, new Date(2026, 6, 31))).toBe(0);
     expect(daysLeft(budget, new Date(2026, 7, 2))).toBe(0);
-  });
-
-  it("counts days left in the calendar month", () => {
-    expect(daysLeftInMonth(new Date(2026, 9, 29))).toBe(2);
-    expect(daysLeftInMonth(new Date(2026, 9, 31))).toBe(0);
-    expect(monthAside(new Date(2026, 9, 29))).toMatch(/2 days left$/);
   });
 });
 

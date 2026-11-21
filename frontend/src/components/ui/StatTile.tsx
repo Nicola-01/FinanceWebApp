@@ -30,29 +30,23 @@ export const StatTile: React.FC<StatTileProps> = ({
 }) => (
   <div
     className={
-      "rounded-[16px] bg-app-card px-[18px] py-4 shadow-[var(--box-ring)] " +
-      (icon
-        ? "grid grid-cols-[40px_1fr] items-center gap-3 max-sm:grid-cols-1 "
-        : "") +
+      "min-w-0 overflow-hidden rounded-[16px] bg-app-card px-[18px] py-4 shadow-[var(--box-ring)] " +
       className
     }
   >
-    {icon && <div className="max-sm:hidden">{icon}</div>}
-    <div className="min-w-0">
-      <div className="flex items-center gap-1.5 text-[13px] text-app-muted">
+    <div className="flex min-w-0 flex-col gap-2">
+      <div className="flex items-center gap-2.5 text-[13px] text-app-muted">
         {icon && (
-          <span
-            aria-hidden="true"
-            className="sm:hidden inline-grid [&>*]:h-5 [&>*]:w-5 [&>*]:rounded-[6px] [&>*]:text-[10px]"
-          >
+          <div className="shrink-0 [&>*]:h-8 [&>*]:w-8 max-sm:[&>*]:h-7 max-sm:[&>*]:w-7">
             {icon}
-          </span>
+          </div>
         )}
-        {label}
+        <span className="min-w-0 truncate">{label}</span>
       </div>
       <div
+        data-stat-value
         className={
-          "font-display text-[26px] leading-[1.1] font-[650] tracking-[-0.02em] max-sm:text-xl " +
+          "font-display whitespace-nowrap text-[length:var(--stat-value-size,22px)] max-sm:text-[length:min(var(--stat-value-size,20px),20px)] leading-[1.1] font-[650] tracking-[-0.02em] " +
           (tone === "income" ? "text-app-income" : "")
         }
       >
@@ -68,8 +62,10 @@ export const StatTile: React.FC<StatTileProps> = ({
           value
         )}
       </div>
-      {sub && <div className="text-[13px] text-app-faint">{sub}</div>}
-      {footer && <div className="mt-3">{footer}</div>}
+      {sub && (
+        <div className="text-[13px] leading-tight text-app-faint">{sub}</div>
+      )}
+      {footer}
     </div>
   </div>
 );

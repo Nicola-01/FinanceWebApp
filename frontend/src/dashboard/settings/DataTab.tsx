@@ -14,6 +14,7 @@ import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { BankAccountsSection } from "./BankAccountsSection.tsx";
 import { BankRulesSection } from "./BankRulesSection.tsx";
 import { BankEntryCard } from "./bank/BankEntryCard.tsx";
+import { useWalletBank } from "./bank/useWalletBank.ts";
 import Button from "../../components/ui/Button.tsx";
 import { CsvFormatModal } from "./CsvFormatModal.tsx";
 import { ImportReviewModal } from "../../modals/common/ImportReviewModal.tsx";
@@ -32,6 +33,7 @@ export const DataTab: React.FC = () => {
   const [ui] = useUiVersion();
   const isV2 = ui === "v2"; // ui-v2-switch
   const [formatOpen, setFormatOpen] = useState(false);
+  const bank = useWalletBank(wallet.id);
   const {
     review,
     closeReview,
@@ -113,11 +115,14 @@ export const DataTab: React.FC = () => {
   return (
     <>
       {isV2 ? ( // ui-v2-switch
-        <BankEntryCard />
+        <BankEntryCard bank={bank} />
       ) : (
         <>
-          <BankAccountsSection />
-          <BankRulesSection />
+          <BankAccountsSection bank={bank} />
+          {/* Rules need a linked bank; hidden when Open Banking is off or none linked. */}
+          {bank.enabled === true && bank.connections.length > 0 && (
+            <BankRulesSection bank={bank} />
+          )}
         </>
       )}
       <SettingsBox

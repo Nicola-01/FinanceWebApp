@@ -9,6 +9,9 @@ import type { Transaction } from "../../types/domain";
 import { useTheme } from "../../utils/ThemeContext";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { buildSankeyData } from "./sankeyData.ts";
+import { useShowInvestments } from "./useShowInvestments.ts";
+import Toggle from "../../components/ui/Toggle.tsx";
+import { isInvestmentTx } from "../../utils/investments.ts";
 import { useChartPalette } from "./useChartPalette.ts";
 import {
   SankeyChart as KitSankeyChart,
@@ -35,6 +38,8 @@ interface CashFlowSankeyProps {
 }
 
 const CHART_HEIGHT = 600;
+const INVEST_KEY = "statistics.cashFlow.showInvestments";
+const NO_INVESTMENTS = new Set<string>();
 
 export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
   transactions,
@@ -49,19 +54,37 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
   const [ui] = useUiVersion();
   const isV2 = ui === "v2";
   const palette = useChartPalette();
+  const invest = investmentTags ?? NO_INVESTMENTS;
+  const hasInvestments = invest.size > 0;
+  const [chipOn, setShowInvestments] = useShowInvestments(INVEST_KEY);
+  // v1's header has no room for the chip, so v1 always shows investments.
+  const showInvestments = !isV2 || (hasInvestments && chipOn);
+  // Off: investment money is left out of the flows, so Savings = Income - Spent.
+  const flowTransactions = showInvestments
+    ? transactions
+    : transactions.filter((tx) => !isInvestmentTx(tx, invest));
+  const chip = isV2 && hasInvestments && (
+    <Toggle
+      variant="button"
+      checked={showInvestments}
+      onChange={setShowInvestments}
+      label="↗ Investments"
+    />
+  );
   // ui-v2-switch: the v2 card uses the kit's Sankey (CashFlowSankeyV2).
   if (isV2)
     return (
       <CashFlowSankeyV2
-        transactions={transactions}
+        transactions={flowTransactions}
         currency={currency}
         bare={bare}
         investmentTags={investmentTags}
+        chip={chip}
       />
     );
 
   const data = buildSankeyData(
-    transactions,
+    flowTransactions,
     isV2 ? palette.income : resolvedTheme === "dark" ? "#ffffff" : "#bbbbbb",
     investmentTags,
   );
@@ -90,7 +113,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
   const shell = bare
     ? "w-full"
     : isV2
-      ? "w-full p-4 md:p-5 bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)]"
+      ? "w-full p-5 sm:p-6 bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)]"
       : "w-full p-1 sm:p-3 md:p-4 bg-app-card/20 backdrop-blur-sm rounded-2xl border border-app-border";
 
   return (
@@ -100,7 +123,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
           <h2
             className={
               isV2
-                ? "font-display text-xl font-semibold text-app-text mb-1"
+                ? "font-display text-lg font-semibold text-app-text mb-1"
                 : "text-center font-bold text-app-text text-lg md:text-2xl mb-1"
             }
           >
@@ -109,7 +132,7 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
           <p
             className={
               isV2
-                ? "text-app-muted text-[13px] mb-3"
+                ? "text-app-muted text-[13px] mb-4"
                 : "text-center text-app-muted text-sm md:text-base mb-2 md:mb-4"
             }
           >
@@ -234,11 +257,14 @@ export const CashFlowSankey: React.FC<CashFlowSankeyProps> = ({
 };
 
 /** v2 card: the kit's Sankey with the same graph as v1; phones get a compacted graph, desktop a limited one. */
-const CashFlowSankeyV2: React.FC<CashFlowSankeyProps> = ({
+const CashFlowSankeyV2: React.FC<
+  CashFlowSankeyProps & { chip?: React.ReactNode }
+> = ({
   transactions,
   currency = "EUR",
   bare = false,
   investmentTags,
+  chip,
 }) => {
   const isMobile = useMediaQuery(useMuiTheme().breakpoints.down("sm"));
   const full = buildSankeyData(
@@ -246,11 +272,12 @@ const CashFlowSankeyV2: React.FC<CashFlowSankeyProps> = ({
     "var(--color-app-income)",
     investmentTags,
   );
-  if (!full) return null;
+  // Kept with the chip even when the graph is empty, so Investments can be switched back on.
+  if (!full && !chip) return null;
 
-  const { data, colors } = toKitSankey(
-    isMobile ? compactSankeyGraph(full) : limitSankeyGraph(full),
-  );
+  const kit =
+    full &&
+    toKitSankey(isMobile ? compactSankeyGraph(full) : limitSankeyGraph(full));
   const symbol = getCurrencySymbol(currency);
   const money = (value: number) => `${formatAmount(value)} ${symbol}`;
   // Side margins leave room for the node labels; the kit defaults are wider.
@@ -261,34 +288,43 @@ const CashFlowSankeyV2: React.FC<CashFlowSankeyProps> = ({
       className={
         bare
           ? "w-full"
-          : "w-full p-4 md:p-5 bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)]"
+          : "w-full p-5 sm:p-6 bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)]"
       }
     >
-      {!bare && (
-        <>
-          <h2 className="font-display text-xl font-semibold text-app-text mb-1">
-            Cash flow overview
-          </h2>
-          <p className="text-app-muted text-[13px] mb-3">
-            Flow from income to expenses
-          </p>
-        </>
+      {(!bare || chip) && (
+        <div
+          className={`flex items-start justify-between gap-3 ${bare ? "mb-3 justify-end" : ""}`}
+        >
+          {!bare && (
+            <div>
+              <h2 className="font-display text-lg font-semibold text-app-text mb-1">
+                Cash flow overview
+              </h2>
+              <p className="text-app-muted text-[13px] mb-4">
+                Flow from income to expenses
+              </p>
+            </div>
+          )}
+          {chip}
+        </div>
       )}
-      <KitSankeyChart
-        data={data}
-        ariaLabel="Cash flow overview"
-        aspectRatio={isMobile ? "4 / 5" : "16 / 9"}
-        margin={{ top: 20, bottom: 20, left: sideMargin, right: sideMargin }}
-        nodeWidth={isMobile ? 8 : 12}
-        nodePadding={isMobile ? 18 : 24}
-      >
-        <SankeyNode
-          getNodeColor={(_node, index) => colors[index]}
-          formatValue={money}
-        />
-        <SankeyLink strokeOpacity={0.35} />
-        <SankeyTooltip formatValue={money} valueLabel="Amount" />
-      </KitSankeyChart>
+      {kit && (
+        <KitSankeyChart
+          data={kit.data}
+          ariaLabel="Cash flow overview"
+          aspectRatio={isMobile ? "4 / 5" : "16 / 9"}
+          margin={{ top: 20, bottom: 20, left: sideMargin, right: sideMargin }}
+          nodeWidth={isMobile ? 8 : 12}
+          nodePadding={isMobile ? 18 : 24}
+        >
+          <SankeyNode
+            getNodeColor={(_node, index) => kit.colors[index]}
+            formatValue={money}
+          />
+          <SankeyLink strokeOpacity={0.35} />
+          <SankeyTooltip formatValue={money} valueLabel="Amount" />
+        </KitSankeyChart>
+      )}
     </div>
   );
 };

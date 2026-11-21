@@ -7,6 +7,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { createRef } from "react";
+import { setUiVersion } from "../../../utils/uiVersion";
 import type { CurrencyCode } from "../../../utils/currencies";
 import type { Subscription, Wallet } from "../../../types/domain";
 
@@ -257,5 +258,159 @@ describe("SubscriptionModal", () => {
         frequencyInterval: 2,
       });
     });
+  });
+});
+
+describe("SubscriptionModal — bank rule gating", () => {
+  const linked = (connections: unknown[]) =>
+    vi.mocked(getWalletBank).mockResolvedValue({
+      enabled: true,
+      connections,
+    } as never);
+
+  const ruleSub = {
+    id: "s7",
+    name: "Netflix",
+    type: "EXPENSE",
+    amount: 12.99,
+    startDate: "2026-01-02",
+    tag: { name: "Fun", icon: "tag", colorHex: "#fff" },
+    bankRuleId: "r1",
+  } as unknown as Subscription;
+
+  beforeEach(() => {
+    vi.mocked(listBankRules).mockResolvedValue([
+      {
+        id: "r1",
+        name: "Netflix",
+        matchText: "NETFLIX",
+        regex: false,
+        ignoreCase: true,
+        usedBy: [],
+      },
+    ] as never);
+  });
+
+  it("hides the bank rule when the wallet has no linked account", async () => {
+    linked([]);
+    const ref = renderModal();
+    act(() => ref.current!.openModal());
+    await waitFor(() => expect(getWalletBank).toHaveBeenCalledWith("w1"));
+    expect(screen.queryByText("Open Banking")).not.toBeInTheDocument();
+  });
+
+  it("shows the bank rule when the wallet has a linked account", async () => {
+    linked([{ id: "c1" }]);
+    const ref = renderModal();
+    act(() => ref.current!.openModal());
+    expect(await screen.findByText("Open Banking")).toBeInTheDocument();
+  });
+
+  it("still shows an existing bank rule in edit mode so it can be cleared", async () => {
+    linked([]);
+    const ref = renderModal();
+    act(() => ref.current!.openModal(ruleSub));
+    expect(await screen.findByText("Open Banking")).toBeInTheDocument();
+  });
+});
+
+describe("SubscriptionModal — v2 compact form", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("lays out the schedule and name as form rows", () => {
+    const ref = renderModal();
+    act(() => ref.current!.openModal());
+    for (const label of [
+      "Category",
+      "Start date",
+      "Repeats",
+      "Ends",
+      "Status",
+      "Name",
+    ]) {
+      expect(screen.getByText(label)).toBeInTheDocument();
+    }
+    expect(screen.getByText("Category").parentElement).toHaveTextContent("*");
+  });
+
+  it("groups the form into labelled cards", () => {
+    const ref = renderModal();
+    act(() => ref.current!.openModal());
+    for (const label of ["Schedule", "Options"]) {
+      expect(screen.getByText(label, { selector: "h3" })).toBeInTheDocument();
+    }
+    expect(screen.getByText("Status")).toBeInTheDocument();
+  });
+
+  it("puts the bank rule in its own group, outside More details", async () => {
+    vi.mocked(getWalletBank).mockResolvedValue({
+      enabled: true,
+      connections: [{ id: "c1" }],
+    } as never);
+    vi.mocked(listBankRules).mockResolvedValue([
+      {
+        id: "r1",
+        name: "Netflix",
+        matchText: "NETFLIX",
+        regex: false,
+        ignoreCase: true,
+        usedBy: [],
+      },
+    ] as never);
+    const ref = renderModal();
+    act(() =>
+      ref.current!.openModal({
+        id: "s7",
+        name: "Netflix",
+        type: "EXPENSE",
+        amount: 12.99,
+        startDate: "2026-01-02",
+        tag: { name: "Fun", icon: "tag", colorHex: "#fff" },
+        bankRuleId: "r1",
+      } as unknown as Subscription),
+    );
+    const group = await screen.findByText("Open Banking", {
+      selector: "h3",
+    });
+    expect(group.closest("details")).toBeNull();
+    expect(screen.getByText("notes, currency")).toBeInTheDocument();
+  });
+
+  it("toggles the reminder from its row switch", () => {
+    const ref = renderModal();
+    act(() => ref.current!.openModal());
+    const sw = screen.getByRole("switch", {
+      name: "Reminder subscription (no fixed amount)",
+    });
+    expect(sw).toHaveAttribute("aria-checked", "false");
+    fireEvent.click(sw);
+    expect(sw).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("keeps More details closed for a new subscription", () => {
+    const ref = renderModal();
+    act(() => ref.current!.openModal());
+    const details = screen.getByText("More details").closest("details");
+    expect(details).not.toHaveAttribute("open");
+    expect(screen.getByText("notes, currency")).toBeInTheDocument();
+  });
+
+  it("opens More details in edit mode when the subscription has a description", () => {
+    const ref = renderModal();
+    act(() =>
+      ref.current!.openModal({
+        id: "s8",
+        name: "Gym",
+        type: "EXPENSE",
+        amount: 30,
+        startDate: "2026-01-02",
+        notes: "Monthly pass",
+        tag: { name: "Fun", icon: "tag", colorHex: "#fff" },
+      } as unknown as Subscription),
+    );
+    const details = screen.getByText("More details").closest("details");
+    expect(details).toHaveAttribute("open");
+    expect(screen.getByDisplayValue("Monthly pass")).toBeInTheDocument();
   });
 });

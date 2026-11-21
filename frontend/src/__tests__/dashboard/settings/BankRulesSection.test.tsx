@@ -95,7 +95,7 @@ describe("BankRulesSection", () => {
     render(<BankRulesSection />);
     expect(await screen.findByText("Bank rules")).toBeInTheDocument();
     // The trigger text reads as code.
-    expect(screen.getByText("NETFLIX").tagName).toBe("CODE");
+    expect((await screen.findByText("NETFLIX")).tagName).toBe("CODE");
     expect(screen.getByText("Review first")).toBeInTheDocument();
     expect(screen.getByText("Date from name")).toBeInTheDocument();
     expect(screen.getByText("Empty name")).toBeInTheDocument();

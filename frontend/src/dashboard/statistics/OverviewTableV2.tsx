@@ -17,7 +17,7 @@ const TABS = [
 
 // Phones stack each period (label on top, three values below); sm+ is one table row.
 const COLS = "grid-cols-3 sm:grid-cols-[1.2fr_1fr_1fr_1fr] gap-x-3 gap-y-1";
-const ROW = `${COLS} px-4 md:px-6 py-3 border-b border-app-border text-sm tabular-nums`;
+const ROW = `${COLS} px-5 sm:px-6 py-3 border-b border-app-border text-sm tabular-nums`;
 
 const Amount: React.FC<{ value: number; kind: "income" | "spent" | "net" }> = ({
   value,
@@ -129,7 +129,7 @@ export const OverviewTableV2: React.FC<OverviewTableV2Props> = ({
       <div role="table" aria-label={title} className="text-app-text">
         <div
           role="row"
-          className={`hidden sm:grid ${COLS} px-4 md:px-6 py-2.5 text-[13px] text-app-muted border-b border-app-border`}
+          className={`hidden sm:grid ${COLS} px-5 sm:px-6 py-2.5 text-[13px] text-app-muted border-b border-app-border`}
         >
           <div role="columnheader">{isMonthly ? "Month" : "Year"}</div>
           <div role="columnheader" className="text-right">

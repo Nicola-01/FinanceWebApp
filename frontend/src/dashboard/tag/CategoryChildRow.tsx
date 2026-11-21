@@ -15,6 +15,11 @@ import { SyncStateIcon } from "../../components/ui/SyncStateIcon.tsx";
 import { useInlineTagEdit } from "./useInlineTagEdit.ts";
 import { Input } from "../../components/ui/Input.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
+import { InvestmentToggle } from "./InvestmentToggle.tsx";
+import {
+  investmentState,
+  type InvestmentCoverage,
+} from "../../utils/investments.ts";
 
 interface CategoryChildRowProps {
   child: Tag;
@@ -23,8 +28,8 @@ interface CategoryChildRowProps {
   draggable?: boolean;
   /** Transactions tagged with this sub-category. */
   occurrences?: number;
-  /** Name of the flagged parent this child inherits its investment status from. */
-  inheritedFrom?: string;
+  /** Investment coverage from the wallet's flags (an ancestor flag locks the toggle on). */
+  coverage?: InvestmentCoverage;
   onUpdateTag: (oldName: string, updated: Partial<Tag>) => Promise<boolean>;
   onRequestDelete: (tag: Tag) => void;
 }
@@ -35,7 +40,7 @@ export const CategoryChildRow: React.FC<CategoryChildRowProps> = ({
   readOnly = false,
   draggable = true,
   occurrences = 0,
-  inheritedFrom,
+  coverage,
   onUpdateTag,
   onRequestDelete,
 }) => {
@@ -88,15 +93,6 @@ export const CategoryChildRow: React.FC<CategoryChildRowProps> = ({
         onColorChange={edit.setColorVal}
         isOpen={edit.iconOpen}
         onToggle={edit.onIconToggle}
-        investment={
-          readOnly
-            ? undefined
-            : {
-                checked: edit.isInvestment,
-                inheritedFrom,
-                onChange: edit.onInvestmentChange,
-              }
-        }
       />
 
       {edit.isEditing ? (
@@ -129,7 +125,7 @@ export const CategoryChildRow: React.FC<CategoryChildRowProps> = ({
           {child.name}
         </span>
       )}
-      {(child.investment || inheritedFrom) && (
+      {(edit.isInvestment || coverage?.inheritedFrom) && (
         <span
           role="img"
           aria-label="Investment"
@@ -149,6 +145,14 @@ export const CategoryChildRow: React.FC<CategoryChildRowProps> = ({
           <FontAwesomeIcon icon={faReceipt} className="text-[9px] opacity-60" />
           {occurrences}
         </span>
+      )}
+
+      {!readOnly && !edit.isEditing && (
+        <InvestmentToggle
+          state={investmentState(edit.isInvestment, coverage)}
+          inheritedFrom={coverage?.inheritedFrom}
+          onChange={edit.onInvestmentChange}
+        />
       )}
 
       {!readOnly && !edit.isEditing && (

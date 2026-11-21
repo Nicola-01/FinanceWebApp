@@ -1,8 +1,11 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import Button from "../../../../components/ui/Button";
 import { TagBadge } from "../../../../components/ui/TagBadge";
+import { CategoryIcon } from "../../../../components/ui/CategoryIcon";
 import { MissingTagChip } from "../MissingTagResolver";
 import { formatFrequency } from "./subscriptionSummary";
+import { useUiVersion } from "../../../../hooks/useUiVersion";
 import type { Tag } from "../../../../types/domain";
 import type {
   SubscriptionRequest,
@@ -37,13 +40,79 @@ export function StagedSubscriptionRowHeader({
   onToggle,
   onRemove,
 }: StagedSubscriptionRowHeaderProps) {
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
+  const isIncome = sub.type === "INCOME";
+  const frequency = formatFrequency(sub.frequencyInterval, sub.frequencyType);
+  const label = missing ? `Fix tag for ${sub.name}` : `Edit ${sub.name}`;
+
+  if (isV2) {
+    // ui-v2-switch: category icon tile, name + "tag · every month", amount on the right.
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={open}
+          aria-label={label}
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--r-sm)] text-left"
+        >
+          <CategoryIcon
+            icon={matched?.icon ?? "tag"}
+            color={matched?.colorHex ?? "#8b5cf6"}
+            size="sm"
+          />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-[15px] font-semibold text-app-text">
+              {sub.name}
+            </span>
+            <span className="block truncate text-[13px] text-app-muted">
+              {missing ? (
+                <span className="text-app-warn">
+                  Tag missing: {sub.tag || "—"}
+                </span>
+              ) : (
+                sub.tag
+              )}
+              {` · ${frequency}`}
+            </span>
+          </span>
+          <span
+            className={`shrink-0 text-right font-semibold tabular-nums ${
+              isIncome ? "text-app-income" : "text-app-text"
+            }`}
+          >
+            {isIncome ? "+" : "-"}
+            {sub.amount} {currencySymbol}
+          </span>
+          <FontAwesomeIcon
+            icon={faChevronDown}
+            className={`shrink-0 text-[10px] text-app-muted transition-transform ${
+              open ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onRemove}
+          aria-label={`Remove ${sub.name}`}
+        >
+          <FontAwesomeIcon icon={faXmark} />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        aria-label={missing ? `Fix tag for ${sub.name}` : `Edit ${sub.name}`}
+        aria-label={label}
         className="flex min-w-0 flex-1 items-center gap-3 rounded-[var(--r-sm)] py-1 text-left"
       >
         <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -63,9 +132,7 @@ export function StagedSubscriptionRowHeader({
                 forceShowParent
               />
             )}
-            <span className="text-[11px] text-app-muted">
-              {formatFrequency(sub.frequencyInterval, sub.frequencyType)}
-            </span>
+            <span className="text-[11px] text-app-muted">{frequency}</span>
           </span>
         </span>
 

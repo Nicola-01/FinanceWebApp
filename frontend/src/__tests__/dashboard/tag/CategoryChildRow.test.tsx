@@ -39,7 +39,7 @@ describe("CategoryChildRow investment flag", () => {
   });
 
   it("shows the arrow for an inherited child", () => {
-    renderRow({ inheritedFrom: "Investments" });
+    renderRow({ coverage: { inheritedFrom: "Investments", partial: false } });
     expect(screen.getByLabelText("Investment")).toBeInTheDocument();
   });
 
@@ -48,13 +48,12 @@ describe("CategoryChildRow investment flag", () => {
     expect(screen.queryByLabelText("Investment")).not.toBeInTheDocument();
   });
 
-  it("toggling the switch calls update with { investment: true }", () => {
+  it("the toggle calls update with { investment: true } when off", () => {
     const onUpdateTag = vi.fn().mockResolvedValue(true);
     renderRow({ onUpdateTag });
 
-    openPicker();
     fireEvent.click(
-      screen.getByRole("switch", { name: /counts as investment/i }),
+      screen.getByRole("button", { name: "Counts as investment" }),
     );
 
     expect(onUpdateTag).toHaveBeenCalledWith(
@@ -63,19 +62,39 @@ describe("CategoryChildRow investment flag", () => {
     );
   });
 
-  it("an inherited child shows a disabled switch reading Inherited from Investments", () => {
-    renderRow({ inheritedFrom: "Investments" });
+  it("an inherited child shows a locked, pressed toggle that ignores clicks", () => {
+    const onUpdateTag = vi.fn().mockResolvedValue(true);
+    renderRow({
+      coverage: { inheritedFrom: "Investments", partial: false },
+      onUpdateTag,
+    });
 
-    openPicker();
-    const sw = screen.getByRole("switch", { name: /counts as investment/i });
-    expect(sw).toBeDisabled();
-    expect(sw).toHaveAttribute("aria-checked", "true");
-    expect(screen.getByText("Inherited from Investments")).toBeInTheDocument();
+    const btn = screen.getByRole("button", { name: "Counts as investment" });
+    expect(btn).toHaveAttribute("aria-disabled", "true");
+    expect(btn).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(btn);
+    expect(onUpdateTag).not.toHaveBeenCalled();
   });
 
-  it("renders no switch in read-only mode", () => {
+  it("explains an inherited flag in the tooltip", async () => {
+    renderRow({ coverage: { inheritedFrom: "Investments", partial: false } });
+
+    fireEvent.mouseOver(
+      screen.getByRole("button", { name: "Counts as investment" })
+        .parentElement!,
+    );
+    expect(
+      await screen.findByText("Inherited from Investments"),
+    ).toBeInTheDocument();
+  });
+
+  it("renders no toggle and no picker switch in read-only mode", () => {
     renderRow({ readOnly: true });
 
+    expect(
+      screen.queryByRole("button", { name: "Counts as investment" }),
+    ).not.toBeInTheDocument();
     openPicker();
     expect(screen.queryByRole("switch")).not.toBeInTheDocument();
   });

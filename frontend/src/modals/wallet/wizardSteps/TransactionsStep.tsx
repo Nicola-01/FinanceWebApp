@@ -11,6 +11,7 @@ import {
   removeTransactionsWithTag,
 } from "./transactionTags";
 import { addTagToDraft } from "./tagDraft";
+import { useUiVersion } from "../../../hooks/useUiVersion";
 import type {
   TagRequest,
   TransactionRequest,
@@ -53,6 +54,8 @@ export function TransactionsStep({
   tags = [],
   onTagsChange,
 }: TransactionsStepProps): React.JSX.Element {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const preview = value.slice(0, PREVIEW_LIMIT);
   const overflow = value.length - preview.length;
   const missingGroups = groupMissingTransactionTags(value, tags);
@@ -98,11 +101,29 @@ export function TransactionsStep({
       />
 
       {value.length > 0 && (
-        <div className="rounded-[var(--r-input)] border border-app-border bg-app-input">
-          <div className="flex items-center justify-between border-b border-app-border px-3 py-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-app-muted">
-              {value.length} staged
-            </span>
+        <div
+          className={
+            v2
+              ? "overflow-hidden rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]"
+              : "rounded-[var(--r-input)] border border-app-border bg-app-input"
+          }
+        >
+          <div
+            className={
+              v2
+                ? "flex items-center justify-between border-b border-app-border px-4 py-2.5"
+                : "flex items-center justify-between border-b border-app-border px-3 py-2"
+            }
+          >
+            {v2 ? ( // ui-v2-switch
+              <h3 className="text-[13px] text-app-muted">
+                {value.length} staged
+              </h3>
+            ) : (
+              <span className="text-xs font-semibold uppercase tracking-wider text-app-muted">
+                {value.length} staged
+              </span>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -117,15 +138,33 @@ export function TransactionsStep({
             {preview.map((tx, i) => (
               <li
                 key={`${tx.name}-${tx.transactionDate}-${i}`}
-                className="flex items-baseline justify-between gap-3 px-3 py-2"
+                className={
+                  v2
+                    ? "flex items-baseline justify-between gap-3 px-4 py-2.5"
+                    : "flex items-baseline justify-between gap-3 px-3 py-2"
+                }
               >
-                <span className="min-w-0 truncate text-sm text-app-text">
+                <span
+                  className={`min-w-0 truncate ${v2 ? "text-[15px] text-app-text" : "text-sm text-app-text"}`}
+                >
                   {tx.name || <span className="text-app-muted">(unnamed)</span>}
                 </span>
-                <span className="shrink-0 font-app-mono text-xs tabular-nums text-app-muted">
+                <span
+                  className={
+                    v2
+                      ? "shrink-0 text-[13px] tabular-nums text-app-muted"
+                      : "shrink-0 font-app-mono text-xs tabular-nums text-app-muted"
+                  }
+                >
                   <span
                     className={
-                      tx.type === "INCOME" ? "text-app-green" : "text-app-red"
+                      tx.type === "INCOME"
+                        ? v2
+                          ? "text-app-income"
+                          : "text-app-green"
+                        : v2
+                          ? "text-app-text"
+                          : "text-app-red"
                     }
                   >
                     {tx.type === "INCOME" ? "+" : "-"}
@@ -138,7 +177,13 @@ export function TransactionsStep({
             ))}
           </ul>
           {overflow > 0 && (
-            <p className="border-t border-app-border px-3 py-2 text-xs text-app-muted">
+            <p
+              className={
+                v2
+                  ? "border-t border-app-border px-4 py-2.5 text-[13px] text-app-muted"
+                  : "border-t border-app-border px-3 py-2 text-xs text-app-muted"
+              }
+            >
               +{overflow} more
             </p>
           )}

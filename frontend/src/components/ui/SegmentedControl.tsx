@@ -6,6 +6,7 @@ import {
 } from "@/components/shadcn/motion-highlight";
 import { cn } from "@/lib/utils";
 import { walletVars } from "../../utils/color";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface SegmentedOption<T extends string | number> {
   value: T;
@@ -45,6 +46,10 @@ const sizeClass = {
 
 const DEFAULT_HIGHLIGHT =
   "rounded-[var(--r-input)] bg-app-card shadow-[var(--box-ring)]";
+// ui-v2-switch: v2 pill is lighter than the raised track in dark, and gets a
+// hairline shadow in light so a white pill on a white card still reads.
+const DEFAULT_HIGHLIGHT_V2 =
+  "rounded-[var(--r-input)] bg-app-card shadow-[0_1px_2px_rgb(0_0_0/0.08)] [.dark_&]:bg-[color-mix(in_srgb,var(--color-app-raised),#fff_8%)]";
 const ACCENT_HIGHLIGHT = "rounded-[var(--r-input)] bg-wallet";
 
 /**
@@ -63,8 +68,11 @@ export function SegmentedControl<T extends string | number>({
   highlightClassName,
   accentColor,
 }: SegmentedControlProps<T>) {
+  const [ui] = useUiVersion();
+  const defaultHighlight =
+    ui === "v2" ? DEFAULT_HIGHLIGHT_V2 : DEFAULT_HIGHLIGHT;
   const highlight =
-    highlightClassName ?? (accentColor ? ACCENT_HIGHLIGHT : DEFAULT_HIGHLIGHT);
+    highlightClassName ?? (accentColor ? ACCENT_HIGHLIGHT : defaultHighlight);
   return (
     <Tabs
       value={value}
@@ -119,7 +127,8 @@ export function SegmentedControl<T extends string | number>({
                     !opt.activeClassName &&
                       (accentColor
                         ? "[&[data-active]_svg]:text-on-wallet"
-                        : "[&[data-active]_svg]:text-wallet"),
+                        : // Light: darken like category glyphs (70% + #000) so pale wallet colours stay legible; dark keeps the raw wallet colour.
+                          "[&[data-active]_svg]:text-[color-mix(in_srgb,var(--wallet),#000_30%)] [.dark_&[data-active]_svg]:text-wallet"),
                   )}
                 >
                   {opt.icon}

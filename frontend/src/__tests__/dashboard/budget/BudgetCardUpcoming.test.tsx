@@ -168,7 +168,7 @@ describe("BudgetCard upcoming subscriptions (v2)", () => {
     expect(screen.getByLabelText("691,42 €").closest("p")).toHaveTextContent(
       "691,42 € left",
     );
-    expect(screen.getByText("14 days")).toBeInTheDocument();
+    expect(screen.getByText("days").closest("b")).toHaveTextContent("14 days");
     expect(lastGaugeProps()).toMatchObject({ value: 42 });
     expect(lastGaugeProps().zones).toBeUndefined();
   });
@@ -213,7 +213,9 @@ describe("BudgetCard header, hero and pace (v2)", () => {
     );
 
     expect(screen.getAllByText(/Over by/)).toHaveLength(1);
-    expect(screen.getByText(/Over by/)).toHaveTextContent("Over by 100,00 €");
+    expect(screen.getByText(/Over by/).closest("p")).toHaveTextContent(
+      "Over by 100,00 €",
+    );
     expect(screen.getByText("Over budget")).toBeInTheDocument();
   });
 
@@ -232,7 +234,9 @@ describe("BudgetCard header, hero and pace (v2)", () => {
     renderCard(makeBudget({ status: "WARNING" }));
 
     // 691,42 € remaining minus 900 € due = 208,58 € over.
-    expect(screen.getByText(/Over by/)).toHaveTextContent("Over by 208,58 €");
+    expect(screen.getByText(/Over by/).closest("p")).toHaveTextContent(
+      "Over by 208,58 €",
+    );
     expect(screen.getByText("Close to the limit")).toBeInTheDocument();
   });
 

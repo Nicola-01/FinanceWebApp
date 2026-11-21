@@ -12,7 +12,7 @@ import { MonthByMonthChart } from "./MonthByMonthChart.tsx";
 import { WorthKnowingCard } from "./WorthKnowingCard.tsx";
 import {
   STATISTICS_TAB_ID,
-  STATISTICS_WIDGETS,
+  statisticsWidgetsFor,
   type StatisticsWidgetCtx,
 } from "./statisticsWidgets.tsx";
 import { currencySymbolOf } from "./kitChartData.ts";
@@ -48,12 +48,14 @@ export const StatisticsV2: React.FC<{
   const today = useMemo(() => new Date(), []);
   const [period, setPeriod] = useState<StatsPeriod>(() => defaultPeriod(today));
   const [editing, setEditing] = useState(false);
-  const layoutApi = useTabLayout(
-    STATISTICS_TAB_ID,
-    walletId,
-    STATISTICS_WIDGETS,
-  );
   const invest = useInvestmentTags();
+  // Investment UI (chip, Invested tile, investments widget) only once a tag is flagged.
+  const hasInvestments = invest.size > 0;
+  const widgets = useMemo(
+    () => statisticsWidgetsFor(hasInvestments),
+    [hasInvestments],
+  );
+  const layoutApi = useTabLayout(STATISTICS_TAB_ID, walletId, widgets);
   const byYear = period.kind === "all";
   // Year the picker opens on (its initial range); "All" keeps the current year.
   const pickerYear = period.kind === "year" ? period.year : today.getFullYear();
@@ -87,8 +89,8 @@ export const StatisticsV2: React.FC<{
   };
 
   return (
-    <div className="flex flex-col gap-[14px] pb-10 animate-[fadeIn_0.3s_ease-out]">
-      <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
+    <div className="flex flex-col gap-6 animate-[fadeIn_0.3s_ease-out]">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h2 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">
           Statistics
         </h2>
@@ -130,36 +132,42 @@ export const StatisticsV2: React.FC<{
         </div>
       ) : (
         <>
-          <StatisticsSummaryV2
-            transactions={transactions}
-            period={period}
-            today={today}
-            currencySymbol={currencySymbol}
-          />
+          {/* One 14px rhythm for every card and tile gap, vertical and horizontal. */}
+          <div className="flex flex-col gap-3.5">
+            <StatisticsSummaryV2
+              transactions={transactions}
+              period={period}
+              today={today}
+              currencySymbol={currencySymbol}
+              hasInvestments={hasInvestments}
+            />
 
-          {/* Pinned like before: month by month (2/3) with Worth knowing beside it (1/3). */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-[14px]">
-            <div
-              className={
-                insights.length > 0 ? "lg:col-span-2" : "lg:col-span-3"
-              }
-            >
-              <MonthByMonthChart
-                rows={rows}
-                byYear={byYear}
-                currencySymbol={currencySymbol}
-              />
+            {/* Pinned: month by month (2/3) with Worth knowing beside it (1/3); equal height. */}
+            <div className="grid grid-cols-1 items-stretch gap-3.5 lg:grid-cols-3">
+              <div
+                className={`h-full ${
+                  insights.length > 0 ? "lg:col-span-2" : "lg:col-span-3"
+                }`}
+              >
+                <MonthByMonthChart
+                  rows={rows}
+                  byYear={byYear}
+                  currencySymbol={currencySymbol}
+                  hasInvestments={hasInvestments}
+                />
+              </div>
+              <WorthKnowingCard insights={insights} />
             </div>
-            <WorthKnowingCard insights={insights} />
-          </div>
 
-          <WidgetGrid
-            defs={STATISTICS_WIDGETS}
-            ctx={ctx}
-            editing={editing}
-            api={layoutApi}
-            accentColor={accentColor}
-          />
+            <WidgetGrid
+              defs={widgets}
+              ctx={ctx}
+              editing={editing}
+              api={layoutApi}
+              accentColor={accentColor}
+              gap="gap-3.5"
+            />
+          </div>
           {renderLayoutControls?.({
             editing,
             setEditing,

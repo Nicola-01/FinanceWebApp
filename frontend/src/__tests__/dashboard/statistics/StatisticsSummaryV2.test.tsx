@@ -93,8 +93,12 @@ describe("StatisticsSummaryV2", () => {
   });
 
   // The sub-line of a tile: the text node after its label/value (the sparkline footer is not text).
+  // The label sits in a flex row; the sub-line is in the tile root's text column.
   const subOf = (label: string) =>
-    screen.getByText(label).parentElement!.querySelector(".text-app-faint");
+    screen
+      .getByText(label)
+      .closest(".overflow-hidden")!
+      .querySelector(".text-app-faint");
   const subText = (label: string) => subOf(label)?.textContent ?? null;
 
   it("renders the four tiles with period labels and per-month averages", async () => {
@@ -310,6 +314,21 @@ describe("StatisticsSummaryV2", () => {
     expect(screen.getByText("—")).toBeInTheDocument();
   });
 
+  it("hides the Invested tile and the fifth column without a flagged tag", async () => {
+    await renderSettled(
+      <StatisticsSummaryV2
+        transactions={transactions}
+        period={year2026}
+        today={today}
+        hasInvestments={false}
+      />,
+    );
+    expect(screen.queryByText("Invested in 2026")).toBeNull();
+    expect(screen.getByText("Earned in 2026").closest(".grid")).toHaveClass(
+      "lg:grid-cols-4",
+    );
+  });
+
   it("uses plain labels for all time and drops the previous-year lines", async () => {
     await renderSettled(
       <StatisticsSummaryV2
@@ -418,6 +437,7 @@ describe("StatisticsSummaryV2", () => {
       investTags.current = new Set(["Stocks"]);
       await renderSettled(
         <StatisticsSummaryV2
+          hasInvestments
           transactions={investing}
           period={year2026}
           today={today}
@@ -439,6 +459,7 @@ describe("StatisticsSummaryV2", () => {
       investTags.current = new Set(["Stocks"]);
       await renderSettled(
         <StatisticsSummaryV2
+          hasInvestments
           transactions={investing}
           period={year2026}
           today={today}
@@ -458,6 +479,7 @@ describe("StatisticsSummaryV2", () => {
     it("spans the savings rate tile across two phone columns only", async () => {
       await renderSettled(
         <StatisticsSummaryV2
+          hasInvestments
           transactions={transactions}
           period={year2026}
           today={today}

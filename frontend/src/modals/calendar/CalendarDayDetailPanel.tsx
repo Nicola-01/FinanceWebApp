@@ -7,6 +7,7 @@ import Button from "../../components/ui/Button";
 import { useDayNavigation } from "./useDayNavigation";
 import { CalendarDayNavHeader } from "./CalendarDayNavHeader";
 import { CalendarDaySubscriptionList } from "./CalendarDaySubscriptionList";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface DayDetailModalHandle {
   openModal: (date: Date, subscriptions: Subscription[]) => void;
@@ -34,6 +35,8 @@ export const CalendarDayDetailPanel = forwardRef<
     ref,
   ) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
+    const [ui] = useUiVersion();
+    const isV2 = ui === "v2"; // ui-v2-switch
     const nav = useDayNavigation(getSubscriptionsForDate, dialogRef);
 
     useImperativeHandle(ref, () => ({
@@ -52,13 +55,17 @@ export const CalendarDayDetailPanel = forwardRef<
         ref={dialogRef}
         className="max-w-[550px] overflow-hidden"
         title={
-          <>
-            <FontAwesomeIcon
-              icon={faCalendarDay}
-              color="var(--color-app-sky)"
-            />{" "}
-            Day Details
-          </>
+          isV2 ? ( // ui-v2-switch
+            "Day details"
+          ) : (
+            <>
+              <FontAwesomeIcon
+                icon={faCalendarDay}
+                color="var(--color-app-sky)"
+              />{" "}
+              Day Details
+            </>
+          )
         }
         footer={
           onAddSubscription ? (
@@ -79,7 +86,7 @@ export const CalendarDayDetailPanel = forwardRef<
         <div
           onTouchStart={nav.handleTouchStart}
           onTouchEnd={nav.handleTouchEnd}
-          className="flex flex-col"
+          className={isV2 ? "flex flex-col gap-4" : "flex flex-col"} // ui-v2-switch
         >
           <CalendarDayNavHeader
             selectedDate={nav.selectedDate}

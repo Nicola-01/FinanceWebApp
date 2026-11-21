@@ -17,6 +17,9 @@ import { DetailRow } from "../common/DetailRow";
 import { ExchangeRateSection } from "../common/exchangeRate/ExchangeRateSection";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import { describeMonthlyRule } from "../../utils/monthlyRule";
+import { FormRow } from "../../components/ui/FormRow";
+import { StatusPill, type Status } from "../../components/ui/StatusPill";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface SubscriptionViewProps {
   sub: Subscription;
@@ -28,6 +31,8 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
   wallet,
 }) => {
   const isIncome = sub.type === "INCOME";
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   const displayExchangeRate = sub.exchangeValue
     ? Number(sub.exchangeValue)
@@ -64,6 +69,130 @@ export const SubscriptionView: React.FC<SubscriptionViewProps> = ({
       return <FontAwesomeIcon icon={faPause} className="text-app-yellow" />;
     return <FontAwesomeIcon icon={faCheckDouble} className="text-app-muted" />;
   };
+
+  if (isV2) {
+    // ui-v2-switch: hero amount, status pill and grouped cards like the New Subscription form.
+    const pillStatus: Record<string, Status> = {
+      ACTIVE: "ok",
+      PAUSED: "warn",
+      COMPLETED: "ok",
+    };
+    const statusLabel =
+      sub.status.charAt(0) + sub.status.slice(1).toLowerCase();
+    const groupLabel = "mb-2 px-1 text-[13px] text-app-muted";
+    const card =
+      "divide-y divide-app-border rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]";
+    const value = "min-w-0 truncate text-right text-[15px] text-app-text";
+
+    return (
+      <div className="flex flex-col gap-6 animate-[fadeIn_0.2s_ease-out]">
+        <div className="flex flex-col items-center gap-3 pt-2 text-center">
+          {sub.amountPending ? (
+            <p className="text-2xl text-app-muted">Reminder</p>
+          ) : (
+            <p
+              className={`text-5xl font-semibold tracking-[-0.02em] tabular-nums ${isIncome ? "text-app-income" : "text-app-text"}`}
+            >
+              {isIncome ? "+" : "-"}
+              {sub.amount.toFixed(2)}{" "}
+              <span className="text-2xl text-app-muted">
+                {CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}
+              </span>
+            </p>
+          )}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <TagBadge tag={sub.tag} forceShowParent={true} />
+            <StatusPill status={pillStatus[sub.status] ?? "ok"}>
+              {statusLabel}
+            </StatusPill>
+          </div>
+        </div>
+
+        <div className={card}>
+          <FormRow icon={faTag} label="Name">
+            <span className={value}>{sub.name}</span>
+          </FormRow>
+        </div>
+
+        <div>
+          <h3 className={groupLabel}>Schedule</h3>
+          <div className={card}>
+            <FormRow icon={faRepeat} label="Frequency">
+              <div className="flex min-w-0 flex-col items-end">
+                {!sub.bankDriven && (
+                  <span className={value}>{getFrequencyText()}</span>
+                )}
+                {sub.duration === "TIMES" && (
+                  <span className="min-w-0 truncate text-right text-[13px] text-app-faint">
+                    Runs {sub.durationTimes} times (Done:{" "}
+                    {sub.executedTimes || 0})
+                  </span>
+                )}
+                {sub.duration === "UNTIL" && (
+                  <span className="min-w-0 truncate text-right text-[13px] text-app-faint">
+                    Until {formatDate(sub.durationUntil)}
+                  </span>
+                )}
+                {sub.duration === "FOREVER" && (
+                  <span className="min-w-0 truncate text-right text-[13px] text-app-faint">
+                    Forever
+                  </span>
+                )}
+              </div>
+            </FormRow>
+            {/* A bank-driven subscription has no schedule of its own */}
+            <FormRow
+              icon={faClock}
+              label={sub.bankDriven ? "Runs" : "Next run"}
+            >
+              <span className={value}>
+                {sub.bankDriven
+                  ? "Date from bank"
+                  : formatDate(sub.nextExecutionDate)}
+              </span>
+            </FormRow>
+            <FormRow icon={faCalendarAlt} label="Started on">
+              <span className={value}>{formatDate(sub.startDate)}</span>
+            </FormRow>
+          </div>
+        </div>
+
+        {sub.bankRuleName && (
+          <div>
+            <h3 className={groupLabel}>Open Banking</h3>
+            <div className={card}>
+              <FormRow icon={faBuildingColumns} label="Bank rule">
+                <span className={value}>{sub.bankRuleName}</span>
+              </FormRow>
+            </div>
+          </div>
+        )}
+
+        {sub.notes && (
+          <div>
+            <h3 className={groupLabel}>Notes</h3>
+            <div className="rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+              <p className="whitespace-pre-wrap p-4 text-[15px] text-app-text">
+                {sub.notes}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {sub.originalCurrency && sub.originalCurrency !== wallet.currency && (
+          <ExchangeRateSection
+            mode="view"
+            accentColor={wallet.color}
+            baseCurrency={wallet.currency as CurrencyCode}
+            selectedCurrency={sub.originalCurrency as CurrencyCode}
+            originalAmount={sub.originalAmount || 0}
+            exchangeRate={displayExchangeRate}
+            convertedAmount={sub.amount}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">

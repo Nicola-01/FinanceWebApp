@@ -11,6 +11,9 @@ import { CURRENCY_META, type CurrencyCode } from "../../utils/currencies";
 import { ExchangeRateSection } from "../common/exchangeRate/ExchangeRateSection.tsx";
 import { TagBadge } from "../../components/ui/TagBadge.tsx";
 import { DetailRow } from "../common/DetailRow";
+import Button from "../../components/ui/Button.tsx";
+import { FormRow } from "../../components/ui/FormRow";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface TransactionViewProps {
   tx: Transaction;
@@ -28,6 +31,8 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
   categorySlot,
 }) => {
   const isIncome = tx.type === "INCOME";
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   const handleOpenSubscription = () => {
     if (tx.subscriptionId) onOpenSubscription?.(tx.subscriptionId);
@@ -40,12 +45,91 @@ export const TransactionView: React.FC<TransactionViewProps> = ({
     : "1";
 
   const date = new Date(tx.transactionDate);
+  const shortDate = date.toLocaleDateString("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
   const formatedDate = date.toLocaleDateString("en-GB", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
   });
+
+  if (isV2) {
+    // ui-v2-switch: hero amount, grouped cards like the New Transaction form.
+    return (
+      <div className="flex flex-col gap-6 animate-[fadeIn_0.2s_ease-out]">
+        <div className="flex flex-col items-center gap-3 pt-2 text-center">
+          {tx.amountPending ? (
+            <p className="text-2xl text-app-muted">Amount pending</p>
+          ) : (
+            <p
+              className={`text-5xl font-semibold tracking-[-0.02em] tabular-nums ${isIncome ? "text-app-income" : "text-app-text"}`}
+            >
+              {isIncome ? "+" : "-"}
+              {tx.amount.toFixed(2)}{" "}
+              <span className="text-2xl text-app-muted">
+                {CURRENCY_META[wallet.currency as CurrencyCode]?.symbol}
+              </span>
+            </p>
+          )}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {categorySlot ?? <TagBadge tag={tx.tag} forceShowParent={true} />}
+            {tx.subscriptionId && (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleOpenSubscription}
+              >
+                <FontAwesomeIcon icon={faRepeat} />
+                Recurring
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="divide-y divide-app-border rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+          <FormRow icon={faTag} label="Name">
+            <span className="min-w-0 truncate text-right text-[15px] text-app-text">
+              {tx.name}
+            </span>
+          </FormRow>
+          <FormRow icon={faCalendarAlt} label="Date">
+            <span className="min-w-0 truncate text-right text-[15px] text-app-text">
+              {shortDate}
+            </span>
+          </FormRow>
+        </div>
+
+        {tx.notes && (
+          <div>
+            <h3 className="mb-2 px-1 text-[13px] text-app-muted">Notes</h3>
+            <div className="rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+              <p className="whitespace-pre-wrap p-4 text-[15px] text-app-text">
+                {tx.notes}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {tx.originalCurrency && tx.originalCurrency !== wallet.currency && (
+          <ExchangeRateSection
+            mode="view"
+            accentColor={wallet.color}
+            baseCurrency={wallet.currency as CurrencyCode}
+            selectedCurrency={tx.originalCurrency as CurrencyCode}
+            originalAmount={tx.originalAmount || 0}
+            exchangeRate={displayExchangeRate}
+            convertedAmount={tx.amount}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-6 animate-[fadeIn_0.2s_ease-out]">

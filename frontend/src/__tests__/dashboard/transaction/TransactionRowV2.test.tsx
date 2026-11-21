@@ -107,7 +107,7 @@ describe("TransactionRowV2", () => {
     ).toBeInTheDocument();
     expect(screen.getByTestId("review-actions")).toBeInTheDocument();
     expect(container.firstElementChild).toHaveClass(
-      "shadow-[inset_3px_0_0_var(--color-app-warn)]",
+      "shadow-[inset_3px_0_0_#f0b85a]",
     );
   });
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { CategoryIcon } from "../../components/ui/CategoryIcon.tsx";
+import { StatCard } from "./StatCard.tsx";
 import type { Insight, InsightTone } from "./statisticsInsights.ts";
 
 interface WorthKnowingCardProps {
@@ -22,30 +23,18 @@ export const WorthKnowingCard: React.FC<WorthKnowingCardProps> = ({
   if (insights.length === 0) return null;
 
   return (
-    <section
-      className={
-        bare
-          ? ""
-          : "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4"
-      }
+    <StatCard
+      title="Worth knowing"
+      subtitle="Computed from your transactions."
+      bare={bare}
     >
-      {!bare && (
-        <>
-          <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-            Worth knowing
-          </h3>
-          <p className="text-[13px] text-app-muted mt-0.5">
-            Computed from your transactions.
-          </p>
-        </>
-      )}
-      <ul className={bare ? "" : "mt-3"}>
+      <ul className="flex flex-col">
         {insights.map((insight, index) => {
           const { icon, color } = TONE_ICON[insight.tone];
           return (
             <li
               key={insight.id}
-              className={`flex gap-3 py-3 ${index > 0 ? "border-t border-app-border" : ""}`}
+              className={`flex gap-3 py-3 first:pt-0 last:pb-0 ${index > 0 ? "border-t border-app-border" : ""}`}
             >
               <CategoryIcon icon={icon} color={color} size="sm" />
               <div className="min-w-0">
@@ -58,6 +47,6 @@ export const WorthKnowingCard: React.FC<WorthKnowingCardProps> = ({
           );
         })}
       </ul>
-    </section>
+    </StatCard>
   );
 };

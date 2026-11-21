@@ -28,6 +28,13 @@ vi.mock("../../../../dashboard/settings/BankRuleEditor.tsx", () => ({
 }));
 
 import { BankEntryCard } from "../../../../dashboard/settings/bank/BankEntryCard";
+import { useWalletBank } from "../../../../dashboard/settings/bank/useWalletBank";
+
+// Mirrors DataTab: one shared bank state, passed to the card.
+function Harness() {
+  const bank = useWalletBank("w1");
+  return <BankEntryCard bank={bank} />;
+}
 
 const wallet = {
   id: "w1",
@@ -79,29 +86,40 @@ afterEach(() => setUiVersion("v1"));
 
 describe("BankEntryCard", () => {
   it("summarises accounts, sync time, rules and pending imports", async () => {
-    render(<BankEntryCard />);
+    render(<Harness />);
     const card = await screen.findByRole("button", { name: /^Bank/ });
-    expect(card).toHaveTextContent("2 accounts · synced 14 min ago · 1 rule");
+    await waitFor(() =>
+      expect(card).toHaveTextContent("2 accounts · synced 14 min ago · 1 rule"),
+    );
     expect(screen.getByText("2 to categorise")).toHaveClass("text-app-warn");
   });
 
   it("leaves out the pending part when nothing is to categorise", async () => {
     ctxRef.current = { ...ctxRef.current, toCategorise: [] };
-    render(<BankEntryCard />);
+    render(<Harness />);
     const card = await screen.findByRole("button", { name: /^Bank/ });
     expect(card).not.toHaveTextContent("to categorise");
   });
 
   it("renders nothing while loading or when Open Banking is off", async () => {
     bank.getWalletBank.mockResolvedValue({ enabled: false, connections: [] });
-    const { container } = render(<BankEntryCard />);
+    const { container } = render(<Harness />);
     await waitFor(() => expect(bank.getWalletBank).toHaveBeenCalledWith("w1"));
     expect(container).toBeEmptyDOMElement();
     expect(bank.listBankRules).not.toHaveBeenCalled();
   });
 
+  it("shows no rules until a bank is linked", async () => {
+    bank.getWalletBank.mockResolvedValue({ enabled: true, connections: [] });
+    render(<Harness />);
+    const card = await screen.findByRole("button", { name: /^Bank/ });
+    expect(card).toHaveTextContent("0 accounts");
+    expect(card).not.toHaveTextContent("rule");
+    expect(bank.listBankRules).not.toHaveBeenCalled();
+  });
+
   it("opens the Bank overlay with accounts and rules", async () => {
-    render(<BankEntryCard />);
+    render(<Harness />);
     await userEvent.click(await screen.findByRole("button", { name: /^Bank/ }));
     const dialog = await screen.findByRole("dialog", { name: "Bank" });
     expect(dialog).toHaveTextContent("Accounts");

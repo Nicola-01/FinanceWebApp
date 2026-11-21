@@ -6,6 +6,7 @@ import {
 } from "@dnd-kit/sortable";
 import type { Tag } from "../../types/domain.ts";
 import type { TagTreeNode } from "../../utils/tagOrder.ts";
+import type { InvestmentCoverage } from "../../utils/investments.ts";
 import { TagSelectorAddForm } from "../../components/tags/TagSelectorAddForm.tsx";
 import { CategoryParentRow } from "./CategoryParentRow.tsx";
 import { CategoryChildRow } from "./CategoryChildRow.tsx";
@@ -26,6 +27,8 @@ interface CategoryTreeListProps {
   accentColor: string;
   onUpdateTag: (oldName: string, updated: Partial<Tag>) => Promise<boolean>;
   onRequestDelete: (tag: Tag) => void;
+  /** Investment coverage per category name (see investmentCoverage). */
+  coverage: Map<string, InvestmentCoverage>;
 }
 
 /** Sortable list of parent rows, each expanding to its sortable children. */
@@ -43,6 +46,7 @@ export const CategoryTreeList: React.FC<CategoryTreeListProps> = ({
   accentColor,
   onUpdateTag,
   onRequestDelete,
+  coverage,
 }) => (
   <SortableContext
     items={orderedTree.map((n) => n.parent.name)}
@@ -67,6 +71,7 @@ export const CategoryTreeList: React.FC<CategoryTreeListProps> = ({
             isDropTarget={activeIsChild && overParent === node.parent.name}
             onUpdateTag={onUpdateTag}
             onRequestDelete={onRequestDelete}
+            coverage={coverage.get(node.parent.name)}
           >
             <AnimatePresence initial={false}>
               {isOpen && (
@@ -89,11 +94,7 @@ export const CategoryTreeList: React.FC<CategoryTreeListProps> = ({
                           readOnly={readOnly}
                           draggable={dragEnabled}
                           occurrences={counts[c.name] ?? 0}
-                          inheritedFrom={
-                            node.parent.investment
-                              ? node.parent.name
-                              : undefined
-                          }
+                          coverage={coverage.get(c.name)}
                           onUpdateTag={onUpdateTag}
                           onRequestDelete={onRequestDelete}
                         />

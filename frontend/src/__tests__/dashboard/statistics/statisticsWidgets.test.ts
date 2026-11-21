@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
 import {
   STATISTICS_TAB_ID,
-  STATISTICS_WIDGETS,
+  statisticsWidgetsFor,
 } from "../../../dashboard/statistics/statisticsWidgets.tsx";
 import { defaultLayout } from "../../../utils/tabLayout/storage";
 
-describe("STATISTICS_WIDGETS", () => {
+describe("statisticsWidgetsFor", () => {
+  const STATISTICS_WIDGETS = statisticsWidgetsFor(true);
   it("uses the statistics tab id", () => {
     expect(STATISTICS_TAB_ID).toBe("statistics");
   });
@@ -34,5 +35,13 @@ describe("STATISTICS_WIDGETS", () => {
     expect(defaultLayout(STATISTICS_WIDGETS).slots.map((s) => s.id)).toEqual(
       STATISTICS_WIDGETS.map((w) => w.id),
     );
+  });
+
+  it("drops the investments card when no tag is flagged as investment", () => {
+    const ids = statisticsWidgetsFor(false).map((w) => w.id);
+    expect(ids).toEqual(["year-waterfall", "balance-projection", "numbers"]);
+    expect(
+      defaultLayout(statisticsWidgetsFor(false)).slots.map((s) => s.id),
+    ).toEqual(ids);
   });
 });

@@ -5,6 +5,8 @@ import {
   faChevronLeft,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
+import Button from "../../components/ui/Button";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface CalendarDayNavHeaderProps {
   selectedDate: Date;
@@ -18,6 +20,8 @@ export const CalendarDayNavHeader: React.FC<CalendarDayNavHeaderProps> = ({
   onPrev,
   onNext,
 }) => {
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
   const isToday = isSameDay(selectedDate, new Date());
 
   const dayLabel = (() => {
@@ -26,6 +30,37 @@ export const CalendarDayNavHeader: React.FC<CalendarDayNavHeaderProps> = ({
     if (isSameDay(selectedDate, addDays(new Date(), 1))) return "Tomorrow";
     return format(selectedDate, "EEEE");
   })();
+
+  if (isV2) {
+    return (
+      <div className="flex items-center justify-between gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onPrev}
+          aria-label="Previous day"
+        >
+          <FontAwesomeIcon icon={faChevronLeft} className="text-sm" />
+        </Button>
+
+        <div className="flex min-w-0 flex-col items-center select-none">
+          <span className="font-display text-lg font-semibold tracking-[-0.02em] text-app-text">
+            {format(selectedDate, "d MMM yyyy")}
+          </span>
+          <span className="text-[13px] text-app-muted">{dayLabel}</span>
+        </div>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onNext}
+          aria-label="Next day"
+        >
+          <FontAwesomeIcon icon={faChevronRight} className="text-sm" />
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-app-border bg-app-input/20">

@@ -17,6 +17,8 @@ import { AuthBrandLockup } from "./AuthBrandLockup";
 import { AuthErrorCard } from "./AuthErrorCard";
 import { PasswordVisibilityToggle } from "./PasswordVisibilityToggle";
 import { useInviteToken } from "./useInviteToken";
+import { AuthHeading, AuthSubtitle } from "./AuthBrandLockup";
+import { useUiVersion } from "../hooks/useUiVersion";
 import { useShake } from "./useShake";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -25,6 +27,8 @@ const Register: React.FC = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
 
   const { isLoading, error, inviteData } = useInviteToken(token, {
     endpoint: "/auth/register",
@@ -91,7 +95,7 @@ const Register: React.FC = () => {
           <FontAwesomeIcon
             icon={faSpinner}
             spin
-            className="text-4xl text-app-blue"
+            className={`text-4xl ${v2 ? "text-app-text" : "text-app-blue"}`}
           />
           <p>Verifying invitation…</p>
         </div>
@@ -104,13 +108,16 @@ const Register: React.FC = () => {
         />
       ) : (
         /* STATE 3: REGISTRATION FORM */
-        <form onSubmit={handleRegister} className="flex flex-col" noValidate>
-          <h1 className="mb-1 text-2xl font-bold tracking-tight text-app-text">
-            Create your account
-          </h1>
-          <p className="mb-6 text-sm text-app-muted">
+        <form
+          onSubmit={handleRegister}
+          // v2: the form gap spaces the fields; [&>div]:mb-0 drops the v1 field margins.
+          className={v2 ? "flex flex-col gap-4 [&>div]:mb-0" : "flex flex-col"}
+          noValidate
+        >
+          <AuthHeading>Create your account</AuthHeading>
+          <AuthSubtitle className="mb-6">
             Complete your registration to get started.
-          </p>
+          </AuthSubtitle>
 
           {/* Email (read-only) */}
           <div className="mb-4">
@@ -184,7 +191,7 @@ const Register: React.FC = () => {
             fullWidth
             ripple
             disabled={isSubmitting || !isFormValid}
-            className="mt-2"
+            className={v2 ? undefined : "mt-2"}
           >
             {isSubmitting ? (
               <FontAwesomeIcon icon={faSpinner} spin />

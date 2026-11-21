@@ -42,4 +42,31 @@ describe("Card", () => {
       expect(onClick).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("danger accent bar", () => {
+    it("adds a 3px left accent bar in v2 danger", () => {
+      setUiVersion("v2");
+      render(
+        <Card tone="danger" title="Overdue">
+          Body
+        </Card>,
+      );
+      const root = screen.getByText("Body").parentElement!;
+      expect(root).toHaveClass(
+        "shadow-[inset_3px_0_0_var(--color-app-danger),var(--box-ring)]",
+      );
+      setUiVersion("v1");
+    });
+
+    it("keeps v1 danger free of the accent bar", () => {
+      render(
+        <Card tone="danger" title="Overdue">
+          Body
+        </Card>,
+      );
+      const root = screen.getByText("Body").parentElement!;
+      expect(root.className).not.toContain("inset_3px");
+      expect(root).toHaveClass("border");
+    });
+  });
 });

@@ -70,7 +70,7 @@ export const SubscriptionCalendar: React.FC<SubscriptionCalendarProps> = ({
 
   return (
     <div
-      className={`flex flex-col h-full animate-[fadeIn_0.3s_ease-out] p-4 sm:p-6 md:p-8 ${
+      className={`flex flex-col h-full animate-[fadeIn_0.3s_ease-out] ${v2 ? "p-5 sm:p-6" : "p-4 sm:p-6 md:p-8"} ${
         v2
           ? "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)]"
           : "bg-[rgb(var(--bg-card-dark))] border border-app-border rounded-[2rem]"

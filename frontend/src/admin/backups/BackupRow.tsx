@@ -17,6 +17,8 @@ import {
   relativeAge,
 } from "./backupFormat.ts";
 import type { BackupEntry, ConfirmState } from "./types.ts";
+import { useUiVersion } from "../../hooks/useUiVersion";
+import Button from "../../components/ui/Button";
 
 // ─── Row action icon button ─────────────────────────────────────────────────────
 
@@ -49,7 +51,14 @@ interface Props {
   onConfirm: (kind: ConfirmState["kind"], key: string) => void;
 }
 
-export const BackupRow: React.FC<Props> = ({
+export const BackupRow: React.FC<Props> = (props) => {
+  const [ui] = useUiVersion();
+  // ui-v2-switch: list row with ghost icon actions; delete is the danger action.
+  if (ui === "v2") return <BackupRowV2 {...props} />;
+  return <BackupRowV1 {...props} />;
+};
+
+const BackupRowV1: React.FC<Props> = ({
   entry: e,
   isNewest,
   isSelected,
@@ -121,4 +130,80 @@ export const BackupRow: React.FC<Props> = ({
       </div>
     </td>
   </tr>
+);
+
+const BackupRowV2: React.FC<Props> = ({
+  entry: e,
+  isNewest,
+  isSelected,
+  downloading,
+  onToggle,
+  onDownload,
+  onConfirm,
+}) => (
+  <div
+    className={`flex min-h-16 items-center gap-3 px-4 py-3 transition-colors ${
+      isSelected ? "bg-app-raised/60" : ""
+    }`}
+  >
+    <Checkbox
+      state={isSelected}
+      onChange={() => onToggle(e.key)}
+      size="sm"
+      aria-label={`Select ${formatLabel(e.key)}`}
+    />
+    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] bg-app-raised text-app-muted">
+      <FontAwesomeIcon icon={faDatabase} />
+    </span>
+    <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="truncate text-[15px] text-app-text">
+          {formatLabel(e.key)}
+        </span>
+        {isNewest && (
+          <Badge variant="subtle" tone="green">
+            Latest
+          </Badge>
+        )}
+      </div>
+      <div className="text-[13px] tabular-nums text-app-muted">
+        {e.sizeBytes > 0 ? formatSize(e.sizeBytes) : "—"} ·{" "}
+        {relativeAge(e.lastModified, parseKeyDate(e.key))}
+      </div>
+    </div>
+    <div className="flex shrink-0 items-center gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Download"
+        aria-label="Download"
+        disabled={downloading}
+        onClick={() => onDownload(e.key)}
+      >
+        <FontAwesomeIcon
+          icon={downloading ? faSpinner : faDownload}
+          spin={downloading}
+        />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Restore"
+        aria-label="Restore"
+        onClick={() => onConfirm("restore", e.key)}
+      >
+        <FontAwesomeIcon icon={faRotateLeft} />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="hover:text-app-danger"
+        title="Delete"
+        aria-label="Delete"
+        onClick={() => onConfirm("delete", e.key)}
+      >
+        <FontAwesomeIcon icon={faTrash} />
+      </Button>
+    </div>
+  </div>
 );

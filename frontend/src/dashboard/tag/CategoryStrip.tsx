@@ -51,7 +51,7 @@ export const CategoryStrip: React.FC<CategoryStripProps> = ({
   const count = tags.length;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-[var(--r-card)] bg-app-card px-4 py-3.5 shadow-[var(--box-ring)]">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 rounded-[var(--r-card)] bg-app-card p-5 sm:p-6 shadow-[var(--box-ring)]">
       <span className="text-sm font-semibold tabular-nums text-app-text">
         {count} {count === 1 ? "category" : "categories"}
       </span>

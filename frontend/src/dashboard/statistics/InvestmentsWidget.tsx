@@ -14,6 +14,7 @@ import type { Transaction } from "../../types/domain.ts";
 import { MONTH_LABELS } from "../../utils/months.ts";
 import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 import { KitLegend } from "./KitChartShared.tsx";
+import { StatCard } from "./StatCard.tsx";
 import { compactAmount, formatKitAmount } from "./kitChartData.ts";
 import { investmentsSeries } from "./investmentsData.ts";
 import type { StatsPeriod } from "./statsPeriod.ts";
@@ -30,7 +31,7 @@ const INVEST = "var(--color-app-invest)";
 const INVEST_FADED =
   "color-mix(in srgb, var(--color-app-invest) 45%, transparent)";
 const TEXT = "var(--color-app-text)";
-const margin = { top: 16, right: 12, bottom: 28, left: 44 };
+const margin = { top: 6, right: 12, bottom: 28, left: 44 };
 
 /** One step of the chart: the cashed-out bar is negated so it hangs below the line. */
 type InvestRow = {
@@ -118,26 +119,13 @@ export const InvestmentsWidget: React.FC<InvestmentsWidgetProps> = ({
   if (bought === 0 && cashedOut === 0) return null;
 
   return (
-    <section
-      className={
-        bare
-          ? ""
-          : "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4"
-      }
+    <StatCard
+      title="Investments"
+      subtitle="What you put in, what came back, and where."
+      bare={bare}
     >
-      {!bare && (
-        <>
-          <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-            Investments
-          </h3>
-          <p className="text-[13px] text-app-muted mt-0.5">
-            What you put in, what came back, and where.
-          </p>
-        </>
-      )}
-
       {/* The kit paints Line marks beneath SeriesBars, so the running total lives in the transparent overlay below. */}
-      <div className="relative mt-3">
+      <div className="relative">
         <ComposedChart
           data={rows}
           xDataKey="date"
@@ -205,9 +193,9 @@ export const InvestmentsWidget: React.FC<InvestmentsWidgetProps> = ({
         </div>
       </div>
 
-      <KitLegend series={legend} />
+      <KitLegend series={legend} className="mt-0" />
 
-      <div className="grid grid-cols-3 gap-3 mt-3">
+      <div className="grid grid-cols-3 gap-3">
         <Fact value={formatKitAmount(bought, currencySymbol)} label="bought" />
         <Fact
           value={formatKitAmount(cashedOut, currencySymbol)}
@@ -220,7 +208,7 @@ export const InvestmentsWidget: React.FC<InvestmentsWidgetProps> = ({
         />
       </div>
 
-      <ul className="mt-4 flex flex-col gap-2">
+      <ul className="flex flex-col gap-3 border-t border-app-border pt-4">
         {byTag.map((tag) => (
           <li
             key={tag.name}
@@ -239,7 +227,7 @@ export const InvestmentsWidget: React.FC<InvestmentsWidgetProps> = ({
           </li>
         ))}
       </ul>
-    </section>
+    </StatCard>
   );
 };
 

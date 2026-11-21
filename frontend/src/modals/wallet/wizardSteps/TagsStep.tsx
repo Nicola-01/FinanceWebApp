@@ -9,6 +9,7 @@ import {
   faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
 import { Selector } from "../../../components/ui/Selector";
+import { useUiVersion } from "../../../hooks/useUiVersion";
 import { WizardStepHeader } from "./WizardStepHeader";
 import { StagedTagTree, type StagedTagNode } from "./StagedTagTree";
 import { RecommendedTagMode } from "./tagModes/RecommendedTagMode";
@@ -67,6 +68,8 @@ export function TagsStep({
   // pre-selected) even after they've been merged into the staged list.
   const [csvTags, setCsvTags] = useState<TagRequest[]>([]);
   const stagedKeys = new Set(value.map((t) => keyOf(t.name)));
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
 
   // Every category the user can pick from (presets + each source wallet's),
   // indexed by parent name — the source of truth for deriving a category's
@@ -156,7 +159,9 @@ export function TagsStep({
   }));
 
   return (
-    <div className="space-y-6 text-left">
+    <div
+      className={v2 ? "flex flex-col gap-6 text-left" : "space-y-6 text-left"}
+    >
       <WizardStepHeader
         icon={faTag}
         title="Tags"
@@ -237,9 +242,15 @@ export function TagsStep({
 
       {value.length > 0 && (
         <section aria-label="Staged tags">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-app-muted">
-            {value.length} tag{value.length === 1 ? "" : "s"} staged
-          </p>
+          {v2 ? ( // ui-v2-switch
+            <h3 className="mb-2 px-1 text-[13px] text-app-muted">
+              {value.length} tag{value.length === 1 ? "" : "s"} staged
+            </h3>
+          ) : (
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-app-muted">
+              {value.length} tag{value.length === 1 ? "" : "s"} staged
+            </p>
+          )}
           <StagedTagTree
             value={nodesWithOrigin}
             onRemoveCategory={removeCategory}

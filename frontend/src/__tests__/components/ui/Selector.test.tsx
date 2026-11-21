@@ -156,10 +156,10 @@ describe("Selector", () => {
       );
     });
 
-    it("falls back to the text-wallet svg rule for the active icon without accentColor", () => {
+    it("darkens the active icon in light and keeps the wallet colour in dark", () => {
       render(<Selector options={iconOptions} value="a" onChange={() => {}} />);
       expect(screen.getByRole("tab", { name: "Alpha" })).toHaveClass(
-        "[&[data-active]_svg]:text-wallet",
+        "[&[data-active]_svg]:text-[color-mix(in_srgb,var(--wallet),#000_30%)]",
       );
     });
 
@@ -216,6 +216,29 @@ describe("Selector", () => {
       const disabled = screen.getByRole("tab", { name: "Beta" });
       expect(disabled).toHaveAttribute("title", "Nope");
       expect(disabled).toHaveAttribute("aria-disabled", "true");
+    });
+  });
+
+  describe("v2 active icon", () => {
+    beforeEach(() => setUiVersion("v2"));
+    afterEach(() => setUiVersion("v1"));
+
+    it("darkens the active icon in light and keeps the wallet colour in dark", () => {
+      render(
+        <Selector
+          ariaLabel="Tabs"
+          value="a"
+          onChange={() => {}}
+          options={[
+            { value: "a", icon: <svg data-testid="icon-a" /> },
+            { value: "b", icon: <svg data-testid="icon-b" /> },
+          ]}
+        />,
+      );
+      const active = screen.getByTestId("icon-a").closest("[role=tab]")!;
+      expect(active.className).toContain(
+        "[&[data-active]_svg]:text-[color-mix(in_srgb,var(--wallet),#000_30%)]",
+      );
     });
   });
 });

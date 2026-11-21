@@ -85,7 +85,6 @@ export const MemberRow: React.FC<MemberRowProps> = ({
                 onChange={setSelectedRole}
                 size="sm"
                 fullWidth={false}
-                className="w-36"
               />
               <Button
                 size="icon"

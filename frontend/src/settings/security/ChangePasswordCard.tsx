@@ -16,6 +16,7 @@ import { PasswordRequirements } from "../../components/password/PasswordRequirem
 import { isPasswordValid } from "../../components/password/passwordRequirements";
 import { getApiErrorDetail } from "../../utils/apiError";
 import { setMustChangePWD } from "../../utils/authHelper";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface Props {
   /** Forced (mustChangePWD) mode: show a blocking banner on the password card. */
@@ -30,6 +31,11 @@ export const ChangePasswordCard: React.FC<Props> = ({
 }) => {
   const [passwords, setPasswords] = useState({ old: "", new: "", confirm: "" });
   const [savingPw, setSavingPw] = useState(false);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
+  // ui-v2-switch: PasswordInput ships its own 15px bottom margin; v2 spaces fields with gap-3.
+  const field = (el: React.ReactNode) =>
+    isV2 ? <div className="[&>div]:mb-0">{el}</div> : el;
 
   const pwValid =
     isPasswordValid(passwords.new, passwords.confirm) &&
@@ -62,7 +68,7 @@ export const ChangePasswordCard: React.FC<Props> = ({
       icon={faShieldAlt}
       footer={
         <Button
-          accentColor="var(--color-app-green)"
+          accentColor={isV2 ? undefined : "var(--color-app-green)"} // ui-v2-switch
           ripple
           className="w-full sm:w-56"
           onClick={handleChangePassword}
@@ -76,7 +82,24 @@ export const ChangePasswordCard: React.FC<Props> = ({
         </Button>
       }
     >
-      {forced && (
+      {forced &&
+        isV2 && ( // ui-v2-switch
+          <div className="flex items-start gap-3 rounded-[var(--r-input)] bg-app-surface p-4 shadow-[inset_3px_0_0_var(--color-app-warn),var(--box-ring)]">
+            <FontAwesomeIcon
+              icon={faTriangleExclamation}
+              className="mt-0.5 shrink-0 text-app-warn"
+            />
+            <div>
+              <p className="text-sm font-semibold text-app-text">
+                Password change required
+              </p>
+              <p className="mt-0.5 text-[13px] text-app-muted">
+                For security, set a new password before continuing to the app.
+              </p>
+            </div>
+          </div>
+        )}
+      {forced && !isV2 && (
         <div className="mb-5 flex items-start gap-3 rounded-[var(--r-input)] border border-app-yellow/30 bg-app-yellow/10 p-4">
           <FontAwesomeIcon
             icon={faTriangleExclamation}
@@ -93,44 +116,90 @@ export const ChangePasswordCard: React.FC<Props> = ({
         </div>
       )}
 
-      <PasswordInput
-        label="Current password"
-        placeholder="Enter current password"
-        value={passwords.old}
-        icon={faKey}
-        onChange={(val) => setPasswords((p) => ({ ...p, old: val }))}
-      />
+      {isV2 ? ( // ui-v2-switch
+        <div className="flex flex-col gap-3">
+          {field(
+            <PasswordInput
+              label="Current password"
+              placeholder="Enter current password"
+              value={passwords.old}
+              icon={faKey}
+              onChange={(val) => setPasswords((p) => ({ ...p, old: val }))}
+            />,
+          )}
+          <div className="relative flex flex-col gap-3">
+            {passwords.new.length > 0 && (
+              <div className="absolute bottom-full left-0 right-0 z-20 mb-2 rounded-[var(--r-input)] bg-app-surface p-3 shadow-[var(--box-ring)]">
+                <PasswordRequirements
+                  password={passwords.new}
+                  confirmPassword={passwords.confirm}
+                />
+              </div>
+            )}
+            {field(
+              <PasswordInput
+                label="New password"
+                placeholder="Enter new password"
+                value={passwords.new}
+                icon={faLock}
+                onChange={(val) => setPasswords((p) => ({ ...p, new: val }))}
+              />,
+            )}
+            {field(
+              <PasswordInput
+                label="Confirm new password"
+                placeholder="Confirm new password"
+                value={passwords.confirm}
+                icon={faLock}
+                onChange={(val) =>
+                  setPasswords((p) => ({ ...p, confirm: val }))
+                }
+              />,
+            )}
+          </div>
+        </div>
+      ) : (
+        <>
+          <PasswordInput
+            label="Current password"
+            placeholder="Enter current password"
+            value={passwords.old}
+            icon={faKey}
+            onChange={(val) => setPasswords((p) => ({ ...p, old: val }))}
+          />
 
-      <hr className="my-5 h-px border-0 bg-app-border" />
+          <hr className="my-5 h-px border-0 bg-app-border" />
 
-      <div className="relative space-y-4">
-        {/* Floating popover above the fields: shown only while typing a new
+          <div className="relative space-y-4">
+            {/* Floating popover above the fields: shown only while typing a new
             password and absolutely positioned, so it never changes the card
             height (no layout shift when it appears/disappears). */}
-        {passwords.new.length > 0 && (
-          <div className="absolute bottom-full left-0 right-0 z-20 mb-2 rounded-[var(--r-input)] border border-app-border bg-app-card p-3 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.5)]">
-            <PasswordRequirements
-              password={passwords.new}
-              confirmPassword={passwords.confirm}
+            {passwords.new.length > 0 && (
+              <div className="absolute bottom-full left-0 right-0 z-20 mb-2 rounded-[var(--r-input)] border border-app-border bg-app-card p-3 shadow-[0_12px_30px_-12px_rgba(0,0,0,0.5)]">
+                <PasswordRequirements
+                  password={passwords.new}
+                  confirmPassword={passwords.confirm}
+                />
+              </div>
+            )}
+
+            <PasswordInput
+              label="New password"
+              placeholder="Enter new password"
+              value={passwords.new}
+              icon={faLock}
+              onChange={(val) => setPasswords((p) => ({ ...p, new: val }))}
+            />
+            <PasswordInput
+              label="Confirm new password"
+              placeholder="Confirm new password"
+              value={passwords.confirm}
+              icon={faLock}
+              onChange={(val) => setPasswords((p) => ({ ...p, confirm: val }))}
             />
           </div>
-        )}
-
-        <PasswordInput
-          label="New password"
-          placeholder="Enter new password"
-          value={passwords.new}
-          icon={faLock}
-          onChange={(val) => setPasswords((p) => ({ ...p, new: val }))}
-        />
-        <PasswordInput
-          label="Confirm new password"
-          placeholder="Confirm new password"
-          value={passwords.confirm}
-          icon={faLock}
-          onChange={(val) => setPasswords((p) => ({ ...p, confirm: val }))}
-        />
-      </div>
+        </>
+      )}
     </Card>
   );
 };

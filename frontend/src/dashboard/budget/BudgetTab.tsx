@@ -10,7 +10,6 @@ import Button from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useDeleteModal } from "../../modals/common/DeleteModalContext.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion";
-import { monthAside } from "./budgetLogic";
 
 export const BudgetTab: React.FC = () => {
   const { wallet, tags } = useWalletContext();
@@ -43,19 +42,16 @@ export const BudgetTab: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-4 animate-[fadeIn_0.3s_ease-out]">
+    <div
+      className={`flex flex-col ${isV2 ? "gap-6" : "gap-4"} animate-[fadeIn_0.3s_ease-out]`}
+    >
       {/* ui-v2-switch */}
       <div className="flex items-center justify-between gap-3">
         {isV2 ? (
           <div className="flex min-w-0 items-baseline gap-3">
-            <h2 className="font-display text-[19px] font-semibold tracking-[-0.02em] text-app-text">
+            <h2 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">
               Budgets
             </h2>
-            {budgets.length > 0 && (
-              <span className="truncate text-[13px] text-app-muted">
-                {monthAside(new Date())}
-              </span>
-            )}
           </div>
         ) : (
           <h2 className="text-lg font-bold text-app-text">Budgets</h2>

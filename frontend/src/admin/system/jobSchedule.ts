@@ -7,6 +7,7 @@ import {
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
 import type { ScheduleDraft } from "../schedulePayload";
+import type { ScheduledJobDTO } from "./types";
 
 export const JOB_ICONS: Record<string, IconDefinition> = {
   backup: faDatabase,
@@ -96,4 +97,25 @@ export function formatRunTime(iso: string): string {
     day: "2-digit",
     month: "short",
   })} ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+/** One-line schedule summary for the v2 list, e.g. "Weekly on M, F at 02:00". */
+export function describeSchedule(j: ScheduledJobDTO): string {
+  const time = `${pad2(j.hourOfDay)}:${pad2(j.minuteOfHour)}`;
+  switch (j.frequency) {
+    case "HOURLY":
+      return `Hourly at :${pad2(j.minuteOfHour)}`;
+    case "WEEKLY":
+      return `Weekly on ${j.daysOfWeek
+        .map((t) => DAYS.find((d) => d.token === t)?.label ?? t)
+        .join(", ")} at ${time}`;
+    case "MONTHLY":
+      return `Monthly on day ${j.dayOfMonth ?? 1} at ${time}`;
+    case "YEARLY":
+      return `Yearly on ${j.dayOfMonth ?? 1} ${
+        MONTH_OPTIONS[(j.monthOfYear ?? 1) - 1]?.label ?? ""
+      } at ${time}`;
+    default:
+      return `Daily at ${time}`;
+  }
 }

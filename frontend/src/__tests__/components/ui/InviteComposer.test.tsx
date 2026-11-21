@@ -37,6 +37,12 @@ describe("InviteComposer v2", () => {
     expect(send.style.backgroundColor).toBe("");
   });
 
+  it("lets the role selector size to its content on sm+ instead of a fixed 144px", () => {
+    renderComposer();
+    const tablist = screen.getByRole("tablist");
+    expect(tablist).not.toHaveClass("sm:w-36");
+  });
+
   it("still submits from the button and from Enter", async () => {
     const user = userEvent.setup();
     const { onSubmit } = renderComposer();

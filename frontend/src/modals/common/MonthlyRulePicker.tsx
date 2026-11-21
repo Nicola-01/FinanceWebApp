@@ -3,6 +3,8 @@ import { format, isBefore, startOfDay } from "date-fns";
 import { Selector } from "../../components/ui/Selector.tsx";
 import { CustomSelect } from "../../components/ui/CustomSelect.tsx";
 import { FieldLabel } from "../../components/ui/FieldLabel";
+import { FormRow } from "../../components/ui/FormRow";
+import { faCalendarDay } from "@fortawesome/free-solid-svg-icons";
 import type { Subscription, Weekday } from "../../types/domain";
 import {
   generateSubscriptionOccurrences,
@@ -26,6 +28,8 @@ interface Props {
   startDate: Date;
   frequencyInterval: number;
   accentColor?: string;
+  /** "card": boxed v1 editor. "rows": v2 FormRows for a `divide-y` card. */
+  variant?: "card" | "rows";
 }
 
 const range = (from: number, to: number) =>
@@ -54,6 +58,43 @@ const ordinalOptions = (values: number[]) =>
 
 const PREVIEW_COUNT = 3;
 
+function previewDates(
+  rule: MonthlyRule,
+  startDate: Date,
+  frequencyInterval: number,
+): Date[] {
+  const sub = {
+    frequencyType: "MONTHLY",
+    frequencyInterval,
+    startDate: toLocalIsoDate(startDate),
+    duration: "FOREVER",
+    ...monthlyRulePayload(rule, "MONTHLY", startDate),
+  } as unknown as Subscription;
+  const today = startOfDay(new Date());
+  const year = Math.max(today.getFullYear(), startDate.getFullYear());
+  return generateSubscriptionOccurrences(sub, year - 1, year + 2)
+    .filter((d) => !isBefore(d, today))
+    .slice(0, PREVIEW_COUNT);
+}
+
+/** "Next: …" preview line, rendered by the modal below its schedule card (v2). */
+export function MonthlyRuleNext({
+  rule,
+  startDate,
+  frequencyInterval,
+}: Pick<Props, "rule" | "startDate" | "frequencyInterval">) {
+  const preview = useMemo(
+    () => previewDates(rule, startDate, frequencyInterval),
+    [rule, startDate, frequencyInterval],
+  );
+  if (preview.length === 0) return null;
+  return (
+    <p className="mt-2 px-1 text-[13px] text-app-faint" aria-live="polite">
+      Next: {preview.map((d) => format(d, "EEE d MMM yyyy")).join(", ")}
+    </p>
+  );
+}
+
 /**
  * "On which day" editor for MONTHLY subscriptions: a plain day of the month
  * (incl. counting from the end), the n-th weekday, or the n-th working day,
@@ -65,26 +106,94 @@ export function MonthlyRulePicker({
   startDate,
   frequencyInterval,
   accentColor,
+  variant = "card",
 }: Props) {
   const mode = monthlyRuleMode(rule);
 
-  const preview = useMemo(() => {
-    const sub = {
-      frequencyType: "MONTHLY",
-      frequencyInterval,
-      startDate: toLocalIsoDate(startDate),
-      duration: "FOREVER",
-      ...monthlyRulePayload(rule, "MONTHLY", startDate),
-    } as unknown as Subscription;
-    const today = startOfDay(new Date());
-    const year = Math.max(today.getFullYear(), startDate.getFullYear());
-    return generateSubscriptionOccurrences(sub, year - 1, year + 2)
-      .filter((d) => !isBefore(d, today))
-      .slice(0, PREVIEW_COUNT);
-  }, [rule, startDate, frequencyInterval]);
+  const preview = useMemo(
+    () => previewDates(rule, startDate, frequencyInterval),
+    [rule, startDate, frequencyInterval],
+  );
 
   const selectClass =
     "flex-1 min-w-0 bg-transparent px-3 py-2 text-sm font-bold text-app-text cursor-pointer";
+
+  // Shared edit handlers for both variants.
+  const setSpecificDay = (v: string) =>
+    onChange({ ...EMPTY_MONTHLY_RULE, monthlySpecificDay: Number(v) });
+  const setWeekdayOrdinal = (v: string) =>
+    onChange({ ...rule, monthlyWeekdayOrdinal: Number(v) });
+  const setWeekday = (v: string) =>
+    onChange({ ...rule, monthlyWeekday: v as Weekday });
+  const setWorkingDay = (v: string) =>
+    onChange({ ...EMPTY_MONTHLY_RULE, monthlyWorkingDay: Number(v) });
+
+  if (variant === "rows") {
+    const rowSelect =
+      "min-w-0 bg-transparent px-1 py-1 text-sm text-app-text cursor-pointer";
+    return (
+      <>
+        <div className="px-4 py-3">
+          <Selector<MonthlyRuleMode>
+            value={mode}
+            onChange={(m) => onChange(defaultRuleForMode(m, startDate))}
+            size="md"
+            accentColor={accentColor}
+            options={[
+              { value: "DAY", label: "Day of month" },
+              { value: "WEEKDAY", label: "Weekday" },
+              { value: "WORKING_DAY", label: "Working day" },
+            ]}
+          />
+        </div>
+
+        <FormRow icon={faCalendarDay} label="Day">
+          <div className="flex min-w-0 items-center gap-2">
+            {mode === "DAY" && (
+              <CustomSelect
+                value={String(rule.monthlySpecificDay ?? startDate.getDate())}
+                onChange={setSpecificDay}
+                className={rowSelect}
+                activeColor={accentColor}
+                options={DAY_OPTIONS}
+              />
+            )}
+            {mode === "WEEKDAY" && (
+              <>
+                <CustomSelect
+                  value={String(rule.monthlyWeekdayOrdinal)}
+                  onChange={setWeekdayOrdinal}
+                  className={rowSelect}
+                  activeColor={accentColor}
+                  options={ordinalOptions(WEEKDAY_ORDINALS)}
+                />
+                <CustomSelect
+                  value={rule.monthlyWeekday ?? "MONDAY"}
+                  onChange={setWeekday}
+                  className={rowSelect}
+                  activeColor={accentColor}
+                  dropdownAlign="right"
+                  options={WEEKDAY_OPTIONS}
+                />
+              </>
+            )}
+            {mode === "WORKING_DAY" && (
+              <>
+                <CustomSelect
+                  value={String(rule.monthlyWorkingDay)}
+                  onChange={setWorkingDay}
+                  className={rowSelect}
+                  activeColor={accentColor}
+                  options={ordinalOptions(WORKING_ORDINALS)}
+                />
+                <span className="text-sm text-app-muted">working day</span>
+              </>
+            )}
+          </div>
+        </FormRow>
+      </>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -107,9 +216,7 @@ export function MonthlyRulePicker({
         {mode === "DAY" && (
           <CustomSelect
             value={String(rule.monthlySpecificDay ?? startDate.getDate())}
-            onChange={(v) =>
-              onChange({ ...EMPTY_MONTHLY_RULE, monthlySpecificDay: Number(v) })
-            }
+            onChange={setSpecificDay}
             className={selectClass}
             activeColor={accentColor}
             options={DAY_OPTIONS}
@@ -120,18 +227,14 @@ export function MonthlyRulePicker({
           <>
             <CustomSelect
               value={String(rule.monthlyWeekdayOrdinal)}
-              onChange={(v) =>
-                onChange({ ...rule, monthlyWeekdayOrdinal: Number(v) })
-              }
+              onChange={setWeekdayOrdinal}
               className={`${selectClass} border-r border-app-border`}
               activeColor={accentColor}
               options={ordinalOptions(WEEKDAY_ORDINALS)}
             />
             <CustomSelect
               value={rule.monthlyWeekday ?? "MONDAY"}
-              onChange={(v) =>
-                onChange({ ...rule, monthlyWeekday: v as Weekday })
-              }
+              onChange={setWeekday}
               className={selectClass}
               activeColor={accentColor}
               dropdownAlign="right"
@@ -144,12 +247,7 @@ export function MonthlyRulePicker({
           <>
             <CustomSelect
               value={String(rule.monthlyWorkingDay)}
-              onChange={(v) =>
-                onChange({
-                  ...EMPTY_MONTHLY_RULE,
-                  monthlyWorkingDay: Number(v),
-                })
-              }
+              onChange={setWorkingDay}
               className={`${selectClass} border-r border-app-border`}
               activeColor={accentColor}
               options={ordinalOptions(WORKING_ORDINALS)}

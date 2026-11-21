@@ -5,9 +5,10 @@ import {
   faSortDown,
   faSortUp,
 } from "@fortawesome/free-solid-svg-icons";
-import UserRow from "./UserRow";
+import UserRow, { UserListItem } from "./UserRow";
 import SearchInput from "../components/ui/SearchInput";
 import { Card } from "../components/ui/Card";
+import { useUiVersion } from "../hooks/useUiVersion";
 import type { User } from "../types/domain.ts";
 
 type SortConfig = {
@@ -26,6 +27,7 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
   onDeleteClick,
   onToggleOpenBanking,
 }) => {
+  const [ui] = useUiVersion();
   // Local state for searching and sorting
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
@@ -78,6 +80,94 @@ export const UserDirectory: React.FC<UserDirectoryProps> = ({
 
   const headerCellClass =
     "sticky top-0 z-10 cursor-pointer border-b border-app-border bg-app-card p-[18px] font-semibold text-app-muted transition-colors hover:text-app-text";
+
+  if (ui === "v2") {
+    // ui-v2-switch: card with a sticky-header table (desktop) or divide-y rows (phone).
+    const sortTh = (label: string, key: keyof User, align = "") => (
+      <th
+        scope="col"
+        className={`sticky top-0 z-10 border-b border-app-border bg-app-card px-4 py-3 text-[13px] font-medium text-app-muted ${align}`}
+      >
+        <button
+          type="button"
+          onClick={() => requestSort(key)}
+          className="inline-flex items-center gap-1.5 transition-colors hover:text-app-text"
+        >
+          {label}
+          <FontAwesomeIcon icon={getSortIcon(key)} className="opacity-70" />
+        </button>
+      </th>
+    );
+    return (
+      <Card padding="none">
+        <div className="flex flex-wrap items-center justify-between gap-3.5 px-5 pt-5 sm:px-6 sm:pt-6">
+          <h3 className="m-0 font-display text-lg font-semibold tracking-[-0.02em] text-app-text">
+            Users
+          </h3>
+          <div className="w-full sm:w-[300px]">
+            <SearchInput
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search by name…"
+            />
+          </div>
+        </div>
+
+        {processedUsers.length === 0 ? (
+          <p className="px-5 pb-5 text-center text-[13px] text-app-muted sm:px-6">
+            No users found.
+          </p>
+        ) : (
+          <>
+            <div className="hidden max-h-[560px] overflow-auto lg:block">
+              <table className="w-full border-collapse text-left text-[14px]">
+                <thead>
+                  <tr>
+                    {sortTh("User", "name")}
+                    {sortTh("Joined", "createdAt")}
+                    {sortTh("Wallets", "wallets", "text-right")}
+                    {sortTh("Transactions", "transactions", "text-right")}
+                    <th
+                      scope="col"
+                      className="sticky top-0 z-10 border-b border-app-border bg-app-card px-4 py-3 text-[13px] font-medium text-app-muted"
+                    >
+                      Open Banking
+                    </th>
+                    <th
+                      scope="col"
+                      className="sticky top-0 z-10 border-b border-app-border bg-app-card px-4 py-3 text-right text-[13px] font-medium text-app-muted"
+                    >
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {processedUsers.map((user) => (
+                    <UserRow
+                      key={user.id}
+                      user={user}
+                      onDelete={onDeleteClick}
+                      onToggleOpenBanking={onToggleOpenBanking}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <ul className="divide-y divide-app-border border-t border-app-border lg:hidden">
+              {processedUsers.map((user) => (
+                <UserListItem
+                  key={user.id}
+                  user={user}
+                  onDelete={onDeleteClick}
+                  onToggleOpenBanking={onToggleOpenBanking}
+                />
+              ))}
+            </ul>
+          </>
+        )}
+      </Card>
+    );
+  }
 
   return (
     <Card padding="md">

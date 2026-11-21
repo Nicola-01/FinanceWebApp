@@ -187,18 +187,28 @@ describe("WalletPermissionSelector v2", () => {
     localStorage.clear();
   });
 
-  it("paints enabled rows as a card fill without the inline wallet tint", () => {
+  it("renders one card with one row per wallet, without the inline wallet tint", () => {
     render(
       <WalletPermissionSelector
-        walletPerms={[wp({ walletName: "Alpha", enabled: true, read: true })]}
+        walletPerms={[
+          wp({ walletId: "a", walletName: "Alpha", enabled: true, read: true }),
+          wp({ walletId: "b", walletName: "Beta" }),
+        ]}
         setPermission={vi.fn()}
       />,
     );
-    const row = screen.getByText("Alpha").closest(".flex-col")
-      ?.parentElement as HTMLElement;
-    expect(row.className).toContain("bg-app-card");
+    const row = screen.getByText("Alpha").parentElement as HTMLElement;
+    const card = row.parentElement as HTMLElement;
+    expect(card).toHaveClass(
+      "bg-app-card",
+      "divide-y",
+      "rounded-[var(--r-card)]",
+    );
+    expect(card.children).toHaveLength(2);
+    expect(row).toHaveClass("min-h-14", "px-4");
     expect(row.style.backgroundColor).toBe("");
     expect(row.style.borderColor).toBe("");
+    expect(row.querySelector('[role="tab"]')).not.toBeNull();
   });
 
   it("still grants write access on click for an owner", async () => {

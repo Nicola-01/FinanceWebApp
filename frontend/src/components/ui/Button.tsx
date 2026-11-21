@@ -87,21 +87,26 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const { ripples, spawnRipple } = useRipple();
-  const [ui] = useUiVersion();
   const useAccent = Boolean(accentColor);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2";
+  // ui-v2-switch: v2 ripple reads on any wallet colour (on-wallet ink on wallet fills, currentColor elsewhere).
+  const walletFilled = useAccent || variant === "primary";
   const color =
     rippleColor ??
-    (useAccent || variant === "primary" || variant === "danger"
-      ? "rgba(255,255,255,0.45)"
-      : "rgba(139,92,246,0.35)");
+    (isV2
+      ? walletFilled
+        ? "color-mix(in srgb, var(--on-wallet) 30%, transparent)"
+        : "color-mix(in srgb, currentColor 18%, transparent)"
+      : useAccent || variant === "primary" || variant === "danger"
+        ? "rgba(255,255,255,0.45)"
+        : "rgba(139,92,246,0.35)");
 
   const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (ripple && !props.disabled) spawnRipple(e);
     onPointerDown?.(e);
   };
 
-  // ui-v2-switch
-  const isV2 = ui === "v2";
   // ui-v2-switch
   const baseClass = isV2 ? BASE_V2 : BASE;
   // ui-v2-switch

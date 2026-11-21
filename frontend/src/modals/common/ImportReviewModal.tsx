@@ -11,6 +11,7 @@ import {
 } from "./ImportReviewBodies";
 import Button from "../../components/ui/Button";
 import type { DedupOverwrite } from "../../dashboard/settings/csvDedup";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 /** Which resource an import targets — drives the copy in both phases. */
 export type ImportResource = "transactions" | "tags" | "subscriptions";
@@ -75,6 +76,8 @@ export const ImportReviewModal: React.FC<ImportReviewModalProps> = ({
   onClose,
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
   const label = RESOURCE_LABEL[resource];
   const showsTags = resource !== "tags";
 
@@ -100,12 +103,18 @@ export const ImportReviewModal: React.FC<ImportReviewModalProps> = ({
       title={
         isConfirm ? (
           <>
-            <FontAwesomeIcon icon={faFileArrowUp} className="text-app-yellow" />
+            <FontAwesomeIcon
+              icon={faFileArrowUp}
+              className={isV2 ? "text-app-warn" : "text-app-yellow"}
+            />
             Review import
           </>
         ) : (
           <>
-            <FontAwesomeIcon icon={faCircleCheck} className="text-app-green" />
+            <FontAwesomeIcon
+              icon={faCircleCheck}
+              className={isV2 ? "text-app-income" : "text-app-green"}
+            />
             Import complete
           </>
         )

@@ -3,6 +3,7 @@ import { useWalletContext } from "../../wallet/WalletContext.tsx";
 import type { BankConnection } from "../../../api/bankApi";
 import type { BankRule } from "../../../types/domain";
 import { ResponsiveOverlay } from "../../../components/ui/ResponsiveOverlay.tsx";
+import { useUiVersion } from "../../../hooks/useUiVersion.ts";
 import { BankAccountsList } from "./BankAccountsList.tsx";
 import { BankRulesPanel } from "./BankRulesPanel.tsx";
 
@@ -23,6 +24,7 @@ export function BankOverlay({
   reloadRules: () => Promise<void>;
 }) {
   const { wallet } = useWalletContext();
+  const [ui] = useUiVersion();
   // A dialog stacked on top (link form, editor, confirm) also listens for Escape:
   // keep this overlay open then, so one press closes only the top one.
   const [accountsBusy, setAccountsBusy] = useState(false);
@@ -38,17 +40,21 @@ export function BankOverlay({
       accentColor={wallet.color}
       width={520}
     >
-      <div className="flex flex-col gap-8">
+      <div
+        className={`flex flex-col ${ui === "v2" ? "gap-6" : "gap-8"}`} // ui-v2-switch
+      >
         <BankAccountsList
           connections={connections}
           reload={reloadAccounts}
           onChildOpenChange={setAccountsBusy}
         />
-        <BankRulesPanel
-          rules={rules}
-          reload={reloadRules}
-          onChildOpenChange={setRulesBusy}
-        />
+        {connections.length > 0 && (
+          <BankRulesPanel
+            rules={rules}
+            reload={reloadRules}
+            onChildOpenChange={setRulesBusy}
+          />
+        )}
       </div>
     </ResponsiveOverlay>
   );

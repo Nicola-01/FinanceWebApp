@@ -6,11 +6,14 @@ import { ModalDialog } from "../../modals/common/ModalDialog";
 import { PatFormView } from "../../modals/pat/PatFormView";
 import { PatShowTokenView } from "../../modals/pat/PatShowTokenView";
 import type { useTokenDialog } from "./useTokenDialog";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 /** Create / edit / show-once dialog. */
 export const TokenDialog: React.FC<{
   dialog: ReturnType<typeof useTokenDialog>;
 }> = ({ dialog }) => {
+  const [ui] = useUiVersion(); // ui-v2-switch
+  const isV2 = ui === "v2";
   const {
     dialogRef,
     view,
@@ -29,17 +32,27 @@ export const TokenDialog: React.FC<{
   const dialogTitle =
     view === "create" ? (
       <>
-        <FontAwesomeIcon icon={faPlus} className="text-app-green" /> New token
+        <FontAwesomeIcon
+          icon={faPlus}
+          className={isV2 ? "text-app-income" : "text-app-green"}
+        />{" "}
+        New token
       </>
     ) : view === "edit" ? (
       <>
-        <FontAwesomeIcon icon={faPen} className="text-app-yellow" /> Edit
-        permissions
+        <FontAwesomeIcon
+          icon={faPen}
+          className={isV2 ? "text-app-warn" : "text-app-yellow"}
+        />{" "}
+        Edit permissions
       </>
     ) : (
       <>
-        <FontAwesomeIcon icon={faShieldAlt} className="text-app-yellow" /> Token
-        created
+        <FontAwesomeIcon
+          icon={faShieldAlt}
+          className={isV2 ? "text-app-warn" : "text-app-yellow"}
+        />{" "}
+        Token created
       </>
     );
 

@@ -36,7 +36,7 @@ const periodOf = (ctx: StatisticsWidgetCtx): StatsPeriod =>
     : { kind: "year", year: ctx.rows[0].date.getFullYear() };
 
 /** The v2 Statistics registry (below the pinned summary + month-by-month row). Order here = the default layout. */
-export const STATISTICS_WIDGETS: WidgetDef<StatisticsWidgetCtx>[] = [
+const ALL_STATISTICS_WIDGETS: WidgetDef<StatisticsWidgetCtx>[] = [
   {
     id: "investments",
     span: "half",
@@ -98,3 +98,11 @@ export const STATISTICS_WIDGETS: WidgetDef<StatisticsWidgetCtx>[] = [
     ),
   },
 ];
+
+/** The registry the wallet can show: the investments widget only once a tag is flagged as investment. */
+export const statisticsWidgetsFor = (
+  hasInvestments: boolean,
+): WidgetDef<StatisticsWidgetCtx>[] =>
+  hasInvestments
+    ? ALL_STATISTICS_WIDGETS
+    : ALL_STATISTICS_WIDGETS.filter((w) => w.id !== "investments");

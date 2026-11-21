@@ -9,7 +9,7 @@ import { Badge, type BadgeTone } from "../../components/ui/Badge.tsx";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay.tsx";
 import { ConfirmModal } from "../../modals/common/ConfirmModal.tsx";
 import { ConnectBankForm } from "./ConnectBankForm.tsx";
-import { useWalletBank } from "./bank/useWalletBank.ts";
+import type { WalletBank } from "./bank/useWalletBank.ts";
 import { useBankConnectionActions } from "./bank/useBankConnectionActions.ts";
 import { relativeTime } from "./bank/bankFormat.ts";
 
@@ -26,12 +26,14 @@ const isExpiring = (c: BankConnection) =>
   c.status === "EXPIRED" ||
   (!!c.validUntil && new Date(c.validUntil).getTime() - Date.now() < 7 * DAY);
 
-/** Bank connections for the active wallet; explains how to get access when not enabled. */
-export const BankAccountsSection: React.FC = () => {
+/** Bank connections for the active wallet; hidden entirely when Open Banking is off. */
+export const BankAccountsSection: React.FC<{ bank: WalletBank }> = ({
+  bank,
+}) => {
   const { wallet } = useWalletContext();
   const [ui] = useUiVersion();
   const isV2 = ui === "v2"; // ui-v2-switch
-  const { enabled, connections, loadFailed, reload } = useWalletBank(wallet.id);
+  const { enabled, connections, loadFailed, reload } = bank;
   const { sync, renew, unlink } = useBankConnectionActions(reload);
   const [linking, setLinking] = useState(false);
   const [unlinkTarget, setUnlinkTarget] = useState<BankConnection | null>(null);
@@ -49,14 +51,12 @@ export const BankAccountsSection: React.FC = () => {
   );
 
   if (loadFailed) return notice("Could not load bank accounts.");
-  if (enabled === null) return null;
-  if (!enabled)
-    return notice(
-      "Open Banking is not enabled for your account. Ask an admin to turn it on.",
-    );
+  if (!enabled) return null;
 
   const isOwner = wallet.userRole === "OWNER";
   const canSync = isOwner || wallet.userRole === "EDITOR";
+  // Nothing to show or do for a non-owner until a bank is linked (only owners link).
+  if (!isOwner && connections.length === 0) return null;
 
   const confirmUnlink = async () => {
     if (!unlinkTarget) return;

@@ -16,6 +16,7 @@ import {
   InvitesMobileInline,
   InvitesDesktopSection,
   InvitesList,
+  CountPill,
 } from "./WalletInvites";
 import { InviteModal } from "../../modals/wallet/InviteModal";
 import { AddWalletTile, WalletSkeleton } from "./WalletBarTiles";
@@ -24,6 +25,7 @@ import { useWalletDragReorder } from "./useWalletDragReorder";
 import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
 import SwipeableDrawer from "@mui/material/SwipeableDrawer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   faChevronDown,
   faEnvelope,
@@ -63,6 +65,7 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
   const isDesktop = useMediaQuery(V2_DESKTOP_QUERY);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [v2InvitesOpen, setV2InvitesOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
   const walletModal = useRef<CreateWalletWizardHandle>(null);
   const {
     activeId,
@@ -179,6 +182,8 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
         </SortableContext>
       );
     const label = "px-1.5 text-[13px] text-app-muted";
+    const sidebarButton =
+      "!justify-start gap-2.5 px-2.5 text-[14px] font-medium text-app-muted hover:text-app-text";
 
     return (
       <DndContext
@@ -198,31 +203,58 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
             <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-1 [scrollbar-width:none]">
               {walletList}
             </div>
-            <div className="grid gap-1 pt-2">
-              {v2InvitesOpen && (
-                <div className="grid gap-2 pb-1">
-                  <InvitesList invites={invites} onOpen={setActiveInvite} />
-                </div>
-              )}
+            {/* ui-v2-switch: aligned with the wallet cards (p-1) and divided from them */}
+            <div className="mt-1 flex flex-col gap-1 border-t border-app-border px-1 pt-3">
+              <AnimatePresence initial={false}>
+                {v2InvitesOpen && (
+                  <motion.div
+                    key="invites"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.2,
+                      ease: "easeOut",
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid gap-2 pb-2">
+                      <InvitesList invites={invites} onOpen={setActiveInvite} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <Button
                 variant="ghost"
                 size="sm"
+                fullWidth
                 aria-expanded={v2InvitesOpen}
                 onClick={() => setV2InvitesOpen((o) => !o)}
-                className="!justify-start"
+                className={sidebarButton}
               >
-                <FontAwesomeIcon icon={faEnvelope} />
+                <span className="inline-block w-4 text-center">
+                  <FontAwesomeIcon icon={faEnvelope} />
+                </span>
                 Invitations
-                <span className="ml-auto text-app-faint">{invites.length}</span>
+                <CountPill count={invites.length} className="ml-auto" />
+                <FontAwesomeIcon
+                  icon={faChevronDown}
+                  className={`text-[11px] transition-transform ${
+                    v2InvitesOpen ? "rotate-180" : ""
+                  }`}
+                />
               </Button>
               {!loading && (
                 <Button
                   variant="ghost"
                   size="sm"
+                  fullWidth
                   onClick={openWizard}
-                  className="!justify-start"
+                  className={sidebarButton}
                 >
-                  <FontAwesomeIcon icon={faPlus} />
+                  <span className="inline-block w-4 text-center">
+                    <FontAwesomeIcon icon={faPlus} />
+                  </span>
                   New wallet
                 </Button>
               )}

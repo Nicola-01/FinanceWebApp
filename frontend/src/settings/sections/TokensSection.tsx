@@ -21,12 +21,17 @@ import {
 import { TokenTypeBadge } from "../tokens/TokenTypeBadge";
 import { TokenFilterPills } from "../tokens/TokenFilterPills";
 import { TokenDialog } from "../tokens/TokenDialog";
+import { McpConnectGuide } from "../tokens/McpConnectGuide";
 import { useTokens } from "../tokens/useTokens";
 import { useTokenDialog } from "../tokens/useTokenDialog";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export const TokensSection: React.FC = () => {
   const deleteModalRef = useDeleteModal();
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [ui] = useUiVersion();
+  // ui-v2-switch: flat raised bars, no purple selection tint; Card's gap-4 spaces blocks.
+  const isV2 = ui === "v2";
 
   const {
     tokens,
@@ -69,6 +74,8 @@ export const TokensSection: React.FC = () => {
 
   return (
     <>
+      <McpConnectGuide />
+
       <Card>
         <TokenFilterPills
           filters={FILTERS}
@@ -80,11 +87,15 @@ export const TokensSection: React.FC = () => {
             stay disabled until at least one row is long-press-selected. */}
         {tokens.length > 0 && (
           <div
-            className={`mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-input)] border px-3 py-2 ${
-              selectionMode
-                ? "border-app-purple/30 bg-app-purple/5"
-                : "border-app-border bg-app-input"
-            }`}
+            className={
+              isV2
+                ? "flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-input)] bg-app-raised px-3 py-2"
+                : `mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-input)] border px-3 py-2 ${
+                    selectionMode
+                      ? "border-app-purple/30 bg-app-purple/5"
+                      : "border-app-border bg-app-input"
+                  }`
+            }
           >
             {selectionMode ? (
               <span className="text-sm font-semibold text-app-text">
@@ -145,11 +156,15 @@ export const TokensSection: React.FC = () => {
         {/* List */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-app-border border-t-app-purple" />
+            <div
+              className={`h-6 w-6 animate-spin rounded-full border-2 border-app-border ${isV2 ? "border-t-app-text" : "border-t-app-purple"}`}
+            />
           </div>
         ) : tokens.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-app-input">
+            <div
+              className={`mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ${isV2 ? "bg-app-raised" : "bg-app-input"}`}
+            >
               <FontAwesomeIcon
                 icon={faPlug}
                 className="text-2xl text-app-muted"
@@ -167,7 +182,13 @@ export const TokensSection: React.FC = () => {
             No {filter} tokens.
           </div>
         ) : (
-          <div className="space-y-3">
+          <div
+            className={
+              isV2
+                ? "divide-y divide-app-border overflow-hidden rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]"
+                : "space-y-3"
+            }
+          >
             {filtered.map((token) => (
               <TokenListItem
                 key={token.id}
@@ -199,7 +220,7 @@ export const TokensSection: React.FC = () => {
 
         {/* Primary create action lives at the bottom, always available. */}
         {!loading && (
-          <div className="mt-4">
+          <div className={isV2 ? "" : "mt-4"}>
             <Button variant="primary" fullWidth ripple onClick={openCreate}>
               <FontAwesomeIcon icon={faPlus} />
               New token

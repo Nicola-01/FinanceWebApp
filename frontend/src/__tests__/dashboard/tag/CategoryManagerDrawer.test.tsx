@@ -120,6 +120,23 @@ describe("CategoryManagerDrawer", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("shows the investment discovery hint under the sort row (not for VIEWER)", () => {
+    setCtx({ tags: [tag("Food")] });
+    const { unmount } = render(
+      <CategoryManagerDrawer open onClose={() => {}} />,
+    );
+    expect(
+      screen.getByText(/on a category to count it as an investment/),
+    ).toBeInTheDocument();
+    unmount();
+
+    setCtx({ role: "VIEWER", tags: [tag("Food")] });
+    render(<CategoryManagerDrawer open onClose={() => {}} />);
+    expect(
+      screen.queryByText(/on a category to count it as an investment/),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows an empty state when there are no categories", () => {
     setCtx({ tags: [] });
     render(<CategoryManagerDrawer open onClose={() => {}} />);
@@ -174,5 +191,32 @@ describe("CategoryManagerDrawer", () => {
 
     expect(iconAfter).not.toBe(iconBefore);
     expect(iconAfter).toBe("cart-shopping");
+  });
+
+  it("a parent's flag reaches its children at once, before the save lands", async () => {
+    const { handleUpdateTag } = setCtx({
+      tags: [tag("Car"), tag("Gasoline", "Car")],
+    });
+    let finish: (ok: boolean) => void = () => {};
+    handleUpdateTag.mockReturnValue(
+      new Promise<boolean>((resolve) => {
+        finish = resolve;
+      }),
+    );
+    render(<CategoryManagerDrawer open onClose={() => {}} />);
+    fireEvent.click(screen.getByRole("button", { name: "Expand Car" }));
+    await screen.findByText("Gasoline");
+
+    // Parent's toggle comes first in the DOM; the child's follows it.
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Counts as investment" })[0],
+    );
+
+    const child = screen.getAllByRole("button", {
+      name: "Counts as investment",
+    })[1];
+    expect(child).toHaveAttribute("aria-disabled", "true");
+    expect(child).toHaveClass("border-dashed");
+    finish(true);
   });
 });

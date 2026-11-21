@@ -5,6 +5,8 @@ import Sphere from "../assets/Sphere";
 import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import type { User } from "../types/domain.ts";
 import { getApiErrorTitle } from "../utils/apiError.ts";
+import { useUiVersion } from "../hooks/useUiVersion";
+import { Card } from "../components/ui/Card";
 
 import { AdminStats } from "./AdminStats";
 import { AdminPageHeader } from "./AdminPageHeader.tsx";
@@ -56,12 +58,61 @@ const UsersPage: React.FC<UsersPageProps> = ({
   );
 };
 
+// ── v2 pages (ui-v2-switch): one section per sub-nav route ─────────────────────
+
+const countPending = (invites: AdminInvite[]) =>
+  invites.filter((i) => i.status === "PENDING").length;
+
+const OverviewPageV2: React.FC<UsersPageProps> = ({ users, invites }) => (
+  <>
+    <AdminPageHeader title="Overview" description="Totals across all users." />
+    <AdminStats users={users} pendingInvites={countPending(invites)} />
+  </>
+);
+
+const UsersPageV2: React.FC<UsersPageProps> = ({
+  users,
+  onDeleteClick,
+  onToggleOpenBanking,
+}) => (
+  <>
+    <AdminPageHeader title="Users" description="Manage registered users." />
+    <UserDirectory
+      users={users}
+      onDeleteClick={onDeleteClick}
+      onToggleOpenBanking={onToggleOpenBanking}
+    />
+  </>
+);
+
+const InvitesPageV2: React.FC<UsersPageProps> = ({
+  invites,
+  onRevoke,
+  onInviteCreated,
+}) => (
+  <>
+    <AdminPageHeader
+      title="Invites"
+      description="Send invitations and track the pending ones."
+    />
+    <Card
+      title="Invite a user"
+      subtitle="They get an email with a sign-up link."
+    >
+      <CreateInviteForm onInviteCreated={onInviteCreated} />
+    </Card>
+    <InvitesTable invites={invites} onRevoke={onRevoke} />
+  </>
+);
+
 // ── Admin Dashboard ────────────────────────────────────────────────────────────
 
 const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [invites, setInvites] = useState<AdminInvite[]>([]);
   const deleteModalRef = useDeleteModal();
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   const loadData = useCallback(async () => {
     try {
@@ -131,53 +182,92 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  return (
-    <div className="flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-app-bg text-app-text transition-colors">
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <Sphere
-          style={{
-            height: "400px",
-            width: "400px",
-            background: "#ff2299",
-            top: "-100px",
-            right: "-100px",
-            position: "absolute",
-          }}
-          animate={{ x: [0, 0], y: [0, 0] }}
+  const pendingInvites = countPending(invites);
+  const usersPageProps: UsersPageProps = {
+    users,
+    invites,
+    onToggleOpenBanking: handleToggleOpenBanking,
+    onDeleteClick: (u: User) =>
+      deleteModalRef.current?.deleteObject(
+        u,
+        "user",
+        async () => await handleConfirmDelete(u.id),
+        2,
+      ),
+    onRevoke: handleRevokeInvite,
+    onInviteCreated: loadData,
+  };
+
+  const routes = (
+    <Routes>
+      <Route index element={<Navigate to="users" replace />} />
+      {/* ui-v2-switch: Overview and Invites are their own sections in v2 */}
+      {isV2 && (
+        <Route
+          path="overview"
+          element={<OverviewPageV2 {...usersPageProps} />}
         />
-      </div>
+      )}
+      <Route
+        path="users"
+        element={
+          isV2 ? (
+            <UsersPageV2 {...usersPageProps} />
+          ) : (
+            <UsersPage {...usersPageProps} />
+          )
+        }
+      />
+      {isV2 && (
+        <Route path="invites" element={<InvitesPageV2 {...usersPageProps} />} />
+      )}
+      <Route path="backups" element={<Backups />} />
+      <Route path="system" element={<SystemTab />} />
+    </Routes>
+  );
+
+  return (
+    <div
+      className={
+        isV2 // ui-v2-switch
+          ? "flex min-h-screen flex-col bg-app-bg text-app-text transition-colors"
+          : "flex flex-col min-h-screen xl:h-screen xl:overflow-hidden bg-app-bg text-app-text transition-colors"
+      }
+    >
+      {!isV2 && ( // ui-v2-switch: no decorative glow in v2 (style.md de-vibecode)
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <Sphere
+            style={{
+              height: "400px",
+              width: "400px",
+              background: "#ff2299",
+              top: "-100px",
+              right: "-100px",
+              position: "absolute",
+            }}
+            animate={{ x: [0, 0], y: [0, 0] }}
+          />
+        </div>
+      )}
 
       <AppHeader page={{ text: "Admin", accent: "Panel" }} />
 
-      <AdminTabs />
+      {isV2 ? ( // ui-v2-switch: sub-nav beside the content (stacks on phone)
+        <div className="relative z-10 flex flex-1 flex-col lg:flex-row">
+          <AdminTabs counts={{ users: users.length, pendingInvites }} />
+          <main className="flex min-w-0 flex-1 flex-col gap-6 px-4 py-6 lg:px-8">
+            {routes}
+          </main>
+        </div>
+      ) : (
+        <>
+          <AdminTabs />
 
-      <main className="relative z-10 mx-auto my-10 flex w-[95%] max-w-[1600px] flex-col gap-[30px] xl:min-h-0 xl:flex-1 xl:overflow-hidden">
-        <Routes>
-          <Route index element={<Navigate to="users" replace />} />
-          <Route
-            path="users"
-            element={
-              <UsersPage
-                users={users}
-                invites={invites}
-                onToggleOpenBanking={handleToggleOpenBanking}
-                onDeleteClick={(u: User) =>
-                  deleteModalRef.current?.deleteObject(
-                    u,
-                    "user",
-                    async () => await handleConfirmDelete(u.id),
-                    2,
-                  )
-                }
-                onRevoke={handleRevokeInvite}
-                onInviteCreated={loadData}
-              />
-            }
-          />
-          <Route path="backups" element={<Backups />} />
-          <Route path="system" element={<SystemTab />} />
-        </Routes>
-      </main>
+          <main className="relative z-10 mx-auto my-10 flex w-[95%] max-w-[1600px] flex-col gap-[30px] xl:min-h-0 xl:flex-1 xl:overflow-hidden">
+            {routes}
+          </main>
+        </>
+      )}
     </div>
   );
 };

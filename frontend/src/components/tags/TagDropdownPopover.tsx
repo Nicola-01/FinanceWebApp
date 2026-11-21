@@ -18,7 +18,16 @@ export const TagDropdownPopover: React.FC<TagDropdownPanelProps> = ({
   return (
     <Popover.Root
       open
-      onOpenChange={(o) => {
+      onOpenChange={(o, details) => {
+        // Base UI counts a press on the trigger (the search input lives there,
+        // outside the Popup) as an outside press, closing and unmounting the
+        // input before the tap's click lands. The trigger handles its own presses.
+        if (
+          !o &&
+          details.reason === "outside-press" &&
+          anchorRef.current?.contains(details.event.target as Node)
+        )
+          return;
         if (!o) onClose();
       }}
     >

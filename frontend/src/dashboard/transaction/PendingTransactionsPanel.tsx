@@ -78,7 +78,7 @@ const PendingTransactionRow: React.FC<PendingRowProps> = ({
     return (
       <div
         onClick={() => onOpenDetails(transaction)}
-        className="mb-3.5 grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-[var(--r-card)] bg-app-card p-3 shadow-[inset_3px_0_0_var(--color-app-warn),var(--box-ring)] sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+        className="grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-[var(--r-card)] bg-app-card p-5 shadow-[inset_3px_0_0_var(--color-app-warn),var(--box-ring)] sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:p-6"
       >
         <CategoryIcon
           icon={transaction.tag.icon}
@@ -228,7 +228,8 @@ export const PendingTransactionsPanel: React.FC<
 
   // ui-v2-switch: each v2 row says "waiting for the amount" itself, so the
   // "Awaiting amount" header is dropped.
-  if (ui === "v2") return <div className="mb-6">{rows}</div>;
+  if (ui === "v2")
+    return <div className="mb-6 flex flex-col gap-3.5">{rows}</div>;
 
   return (
     <div className="mb-6 flex flex-col gap-2">

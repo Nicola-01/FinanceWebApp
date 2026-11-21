@@ -5,6 +5,7 @@ import { Badge } from "../../components/ui/Badge";
 import { faEnvelope, faChevronUp } from "@fortawesome/free-solid-svg-icons";
 import type { Invitation } from "../../types/domain";
 import { InviteCard } from "./InviteCard";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface ListProps {
   invites: Invitation[];
@@ -12,22 +13,43 @@ interface ListProps {
   onOpen: (invite: Invitation) => void;
 }
 
-export const InvitesList: React.FC<ListProps> = ({ invites, onOpen }) =>
-  invites.length > 0 ? (
-    <>
-      {invites.map((inv) => (
-        <InviteCard key={inv.wallet.id} invite={inv} onOpen={onOpen} />
-      ))}
-    </>
-  ) : (
+export const InvitesList: React.FC<ListProps> = ({ invites, onOpen }) => {
+  const [ui] = useUiVersion();
+  if (invites.length > 0) {
+    return (
+      <>
+        {invites.map((inv) => (
+          <InviteCard key={inv.wallet.id} invite={inv} onOpen={onOpen} />
+        ))}
+      </>
+    );
+  }
+  // ui-v2-switch
+  if (ui === "v2") {
+    return (
+      <p className="rounded-[var(--r-input)] bg-app-raised px-3 py-3 text-center text-[13px] text-app-muted">
+        No pending invitations.
+      </p>
+    );
+  }
+  return (
     <p className="py-4 text-center text-sm italic text-app-muted">
       No pending invitations.
     </p>
   );
+};
 
 /** Count pill — yellow when there's at least one pending invite, grey at zero. */
-const CountPill: React.FC<{ count: number }> = ({ count }) => (
-  <Badge variant="subtle" mono tone={count >= 1 ? "yellow" : "neutral"}>
+export const CountPill: React.FC<{ count: number; className?: string }> = ({
+  count,
+  className,
+}) => (
+  <Badge
+    variant="subtle"
+    mono
+    tone={count >= 1 ? "yellow" : "neutral"}
+    className={className}
+  >
     {count}
   </Badge>
 );

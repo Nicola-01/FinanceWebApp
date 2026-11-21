@@ -34,12 +34,44 @@ describe("SubscriptionSummaryV2", () => {
     );
     expect(screen.getByText("Recurring cost / month")).toBeInTheDocument();
     expect(screen.getByText("Over a year")).toBeInTheDocument();
+    expect(screen.getByText("1 subscription")).toBeInTheDocument();
+    expect(screen.getByText("Recurring income / month")).toBeInTheDocument();
     expect(screen.getByLabelText("12,00 €")).toBeInTheDocument();
     expect(screen.getByLabelText("144,00 €")).toBeInTheDocument();
     expect(screen.getByText("100%")).toBeInTheDocument();
   });
 
-  it("adds an Invested / month line for investment subscriptions", () => {
+  it("renders four tiles, with Invested only when it is non-zero", () => {
+    setUiVersion("v2");
+    const { container, rerender } = render(
+      <SubscriptionSummaryV2
+        currency="EUR"
+        subscriptions={[sub({ id: "a", amount: 12 })]}
+      />,
+    );
+    expect(container.querySelectorAll("[data-stat-value]")).toHaveLength(3);
+    expect(
+      screen.queryByText("Recurring invested / month"),
+    ).not.toBeInTheDocument();
+    rerender(
+      <SubscriptionSummaryV2
+        currency="EUR"
+        invest={new Set(["Fund"])}
+        subscriptions={[
+          sub({ id: "a", amount: 12 }),
+          sub({
+            id: "pac",
+            amount: 30,
+            tag: { name: "Fund", icon: "tag", colorHex: "#b39cf5" },
+          }),
+        ]}
+      />,
+    );
+    expect(container.querySelectorAll("[data-stat-value]")).toHaveLength(4);
+    expect(screen.getByText("Recurring invested / month")).toBeInTheDocument();
+  });
+
+  it("adds a Recurring invested / month tile for investment subscriptions", () => {
     setUiVersion("v2");
     render(
       <SubscriptionSummaryV2
@@ -56,7 +88,7 @@ describe("SubscriptionSummaryV2", () => {
       />,
     );
     expect(screen.getByLabelText("420,00 €")).toBeInTheDocument();
-    expect(screen.getByText("Invested / month")).toBeInTheDocument();
+    expect(screen.getByText("Recurring invested / month")).toBeInTheDocument();
     expect(screen.getByLabelText("300,00 €")).toBeInTheDocument();
   });
 });

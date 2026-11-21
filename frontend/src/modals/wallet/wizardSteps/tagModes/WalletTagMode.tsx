@@ -5,6 +5,8 @@ import {
   faWallet,
 } from "@fortawesome/free-solid-svg-icons";
 import { Icon } from "../../../../components/icon/Icon";
+import Button from "../../../../components/ui/Button";
+import { useUiVersion } from "../../../../hooks/useUiVersion";
 import { TagCategoryPicker } from "../TagCategoryPicker";
 import type { RecommendedTagGroup } from "../recommendedTags";
 import type { SourceWallet } from "../sourceWallets";
@@ -40,6 +42,8 @@ export function WalletTagMode({
 }: WalletTagModeProps) {
   const sourceWallet =
     sourceWallets.find((w) => w.id === selectedWalletId) ?? null;
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
 
   // How much of a source wallet is staged, for the wallet-card highlight.
   const walletState = (w: SourceWallet): "none" | "partial" | "full" => {
@@ -60,17 +64,37 @@ export function WalletTagMode({
           link and wallet crumb don't pop in from nowhere when drilling
           into a wallet; only the content below it swaps. */}
       {(sourceWallet || sourceWallets.length > 0) && (
-        <div className="flex min-h-[1.25rem] items-center gap-2 text-xs">
+        <div
+          className={`flex min-h-[1.25rem] items-center gap-2 ${v2 ? "text-[13px]" : "text-xs"}`}
+        >
           {sourceWallet ? (
             <>
-              <button
-                type="button"
-                onClick={() => onSelectWallet(null)}
-                className="flex items-center gap-1.5 font-semibold text-app-muted transition-colors hover:text-app-text"
-              >
-                <FontAwesomeIcon icon={faChevronLeft} className="text-[10px]" />
-                All wallets
-              </button>
+              {v2 ? ( // ui-v2-switch
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSelectWallet(null)}
+                >
+                  <FontAwesomeIcon
+                    icon={faChevronLeft}
+                    className="text-[10px]"
+                  />
+                  All wallets
+                </Button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onSelectWallet(null)}
+                  className="flex items-center gap-1.5 font-semibold text-app-muted transition-colors hover:text-app-text"
+                >
+                  <FontAwesomeIcon
+                    icon={faChevronLeft}
+                    className="text-[10px]"
+                  />
+                  All wallets
+                </button>
+              )}
               <FontAwesomeIcon
                 icon={faChevronRight}
                 className="text-[8px] text-app-muted/60"
@@ -99,7 +123,13 @@ export function WalletTagMode({
           onToggle={onToggle}
         />
       ) : sourceWallets.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-[var(--r-card)] border border-dashed border-app-border bg-app-surface px-6 py-10 text-center">
+        <div
+          className={
+            v2
+              ? "flex flex-col items-center gap-2 rounded-[var(--r-card)] bg-app-card px-6 py-10 text-center shadow-[var(--box-ring)]"
+              : "flex flex-col items-center gap-2 rounded-[var(--r-card)] border border-dashed border-app-border bg-app-surface px-6 py-10 text-center"
+          }
+        >
           <FontAwesomeIcon
             icon={faWallet}
             className="text-2xl text-app-muted"
@@ -122,33 +152,59 @@ export function WalletTagMode({
                 aria-pressed={
                   st === "full" ? true : st === "partial" ? "mixed" : false
                 }
-                className={`flex items-center gap-3 rounded-[var(--r-card)] border p-3 text-left transition-colors ${
-                  active
-                    ? st === "partial"
-                      ? "border-dashed"
-                      : ""
-                    : "border-app-border bg-app-surface hover:bg-app-input"
-                }`}
+                className={
+                  v2
+                    ? `flex items-center gap-3 rounded-[var(--r-card)] bg-app-card p-4 text-left shadow-[var(--box-ring)] transition-colors ${active ? "" : "hover:bg-app-raised"}`
+                    : `flex items-center gap-3 rounded-[var(--r-card)] border p-3 text-left transition-colors ${
+                        active
+                          ? st === "partial"
+                            ? "border-dashed"
+                            : ""
+                          : "border-app-border bg-app-surface hover:bg-app-input"
+                      }`
+                }
                 style={
                   active
-                    ? {
-                        borderColor: w.color,
-                        backgroundColor: `${w.color}14`,
-                      }
+                    ? v2
+                      ? {
+                          backgroundColor: `${w.color}14`,
+                          boxShadow: `inset 0 0 0 ${st === "full" ? 1.5 : 1}px ${w.color}`,
+                        }
+                      : {
+                          borderColor: w.color,
+                          backgroundColor: `${w.color}14`,
+                        }
                     : undefined
                 }
               >
                 <span
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--r-input)] bg-app-card text-lg shadow-sm"
-                  style={{ color: w.color }}
+                  className={
+                    v2
+                      ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-[11px] text-lg"
+                      : "flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--r-input)] bg-app-card text-lg shadow-sm"
+                  }
+                  style={{
+                    color: w.color,
+                    backgroundColor: v2
+                      ? `color-mix(in srgb, ${w.color} 18%, transparent)`
+                      : undefined,
+                  }}
                 >
                   <Icon icon={w.icon} color={w.color} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold text-app-text">
+                  <span
+                    className={
+                      v2
+                        ? "block truncate text-[15px] text-app-text"
+                        : "block truncate text-sm font-bold text-app-text"
+                    }
+                  >
                     {w.name}
                   </span>
-                  <span className="block text-xs text-app-muted">
+                  <span
+                    className={`block ${v2 ? "text-[13px]" : "text-xs"} text-app-muted`}
+                  >
                     {w.groups.length} categor
                     {w.groups.length === 1 ? "y" : "ies"}
                   </span>

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  investmentCoverage,
+  investmentState,
   investmentTagNames,
   isInvestmentTx,
   sumFlows,
@@ -134,5 +136,55 @@ describe("sumFlows", () => {
     expect(flows.spent).toBe(40);
     expect(flows.bought).toBe(0);
     expect(flows.cashedOut).toBe(0);
+  });
+});
+
+describe("investmentCoverage / investmentState", () => {
+  it("marks children of a flagged parent as inherited from it", () => {
+    const cov = investmentCoverage([
+      tag("Car", null, true),
+      tag("Gasoline", "Car"),
+    ]);
+    expect(cov.get("Gasoline")).toEqual({
+      inheritedFrom: "Car",
+      partial: false,
+    });
+    expect(investmentState(false, cov.get("Gasoline"))).toBe("inherited");
+  });
+
+  it("flags the parent as partial when only a child is flagged", () => {
+    const cov = investmentCoverage([
+      tag("Car"),
+      tag("Insurance", "Car", true),
+      tag("Tax", "Car"),
+    ]);
+    expect(investmentState(false, cov.get("Car"))).toBe("partial");
+    expect(investmentState(false, cov.get("Tax"))).toBe("off");
+    expect(investmentState(true, cov.get("Insurance"))).toBe("own");
+  });
+
+  it("keeps a flagged parent as own even when its child is flagged too", () => {
+    const cov = investmentCoverage([
+      tag("Car", null, true),
+      tag("Insurance", "Car", true),
+    ]);
+    expect(investmentState(true, cov.get("Car"))).toBe("own");
+    expect(investmentState(true, cov.get("Insurance"))).toBe("inherited");
+  });
+
+  it("reports the nearest flagged ancestor and terminates on cyclic parents", () => {
+    const cov = investmentCoverage([
+      tag("A", "B", true),
+      tag("B", "A"),
+      tag("C", "B"),
+    ]);
+    expect(cov.get("C")?.inheritedFrom).toBe("A");
+    expect(cov.get("B")?.partial).toBe(true);
+  });
+
+  it("is all off when nothing is flagged", () => {
+    const cov = investmentCoverage([tag("Car"), tag("Gasoline", "Car")]);
+    expect(investmentState(false, cov.get("Car"))).toBe("off");
+    expect(investmentState(false, cov.get("Gasoline"))).toBe("off");
   });
 });

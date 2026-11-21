@@ -82,6 +82,7 @@ Each: component + Vitest test + both themes. Spec in style §4.
       [x] `SplitBar` (pure logic in `utils/splitParts.ts`) · [x] `EmptyState` (fox) ·
       [x] `WalletMiniCard` · [x] `WalletHeroCard` — all in `components/ui/`, visual only
       (no routing/DnD; Phase 2 wraps them). `ProgressBar` pure logic in `utils/progressWidth.ts`.
+- 2026-11-21: `StatTile` uses the shared fit-font hook (`hooks/useSharedFitFont.ts`, uncommitted).
 - [x] Iteration 1 (Nicola's review): D10 active wallet + wallet icon on mini/hero card; D11 warn fill.
 - [x] `Button` v2 look via `useUiVersion` (primary = `bg-wallet text-on-wallet`; `accentColor`
       sets `--wallet`/`--on-wallet` on the button; danger = solid `app-danger` + `text-app-bg`).
@@ -107,13 +108,16 @@ Each: component + Vitest test + both themes. Spec in style §4.
 - [x] Phones: "Switch wallet" pill + MUI `SwipeableDrawer` (invites, wallets with DnD, New wallet),
       header actions on the right.
 - [x] Tabs: desktop `Selector`; phones MUI `BottomNavigation` (4 + "More" → MUI `Menu`).
+- 2026-11-21: phone tabs are an icon-only dock with a long-press tooltip; "More" menu has a box-shadow (`WalletTabs.tsx:163`). Uncommitted.
 - [x] Title row (icon chip + name + currency name) + `TransactionsHero` on Transactions only
       (`WalletHeroCard` without name, arrows → `shiftPeriod`, Income/Spent `StatTile`s).
 - [x] No `DashboardBackground` / `AppHeader` under v2; wallet root sets `walletVars(wallet.color)`.
-- [ ] Nicola's look in the real app (desktop + phone, dark + light) → iterate.
-- [ ] Known gaps to check: filter bar (`TransactionsFilter`) still v1-styled and `sticky top-17`
-      (Phase 3); members count not in the meta line (needs data, ask); drag-reorder inside the
-      drawer vs the drawer's swipe-to-close gesture; `Menu` "More" has no shadow in dark.
+- [x] Nicola's look in the real app (desktop + phone, dark + light): OK 2026-11-21; only fix: light "To categorise" bar uses the dark amber #f0b85a.
+- [ ] Known gaps (checked 2026-11-21):
+  - [x] Filter bar: v2 branch is a plain toolbar, not sticky (`TransactionsFilter.tsx:61-62`); v1 still `sticky top-17` (line 139).
+  - [x] `Menu` "More" dark shadow: `WalletTabs.tsx:163` boxShadow.
+  - [ ] Drag-reorder in the drawer vs swipe-to-close: STILL OPEN. `WalletsBar.tsx:263` sets only `disableSwipeToOpen`; needs a device check.
+  - [x] Members count in the meta line: NO (Nicola 2026-11-21).
 
 ### D17 — Component library: MUI (2026-11-12)
 - shadcn trial compared side by side with MUI: visually ~identical, Nicola had no preference →
@@ -140,6 +144,7 @@ screen inherits v2; screen phases then handle layout only. Track each file below
       `ConfirmModal`, `DeleteModal`, `modals/common/DetailRow`.
 - [x] Date picker (2026-11-12; 9 files in `components/datePicker/`, legacy `theme-*` tokens).
 - [x] Tags (2026-11-12): `TagFilter`, `TagPickerTrigger`, `TagRow`, `TagTreePicker`, `TagSelectorAddForm`, `TagDropdownPanel`.
+- 2026-11-21: tag dropdowns use a Base UI popover (uncommitted).
 - [x] Selectors/icons (2026-11-12, ColorSelector restyle only): `ColorSelector` (F1), `CurrencySelector` + rows/panel, `ThemeSelector`, `components/icon/*`.
 - [x] `CsvUploadField`, `InviteComposer`, `components/pat/*` (2026-11-12).
 
@@ -147,6 +152,9 @@ screen inherits v2; screen phases then handle layout only. Track each file below
       `.replace("text-app-red", …)` workaround); `TagPickerTrigger` v2 still applies the inline `color`
       ring when open; `ThemeSelector` copy "App Theme" → sentence case (update test); `InviteComposer`
       v2 ignores `accentColor` (check callers); `Button size="icon"` for the hand-styled icon buttons (F8).
+      Status 2026-11-21: `useAmountInput` workaround gone; `TagPickerTrigger` v2 open state is the wallet ring class
+      (line 49); `ThemeSelector` copy is "App theme". STILL OPEN: `InviteComposer` v2 still ignores `accentColor`
+      and both callers still pass it (`InvitesStep.tsx:85`, `InviteSection.tsx:42`). `size="icon"` exists (13 call sites).
 
 ## Phase 3 — Transactions tab
 - [x] Rows (`TransactionRowV2`, day boxes with net total, v2 skeleton + EmptyState CTA): `CategoryIcon`, title fallback to leaf category, sub = category path,
@@ -179,28 +187,33 @@ Execution plan (waves, Haiku task specs): [`statistics-v2.md`](statistics-v2.md)
 Mock: `docs/redesign-demos/stats-proposals.html#p0` ("Chosen" view; A/B/C there are the
 source proposals). Order top → bottom. Period selector in the header: one year at a time
 (`2026 / 2025 / 2024 / All time`) — the page never squeezes every month into one chart.
-- [ ] **Bug (current v2):** `MonthlySnapshotChartV2` anchors bars at the y-domain minimum
+- [x] **Bug (current v2):** `MonthlySnapshotChartV2` anchors bars at the y-domain minimum
       (−10k, pulled down by the negative balance line) instead of 0, so every bar looks the
       same height; 24+ months crammed with 2 axis labels. Superseded by "Month by month",
-      but don't ship the current chart in the meantime.
-- [ ] **KPI tiles** (4): Earned, Spent, Kept, Savings rate — value + one-line comparison
+      but don't ship the current chart in the meantime. Done 2026-11-21: removed from v2 (0 refs to `MonthlySnapshotChartV2`).
+- [x] **KPI tiles** (4): Earned, Spent, Kept, Savings rate — value + one-line comparison
       (vs previous year / per-month average) + kit `sparkline` of the year's months.
       Extend `StatisticsSummaryV2`/`summaryStats.ts` (+ tests for deltas & rate).
-- [ ] **Month by month** — kit `ComposedChart`: income bar above 0, expense bar below 0,
+      Done 2026-11-21: `StatisticsSummaryV2.tsx` (sparklines, vs-previous deltas; also an Invested tile), `summaryStats.test.ts`.
+- [x] **Month by month** — kit `ComposedChart`: income bar above 0, expense bar below 0,
       "kept" (net) line with dots; 12 months of the selected year, every month labelled,
       **baseline at 0**, symmetric domain; tooltip per bar/dot; legend.
-- [ ] **Worth knowing** — 3–4 insights computed client-side (pure `statisticsInsights.ts`
+      Done 2026-11-21: `MonthByMonthChart.tsx`, `MonthByMonthPlot.tsx` (ComposedChart, stacked, per-bar axes on a symmetric domain).
+- [x] **Worth knowing** — 3–4 insights computed client-side (pure `statisticsInsights.ts`
       + unit tests): most expensive month (×average, its biggest transaction), best month
       (net + % kept), subscriptions' share of spending, income steadiness (min–max).
       Each insight: icon tile (status colour) + bold line + muted explanation. Skip an
       insight when the data doesn't support it (e.g. < 3 months).
-- [ ] **How the year added up** — kit `waterfall`, full width: balance at 1 Jan →
+      Done 2026-11-21: `WorthKnowingCard.tsx`, `statisticsInsights.ts` (4 insight ids) + tests.
+- [~] **How the year added up** — kit `waterfall`, full width: balance at 1 Jan →
       each month's net (green up / expense-mark down, dashed connectors) → "Now"; labels on
       start, end and outlier months only.
-- [ ] **Fixed vs everyday** — kit `BarChart` stacked per month: spending from subscription-
+      Partial 2026-11-21: `YearWaterfallChart.tsx` (`WaterfallChart`, `BarXAxis showAllLabels`, line 79) labels every month.
+      Closed 2026-11-21: kept all labels; kit Waterfall has no per-bar label control, vendored kit not editable.
+- [x] ~~**Fixed vs everyday**~~ DROPPED (Nicola 2026-11-15, moved to `report-charts.md`; not on the page). Original spec: kit `BarChart` stacked per month: spending from subscription-
       generated transactions (`transaction.subscription` set) vs the rest; cap outliers
       with a "10.0k ↑" label instead of flattening the other months.
-- [ ] **Where you're heading** (projection, Nicola 2026-11-13) — kit `LineChart` +
+- [x] **Where you're heading** (projection, Nicola 2026-11-13) — kit `LineChart` +
       `<Band lowerKey upperKey>` (placed before the line) + `<ProjectionLine>` (ref
       shadcn.io/charts/line "Ranges and forecasts"). Solid balance history, dotted projection
       from the last point, shaded likely range, "Forecast" area tint. Horizon selector:
@@ -211,9 +224,11 @@ source proposals). Order top → bottom. Period selector in the header: one year
       Sub-line spells it out: "At your usual pace of +408 € a month you'd have about 8,806 €
       by Oct 2027 (likely 8,144 € – 9,469 €)" + a footnote on how it's computed. Tooltip
       per month with estimate + range.
-- [ ] **Show the numbers** — the existing `OverviewTableV2`, collapsed by default (native
+      Done 2026-11-21: `BalanceProjectionChart.tsx`, `balanceProjection.ts` (median pace, ±1.28 × MAD × 1.4826 × √k, null under 3 months) + tests.
+- [x] **Show the numbers** — the existing `OverviewTableV2`, collapsed by default (native
       `<details>` or the `Collapse` primitive), labels Earned / Spent / Kept.
-- [ ] Removed from the v2 page: the Monthly/Cumulative `SwitchableCard` charts (v1 keeps them).
+      Done 2026-11-21: `statisticsWidgets.tsx` wraps `OverviewTableV2` in `Collapse` (closed by default).
+- [x] Removed from the v2 page: the Monthly/Cumulative `SwitchableCard` charts (v1 keeps them). Done 2026-11-21: `StatisticsV2` renders no `SwitchableCard`.
 - [ ] Not chosen (kept out unless Nicola asks): "Balance over time" area chart, everything
       from proposal C. Moved to reports: spending calendar, weekday spending, savings-rate
       ring → [`report-charts.md`](report-charts.md).
@@ -221,18 +236,21 @@ source proposals). Order top → bottom. Period selector in the header: one year
 ## Phase 7 — Budget tab
 - [x] `BudgetCard` v2: icon, scope, `StatusPill`, `ProgressBar`, used % + left/passed date;
       dashed "New budget" card; `EmptyState`.
+- 2026-11-21: budget card v2 proposal C: upcoming subscriptions in the gauge + alert ticks (uncommitted).
 
 ## Phase 8 — Wallet settings tab
 - [x] General (name, currency, colour swatches + live `WalletHeroCard` preview), Members,
       Share, Notifications, Data (bank accounts, bank rules, CSV), Delete wallet.
+- 2026-11-21: bank rules always grouped in the Data tab (uncommitted).
 
 ## Phase 9 — Modals, drawers, wizard  *(SEE-AT-THE-TIME, one at a time)*
-- [ ] Transaction / subscription modals + details views, TagPicker, invites, PAT,
+- [ ] (2026-11-21 done v2: transaction/subscription forms + details views, import review, calendar day panel, Sync Center, notifications panel, invites, PAT views, sidebar footer; MCP connect guide in /settings Tokens) Transaction / subscription modals + details views, TagPicker, invites, PAT,
       Create-wallet wizard (24 files in `modals/wallet/`), Sync Center, notifications bell panel,
       exchange-rate cards, scheduling rules / monthly rule picker, import review, calendar day panel.
 
 ## Phase 10 — Pages outside the wallet  *(SEE-AT-THE-TIME, mock first)*
-- [ ] Auth (login/register/forgot/reset) — still always-dark? brand accent per 0.3.
+- [ ] Auth (login/register/forgot/reset): DECIDED (Nicola 2026-11-21) v2 follows the theme (light/dark), no longer always-dark.
+- 2026-11-21: /settings sections v2 done; auth v2 (follows theme) done; admin v2 = mock B of `docs/redesign-demos/j-admin.html` + job sort (default A→Z) done (no email/role/last-login: API lacks them); landing: `k-landing.html` rejected, `l-landing-benefits.html` V1 approved (benefit-led, bold copy, keeps the problem band) → done (b22acd4). ToDo page v2 done; admin count tiles are integers, no Sphere glow in v2. Phase 10 DONE except `AppHeader` v1 removal (→ phase 11).
 - [ ] OAuth consent page (MCP flow) · BankCallback · global `/settings` · admin
       dashboard (18 files in `admin/`) · landing `/about` (15 files) · ToDo page · `/settings` sections
       (account, security, tokens, notifications, about) · `AppHeader` v1 removal.
@@ -247,34 +265,45 @@ source proposals). Order top → bottom. Period selector in the header: one year
 - F6 (2026-11-12): `--box-ring` is now `0 0 0 0 transparent` in dark (was `none`, which broke shadow
   lists). Follow-ups: needs-attention rows (`PendingTransactionsPanel` uses `ring-1 ring-app-border`
   instead) and `Card` danger tone can use `shadow-[inset_3px_0_0_var(--color-app-warn|danger),var(--box-ring)]`.
+  DONE 2026-11-21: dark `--box-ring` (`theme-tokens.css:214`); `PendingTransactionsPanel` uses inset warn bar + `--box-ring`. DONE 2026-11-21: `Card.tsx` danger tone has the inset bar.
 - F7: v2 `Badge` blue/purple/pink tones fall back to neutral (no v2 token); `uppercase` prop ignored in v2.
   `PWAPrompt` v2 untested (`virtual:pwa-register/react` doesn't resolve in Vitest — needs a stub).
   `AccentHoverButton` `accentColor` unused in v2 (remove at cut-over).
-- F10: Budget v2 header aside = calendar month + days left (misleading for weekly/custom budgets?).
+  F7 status 2026-11-21: `PWAPrompt` test exists (`__tests__/components/ui/PWAPrompt.test.tsx`) DONE. Blue/purple/pink neutral fallback and v2 `uppercase` dropped are by design (`Badge.tsx` comments), accepted. STILL OPEN: `AccentHoverButton` still used (`HiddenTray`, `AddCategoryButton`); cut-over Phase 11.
+- F10 (CLOSED 2026-11-21: tab aside "Month, N days left" removed, misleading for weekly/custom; reminders and bank-driven subs stay out of recurring cost (Nicola); Categories Sankey keeps its Investments chip; non-owner without bank sees no bank box): Budget v2 header aside = calendar month + days left (misleading for weekly/custom budgets?).
   Subscriptions summary excludes reminders (amountPending) — confirm. Coming up excludes bank-driven subs.
+  F10 status 2026-11-21: NEEDS NICOLA: budget header aside still shows period label + "N days left in period" (`BudgetCard.tsx:430`), weekly/custom wording unresolved. NEEDS NICOLA: confirm reminder exclusion (`subscriptionSummary.ts:29` excludes `amountPending` and `bankDriven`). DONE: Coming up excludes bank-driven (`comingUp.ts:27`).
 - [x] F11 (2026-11-12, cleanup batch 2, done): chart palette read at render → re-read on theme change
   (`useChartPalette` must depend on resolved theme); widget titles still Title Case in copy
   ("Category Trend", "Top Expense Categories") → sentence case in v2; settings hero preview shows the
   currency symbol as big value; Sankey savings pattern still `--color-app-blue`; statistics year tiles
   show all-history totals (mock: selected year); FlowTypeToggle inactive Income label not green.
 - F12: Sankey labels single-line (value under the name needs `sankeyData.ts`); no footer summary line.
+  F12 status 2026-11-21: CLOSED. Kit already shows node values under the names; summary line removed on purpose in v4.3.1.
 - F13: main chunk 1.97 MB vs 2 MiB PWA precache cap — next big import breaks the build; consider lazy-loading more tabs/routes (admin, landing, settings) before Phase 9-10.
+  F13 CLOSED 2026-11-21: TagsTab + SettingsTab lazy in `WalletDashboard.tsx` (charts left the main chunk) → main chunk 1,559,023 B (~538 KB headroom). Old status: Main chunk 2,040,795 B vs 2,097,152 B cap (~56 KB headroom). Already lazy: OAuthConsent, ToDo, Landing, Admin, Settings (`App.tsx:23-27`); Phase 9 modals are not.
 - F8: (header bar kept, D19) `WizardStepper` v2: current step looks like done steps.
   Icon-only close buttons / token actions / CSV info are hand-styled (Button has no square icon size) — add `size="icon"` to Button?
+  F8 status 2026-11-21: DONE for the prop: `ButtonSize` has `"icon"`, 13 call sites. STILL OPEN: hand-styled icon buttons not audited. `WizardStepper` past/current/future distinction is done.
 - F1 (D9): `components/selectors/ColorSelector.tsx` is shared by the wallet colour **and** tag/icon
   colours (`IconColorSelector`, `IconPickerButton`, wizard `BasicsStep`). Swapping presets must be
   scoped (prop or v2-only) — ask Nicola in Phase 8 whether tags get the soft presets too.
+  CLOSED 2026-11-21: Nicola keeps tags/icons as they are.
 - F2 (D7): in light, a pale wallet colour (yellow) as the active-tab icon on `--raised` is weak;
   same `color-mix(…70%, #000)` darkening as category glyphs is the likely fix — check in Phase 2.
+  DONE 2026-11-21: `SegmentedControl` active svg darkened with color-mix (needs a visual check).
 
 - F3: any element that sets `--wallet` must also set `--on-wallet` (else text falls back to the
   root default — e.g. white-ish on yellow in light). Phase 2: add a `walletVars(color)` helper
   in `utils/color.ts` and use it in the wallet root + the 3 primitives that inline it today.
+  DONE 2026-11-21: `utils/color.ts:56` `walletVars`; used by `Button`, `WizardStepper`, `SegmentedControl`, `Toggle`, `WalletHeroCard`.
 - F4: `Button` ripple stays white in v2 — weak on light wallet colours; revisit with Phase 2 CTAs.
+  DONE 2026-11-21: v2 ripple defaults in `Button.tsx` (needs a visual check).
 - F5: evaluate [boneyard](https://github.com/0xGF/boneyard) (`boneyard-js/react`: `<Skeleton name loading>`
   / `<BoneSuspense>`, skeletons captured from the real UI by a build-time CLI) to replace the
   hand-rolled skeletons (`WalletSkeleton`, `SkeletonAmount`, … — see frontend-restructure 4.5).
   Check: fits the offline-first Dexie loading states, CLI in the Vite build/CI, bundle size. Phase 2.
+  STILL OPEN 2026-11-21: boneyard is not in `package.json` and not referenced in `src/`.
 
 ## Decisions log
 | # | Decision | Answer |

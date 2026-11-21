@@ -130,7 +130,7 @@ export const ShareSettingsSection: React.FC = () => {
         icon={faUsers}
         iconColor={wallet.color}
       >
-        <div className="flex flex-col gap-5">
+        <div className={isV2 ? "flex flex-col gap-4" : "flex flex-col gap-5"}>
           {isOwner && (
             <>
               <InviteSection

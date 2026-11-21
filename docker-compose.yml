@@ -120,3 +120,4 @@ services:
     environment:
       VITE_API_URL: ${BACKEND_URL}
       VITE_ALLOWED_HOSTS: ${FRONTEND_URL}
+      VITE_MCP_URL: ${MCP_SERVER_URL}

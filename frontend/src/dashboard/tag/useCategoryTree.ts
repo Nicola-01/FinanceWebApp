@@ -54,8 +54,12 @@ export function useCategoryTree(
   // The key must reflect every rendered field: colour/icon changes don't touch
   // name/parent, so omitting them left the tree showing stale colours until a
   // full reload (rows read colour from this local tree, not from context).
+  // The investment flag is part of it too, so the parent's flag reaches its children.
   const derivedKey = `${walletId}|${tags
-    .map((t) => `${t.name}:${t.parentName ?? ""}:${t.colorHex}:${t.icon}`)
+    .map(
+      (t) =>
+        `${t.name}:${t.parentName ?? ""}:${t.colorHex}:${t.icon}:${!!t.investment}`,
+    )
     .join(",")}`;
   const [syncKey, setSyncKey] = useState(derivedKey);
   if (syncKey !== derivedKey) {

@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { Icon } from "../../../components/icon/Icon";
+import { useUiVersion } from "../../../hooks/useUiVersion";
 import type { RecommendedTagGroup } from "./recommendedTags";
 
 const keyOf = (name: string) => name.trim().toLowerCase();
@@ -26,6 +27,9 @@ export function TagCategoryPicker({
   stagedKeys,
   onToggle,
 }: TagCategoryPickerProps) {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
+
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {groups.map((g) => {
@@ -45,27 +49,53 @@ export function TagCategoryPicker({
               state === "full" ? true : state === "partial" ? "mixed" : false
             }
             aria-label={`Select the ${g.parent.name} category`}
-            className={`group flex w-full flex-col gap-2.5 rounded-[var(--r-card)] border p-3 text-left transition-colors ${
-              active
-                ? state === "partial"
-                  ? "border-dashed"
-                  : ""
-                : "border-app-border bg-app-surface hover:bg-app-input"
-            }`}
+            className={
+              v2
+                ? `group flex w-full flex-col gap-2.5 rounded-[var(--r-card)] bg-app-card p-4 text-left shadow-[var(--box-ring)] transition-colors ${
+                    active ? "" : "hover:bg-app-raised"
+                  }`
+                : `group flex w-full flex-col gap-2.5 rounded-[var(--r-card)] border p-3 text-left transition-colors ${
+                    active
+                      ? state === "partial"
+                        ? "border-dashed"
+                        : ""
+                      : "border-app-border bg-app-surface hover:bg-app-input"
+                  }`
+            }
             style={
               active
-                ? { borderColor: color, backgroundColor: `${color}14` }
+                ? v2
+                  ? {
+                      backgroundColor: `${color}14`,
+                      boxShadow: `inset 0 0 0 ${state === "full" ? 1.5 : 1}px ${color}`,
+                    }
+                  : { borderColor: color, backgroundColor: `${color}14` }
                 : undefined
             }
           >
             <div className="flex items-center gap-2.5">
               <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--r-input)] bg-app-card text-base shadow-sm"
-                style={{ color }}
+                className={
+                  v2
+                    ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-[11px] text-base"
+                    : "flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--r-input)] bg-app-card text-base shadow-sm"
+                }
+                style={{
+                  color,
+                  backgroundColor: v2
+                    ? `color-mix(in srgb, ${color} 18%, transparent)`
+                    : undefined,
+                }}
               >
                 <Icon icon={g.parent.icon} color={color} />
               </span>
-              <span className="min-w-0 flex-1 truncate text-sm font-bold uppercase tracking-wide text-app-text">
+              <span
+                className={
+                  v2
+                    ? "min-w-0 flex-1 truncate text-[15px] text-app-text"
+                    : "min-w-0 flex-1 truncate text-sm font-bold uppercase tracking-wide text-app-text"
+                }
+              >
                 {g.parent.name}
               </span>
               <span
@@ -97,7 +127,7 @@ export function TagCategoryPicker({
                 return (
                   <li
                     key={c.name}
-                    className={`flex items-center gap-2 text-xs ${struck ? "text-app-muted/60 line-through" : "text-app-muted"}`}
+                    className={`flex items-center gap-2 ${v2 ? "text-[13px]" : "text-xs"} ${struck ? "text-app-muted/60 line-through" : "text-app-muted"}`}
                   >
                     <span
                       className="h-2 w-2 shrink-0 rounded-full"

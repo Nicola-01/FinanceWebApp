@@ -58,7 +58,7 @@ export const SettingsBox: React.FC<SettingsBoxProps> = ({
     <section className="relative flex flex-col gap-4 rounded-[var(--r-card)] bg-app-card p-5 shadow-[var(--box-ring)] sm:p-6">
       <div className="flex flex-col gap-1">
         <h3
-          className={`font-display text-[17px] font-semibold tracking-[-0.02em] ${
+          className={`font-display text-lg font-semibold tracking-[-0.02em] ${
             tone === "danger" ? "text-app-danger" : "text-app-text"
           }`}
         >

@@ -8,6 +8,8 @@ import { MissingTagActions, MissingTagChip } from "./MissingTagResolver";
 import { findRecommendedTagWithParent } from "./recommendedTags";
 import type { MissingTagGroup } from "./transactionTags";
 import type { TagRequest } from "../../../dashboard/settings/csvImport";
+import Button from "../../../components/ui/Button";
+import { useUiVersion } from "../../../hooks/useUiVersion";
 
 export interface MissingTransactionTagsProps {
   /** One entry per distinct unresolved tag (with its affected-row count). */
@@ -40,11 +42,15 @@ export function MissingTransactionTags({
   onReassign,
   onRemove,
 }: MissingTransactionTagsProps): JSX.Element | null {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   if (groups.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="flex items-center gap-2 text-xs font-semibold text-app-yellow">
+      <p
+        className={`flex items-center gap-2 ${v2 ? "text-[13px] text-app-warn" : "text-xs font-semibold text-app-yellow"}`}
+      >
         <FontAwesomeIcon icon={faTriangleExclamation} className="shrink-0" />
         {groups.length === 1
           ? "1 tag used by these transactions isn't in this wallet."
@@ -61,9 +67,15 @@ export function MissingTransactionTags({
         return (
           <div
             key={g.key}
-            className="rounded-[var(--r-input)] border border-app-yellow/30 bg-app-yellow/5 p-3"
+            className={
+              v2
+                ? "rounded-[var(--r-card)] bg-app-card p-4 shadow-[inset_3px_0_0_var(--color-app-warn),var(--box-ring)]"
+                : "rounded-[var(--r-input)] border border-app-yellow/30 bg-app-yellow/5 p-3"
+            }
           >
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            <p
+              className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${v2 ? "text-[13px]" : "text-xs"}`}
+            >
               <MissingTagChip name={g.name} parentName={parentName} />
               <span className="text-app-muted">
                 {g.count === 1
@@ -82,15 +94,29 @@ export function MissingTransactionTags({
               onCreate={() => onCreate(g.name)}
               onReassign={(name) => onReassign(g.key, name)}
             >
-              <button
-                type="button"
-                aria-label={`Remove transactions tagged ${g.name}`}
-                onClick={() => onRemove(g.key)}
-                className="inline-flex items-center justify-center gap-2 rounded-[var(--r-sm)] px-3 py-1.5 text-xs font-semibold text-app-red transition-colors hover:bg-app-red/10"
-              >
-                <FontAwesomeIcon icon={faTrashCan} />
-                {g.count === 1 ? "Remove 1" : `Remove ${g.count}`}
-              </button>
+              {v2 ? ( // ui-v2-switch
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`Remove transactions tagged ${g.name}`}
+                  onClick={() => onRemove(g.key)}
+                  className="text-app-danger"
+                >
+                  <FontAwesomeIcon icon={faTrashCan} />
+                  {g.count === 1 ? "Remove 1" : `Remove ${g.count}`}
+                </Button>
+              ) : (
+                <button
+                  type="button"
+                  aria-label={`Remove transactions tagged ${g.name}`}
+                  onClick={() => onRemove(g.key)}
+                  className="inline-flex items-center justify-center gap-2 rounded-[var(--r-sm)] px-3 py-1.5 text-xs font-semibold text-app-red transition-colors hover:bg-app-red/10"
+                >
+                  <FontAwesomeIcon icon={faTrashCan} />
+                  {g.count === 1 ? "Remove 1" : `Remove ${g.count}`}
+                </button>
+              )}
             </MissingTagActions>
           </div>
         );

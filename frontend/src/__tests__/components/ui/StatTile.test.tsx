@@ -19,8 +19,7 @@ describe("StatTile", () => {
         footer={<svg data-testid="spark" />}
       />,
     );
-    const footer = screen.getByTestId("spark").parentElement;
-    expect(footer).toHaveClass("mt-3");
+    const footer = screen.getByTestId("spark");
     expect(screen.getByText("About").compareDocumentPosition(footer!)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
@@ -33,22 +32,43 @@ describe("StatTile", () => {
     expect(screen.getByText("10")).toHaveClass("text-app-income");
   });
 
-  it("wraps the icon only when one is given", () => {
+  it("puts the icon beside the label on every screen, rendered once", () => {
     const { container, rerender } = render(<StatTile label="L" value="V" />);
     expect(container.querySelector(".max-sm\\:hidden")).toBeNull();
     rerender(<StatTile label="L" value="V" icon={<svg data-testid="ic" />} />);
-    const [big, small] = screen
-      .getAllByTestId("ic")
-      .map((el) => el.parentElement);
-    expect(big).toHaveClass("max-sm:hidden");
-    expect(small).toHaveClass("sm:hidden");
-    expect(small).toHaveAttribute("aria-hidden", "true");
-    expect(container.firstElementChild).toHaveClass("grid");
+    const iconBox = screen.getByTestId("ic").parentElement;
+    expect(screen.getAllByTestId("ic")).toHaveLength(1);
+    expect(iconBox).toHaveClass("shrink-0", "[&>*]:h-8", "max-sm:[&>*]:h-7");
+    expect(iconBox).not.toHaveClass("max-sm:hidden");
+    expect(iconBox!.parentElement).toHaveClass("flex", "items-center");
+    expect(screen.getByText("L")).toHaveClass("truncate", "min-w-0");
   });
 
   it("keeps the label text in the DOM once", () => {
     render(<StatTile label="Income" value="V" icon={<svg />} />);
     expect(screen.getAllByText("Income")).toHaveLength(1);
+  });
+});
+
+describe("StatTile overflow", () => {
+  it("sizes the value from the shared var (22px default) and never wraps it", () => {
+    render(<StatTile label="Spent" value="9228,94 €" />);
+    const value = screen.getByText("9228,94 €");
+    expect(value).toHaveAttribute("data-stat-value");
+    expect(value).toHaveClass(
+      "text-[length:var(--stat-value-size,22px)]",
+      "max-sm:text-[length:min(var(--stat-value-size,20px),20px)]",
+      "whitespace-nowrap",
+    );
+  });
+
+  it("lets the tile shrink and clips it", () => {
+    const { container } = render(<StatTile label="Spent" value="V" />);
+    expect(container.firstElementChild).toHaveClass(
+      "min-w-0",
+      "overflow-hidden",
+    );
+    expect(container.firstElementChild).not.toHaveClass("@container");
   });
 });
 

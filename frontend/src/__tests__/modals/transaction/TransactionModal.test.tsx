@@ -155,6 +155,7 @@ describe("TransactionModal — v2 compact list", () => {
     const summary = screen.getByText("More details").closest("summary");
     expect(summary).toBeInTheDocument();
     expect(summary!.closest("details")).not.toHaveAttribute("open");
+    expect(screen.getByText("notes, currency")).toBeInTheDocument();
   });
 
   it("opens More details when editing a transaction that has notes", () => {
@@ -181,5 +182,11 @@ describe("TransactionModal — v2 compact list", () => {
 
     await waitFor(() => expect(api.put).toHaveBeenCalled());
     expect(vi.mocked(api.put).mock.calls[0][1]).toMatchObject({ name: "Coop" });
+  });
+
+  it("uses a generic Name placeholder", () => {
+    const ref = renderModal();
+    act(() => ref.current!.openModal());
+    expect(screen.getByPlaceholderText("e.g. Groceries")).toBeInTheDocument();
   });
 });

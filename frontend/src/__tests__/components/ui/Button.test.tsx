@@ -157,4 +157,68 @@ describe("Button", () => {
       expect(button.className).not.toContain("tracking-wide");
     });
   });
+
+  describe("v2 ripple default", () => {
+    beforeEach(() => setUiVersion("v2"));
+    afterEach(() => setUiVersion("v1"));
+
+    const rippleOf = (container: HTMLElement) =>
+      container.querySelector('span[aria-hidden="true"]') as HTMLElement;
+
+    it("tints a wallet-filled primary ripple with on-wallet ink", () => {
+      const { container } = render(<Button ripple>Go</Button>);
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Go" }), {
+        clientX: 5,
+        clientY: 5,
+      });
+      expect(rippleOf(container).style.backgroundColor).toBe(
+        "color-mix(in srgb, var(--on-wallet) 30%, transparent)",
+      );
+    });
+
+    it("tints an accent-filled ripple with on-wallet ink", () => {
+      const { container } = render(
+        <Button ripple variant="secondary" accentColor="#f5d90a">
+          Go
+        </Button>,
+      );
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Go" }), {
+        clientX: 5,
+        clientY: 5,
+      });
+      expect(rippleOf(container).style.backgroundColor).toBe(
+        "color-mix(in srgb, var(--on-wallet) 30%, transparent)",
+      );
+    });
+
+    it("tints other variants' ripple with the current text colour", () => {
+      const { container } = render(
+        <Button ripple variant="ghost">
+          Go
+        </Button>,
+      );
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Go" }), {
+        clientX: 5,
+        clientY: 5,
+      });
+      expect(rippleOf(container).style.backgroundColor).toBe(
+        "color-mix(in srgb, currentcolor 18%, transparent)",
+      );
+    });
+
+    it("keeps an explicit rippleColor over the v2 default", () => {
+      const { container } = render(
+        <Button ripple rippleColor="rgba(1, 2, 3, 0.5)">
+          Go
+        </Button>,
+      );
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Go" }), {
+        clientX: 5,
+        clientY: 5,
+      });
+      expect(rippleOf(container).style.backgroundColor).toBe(
+        "rgba(1, 2, 3, 0.5)",
+      );
+    });
+  });
 });

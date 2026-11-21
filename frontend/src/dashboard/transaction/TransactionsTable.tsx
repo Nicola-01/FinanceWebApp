@@ -96,8 +96,6 @@ const DayGroupV2 = ({
 }) => {
   const flows = sumFlows(rows, invest);
   const symbol = CURRENCY_META[currency]?.symbol;
-  const withSymbol = (n: number) =>
-    `${formatAmount(n)}${symbol ? ` ${symbol}` : ""}`;
   return (
     <div className="mb-3.5 rounded-[var(--r-card)] bg-app-card p-2 shadow-[var(--box-ring)]">
       <div className="flex justify-between px-3 pb-2 pt-1 text-[13px] text-app-muted">
@@ -105,18 +103,6 @@ const DayGroupV2 = ({
         <span className="tabular-nums">
           {formatAmount(flows.net, { signed: true })}
           {symbol && ` ${symbol}`}
-          {flows.bought !== 0 && (
-            <span className="text-app-invest">
-              {" "}
-              · {withSymbol(flows.bought)} invested
-            </span>
-          )}
-          {flows.cashedOut !== 0 && (
-            <span className="text-app-invest">
-              {" "}
-              · {withSymbol(flows.cashedOut)} cashed out
-            </span>
-          )}
         </span>
       </div>
       <div className="flex flex-col">

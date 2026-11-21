@@ -4,8 +4,6 @@ import { SubscriptionTab } from "../subscription/SubscriptionTab";
 import type { Wallet } from "../../types/domain";
 import { Icon } from "../../components/icon/Icon.tsx";
 import { WalletTabs } from "./WalletTabs.tsx";
-import { TagsTab } from "../tag/TagsTab.tsx";
-import { SettingsTab } from "../settings/SettingsTab.tsx";
 import { WalletProvider } from "./WalletProvider.tsx";
 import { useWalletContext } from "./WalletContext.tsx";
 import { TransactionsFilter } from "../transaction/TransactionsFilter.tsx";
@@ -31,6 +29,14 @@ const StatisticsTab = lazy(() =>
 const BudgetTab = lazy(() =>
   import("../budget/BudgetTab").then((m) => ({ default: m.BudgetTab })),
 );
+const TagsTab = lazy(() =>
+  import("../tag/TagsTab.tsx").then((m) => ({ default: m.TagsTab })),
+);
+const SettingsTab = lazy(() =>
+  import("../settings/SettingsTab.tsx").then((m) => ({
+    default: m.SettingsTab,
+  })),
+);
 
 /** v2 (D13): wallet title row, tabs under it, the hero card on Transactions only. */
 const WalletHeaderV2: React.FC<{ actions?: React.ReactNode }> = ({
@@ -41,7 +47,7 @@ const WalletHeaderV2: React.FC<{ actions?: React.ReactNode }> = ({
   return (
     <>
       {/* Own stacking context above the sticky tabs (z-90) and toolbar (z-80), so the profile/bell/sync dropdowns open over them. */}
-      <div className="relative z-[91] mb-3.5 hidden items-center justify-between gap-4 lg:flex">
+      <div className="relative z-[91] mb-6 hidden items-center justify-between gap-4 lg:flex">
         <div className="min-w-0">
           <h1 className="flex items-center gap-2.5 font-display text-[28px] leading-[1.1] font-bold tracking-[-0.02em]">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-wallet text-base text-on-wallet">
@@ -103,7 +109,6 @@ const WalletBody: React.FC<{ bare?: boolean }> = ({ bare = false }) => {
     <>
       {activeTab === "transactions" && <TransactionsTab />}
       {activeTab === "subscription" && <SubscriptionTab />}
-      {activeTab === "category" && <TagsTab />}
       <Suspense
         fallback={
           <div className="h-[400px] bg-app-card rounded-[var(--r-card)] animate-pulse" />
@@ -111,8 +116,9 @@ const WalletBody: React.FC<{ bare?: boolean }> = ({ bare = false }) => {
       >
         {activeTab === "statistics" && <StatisticsTab />}
         {activeTab === "budget" && <BudgetTab />}
+        {activeTab === "category" && <TagsTab />}
+        {activeTab === "settings" && <SettingsTab />}
       </Suspense>
-      {activeTab === "settings" && <SettingsTab />}
     </>
   );
 

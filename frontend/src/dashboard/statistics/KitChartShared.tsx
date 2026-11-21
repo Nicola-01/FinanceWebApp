@@ -2,8 +2,13 @@ import React from "react";
 import type { KitSeries } from "./kitChartData.ts";
 
 /** Legend under a kit chart: a dot and label per series. */
-export const KitLegend: React.FC<{ series: KitSeries[] }> = ({ series }) => (
-  <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 mt-3">
+export const KitLegend: React.FC<{
+  series: KitSeries[];
+  className?: string;
+}> = ({ series, className = "mt-3" }) => (
+  <div
+    className={`flex flex-wrap items-center justify-center gap-x-5 gap-y-1 ${className}`}
+  >
     {series.map((s) => (
       <div key={s.key} className="flex items-center gap-1.5">
         <span

@@ -11,8 +11,11 @@ import { AnimateBackground } from "./AnimateBackground";
 import { useOAuthParams } from "./oauth/useOAuthParams";
 import { useOAuthAuthorize } from "./oauth/useOAuthAuthorize";
 import { OAuthErrorState } from "./oauth/OAuthErrorState";
+import { useUiVersion } from "../hooks/useUiVersion";
 
 const OAuthConsent = () => {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const params = useOAuthParams();
   const { clientId, redirectUri, scope, tokenName } = params;
   const {
@@ -29,7 +32,7 @@ const OAuthConsent = () => {
   if (!params.valid) {
     return (
       <OAuthErrorState
-        iconClassName="text-app-yellow"
+        iconClassName={v2 ? "text-app-warn" : "text-app-yellow"}
         title="Invalid Request"
         message="Missing required OAuth parameters. Please try connecting again from your MCP client."
       />
@@ -39,7 +42,7 @@ const OAuthConsent = () => {
   if (hasReplayError) {
     return (
       <OAuthErrorState
-        iconClassName="text-app-red"
+        iconClassName={v2 ? "text-app-danger" : "text-app-red"}
         title="Request Expired"
         message="This authorization request has expired or has already been used. Please start a new request from your client."
       >
@@ -51,6 +54,95 @@ const OAuthConsent = () => {
   }
 
   const noWalletSelected = walletPerms.filter((w) => w.enabled).length === 0;
+  const scopes = scope ? scope.split(" ").filter(Boolean) : [];
+
+  if (v2)
+    return (
+      <div className="grid min-h-dvh place-items-center bg-app-bg px-4 py-10">
+        <div className="flex w-full max-w-[480px] flex-col gap-6">
+          <div className="flex w-full flex-col gap-6 rounded-[var(--r-card)] bg-app-card p-6 text-app-text shadow-[var(--box-ring)] sm:p-8">
+            <div className="flex flex-col gap-1.5">
+              <h2 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">
+                Authorize access
+              </h2>
+              <p className="text-[13px] text-app-muted">
+                An application is requesting access to your finance data
+              </p>
+            </div>
+
+            {/* Client and requested access: one row each */}
+            <div className="divide-y divide-app-border overflow-hidden rounded-[var(--r-input)] bg-app-raised">
+              <div className="flex min-h-14 items-center justify-between gap-4 px-4">
+                <span className="text-[13px] text-app-muted">Application</span>
+                <span className="min-w-0 truncate text-sm font-semibold text-app-text">
+                  {clientId}
+                </span>
+              </div>
+              <div className="flex min-h-14 items-center justify-between gap-4 px-4">
+                <span className="text-[13px] text-app-muted">Redirect</span>
+                <span className="min-w-0 truncate text-[13px] text-app-text">
+                  {redirectUri}
+                </span>
+              </div>
+              {scopes.map((s) => (
+                <div
+                  key={s}
+                  className="flex min-h-14 items-center justify-between gap-4 px-4"
+                >
+                  <span className="text-[13px] text-app-muted">Access</span>
+                  <span className="text-sm font-semibold text-app-text">
+                    {s}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Wallet permissions (PatFormView is already v2) */}
+            <PatFormView
+              isEdit={false}
+              tokenName={tokenName}
+              setTokenName={() => {}}
+              walletPerms={walletPerms}
+              setPermission={setPermission}
+              onSubmit={handleAuthorize}
+              isSubmitting={authorizing}
+              hideName
+              hideSubmit
+            />
+
+            <div className="flex flex-col gap-3">
+              <Button
+                id="oauth-allow-btn"
+                variant="primary"
+                size="lg"
+                fullWidth
+                ripple
+                onClick={handleAuthorize}
+                disabled={authorizing || noWalletSelected}
+              >
+                {authorizing ? "Authorizing…" : "Approve"}
+              </Button>
+              <Button
+                id="oauth-deny-btn"
+                variant="secondary"
+                size="lg"
+                fullWidth
+                onClick={handleDeny}
+                disabled={authorizing}
+              >
+                Deny
+              </Button>
+            </div>
+          </div>
+
+          <p className="text-center text-xs text-app-muted">
+            <FontAwesomeIcon icon={faShieldAlt} className="mr-1" />
+            This will create a personal access token with the permissions you
+            select. You can revoke it at any time from your API Tokens settings.
+          </p>
+        </div>
+      </div>
+    );
 
   return (
     <div className="relative flex min-h-[100dvh] items-start justify-center overflow-x-hidden overflow-y-auto px-4 pt-[6dvh] pb-8 sm:items-center sm:px-0 sm:pt-0 sm:pb-0">

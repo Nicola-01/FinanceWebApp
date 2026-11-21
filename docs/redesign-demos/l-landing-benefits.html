@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en" data-ui="v2">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landing, benefits first: two variants</title>
+<style>
+  /* ---- Self-hosted fonts (fonts/ next to this file; no CDN) ---- */
+  @font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 500 800; font-display: swap; src: url("fonts/bricolage-var.woff2") format("woff2"); }
+  @font-face { font-family: "Instrument Sans"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("fonts/instrument-sans-var.woff2") format("woff2"); }
+  @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/jbmono-500.woff2") format("woff2"); }
+  @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/jbmono-700.woff2") format("woff2"); }
+
+  /* ---- Global tokens (frontend/src/theme-tokens.css, UI v2) ---- */
+  :root { --brand-1: #8b5cf6; --brand-2: #e0339a; --grad-brand: linear-gradient(120deg, var(--brand-1), var(--brand-2));
+    --font-sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --r-hero: 20px; --r-card: 18px; --r-input: 12px; --r-cta: 12px; --r-sm: 8px; }
+
+  /* Variant V1: dark, high contrast (token values from :root.dark[data-ui="v2"]) */
+  .v1 { --bg-main: 20 19 18; --bg-surface: 29 28 26; --bg-raised: 38 36 33; --bg-input: 38 36 33;
+    --text-primary: 239 236 230; --text-muted: 154 149 140; --text-faint: 107 102 94; --border-primary: 46 44 41;
+    --v2-income: 127 207 149; --v2-invest: 179 156 245; --v2-kept: 122 170 245; --v2-warn: 240 184 90; --v2-warn-fill: 240 184 90; --v2-danger: 255 138 122;
+    --glyph-mix: 100%; --box-ring: inset 0 0 0 1px rgb(46 44 41);
+    --wallet: #8b5cf6; --on-wallet: #ffffff; --stage: #0c0b0b; }
+
+  /* Variant V2: light, editorial (token values from :root[data-ui="v2"]) */
+  .v2 { --bg-main: 244 243 241; --bg-surface: 255 255 255; --bg-raised: 238 236 232; --bg-input: 238 236 232;
+    --text-primary: 28 26 23; --text-muted: 107 102 94; --text-faint: 154 149 140; --border-primary: 228 225 220;
+    --v2-income: 47 143 85; --v2-invest: 109 79 194; --v2-kept: 52 120 198; --v2-warn: 154 95 0; --v2-warn-fill: 240 160 32; --v2-danger: 196 65 47;
+    --glyph-mix: 70%; --box-ring: 0 0 0 1px rgb(228 225 220);
+    --wallet: #8b5cf6; --on-wallet: #ffffff; --stage: #dedbd4; }
+
+  /* ---- Doc chrome ---- */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #111; color: #efece6; font: 15px/1.5 var(--font-sans); font-variant-numeric: tabular-nums; padding: 40px 32px 120px; }
+  .doc-top { max-width: 1480px; margin: 0 auto; }
+  h1.doc-title { font: 600 26px/1.2 var(--font-display); letter-spacing: -0.02em; }
+  .doc-lead { color: #9a958c; max-width: 90ch; margin-top: 8px; }
+  .doc-notes { color: #9a958c; font-size: 13.5px; margin-top: 14px; max-width: 100ch; }
+  .doc-notes li { margin: 4px 0 0 18px; }
+  .proposal { max-width: 1480px; margin: 56px auto 0; padding: 40px 32px 48px; background: var(--stage); border-radius: 22px; }
+  .p-head { display: flex; align-items: center; gap: 10px; }
+  .p-head h2 { font: 600 24px/1.2 var(--font-display); letter-spacing: -0.02em; color: rgb(var(--text-primary)); }
+  .p-tag { font: 700 13px/1 var(--font-mono); width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: rgb(var(--text-primary)); color: rgb(var(--bg-main)); }
+  .rec { font-size: 12px; font-weight: 600; color: #fff; background: #8b5cf6; border-radius: 99px; padding: 3px 10px; }
+  .p-why { color: rgb(var(--text-muted)); font-size: 14px; margin-top: 6px; max-width: 110ch; }
+  .p-why b { color: rgb(var(--text-primary)); font-weight: 600; }
+  .frames { display: flex; flex-wrap: wrap; gap: 36px; align-items: flex-start; margin-top: 24px; }
+  figure { flex: none; }
+  figcaption { margin-top: 12px; color: rgb(var(--text-muted)); font-size: 13px; }
+  .ico-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  /* ---- Frames: phone 375px + desktop 1080px. Container queries pick the layout. ---- */
+  .frame { container-type: inline-size; position: relative; background: rgb(var(--bg-main)); color: rgb(var(--text-primary)); overflow: hidden; }
+  .desk { width: 1080px; border-radius: 14px; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .35); }
+  .v2 .desk { box-shadow: 0 0 0 1px #c9c5bc, 0 30px 60px rgb(0 0 0 / .12); }
+  .chrome { height: 36px; display: flex; align-items: center; gap: 6px; padding: 0 14px; background: rgb(var(--bg-surface)); border-bottom: 1px solid rgb(var(--border-primary)); }
+  .chrome i { width: 10px; height: 10px; border-radius: 50%; background: rgb(var(--border-primary)); }
+  .chrome .url { margin-left: 14px; font-size: 12px; color: rgb(var(--text-muted)); background: rgb(var(--bg-raised)); padding: 3px 12px; border-radius: 8px; }
+  .scroll-d { height: 900px; overflow-y: auto; }
+  .phone { width: 375px; height: 760px; border-radius: 36px; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .45); display: flex; flex-direction: column; }
+  .v2 .phone { box-shadow: 0 0 0 8px #bdb8ae, 0 30px 60px rgb(0 0 0 / .18); }
+  .status { height: 34px; flex: none; background: rgb(var(--bg-main)); }
+  .scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+
+  /* ---- Shared page pieces ---- */
+  .page { font: 15px/1.5 var(--font-sans); color: rgb(var(--text-primary)); background: rgb(var(--bg-main)); }
+  .ico { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .sec { padding: 80px 48px; }
+  .sec + .sec { border-top: 1px solid rgb(var(--border-primary)); }
+  .eyebrow { font-size: 13px; font-weight: 600; color: rgb(var(--text-muted)); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .v1 .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #8b5cf6; }
+  .h1 { font: 700 76px/1 var(--font-display); letter-spacing: -0.04em; }
+  .h2 { font: 600 42px/1.08 var(--font-display); letter-spacing: -0.03em; }
+  .h3 { font: 620 22px/1.2 var(--font-display); letter-spacing: -0.015em; }
+  .lead { color: rgb(var(--text-muted)); font-size: 18px; line-height: 1.55; max-width: 50ch; margin-top: 20px; }
+  .muted { color: rgb(var(--text-muted)); }
+  .faint { color: rgb(var(--text-faint)); }
+  .cap { font-size: 12.5px; color: rgb(var(--text-faint)); margin-top: 12px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 18px; border: 0; border-radius: var(--r-cta); font: 600 15px/1 var(--font-sans); white-space: nowrap; text-decoration: none; }
+  .btn .ico { width: 18px; height: 18px; }
+  .btn-lg { height: 54px; padding: 0 26px; font-size: 16px; }
+  .btn-sm { height: 36px; padding: 0 14px; font-size: 14px; }
+  .btn-pri { background: var(--grad-brand); color: #fff; box-shadow: 0 10px 22px -14px rgb(0 0 0 / .6); }
+  .btn-sec { background: rgb(var(--bg-raised)); color: rgb(var(--text-primary)); }
+  .icon-btn { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: rgb(var(--text-muted)); }
+  .icon-btn .ico { width: 19px; height: 19px; }
+
+  .chip { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; flex: none; background: color-mix(in srgb, var(--c, rgb(var(--text-muted))) 18%, transparent); color: color-mix(in srgb, var(--c, rgb(var(--text-muted))) var(--glyph-mix), #000); }
+  .chip .ico { width: 19px; height: 19px; }
+  .pill { font-size: 12px; font-weight: 600; border-radius: 99px; padding: 3px 9px; white-space: nowrap; flex: none; display: inline-flex; align-items: center; gap: 5px; }
+  .pill .ico { width: 13px; height: 13px; stroke-width: 2.2; }
+  .pill.ok { color: rgb(var(--v2-income)); background: color-mix(in srgb, rgb(var(--v2-income)) 16%, transparent); }
+  .pill.warn { color: rgb(var(--v2-warn)); background: color-mix(in srgb, rgb(var(--v2-warn-fill)) 16%, transparent); }
+  .pill.neutral { color: rgb(var(--text-muted)); background: rgb(var(--bg-raised)); }
+
+  .rows { background: rgb(var(--bg-surface)); border-radius: var(--r-card); box-shadow: var(--box-ring); overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; min-height: 62px; }
+  .row + .row { border-top: 1px solid rgb(var(--border-primary)); }
+  .row .t { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .s { color: rgb(var(--text-muted)); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .grow { flex: 1; min-width: 0; }
+  .row .amt { font-family: var(--font-mono); font-weight: 600; font-size: 14.5px; white-space: nowrap; }
+  .row .amt.in { color: rgb(var(--v2-income)); }
+
+  /* Wallet card (WalletHeroCard): solid wallet fill, net amount, sparkline */
+  .wcard { position: relative; overflow: hidden; background: var(--wallet); color: var(--on-wallet); border-radius: var(--r-hero); padding: 26px 28px; min-height: 280px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; }
+  .wcard .wc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .wcard .name { font: 700 28px/1.1 var(--font-display); letter-spacing: -0.02em; }
+  .wcard .meta { font-size: 13px; opacity: .7; margin-top: 4px; }
+  .wcard .k { font-size: 14px; opacity: .75; }
+  .wcard .big { font: 700 72px/1 var(--font-display); letter-spacing: -0.035em; margin-top: 6px; }
+  .wcard .month { display: inline-flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--on-wallet) 12%, transparent); border-radius: 10px; padding: 5px 10px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .wcard .spark { width: 100%; height: 70px; display: block; }
+
+  /* Nav */
+  .nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 14px 32px; border-bottom: 1px solid rgb(var(--border-primary)); background: rgb(var(--bg-main)); }
+  .brand { display: flex; align-items: center; gap: 9px; font: 700 18px var(--font-display); letter-spacing: -0.01em; }
+  .logo { width: 28px; height: 28px; object-fit: contain; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-links a { padding: 8px 12px; border-radius: 10px; font-size: 14.5px; color: rgb(var(--text-muted)); }
+  .nav-links a.on { color: rgb(var(--text-primary)); background: rgb(var(--bg-raised)); }
+  .nav-end { justify-self: end; display: flex; gap: 8px; align-items: center; }
+  .nav-burger { display: none; }
+
+  /* ---- 1. Hero ---- */
+  .hero { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; padding-top: 88px; padding-bottom: 88px; }
+
+  /* ---- 2. Problem band (kept from ProblemBand.tsx, restyled to v2) ---- */
+  .problem { text-align: center; }
+  .problem .eyebrow { justify-content: center; }
+  .problem .h2 { margin: 0 auto; max-width: 22ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin-top: 40px; }
+  .mchip { display: flex; align-items: center; gap: 10px; background: rgb(var(--bg-surface)); box-shadow: var(--box-ring); border-radius: var(--r-input); padding: 7px 14px 7px 7px; }
+  .mchip .t { font-size: 14px; color: rgb(var(--text-muted)); }
+  .mchip .num { font-weight: 600; font-size: 15px; color: rgb(var(--text-primary)); }
+  .plus { width: 16px; height: 16px; color: rgb(var(--text-faint)); }
+  .sum { display: inline-flex; flex-direction: column; align-items: center; margin-top: 34px; border-radius: var(--r-hero); background: rgb(var(--bg-surface)); box-shadow: var(--box-ring); padding: 26px 46px; }
+  .sum .big { font: 700 60px/1 var(--font-mono); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .sum .l { font-size: 15px; color: rgb(var(--text-muted)); margin-top: 8px; }
+  .problem .lead { margin: 26px auto 0; font-size: 17px; }
+  .v1 .sum { background: #8b5cf6; color: #fff; box-shadow: none; }
+  .v1 .sum .l { color: rgba(255, 255, 255, .8); }
+
+  /* ---- 3. Benefit blocks ---- */
+  .bx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 48px; }
+  .bx { background: rgb(var(--bg-surface)); border-radius: var(--r-hero); box-shadow: var(--box-ring); padding: 28px; display: flex; flex-direction: column; gap: 22px; }
+  .bx .bx-n { font: 500 12.5px/1 var(--font-mono); color: rgb(var(--text-faint)); letter-spacing: 0.02em; }
+  .bx h3 { font: 620 25px/1.15 var(--font-display); letter-spacing: -0.02em; }
+  .bx p { color: rgb(var(--text-muted)); font-size: 15.5px; margin-top: 8px; line-height: 1.5; }
+  .bx-proof { background: rgb(var(--bg-main)); border-radius: var(--r-card); padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .bx-proof .head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14.5px; }
+  .bx-proof .head .t { font-weight: 600; }
+  .split { display: flex; gap: 2px; height: 14px; border-radius: 5px; overflow: hidden; }
+  .split i { display: block; height: 100%; }
+  .lg2 { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+  .lg2 .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--c); margin-right: 9px; }
+  .bar { height: 10px; border-radius: 5px; background: rgb(var(--bg-raised)); overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 5px; background: rgb(var(--v2-warn-fill)); }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .tile { background: rgb(var(--bg-surface)); border-radius: 14px; box-shadow: var(--box-ring); padding: 13px 14px; }
+  .tile .k { color: rgb(var(--text-muted)); font-size: 13px; }
+  .tile .v { font: 650 24px/1.15 var(--font-display); letter-spacing: -0.02em; margin-top: 4px; }
+  .tile .sub { color: rgb(var(--text-faint)); font-size: 12px; margin-top: 2px; }
+  .av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none; font: 600 13px var(--font-sans); background: rgb(var(--bg-raised)); color: rgb(var(--text-primary)); }
+  .bubble { border-radius: var(--r-input); padding: 10px 14px; font-size: 14.5px; line-height: 1.5; }
+  .bubble.me { background: rgb(var(--bg-raised)); margin-left: 24px; }
+  .bubble.ai { background: rgb(var(--bg-surface)); box-shadow: var(--box-ring); margin-right: 24px; }
+  .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .trio > div { background: rgb(var(--bg-surface)); border-radius: 14px; box-shadow: var(--box-ring); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .trio b { font: 600 15px var(--font-display); }
+  .trio p { font-size: 13px; color: rgb(var(--text-muted)); line-height: 1.45; }
+
+  /* Variant V1: dark, high contrast, bold cards */
+  .v1 .bx-grid { gap: 18px; }
+  .v1 .bx h3 { font-size: 27px; }
+
+  /* Variant V2: light, editorial, hairline rows with numbered index */
+  .v2 .bx-grid { grid-template-columns: 1fr; gap: 0; }
+  .v2 .bx { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: center; background: none; box-shadow: none; border-radius: 0; padding: 44px 0; border-top: 1px solid rgb(var(--border-primary)); }
+  .v2 .bx h3 { font-size: 30px; line-height: 1.1; }
+  .v2 .bx .bx-n { display: block; margin-bottom: 14px; }
+  .v2 .bx-proof { background: rgb(var(--bg-surface)); box-shadow: var(--box-ring); padding: 24px; }
+  .v2 .h1 { font-size: 96px; line-height: .98; letter-spacing: -0.045em; max-width: 13ch; }
+  .v2 .h2 { font-size: 52px; }
+  .v2 .sum { background: rgb(var(--bg-surface)); }
+
+  /* ---- 4. Example month ---- */
+  .before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; font-size: 15px; }
+  .before-after > div { border-radius: var(--r-card); padding: 16px 20px; background: rgb(var(--bg-surface)); box-shadow: var(--box-ring); }
+  .before-after b { display: block; font-size: 12.5px; color: rgb(var(--text-faint)); font-weight: 600; margin-bottom: 4px; }
+  .nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+  .numcell { border-radius: var(--r-hero); padding: 30px 30px 28px; background: rgb(var(--bg-surface)); box-shadow: var(--box-ring); }
+  .numcell .v { font: 700 72px/1 var(--font-display); letter-spacing: -0.04em; }
+  .numcell .l { font-size: 16px; color: rgb(var(--text-muted)); margin-top: 12px; }
+  .v1 .numcell:last-child { background: #8b5cf6; color: #fff; box-shadow: none; }
+  .v1 .numcell:last-child .l { color: rgba(255, 255, 255, .82); }
+  .v2 .numcell { background: none; box-shadow: none; border-top: 3px solid rgb(var(--text-primary)); border-radius: 0; padding: 26px 0 0; }
+
+  /* ---- 5. Trust ---- */
+  .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 40px; }
+  .trust-grid > div { background: rgb(var(--bg-surface)); border-radius: var(--r-card); box-shadow: var(--box-ring); padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .trust-grid h3 { font: 620 18px/1.2 var(--font-display); }
+  .trust-grid p { font-size: 14px; color: rgb(var(--text-muted)); line-height: 1.5; margin-top: -6px; }
+  .v2 .trust-grid > div { background: none; box-shadow: none; border-top: 1px solid rgb(var(--border-primary)); border-radius: 0; padding: 22px 0 0; }
+
+  /* ---- 6. Final CTA ---- */
+  .final { border-radius: var(--r-hero); padding: 64px 56px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: center; background: rgb(var(--bg-surface)); box-shadow: var(--box-ring); }
+  .final .h2 { font-size: 54px; }
+  .final-cta { display: flex; flex-direction: column; gap: 12px; }
+  .final-cta .btn { width: 100%; }
+  .v1 .final { background: rgb(var(--text-primary)); color: rgb(var(--bg-main)); box-shadow: none; }
+  .v1 .final .lead { color: rgb(var(--bg-main)); opacity: .72; }
+  .v1 .final .btn-sec { background: rgba(20, 19, 18, .12); color: inherit; }
+
+  /* ---- Footer ---- */
+  .foot { padding: 48px 48px 40px; border-top: 1px solid rgb(var(--border-primary)); }
+  .fine { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: rgb(var(--text-faint)); margin-top: 26px; padding-top: 18px; border-top: 1px solid rgb(var(--border-primary)); }
+
+  /* ---- Phone / narrow layout (container query on each frame) ---- */
+  @container (max-width: 700px) {
+    .nav { grid-template-columns: 1fr auto; padding: 12px 18px; }
+    .nav-links, .nav-cta { display: none; }
+    .nav-burger { display: grid; }
+    .sec { padding: 56px 20px; }
+    .foot { padding: 36px 20px 32px; }
+    .hero { grid-template-columns: 1fr; gap: 36px; padding-top: 44px; padding-bottom: 48px; }
+    .h1, .v2 .h1 { font-size: 44px; max-width: none; }
+    .h2, .v2 .h2, .final .h2 { font-size: 32px; }
+    .lead { font-size: 16px; }
+    .wcard { min-height: 230px; padding: 22px; }
+    .wcard .big { font-size: 56px; }
+    .mchip { padding: 6px 10px 6px 6px; }
+    .sum { padding: 20px 28px; }
+    .sum .big { font-size: 46px; }
+    .bx-grid { grid-template-columns: 1fr; }
+    .v2 .bx { grid-template-columns: 1fr; gap: 24px; padding: 32px 0; }
+    .v2 .bx h3 { font-size: 26px; }
+    .nums { grid-template-columns: 1fr; gap: 12px; }
+    .numcell .v { font-size: 56px; }
+    .v2 .numcell { padding-top: 18px; }
+    .before-after { grid-template-columns: 1fr; }
+    .trust-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .trust-grid > div { padding: 16px; }
+    .final { grid-template-columns: 1fr; padding: 36px 24px; gap: 28px; }
+    .tiles { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .tile { padding: 10px 11px; }
+    .tile .v { font-size: 18px; }
+    .trio { grid-template-columns: 1fr; }
+    .bubble.me { margin-left: 0; } .bubble.ai { margin-right: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Icon sprite (inline; stroke styles come from .ico) -->
+<svg class="ico-sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.3-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.8"/><path d="M17 14c2.4 0 4.2 1.6 4.8 4.5"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><path d="M12 20h.01"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v9M9.5 10v9M14.5 10v9M19 10v9M3 21h18"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.3-4-2-6-2.5M15 21v-3.5c0-1 .1-1.5-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6 0C6.3 3.3 5.3 3.6 5.3 3.6a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 3.9 10c0 4.6 2.7 5.7 5.5 6-.6.5-.6 1.2-.5 2V21"/></symbol>
+  <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M4 8h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M7 2v2M11 2v2"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M5 17h14M4 17v-4l2-5h12l2 5v4"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></symbol>
+  <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2 1-3 3.5-3 7 0 1.5 1 2 3 2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="16.5" cy="13.5" r="1.2"/></symbol>
+  <symbol id="i-pie" viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 9M4 4v5h5M4 13a8 8 0 0 0 14.5 4.5L20 15M20 20v-5h-5"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 9M4 4v5h5M4 13a8 8 0 0 0 14.5 4.5L20 15M20 20v-5h-5"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M14 4l-4 16"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+  <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
+</svg>
+
+<div class="doc-top">
+  <h1 class="doc-title">Landing, benefits first: two variants</h1>
+  <p class="doc-lead">Same narrative, two looks. Each variant has a 1080px desktop frame and a 375px phone frame, rendered from one shared markup block. The story goes from the promise, to the problem the owner liked, to the outcome each feature delivers, then trust and a final call to action.</p>
+  <ul class="doc-notes">
+    <li>Copy is new, written for outcomes. Feature names stay visible as the small proof under each benefit. Figures in the proof fragments are examples, and the hero and month numbers are labelled as examples.</li>
+    <li>Problem band kept from <code>ProblemBand.tsx</code> and restyled to v2 (icon tiles, mono sums). Brand gradient only on the primary CTA; the wallet purple is a solid fill.</li>
+    <li>Bank sync is marked "Preview" because the live landing still says "Coming soon". Update that pill once the feature is announced.</li>
+    <li>No glows, halos, blobs, or animated wordmark. Icons are inline SVG. Fonts are self-hosted from <code>fonts/</code>. No CDN.</li>
+  </ul>
+</div>
+
+<!-- =================================================================== -->
+<!-- Variant V1: dark, high contrast                                     -->
+<!-- =================================================================== -->
+<section class="proposal v1" id="v1">
+  <div class="p-head"><span class="p-tag">1</span><h2>Dark, high contrast</h2><span class="rec">Recommended</span></div>
+  <p class="p-why"><b>Why recommended:</b> dark is the app's default, and a solid purple wallet card, sum box and final band carry the bold tone the brief asks for without a single glow. The benefit blocks read as bold cards, so each outcome stands on its own.</p>
+  <div class="frames">
+    <figure>
+      <div class="frame desk"><div class="chrome"><i></i><i></i><i></i><span class="url">localhost/about</span></div><div class="scroll-d"><div class="page" data-tpl="tpl"></div></div></div>
+      <figcaption>Desktop, 1080px</figcaption>
+    </figure>
+    <figure>
+      <div class="frame phone"><div class="status"></div><div class="scroll"><div class="page" data-tpl="tpl"></div></div></div>
+      <figcaption>Phone, 375px</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- Variant V2: light, editorial                                        -->
+<!-- =================================================================== -->
+<section class="proposal v2" id="v2">
+  <div class="p-head"><span class="p-tag">2</span><h2>Light, editorial</h2></div>
+  <p class="p-why"><b>Trade-off:</b> a large display headline, numbered benefit rows on hairlines, and white proof cards on the warm paper background. It reads as a magazine feature rather than a product page, so it sells the story more than the screens. Slightly less punchy than V1 on a phone.</p>
+  <div class="frames">
+    <figure>
+      <div class="frame desk"><div class="chrome"><i></i><i></i><i></i><span class="url">localhost/about</span></div><div class="scroll-d"><div class="page" data-tpl="tpl"></div></div></div>
+      <figcaption>Desktop, 1080px</figcaption>
+    </figure>
+    <figure>
+      <div class="frame phone"><div class="status"></div><div class="scroll"><div class="page" data-tpl="tpl"></div></div></div>
+      <figcaption>Phone, 375px</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ======================= SHARED TEMPLATE (same narrative for both variants) ======================= -->
+<template id="tpl">
+  <nav class="nav">
+    <div class="brand"><img class="logo" src="icon.svg" alt="">FinanceWebApp</div>
+    <div class="nav-links"><a class="on">Home</a><a>Features</a><a>Roadmap</a><a>GitHub</a></div>
+    <div class="nav-end">
+      <span class="btn btn-sec btn-sm nav-cta">Log in</span>
+      <span class="btn btn-pri btn-sm nav-cta">Start free</span>
+      <span class="icon-btn nav-burger" aria-hidden="true"><svg class="ico"><use href="#i-menu"/></svg></span>
+    </div>
+  </nav>
+
+  <!-- 1. Hero: promise + one outcome visual -->
+  <header class="sec hero">
+    <div>
+      <p class="eyebrow">Open-source personal finance</p>
+      <h1 class="h1">Know where every euro goes. Keep more.</h1>
+      <p class="lead">FinanceWebApp is a free, open-source money app. Shared wallets, budgets, subscriptions, investments and an AI assistant, in one place.</p>
+      <div class="cta-row">
+        <span class="btn btn-pri btn-lg">Start free <svg class="ico"><use href="#i-arrow"/></svg></span>
+        <span class="btn btn-sec btn-lg">See how it works</span>
+      </div>
+    </div>
+    <div>
+      <div class="wcard" style="--wallet:#8b5cf6;--on-wallet:#fff">
+        <div class="wc-top">
+          <div><div class="name">Main Account</div><div class="meta">EUR · Owner</div></div>
+          <span class="month"><span aria-hidden="true">‹</span> March <span aria-hidden="true">›</span></span>
+        </div>
+        <div><div class="k">Kept this month</div><div class="big">+€412</div></div>
+        <svg class="spark" viewBox="0 0 300 70" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 58 C30 50 52 60 80 44 S130 38 160 42 S220 20 250 28 S290 14 300 12 L300 70 L0 70 Z" fill="currentColor" opacity=".16"/>
+          <path d="M0 58 C30 50 52 60 80 44 S130 38 160 42 S220 20 250 28 S290 14 300 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+        </svg>
+      </div>
+      <p class="cap">Example figures, for illustration only.</p>
+    </div>
+  </header>
+
+  <!-- 2. Problem band (kept from ProblemBand.tsx) -->
+  <section class="sec problem">
+    <p class="eyebrow">The problem</p>
+    <h2 class="h2">Small, one by one. Not so small, added up.</h2>
+    <div class="chips">
+      <div class="mchip"><span class="chip" style="--c:#fb923c"><svg class="ico"><use href="#i-coffee"/></svg></span><span class="t">Coffee</span><span class="num">€3.50</span></div>
+      <svg class="ico plus"><use href="#i-plus"/></svg>
+      <div class="mchip"><span class="chip" style="--c:#f472b6"><svg class="ico"><use href="#i-film"/></svg></span><span class="t">Streaming</span><span class="num">€12.99</span></div>
+      <svg class="ico plus"><use href="#i-plus"/></svg>
+      <div class="mchip"><span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-car"/></svg></span><span class="t">Parking</span><span class="num">€2.00</span></div>
+      <svg class="ico plus"><use href="#i-plus"/></svg>
+      <div class="mchip"><span class="chip" style="--c:#fbbf24"><svg class="ico"><use href="#i-cart"/></svg></span><span class="t">Croissant</span><span class="num">€1.80</span></div>
+      <svg class="ico plus"><use href="#i-plus"/></svg>
+      <div class="mchip"><span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-car"/></svg></span><span class="t">Taxi</span><span class="num">€9.00</span></div>
+      <svg class="ico plus"><use href="#i-plus"/></svg>
+      <div class="mchip"><span class="chip" style="--c:#fbbf24"><svg class="ico"><use href="#i-utensils"/></svg></span><span class="t">Lunch</span><span class="num">€8.50</span></div>
+      <span class="faint" style="font-size:18px;padding:0 4px">…</span>
+    </div>
+    <div class="sum"><span class="big">€217</span><span class="l">every month</span></div>
+    <p class="lead">You don't notice them going out. FinanceWebApp makes sure you notice them adding up.</p>
+  </section>
+
+  <!-- 3. What changes when you use it -->
+  <section class="sec" id="what">
+    <p class="eyebrow">What changes when you use it</p>
+    <h2 class="h2">Less guessing. More of your money kept.</h2>
+
+    <div class="bx-grid">
+      <article class="bx">
+        <div><span class="bx-n">01 · Categories and statistics</span><h3>Find the leaks before they add up.</h3><p>Nested donuts and a Sankey show where every euro went. The trend view flags any category that keeps growing.</p></div>
+        <div class="bx-proof">
+          <div class="head"><span class="t">March spending</span><span class="num">€1,300</span></div>
+          <div class="split"><i style="flex:59;background:#f87171"></i><i style="flex:32;background:#fbbf24"></i><i style="flex:9;background:#60a5fa"></i></div>
+          <div class="lg2"><span><span class="sw" style="--c:#f87171"></span>Housing</span><span class="num">€770 · 59%</span></div>
+          <div class="lg2"><span><span class="sw" style="--c:#fbbf24"></span>Food and dining</span><span class="num">€415 · 32%</span></div>
+          <div><span class="pill warn"><svg class="ico"><use href="#i-trend"/></svg>Eating out up €38 on February</span></div>
+        </div>
+      </article>
+
+      <article class="bx">
+        <div><span class="bx-n">02 · Subscriptions and reminders</span><h3>No renewal takes you by surprise.</h3><p>Set rules like "last working day of the month". Each payment lands on a calendar and a timeline, and you get a reminder before it hits.</p></div>
+        <div class="bx-proof">
+          <div class="head"><span class="t">Coming up</span><span class="faint">next 10 days</span></div>
+          <div class="rows">
+            <div class="row"><span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-calendar"/></svg></span><div class="grow"><div class="t">Spotify</div><div class="s">Every 1st · in 10 days</div></div><span class="amt">−€30</span></div>
+            <div class="row"><span class="chip" style="--c:#fb923c"><svg class="ico"><use href="#i-repeat"/></svg></span><div class="grow"><div class="t">Gym</div><div class="s">Last working day · in 3 days</div></div><span class="pill warn">Soon</span><span class="amt">−€40</span></div>
+          </div>
+          <p class="faint" style="font-size:13px">Reminder sent 3 days before each payment.</p>
+        </div>
+      </article>
+
+      <article class="bx">
+        <div><span class="bx-n">03 · Budgets and alerts</span><h3>Stay under budget without checking daily.</h3><p>Set a monthly limit per category. FinanceWebApp tells you when you get close, by push notification and by email.</p></div>
+        <div class="bx-proof">
+          <div class="head"><span class="t"><span class="chip" style="--c:#34d399;width:26px;height:26px;border-radius:8px;display:inline-grid;vertical-align:middle;margin-right:6px"><svg class="ico" style="width:14px;height:14px"><use href="#i-target"/></svg></span>Groceries</span><span class="num">€320 of €400</span></div>
+          <div class="bar"><i style="width:80%"></i></div>
+          <div><span class="pill warn"><svg class="ico"><use href="#i-target"/></svg>€80 left, close to the limit</span></div>
+        </div>
+      </article>
+
+      <article class="bx">
+        <div><span class="bx-n">04 · Investments</span><h3>See what you invested, not only what you spent.</h3><p>Tag an investment once. Buying counts as saving, and your liquidity stays honest.</p></div>
+        <div class="bx-proof">
+          <div class="tiles">
+            <div class="tile"><div class="k">Spent</div><div class="v">€1,300</div><div class="sub">Income − spent</div></div>
+            <div class="tile"><div class="k">Invested, net</div><div class="v">€400</div><div class="sub">Bought − cashed out</div></div>
+            <div class="tile"><div class="k">Liquidity left</div><div class="v">€870</div><div class="sub">Cash you can still use</div></div>
+          </div>
+          <div><span class="pill neutral">Investing counts as saving</span></div>
+        </div>
+      </article>
+
+      <article class="bx">
+        <div><span class="bx-n">05 · Shared wallets</span><h3>Run shared money with the people you live with.</h3><p>Share any wallet as Owner, Editor or Viewer. Everyone sees the same numbers, and you decide who can change them.</p></div>
+        <div class="bx-proof">
+          <div class="rows">
+            <div class="row"><span class="av">Y</span><div class="grow"><div class="t">You</div><div class="s">Created the wallet</div></div><span class="pill neutral">Owner</span></div>
+            <div class="row"><span class="av">P</span><div class="grow"><div class="t">Partner</div><div class="s">Adds and edits transactions</div></div><span class="pill neutral">Editor</span></div>
+            <div class="row"><span class="av">F</span><div class="grow"><div class="t">Family member</div><div class="s">Reads the numbers only</div></div><span class="pill neutral">Viewer</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="bx">
+        <div><span class="bx-n">06 · Open Banking and bank rules</span><h3>Bank transactions file themselves.</h3><p>Link your bank through Open Banking. Rules tag and rename each import, and a matching subscription absorbs its own payment.</p></div>
+        <div class="bx-proof">
+          <div class="head"><span class="t">Imported from your bank</span><span class="pill neutral">Preview</span></div>
+          <div class="rows">
+            <div class="row"><span class="chip" style="--c:#a78bfa"><svg class="ico"><use href="#i-landmark"/></svg></span><div class="grow"><div class="t">UNIPOLTECH SPA</div><div class="s">Imported 12 Mar · to categorise</div></div><span class="amt">−€4.40</span></div>
+            <div class="row"><span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-sync"/></svg></span><div class="grow"><div class="t">Spotify</div><div class="s">Matched to your subscription</div></div><span class="pill ok">Matched</span></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="bx">
+        <div><span class="bx-n">07 · AI assistant (MCP)</span><h3>Ask your finances in plain words.</h3><p>Connect Claude to the built-in MCP server. It sees only the wallets you can see, and it can answer or add a transaction for you.</p></div>
+        <div class="bx-proof" style="gap:10px">
+          <div class="bubble me">How much did I spend on restaurants in March?</div>
+          <div class="bubble ai"><span class="num" style="font-weight:600">€95.00</span> on Eating Out, about 7% of your expenses. Want a monthly cap for this category?</div>
+          <p class="faint" style="font-size:12.5px">Claude, via the FinanceWebApp MCP server</p>
+        </div>
+      </article>
+
+      <article class="bx">
+        <div><span class="bx-n">08 · Offline, currencies, reports</span><h3>Use it anywhere, in any currency.</h3><p>Log expenses on a plane. Every wallet has its own currency with ECB rates. A monthly report lands in your inbox.</p></div>
+        <div class="bx-proof">
+          <div class="trio">
+            <div><span class="chip" style="--c:#34d399"><svg class="ico"><use href="#i-wifi"/></svg></span><b>Works offline</b><p>Installable app. Changes sync when you're back online.</p></div>
+            <div><span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-wallet"/></svg></span><b>Any currency</b><p>Each wallet has its base currency. Rates from the ECB.</p></div>
+            <div><span class="chip" style="--c:#a78bfa"><svg class="ico"><use href="#i-mail"/></svg></span><b>Monthly report</b><p>Last month's summary, by email.</p></div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- 4. Example month -->
+  <section class="sec">
+    <p class="eyebrow">Example month</p>
+    <h2 class="h2">A better month, in three numbers.</h2>
+    <div class="before-after">
+      <div><b>Before</b>A bank balance and a feeling about where it went.</div>
+      <div><b>After</b>Every euro named, every renewal seen, a clear number kept.</div>
+    </div>
+    <div class="nums">
+      <div class="numcell"><div class="v">€217</div><div class="l">of small leaks found</div></div>
+      <div class="numcell"><div class="v">3</div><div class="l">renewals caught before they hit</div></div>
+      <div class="numcell"><div class="v">€412</div><div class="l">kept at the end of the month</div></div>
+    </div>
+    <p class="cap">Example month, not real data.</p>
+  </section>
+
+  <!-- 5. Trust -->
+  <section class="sec">
+    <p class="eyebrow">Trust</p>
+    <h2 class="h2">Your data stays yours.</h2>
+    <div class="trust-grid">
+      <div><span class="chip" style="--c:#a78bfa"><svg class="ico"><use href="#i-code"/></svg></span><h3>Open source</h3><p>Read every line on GitHub, including the code that handles your money.</p></div>
+      <div><span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-server"/></svg></span><h3>Self-hostable</h3><p>Run the whole stack on your own server with Docker Compose.</p></div>
+      <div><span class="chip" style="--c:#f472b6"><svg class="ico"><use href="#i-ban"/></svg></span><h3>No ads</h3><p>No ads, no tracking pixels, and no selling of your transactions.</p></div>
+      <div><span class="chip" style="--c:#34d399"><svg class="ico"><use href="#i-upload"/></svg></span><h3>Bring your history</h3><p>Import past transactions from a CSV file and start from real numbers.</p></div>
+    </div>
+  </section>
+
+  <!-- 6. Final CTA -->
+  <section class="sec">
+    <div class="final">
+      <div>
+        <h2 class="h2">Start keeping more this month.</h2>
+        <p class="lead">Free and open source. Try the demo wallet first, no sign-up needed.</p>
+      </div>
+      <div class="final-cta">
+        <span class="btn btn-pri btn-lg">Start free <svg class="ico"><use href="#i-arrow"/></svg></span>
+        <span class="btn btn-sec btn-lg"><svg class="ico"><use href="#i-github"/></svg>Try the demo</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="brand" style="font-size:16px"><img class="logo" style="width:24px;height:24px" src="icon.svg" alt="">FinanceWebApp <span class="muted" style="font:400 14px var(--font-sans)">· free &amp; open source</span></div>
+    <div class="fine"><span>Exchange rates by Frankfurter / European Central Bank.</span><span>© 2026 FinanceWebApp</span></div>
+  </footer>
+</template>
+
+<script>
+  // Render each frame's page from the shared template (one markup, cloned per frame).
+  document.querySelectorAll("[data-tpl]").forEach((el) => {
+    el.replaceChildren(document.getElementById(el.dataset.tpl).content.cloneNode(true));
+  });
+</script>
+</body>
+</html>

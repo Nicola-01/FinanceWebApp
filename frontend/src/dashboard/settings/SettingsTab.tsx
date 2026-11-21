@@ -102,8 +102,8 @@ export const SettingsTab: React.FC = () => {
 
   return (
     <div
-      className={`mx-auto flex w-full max-w-9xl flex-col pb-6 animate-[fadeIn_0.3s_ease-out] ${
-        isV2 ? "gap-3.5" : "gap-6"
+      className={`flex w-full flex-col gap-6 animate-[fadeIn_0.3s_ease-out] ${
+        isV2 ? "" : "pb-6" // ui-v2-switch: main's pb-28 already clears the dock
       }`}
     >
       {/* GENERAL SETTINGS — identity (name / icon / colour); hidden for VIEWER */}

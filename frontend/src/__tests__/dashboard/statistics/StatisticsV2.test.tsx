@@ -16,9 +16,12 @@ const { calls, record } = vi.hoisted(() => {
   return { calls, record };
 });
 
-// Investment tags come from the wallet context; the page only needs the names.
+// Investment tags come from the wallet context; tests set the flagged names per case.
+const { investTags } = vi.hoisted(() => ({
+  investTags: { current: new Set<string>(["Brokerage"]) },
+}));
 vi.mock("../../../dashboard/wallet/useInvestmentTags.ts", () => ({
-  useInvestmentTags: () => new Set(["Brokerage"]),
+  useInvestmentTags: () => investTags.current,
 }));
 
 vi.mock("../../../dashboard/statistics/StatisticsSummaryV2.tsx", () => ({
@@ -134,6 +137,7 @@ const buttonLabels = () =>
 
 beforeEach(() => {
   for (const k of Object.keys(calls)) delete calls[k];
+  investTags.current = new Set(["Brokerage"]);
   localStorage.clear();
   setUiVersion("v2");
   vi.useFakeTimers({ toFake: ["Date"] });
@@ -193,6 +197,20 @@ describe("StatisticsV2", () => {
     }[];
     expect(rows.map((r) => r.date.getFullYear())).toEqual([2024, 2025]);
     expect(rows[0]).toMatchObject({ income: 1000, expense: -200, kept: 800 });
+  });
+
+  it("hides the investment UI when no tag is flagged", () => {
+    investTags.current = new Set();
+    renderPage();
+    expect(last("StatisticsSummaryV2").hasInvestments).toBe(false);
+    expect(last("MonthByMonthChart").hasInvestments).toBe(false);
+    expect(screen.queryByText("Investments")).toBeNull();
+  });
+
+  it("shows the investment UI once a tag is flagged", () => {
+    renderPage();
+    expect(last("StatisticsSummaryV2").hasInvestments).toBe(true);
+    expect(last("MonthByMonthChart").hasInvestments).toBe(true);
   });
 
   it("routes investment-tagged flows into bought and cashed out month rows", () => {

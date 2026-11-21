@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { findRecommendedTagWithParent } from "../recommendedTags";
 import { MissingTagActions } from "../MissingTagResolver";
+import { useUiVersion } from "../../../../hooks/useUiVersion";
 import { subscriptionTagUnresolved } from "./subscriptionTags";
 import { StagedSubscriptionRowHeader } from "./StagedSubscriptionRowHeader";
 import { StagedSubscriptionEditor } from "./StagedSubscriptionEditor";
@@ -60,6 +61,8 @@ export function StagedSubscriptionRow({
   // we release the clip so the tag dropdown (absolutely positioned) can spill
   // out of the row. Resets naturally on collapse (the panel unmounts).
   const [settled, setSettled] = useState(false);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   const missing = subscriptionTagUnresolved(sub, tags);
   const matched = tags.find((t) => tagKey(t.name) === tagKey(sub.tag));
@@ -81,7 +84,7 @@ export function StagedSubscriptionRow({
   }));
 
   return (
-    <li className="px-3 py-2">
+    <li className={isV2 ? "px-4 py-3" : "px-3 py-2"}>
       <StagedSubscriptionRowHeader
         sub={sub}
         missing={missing}
@@ -106,7 +109,13 @@ export function StagedSubscriptionRow({
             onAnimationComplete={() => open && setSettled(true)}
           >
             {missing ? (
-              <div className="mt-2 rounded-[var(--r-input)] border border-app-yellow/30 bg-app-yellow/5 p-3">
+              <div
+                className={
+                  isV2 // ui-v2-switch: needs-attention row, warn bar on the left
+                    ? "mt-2 rounded-[var(--r-input)] bg-app-raised p-3 shadow-[inset_3px_0_0_var(--color-app-warn)]"
+                    : "mt-2 rounded-[var(--r-input)] border border-app-yellow/30 bg-app-yellow/5 p-3"
+                }
+              >
                 <p className="text-xs text-app-text">
                   No tag named{" "}
                   <span className="font-semibold">&ldquo;{sub.tag}&rdquo;</span>{" "}

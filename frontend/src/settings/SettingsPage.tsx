@@ -15,6 +15,7 @@ import { AppearanceSection } from "./sections/AppearanceSection";
 import { AboutSection } from "./sections/AboutSection";
 import { DeleteAccountSection } from "./sections/DeleteAccountSection";
 import { getMustChangePWD } from "../utils/authHelper";
+import { useUiVersion } from "../hooks/useUiVersion";
 
 /**
  * Scroll-spy activation line — mirrors the sections' scroll-margin-top
@@ -27,6 +28,10 @@ const spyOffset = () =>
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [ui] = useUiVersion(); // ui-v2-switch
+  // ui-v2-switch: v2 pages share one x inset (16 / 32 at lg); v1 keeps its own.
+  const pageX = ui === "v2" ? "px-4 lg:px-8" : "px-4 sm:px-6";
+  const navBleed = ui === "v2" ? "-mx-4 px-4" : "-mx-4 px-4 sm:-mx-6 sm:px-6";
   const activeId = useScrollSpy(SETTINGS_SECTION_IDS, spyOffset);
 
   // Forced password-change mode (mustChangePWD): show only Security, blocking.
@@ -62,7 +67,7 @@ const SettingsPage: React.FC = () => {
         <AppHeader page={{ text: "My", accent: "Settings" }} />
       </div>
 
-      <main className="mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6 lg:py-8">
+      <main className={`mx-auto w-full max-w-6xl ${pageX} pb-6 lg:py-8`}>
         <div
           className={
             forced
@@ -75,7 +80,9 @@ const SettingsPage: React.FC = () => {
             // block is the full-height grid, so the bar has room to stay pinned).
             // On lg the column stretches and the inner bar handles stickiness.
             <div className="min-w-0 sticky top-16 z-20 self-start lg:static lg:top-auto lg:z-auto lg:self-auto">
-              <div className="-mx-4 px-4 sm:-mx-6 sm:px-6 border-b border-app-border/60 bg-app-bg/85 py-3 backdrop-blur lg:sticky lg:top-20 lg:z-20 lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+              <div
+                className={`${navBleed} border-b border-app-border/60 bg-app-bg/85 py-3 backdrop-blur lg:sticky lg:top-20 lg:z-20 lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none`}
+              >
                 {/* Back link sits as the header of the settings nav, above the sections. */}
                 <button
                   type="button"

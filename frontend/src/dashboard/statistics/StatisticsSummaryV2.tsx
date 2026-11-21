@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
+import { useSharedFitFont } from "../../hooks/useSharedFitFont.ts";
 import { AreaSparkline, LineSparkline } from "@/components/ui/charts";
 import type { Transaction } from "../../types/domain.ts";
 import { StatTile } from "../../components/ui/StatTile.tsx";
@@ -13,6 +14,8 @@ interface StatisticsSummaryV2Props {
   period?: StatsPeriod;
   today?: Date;
   currencySymbol?: string;
+  /** Shows the Invested tile; false when no tag is flagged as investment. */
+  hasInvestments: boolean;
 }
 
 const pct = (fraction: number) => Math.round(fraction * 100);
@@ -26,6 +29,7 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
   period: periodProp,
   today: todayProp,
   currencySymbol = "€",
+  hasInvestments,
 }) => {
   const [mountedToday] = useState(() => new Date());
   const today = todayProp ?? mountedToday;
@@ -152,9 +156,14 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
   const spentRows = useMemo(() => toRows(series.spent), [series.spent]);
   const keptRows = useMemo(() => toRows(series.kept), [series.kept]);
   const rateRows = useMemo(() => toRows(series.rate, 100), [series.rate]);
+  const tilesRef = useRef<HTMLDivElement>(null);
+  useSharedFitFont(tilesRef, { max: 22, min: 14 }, [summary]);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-[14px]">
+    <div
+      ref={tilesRef}
+      className={`grid grid-cols-2 gap-3.5 ${hasInvestments ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}
+    >
       <StatTile
         label={isAll ? "Earned" : `Earned in ${label}`}
         value={summary.earned}
@@ -198,17 +207,19 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
           ) : undefined
         }
       />
-      <StatTile
-        label={isAll ? "Invested" : `Invested in ${label}`}
-        value={summary.invested}
-        currency={currencySymbol}
-        signed
-        sub={
-          <>
-            {amount(summary.bought)} in · {amount(summary.cashedOut)} out
-          </>
-        }
-      />
+      {hasInvestments && (
+        <StatTile
+          label={isAll ? "Invested" : `Invested in ${label}`}
+          value={summary.invested}
+          currency={currencySymbol}
+          signed
+          sub={
+            <>
+              {amount(summary.bought)} in · {amount(summary.cashedOut)} out
+            </>
+          }
+        />
+      )}
       <StatTile
         label="Kept"
         value={summary.kept}

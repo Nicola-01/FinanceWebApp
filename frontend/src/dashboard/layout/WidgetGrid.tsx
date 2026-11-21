@@ -9,6 +9,7 @@ import { HiddenTray } from "./HiddenTray.tsx";
 import { WidgetSlot } from "./WidgetSlot.tsx";
 import { mergeAwareCollision } from "./mergeAwareCollision.ts";
 import { useWidgetGridDnd } from "./useWidgetGridDnd.ts";
+import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 interface WidgetGridProps<Ctx> {
   defs: WidgetDef<Ctx>[];
@@ -17,6 +18,8 @@ interface WidgetGridProps<Ctx> {
   api: TabLayoutApi;
   /** Wallet colour — accents merge highlights and tray chips. */
   accentColor: string;
+  /** Tailwind gap between slots. Default: v2 `gap-3.5` (sibling cards), v1 `gap-8`; Statistics passes `gap-4`. */
+  gap?: string;
 }
 
 /**
@@ -35,7 +38,10 @@ export function WidgetGrid<Ctx>({
   editing,
   api,
   accentColor,
+  gap,
 }: WidgetGridProps<Ctx>) {
+  const [ui] = useUiVersion(); // ui-v2-switch
+  const gridGap = gap ?? (ui === "v2" ? "gap-3.5" : "gap-8");
   const defMap = useMemo(() => new Map(defs.map((d) => [d.id, d])), [defs]);
   const {
     sensors,
@@ -71,7 +77,10 @@ export function WidgetGrid<Ctx>({
         strategy={rectSortingStrategy}
       >
         <LayoutGroup>
-          <div ref={gridRef} className="grid grid-cols-1 gap-8 xl:grid-cols-2">
+          <div
+            ref={gridRef}
+            className={`grid grid-cols-1 ${gridGap} xl:grid-cols-2`}
+          >
             {displaySlots.map((slot, i) => (
               <Fragment key={slot.id}>
                 {memberPopIndex === i && popPlaceholder}

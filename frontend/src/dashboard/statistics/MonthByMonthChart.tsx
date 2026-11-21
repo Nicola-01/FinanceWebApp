@@ -2,15 +2,20 @@ import React, { useMemo, useState } from "react";
 import Toggle from "../../components/ui/Toggle.tsx";
 import { MONTH_LABELS } from "../../utils/months.ts";
 import { formatKitAmount } from "./kitChartData.ts";
+import { RevealOnView } from "../../components/ui/RevealOnView.tsx";
 import { KitLegend, KitNoData } from "./KitChartShared.tsx";
+import { StatCard } from "./StatCard.tsx";
 import { INVEST_COLOR, MonthByMonthPlot } from "./MonthByMonthPlot.tsx";
 import { monthByMonthBound, type MonthByMonthRow } from "./statsChartRows.ts";
 import { useChartPalette } from "./useChartPalette.ts";
+import { useShowInvestments } from "./useShowInvestments.ts";
 
 export interface MonthByMonthChartProps {
   rows: MonthByMonthRow[];
   byYear: boolean;
   currencySymbol: string;
+  /** Offers the Investments chip and series; false when no tag is flagged as investment. */
+  hasInvestments: boolean;
   /** Render without the card shell + heading (the parent group card provides them). */
   bare?: boolean;
 }
@@ -19,18 +24,6 @@ const INVEST_KEY = "statistics.monthByMonth.showInvestments";
 
 /** Row with the investment segments ready to stack: bought is drawn below Spent, so negative. */
 type ChartRow = MonthByMonthRow & { boughtBelow?: number };
-
-/** The Investments chip's on/off state, remembered on this device. */
-function useShowInvestments(): [boolean, (next: boolean) => void] {
-  const [on, setOn] = useState(
-    () => localStorage.getItem(INVEST_KEY) === "true",
-  );
-  const set = (next: boolean) => {
-    setOn(next);
-    localStorage.setItem(INVEST_KEY, String(next));
-  };
-  return [on, set];
-}
 
 const hasAmount = (row: MonthByMonthRow, withInvestments: boolean) =>
   !!(
@@ -45,10 +38,12 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
   rows,
   byYear,
   currencySymbol,
+  hasInvestments,
   bare = false,
 }) => {
   const { income, expense, kept } = useChartPalette();
-  const [showInvestments, setShowInvestments] = useShowInvestments();
+  const [chipOn, setShowInvestments] = useShowInvestments(INVEST_KEY);
+  const showInvestments = hasInvestments && chipOn;
   // Page-load entrance keeps the kit default; a chip toggle remounts the plot, so replay it faster.
   const [toggled, setToggled] = useState(false);
   const onChipChange = (next: boolean) => {
@@ -167,47 +162,37 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
     [income, expense, kept, showInvestments],
   );
 
+  const action = hasInvestments ? (
+    <Toggle
+      variant="button"
+      checked={showInvestments}
+      onChange={onChipChange}
+      label="↗ Investments"
+    />
+  ) : null;
+
   return (
-    <section
-      className={
-        bare
-          ? ""
-          : "bg-app-card rounded-[var(--r-card)] shadow-[var(--box-ring)] p-5 max-sm:p-4"
-      }
-    >
-      {!bare && (
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="font-display text-[17px] font-semibold tracking-[-0.02em] text-app-text">
-              {title}
-            </h3>
-            <p className="text-[13px] text-app-muted mt-0.5">{sub}</p>
-          </div>
-          <Toggle
-            variant="button"
-            checked={showInvestments}
-            onChange={onChipChange}
-            label="↗ Investments"
-          />
-        </div>
-      )}
+    <StatCard title={title} subtitle={sub} action={action} bare={bare}>
       {rows.some((r) => hasAmount(r, showInvestments)) ? (
-        <>
-          {/* Keyed so toggling the chip remounts the plot and the kit replays its entrance animation. */}
-          <MonthByMonthPlot
-            key={showInvestments ? "with-investments" : "base"}
-            rows={rows}
-            data={showInvestments ? investData : rows}
-            showInvestments={showInvestments}
-            yDomains={yDomains}
-            byYear={byYear}
-            tickLabels={tickLabels}
-            tooltipLabels={tooltipLabels}
-            tooltipRows={tooltipRows}
-            animationDuration={toggled ? 450 : undefined}
-          />
-          {/* The legend's own top margin moves to this row; the swatch shares its centred line. */}
-          <div className="flex flex-wrap items-center justify-center gap-x-4 mt-3 [&>*]:mt-0">
+        <div className="flex flex-1 flex-col justify-center gap-4">
+          {/* The plot's aspect ratio is fixed, so a stretched card centres plot + legend in the spare height. */}
+          {/* Mounted once it's laid out and in view, so the kit's entrance runs where the user can see it (as the widgets do). */}
+          <RevealOnView>
+            {/* Keyed so toggling the chip remounts the plot and the kit replays its entrance animation. */}
+            <MonthByMonthPlot
+              key={showInvestments ? "with-investments" : "base"}
+              rows={rows}
+              data={showInvestments ? investData : rows}
+              showInvestments={showInvestments}
+              yDomains={yDomains}
+              byYear={byYear}
+              tickLabels={tickLabels}
+              tooltipLabels={tooltipLabels}
+              tooltipRows={tooltipRows}
+              animationDuration={toggled ? 450 : undefined}
+            />
+          </RevealOnView>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 [&>*]:mt-0">
             <KitLegend series={series} />
             {showInvestments && (
               <div className="flex items-center gap-1.5">
@@ -222,10 +207,10 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
               </div>
             )}
           </div>
-        </>
+        </div>
       ) : (
         <KitNoData />
       )}
-    </section>
+    </StatCard>
   );
 };

@@ -27,6 +27,7 @@ import {
   type WalletCreationResult,
 } from "./walletCreation";
 import { WalletCompletionScreen } from "./WalletCompletionScreen";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 export interface CreateWalletWizardHandle {
   openModal: () => void;
@@ -60,6 +61,7 @@ const DEFAULT_DRAFT: WalletDraft = {
  */
 export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
   ({ onSuccess }, ref) => {
+    const [ui] = useUiVersion(); // ui-v2-switch
     const [open, setOpen] = useState(false);
     const [runKey, setRunKey] = useState(0);
     const [draft, setDraft] = useState<WalletDraft>(DEFAULT_DRAFT);
@@ -219,7 +221,10 @@ export const CreateWalletWizard = forwardRef<CreateWalletWizardHandle, Props>(
           open={open}
           title={
             <span className="flex items-center gap-2">
-              <FontAwesomeIcon icon={faWallet} className="text-app-green" />
+              <FontAwesomeIcon
+                icon={faWallet}
+                className={ui === "v2" ? "text-app-muted" : "text-app-green"} // ui-v2-switch
+              />
               Create a new wallet
             </span>
           }

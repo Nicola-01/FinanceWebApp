@@ -27,6 +27,7 @@ import { FieldLabel } from "../../components/ui/FieldLabel";
 import { Input } from "../../components/ui/Input";
 import { Textarea } from "../../components/ui/Textarea";
 import { useUiVersion } from "../../hooks/useUiVersion";
+import { FormRow } from "../../components/ui/FormRow";
 import { reviewTagName } from "../../dashboard/wallet/toCategorize.ts";
 import { useAmountEntryForm } from "../common/useAmountEntryForm";
 
@@ -171,61 +172,47 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
             <>
               {/* 2-3. COMPACT LIST: category, date, name */}
               <div className="divide-y divide-app-border overflow-visible rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
-                <div className="flex min-h-14 items-center gap-3 px-4">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--r-sm)] bg-app-raised text-xs text-app-muted">
-                    <FontAwesomeIcon icon={faHashtag} />
-                  </span>
-                  <span className="text-[15px] text-app-text">Category</span>
-                  <div className="ml-auto flex min-w-0 flex-1 justify-end">
-                    <TagPicker
-                      tags={tags}
-                      selectedTagName={selectedTagName}
-                      onSelectTag={setSelectedTagName}
-                      showLabel={false}
-                      triggerClassName="bg-transparent shadow-none justify-end text-right px-0"
-                      triggerAlign="right"
-                    />
-                  </div>
-                </div>
+                <FormRow icon={faHashtag} label="Category">
+                  <TagPicker
+                    tags={tags}
+                    selectedTagName={selectedTagName}
+                    onSelectTag={setSelectedTagName}
+                    showLabel={false}
+                    triggerClassName="bg-transparent shadow-none justify-end text-right px-0"
+                    triggerAlign="right"
+                  />
+                </FormRow>
 
-                <div className="flex min-h-14 items-center gap-3 px-4">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--r-sm)] bg-app-raised text-xs text-app-muted">
-                    <FontAwesomeIcon icon={faCalendarDays} />
-                  </span>
-                  <span className="text-[15px] text-app-text">Date</span>
-                  <div className="ml-auto flex min-w-0 flex-1 justify-end">
-                    <CustomDatePicker
-                      isRange={false}
-                      color={wallet.color}
-                      initialPreset="custom"
-                      initialStartDate={date}
-                      onChange={(val) => {
-                        if (val instanceof Date) setDate(val);
-                      }}
-                      triggerClassName="bg-transparent shadow-none justify-end px-0"
-                      triggerAlign="right"
-                      dropdownAlign="right"
-                    />
-                  </div>
-                </div>
+                <FormRow icon={faCalendarDays} label="Date">
+                  <CustomDatePicker
+                    isRange={false}
+                    color={wallet.color}
+                    initialPreset="custom"
+                    initialStartDate={date}
+                    onChange={(val) => {
+                      if (val instanceof Date) setDate(val);
+                    }}
+                    triggerClassName="bg-transparent shadow-none justify-end px-0"
+                    triggerAlign="right"
+                    dropdownAlign="right"
+                  />
+                </FormRow>
 
-                <div className="flex min-h-14 items-center gap-3 px-4">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--r-sm)] bg-app-raised text-xs text-app-muted">
-                    <FontAwesomeIcon icon={faTag} />
-                  </span>
-                  <span className="text-[15px] text-app-text">Name</span>
-                  {/* The Input wrapper keeps its raised fill; flatten it so the row reads as plain text. */}
-                  <div className="ml-auto flex min-w-0 flex-1 justify-end [&>div]:w-full [&>div]:bg-transparent [&>div]:shadow-none">
-                    <Input
-                      type="text"
-                      aria-label="Name"
-                      placeholder="e.g. Coop"
-                      className="bg-transparent text-right shadow-none px-0"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                    />
-                  </div>
-                </div>
+                {/* The Input wrapper keeps its raised fill; flatten it so the row reads as plain text. */}
+                <FormRow
+                  icon={faTag}
+                  label="Name"
+                  controlClassName="[&>div]:w-full [&>div]:bg-transparent [&>div]:shadow-none"
+                >
+                  <Input
+                    type="text"
+                    aria-label="Name"
+                    placeholder="e.g. Groceries"
+                    className="bg-transparent text-right shadow-none px-0 !font-sans"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </FormRow>
               </div>
 
               {/* 3. MORE DETAILS: notes + foreign currency */}
@@ -238,8 +225,12 @@ export const TransactionModal = forwardRef<TransactionModalHandle, Props>(
                     icon={faChevronDown}
                     className="transition-transform group-open:rotate-180"
                   />
-                  More details
-                  <span className="text-app-faint">notes, other currency</span>
+                  <span className="whitespace-nowrap shrink-0">
+                    More details
+                  </span>
+                  <span className="min-w-0 truncate text-app-faint">
+                    notes, currency
+                  </span>
                 </summary>
                 <div className="flex flex-col gap-6 pt-2">
                   <div>
