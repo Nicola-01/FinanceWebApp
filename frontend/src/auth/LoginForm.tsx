@@ -14,7 +14,9 @@ import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Checkbox } from "../components/ui/Checkbox";
 import { AUTH_GLASS_CARD, shakeClass } from "./authCardClass";
-import { AuthBrandLockup } from "./AuthBrandLockup";
+import { AUTH_CARD_V2 } from "./AuthCard";
+import { AuthBrandLockup, AuthHeading, AuthSubtitle } from "./AuthBrandLockup";
+import { useUiVersion } from "../hooks/useUiVersion";
 import { PasswordVisibilityToggle } from "./PasswordVisibilityToggle";
 import { useShake } from "./useShake";
 
@@ -35,6 +37,8 @@ export const LoginForm: React.FC = () => {
   const [remember, setRemember] = useState(false);
 
   const { shake, triggerShake, clearShake } = useShake();
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -102,20 +106,27 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="relative z-10 flex w-full max-w-[400px] flex-col">
+    <div
+      className={
+        v2
+          ? "relative z-10 flex w-full max-w-[400px] flex-col gap-4"
+          : "relative z-10 flex w-full max-w-[400px] flex-col"
+      }
+    >
       <form
-        className={`flex w-full flex-col ${AUTH_GLASS_CARD} ${shakeClass(shake)}`}
+        // v2: the form gap (gap-4) spaces the fields; [&>div]:mb-0 drops the v1 field margins.
+        className={
+          v2
+            ? `${AUTH_CARD_V2} gap-4 [&>div]:mb-0 ${shakeClass(shake)}`
+            : `flex w-full flex-col ${AUTH_GLASS_CARD} ${shakeClass(shake)}`
+        }
         onSubmit={handleSubmit}
         noValidate
       >
         <AuthBrandLockup />
 
-        <h1 className="mb-1 text-2xl font-bold tracking-tight text-app-text">
-          Welcome back
-        </h1>
-        <p className="mb-7 text-sm text-app-muted">
-          Sign in to your financial workspace
-        </p>
+        <AuthHeading>Welcome back</AuthHeading>
+        <AuthSubtitle>Sign in to your financial workspace</AuthSubtitle>
 
         {/* Username Input */}
         <div className="relative mb-6">
@@ -129,7 +140,13 @@ export const LoginForm: React.FC = () => {
             leadingIcon={<FontAwesomeIcon icon={faUser} />}
           />
           {require.username && (
-            <span className="absolute -bottom-5 left-1 flex items-center gap-1.5 text-xs text-app-red">
+            <span
+              className={
+                v2
+                  ? "mt-1.5 flex items-center gap-1.5 text-[13px] text-app-danger"
+                  : "absolute -bottom-5 left-1 flex items-center gap-1.5 text-xs text-app-red"
+              }
+            >
               <FontAwesomeIcon icon={faTriangleExclamation} />{" "}
               {require.username}
             </span>
@@ -154,7 +171,13 @@ export const LoginForm: React.FC = () => {
             }
           />
           {require.password && (
-            <span className="absolute -bottom-5 left-1 flex items-center gap-1.5 text-xs text-app-red">
+            <span
+              className={
+                v2
+                  ? "mt-1.5 flex items-center gap-1.5 text-[13px] text-app-danger"
+                  : "absolute -bottom-5 left-1 flex items-center gap-1.5 text-xs text-app-red"
+              }
+            >
               <FontAwesomeIcon icon={faTriangleExclamation} />{" "}
               {require.password}
             </span>
@@ -189,7 +212,11 @@ export const LoginForm: React.FC = () => {
       <button
         type="button"
         onClick={() => navigate("/forgot-password")}
-        className="mt-4 cursor-pointer self-end border-none bg-transparent text-sm font-medium text-app-muted transition-colors hover:text-app-text hover:underline"
+        className={
+          v2
+            ? "cursor-pointer self-end border-none bg-transparent text-[13px] text-app-muted underline-offset-4 transition-colors hover:text-app-text hover:underline"
+            : "mt-4 cursor-pointer self-end border-none bg-transparent text-sm font-medium text-app-muted transition-colors hover:text-app-text hover:underline"
+        }
       >
         Forgot password?
       </button>

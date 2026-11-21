@@ -8,6 +8,8 @@ import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../utils/apiError";
 import { clearSession, setMustChangePWD, setToken } from "../utils/authHelper";
 import Button from "../components/ui/Button";
+import { useUiVersion } from "../hooks/useUiVersion";
+import { AuthBrandLockup } from "./AuthBrandLockup";
 
 const demoEnabled = import.meta.env.VITE_DEMO_ENABLED === "true";
 
@@ -20,6 +22,8 @@ const DEMO_FEATURES = [
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [demoLoading, setDemoLoading] = useState(false);
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
 
   // Clear tokens on component mount to ensure user is truly logged out
   useEffect(() => {
@@ -57,26 +61,50 @@ const Login: React.FC = () => {
       {!demoEnabled ? (
         <LoginForm />
       ) : (
-        <div className="flex w-full flex-col items-center rounded-[var(--r-card)] border border-white/10 bg-[rgba(23,18,38,0.55)] p-8 shadow-[0_24px_60px_-26px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-10">
+        <div
+          className={
+            v2
+              ? "flex w-full flex-col items-center rounded-[var(--r-card)] bg-app-card p-6 shadow-[var(--box-ring)] sm:p-8"
+              : "flex w-full flex-col items-center rounded-[var(--r-card)] border border-white/10 bg-[rgba(23,18,38,0.55)] p-8 shadow-[0_24px_60px_-26px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-10"
+          }
+        >
           {/* Brand lockup */}
-          <div className="mb-6 flex items-center gap-2.5 self-start">
-            <img
-              src="/icon.svg"
-              alt="Finance"
-              className="h-10 w-10 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
-            />
-            <span className="text-lg font-bold tracking-tight text-app-text">
-              Finance
-            </span>
-          </div>
+          {v2 ? (
+            <div className="mb-6 self-start">
+              <AuthBrandLockup />
+            </div>
+          ) : (
+            <div className="mb-6 flex items-center gap-2.5 self-start">
+              <img
+                src="/icon.svg"
+                alt="Finance"
+                className="h-10 w-10 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
+              />
+              <span className="text-lg font-bold tracking-tight text-app-text">
+                Finance
+              </span>
+            </div>
+          )}
 
           {/* Demo Icon Header */}
-          <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-[var(--r-card)] bg-gradient-to-tr from-[var(--brand-1)] to-[var(--brand-2)] shadow-[0_12px_26px_-14px_rgba(0,0,0,0.7)]">
+          <div
+            className={
+              v2
+                ? "mb-5 flex h-16 w-16 items-center justify-center rounded-[var(--r-card)] bg-wallet text-on-wallet"
+                : "mb-5 flex h-16 w-16 items-center justify-center rounded-[var(--r-card)] bg-gradient-to-tr from-[var(--brand-1)] to-[var(--brand-2)] shadow-[0_12px_26px_-14px_rgba(0,0,0,0.7)]"
+            }
+          >
             <FontAwesomeIcon icon={faFlask} className="text-2xl text-white" />
           </div>
 
-          <h2 className="mb-2 text-center text-2xl font-bold tracking-tight text-app-text">
-            Live Demo Access
+          <h2
+            className={
+              v2
+                ? "mb-2 text-center font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text"
+                : "mb-2 text-center text-2xl font-bold tracking-tight text-app-text"
+            }
+          >
+            {v2 ? "Live demo access" : "Live Demo Access"}
           </h2>
 
           {/* Detailed Description */}
@@ -87,7 +115,13 @@ const Login: React.FC = () => {
             </p>
 
             {/* Feature List */}
-            <ul className="w-full space-y-3 rounded-[var(--r-input)] border border-white/10 bg-white/[0.03] p-5 text-left">
+            <ul
+              className={
+                v2
+                  ? "w-full space-y-3 rounded-[var(--r-input)] bg-app-raised p-5 text-left"
+                  : "w-full space-y-3 rounded-[var(--r-input)] border border-white/10 bg-white/[0.03] p-5 text-left"
+              }
+            >
               {DEMO_FEATURES.map((feature) => (
                 <li key={feature} className="flex items-start gap-3">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[var(--brand-2)]/15 text-[10px] font-bold text-[var(--brand-2)]">
@@ -117,12 +151,12 @@ const Login: React.FC = () => {
             {demoLoading ? (
               <>
                 <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                GENERATING WORKSPACE…
+                {v2 ? "Generating workspace…" : "GENERATING WORKSPACE…"}
               </>
             ) : (
               <>
                 <FontAwesomeIcon icon={faFlask} />
-                START EXPLORING NOW
+                {v2 ? "Start exploring now" : "START EXPLORING NOW"}
               </>
             )}
           </Button>

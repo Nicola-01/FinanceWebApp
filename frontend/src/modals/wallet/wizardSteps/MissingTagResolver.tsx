@@ -10,6 +10,7 @@ import { CustomSelect } from "../../../components/ui/CustomSelect";
 import { Icon } from "../../../components/icon/Icon";
 import type { findRecommendedTagWithParent } from "./recommendedTags";
 import type { TagRequest } from "../../../dashboard/settings/csvImport";
+import { useUiVersion } from "../../../hooks/useUiVersion";
 
 type RecommendedMatch = ReturnType<typeof findRecommendedTagWithParent>;
 
@@ -21,8 +22,16 @@ export function MissingTagChip({
   name: string;
   parentName?: string;
 }) {
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   return (
-    <span className="flex items-center gap-1 rounded-[var(--r-sm)] border border-app-yellow/40 bg-app-yellow/10 px-2 py-0.5 text-[11px] font-medium text-app-yellow">
+    <span
+      className={
+        v2
+          ? "flex items-center gap-1 rounded-[var(--r-sm)] bg-app-warn/15 px-2 py-0.5 text-[13px] font-medium text-app-warn"
+          : "flex items-center gap-1 rounded-[var(--r-sm)] border border-app-yellow/40 bg-app-yellow/10 px-2 py-0.5 text-[11px] font-medium text-app-yellow"
+      }
+    >
       <FontAwesomeIcon icon={faTriangleExclamation} className="text-[10px]" />
       {name}
       {parentName && (
@@ -73,6 +82,8 @@ export function MissingTagActions({
   children,
 }: MissingTagActionsProps) {
   const parentName = recommended?.parent.name;
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
   const tagOptions = [
     { value: "", label: placeholder },
     ...tags.map((t) => ({
@@ -134,7 +145,11 @@ export function MissingTagActions({
           onChange={(toName) => toName && onReassign(toName)}
           options={tagOptions}
           activeColor={accentColor}
-          className="w-full rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3 py-2 text-sm text-app-text sm:w-56"
+          className={
+            v2
+              ? "w-full rounded-[var(--r-input)] bg-app-raised px-3 py-2 text-[13px] text-app-text sm:w-56"
+              : "w-full rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3 py-2 text-sm text-app-text sm:w-56"
+          }
         />
       )}
 

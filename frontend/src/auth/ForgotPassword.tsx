@@ -13,7 +13,8 @@ import { getApiErrorTitle } from "../utils/apiError";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { AuthCard } from "./AuthCard";
-import { AuthBrandLockup } from "./AuthBrandLockup";
+import { AuthBrandLockup, AuthHeading, AuthSubtitle } from "./AuthBrandLockup";
+import { useUiVersion } from "../hooks/useUiVersion";
 import { useShake } from "./useShake";
 import { useCooldown } from "./useCooldown";
 import { ForgotPasswordSent } from "./ForgotPasswordSent";
@@ -22,6 +23,8 @@ const COOLDOWN_SECONDS = 60;
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
 
   // States
   const [email, setEmail] = useState("");
@@ -88,15 +91,20 @@ const ForgotPassword: React.FC = () => {
       {!emailSent ? (
         /* ========== EMAIL INPUT STATE ========== */
         <>
-          <h1 className="mb-1 text-2xl font-bold tracking-tight text-app-text">
-            Forgot password?
-          </h1>
-          <p className="mb-7 text-sm leading-relaxed text-app-muted">
+          <AuthHeading>Forgot password?</AuthHeading>
+          <AuthSubtitle className="mb-7 leading-relaxed">
             Enter the email associated with your account and we'll send you a
             link to reset your password.
-          </p>
+          </AuthSubtitle>
 
-          <form onSubmit={handleSubmit} className="flex flex-col" noValidate>
+          <form
+            onSubmit={handleSubmit}
+            // v2: the form gap spaces the fields; [&>div]:mb-0 drops the v1 field margins.
+            className={
+              v2 ? "flex flex-col gap-4 [&>div]:mb-0" : "flex flex-col"
+            }
+            noValidate
+          >
             <div className="mb-6">
               <Input
                 type="email"
@@ -147,7 +155,11 @@ const ForgotPassword: React.FC = () => {
       <button
         type="button"
         onClick={() => navigate("/login")}
-        className="mt-6 flex cursor-pointer items-center gap-2 self-center border-none bg-transparent text-sm text-app-muted transition-colors hover:text-app-text"
+        className={
+          v2
+            ? "flex cursor-pointer items-center gap-2 self-center border-none bg-transparent text-[13px] text-app-muted underline-offset-4 transition-colors hover:text-app-text hover:underline"
+            : "mt-6 flex cursor-pointer items-center gap-2 self-center border-none bg-transparent text-sm text-app-muted transition-colors hover:text-app-text"
+        }
       >
         <FontAwesomeIcon icon={faArrowLeft} />
         Back to login

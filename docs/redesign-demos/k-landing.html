@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en" data-ui="v2" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landing /about — v2 restyle proposals</title>
+<style>
+  /* ---- Self-hosted fonts (fonts/ next to this file; no CDN) ---- */
+  @font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 500 800; font-display: swap; src: url("fonts/bricolage-var.woff2") format("woff2"); }
+  @font-face { font-family: "Instrument Sans"; font-style: normal; font-weight: 400 600; font-display: swap; src: url("fonts/instrument-sans-var.woff2") format("woff2"); }
+  @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/jbmono-500.woff2") format("woff2"); }
+  @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/jbmono-700.woff2") format("woff2"); }
+
+  /* ---- Tokens: copied from frontend/src/theme-tokens.css (:root[data-ui="v2"]) ---- */
+  :root { --stage: #0c0b0b; --brand-1: #8b5cf6; --brand-2: #e0339a; --grad-brand: linear-gradient(120deg, var(--brand-1), var(--brand-2)); }
+  :root:not(.dark) { --stage: #dedbd4; }
+  :root[data-ui="v2"] {
+    --bg-main: 244 243 241; --bg-surface: 255 255 255; --bg-card: 255 255 255; --bg-card-dark: 255 255 255;
+    --bg-raised: 238 236 232; --bg-transparent: rgba(244, 243, 241, 0.72);
+    --text-primary: 28 26 23; --text-muted: 107 102 94; --text-faint: 154 149 140;
+    --border-primary: 228 225 220; --bg-input: 238 236 232; --bg-hover: 238 236 232;
+    --v2-income: 47 143 85; --v2-invest: 109 79 194; --v2-kept: 52 120 198; --v2-expense-mark: 236 138 118;
+    --v2-warn: 154 95 0; --v2-warn-fill: 240 160 32; --v2-danger: 196 65 47;
+    --box-ring: 0 0 0 1px rgb(var(--border-primary));
+    --glyph-mix: 70%;
+    --wallet: rgb(var(--text-primary)); --on-wallet: rgb(var(--bg-main));
+    --font-sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    --r-hero: 20px; --r-card: 18px; --r-input: 12px; --r-cta: 12px; --r-sm: 8px;
+  }
+  :root.dark[data-ui="v2"] {
+    --bg-main: 20 19 18; --bg-surface: 29 28 26; --bg-card: 29 28 26; --bg-card-dark: 29 28 26;
+    --bg-raised: 38 36 33; --bg-transparent: rgba(20, 19, 18, 0.65);
+    --text-primary: 239 236 230; --text-muted: 154 149 140; --text-faint: 107 102 94;
+    --border-primary: 46 44 41; --bg-input: 38 36 33; --bg-hover: 38 36 33;
+    --v2-income: 127 207 149; --v2-invest: 179 156 245; --v2-kept: 122 170 245;
+    --v2-warn: 240 184 90; --v2-warn-fill: 240 184 90; --v2-danger: 255 138 122;
+    --box-ring: 0 0 0 0 transparent;
+    --glyph-mix: 100%;
+  }
+
+  /* ---- Doc chrome ---- */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--stage); color: rgb(var(--text-primary)); font: 15px/1.5 var(--font-sans); font-variant-numeric: tabular-nums; padding: 40px 32px 120px; }
+  .doc-top { max-width: 1480px; margin: 0 auto; }
+  h1.doc-title { font: 600 26px/1.2 var(--font-display); letter-spacing: -0.02em; }
+  .doc-lead { color: rgb(var(--text-muted)); max-width: 80ch; margin-top: 8px; }
+  .doc-notes { color: rgb(var(--text-muted)); font-size: 13.5px; margin-top: 14px; max-width: 90ch; }
+  .doc-notes li { margin: 4px 0 0 18px; }
+  .toggle { position: fixed; right: 18px; bottom: 18px; z-index: 9; font: 600 14px var(--font-sans); padding: 9px 14px; border-radius: 12px; border: 0; background: rgb(var(--text-primary)); color: rgb(var(--bg-main)); cursor: pointer; }
+  .proposal { max-width: 1480px; margin: 64px auto 0; }
+  .p-head { display: flex; align-items: center; gap: 10px; }
+  .p-head h2 { font: 600 24px/1.2 var(--font-display); letter-spacing: -0.02em; }
+  .p-tag { font: 700 13px/1 var(--font-mono); width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: rgb(var(--text-primary)); color: rgb(var(--bg-main)); }
+  .rec { font-size: 12px; font-weight: 600; color: rgb(var(--on-wallet)); background: rgb(var(--wallet)); border-radius: 99px; padding: 3px 10px; }
+  .p-why { color: rgb(var(--text-muted)); font-size: 14px; margin-top: 6px; max-width: 110ch; }
+  .p-why b { color: rgb(var(--text-primary)); font-weight: 600; }
+  .frames { display: flex; flex-wrap: wrap; gap: 36px; align-items: flex-start; margin-top: 24px; }
+  figure { flex: none; }
+  figcaption { margin-top: 12px; color: rgb(var(--text-muted)); font-size: 13px; }
+  .ico-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  /* ---- Frames: phone 375px + desktop 1080px. Container queries pick the layout. ---- */
+  .frame { container-type: inline-size; position: relative; background: rgb(var(--bg-main)); color: rgb(var(--text-primary)); overflow: hidden; }
+  .desk { width: 1080px; border-radius: 14px; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .35); }
+  :root:not(.dark) .desk { box-shadow: 0 0 0 1px #c9c5bc, 0 30px 60px rgb(0 0 0 / .12); }
+  .chrome { height: 36px; display: flex; align-items: center; gap: 6px; padding: 0 14px; background: rgb(var(--bg-surface)); border-bottom: 1px solid rgb(var(--border-primary)); }
+  .chrome i { width: 10px; height: 10px; border-radius: 50%; background: rgb(var(--border-primary)); }
+  .chrome .url { margin-left: 14px; font-size: 12px; color: rgb(var(--text-muted)); background: rgb(var(--bg-raised)); padding: 3px 12px; border-radius: 8px; }
+  .scroll-d { height: 900px; overflow-y: auto; }
+  .phone { width: 375px; height: 760px; border-radius: 36px; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .45); display: flex; flex-direction: column; }
+  :root:not(.dark) .phone { box-shadow: 0 0 0 8px #bdb8ae, 0 30px 60px rgb(0 0 0 / .18); }
+  .status { height: 34px; flex: none; background: rgb(var(--bg-main)); }
+  .scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+
+  /* ---- Shared page pieces ---- */
+  .page { font: 15px/1.5 var(--font-sans); color: rgb(var(--text-primary)); background: rgb(var(--bg-main)); }
+  .ico { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .sec { padding: 72px 48px; }
+  .sec + .sec { border-top: 1px solid rgb(var(--border-primary)); }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  .eyebrow { font-size: 13px; font-weight: 600; color: rgb(var(--text-muted)); margin-bottom: 12px; }
+  .h1 { font: 700 58px/1.02 var(--font-display); letter-spacing: -0.035em; }
+  .h2 { font: 600 38px/1.1 var(--font-display); letter-spacing: -0.025em; }
+  .h3 { font: 600 20px/1.2 var(--font-display); letter-spacing: -0.01em; }
+  .lead { color: rgb(var(--text-muted)); font-size: 17px; line-height: 1.55; max-width: 58ch; margin-top: 18px; }
+  .body-m { color: rgb(var(--text-muted)); line-height: 1.55; font-size: 15px; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+  .muted { color: rgb(var(--text-muted)); }
+  .faint { color: rgb(var(--text-faint)); }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .tabular-nums { font-family: var(--font-mono); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 18px; border: 0; border-radius: var(--r-cta); font: 600 15px/1 var(--font-sans); white-space: nowrap; }
+  .btn .ico { width: 18px; height: 18px; }
+  .btn-lg { height: 52px; padding: 0 24px; font-size: 16px; }
+  .btn-sm { height: 36px; padding: 0 14px; font-size: 14px; }
+  .btn-pri { background: var(--grad-brand); color: #fff; box-shadow: 0 10px 22px -14px rgb(0 0 0 / .6); }
+  .btn-sec { background: rgb(var(--bg-raised)); color: rgb(var(--text-primary)); }
+  .icon-btn { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: rgb(var(--text-muted)); }
+  .icon-btn .ico { width: 19px; height: 19px; }
+
+  .chip { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; flex: none; background: color-mix(in srgb, var(--c, rgb(var(--text-muted))) 18%, transparent); color: color-mix(in srgb, var(--c, rgb(var(--text-muted))) var(--glyph-mix), #000); }
+  .chip .ico { width: 19px; height: 19px; }
+  .chip.lg { width: 52px; height: 52px; border-radius: 14px; }
+  .chip.lg .ico { width: 24px; height: 24px; }
+
+  .pill { font-size: 12px; font-weight: 600; border-radius: 99px; padding: 3px 9px; white-space: nowrap; flex: none; }
+  .pill.ok { color: rgb(var(--v2-income)); background: color-mix(in srgb, rgb(var(--v2-income)) 16%, transparent); }
+  .pill.warn { color: rgb(var(--v2-warn)); background: color-mix(in srgb, rgb(var(--v2-warn-fill)) 16%, transparent); }
+  .pill.neutral { color: rgb(var(--text-muted)); background: rgb(var(--bg-raised)); }
+
+  .rows { background: rgb(var(--bg-surface)); border-radius: var(--r-card); box-shadow: var(--box-ring); overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; min-height: 62px; }
+  .row + .row { border-top: 1px solid rgb(var(--border-primary)); }
+  .row .t { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .s { color: rgb(var(--text-muted)); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .grow { flex: 1; min-width: 0; }
+  .row .amt { font-family: var(--font-mono); font-weight: 600; font-size: 14.5px; white-space: nowrap; }
+  .row .amt.in { color: rgb(var(--v2-income)); }
+
+  .card { background: rgb(var(--bg-surface)); border-radius: var(--r-card); box-shadow: var(--box-ring); padding: 22px; }
+
+  /* Wallet card (WalletHeroCard): solid wallet fill, net amount, sparkline */
+  .wcard { --wallet: #8b5cf6; --on-wallet: #ffffff; position: relative; overflow: hidden; background: rgb(var(--wallet)); color: rgb(var(--on-wallet)); background: var(--wallet); color: var(--on-wallet); border-radius: var(--r-hero); padding: 22px 24px; min-height: 210px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; }
+  .wcard .wc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .wcard .name { font: 700 26px/1.1 var(--font-display); letter-spacing: -0.02em; }
+  .wcard .meta { font-size: 13px; opacity: .7; margin-top: 4px; }
+  .wcard .k { font-size: 13px; opacity: .7; }
+  .wcard .big { font: 700 48px/1 var(--font-display); letter-spacing: -0.03em; margin-top: 4px; }
+  .wcard .month { display: inline-flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--on-wallet) 10%, transparent); border-radius: 10px; padding: 5px 10px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .wcard .spark { width: 100%; height: 62px; display: block; }
+  .wcard .emblem { position: absolute; right: -22px; bottom: -26px; width: 128px; opacity: .16; transform: rotate(-8deg); pointer-events: none; filter: brightness(0) invert(1); }
+
+  /* Shared mini bank / sync rows */
+  .sync-head { display: flex; align-items: center; gap: 10px; justify-content: space-between; margin-bottom: 10px; }
+
+  /* Navbar */
+  .nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 14px 32px; border-bottom: 1px solid rgb(var(--border-primary)); background: rgb(var(--bg-main)); }
+  .brand { display: flex; align-items: center; gap: 9px; font: 700 18px var(--font-display); letter-spacing: -0.01em; }
+  .logo { width: 28px; height: 28px; object-fit: contain; }
+  .nav-links { display: flex; gap: 4px; }
+  .nav-links a { padding: 8px 12px; border-radius: 10px; font-size: 14.5px; color: rgb(var(--text-muted)); }
+  .nav-links a.on { color: rgb(var(--text-primary)); background: rgb(var(--bg-raised)); }
+  .nav-end { justify-self: end; display: flex; gap: 8px; align-items: center; }
+  .nav-burger { display: none; }
+  @container (max-width: 700px) {
+    .nav { grid-template-columns: 1fr auto; padding: 12px 18px; }
+    .nav-links, .nav-cta { display: none; }
+    .nav-burger { display: grid; }
+    .sec { padding: 48px 18px; }
+    .foot { padding: 36px 18px 32px; }
+  }
+
+  /* Footer */
+  .foot { padding: 48px 48px 40px; border-top: 1px solid rgb(var(--border-primary)); }
+  .foot .stack-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 18px; }
+  .foot .stack-chips span.t { font-size: 12px; font-weight: 600; color: rgb(var(--text-muted)); margin-right: 4px; }
+  .chipt { font-size: 12.5px; color: rgb(var(--text-muted)); background: rgb(var(--bg-surface)); box-shadow: var(--box-ring); border-radius: var(--r-sm); padding: 4px 9px; }
+  .fine { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: rgb(var(--text-faint)); margin-top: 28px; padding-top: 18px; border-top: 1px solid rgb(var(--border-primary)); }
+
+  /* Chat snippet (MCP) */
+  .bubble { border-radius: var(--r-input); padding: 11px 15px; font-size: 15px; line-height: 1.5; }
+  .bubble.me { background: rgb(var(--bg-raised)); margin-left: auto; max-width: 84%; }
+  .bubble.ai { background: rgb(var(--bg-surface)); box-shadow: var(--box-ring); }
+  .who { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none; background: rgb(var(--bg-raised)); color: rgb(var(--text-muted)); }
+  .who.ai { background: var(--grad-brand); color: #fff; }
+  .who .ico { width: 16px; height: 16px; }
+
+  /* ===================================================================
+     Proposal A — product-led
+     =================================================================== */
+  .a-hero { display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: center; }
+  .a-hero .h1 { font-size: 58px; }
+  .a-hero .stack { display: grid; gap: 14px; }
+  .a-features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 36px; }
+  .a-feat { display: flex; flex-direction: column; gap: 14px; }
+  .a-feat .h3 { font-size: 19px; }
+  .a-split { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .a-chat { display: grid; gap: 12px; background: rgb(var(--bg-surface)); border-radius: var(--r-hero); box-shadow: var(--box-ring); padding: 20px; }
+  .a-chat .msg { display: flex; gap: 10px; align-items: flex-start; }
+  .a-chat .meta { font-size: 12.5px; color: rgb(var(--text-faint)); margin-top: 6px; padding-left: 40px; }
+  .a-ob { display: grid; gap: 12px; }
+  .a-ob-note { font-size: 12.5px; color: rgb(var(--text-faint)); }
+  @container (max-width: 700px) {
+    .a-hero, .a-split { grid-template-columns: 1fr; gap: 32px; }
+    .a-hero .h1 { font-size: 38px; }
+    .a-features { grid-template-columns: 1fr; gap: 12px; }
+    .h1 { font-size: 40px; }
+    .h2 { font-size: 30px; }
+  }
+
+  /* ===================================================================
+     Proposal B — editorial
+     =================================================================== */
+  .b-hero .h1 { font-size: 112px; line-height: 0.95; letter-spacing: -0.045em; max-width: 12ch; }
+  .b-hero .lead { max-width: 46ch; }
+  .b-shell { margin-top: 64px; background: rgb(var(--bg-main)); border-radius: 20px; box-shadow: var(--box-ring), 0 40px 90px -50px rgb(0 0 0 / .55); display: grid; grid-template-columns: 230px 1fr; overflow: hidden; border: 0; }
+  .b-side { background: rgb(var(--bg-surface)); padding: 18px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .mini-card { height: 58px; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; justify-content: flex-end; background: var(--c); color: var(--on, #fff); }
+  .mini-card b { font: 600 15px var(--font-display); }
+  .mini-card small { font-size: 11.5px; opacity: .75; }
+  .mini-card[aria-current] { outline: 2px solid rgb(var(--text-primary)); outline-offset: 3px; }
+  .side-link { display: flex; align-items: center; gap: 10px; padding: 8px 8px; border-radius: 9px; color: rgb(var(--text-muted)); font-size: 14.5px; }
+  .side-link.on { background: rgb(var(--bg-raised)); color: rgb(var(--text-primary)); }
+  .b-main { padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .tile { background: rgb(var(--bg-surface)); border-radius: 16px; box-shadow: var(--box-ring); padding: 14px 16px; }
+  .tile .k { color: rgb(var(--text-muted)); font-size: 13px; }
+  .tile .v { font: 650 26px/1.15 var(--font-display); letter-spacing: -0.02em; margin-top: 4px; }
+  .tile .v.in { color: rgb(var(--v2-income)); }
+  .tile .sub { color: rgb(var(--text-faint)); font-size: 12.5px; margin-top: 2px; }
+  .b-alt { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; padding: 64px 0; border-top: 1px solid rgb(var(--border-primary)); }
+  .b-alt.rev .b-vis { order: -1; }
+  .b-alt .h2 { font-size: 46px; }
+  .b-mcp { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+  .transcript > div { padding: 18px 0; border-top: 1px solid rgb(var(--border-primary)); }
+  .transcript > div:first-child { border-top: 0; padding-top: 0; }
+  .transcript .who-l { font-size: 12.5px; color: rgb(var(--text-faint)); margin-bottom: 4px; }
+  .transcript .q { font: 600 20px/1.3 var(--font-display); letter-spacing: -0.01em; }
+  .transcript .a { color: rgb(var(--text-muted)); margin-top: 6px; line-height: 1.55; }
+  .b-cta { display: grid; grid-template-columns: 1.3fr 1fr; gap: 40px; align-items: center; background: rgb(var(--bg-surface)); border-radius: var(--r-hero); box-shadow: var(--box-ring); padding: 48px; }
+  .b-cta .h2 { font-size: 46px; }
+  .b-foot { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; }
+  .b-foot h4 { font-size: 13px; font-weight: 600; color: rgb(var(--text-muted)); margin-bottom: 10px; }
+  .b-foot a { display: block; font-size: 14.5px; color: rgb(var(--text-primary)); padding: 3px 0; }
+  .donut-legend .lg { display: flex; align-items: center; gap: 10px; font-size: 14px; padding: 6px 0; }
+  .donut-legend .sw { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+  .donut-legend .lg .num { margin-left: auto; font-weight: 600; }
+  .donut-legend .lg .faint { min-width: 36px; text-align: right; }
+  @container (max-width: 700px) {
+    .b-hero .h1 { font-size: 46px; max-width: none; }
+    .b-shell { grid-template-columns: 1fr; margin-top: 36px; }
+    .b-side { display: none; }
+    .b-main { padding: 14px; }
+    .tiles { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .tile { padding: 10px 11px; }
+    .tile .v { font-size: 18px; }
+    .b-alt, .b-mcp, .b-cta { grid-template-columns: 1fr; gap: 28px; padding: 40px 0; }
+    .b-alt.rev .b-vis { order: 0; }
+    .b-alt .h2, .b-cta .h2 { font-size: 32px; }
+    .b-cta { padding: 28px 22px; }
+    .b-foot { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ===================================================================
+     Proposal C — statement (own direction)
+     =================================================================== */
+  .c-hero { display: grid; grid-template-columns: 1fr 0.9fr; gap: 64px; align-items: center; }
+  .c-hero .h1 { font-size: 60px; }
+  .receipt { background: rgb(var(--bg-surface)); border-radius: var(--r-hero); box-shadow: var(--box-ring); padding: 26px 28px; }
+  .rcp { display: flex; align-items: baseline; gap: 10px; padding: 9px 0; font-size: 15px; }
+  .rcp .dots { flex: 1; border-bottom: 1px dotted rgb(var(--border-primary)); transform: translateY(-4px); min-width: 20px; }
+  .rcp .amt { font-family: var(--font-mono); font-weight: 600; }
+  .rcp.more { color: rgb(var(--text-faint)); font-size: 14px; }
+  .rcp-total { border-top: 1px solid rgb(var(--border-primary)); margin-top: 14px; padding-top: 18px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .rcp-total .big { font: 700 66px/0.95 var(--font-display); letter-spacing: -0.04em; }
+  .c-num-row { display: grid; grid-template-columns: 64px 1fr 1.25fr; gap: 28px; padding: 30px 0; border-top: 1px solid rgb(var(--border-primary)); align-items: start; }
+  .c-num { font-family: var(--font-mono); color: rgb(var(--text-faint)); font-size: 14px; padding-top: 6px; }
+  .c-num-row .h3 { font-size: 24px; }
+  .c-ob { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; padding: 72px 0; border-top: 1px solid rgb(var(--border-primary)); }
+  .c-cta { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center; padding: 44px 0; border-top: 1px solid rgb(var(--border-primary)); }
+  .c-cta .h2 { font-size: 52px; }
+  .c-foot { display: grid; gap: 22px; }
+  .c-foot .big-brand { font: 700 40px/1 var(--font-display); letter-spacing: -0.03em; }
+  @container (max-width: 700px) {
+    .c-hero, .c-ob { grid-template-columns: 1fr; gap: 32px; }
+    .c-hero .h1 { font-size: 40px; }
+    .c-num-row { grid-template-columns: 1fr; gap: 6px; padding: 22px 0; }
+    .c-num { padding-top: 0; }
+    .c-num-row .h3 { font-size: 21px; }
+    .c-cta { grid-template-columns: 1fr; }
+    .c-cta .h2 { font-size: 34px; }
+    .rcp-total .big { font-size: 52px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Icon sprite (inline; stroke styles come from .ico) -->
+<svg class="ico-sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2 3h3l2.6 12.2a1 1 0 0 0 1 .8h9.7a1 1 0 0 0 1-.8L21 7H6"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.3-5.5 6.5-5.5s5.7 2 6.5 5.5"/><circle cx="17" cy="9" r="2.8"/><path d="M17 14c2.4 0 4.2 1.6 4.8 4.5"/></symbol>
+  <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><path d="M12 20h.01"/><path d="M2 2l20 20"/></symbol>
+  <symbol id="i-landmark" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v9M9.5 10v9M14.5 10v9M19 10v9M3 21h18"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.3-4-2-6-2.5M15 21v-3.5c0-1 .1-1.5-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6 0C6.3 3.3 5.3 3.6 5.3 3.6a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 3.9 10c0 4.6 2.7 5.7 5.5 6-.6.5-.6 1.2-.5 2V21"/></symbol>
+  <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M4 8h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M7 2v2M11 2v2"/></symbol>
+  <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M5 17h14M4 17v-4l2-5h12l2 5v4"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/></symbol>
+  <symbol id="i-utensils" viewBox="0 0 24 24"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 21V3c-2 1-3 3.5-3 7 0 1.5 1 2 3 2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><rect x="3" y="7" width="18" height="13" rx="2"/><circle cx="16.5" cy="13.5" r="1.2"/></symbol>
+  <symbol id="i-pie" viewBox="0 0 24 24"><path d="M21 12A9 9 0 1 1 12 3v9z"/><path d="M15 3.5A9 9 0 0 1 20.5 9H15z"/></symbol>
+  <symbol id="i-flow" viewBox="0 0 24 24"><path d="M3 6h5c3 0 3 6 6 6h7M3 18h5c3 0 3-6 6-6M19 12l-3-3M19 12l-3 3"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.2"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 9M4 4v5h5M4 13a8 8 0 0 0 14.5 4.5L20 15M20 20v-5h-5"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5L4 9M4 4v5h5M4 13a8 8 0 0 0 14.5 4.5L20 15M20 20v-5h-5"/></symbol>
+</svg>
+
+<div class="doc-top">
+  <h1 class="doc-title">Landing /about: v2 restyle proposals</h1>
+  <p class="doc-lead">Three static mocks of the public landing page in the UI v2 "wallet card" language. Each proposal has a 1080px desktop frame and a 375px phone frame, rendered from the same markup. Copy comes from the current landing components, lightly tightened.</p>
+  <ul class="doc-notes">
+    <li>Dropped: animated background blobs and spheres, coloured glows and halos, animated wordmark. Depth is a neutral shadow or the 1px box ring (light).</li>
+    <li>Brand gradient only on the primary CTA. Wallet colour is a solid fill on the wallet card. Only income is green. Expenses stay in normal text.</li>
+    <li>Numbers use JetBrains Mono with tabular figures, as the v2 token rule in <code>theme-tokens.css</code> sets. Titles use Bricolage Grotesque, text uses Instrument Sans. Sentence case throughout.</li>
+    <li>Use the button in the bottom-right corner to toggle light and dark. Dark is the default, as in the other v2 demos.</li>
+  </ul>
+</div>
+
+<!-- =================================================================== -->
+<!-- Proposal A                                                          -->
+<!-- =================================================================== -->
+<section class="proposal" id="prop-a">
+  <div class="p-head"><span class="p-tag">A</span><h2>Product-led</h2><span class="rec">Recommended</span></div>
+  <p class="p-why"><b>Why recommended:</b> the product is on the first screen. A real v2 wallet card and rows explain the app in one glance, and the landing reuses the same components as the dashboard, so it looks like one product.</p>
+  <div class="frames">
+    <figure>
+      <div class="frame desk"><div class="chrome"><i></i><i></i><i></i><span class="url">localhost/about</span></div><div class="scroll-d"><div class="page" data-tpl="tpl-a"></div></div></div>
+      <figcaption>Desktop, 1080px</figcaption>
+    </figure>
+    <figure>
+      <div class="frame phone"><div class="status"></div><div class="scroll"><div class="page" data-tpl="tpl-a"></div></div></div>
+      <figcaption>Phone, 375px</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- Proposal B                                                          -->
+<!-- =================================================================== -->
+<section class="proposal" id="prop-b">
+  <div class="p-head"><span class="p-tag">B</span><h2>Editorial</h2></div>
+  <p class="p-why"><b>Trade-off:</b> a big display headline and one wide app composite. It reads as a magazine, not a SaaS grid, so it sells the story rather than the detail. Strongest on desktop; on a phone the shell collapses to the card and rows.</p>
+  <div class="frames">
+    <figure>
+      <div class="frame desk"><div class="chrome"><i></i><i></i><i></i><span class="url">localhost/about</span></div><div class="scroll-d"><div class="page" data-tpl="tpl-b"></div></div></div>
+      <figcaption>Desktop, 1080px</figcaption>
+    </figure>
+    <figure>
+      <div class="frame phone"><div class="status"></div><div class="scroll"><div class="page" data-tpl="tpl-b"></div></div></div>
+      <figcaption>Phone, 375px</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- Proposal C                                                          -->
+<!-- =================================================================== -->
+<section class="proposal" id="prop-c">
+  <div class="p-head"><span class="p-tag">C</span><h2>Statement (own direction)</h2></div>
+  <p class="p-why"><b>Idea:</b> the landing reads like a monthly statement. The problem is itemised on a receipt, the features are a numbered ledger, and nothing is decorated. It is quieter and more distinctive than A, but it shows less of the product.</p>
+  <div class="frames">
+    <figure>
+      <div class="frame desk"><div class="chrome"><i></i><i></i><i></i><span class="url">localhost/about</span></div><div class="scroll-d"><div class="page" data-tpl="tpl-c"></div></div></div>
+      <figcaption>Desktop, 1080px</figcaption>
+    </figure>
+    <figure>
+      <div class="frame phone"><div class="status"></div><div class="scroll"><div class="page" data-tpl="tpl-c"></div></div></div>
+      <figcaption>Phone, 375px</figcaption>
+    </figure>
+  </div>
+</section>
+
+<button type="button" class="toggle" onclick="document.documentElement.classList.toggle('dark')">Light / dark</button>
+
+<!-- ======================= TEMPLATES ======================= -->
+
+<!-- ---------- Template A ---------- -->
+<template id="tpl-a">
+  <nav class="nav">
+    <div class="brand"><img class="logo" src="icon.svg" alt="">FinanceWebApp</div>
+    <div class="nav-links"><a class="on">Home</a><a>Features</a><a>Roadmap</a><a>GitHub</a></div>
+    <div class="nav-end">
+      <span class="icon-btn" aria-hidden="true"><svg class="ico"><use href="#i-moon"/></svg></span>
+      <span class="btn btn-pri btn-sm nav-cta">Launch demo</span>
+      <span class="icon-btn nav-burger" aria-hidden="true"><svg class="ico"><use href="#i-menu"/></svg></span>
+    </div>
+  </nav>
+
+  <header class="sec a-hero">
+    <div>
+      <p class="eyebrow">Open-source personal finance</p>
+      <h1 class="h1">Your small expenses aren't small.</h1>
+      <p class="lead">A coffee here, a subscription there. On their own they're nothing. Together they're your month. FinanceWebApp turns every transaction into a picture you can act on.</p>
+      <div class="cta-row">
+        <span class="btn btn-pri btn-lg">Launch the demo <svg class="ico"><use href="#i-arrow"/></svg></span>
+        <span class="btn btn-sec btn-lg">See the features</span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="wcard" style="--wallet:#8b5cf6;--on-wallet:#fff">
+        <div class="wc-top">
+          <div><div class="name">Main Account</div><div class="meta">EUR · Owner</div></div>
+          <span class="month"><span aria-hidden="true">‹</span> March 2025 <span aria-hidden="true">›</span></span>
+        </div>
+        <div><div class="k">Net this month</div><div class="big">€1,270</div></div>
+        <svg class="spark" viewBox="0 0 300 62" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 50 C30 42 52 52 80 36 S130 30 160 34 S220 12 250 20 S290 8 300 10 L300 62 L0 62 Z" fill="currentColor" opacity=".14"/>
+          <path d="M0 50 C30 42 52 52 80 36 S130 30 160 34 S220 12 250 20 S290 8 300 10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+        </svg>
+        <img class="emblem" src="icon.svg" alt="">
+      </div>
+      <div class="rows">
+        <div class="row"><span class="chip" style="--c:#34d399"><svg class="ico"><use href="#i-briefcase"/></svg></span><div class="grow"><div class="t">Salary</div><div class="s">Work · 1 Mar</div></div><span class="amt in">+€2,100</span></div>
+        <div class="row"><span class="chip" style="--c:#fbbf24"><svg class="ico"><use href="#i-cart"/></svg></span><div class="grow"><div class="t">Groceries</div><div class="s">Food &amp; Dining · 3 Mar</div></div><span class="amt">−€320</span></div>
+        <div class="row"><span class="chip" style="--c:#f87171"><svg class="ico"><use href="#i-home"/></svg></span><div class="grow"><div class="t">Rent</div><div class="s">Housing · 1 Mar</div></div><span class="amt">−€650</span></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="sec" id="features">
+    <div class="wrap">
+      <p class="eyebrow">What you get</p>
+      <h2 class="h2">Every euro, in its place.</h2>
+      <div class="a-features">
+        <div class="card a-feat">
+          <span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-wallet"/></svg></span>
+          <div class="h3">Unlimited wallets, automatic conversions</div>
+          <p class="body-m">Each wallet has its own base currency: daily spending, travel, or one shared with your partner. Rates come from the Frankfurter API (European Central Bank), so every balance shows the original and converted amount.</p>
+        </div>
+        <div class="card a-feat">
+          <span class="chip" style="--c:#a78bfa"><svg class="ico"><use href="#i-tag"/></svg></span>
+          <div class="h3">Hierarchical tags</div>
+          <p class="body-m">Parent categories with sub-tags, each with its own colour and icon. Income is green; expenses stay in plain text so the balance reads at a glance.</p>
+        </div>
+        <div class="card a-feat">
+          <span class="chip" style="--c:#f472b6"><svg class="ico"><use href="#i-pie"/></svg></span>
+          <div class="h3">Charts that explain the month</div>
+          <p class="body-m">A nested donut: the inner ring by parent category, the outer ring by sub-tag. A Sankey diagram maps every euro from income source to expense category.</p>
+        </div>
+        <div class="card a-feat">
+          <span class="chip" style="--c:#fb923c"><svg class="ico"><use href="#i-repeat"/></svg></span>
+          <div class="h3">A subscription engine</div>
+          <p class="body-m">Rules beyond "monthly": "last working day of the month", "every 2 weeks on Friday". Each subscription lands on a calendar and a timeline of upcoming payments.</p>
+        </div>
+        <div class="card a-feat">
+          <span class="chip" style="--c:#22d3ee"><svg class="ico"><use href="#i-users"/></svg></span>
+          <div class="h3">Wallet collaboration</div>
+          <p class="body-m">Share any wallet as Owner, Editor or Viewer. Couples, roommates and families manage shared money with the right level of control.</p>
+        </div>
+        <div class="card a-feat">
+          <span class="chip" style="--c:#34d399"><svg class="ico"><use href="#i-wifi"/></svg></span>
+          <div class="h3">Offline-first PWA</div>
+          <p class="body-m">Installable, works offline, and syncs your changes when you're back online.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap a-split">
+      <div>
+        <p class="eyebrow">AI-native</p>
+        <h2 class="h2">Talk to your finances.</h2>
+        <p class="lead">FinanceWebApp ships its own MCP server: an OAuth2 authorization server exposing about 25 finance tools. Connect an LLM client such as Claude and ask in plain language.</p>
+        <p class="body-m" style="margin-top:14px">It enforces nothing on its own. Every tool forwards your token to the backend, which applies the same per-wallet permissions as the app. Your assistant only sees what you can see.</p>
+      </div>
+      <div class="a-chat" aria-label="Example chat with the MCP server">
+        <div class="msg"><span class="who"><svg class="ico"><use href="#i-user"/></svg></span><div class="bubble me" style="margin-left:0;max-width:none">How much did I spend on restaurants in March?</div></div>
+        <div class="msg"><span class="who ai"><svg class="ico"><use href="#i-sparkle"/></svg></span><div class="bubble ai" style="flex:1">In March you spent <span class="num" style="font-weight:600">€95.00</span> on Eating Out, across 1 transaction. That's about 7% of your expenses.<div class="muted" style="font-size:13.5px;margin-top:8px">Want a monthly cap for this category?</div></div></div>
+        <div class="a-ob-note" style="padding-left:40px">Main Account · March 2025</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap a-split">
+      <div>
+        <span class="pill neutral" style="display:inline-block;margin-bottom:14px">Coming soon</span>
+        <h2 class="h2">Connect your real bank accounts</h2>
+        <p class="lead">Link your European bank accounts through the Open Banking standard (PSD2, via EnableBanking) and let transactions import themselves. No more manual entry. It's on the roadmap and being actively explored.</p>
+      </div>
+      <div class="a-ob">
+        <div class="card">
+          <div class="sync-head"><div style="display:flex;align-items:center;gap:12px"><span class="chip" style="--c:#a78bfa"><svg class="ico"><use href="#i-landmark"/></svg></span><div><div class="h3" style="font-size:17px">Bank sync</div><div class="muted" style="font-size:13px">Preview</div></div></div></div>
+          <div class="rows" style="box-shadow:var(--box-ring)">
+            <div class="row"><div class="grow"><div class="t">Revolut</div><div class="s">••9923 · synced 14 min ago</div></div><span class="pill ok">Active</span></div>
+            <div class="row"><div class="grow"><div class="t">UniCredit</div><div class="s">••1313 · synced 14 min ago</div></div><span class="pill ok">Active</span></div>
+          </div>
+        </div>
+        <div class="rows">
+          <div class="row"><span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-car"/></svg></span><div class="grow"><div class="t">UNIPOLTECH SPA</div><div class="s">Imported 12 Mar · to categorise</div></div><span class="amt">−€4.40</span></div>
+        </div>
+        <p class="a-ob-note">Illustrative mock. Transactions land as "To categorise" until you tag them.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="wrap">
+      <div class="card" style="padding:56px 40px;text-align:center;display:flex;flex-direction:column;align-items:center">
+        <h2 class="h2">See it for yourself.</h2>
+        <p class="lead" style="margin-top:12px">Jump into a fully populated demo wallet. No sign-up, no setup.</p>
+        <div class="cta-row" style="justify-content:center">
+          <span class="btn btn-pri btn-lg">Launch the demo <svg class="ico"><use href="#i-arrow"/></svg></span>
+          <span class="btn btn-sec btn-lg"><svg class="ico"><use href="#i-github"/></svg>View on GitHub</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap" style="max-width:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+        <div class="brand" style="font-size:16px"><img class="logo" style="width:24px;height:24px" src="icon.svg" alt="">FinanceWebApp <span class="muted" style="font:400 14px var(--font-sans)">· free &amp; open source</span></div>
+        <span class="muted" style="font-size:14px;display:inline-flex;gap:8px;align-items:center"><svg class="ico" style="width:16px;height:16px"><use href="#i-github"/></svg>View source on GitHub</span>
+      </div>
+      <div class="stack-chips"><span class="t">Built with</span><span class="chipt">Spring Boot</span><span class="chipt">React</span><span class="chipt">TypeScript</span><span class="chipt">Tailwind CSS</span><span class="chipt">PostgreSQL</span><span class="chipt">Python (MCP)</span><span class="chipt">Docker</span></div>
+      <div class="fine"><span>Exchange rates by Frankfurter / European Central Bank.</span><span>© 2026 FinanceWebApp · Built in the open. See the roadmap.</span></div>
+    </div>
+  </footer>
+</template>
+
+<!-- ---------- Template B ---------- -->
+<template id="tpl-b">
+  <nav class="nav">
+    <div class="brand"><img class="logo" src="icon.svg" alt="">FinanceWebApp</div>
+    <div class="nav-links"><a class="on">Home</a><a>Features</a><a>Roadmap</a><a>GitHub</a></div>
+    <div class="nav-end">
+      <span class="icon-btn" aria-hidden="true"><svg class="ico"><use href="#i-moon"/></svg></span>
+      <span class="btn btn-pri btn-sm nav-cta">Launch demo</span>
+      <span class="icon-btn nav-burger" aria-hidden="true"><svg class="ico"><use href="#i-menu"/></svg></span>
+    </div>
+  </nav>
+
+  <header class="sec b-hero" style="padding-bottom:40px">
+    <p class="eyebrow">Open-source personal finance</p>
+    <h1 class="h1">Your small expenses aren't small.</h1>
+    <div class="cta-row" style="margin-top:34px">
+      <span class="btn btn-pri btn-lg">Launch the demo <svg class="ico"><use href="#i-arrow"/></svg></span>
+      <span class="btn btn-sec btn-lg">See the features</span>
+    </div>
+    <p class="lead" style="margin-top:28px">A coffee here, a subscription there. On their own they're nothing; together they're your month. FinanceWebApp turns every transaction into a picture you can act on.</p>
+
+    <div class="b-shell">
+      <aside class="b-side">
+        <div class="brand" style="padding:4px 8px 12px;font-size:16px"><img class="logo" style="width:24px;height:24px" src="icon.svg" alt="">FinanceWebApp</div>
+        <div class="mini-card" style="--c:#8b5cf6;--on:#fff" aria-current="true"><b>Main Account</b><small>EUR</small></div>
+        <div class="mini-card" style="--c:#f472b6;--on:#1c1a17"><b>Travel Fund</b><small>JPY</small></div>
+        <div style="height:8px"></div>
+        <div class="side-link on"><svg class="ico"><use href="#i-list"/></svg>Transactions</div>
+        <div class="side-link"><svg class="ico"><use href="#i-repeat"/></svg>Subscriptions</div>
+        <div class="side-link"><svg class="ico"><use href="#i-pie"/></svg>Statistics</div>
+      </aside>
+      <div class="b-main">
+        <div class="tiles">
+          <div class="tile"><div class="k">Income</div><div class="v in">€2,570</div><div class="sub">March 2025</div></div>
+          <div class="tile"><div class="k">Spent</div><div class="v">€1,300</div><div class="sub">March 2025</div></div>
+          <div class="tile"><div class="k">Kept</div><div class="v">€1,270</div><div class="sub">Income − spent</div></div>
+        </div>
+        <div class="wcard" style="--wallet:#8b5cf6;--on-wallet:#fff;min-height:190px">
+          <div class="wc-top">
+            <div><div class="name">Main Account</div><div class="meta">EUR · Owner</div></div>
+            <span class="month"><span aria-hidden="true">‹</span> March 2025 <span aria-hidden="true">›</span></span>
+          </div>
+          <div><div class="k">Net this month</div><div class="big">€1,270</div></div>
+          <svg class="spark" viewBox="0 0 300 62" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 50 C30 42 52 52 80 36 S130 30 160 34 S220 12 250 20 S290 8 300 10 L300 62 L0 62 Z" fill="currentColor" opacity=".14"/>
+            <path d="M0 50 C30 42 52 52 80 36 S130 30 160 34 S220 12 250 20 S290 8 300 10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+          </svg>
+          <img class="emblem" src="icon.svg" alt="">
+        </div>
+        <div class="rows">
+          <div class="row"><span class="chip" style="--c:#34d399"><svg class="ico"><use href="#i-briefcase"/></svg></span><div class="grow"><div class="t">Salary</div><div class="s">Work · 1 Mar</div></div><span class="amt in">+€2,100</span></div>
+          <div class="row"><span class="chip" style="--c:#fbbf24"><svg class="ico"><use href="#i-cart"/></svg></span><div class="grow"><div class="t">Groceries</div><div class="s">Food &amp; Dining · 3 Mar</div></div><span class="amt">−€320</span></div>
+          <div class="row"><span class="chip" style="--c:#f87171"><svg class="ico"><use href="#i-home"/></svg></span><div class="grow"><div class="t">Rent</div><div class="s">Housing · 1 Mar</div></div><span class="amt">−€650</span></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="sec" style="padding-top:0;padding-bottom:0">
+    <!-- Row 1: wallets -->
+    <div class="b-alt">
+      <div>
+        <p class="eyebrow">Multi-currency</p>
+        <h2 class="h2">Unlimited wallets. Automatic conversions.</h2>
+        <p class="body-m" style="margin-top:18px;font-size:16px;max-width:46ch">Give each wallet its own base currency: daily spending, travel, or a shared one with your partner. Rates come from the Frankfurter API (European Central Bank), so every balance shows the original and the converted amount.</p>
+      </div>
+      <div class="b-vis" style="display:grid;gap:12px">
+        <div class="mini-card" style="--c:#8b5cf6;--on:#fff;height:auto;min-height:96px;padding:16px 18px;flex-direction:row;justify-content:space-between;align-items:flex-end"><div><b style="font-size:17px">Main Account</b><small style="display:block">EUR</small></div><span class="num" style="font:700 22px var(--font-display)">€1,270</span></div>
+        <div class="mini-card" style="--c:#f472b6;--on:#1c1a17;height:auto;min-height:96px;padding:16px 18px;flex-direction:row;justify-content:space-between;align-items:flex-end"><div><b style="font-size:17px">Travel Fund</b><small style="display:block">JPY</small></div><div style="text-align:right"><span class="num" style="font:700 22px var(--font-display)">¥184,000</span><small style="display:block">≈ €1,130</small></div></div>
+      </div>
+    </div>
+
+    <!-- Row 2: tags + charts (reversed) -->
+    <div class="b-alt rev">
+      <div>
+        <p class="eyebrow">Tags and analytics</p>
+        <h2 class="h2">Hierarchical tags. Rich charts.</h2>
+        <p class="body-m" style="margin-top:18px;font-size:16px;max-width:46ch">Every transaction sits in a tag tree: parent categories, sub-tags, each with its own colour and icon. Income is green; expenses stay in plain text, so the balance reads at a glance. A nested donut shows where the money went, one ring per level.</p>
+      </div>
+      <div class="b-vis card" style="display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;padding:26px">
+        <svg width="170" height="170" viewBox="0 0 170 170" aria-label="Expenses by category">
+          <g transform="rotate(-90 85 85)" fill="none" stroke-width="20">
+            <circle cx="85" cy="85" r="66" stroke="#f87171" stroke-dasharray="242 173" stroke-dashoffset="0"/>
+            <circle cx="85" cy="85" r="66" stroke="#fbbf24" stroke-dasharray="128 287" stroke-dashoffset="-242"/>
+            <circle cx="85" cy="85" r="66" stroke="#f472b6" stroke-dasharray="9 406" stroke-dashoffset="-374"/>
+            <circle cx="85" cy="85" r="66" stroke="#60a5fa" stroke-dasharray="20 395" stroke-dashoffset="-387"/>
+          </g>
+          <text x="85" y="82" text-anchor="middle" style="font:700 22px var(--font-display);fill:rgb(var(--text-primary))">€1,300</text>
+          <text x="85" y="102" text-anchor="middle" style="font:500 12px var(--font-sans);fill:rgb(var(--text-muted))">spent</text>
+        </svg>
+        <div class="donut-legend">
+          <div class="lg" style="--c:#f87171"><span class="sw"></span>Housing<span class="num">€770</span><span class="faint">59%</span></div>
+          <div class="lg" style="--c:#fbbf24"><span class="sw"></span>Food &amp; Dining<span class="num">€415</span><span class="faint">32%</span></div>
+          <div class="lg" style="--c:#60a5fa"><span class="sw"></span>Entertainment<span class="num">€75</span><span class="faint">6%</span></div>
+          <div class="lg" style="--c:#f472b6"><span class="sw"></span>Health<span class="num">€40</span><span class="faint">3%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: subscriptions -->
+    <div class="b-alt">
+      <div>
+        <p class="eyebrow">Subscriptions</p>
+        <h2 class="h2">Recurrence beyond "monthly".</h2>
+        <p class="body-m" style="margin-top:18px;font-size:16px;max-width:46ch">Set rules like "last working day of the month" or "every 2 weeks on Friday". Each subscription shows on a calendar and as a timeline of upcoming payments, so nothing renews by surprise.</p>
+      </div>
+      <div class="b-vis rows">
+        <div class="row"><span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-calendar"/></svg></span><div class="grow"><div class="t">Spotify</div><div class="s">Every 1st · in 10 days</div></div><span class="amt">−€30</span></div>
+        <div class="row"><span class="chip" style="--c:#fb923c"><svg class="ico"><use href="#i-repeat"/></svg></span><div class="grow"><div class="t">Gym</div><div class="s">Last working day · in 3 days</div></div><span class="pill warn">Soon</span><span class="amt">−€40</span></div>
+        <div class="row"><span class="chip" style="--c:#f87171"><svg class="ico"><use href="#i-home"/></svg></span><div class="grow"><div class="t">Rent</div><div class="s">1st of the month · in 10 days</div></div><span class="amt">−€650</span></div>
+      </div>
+    </div>
+
+    <p class="muted" style="padding:8px 0 56px;font-size:15px;max-width:70ch;border-top:1px solid rgb(var(--border-primary));padding-top:28px">Share any wallet as Owner, Editor or Viewer. And it works offline: an installable PWA that syncs your changes when you're back online.</p>
+  </section>
+
+  <section class="sec" style="padding-top:24px">
+    <div class="b-mcp">
+      <div>
+        <p class="eyebrow">AI-native</p>
+        <h2 class="h2">Talk to your finances.</h2>
+        <p class="lead">FinanceWebApp ships its own MCP server: an OAuth2 authorization server with about 25 finance tools. Connect an LLM client such as Claude and ask in plain language.</p>
+        <p class="body-m" style="margin-top:14px">Every tool forwards your token to the backend, which applies the same per-wallet permissions as the app. Your assistant only sees what you can see.</p>
+      </div>
+      <div class="transcript">
+        <div><div class="who-l">You</div><div class="q">How much did I spend on restaurants in March?</div></div>
+        <div><div class="who-l">Claude, via FinanceWebApp MCP</div><div class="a">€95.00 on Eating Out, across 1 transaction, about 7% of your expenses. Want a monthly cap for this category?</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" style="padding-top:24px">
+    <div class="b-cta">
+      <div>
+        <h2 class="h2">See it for yourself.</h2>
+        <p class="lead" style="margin-top:12px">Jump into a fully populated demo wallet. No sign-up, no setup.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+        <span class="btn btn-pri btn-lg" style="width:100%">Launch the demo <svg class="ico"><use href="#i-arrow"/></svg></span>
+        <span class="btn btn-sec btn-lg" style="width:100%"><svg class="ico"><use href="#i-github"/></svg>View on GitHub</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="b-foot">
+      <div>
+        <div class="brand" style="font-size:20px"><img class="logo" src="icon.svg" alt="">FinanceWebApp</div>
+        <p class="muted" style="margin-top:8px;font-size:14px;max-width:34ch">Free and open source. Built solo, in the open, always improving.</p>
+      </div>
+      <div><h4>Explore</h4><a>Home</a><a>Features</a><a>Roadmap</a></div>
+      <div><h4>Project</h4><a>GitHub</a><a>Spring Boot · React · PostgreSQL</a><a>Python (MCP) · Docker</a></div>
+    </div>
+    <div class="fine"><span>Exchange rates by Frankfurter / European Central Bank.</span><span>© 2026 FinanceWebApp</span></div>
+  </footer>
+</template>
+
+<!-- ---------- Template C ---------- -->
+<template id="tpl-c">
+  <nav class="nav">
+    <div class="brand"><img class="logo" src="icon.svg" alt="">FinanceWebApp</div>
+    <div class="nav-links"><a class="on">Home</a><a>Features</a><a>Roadmap</a><a>GitHub</a></div>
+    <div class="nav-end">
+      <span class="icon-btn" aria-hidden="true"><svg class="ico"><use href="#i-moon"/></svg></span>
+      <span class="btn btn-pri btn-sm nav-cta">Launch demo</span>
+      <span class="icon-btn nav-burger" aria-hidden="true"><svg class="ico"><use href="#i-menu"/></svg></span>
+    </div>
+  </nav>
+
+  <header class="sec c-hero">
+    <div>
+      <p class="eyebrow">Open-source personal finance</p>
+      <h1 class="h1">Your small expenses aren't small.</h1>
+      <p class="lead">A coffee here, a subscription there. On their own they're nothing. Together they're your month. FinanceWebApp makes the total visible, so you can act on it.</p>
+      <div class="cta-row">
+        <span class="btn btn-pri btn-lg">Launch the demo <svg class="ico"><use href="#i-arrow"/></svg></span>
+        <span class="btn btn-sec btn-lg">See the features</span>
+      </div>
+    </div>
+    <div class="receipt">
+      <div class="h3" style="margin-bottom:6px">Your month, itemised</div>
+      <div class="muted" style="font-size:13px;margin-bottom:10px">Six small things, one month</div>
+      <div class="rcp"><span>Coffee</span><span class="dots"></span><span class="amt">€3.50</span></div>
+      <div class="rcp"><span>Streaming</span><span class="dots"></span><span class="amt">€12.99</span></div>
+      <div class="rcp"><span>Parking</span><span class="dots"></span><span class="amt">€2.00</span></div>
+      <div class="rcp"><span>Croissant</span><span class="dots"></span><span class="amt">€1.80</span></div>
+      <div class="rcp"><span>Taxi</span><span class="dots"></span><span class="amt">€9.00</span></div>
+      <div class="rcp"><span>Lunch</span><span class="dots"></span><span class="amt">€8.50</span></div>
+      <div class="rcp more"><span>…and the rest of the month</span></div>
+      <div class="rcp-total">
+        <div><div class="muted" style="font-size:14px">Every month</div></div>
+        <div class="big">€217</div>
+      </div>
+      <p class="muted" style="font-size:14px;margin-top:16px">You don't notice them going out. FinanceWebApp makes sure you notice them adding up.</p>
+    </div>
+  </header>
+
+  <section class="sec">
+    <div class="wrap" style="max-width:1100px">
+      <p class="eyebrow">What it does</p>
+      <h2 class="h2">Six things, done properly.</h2>
+      <div style="margin-top:34px">
+        <div class="c-num-row"><span class="c-num">01</span><div class="h3">Multi-currency wallets</div><p class="body-m">Unlimited wallets, each with its own base currency. Rates come from the Frankfurter API (European Central Bank), so every balance shows the original and converted amount.</p></div>
+        <div class="c-num-row"><span class="c-num">02</span><div class="h3">Hierarchical tags</div><p class="body-m">Parent categories with sub-tags, each with its own colour and icon. Income is green; expenses stay in plain text.</p></div>
+        <div class="c-num-row"><span class="c-num">03</span><div class="h3">Nested donut charts</div><p class="body-m">The inner ring groups by parent category, the outer ring breaks into sub-tags. Hover any slice for the exact amount and share.</p></div>
+        <div class="c-num-row"><span class="c-num">04</span><div class="h3">Sankey cash flow</div><p class="body-m">Every euro from its income source, through one central node, out to each expense category. Widths are proportional to the amounts.</p></div>
+        <div class="c-num-row"><span class="c-num">05</span><div class="h3">Subscriptions that follow your rules</div><p class="body-m">Recurrence beyond "monthly", a calendar, and a timeline of upcoming payments. Nothing renews by surprise.</p></div>
+        <div class="c-num-row"><span class="c-num">06</span><div class="h3">Shared wallets, offline</div><p class="body-m">Share as Owner, Editor or Viewer. It's an installable PWA that works offline and syncs when you're back online.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="c-ob">
+      <div>
+        <span class="pill neutral" style="display:inline-block;margin-bottom:14px">Coming soon</span>
+        <h2 class="h2">Connect your real bank accounts</h2>
+        <p class="lead">Link European bank accounts through Open Banking (PSD2, via EnableBanking) and let transactions import themselves. It's on the roadmap and being explored.</p>
+      </div>
+      <div class="card" style="padding:14px">
+        <div class="rows" style="box-shadow:none;background:rgb(var(--bg-main))">
+          <div class="row"><span class="chip" style="--c:#a78bfa"><svg class="ico"><use href="#i-landmark"/></svg></span><div class="grow"><div class="t">Revolut</div><div class="s">••9923 · synced 14 min ago</div></div><span class="pill ok">Active</span></div>
+          <div class="row"><span class="chip" style="--c:#a78bfa"><svg class="ico"><use href="#i-landmark"/></svg></span><div class="grow"><div class="t">UniCredit</div><div class="s">••1313 · synced 14 min ago</div></div><span class="pill ok">Active</span></div>
+          <div class="row"><span class="chip" style="--c:#60a5fa"><svg class="ico"><use href="#i-sync"/></svg></span><div class="grow"><div class="t">UNIPOLTECH SPA</div><div class="s">12 Mar · to categorise</div></div><span class="amt">−€4.40</span></div>
+        </div>
+        <p class="faint" style="font-size:12.5px;margin:12px 4px 2px">Preview, illustrative only.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="c-cta">
+      <div>
+        <h2 class="h2">See it for yourself.</h2>
+        <p class="lead">Jump into a fully populated demo wallet. No sign-up, no setup.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <span class="btn btn-pri btn-lg">Launch the demo <svg class="ico"><use href="#i-arrow"/></svg></span>
+        <span class="btn btn-sec btn-lg"><svg class="ico"><use href="#i-github"/></svg>View on GitHub</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="c-foot">
+      <div class="big-brand">FinanceWebApp</div>
+      <div class="stack-chips" style="margin-top:0"><span class="t">Built with</span><span class="chipt">Spring Boot</span><span class="chipt">React</span><span class="chipt">TypeScript</span><span class="chipt">Tailwind CSS</span><span class="chipt">PostgreSQL</span><span class="chipt">Python (MCP)</span><span class="chipt">Docker</span></div>
+    </div>
+    <div class="fine"><span>Free and open source. Exchange rates by Frankfurter / European Central Bank.</span><span>© 2026 FinanceWebApp · Roadmap · GitHub</span></div>
+  </footer>
+</template>
+
+<script>
+  // Render each frame's page from its template (one markup per proposal, cloned per frame).
+  document.querySelectorAll("[data-tpl]").forEach((el) => {
+    el.replaceChildren(document.getElementById(el.dataset.tpl).content.cloneNode(true));
+  });
+</script>
+</body>
+</html>

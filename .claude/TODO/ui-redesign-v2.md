@@ -112,12 +112,12 @@ Each: component + Vitest test + both themes. Spec in style §4.
 - [x] Title row (icon chip + name + currency name) + `TransactionsHero` on Transactions only
       (`WalletHeroCard` without name, arrows → `shiftPeriod`, Income/Spent `StatTile`s).
 - [x] No `DashboardBackground` / `AppHeader` under v2; wallet root sets `walletVars(wallet.color)`.
-- [ ] Nicola's look in the real app (desktop + phone, dark + light) → iterate.
+- [x] Nicola's look in the real app (desktop + phone, dark + light): OK 2026-11-21; only fix: light "To categorise" bar uses the dark amber #f0b85a.
 - [ ] Known gaps (checked 2026-11-21):
   - [x] Filter bar: v2 branch is a plain toolbar, not sticky (`TransactionsFilter.tsx:61-62`); v1 still `sticky top-17` (line 139).
   - [x] `Menu` "More" dark shadow: `WalletTabs.tsx:163` boxShadow.
   - [ ] Drag-reorder in the drawer vs swipe-to-close: STILL OPEN. `WalletsBar.tsx:263` sets only `disableSwipeToOpen`; needs a device check.
-  - [ ] NEEDS NICOLA: members count in the meta line. No members count in the title row code; needs data + decision.
+  - [x] Members count in the meta line: NO (Nicola 2026-11-21).
 
 ### D17 — Component library: MUI (2026-11-12)
 - shadcn trial compared side by side with MUI: visually ~identical, Nicola had no preference →
@@ -244,12 +244,13 @@ source proposals). Order top → bottom. Period selector in the header: one year
 - 2026-11-21: bank rules always grouped in the Data tab (uncommitted).
 
 ## Phase 9 — Modals, drawers, wizard  *(SEE-AT-THE-TIME, one at a time)*
-- [ ] Transaction / subscription modals + details views, TagPicker, invites, PAT,
+- [ ] (2026-11-21 done v2: transaction/subscription forms + details views, import review, calendar day panel, Sync Center, notifications panel, invites, PAT views, sidebar footer; MCP connect guide in /settings Tokens) Transaction / subscription modals + details views, TagPicker, invites, PAT,
       Create-wallet wizard (24 files in `modals/wallet/`), Sync Center, notifications bell panel,
       exchange-rate cards, scheduling rules / monthly rule picker, import review, calendar day panel.
 
 ## Phase 10 — Pages outside the wallet  *(SEE-AT-THE-TIME, mock first)*
-- [ ] Auth (login/register/forgot/reset) — still always-dark? brand accent per 0.3.
+- [ ] Auth (login/register/forgot/reset): DECIDED (Nicola 2026-11-21) v2 follows the theme (light/dark), no longer always-dark.
+- 2026-11-21: /settings sections v2 done; auth v2 (follows theme) done; admin v2 = mock B of `docs/redesign-demos/j-admin.html` + job sort (default A→Z) done (no email/role/last-login: API lacks them); landing: `k-landing.html` rejected, `l-landing-benefits.html` V1 approved (benefit-led, bold copy, keeps the problem band) → implementing.
 - [ ] OAuth consent page (MCP flow) · BankCallback · global `/settings` · admin
       dashboard (18 files in `admin/`) · landing `/about` (15 files) · ToDo page · `/settings` sections
       (account, security, tokens, notifications, about) · `AppHeader` v1 removal.
@@ -264,12 +265,12 @@ source proposals). Order top → bottom. Period selector in the header: one year
 - F6 (2026-11-12): `--box-ring` is now `0 0 0 0 transparent` in dark (was `none`, which broke shadow
   lists). Follow-ups: needs-attention rows (`PendingTransactionsPanel` uses `ring-1 ring-app-border`
   instead) and `Card` danger tone can use `shadow-[inset_3px_0_0_var(--color-app-warn|danger),var(--box-ring)]`.
-  DONE 2026-11-21: dark `--box-ring` (`theme-tokens.css:214`); `PendingTransactionsPanel` uses inset warn bar + `--box-ring`. STILL OPEN: `Card.tsx` danger tone has no inset bar.
+  DONE 2026-11-21: dark `--box-ring` (`theme-tokens.css:214`); `PendingTransactionsPanel` uses inset warn bar + `--box-ring`. DONE 2026-11-21: `Card.tsx` danger tone has the inset bar.
 - F7: v2 `Badge` blue/purple/pink tones fall back to neutral (no v2 token); `uppercase` prop ignored in v2.
   `PWAPrompt` v2 untested (`virtual:pwa-register/react` doesn't resolve in Vitest — needs a stub).
   `AccentHoverButton` `accentColor` unused in v2 (remove at cut-over).
   F7 status 2026-11-21: `PWAPrompt` test exists (`__tests__/components/ui/PWAPrompt.test.tsx`) DONE. Blue/purple/pink neutral fallback and v2 `uppercase` dropped are by design (`Badge.tsx` comments), accepted. STILL OPEN: `AccentHoverButton` still used (`HiddenTray`, `AddCategoryButton`); cut-over Phase 11.
-- F10: Budget v2 header aside = calendar month + days left (misleading for weekly/custom budgets?).
+- F10 (CLOSED 2026-11-21: tab aside "Month, N days left" removed, misleading for weekly/custom; reminders and bank-driven subs stay out of recurring cost (Nicola); Categories Sankey keeps its Investments chip; non-owner without bank sees no bank box): Budget v2 header aside = calendar month + days left (misleading for weekly/custom budgets?).
   Subscriptions summary excludes reminders (amountPending) — confirm. Coming up excludes bank-driven subs.
   F10 status 2026-11-21: NEEDS NICOLA: budget header aside still shows period label + "N days left in period" (`BudgetCard.tsx:430`), weekly/custom wording unresolved. NEEDS NICOLA: confirm reminder exclusion (`subscriptionSummary.ts:29` excludes `amountPending` and `bankDriven`). DONE: Coming up excludes bank-driven (`comingUp.ts:27`).
 - [x] F11 (2026-11-12, cleanup batch 2, done): chart palette read at render → re-read on theme change
@@ -280,24 +281,24 @@ source proposals). Order top → bottom. Period selector in the header: one year
 - F12: Sankey labels single-line (value under the name needs `sankeyData.ts`); no footer summary line.
   F12 status 2026-11-21: CLOSED. Kit already shows node values under the names; summary line removed on purpose in v4.3.1.
 - F13: main chunk 1.97 MB vs 2 MiB PWA precache cap — next big import breaks the build; consider lazy-loading more tabs/routes (admin, landing, settings) before Phase 9-10.
-  F13 status 2026-11-21: STILL OPEN. Main chunk 2,040,795 B vs 2,097,152 B cap (~56 KB headroom). Already lazy: OAuthConsent, ToDo, Landing, Admin, Settings (`App.tsx:23-27`); Phase 9 modals are not.
+  F13 CLOSED 2026-11-21: TagsTab + SettingsTab lazy in `WalletDashboard.tsx` (charts left the main chunk) → main chunk 1,559,023 B (~538 KB headroom). Old status: Main chunk 2,040,795 B vs 2,097,152 B cap (~56 KB headroom). Already lazy: OAuthConsent, ToDo, Landing, Admin, Settings (`App.tsx:23-27`); Phase 9 modals are not.
 - F8: (header bar kept, D19) `WizardStepper` v2: current step looks like done steps.
   Icon-only close buttons / token actions / CSV info are hand-styled (Button has no square icon size) — add `size="icon"` to Button?
   F8 status 2026-11-21: DONE for the prop: `ButtonSize` has `"icon"`, 13 call sites. STILL OPEN: hand-styled icon buttons not audited. `WizardStepper` past/current/future distinction is done.
 - F1 (D9): `components/selectors/ColorSelector.tsx` is shared by the wallet colour **and** tag/icon
   colours (`IconColorSelector`, `IconPickerButton`, wizard `BasicsStep`). Swapping presets must be
   scoped (prop or v2-only) — ask Nicola in Phase 8 whether tags get the soft presets too.
-  STILL OPEN 2026-11-21: `ColorSelector.tsx` still has the 12 presets (line 9), no scoping prop. NEEDS NICOLA: do tags/icons get the soft presets?
+  CLOSED 2026-11-21: Nicola keeps tags/icons as they are.
 - F2 (D7): in light, a pale wallet colour (yellow) as the active-tab icon on `--raised` is weak;
   same `color-mix(…70%, #000)` darkening as category glyphs is the likely fix — check in Phase 2.
-  STILL OPEN 2026-11-21: `Selector.tsx` has no `color-mix` darkening.
+  DONE 2026-11-21: `SegmentedControl` active svg darkened with color-mix (needs a visual check).
 
 - F3: any element that sets `--wallet` must also set `--on-wallet` (else text falls back to the
   root default — e.g. white-ish on yellow in light). Phase 2: add a `walletVars(color)` helper
   in `utils/color.ts` and use it in the wallet root + the 3 primitives that inline it today.
   DONE 2026-11-21: `utils/color.ts:56` `walletVars`; used by `Button`, `WizardStepper`, `SegmentedControl`, `Toggle`, `WalletHeroCard`.
 - F4: `Button` ripple stays white in v2 — weak on light wallet colours; revisit with Phase 2 CTAs.
-  STILL OPEN 2026-11-21: no v2 ripple colour change in `Button.tsx` (rippleColor default); needs a visual check.
+  DONE 2026-11-21: v2 ripple defaults in `Button.tsx` (needs a visual check).
 - F5: evaluate [boneyard](https://github.com/0xGF/boneyard) (`boneyard-js/react`: `<Skeleton name loading>`
   / `<BoneSuspense>`, skeletons captured from the real UI by a build-time CLI) to replace the
   hand-rolled skeletons (`WalletSkeleton`, `SkeletonAmount`, … — see frontend-restructure 4.5).

@@ -2,6 +2,8 @@ import React from "react";
 import { CloudAlert, CloudOff } from "lucide-react";
 import { ResponsiveOverlay } from "../components/ui/ResponsiveOverlay";
 import Button from "../components/ui/Button";
+import { StatusPill } from "../components/ui/StatusPill";
+import { useUiVersion } from "../hooks/useUiVersion";
 import type { SyncStatus } from "../hooks/useSyncStatus";
 import type { OpKind, PendingOp } from "../utils/offlineDb";
 
@@ -21,6 +23,129 @@ const OP_KIND_LABEL: Record<OpKind, string> = {
   delete: "Delete",
 };
 
+/** UI v2 body: one card per group, hairline rows, needs-attention bar on conflicts/failures. */
+const SyncListsV2: React.FC<{
+  sync: SyncStatus;
+  conflicts: PendingOp[];
+  failed: PendingOp[];
+  waiting: PendingOp[];
+}> = ({ sync, conflicts, failed, waiting }) => (
+  <div className="flex flex-col gap-6">
+    {conflicts.length > 0 && (
+      <section>
+        <h3 className="mb-2 px-1 text-[13px] text-app-muted">Conflicts</h3>
+        <ul className="divide-y divide-app-border overflow-hidden rounded-[var(--r-card)] bg-app-card shadow-[inset_3px_0_0_var(--color-app-warn),var(--box-ring)]">
+          {conflicts.map((op) => (
+            <li key={op.id} className="px-4 py-3">
+              <div className="flex items-center gap-2">
+                <CloudAlert
+                  size={14}
+                  className="shrink-0 text-app-warn"
+                  aria-hidden
+                />
+                <span className="min-w-0 flex-1 truncate text-[15px] text-app-text">
+                  {opLabel(op)}
+                </span>
+              </div>
+              <div className="mt-1.5">
+                <StatusPill status="warn">
+                  {op.conflictKind === "missing"
+                    ? "Deleted on server"
+                    : "Server changed first"}
+                </StatusPill>
+              </div>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="primary"
+                  onClick={() => void sync.resolveConflict(op, "mine")}
+                >
+                  Keep mine
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => void sync.resolveConflict(op, "theirs")}
+                >
+                  Take theirs
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {failed.length > 0 && (
+      <section>
+        <h3 className="mb-2 px-1 text-[13px] text-app-muted">Failed</h3>
+        <ul className="divide-y divide-app-border overflow-hidden rounded-[var(--r-card)] bg-app-card shadow-[inset_3px_0_0_var(--color-app-danger),var(--box-ring)]">
+          {failed.map((op) => (
+            <li key={op.id} className="px-4 py-3">
+              <div className="flex items-center gap-2">
+                <CloudAlert
+                  size={14}
+                  className="shrink-0 text-app-danger"
+                  aria-hidden
+                />
+                <span className="min-w-0 flex-1 truncate text-[15px] text-app-text">
+                  {opLabel(op)}
+                </span>
+              </div>
+              {op.lastError && (
+                <p className="mt-1 text-[13px] text-app-muted">
+                  {op.lastError}
+                </p>
+              )}
+              <div className="mt-3 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => void sync.retryOp(op)}
+                >
+                  Retry
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => void sync.discardOp(op)}
+                >
+                  Discard
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {waiting.length > 0 && (
+      <section>
+        <h3 className="mb-2 px-1 text-[13px] text-app-muted">
+          Waiting to sync
+        </h3>
+        <ul className="divide-y divide-app-border overflow-hidden rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+          {waiting.map((op) => (
+            <li key={op.id} className="flex items-center gap-2 px-4 py-3">
+              <CloudOff
+                size={14}
+                className="shrink-0 text-app-warn"
+                aria-hidden
+              />
+              <span className="min-w-0 flex-1 truncate text-[15px] text-app-text">
+                {opLabel(op)}
+              </span>
+              <span className="shrink-0 text-[13px] tabular-nums text-app-muted">
+                {OP_KIND_LABEL[op.op]}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+);
+
 /**
  * Sync Center: a right drawer (mobile full-screen) that surfaces the offline
  * queue in three sections — Conflicts (needs a mine/theirs decision), Failed
@@ -38,6 +163,8 @@ export const SyncCenterOverlay: React.FC<SyncCenterOverlayProps> = ({
     (o) => o.status === "pending" || o.status === "syncing",
   );
   const isEmpty = sync.ops.length === 0;
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   const footer = (
     <Button
@@ -58,9 +185,22 @@ export const SyncCenterOverlay: React.FC<SyncCenterOverlayProps> = ({
       footer={isEmpty ? undefined : footer}
     >
       {isEmpty ? (
-        <p className="py-10 text-center text-sm text-app-muted">
-          All changes are synced.
-        </p>
+        isV2 ? ( // ui-v2-switch
+          <p className="py-6 text-center text-[13px] text-app-muted">
+            All changes are synced.
+          </p>
+        ) : (
+          <p className="py-10 text-center text-sm text-app-muted">
+            All changes are synced.
+          </p>
+        )
+      ) : isV2 ? ( // ui-v2-switch
+        <SyncListsV2
+          sync={sync}
+          conflicts={conflicts}
+          failed={failed}
+          waiting={waiting}
+        />
       ) : (
         <div className="flex flex-col gap-6">
           {conflicts.length > 0 && (

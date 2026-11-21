@@ -182,4 +182,24 @@ describe("TransactionsHero without a flagged investment tag", () => {
     expect(screen.getByText("Invested")).toBeInTheDocument();
     expect(screen.getByText("Liquidity left")).toBeInTheDocument();
   });
+
+  it("stacks Income and Spent in one desktop column when no tag is flagged", () => {
+    setup(march, "month", [{ name: "Food" }]);
+    const tiles = screen
+      .getByText("Income")
+      .closest(".gap-3\\.5") as HTMLElement;
+    expect(tiles.className).toContain("lg:grid-cols-1");
+    expect(tiles.parentElement!.className).toContain("lg:grid-cols-[2fr_1fr]");
+  });
+
+  it("keeps the two-column tile grid when an investment tag is flagged", () => {
+    setup(march, "month");
+    const tiles = screen
+      .getByText("Income")
+      .closest(".gap-3\\.5") as HTMLElement;
+    expect(tiles.className).not.toContain("lg:grid-cols-1");
+    expect(tiles.parentElement!.className).toContain(
+      "lg:grid-cols-[1.5fr_1fr]",
+    );
+  });
 });

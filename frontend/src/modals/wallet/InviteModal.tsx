@@ -1,12 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faCalendarAlt,
   faCheck,
-  faXmark,
+  faCoins,
   faEnvelope,
+  faUser,
+  faUserShield,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { ModalDialog } from "../common/ModalDialog";
 import Button from "../../components/ui/Button";
+import { FormRow } from "../../components/ui/FormRow";
+import { useUiVersion } from "../../hooks/useUiVersion";
 import { type IconKey, ICONS } from "../../utils/icons";
 import type { Invitation } from "../../types/domain";
 import { formatInvitedAt, roleCapability } from "./inviteCopy";
@@ -32,6 +38,8 @@ export const InviteModal: React.FC<InviteModalProps> = ({
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [busy, setBusy] = useState<null | "accept" | "reject">(null);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   // Sync the native <dialog> with the presence of an invite, and clear any
   // stale busy state when a new invite opens the modal.
@@ -60,6 +68,9 @@ export const InviteModal: React.FC<InviteModalProps> = ({
 
   const wallet = invite?.wallet;
   const capability = invite ? roleCapability(invite.role) : null;
+  const roleLabel = invite
+    ? invite.role.charAt(0) + invite.role.slice(1).toLowerCase()
+    : "";
 
   return (
     <ModalDialog
@@ -97,56 +108,121 @@ export const InviteModal: React.FC<InviteModalProps> = ({
         )
       }
     >
-      {invite && wallet && capability && (
-        <div className="flex flex-col items-center text-center">
-          <p className="text-sm text-app-muted">
-            <span className="font-semibold text-app-text">
-              {invite.walletOwner}
-            </span>{" "}
-            invited you on{" "}
-            <span className="font-medium text-app-text">
-              {formatInvitedAt(invite.invitedAt)}
-            </span>{" "}
-            to collaborate on
-          </p>
+      {invite &&
+        wallet &&
+        capability &&
+        (isV2 ? ( // ui-v2-switch
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center gap-3">
+              <span
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-[var(--r-card)] text-lg"
+                style={{
+                  backgroundColor: `${wallet.color}26`,
+                  color: wallet.color,
+                }}
+              >
+                <FontAwesomeIcon
+                  icon={ICONS[wallet.icon as IconKey] || faEnvelope}
+                />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-display text-lg font-semibold tracking-[-0.02em] text-app-text">
+                  {wallet.name}
+                </p>
+                {wallet.description && (
+                  <p className="whitespace-pre-line text-[13px] text-app-muted">
+                    {wallet.description}
+                  </p>
+                )}
+              </div>
+            </div>
 
-          {/* Wallet icon inline with its name. */}
-          <div className="mt-3 flex items-center gap-2.5">
-            <span
-              className="flex h-9 w-9 items-center justify-center rounded-full text-base"
-              style={{
-                backgroundColor: `${wallet.color}26`,
-                color: wallet.color,
-              }}
-            >
-              <FontAwesomeIcon
-                icon={ICONS[wallet.icon as IconKey] || faEnvelope}
-              />
-            </span>
-            <span
-              className="font-app-mono text-xl font-black tracking-tight"
-              style={{ color: wallet.color }}
-            >
-              {wallet.name}
-            </span>
+            <div>
+              <h3 className="mb-2 px-1 text-[13px] text-app-muted">Details</h3>
+              <div className="divide-y divide-app-border overflow-hidden rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+                <FormRow icon={faUser} label="Invited by">
+                  <span className="min-w-0 truncate text-right text-[15px] text-app-text">
+                    {invite.walletOwner}
+                  </span>
+                </FormRow>
+                <FormRow icon={faCalendarAlt} label="Invited on">
+                  <span className="min-w-0 truncate text-right text-[15px] text-app-text">
+                    {formatInvitedAt(invite.invitedAt)}
+                  </span>
+                </FormRow>
+                <FormRow icon={faUserShield} label="Role">
+                  <span className="min-w-0 truncate text-right text-[15px] text-app-text">
+                    {roleLabel}
+                  </span>
+                </FormRow>
+                <FormRow icon={faCoins} label="Currency">
+                  <span className="min-w-0 truncate text-right text-[15px] text-app-text">
+                    {wallet.currency}
+                  </span>
+                </FormRow>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="mb-2 px-1 text-[13px] text-app-muted">Access</h3>
+              <div className="rounded-[var(--r-card)] bg-app-card p-4 shadow-[var(--box-ring)]">
+                <p className="text-[15px] text-app-text">{capability.title}</p>
+                <p className="mt-1 text-[13px] text-app-muted">
+                  {capability.detail}
+                </p>
+              </div>
+            </div>
           </div>
-
-          {/* Optional wallet description, set by the owner at creation time. */}
-          {wallet.description && (
-            <p className="mt-2 max-w-sm whitespace-pre-line text-sm text-app-muted">
-              {wallet.description}
+        ) : (
+          <div className="flex flex-col items-center text-center">
+            <p className="text-sm text-app-muted">
+              <span className="font-semibold text-app-text">
+                {invite.walletOwner}
+              </span>{" "}
+              invited you on{" "}
+              <span className="font-medium text-app-text">
+                {formatInvitedAt(invite.invitedAt)}
+              </span>{" "}
+              to collaborate on
             </p>
-          )}
 
-          {/* What "accepting" actually grants — plain-language capabilities. */}
-          <div className="mt-5 w-full rounded-xl border border-app-border bg-app-input/60 p-4 text-left">
-            <p className="text-sm text-app-muted">{capability.title}</p>
-            <p className="mt-1.5 text-xs leading-relaxed text-app-muted">
-              {capability.detail}
-            </p>
+            {/* Wallet icon inline with its name. */}
+            <div className="mt-3 flex items-center gap-2.5">
+              <span
+                className="flex h-9 w-9 items-center justify-center rounded-full text-base"
+                style={{
+                  backgroundColor: `${wallet.color}26`,
+                  color: wallet.color,
+                }}
+              >
+                <FontAwesomeIcon
+                  icon={ICONS[wallet.icon as IconKey] || faEnvelope}
+                />
+              </span>
+              <span
+                className="font-app-mono text-xl font-black tracking-tight"
+                style={{ color: wallet.color }}
+              >
+                {wallet.name}
+              </span>
+            </div>
+
+            {/* Optional wallet description, set by the owner at creation time. */}
+            {wallet.description && (
+              <p className="mt-2 max-w-sm whitespace-pre-line text-sm text-app-muted">
+                {wallet.description}
+              </p>
+            )}
+
+            {/* What "accepting" actually grants — plain-language capabilities. */}
+            <div className="mt-5 w-full rounded-xl border border-app-border bg-app-input/60 p-4 text-left">
+              <p className="text-sm text-app-muted">{capability.title}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-app-muted">
+                {capability.detail}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        ))}
     </ModalDialog>
   );
 };

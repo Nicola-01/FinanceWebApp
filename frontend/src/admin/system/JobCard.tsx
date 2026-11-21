@@ -25,14 +25,18 @@ import { useJobSchedule } from "./useJobSchedule";
 import { WeekdayPicker } from "./WeekdayPicker";
 import { JobRunHistory } from "./JobRunHistory";
 import type { ScheduledJobDTO } from "./types";
+import { JobRowV2 } from "./JobRowV2";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
-export const JobCard: React.FC<{
+export interface JobCardProps {
   job: ScheduledJobDTO;
   now: number;
   /** Descending across the list so an open dropdown paints over the card below. */
   zIndex: number;
   onReload: () => void;
-}> = ({ job, now, zIndex, onReload }) => {
+}
+
+const JobCardV1: React.FC<JobCardProps> = ({ job, now, zIndex, onReload }) => {
   const {
     frequency,
     setFrequency,
@@ -224,4 +228,10 @@ export const JobCard: React.FC<{
       {job.recentRuns.length > 0 && <JobRunHistory runs={job.recentRuns} />}
     </div>
   );
+};
+
+export const JobCard: React.FC<JobCardProps> = (props) => {
+  const [ui] = useUiVersion();
+  // ui-v2-switch: v2 row/list layout; v1 keeps the card below.
+  return ui === "v2" ? <JobRowV2 {...props} /> : <JobCardV1 {...props} />;
 };

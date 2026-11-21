@@ -103,7 +103,7 @@ export function InviteComposer({
           onChange={onRoleChange}
           size="sm"
           fullWidth={false}
-          className="flex-1 sm:w-36 sm:flex-none"
+          className={isV2 ? "" : "flex-1 sm:w-36 sm:flex-none"}
         />
         <button
           type="button"

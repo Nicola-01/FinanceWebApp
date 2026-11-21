@@ -110,22 +110,6 @@ export function daysLeft(budget: Budget, today: Date = new Date()): number {
   );
 }
 
-/** Days from `today` to the last day of its calendar month. */
-export function daysLeftInMonth(today: Date): number {
-  const lastDay = new Date(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    0,
-  ).getDate();
-  return lastDay - today.getDate();
-}
-
-/** Tab header aside, e.g. "November, 18 days left". */
-export function monthAside(today: Date): string {
-  const month = today.toLocaleDateString(undefined, { month: "long" });
-  return `${month}, ${daysLeftInMonth(today)} days left`;
-}
-
 /** One alert tick on the v2 gauge arc: radial segment in a 100x100 box, plus whether it has been passed. */
 export interface AlertTick {
   pct: number;

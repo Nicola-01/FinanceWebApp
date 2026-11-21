@@ -2,6 +2,12 @@ import React from "react";
 import { Card } from "../../components/ui/Card";
 import { formatLongLocalDate } from "../../utils/longDate";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
+import { FormRow } from "../../components/ui/FormRow";
+import {
+  faCalendarDays,
+  faCode,
+  faCodeBranch,
+} from "@fortawesome/free-solid-svg-icons";
 
 const REPO_URL = "https://github.com/Nicola-01/FinanceWebApp/";
 
@@ -30,7 +36,13 @@ export const AboutSection: React.FC = () => {
     <Card>
       {/* Header: logo sits alongside the app name, both aligned on one baseline. */}
       <div className="flex items-center gap-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-app-border bg-app-surface shadow-sm">
+        <div
+          className={
+            isV2 // ui-v2-switch
+              ? "flex h-16 w-16 shrink-0 items-center justify-center rounded-[var(--r-card)] bg-app-raised"
+              : "flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-app-border bg-app-surface shadow-sm"
+          }
+        >
           <img
             src="/icon.svg"
             alt="App Logo"
@@ -50,53 +62,79 @@ export const AboutSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Info box — full width below the header. */}
+      {isV2 ? ( // ui-v2-switch
+        <div className="divide-y divide-app-border">
+          <FormRow icon={faCodeBranch} label="Version">
+            <span className="text-[15px] tabular-nums text-app-text">
+              {appVersion}
+            </span>
+          </FormRow>
+          <FormRow icon={faCalendarDays} label="Published on">
+            <span className="text-[15px] text-app-text">{parsedDate}</span>
+          </FormRow>
+          <FormRow icon={faCode} label="Source">
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-2 text-[15px] text-app-text transition-colors hover:text-[var(--brand-1)]"
+            >
+              <GithubMark className="h-4 w-4" />
+              Open source on GitHub
+            </a>
+          </FormRow>
+        </div>
+      ) : (
+        <>
+          {/* Info box — full width below the header. */}
+          <div className="mt-5 space-y-3 rounded-xl border border-app-border bg-app-input p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-app-muted">
+                Version
+              </span>
+              <span className="rounded bg-app-sky/10 px-2 py-0.5 font-mono text-xs font-bold text-app-sky">
+                {appVersion}
+              </span>
+            </div>
+
+            <div className="h-px w-full bg-app-border" />
+
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-app-muted">
+                Published on
+              </span>
+              <span className="max-w-[150px] text-right text-xs font-semibold leading-tight text-app-text">
+                {parsedDate}
+              </span>
+            </div>
+
+            <div className="h-px w-full bg-app-border" />
+
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center justify-between"
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-app-muted">
+                Source
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-app-text transition-colors group-hover:text-[var(--brand-1)]">
+                <GithubMark className="h-3.5 w-3.5" />
+                Open source on GitHub
+              </span>
+            </a>
+          </div>
+        </>
+      )}
+
       <div
         className={
           isV2
-            ? "mt-4 space-y-3 rounded-[var(--r-input)] bg-app-input p-4"
-            : "mt-5 space-y-3 rounded-xl border border-app-border bg-app-input p-4"
+            ? "mt-4 text-[13px] text-app-faint"
+            : "mt-4 text-[10px] font-bold uppercase tracking-widest text-app-muted/50"
         }
       >
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-app-muted">
-            Version
-          </span>
-          <span className="rounded bg-app-sky/10 px-2 py-0.5 font-mono text-xs font-bold text-app-sky">
-            {appVersion}
-          </span>
-        </div>
-
-        <div className="h-px w-full bg-app-border" />
-
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-app-muted">
-            Published on
-          </span>
-          <span className="max-w-[150px] text-right text-xs font-semibold leading-tight text-app-text">
-            {parsedDate}
-          </span>
-        </div>
-
-        <div className="h-px w-full bg-app-border" />
-
-        <a
-          href={REPO_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group flex items-center justify-between"
-        >
-          <span className="text-xs font-bold uppercase tracking-wider text-app-muted">
-            Source
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-app-text transition-colors group-hover:text-[var(--brand-1)]">
-            <GithubMark className="h-3.5 w-3.5" />
-            Open source on GitHub
-          </span>
-        </a>
-      </div>
-
-      <div className="mt-4 text-[10px] font-bold uppercase tracking-widest text-app-muted/50">
         Made by Nicola &copy; {new Date().getFullYear()}
       </div>
     </Card>

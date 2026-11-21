@@ -11,9 +11,10 @@ set -eu
 API_URL="${APP_API_URL:-}"
 VERSION="${APP_VERSION:-dev}"
 BUILD_DATE="${APP_BUILD_DATE:-}"
+MCP_URL="${APP_MCP_URL:-}"
 
 cat > /usr/share/nginx/html/config.js <<EOF
-window.__ENV__ = {"apiUrl":"${API_URL}","version":"${VERSION}","date":"${BUILD_DATE}"};
+window.__ENV__ = {"apiUrl":"${API_URL}","version":"${VERSION}","date":"${BUILD_DATE}","mcpUrl":"${MCP_URL}"};
 EOF
 
-echo "[40-config] config.js -> apiUrl=${API_URL} version=${VERSION} date=${BUILD_DATE}"
+echo "[40-config] config.js -> apiUrl=${API_URL} version=${VERSION} date=${BUILD_DATE} mcpUrl=${MCP_URL}"

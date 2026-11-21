@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight, faEnvelope } from "@fortawesome/free-solid-svg-icons";
 import { type IconKey, ICONS } from "../../utils/icons";
 import type { Invitation } from "../../types/domain";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface InviteCardProps {
   invite: Invitation;
@@ -17,6 +18,9 @@ interface InviteCardProps {
  */
 export const InviteCard: React.FC<InviteCardProps> = ({ invite, onOpen }) => {
   const { wallet } = invite;
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
+  const roleLabel = invite.role.charAt(0) + invite.role.slice(1).toLowerCase();
   return (
     <button
       type="button"
@@ -35,19 +39,34 @@ export const InviteCard: React.FC<InviteCardProps> = ({ invite, onOpen }) => {
         <FontAwesomeIcon icon={ICONS[wallet.icon as IconKey] || faEnvelope} />
       </div>
       <div className="min-w-0 flex-1">
-        <h4 className="truncate font-app-mono text-sm font-black tracking-tight text-app-text">
+        <h4
+          className={
+            isV2
+              ? "truncate font-display text-[15px] font-semibold tracking-[-0.02em] text-app-text"
+              : "truncate font-app-mono text-sm font-black tracking-tight text-app-text"
+          }
+        >
           {wallet.name}
         </h4>
-        <p className="mt-0.5 truncate text-[11px] text-app-muted">
-          Invited by{" "}
-          <span className="font-semibold text-app-text">
-            {invite.walletOwner}
-          </span>
-          {" · "}
-          <span className="rounded bg-app-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-muted">
-            {invite.role}
-          </span>
-        </p>
+        {isV2 ? ( // ui-v2-switch
+          <p className="mt-0.5 truncate text-[13px] text-app-muted">
+            Invited by{" "}
+            <span className="text-app-text">{invite.walletOwner}</span>
+            {" · "}
+            {roleLabel}
+          </p>
+        ) : (
+          <p className="mt-0.5 truncate text-[11px] text-app-muted">
+            Invited by{" "}
+            <span className="font-semibold text-app-text">
+              {invite.walletOwner}
+            </span>
+            {" · "}
+            <span className="rounded bg-app-surface px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-app-muted">
+              {invite.role}
+            </span>
+          </p>
+        )}
       </div>
       <FontAwesomeIcon
         icon={faChevronRight}

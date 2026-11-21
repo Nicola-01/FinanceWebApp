@@ -14,6 +14,38 @@ import { TokenWalletBadges } from "./TokenWalletBadges";
 import { TokenLastUsedInfo } from "./TokenLastUsedInfo";
 import { useLongPressSelect } from "./useLongPressSelect";
 import { useUiVersion } from "../../hooks/useUiVersion";
+import Button from "../ui/Button";
+
+// ui-v2-switch: small inline icon action; v2 uses the shared ghost icon button.
+const InlineIconButton: React.FC<{
+  isV2: boolean;
+  title: string;
+  icon: typeof faEye;
+  onClick: (e: React.MouseEvent) => void;
+}> = ({ isV2, title, icon, onClick }) =>
+  isV2 ? (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="h-6 w-6"
+      onClick={onClick}
+      title={title}
+      aria-label={title}
+    >
+      <FontAwesomeIcon icon={icon} />
+    </Button>
+  ) : (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-xs text-app-muted transition-colors hover:text-app-text"
+      title={title}
+      aria-label={title}
+    >
+      <FontAwesomeIcon icon={icon} />
+    </button>
+  );
 
 interface TokenListItemProps {
   token: PatToken;
@@ -84,11 +116,11 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
   return (
     <Wrapper
       {...wrapperProps}
-      className={`group w-full p-3.5 text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
-        // ui-v2-switch: borderless card; selection is the raised fill.
+      className={`group w-full text-left transition-all disabled:cursor-not-allowed disabled:opacity-40 ${
+        // ui-v2-switch: flat row inside the list's divide-y card; selection is the raised fill.
         isV2
-          ? `rounded-[var(--r-card)] ${selected ? "bg-app-raised" : "bg-app-card shadow-[var(--box-ring)] hover:bg-app-raised"}`
-          : `rounded-xl border ${selected ? "border-app-purple/60 bg-app-purple/5 ring-1 ring-app-purple/40" : "border-app-border bg-app-input hover:border-app-purple/50"}`
+          ? `min-h-14 rounded-[var(--r-card)] px-4 py-3 ${selected ? "bg-app-raised" : "hover:bg-app-raised"}`
+          : `p-3.5 rounded-xl border ${selected ? "border-app-purple/60 bg-app-purple/5 ring-1 ring-app-purple/40" : "border-app-border bg-app-input hover:border-app-purple/50"}`
       } ${!isButtonVariant ? "select-none" : ""} ${!isButtonVariant && selectionMode ? "cursor-pointer" : ""} ${token.paused ? "opacity-60" : ""}`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -101,15 +133,18 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
           <div className="min-w-0">
             {/* Line 1: token name + parent badge + paused pill. */}
             <div className="flex items-center gap-2">
-              <p className="truncate text-sm font-semibold text-app-text">
+              <p
+                className={`truncate font-semibold text-app-text ${isV2 ? "text-[15px]" : "text-sm"}`}
+              >
                 {token.name}
               </p>
               {badge}
               {token.paused && (
+                // ui-v2-switch: sentence case, neutral chip.
                 <Badge
                   variant="subtle"
-                  tone="yellow"
-                  uppercase
+                  tone={isV2 ? "neutral" : "yellow"}
+                  uppercase={!isV2}
                   className="shrink-0"
                 >
                   Paused
@@ -126,41 +161,37 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
                     ·
                   </span>
                   <span
-                    className={`text-xs text-app-muted ${isV2 ? "tabular-nums" : "font-mono"}`}
+                    className={
+                      isV2
+                        ? "text-[13px] tabular-nums text-app-muted"
+                        : "text-xs text-app-muted font-mono"
+                    }
                   >
                     {revealed ? `${token.tokenPrefix}...` : "••••••••"}
                   </span>
                   {!isButtonVariant && (
-                    <button
-                      type="button"
+                    <InlineIconButton
+                      isV2={isV2}
                       onClick={(e) => {
                         e.stopPropagation();
                         setRevealed((v) => !v);
                       }}
-                      className="text-xs text-app-muted transition-colors hover:text-app-text"
                       title={
                         revealed ? "Hide token prefix" : "Show token prefix"
                       }
-                      aria-label={
-                        revealed ? "Hide token prefix" : "Show token prefix"
-                      }
-                    >
-                      <FontAwesomeIcon icon={revealed ? faEyeSlash : faEye} />
-                    </button>
+                      icon={revealed ? faEyeSlash : faEye}
+                    />
                   )}
                   {!isButtonVariant && showCopy && onCopy && (
-                    <button
-                      type="button"
+                    <InlineIconButton
+                      isV2={isV2}
                       onClick={(e) => {
                         e.stopPropagation();
                         onCopy(token.tokenPrefix);
                       }}
-                      className="text-xs text-app-muted transition-colors hover:text-app-text"
                       title="Copy prefix"
-                      aria-label="Copy prefix"
-                    >
-                      <FontAwesomeIcon icon={faCopy} />
-                    </button>
+                      icon={faCopy}
+                    />
                   )}
                 </>
               )}

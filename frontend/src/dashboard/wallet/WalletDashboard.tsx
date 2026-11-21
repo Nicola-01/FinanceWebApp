@@ -4,8 +4,6 @@ import { SubscriptionTab } from "../subscription/SubscriptionTab";
 import type { Wallet } from "../../types/domain";
 import { Icon } from "../../components/icon/Icon.tsx";
 import { WalletTabs } from "./WalletTabs.tsx";
-import { TagsTab } from "../tag/TagsTab.tsx";
-import { SettingsTab } from "../settings/SettingsTab.tsx";
 import { WalletProvider } from "./WalletProvider.tsx";
 import { useWalletContext } from "./WalletContext.tsx";
 import { TransactionsFilter } from "../transaction/TransactionsFilter.tsx";
@@ -30,6 +28,14 @@ const StatisticsTab = lazy(() =>
 );
 const BudgetTab = lazy(() =>
   import("../budget/BudgetTab").then((m) => ({ default: m.BudgetTab })),
+);
+const TagsTab = lazy(() =>
+  import("../tag/TagsTab.tsx").then((m) => ({ default: m.TagsTab })),
+);
+const SettingsTab = lazy(() =>
+  import("../settings/SettingsTab.tsx").then((m) => ({
+    default: m.SettingsTab,
+  })),
 );
 
 /** v2 (D13): wallet title row, tabs under it, the hero card on Transactions only. */
@@ -103,7 +109,6 @@ const WalletBody: React.FC<{ bare?: boolean }> = ({ bare = false }) => {
     <>
       {activeTab === "transactions" && <TransactionsTab />}
       {activeTab === "subscription" && <SubscriptionTab />}
-      {activeTab === "category" && <TagsTab />}
       <Suspense
         fallback={
           <div className="h-[400px] bg-app-card rounded-[var(--r-card)] animate-pulse" />
@@ -111,8 +116,9 @@ const WalletBody: React.FC<{ bare?: boolean }> = ({ bare = false }) => {
       >
         {activeTab === "statistics" && <StatisticsTab />}
         {activeTab === "budget" && <BudgetTab />}
+        {activeTab === "category" && <TagsTab />}
+        {activeTab === "settings" && <SettingsTab />}
       </Suspense>
-      {activeTab === "settings" && <SettingsTab />}
     </>
   );
 

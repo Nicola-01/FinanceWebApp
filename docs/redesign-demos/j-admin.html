@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin dashboard v2: two proposals</title>
+<style>
+  /* Local fonts from the app bundle (no CDN). Same families as theme-tokens.css (v2). */
+  @font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-weight: 500 800; src: url("../../frontend/src/assets/fonts/bricolage-var.woff2") format("woff2"); }
+  @font-face { font-family: "Instrument Sans"; font-style: normal; font-weight: 400 600; src: url("../../frontend/src/assets/fonts/instrument-sans-var.woff2") format("woff2"); }
+  @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 500; src: url("../../frontend/src/assets/fonts/jbmono-500.woff2") format("woff2"); }
+  @font-face { font-family: "JetBrains Mono"; font-style: normal; font-weight: 700; src: url("../../frontend/src/assets/fonts/jbmono-700.woff2") format("woff2"); }
+
+  :root {
+    --bg: #141312; --card: #1d1c1a; --raised: #262421; --raised-hi: #3a3733; --border: #2e2c29;
+    --text: #efece6; --muted: #9a958c; --faint: #6b665e;
+    --wallet: #efece6; --on-wallet: #141312; /* accent outside a wallet = inverted neutral */
+    --income: #7fcf95; --danger: #ff8a7a; --warn: #f0b85a; --sky: #7aaaf5;
+    --r-card: 18px; --r-input: 12px; --r-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: #0c0b0b; color: var(--text); font-family: "Instrument Sans", system-ui, sans-serif; padding: 28px 24px 80px; }
+  button, input { font: inherit; color: inherit; }
+  .mono { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+  h1.page { font: 600 22px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  .lead { color: var(--muted); font-size: 14px; margin-top: 6px; max-width: 75ch; line-height: 1.5; }
+  h2.sec { font: 600 18px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; margin: 48px 0 6px; }
+  .row { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; margin-top: 20px; }
+  .col { display: flex; flex-direction: column; gap: 32px; }
+  figure { flex: none; }
+  figcaption { margin-top: 14px; max-width: 375px; }
+  figcaption b { font: 600 16px/1.3 "Bricolage Grotesque", sans-serif; }
+  figcaption p { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 4px; }
+  .rec { display: inline-block; font-size: 11px; font-weight: 600; color: var(--on-wallet); background: var(--wallet); border-radius: 99px; padding: 2px 8px; margin-left: 6px; vertical-align: 2px; }
+  .why { color: var(--muted); font-size: 13px; margin-top: 8px; max-width: 75ch; line-height: 1.5; }
+
+  /* Frames (same as the other demos) */
+  .phone { position: relative; width: 375px; height: 760px; background: var(--bg); border-radius: 36px; overflow: hidden; box-shadow: 0 0 0 8px #232120, 0 30px 60px rgb(0 0 0 / .5); display: flex; flex-direction: column; }
+  .status { height: 40px; flex: none; }
+  .scroll { flex: 1; overflow-y: auto; scrollbar-width: none; padding: 0 16px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .desk { width: 1080px; background: var(--bg); border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px #2a2826, 0 30px 60px rgb(0 0 0 / .5); }
+  .desk-top { height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 24px; border-bottom: 1px solid var(--border); }
+  .desk-top .brand { font: 600 17px/1 "Bricolage Grotesque", sans-serif; letter-spacing: -0.01em; flex: 1; }
+  .desk-body { padding: 24px 28px 28px; display: flex; flex-direction: column; gap: 18px; }
+  .desk-split { display: flex; gap: 22px; align-items: flex-start; padding: 24px 28px 28px; }
+  .desk-split main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+
+  /* Page header (AdminPageHeader) */
+  .ph h2 { font: 600 20px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.02em; }
+  .ph p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .ph-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+
+  /* Primitives */
+  .card { background: var(--card); border-radius: var(--r-card); padding: 16px; }
+  .card.flush { padding: 0; overflow: hidden; }
+  .card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .card-h h4 { font: 600 16px/1.2 "Bricolage Grotesque", sans-serif; letter-spacing: -0.01em; }
+  .count { font: 500 12px/1 "JetBrains Mono", monospace; color: var(--muted); background: var(--raised); border-radius: 99px; padding: 4px 8px; }
+  .chip { --c: #9a958c; width: 28px; height: 28px; border-radius: var(--r-sm); display: grid; place-items: center; flex: none; color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
+  .chip svg { width: 15px; height: 15px; }
+  .av { --c: #9a958c; width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; flex: none; font: 600 13px/1 "Instrument Sans", sans-serif; color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
+  .who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .grow { flex: 1; min-width: 0; }
+  .nm { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .muted { color: var(--muted); font-size: 13px; white-space: nowrap; }
+  .faint { color: var(--faint); }
+  .num { font-family: "JetBrains Mono", monospace; font-size: 14px; font-variant-numeric: tabular-nums; }
+
+  .pill { --c: #9a958c; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; border-radius: 99px; padding: 3px 9px; white-space: nowrap; flex: none; color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent); }
+  .pill.ok { --c: var(--income); }
+  .pill.warn { --c: var(--warn); }
+  .pill.danger { --c: var(--danger); }
+  .pill.neutral { --c: var(--muted); }
+  .pill.strong { --c: var(--text); }
+
+  .btn { height: 36px; padding: 0 14px; border-radius: var(--r-input); border: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; white-space: nowrap; flex: none; cursor: pointer; }
+  .btn svg { width: 15px; height: 15px; }
+  .btn-primary { background: var(--wallet); color: var(--on-wallet); }
+  .btn-secondary { background: var(--raised); color: var(--text); }
+  .btn-ghost { background: transparent; color: var(--muted); }
+  .btn-danger { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+  .btn-sm { height: 30px; padding: 0 10px; font-size: 13px; border-radius: 10px; }
+
+  .ib { width: 32px; height: 32px; border-radius: 10px; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; cursor: pointer; flex: none; }
+  .ib svg { width: 17px; height: 17px; }
+  .ib.danger:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+  .ib.chev svg { transition: transform .2s; }
+  .ib.chev.open svg { transform: rotate(180deg); }
+
+  .tg { width: 36px; height: 20px; border-radius: 99px; background: var(--raised); position: relative; display: inline-block; flex: none; }
+  .tg::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); }
+  .tg.on { background: var(--text); }
+  .tg.on::after { left: 18px; background: var(--bg); }
+
+  .fld { width: 100%; height: 38px; background: var(--raised); border: 0; border-radius: var(--r-input); padding: 0 12px 0 36px; font-size: 14px; outline: none; }
+  .fld::placeholder { color: var(--faint); }
+  .fld-wrap { position: relative; min-width: 0; }
+  .fld-wrap svg { position: absolute; left: 12px; top: 11px; width: 16px; height: 16px; color: var(--faint); }
+  .fld-wrap.plain .fld { padding-left: 12px; }
+
+  /* Segmented control: raised track, lighter active pill */
+  .seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--raised); border-radius: var(--r-input); }
+  .seg span { height: 34px; padding: 0 14px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .seg span.on { background: var(--raised-hi); color: var(--text); box-shadow: 0 1px 2px rgb(0 0 0 / .35); }
+  .seg span svg { width: 15px; height: 15px; }
+  .phone .seg { display: flex; }
+  .phone .seg span { flex: 1; }
+
+  /* Stat tiles */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .desk .stats { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .stat { background: var(--card); border-radius: var(--r-card); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .stat .lbl { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .stat .val { font: 600 22px/1 "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+  .stat .s { font-size: 13px; color: var(--muted); }
+
+  /* divide-y list rows */
+  .list { background: var(--card); border-radius: var(--r-card); overflow: hidden; }
+  .li { min-height: 56px; display: flex; align-items: center; gap: 12px; padding: 10px 16px; position: relative; }
+  .li + .li, .li + .job, .job + .job, .job + .li { border-top: 1px solid var(--border); }
+  .li.active { background: var(--raised); }
+  .job > .li { border-top: 0; }
+  .li-hdr { min-height: 44px; padding: 0 16px; font-size: 13px; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+  .hist { padding: 6px 16px 14px 56px; display: flex; flex-direction: column; gap: 4px; background: color-mix(in srgb, var(--raised) 45%, transparent); border-top: 1px solid var(--border); }
+  .run { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); min-height: 26px; white-space: nowrap; overflow: hidden; }
+  .run svg { width: 14px; height: 14px; flex: none; }
+  .run .t { color: var(--text); }
+  .run .msg { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .tag { font-size: 10px; font-weight: 700; letter-spacing: 0; color: var(--muted); background: var(--raised-hi); border-radius: 6px; padding: 2px 6px; flex: none; }
+  .jbar { display: flex; align-items: center; gap: 8px; padding: 0 16px 12px 56px; flex-wrap: wrap; }
+  .jbar .sp { flex: 1; }
+
+  /* Popover menu (⋯) */
+  .more-wrap { position: relative; flex: none; }
+  .menu { position: absolute; right: 0; top: 36px; width: 232px; background: var(--raised-hi); border-radius: 14px; padding: 6px; box-shadow: 0 14px 30px rgb(0 0 0 / .45); z-index: 5; }
+  .mi { height: 38px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 9px; font-size: 14px; white-space: nowrap; }
+  .mi svg { width: 15px; height: 15px; }
+  .mi .tg { margin-left: auto; }
+  .mi.danger { color: var(--danger); }
+  .mi + .mi { margin-top: 2px; }
+  .mi.sep { border-top: 1px solid var(--border); border-radius: 0; margin-top: 4px; padding-top: 4px; }
+
+  /* Desktop table (sticky header) */
+  .tbl-wrap { max-height: 392px; overflow: auto; background: var(--card); border-radius: var(--r-card); }
+  .tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; text-align: left; }
+  .tbl th { position: sticky; top: 0; z-index: 1; background: var(--card); height: 44px; padding: 0 14px; font-size: 13px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .tbl td { height: 54px; padding: 0 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .tbl tr:last-child td { border-bottom: 0; }
+  .tbl tbody tr:hover td { background: color-mix(in srgb, var(--raised) 50%, transparent); }
+  .tbl .r { text-align: right; }
+  .tbl td.num { text-align: right; }
+  .tbl .hist-cell { padding: 0; height: auto; background: var(--raised); }
+  .tbl .hist-cell .hist { padding: 8px 14px 12px 14px; background: transparent; border-top: 0; }
+
+  /* Desktop side nav */
+  .snav { width: 216px; flex: none; background: var(--card); border-radius: var(--r-card); padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+  .snav .brand-s { font: 600 12px/1 "Instrument Sans", sans-serif; color: var(--faint); padding: 12px 10px 8px; }
+  .snav a { height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 11px; color: var(--muted); font-size: 14px; font-weight: 600; }
+  .snav a svg { width: 16px; height: 16px; flex: none; }
+  .snav a.on { background: var(--raised); color: var(--text); }
+  .snav a .cnt { margin-left: auto; font: 500 12px/1 "JetBrains Mono", monospace; color: var(--faint); }
+  .snav a .cnt.warn { color: var(--warn); }
+
+  /* Desk header search */
+  .search-w { width: 280px; }
+
+  /* Phone-only header */
+  .phone .ph h2 { font-size: 20px; }
+  .phone-top { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 0; }
+  .phone-top .brand { font: 600 15px/1 "Bricolage Grotesque", sans-serif; color: var(--muted); }
+  .back { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; font-weight: 600; }
+  .back svg { width: 16px; height: 16px; transform: rotate(90deg); }
+
+  /* Invite composer */
+  .composer { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .desk .composer { grid-template-columns: minmax(0,1.2fr) minmax(0,1fr) auto; }
+  .composer .btn { width: 100%; }
+  .desk .composer .btn { width: auto; }
+  .stack-h { display: flex; flex-direction: column; gap: 14px; }
+
+  /* Frame pairing */
+  .sbs { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+</style>
+</head>
+<body>
+<h1 class="page">Admin dashboard v2: two proposals</h1>
+<p class="lead">Mirrors the current admin tabs (Users with stats, invitations and directory; Backups; System with scheduled jobs and run history) with fake data only. Dark frame only, like the other demos. The admin directory API today returns no email, role or last-login fields, so these mocks assume the backend adds them. Numbers use JetBrains Mono as the brief asks; `frontend/style.md` §8 says v2 avoids mono for amounts, so that is a call to confirm.</p>
+
+<!-- ============ PROPOSAL A ============ -->
+<h2 class="sec">A. Segmented tabs, stat tiles, divide-y user list</h2>
+<p class="lead">The current top tab bar becomes a raised segmented control. Stats are a tile row, invites and users are plain divide-y card lists, and every row action sits in one ⋯ menu so the list stays calm.</p>
+<div class="sbs" style="margin-top:20px">
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="scroll" id="a-phone-overview"></div>
+    </div>
+    <figcaption><b>Phone: Users with stats and the ⋯ menu open</b><p>Stats go two-up, the invite form stacks, and each user row carries name, role pill, last login and one ⋯ button. The open menu holds Open Banking and Delete.</p></figcaption>
+  </figure>
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="scroll" id="a-phone-system"></div>
+    </div>
+    <figcaption><b>Phone: System jobs</b><p>Each job is one row: icon chip, schedule, last-run pill. Run now and the run history sit on a second line, so nothing needs a table on a 375 px screen.</p></figcaption>
+  </figure>
+</div>
+<div class="col" style="margin-top:32px">
+  <figure>
+    <div class="desk" id="a-desk-overview"></div>
+    <figcaption style="max-width:none"><b>Desktop: Users page</b><p>Same stack at 1080 px. Invitations sit above the directory, and the directory keeps the ⋯ menu so the row count stays readable.</p></figcaption>
+  </figure>
+  <figure>
+    <div class="desk" id="a-desk-system"></div>
+    <figcaption style="max-width:none"><b>Desktop: System page</b><p>Jobs as divide-y rows with the next run, Run now and a chevron. The Bank sync row is open and shows its last runs, including the failure.</p></figcaption>
+  </figure>
+</div>
+
+<!-- ============ PROPOSAL B ============ -->
+<h2 class="sec">B. Left sub-nav, sticky users table, list on phone <span class="rec">Recommended</span></h2>
+<p class="why">Why: the sub-nav has room for future sections (Invites, Backups, System) without crowding the header, the table keeps all the directory columns scannable with a sticky header, and on a phone the same nav becomes a plain list, so one structure covers both sizes.</p>
+<div class="sbs" style="margin-top:20px">
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="scroll" id="b-phone-overview"></div>
+    </div>
+    <figcaption><b>Phone: section list, then Overview</b><p>The sub-nav collapses into a list at the top of the page: each section shows its count. Below it, the stat tiles and a compact user list with the same ⋯ menu.</p></figcaption>
+  </figure>
+  <figure>
+    <div class="phone">
+      <div class="status"></div>
+      <div class="scroll" id="b-phone-system"></div>
+    </div>
+    <figcaption><b>Phone: System, one section deep</b><p>Inside a section the page header gets a back link to the list. Job rows are lighter: the schedule and last-run pill are visible, and Run now moves into the expanded history.</p></figcaption>
+  </figure>
+</div>
+<div class="col" style="margin-top:32px">
+  <figure>
+    <div class="desk" id="b-desk-overview"></div>
+    <figcaption style="max-width:none"><b>Desktop: Users with the sub-nav</b><p>Sub-nav on the left with counts, stat strip on top, and a directory table with a sticky header and its own scroll area (9 users, the header stays visible while scrolling).</p></figcaption>
+  </figure>
+  <figure>
+    <div class="desk" id="b-desk-system"></div>
+    <figcaption style="max-width:none"><b>Desktop: System as a table</b><p>One row per job: schedule, last run, next run and actions. The Bank sync row expands inline to show its runs. Clicking the chevron toggles any row.</p></figcaption>
+  </figure>
+</div>
+
+<script>
+/* ---------- fake data (no real users) ---------- */
+const USERS = [
+  { name: "Alex Morgan",  email: "alex.morgan@example.com",  role: "Admin", joined: "12 Jan 2025", wallets: 4, tx: 1204, login: "12 min ago",  ob: true  },
+  { name: "Priya Shah",   email: "priya.shah@example.com",   role: "User",  joined: "03 Mar 2025", wallets: 2, tx: 612,  login: "3 h ago",     ob: false },
+  { name: "Jonas Keller", email: "jonas.keller@example.com", role: "User",  joined: "21 Jun 2025", wallets: 3, tx: 933,  login: "yesterday",   ob: true  },
+  { name: "Lena Varga",   email: "lena.varga@example.com",   role: "User",  joined: "08 Sep 2025", wallets: 1, tx: 211,  login: "4 days ago",  ob: false },
+  { name: "Sam Okafor",   email: "sam.okafor@example.com",   role: "User",  joined: "30 Oct 2025", wallets: 2, tx: 402,  login: "2 weeks ago", ob: false },
+  { name: "Chloe Dubois", email: "chloe.dubois@example.com", role: "User",  joined: "14 Feb 2026", wallets: 1, tx: 88,   login: "6 h ago",     ob: false },
+  { name: "Tomas Novak",  email: "tomas.novak@example.com",  role: "User",  joined: "02 Apr 2026", wallets: 2, tx: 157,  login: "1 day ago",   ob: true  },
+  { name: "Hana Yilmaz",  email: "hana.yilmaz@example.com",  role: "User",  joined: "19 May 2026", wallets: 1, tx: 46,   login: "9 days ago",  ob: false },
+  { name: "Ben Carter",   email: "ben.carter@example.com",   role: "User",  joined: "27 Aug 2026", wallets: 1, tx: 12,   login: "3 days ago",  ob: false },
+];
+const INVITES = [
+  { email: "new.hire@example.com",   note: "Family, Milan",        status: "PENDING",  exp: "5d 4h 12m" },
+  { email: "friend.two@example.com", note: "",                     status: "PENDING",  exp: "23h 40m" },
+  { email: "beta.guest@example.com", note: "Beta tester",          status: "ACCEPTED" },
+  { email: "old.invite@example.com", note: "Left over from 2025",  status: "EXPIRED" },
+];
+const JOBS = [
+  { name: "Subscriptions", icon: "refresh", sched: "Hourly at minute 05", on: true, status: "ok", last: "Ran 09:05", next: "in 42m", runs: [
+      { t: "Today 09:05", d: "1.2s", m: false, ok: true, msg: "Materialised 3 due subscriptions" },
+      { t: "Today 08:05", d: "0.9s", m: false, ok: true, msg: "Nothing due" },
+      { t: "Today 07:40", d: "1.0s", m: true,  ok: true, msg: "Manual run" } ] },
+  { name: "Database backup", icon: "db", sched: "Daily at 02:00", on: true, status: "ok", last: "Ran 02:00", next: "in 16h", runs: [
+      { t: "Today 02:00", d: "48.2s", m: false, ok: true, msg: "Uploaded 48.20 MB to R2" },
+      { t: "Yesterday 02:00", d: "47.9s", m: false, ok: true, msg: "Uploaded 47.95 MB to R2" } ] },
+  { name: "Bank sync", icon: "sliders", sched: "Hourly · slots 10, 15, 19, 23", on: true, status: "danger", last: "Failed 10:00", next: "in 3h 10m", open: true, runs: [
+      { t: "Today 10:00", d: "3.4s", m: false, ok: false, msg: "Bank session expired, re-link needed" },
+      { t: "Yesterday 23:00", d: "6.1s", m: false, ok: true, msg: "Imported 4 transactions" },
+      { t: "Yesterday 19:00", d: "5.8s", m: false, ok: true, msg: "Imported 2 transactions" } ] },
+  { name: "Budget alerts", icon: "bell", sched: "Daily at 08:00", on: true, status: "ok", last: "Ran 08:00", next: "in 13h", runs: [
+      { t: "Today 08:00", d: "0.4s", m: false, ok: true, msg: "2 alerts sent" },
+      { t: "Yesterday 08:00", d: "0.3s", m: false, ok: true, msg: "No alerts" } ] },
+  { name: "Notification cleanup", icon: "broom", sched: "Daily at 04:00", on: true, status: "ok", last: "Ran 04:00", next: "in 20h", runs: [
+      { t: "Today 04:00", d: "0.2s", m: false, ok: true, msg: "Removed 37 older than 30 days" } ] },
+  { name: "Demo cleanup", icon: "broom", sched: "Daily at 03:30", on: false, status: "off", last: "Disabled", next: "", runs: [
+      { t: "Yesterday 03:30", d: "2.1s", m: false, ok: true, msg: "Reset 2 demo wallets" } ] },
+  { name: "Monthly report", icon: "mail", sched: "Monthly on day 1 at 07:00", on: true, status: "ok", last: "Ran 1 Nov 07:00", next: "in 9d", test: true, runs: [
+      { t: "1 Nov 07:00", d: "4.6s", m: false, ok: true, msg: "Sent to 5 users" } ] },
+];
+const SECTIONS = [
+  { k: "overview", name: "Overview", icon: "grid", sub: "Totals across all users" },
+  { k: "users", name: "Users", icon: "users", cnt: 9, sub: "9 users · 2 invites pending" },
+  { k: "invites", name: "Invites", icon: "mail", cnt: 2, sub: "2 pending, 1 accepted" },
+  { k: "backups", name: "Backups", icon: "db", cnt: 7, sub: "7 snapshots · newest 2 h ago" },
+  { k: "system", name: "System", icon: "sliders", cnt: "1!", warn: true, sub: "7 jobs · Bank sync failing" },
+];
+const PAL = ["#6d8cf0", "#7fcf95", "#f0b85a", "#ec8a76", "#b39cf5", "#7aaaf5", "#e8a35c", "#8fd3c8", "#c99bd6"];
+
+/* ---------- icons (inline stroke SVG) ---------- */
+const I = {
+  grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 19.5c.8-3.2 3.4-5 6.5-5s5.7 1.8 6.5 5"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4M18.5 14.8c1.5.7 2.5 2.4 3 4.7"/>',
+  db: '<ellipse cx="12" cy="5.5" rx="8" ry="2.5"/><path d="M4 5.5v13c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5v-13M4 12c0 1.4 3.6 2.5 8 2.5s8-1.1 8-2.5"/>',
+  sliders: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  mail: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 7 8 6 8-6"/>',
+  send: '<path d="M4 12 20 4l-4 16-4-6-8-2z"/>',
+  play: '<path d="M8 5.5v13l10-6.5z"/>',
+  down: '<path d="m6 9 6 6 6-6"/>',
+  left: '<path d="m15 6-6 6 6 6"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
+  trash: '<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  refresh: '<path d="M20 11a8 8 0 0 0-14.5-4.5L4 8.5M4 4v4.5h4.5M4 13a8 8 0 0 0 14.5 4.5l1.5-2M20 20v-4.5h-4.5"/>',
+  broom: '<path d="M14.5 4.5l5 5-7.5 7.5-5-5zM7 13l-3 7 3-1 1 3 3-3"/>',
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5h4"/>',
+  copy: '<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/>',
+  wallet: '<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H18a1 1 0 0 1 1 1v1"/><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><circle cx="16.5" cy="13" r="1.2"/>',
+  exch: '<path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/>',
+  dots: '<circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
+};
+const ic = (n, s = 18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+
+/* ---------- shared pieces ---------- */
+const ini = (n) => n.split(" ").map((p) => p[0]).join("");
+const rolePill = (u) => `<span class="pill ${u.role === "Admin" ? "strong" : "neutral"}">${u.role}</span>`;
+const toggle = (on) => `<span class="tg ${on ? "on" : ""}" role="switch" aria-checked="${on}"></span>`;
+const menuHtml = (u) => `<div class="menu">
+  <div class="mi">Open Banking access ${toggle(u.ob)}</div>
+  <div class="mi sep">${ic("copy", 15)}Copy user ID</div>
+  <div class="mi danger">${ic("trash", 15)}Delete user</div></div>`;
+const moreBtn = (u, open) => `<div class="more-wrap"><button class="ib" aria-label="Actions for ${u.name}">${ic("dots", 18)}</button>${open ? menuHtml(u) : ""}</div>`;
+const statTiles = (desk) => {
+  const wallets = USERS.reduce((a, u) => a + u.wallets, 0);
+  const tx = USERS.reduce((a, u) => a + u.tx, 0);
+  const pend = INVITES.filter((i) => i.status === "PENDING").length;
+  const T = [
+    ["Total users", USERS.length, "+2 this month", "users", "#6d8cf0"],
+    ["Active wallets", wallets, "across all users", "wallet", "#7fcf95"],
+    ["Transactions", tx.toLocaleString("en-GB"), "all time", "exch", "#7aaaf5"],
+    ["Pending invites", pend, "1 expires within 24 h", "mail", "#f0b85a"],
+  ];
+  return `<div class="stats">${T.map(([l, v, s, i, c]) => `<div class="stat"><div class="lbl"><span class="chip" style="--c:${c}">${ic(i, 15)}</span>${l}</div><div class="val">${v}</div><div class="s">${s}</div></div>`).join("")}</div>`;
+};
+const inviteStatus = (st) => ({
+  PENDING: '<span class="pill warn">' + ic("clock", 13) + 'Pending</span>',
+  ACCEPTED: '<span class="pill ok">' + ic("check", 13) + 'Accepted</span>',
+  EXPIRED: '<span class="pill danger">' + ic("x", 13) + 'Expired</span>',
+  REVOKED: '<span class="pill danger">' + ic("x", 13) + 'Revoked</span>',
+})[st];
+const jobPill = (j) => j.status === "off"
+  ? '<span class="pill neutral">Disabled</span>'
+  : `<span class="pill ${j.status === "ok" ? "ok" : "danger"}">${ic(j.status === "ok" ? "check" : "x", 13)}${j.last}</span>`;
+const jobChip = (j) => `<span class="chip" style="--c:${j.status === "danger" ? "#ff8a7a" : "#9a958c"}">${ic(j.icon, 15)}</span>`;
+const histHtml = (j, id, cls = "hist", visible = j.open) => `<div class="${cls}" id="${id}" ${visible ? "" : "hidden"}>${j.runs.map((r) => `
+  <div class="run">${ic(r.ok ? "check" : "x", 14)}<span class="t">${r.t}</span><span class="mono">${r.d}</span>${r.m ? '<span class="tag">manual</span>' : ""}<span class="msg">${r.msg}</span></div>`).join("")}</div>`;
+const chevBtn = (id, j) => `<button class="ib chev ${j.open ? "open" : ""}" data-tog="${id}" aria-label="Show runs for ${j.name}">${ic("down", 17)}</button>`;
+const sysHeader = () => `<div class="ph ph-row"><div><h2>System</h2><p>Scheduled maintenance jobs. Edit schedules, run on demand, review history.</p></div></div>`;
+
+/* ---------- Proposal A ---------- */
+const aTabs = (active, cls = "") => `<div class="seg ${cls}">${[["Users", "users"], ["Backups", "db"], ["System", "sliders"]].map(([l, i]) => `<span class="${l.toLowerCase() === active ? "on" : ""}">${ic(i, 15)}${l}</span>`).join("")}</div>`;
+
+function aUserPhone(u, i) {
+  return `<div class="li"><span class="av" style="--c:${PAL[i]}">${ini(u.name)}</span>
+    <div class="grow"><div class="nm">${u.name}</div><div class="sub">Last login ${u.login}</div></div>
+    ${rolePill(u)}${moreBtn(u, i === 1)}</div>`;
+}
+function aUserDesk(u, i) {
+  return `<div class="li"><span class="av" style="--c:${PAL[i]}">${ini(u.name)}</span>
+    <div class="grow"><div class="nm">${u.name}</div><div class="sub">${u.email}</div></div>
+    <div class="muted" style="width:150px">Last login ${u.login}</div>
+    ${rolePill(u)}${moreBtn(u, i === 1)}</div>`;
+}
+function aInvitesDesk() {
+  return `<div class="card flush">
+    <div class="li-hdr" style="justify-content:space-between"><span>Invitations</span><span class="count">${INVITES.length}</span></div>
+    ${INVITES.map((inv) => `<div class="li">
+      <div class="grow"><div class="nm">${inv.email}</div><div class="sub">${inv.note || "<i>No note</i>"}</div></div>
+      ${inviteStatus(inv.status)}
+      <div class="mono muted" style="width:120px">${inv.status === "PENDING" ? ic("clock", 13) + " " + inv.exp : "N/A"}</div>
+      ${inv.status === "PENDING" ? `<button class="ib" aria-label="Copy invite link">${ic("copy", 17)}</button><button class="ib danger" aria-label="Revoke invitation">${ic("trash", 17)}</button>` : ""}
+    </div>`).join("")}
+  </div>`;
+}
+
+function aPhoneOverview() {
+  return `
+  <div class="phone-top"><span class="brand">Admin panel</span></div>
+  ${aTabs("users")}
+  <div class="ph"><h2>Users</h2><p>Manage registered users and pending invitations.</p></div>
+  ${statTiles(false)}
+  <div class="card stack-h">
+    <div class="composer">
+      <div class="fld-wrap">${ic("mail")}<input class="fld" placeholder="Invite a user by email…" aria-label="Invite email"></div>
+      <div class="fld-wrap plain"><input class="fld" placeholder="Optional note…" aria-label="Invite note"></div>
+      <button class="btn btn-primary">${ic("send", 15)}Send invite</button>
+    </div>
+  </div>
+  <div class="card flush" style="padding:0">
+    <div class="li-hdr" style="justify-content:space-between"><span>User directory</span><span class="count">${USERS.length}</span></div>
+    <div class="list" style="border-radius:0;background:transparent">${USERS.map((u, i) => aUserPhone(u, i)).join("")}</div>
+  </div>`;
+}
+function aPhoneSystem() {
+  return `
+  <div class="phone-top"><span class="brand">Admin panel</span></div>
+  ${aTabs("system")}
+  ${sysHeader()}
+  <div class="list">${JOBS.map((j, i) => `<div class="job">
+    <div class="li">${jobChip(j)}<div class="grow"><div class="nm">${j.name}</div><div class="sub">${j.sched}</div></div>${chevBtn("pa-" + i, j)}</div>
+    <div class="jbar">${jobPill(j)}<span class="sp"></span>${j.test ? '<button class="btn btn-ghost btn-sm">' + ic("mail", 14) + 'Test to me</button>' : ""}<button class="btn btn-secondary btn-sm">${ic("play", 14)}Run now</button>
+    </div>
+    ${histHtml(j, "pa-" + i)}
+  </div>`).join("")}</div>`;
+}
+function aDeskOverview() {
+  return `
+  <div class="desk-top"><span class="brand">Admin panel</span><div class="who"><span class="av" style="--c:#6d8cf0;width:30px;height:30px;border-radius:9px;font-size:12px">AM</span></div></div>
+  <div class="desk-body">
+    ${aTabs("users")}
+    <div class="ph"><h2>Users</h2><p>Manage registered users and pending invitations.</p></div>
+    ${statTiles(true)}
+    <div class="card composer" style="padding:14px">
+      <div class="fld-wrap">${ic("mail")}<input class="fld" placeholder="Invite a user by email…" aria-label="Invite email"></div>
+      <div class="fld-wrap plain"><input class="fld" placeholder="Optional note…" aria-label="Invite note"></div>
+      <button class="btn btn-primary">${ic("send", 15)}Send invite</button>
+    </div>
+    ${aInvitesDesk()}
+    <div class="card flush">
+      <div class="li-hdr" style="justify-content:space-between;height:auto;padding:14px 16px"><span style="font:600 16px 'Bricolage Grotesque',sans-serif;color:var(--text)">User directory</span>
+        <div class="fld-wrap" style="width:260px">${ic("search")}<input class="fld" placeholder="Search by name…" aria-label="Search users"></div></div>
+      <div class="list" style="border-radius:0;background:transparent">${USERS.map((u, i) => aUserDesk(u, i)).join("")}</div>
+    </div>
+  </div>`;
+}
+function aDeskSystem() {
+  return `
+  <div class="desk-top"><span class="brand">Admin panel</span><div class="who"><span class="av" style="--c:#6d8cf0;width:30px;height:30px;border-radius:9px;font-size:12px">AM</span></div></div>
+  <div class="desk-body">
+    ${aTabs("system")}
+    ${sysHeader()}
+    <div class="list">${JOBS.map((j, i) => `<div class="job">
+      <div class="li">${jobChip(j)}<div class="grow" style="width:280px;flex:none"><div class="nm">${j.name}</div><div class="sub">${j.sched}</div></div>
+        <span class="grow"></span>${jobPill(j)}<span class="muted mono" style="width:100px;text-align:right">${j.next ? j.next : ""}</span>
+        ${j.test ? '<button class="btn btn-ghost btn-sm">' + ic("mail", 14) + 'Test to me</button>' : ""}
+        <button class="btn btn-secondary btn-sm">${ic("play", 14)}Run now</button>${chevBtn("da-" + i, j)}</div>
+      ${histHtml(j, "da-" + i)}
+    </div>`).join("")}</div>
+  </div>`;
+}
+
+/* ---------- Proposal B ---------- */
+const snav = (active) => `<aside class="snav"><div class="brand-s">Admin panel</div>${SECTIONS.map((s) => `<a class="${s.k === active ? "on" : ""}">${ic(s.icon, 16)}${s.name}<span class="cnt ${s.warn ? "warn" : ""}">${s.cnt ?? ""}</span></a>`).join("")}</aside>`;
+
+function bPhoneOverview() {
+  return `
+  <div class="phone-top"><span class="brand">Admin panel</span></div>
+  <div class="list">${SECTIONS.map((s) => `<div class="li ${s.k === "overview" ? "active" : ""}" style="min-height:52px">
+      <span class="chip" style="--c:${s.warn ? "#f0b85a" : "#9a958c"}">${ic(s.icon, 15)}</span>
+      <div class="grow"><div class="nm" style="font-size:14px">${s.name}</div></div>
+      <span class="mono muted" style="font-size:12.5px">${s.cnt ?? ""}</span>${ic("down", 15)}
+    </div>`).join("")}</div>
+  <div class="ph"><h2>Overview</h2><p>Totals across all users.</p></div>
+  ${statTiles(false)}
+  <div class="card flush" style="padding:0">
+    <div class="li-hdr" style="justify-content:space-between"><span>Users</span><span class="count">${USERS.length}</span></div>
+    <div class="list" style="border-radius:0;background:transparent">${USERS.slice(0, 5).map((u, i) => aUserPhone(u, i)).join("")}</div>
+  </div>`;
+}
+function bPhoneSystem() {
+  return `
+  <div class="phone-top"><span class="back">${ic("down", 16)}Admin panel</span></div>
+  <div class="ph"><h2>System</h2><p>Scheduled jobs, run on demand, history.</p></div>
+  <div class="list">${JOBS.map((j, i) => `<div class="job">
+    <div class="li" style="min-height:64px">${jobChip(j)}<div class="grow"><div class="nm" style="font-size:14px">${j.name}</div><div class="sub">${j.sched}</div></div>${chevBtn("pb-" + i, j)}</div>
+    <div class="jbar" style="padding-left:16px;justify-content:space-between">${jobPill(j)}<button class="btn btn-secondary btn-sm">${ic("play", 14)}Run now</button></div>
+    ${histHtml(j, "pb-" + i)}
+  </div>`).join("")}</div>`;
+}
+function bDeskOverview() {
+  return `
+  <div class="desk-top"><span class="brand">Admin panel</span><div class="who"><span class="av" style="--c:#6d8cf0;width:30px;height:30px;border-radius:9px;font-size:12px">AM</span></div></div>
+  <div class="desk-split">
+    ${snav("users")}
+    <main>
+      <div class="ph ph-row"><div><h2>Users</h2><p>Manage registered users and pending invitations.</p></div><button class="btn btn-primary">${ic("send", 15)}Invite user</button></div>
+      ${statTiles(true)}
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>User</th><th>Role</th><th>Joined</th><th class="r">Wallets</th><th class="r">Transactions</th><th>Last login</th><th>Open Banking</th><th></th></tr></thead>
+          <tbody>${USERS.map((u, i) => `<tr>
+            <td><div class="who"><span class="av" style="--c:${PAL[i]}">${ini(u.name)}</span><div style="min-width:0"><div class="nm">${u.name}</div><div class="sub">${u.email}</div></div></div></td>
+            <td>${rolePill(u)}</td>
+            <td class="muted">${u.joined}</td>
+            <td class="num">${u.wallets}</td>
+            <td class="num">${u.tx.toLocaleString("en-GB")}</td>
+            <td class="muted">${u.login}</td>
+            <td>${toggle(u.ob)}</td>
+            <td><button class="ib danger" aria-label="Delete ${u.name}">${ic("trash", 17)}</button></td>
+          </tr>`).join("")}</tbody>
+        </table>
+      </div>
+    </main>
+  </div>`;
+}
+function bDeskSystem() {
+  return `
+  <div class="desk-top"><span class="brand">Admin panel</span><div class="who"><span class="av" style="--c:#6d8cf0;width:30px;height:30px;border-radius:9px;font-size:12px">AM</span></div></div>
+  <div class="desk-split">
+    ${snav("system")}
+    <main>
+      <div class="ph"><h2>System</h2><p>Scheduled maintenance jobs. Edit schedules, run on demand, review history.</p></div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Job</th><th>Schedule</th><th>Last run</th><th>Next run</th><th></th></tr></thead>
+          <tbody>${JOBS.map((j, i) => `
+            <tr>
+              <td><div class="who">${jobChip(j)}<div class="nm">${j.name}</div></div></td>
+              <td class="muted">${j.sched}</td>
+              <td>${jobPill(j)}</td>
+              <td class="num muted">${j.next || "—"}</td>
+              <td style="text-align:right"><span style="display:inline-flex;gap:6px;align-items:center">${j.test ? '<button class="btn btn-ghost btn-sm">' + ic("mail", 14) + 'Test to me</button>' : ""}<button class="btn btn-secondary btn-sm">${ic("play", 14)}Run now</button>${chevBtn("db-" + i, j)}</span></td>
+            </tr>
+            <tr ${j.open ? "" : "hidden"} id="db-${i}" class="hist-row"><td colspan="5" class="hist-cell">${histHtml(j, "db-h-" + i, "hist", true)}</td></tr>`).join("")}</tbody>
+        </table>
+      </div>
+    </main>
+  </div>`;
+}
+
+/* ---------- render + toggle ---------- */
+const put = (id, html) => { document.getElementById(id).innerHTML = html; };
+put("a-phone-overview", aPhoneOverview());
+put("a-phone-system", aPhoneSystem());
+put("a-desk-overview", aDeskOverview());
+put("a-desk-system", aDeskSystem());
+put("b-phone-overview", bPhoneOverview());
+put("b-phone-system", bPhoneSystem());
+put("b-desk-overview", bDeskOverview());
+put("b-desk-system", bDeskSystem());
+// Chevron-expand for run history (rows and table rows share the same [data-tog] hook).
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-tog]");
+  if (!b) return;
+  const t = document.getElementById(b.dataset.tog);
+  if (!t) return;
+  t.hidden = !t.hidden;
+  b.classList.toggle("open", !t.hidden);
+});
+</script>
+</body>
+</html>

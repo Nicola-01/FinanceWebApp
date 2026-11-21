@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faWallet } from "@fortawesome/free-solid-svg-icons";
+import { faFont, faWallet } from "@fortawesome/free-solid-svg-icons";
 import { Input } from "../../../components/ui/Input";
 import { Textarea } from "../../../components/ui/Textarea";
 import { IconColorSelector } from "../../../components/icon/IconColorSelector";
@@ -9,6 +9,8 @@ import { ICONS, type IconKey } from "../../../utils/icons";
 import { WizardStepHeader } from "./WizardStepHeader";
 import { useOutsideClick } from "../../../hooks/useOutsideClick";
 import { FieldLabel } from "../../../components/ui/FieldLabel";
+import { FormRow } from "../../../components/ui/FormRow";
+import { useUiVersion } from "../../../hooks/useUiVersion";
 
 export interface WalletBasicsValue {
   name: string;
@@ -29,6 +31,7 @@ export interface BasicsStepProps {
  * building blocks as the legacy CreateWalletModal so the look is unchanged.
  */
 export function BasicsStep({ value, onChange }: BasicsStepProps) {
+  const [ui] = useUiVersion(); // ui-v2-switch
   const [showSelectors, setShowSelectors] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -48,6 +51,92 @@ export function BasicsStep({ value, onChange }: BasicsStepProps) {
 
   const iconKey: IconKey =
     value.icon in ICONS ? (value.icon as IconKey) : "wallet";
+
+  if (ui === "v2")
+    // ui-v2-switch
+    return (
+      <div className="flex flex-col gap-6 text-left">
+        <WizardStepHeader
+          icon={faWallet}
+          title="Wallet basics"
+          subtitle="Name it and pick an icon, colour and currency."
+          note="You can rename and restyle your wallet later from its settings."
+        />
+
+        {/* Live icon preview + icon/colour popover */}
+        <div className="relative flex flex-col items-center">
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={() => setShowSelectors((s) => !s)}
+            className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-[var(--r-card)] bg-app-card text-2xl shadow-[var(--box-ring)] transition-transform hover:scale-105"
+            style={{ color: value.color }}
+            title="Change icon or colour"
+          >
+            <FontAwesomeIcon icon={ICONS[iconKey]} />
+          </button>
+          <span className="mt-2 text-[13px] text-app-muted">
+            Click icon to edit
+          </span>
+
+          {showSelectors && (
+            <div
+              ref={selectorRef}
+              className="absolute left-1/2 top-24 z-50 -translate-x-1/2"
+            >
+              <IconColorSelector
+                iconValue={iconKey}
+                onChangeIcon={(k) => set({ icon: k })}
+                colorValue={value.color}
+                onChangeColor={(c) => set({ color: c })}
+              />
+            </div>
+          )}
+        </div>
+
+        <section>
+          <h3 className="mb-2 px-1 text-[13px] text-app-muted">Details</h3>
+          <div className="divide-y divide-app-border overflow-visible rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+            <FormRow
+              icon={faFont}
+              label="Wallet name"
+              required
+              sub="3–25 characters"
+              controlClassName="[&>div]:w-full [&>div]:bg-transparent [&>div]:shadow-none"
+            >
+              <Input
+                type="text"
+                aria-label="Wallet name"
+                placeholder="e.g. Personal Savings"
+                className="bg-transparent text-right shadow-none px-0 !font-sans"
+                value={value.name}
+                onChange={(e) => set({ name: e.target.value })}
+              />
+            </FormRow>
+            <div className="p-4">
+              <Textarea
+                aria-label="Description"
+                placeholder="What is this wallet for?  (optional)"
+                value={value.description}
+                onChange={(e) => set({ description: e.target.value })}
+                accentColor={value.color}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h3 className="mb-2 px-1 text-[13px] text-app-muted">Currency</h3>
+          <div className="rounded-[var(--r-card)] bg-app-card p-4 shadow-[var(--box-ring)]">
+            <CurrencySelector
+              value={value.currency}
+              onChange={(c) => set({ currency: c })}
+              accentColor={value.color}
+            />
+          </div>
+        </section>
+      </div>
+    );
 
   return (
     <div className="space-y-5 text-left">

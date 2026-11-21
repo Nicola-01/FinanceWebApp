@@ -1,6 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleInfo } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
+import { useUiVersion } from "../../../hooks/useUiVersion";
 
 export interface WizardStepHeaderProps {
   icon: IconDefinition;
@@ -23,6 +24,24 @@ export function WizardStepHeader({
   subtitle,
   note,
 }: WizardStepHeaderProps) {
+  const [ui] = useUiVersion(); // ui-v2-switch
+  if (ui === "v2")
+    // ui-v2-switch
+    return (
+      <div className="flex flex-col gap-1 text-left">
+        <h3 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">
+          {title}
+        </h3>
+        <p className="text-[13px] text-app-muted">{subtitle}</p>
+        {note && (
+          <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-app-muted">
+            <FontAwesomeIcon icon={faCircleInfo} className="shrink-0" />
+            {note}
+          </p>
+        )}
+      </div>
+    );
+
   return (
     <div className="flex flex-col gap-1 text-left">
       <h3 className="flex items-center gap-2 text-base font-bold text-app-text">

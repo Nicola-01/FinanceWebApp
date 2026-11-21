@@ -9,6 +9,7 @@ import api from "../../api/axiosConfig";
 import { Card } from "../../components/ui/Card";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { getApiErrorDetail } from "../../utils/apiError";
+import { useUiVersion } from "../../hooks/useUiVersion";
 import { formatLongLocalDate } from "../../utils/longDate";
 import { AccountRow as Row } from "../account/AccountRow";
 import { UsernameRow } from "../account/UsernameRow";
@@ -25,6 +26,8 @@ interface UserProfile {
 export const AccountSection: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   useEffect(() => {
     (async () => {
@@ -46,7 +49,13 @@ export const AccountSection: React.FC = () => {
           <FontAwesomeIcon icon={faSpinner} spin className="text-app-muted" />
         </div>
       ) : (
-        <div className="divide-y divide-app-border overflow-hidden rounded-[var(--r-input)] border border-app-border">
+        <div
+          className={
+            isV2
+              ? "divide-y divide-app-border" // ui-v2-switch: rows sit directly in the Card
+              : "divide-y divide-app-border overflow-hidden rounded-[var(--r-input)] border border-app-border"
+          }
+        >
           <UsernameRow
             username={profile?.username}
             onUpdated={(name) =>
@@ -62,15 +71,27 @@ export const AccountSection: React.FC = () => {
           {/* Role — shown only for admins */}
           {profile?.role === "ADMIN" && (
             <Row label="Role" icon={faIdBadge}>
-              <span className="rounded bg-app-yellow/15 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-app-yellow">
-                Admin
-              </span>
+              {isV2 ? (
+                <span className="rounded-full bg-app-raised px-2.5 py-0.5 text-[13px] font-semibold text-app-text">
+                  Admin
+                </span>
+              ) : (
+                <span className="rounded bg-app-yellow/15 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-app-yellow">
+                  Admin
+                </span>
+              )}
             </Row>
           )}
 
           {/* Member since */}
           <Row label="Member since" icon={faCalendarDays}>
-            <span className="text-sm font-medium text-app-text">
+            <span
+              className={
+                isV2
+                  ? "text-[15px] tabular-nums text-app-text"
+                  : "text-sm font-medium text-app-text"
+              }
+            >
               {profile?.createdAt
                 ? formatLongLocalDate(profile.createdAt)
                 : "—"}

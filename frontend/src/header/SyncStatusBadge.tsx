@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { CloudAlert, CloudOff } from "lucide-react";
 import Button from "../components/ui/Button";
 import { useSyncStatus } from "../hooks/useSyncStatus";
+import { useUiVersion } from "../hooks/useUiVersion";
 import { SyncCenterOverlay } from "./SyncCenterOverlay";
 
 /**
@@ -12,6 +13,8 @@ import { SyncCenterOverlay } from "./SyncCenterOverlay";
 export const SyncStatusBadge: React.FC = () => {
   const sync = useSyncStatus();
   const [open, setOpen] = useState(false);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   const total = sync.ops.length;
   if (total === 0) return null;
@@ -26,12 +29,24 @@ export const SyncStatusBadge: React.FC = () => {
         size="sm"
         onClick={() => setOpen(true)}
         aria-label="Open sync center"
-        className={`gap-1.5 ${hasProblem ? "text-red-400" : "text-amber-400"} ${
-          sync.syncing ? "animate-pulse" : ""
-        }`}
+        className={`gap-1.5 ${
+          isV2
+            ? hasProblem
+              ? "text-app-danger"
+              : "text-app-warn"
+            : hasProblem
+              ? "text-red-400"
+              : "text-amber-400"
+        } ${sync.syncing ? "animate-pulse" : ""}`}
       >
         <Icon size={16} className="shrink-0" aria-hidden />
-        <span className="font-app-mono text-xs tabular-nums">{total}</span>
+        <span
+          className={
+            isV2 ? "text-xs tabular-nums" : "font-app-mono text-xs tabular-nums"
+          }
+        >
+          {total}
+        </span>
       </Button>
 
       <SyncCenterOverlay

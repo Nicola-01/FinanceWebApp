@@ -20,6 +20,34 @@ describe("useShake", () => {
     expect(result.current.shake).toBe(false);
   });
 
+  it("restarts the 500 ms window when triggered again", () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useShake());
+    act(() => result.current.triggerShake());
+    act(() => vi.advanceTimersByTime(400));
+    act(() => result.current.triggerShake());
+    act(() => vi.advanceTimersByTime(400));
+    expect(result.current.shake).toBe(true);
+    act(() => vi.advanceTimersByTime(100));
+    expect(result.current.shake).toBe(false);
+  });
+
+  it("clears the pending timer on unmount (no setState after unmount)", () => {
+    vi.useFakeTimers();
+    const clearSpy = vi.spyOn(globalThis, "clearTimeout");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { result, unmount } = renderHook(() => useShake());
+    act(() => result.current.triggerShake());
+    expect(vi.getTimerCount()).toBe(1);
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+    expect(clearSpy).toHaveBeenCalled();
+    act(() => vi.advanceTimersByTime(500));
+    expect(errorSpy).not.toHaveBeenCalled();
+    clearSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
   it("maps the flag to the animation class", () => {
     expect(shakeClass(true)).toBe("animate-[shake_0.5s_ease-in-out]");
     expect(shakeClass(false)).toBe("");

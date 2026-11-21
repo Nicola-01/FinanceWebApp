@@ -11,6 +11,7 @@ import { Input } from "../../components/ui/Input";
 import { triggerToast } from "../../components/ui/ToastNotification";
 import { getApiErrorDetail } from "../../utils/apiError";
 import { replaceToken } from "../../utils/authHelper";
+import { useUiVersion } from "../../hooks/useUiVersion";
 import { AccountRow } from "./AccountRow";
 import { IconAction } from "./IconAction";
 
@@ -49,6 +50,9 @@ export const UsernameRow: React.FC<{
     }
   };
 
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
+
   return (
     <AccountRow label="Username" icon={faUser}>
       {editingUsername ? (
@@ -56,7 +60,7 @@ export const UsernameRow: React.FC<{
           <Input
             value={usernameDraft}
             onChange={(e) => setUsernameDraft(e.target.value)}
-            className="text-sm"
+            className={isV2 ? "text-[15px]" : "text-sm"}
             autoFocus
             onKeyDown={(e) => e.key === "Enter" && saveUsername()}
           />
@@ -76,7 +80,13 @@ export const UsernameRow: React.FC<{
         </>
       ) : (
         <>
-          <span className="truncate text-sm font-semibold text-app-text">
+          <span
+            className={
+              isV2
+                ? "truncate text-[15px] text-app-text"
+                : "truncate text-sm font-semibold text-app-text"
+            }
+          >
             {username ?? "—"}
           </span>
           <IconAction

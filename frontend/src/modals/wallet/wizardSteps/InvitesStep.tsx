@@ -7,6 +7,7 @@ import {
   type WalletRole,
 } from "../../../components/ui/RoleSelector";
 import { WizardStepHeader } from "./WizardStepHeader";
+import { useUiVersion } from "../../../hooks/useUiVersion";
 
 /** A single staged invitation for the wallet being created. */
 export interface WalletInvite {
@@ -37,6 +38,7 @@ export function InvitesStep({
   onChange,
   accentColor,
 }: InvitesStepProps): JSX.Element {
+  const [ui] = useUiVersion(); // ui-v2-switch
   const [identifier, setIdentifier] = useState("");
   const [role, setRole] = useState<WalletRole>("EDITOR");
 
@@ -63,6 +65,74 @@ export function InvitesStep({
       ),
     );
   };
+
+  if (ui === "v2")
+    // ui-v2-switch
+    return (
+      <div className="flex flex-col gap-6 text-left">
+        <WizardStepHeader
+          icon={faUserPlus}
+          title="Invite people"
+          subtitle="Share this wallet as a viewer or editor."
+          note="You can invite more people or change their access anytime from the wallet."
+        />
+
+        <section>
+          <h3 className="mb-2 px-1 text-[13px] text-app-muted">Add people</h3>
+          <div className="rounded-[var(--r-card)] bg-app-card p-4 shadow-[var(--box-ring)]">
+            <InviteComposer
+              identifier={identifier}
+              onIdentifierChange={setIdentifier}
+              role={role}
+              onRoleChange={setRole}
+              onSubmit={handleAdd}
+              disabled={!canAdd}
+              accentColor={accentColor}
+              actionIcon={faUserPlus}
+              actionLabel="Add"
+            />
+          </div>
+        </section>
+
+        {value.length > 0 && (
+          <section>
+            <h3 className="mb-2 px-1 text-[13px] text-app-muted">
+              Staged invites ({value.length})
+            </h3>
+            <ul className="divide-y divide-app-border overflow-visible rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+              {value.map((invite) => (
+                <li
+                  key={invite.user}
+                  className="group flex min-h-14 items-center gap-3 px-4"
+                >
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-app-raised text-sm text-wallet">
+                    <FontAwesomeIcon icon={faUser} />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[15px] text-app-text">
+                    {invite.user}
+                  </span>
+                  <RoleSelector
+                    iconOnly
+                    fullWidth={false}
+                    className="shrink-0"
+                    value={invite.role}
+                    onChange={(nextRole) => changeRole(invite.user, nextRole)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(invite.user)}
+                    aria-label={`Remove ${invite.user}`}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--r-sm)] text-app-muted opacity-60 transition-all hover:text-app-danger group-hover:opacity-100"
+                  >
+                    <FontAwesomeIcon icon={faTrash} className="text-sm" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+      </div>
+    );
 
   return (
     <div className="flex flex-col gap-5 text-left">

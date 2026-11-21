@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useUiVersion } from "../../../../hooks/useUiVersion";
 import { StagedSubscriptionRow } from "./StagedSubscriptionRow";
 import type {
   SubscriptionRequest,
@@ -43,40 +44,57 @@ export function StagedSubscriptionList({
   // Which row is expanded (only one at a time).
   const [expanded, setExpanded] = useState<number | null>(null);
   const toggle = (i: number) => setExpanded((cur) => (cur === i ? null : i));
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
+
+  const rows = value.map((sub, i) => (
+    <StagedSubscriptionRow
+      key={`${sub.name}-${i}`}
+      sub={sub}
+      tags={tags}
+      currencySymbol={currencySymbol}
+      accentColor={accentColor}
+      open={expanded === i}
+      onToggle={() => toggle(i)}
+      onRemove={() => onRemove(i)}
+      onReassignTag={(name) => {
+        onReassignTag(i, name);
+        setExpanded(null);
+      }}
+      onCreateTag={() => {
+        onCreateTagFor(i);
+        setExpanded(null);
+      }}
+      onEdit={(patch) => onEdit(i, patch)}
+    />
+  ));
+
+  const count = `${value.length} subscription${value.length === 1 ? "" : "s"} ready`;
+
+  if (isV2) {
+    // ui-v2-switch: a grouped card under a sentence-case label, like the v2 list.
+    // No overflow clip (the tag dropdown is absolutely positioned, see below).
+    return (
+      <div className="flex flex-col">
+        <h3 className="mb-2 px-1 text-[13px] text-app-muted">{count}</h3>
+        <ul className="divide-y divide-app-border rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+          {rows}
+        </ul>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-[var(--r-input)] border border-app-border bg-app-input">
       <div className="border-b border-app-border px-3 py-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-app-muted">
-          {value.length} subscription{value.length === 1 ? "" : "s"} ready
+          {count}
         </span>
       </div>
 
       {/* No overflow clip here: the row's tag dropdown is absolutely positioned
           (not portaled), so an overflow container would cut it off. */}
-      <ul className="divide-y divide-app-border">
-        {value.map((sub, i) => (
-          <StagedSubscriptionRow
-            key={`${sub.name}-${i}`}
-            sub={sub}
-            tags={tags}
-            currencySymbol={currencySymbol}
-            accentColor={accentColor}
-            open={expanded === i}
-            onToggle={() => toggle(i)}
-            onRemove={() => onRemove(i)}
-            onReassignTag={(name) => {
-              onReassignTag(i, name);
-              setExpanded(null);
-            }}
-            onCreateTag={() => {
-              onCreateTagFor(i);
-              setExpanded(null);
-            }}
-            onEdit={(patch) => onEdit(i, patch)}
-          />
-        ))}
-      </ul>
+      <ul className="divide-y divide-app-border">{rows}</ul>
     </div>
   );
 }

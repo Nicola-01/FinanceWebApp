@@ -99,6 +99,7 @@ services:
       APP_API_URL: ${BACKEND_URL:-}
       APP_VERSION: ${APP_VERSION:-dev}
       APP_BUILD_DATE: ${APP_BUILD_DATE:-}
+      APP_MCP_URL: ${MCP_SERVER_URL:-}
 
   # 4. MCP Server
   mcp:

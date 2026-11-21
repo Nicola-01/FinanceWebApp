@@ -6,6 +6,7 @@ import {
   faExclamationTriangle,
 } from "@fortawesome/free-solid-svg-icons";
 import Button from "../../components/ui/Button";
+import { useUiVersion } from "../../hooks/useUiVersion";
 
 interface PatShowTokenViewProps {
   generatedToken: string;
@@ -20,6 +21,65 @@ export const PatShowTokenView: React.FC<PatShowTokenViewProps> = ({
   onCopy,
   onDone,
 }) => {
+  const [ui] = useUiVersion(); // ui-v2-switch
+  const isV2 = ui === "v2";
+
+  if (isV2) {
+    return (
+      <div className="flex flex-col gap-4">
+        {/* Warning card */}
+        <div className="flex items-start gap-3 rounded-[var(--r-card)] bg-app-card p-4 shadow-[inset_3px_0_0_var(--color-app-warn),var(--box-ring)]">
+          <FontAwesomeIcon
+            icon={faExclamationTriangle}
+            className="mt-0.5 shrink-0 text-app-warn"
+          />
+          <div className="text-[13px] text-app-text">
+            <p className="font-semibold">Copy your token now!</p>
+            <p className="mt-0.5">
+              This token will only be shown once. You won't be able to see it
+              again after closing this dialog.
+            </p>
+          </div>
+        </div>
+
+        {/* Token display */}
+        <div className="flex flex-col gap-3">
+          <div className="rounded-[var(--r-card)] bg-app-raised p-4 break-all tabular-nums text-[13px]">
+            <code
+              id="pat-generated-token"
+              className="block select-all text-app-text"
+            >
+              {generatedToken}
+            </code>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              id="pat-copy-btn"
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={onCopy}
+              title="Copy to clipboard"
+            >
+              <FontAwesomeIcon icon={copied ? faCheck : faCopy} />
+              {copied ? "Copied" : "Copy"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Done button */}
+        <Button
+          id="pat-done-btn"
+          variant="secondary"
+          fullWidth
+          onClick={onDone}
+        >
+          I've copied the token
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       {/* Warning banner */}

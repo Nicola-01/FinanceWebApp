@@ -1,6 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { TagBadge } from "../../../../components/ui/TagBadge";
+import { CategoryIcon } from "../../../../components/ui/CategoryIcon";
+import { Checkbox } from "../../../../components/ui/Checkbox";
+import { useUiVersion } from "../../../../hooks/useUiVersion";
 import { RECOMMENDED_TAG_GROUPS } from "../recommendedTags";
 import {
   RECOMMENDED_SUBSCRIPTIONS,
@@ -54,12 +57,74 @@ export function RecommendedSubscriptionPicker({
   onStage,
   onUnstage,
 }: RecommendedSubscriptionPickerProps) {
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
   const stagedByName = new Map(staged.map((s) => [s.name, s]));
 
   const toggle = (s: RecommendedSubscription) => {
     if (stagedByName.has(s.name)) onUnstage(s.name);
     else onStage(s, s.amount);
   };
+
+  if (isV2) {
+    // ui-v2-switch: one card of rows, each with a shared Checkbox.
+    return (
+      <div className="flex flex-col">
+        <h3 className="mb-2 px-1 text-[13px] text-app-muted">Recommended</h3>
+        <ul className="custom-scrollbar max-h-72 divide-y divide-app-border overflow-y-auto rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+          {RECOMMENDED_SUBSCRIPTIONS.map((s) => {
+            const current = stagedByName.get(s.name);
+            const type = current?.type ?? s.type;
+            const shownAmount = current ? current.amount : s.amount;
+            // Reflect edits made in the staged list; fall back to the defaults a
+            // fresh stage would use (monthly, interval 1).
+            const frequency = formatFrequency(
+              current?.frequencyInterval ?? 1,
+              current?.frequencyType ?? "MONTHLY",
+            );
+            return (
+              <li key={s.name}>
+                {/* The whole row is the Checkbox's label, so one control per row. */}
+                <Checkbox
+                  state={current !== undefined}
+                  onChange={() => toggle(s)}
+                  aria-label={s.name}
+                  className="w-full px-4 py-3 text-left"
+                  label={
+                    <span className="flex w-full min-w-0 items-center gap-3">
+                      <CategoryIcon
+                        icon={s.tag.icon}
+                        color={s.tag.colorHex}
+                        size="sm"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[15px] font-semibold text-app-text">
+                          {s.name}
+                        </span>
+                        <span className="block truncate text-[13px] text-app-muted">
+                          {s.tag.name} · {frequency}
+                        </span>
+                      </span>
+                      <span
+                        className={`shrink-0 font-semibold tabular-nums ${
+                          type === "INCOME"
+                            ? "text-app-income"
+                            : "text-app-text"
+                        }`}
+                      >
+                        {type === "INCOME" ? "+" : "-"}
+                        {shownAmount} {currencySymbol}
+                      </span>
+                    </span>
+                  }
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">

@@ -11,6 +11,7 @@ import { IconPickerButton } from "../../../../components/icon/IconPickerButton";
 import { Icon } from "../../../../components/icon/Icon";
 import type { IconKey } from "../../../../utils/icons";
 import type { TagRequest } from "../../../../dashboard/settings/csvImport";
+import { useUiVersion } from "../../../../hooks/useUiVersion";
 
 /** Sensible defaults so a tag is valid the moment a name is typed. */
 const DEFAULT_ICON: IconKey = "tag";
@@ -49,6 +50,8 @@ export function TagCreateMode({
   const [colorHex, setColorHex] = useState(DEFAULT_COLOR);
   const [parentName, setParentName] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [ui] = useUiVersion();
+  const v2 = ui === "v2"; // ui-v2-switch
 
   // Only top-level tags (no parent) can be nested under — the backend model is
   // parent → child, so a sub-tag can't itself be a parent here.
@@ -96,11 +99,22 @@ export function TagCreateMode({
           ? `Name must be ${MIN_NAME}–${MAX_NAME} characters.`
           : null;
 
-  return (
-    <div className="flex flex-col gap-4 rounded-[var(--r-card)] border border-app-border bg-app-surface p-4 text-left">
+  // Shared rows: v1 stacks them in one bordered box, v2 in a grouped card.
+  const rows = (
+    <>
       {/* Name + icon/colour */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold uppercase tracking-wider text-app-muted">
+      <div
+        className={
+          v2 ? "flex flex-col gap-1.5 px-4 py-2.5" : "flex flex-col gap-1.5"
+        }
+      >
+        <span
+          className={
+            v2
+              ? "text-[13px] text-app-muted"
+              : "text-xs font-semibold uppercase tracking-wider text-app-muted"
+          }
+        >
           Category name
         </span>
         <div className="flex items-center gap-2">
@@ -129,12 +143,32 @@ export function TagCreateMode({
             />
           </div>
         </div>
-        {hint && <p className="text-xs text-app-red">{hint}</p>}
+        {hint && (
+          <p
+            className={
+              v2 ? "text-[13px] text-app-danger" : "text-xs text-app-red"
+            }
+          >
+            {hint}
+          </p>
+        )}
       </div>
 
       {/* Optional parent */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-xs font-semibold uppercase tracking-wider text-app-muted">
+      <div
+        className={
+          v2
+            ? "flex items-center justify-between gap-3 px-4 py-2.5"
+            : "flex flex-col gap-1.5"
+        }
+      >
+        <span
+          className={
+            v2
+              ? "text-[15px] text-app-text"
+              : "text-xs font-semibold uppercase tracking-wider text-app-muted"
+          }
+        >
           Subcategory of
         </span>
         <CustomSelect
@@ -142,21 +176,46 @@ export function TagCreateMode({
           onChange={setParentName}
           options={parentOptions}
           activeColor={accentColor}
-          className="w-full rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3.5 py-2.5 text-sm text-app-text"
+          className={
+            v2
+              ? "w-56 max-w-[60%] bg-transparent text-right text-[15px] text-app-text"
+              : "w-full rounded-[var(--r-input)] border border-app-border bg-app-input/70 px-3.5 py-2.5 text-sm text-app-text"
+          }
         />
       </div>
+    </>
+  );
 
-      <Button
-        type="button"
-        fullWidth
-        ripple
-        accentColor={accentColor}
-        onClick={handleAdd}
-        disabled={!canAdd}
-      >
-        <FontAwesomeIcon icon={faPlus} />
-        Add category
-      </Button>
+  const addButton = (
+    <Button
+      type="button"
+      fullWidth
+      ripple
+      accentColor={accentColor}
+      onClick={handleAdd}
+      disabled={!canAdd}
+    >
+      <FontAwesomeIcon icon={faPlus} />
+      Add category
+    </Button>
+  );
+
+  // ui-v2-switch
+  if (v2) {
+    return (
+      <div className="flex flex-col gap-4 text-left">
+        <div className="divide-y divide-app-border overflow-hidden rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+          {rows}
+        </div>
+        {addButton}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4 rounded-[var(--r-card)] border border-app-border bg-app-surface p-4 text-left">
+      {rows}
+      {addButton}
     </div>
   );
 }

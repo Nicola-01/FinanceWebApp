@@ -201,3 +201,41 @@ export const MICRO_EXPENSES: MicroExpense[] = [
   { emoji: "🚕", label: "Taxi", amount: 9.0 },
   { emoji: "🍔", label: "Lunch", amount: 8.5 },
 ];
+
+/* UI v2 landing: problem-band chips (icon keys from utils/icons.ts). */
+export const V2_MICRO_EXPENSES = [
+  { icon: "coffee", color: "#fb923c", label: "Coffee", amount: 3.5 },
+  { icon: "movies", color: "#f472b6", label: "Streaming", amount: 12.99 },
+  { icon: "car", color: "#60a5fa", label: "Parking", amount: 2.0 },
+  { icon: "cart", color: "#fbbf24", label: "Croissant", amount: 1.8 },
+  { icon: "car", color: "#60a5fa", label: "Taxi", amount: 9.0 },
+  { icon: "dining", color: "#fbbf24", label: "Lunch", amount: 8.5 },
+];
+
+/* UI v2 landing: trust section items. */
+export const V2_TRUST_ITEMS = [
+  {
+    icon: "eye",
+    color: "#a78bfa",
+    title: "Open source",
+    text: "Read every line on GitHub, including the code that handles your money.",
+  },
+  {
+    icon: "server",
+    color: "#60a5fa",
+    title: "Self-hostable",
+    text: "Run the whole stack on your own server with Docker Compose.",
+  },
+  {
+    icon: "ban",
+    color: "#f472b6",
+    title: "No ads",
+    text: "No ads, no tracking pixels, and no selling of your transactions.",
+  },
+  {
+    icon: "invoice",
+    color: "#34d399",
+    title: "Bring your history",
+    text: "Import past transactions from a CSV file and start from real numbers.",
+  },
+];

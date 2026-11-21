@@ -10,6 +10,7 @@ import Button from "../../components/ui/Button";
 import { AccountRow } from "./AccountRow";
 import { IconAction } from "./IconAction";
 import { OtpInput } from "./OtpInput";
+import { useUiVersion } from "../../hooks/useUiVersion";
 import { useEmailChange } from "./useEmailChange";
 
 /** Email row — masked; change requires double OTP verification. */
@@ -33,10 +34,19 @@ export const EmailChangeRow: React.FC<{
     cancelPendingEmailChange,
   } = useEmailChange(onUpdated);
 
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
+
   if (emailStep === "idle") {
     return (
       <AccountRow label="Email" icon={faEnvelope}>
-        <span className="truncate text-sm font-semibold text-app-text">
+        <span
+          className={
+            isV2
+              ? "truncate text-[15px] text-app-text"
+              : "truncate text-sm font-semibold text-app-text"
+          }
+        >
           {email ?? "—"}
         </span>
         <IconAction
@@ -49,13 +59,17 @@ export const EmailChangeRow: React.FC<{
   }
 
   return (
-    <div className="bg-app-input px-4 py-3">
+    <div className={isV2 ? "px-4 py-3" : "bg-app-input px-4 py-3"}>
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3 text-app-muted">
           <FontAwesomeIcon icon={faEnvelope} className="w-4" />
-          <span className="text-[11px] font-bold uppercase tracking-wider">
-            Email
-          </span>
+          {isV2 ? (
+            <span className="text-[15px] text-app-text">Email</span>
+          ) : (
+            <span className="text-[11px] font-bold uppercase tracking-wider">
+              Email
+            </span>
+          )}
         </div>
 
         {emailStep === "request" ? (
@@ -65,7 +79,7 @@ export const EmailChangeRow: React.FC<{
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="new@email.com"
-              className="text-sm"
+              className={isV2 ? "text-[15px]" : "text-sm"}
               autoFocus
               disabled={emailBusy}
               onKeyDown={(e) => e.key === "Enter" && requestEmailChange()}
@@ -91,7 +105,11 @@ export const EmailChangeRow: React.FC<{
           </>
         ) : (
           <>
-            <p className="text-xs text-app-muted">
+            <p
+              className={
+                isV2 ? "text-[13px] text-app-muted" : "text-xs text-app-muted"
+              }
+            >
               We sent a 6-digit code to your current and your new email address.
             </p>
             <OtpInput

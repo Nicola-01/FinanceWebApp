@@ -18,6 +18,7 @@ import {
   type RecommendedSubscription,
 } from "./subscriptionModes/recommendedSubscriptions";
 import { addTagToDraft } from "./tagDraft";
+import { useUiVersion } from "../../../hooks/useUiVersion";
 import { CURRENCY_META, type CurrencyCode } from "../../../utils/currencies";
 import type {
   SubscriptionRequest,
@@ -60,6 +61,8 @@ export function SubscriptionsStep({
   onTagsChange,
 }: SubscriptionsStepProps) {
   const [mode, setMode] = useState<SubMode>("recommended");
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   const currencySymbol = useMemo(
     () => CURRENCY_META[currency as CurrencyCode]?.symbol ?? currency,
@@ -97,7 +100,7 @@ export function SubscriptionsStep({
   };
 
   return (
-    <div className="flex flex-col gap-5 text-left">
+    <div className={`flex flex-col text-left ${isV2 ? "gap-6" : "gap-5"}`}>
       <WizardStepHeader
         icon={faArrowsRotate}
         title="Subscriptions"

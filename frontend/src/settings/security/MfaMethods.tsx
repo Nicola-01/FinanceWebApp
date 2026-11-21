@@ -10,6 +10,7 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import { ComingSoonBadge } from "../ComingSoon";
+import { StatusPill } from "../../components/ui/StatusPill";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 
 interface MfaMethodProps {
@@ -49,17 +50,36 @@ const MfaMethod: React.FC<MfaMethodProps> = ({
 }) => {
   const [ui] = useUiVersion();
   const isV2 = ui === "v2"; // ui-v2-switch
+  if (isV2) {
+    // ui-v2-switch: one divided list row; status pill + shared buttons.
+    return (
+      <div className="flex min-h-14 flex-wrap items-center gap-3 px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[15px] text-app-text">{title}</span>
+            {recommended && (
+              <Badge variant="subtle" tone="brand">
+                Recommended
+              </Badge>
+            )}
+          </div>
+          <p className="text-[13px] text-app-muted">{description}</p>
+        </div>
+        <StatusPill status="warn">Not set up</StatusPill>
+        <div className="flex items-center gap-2">
+          <ComingSoonBadge />
+          <Button variant="secondary" size="sm" disabled>
+            Enable
+          </Button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div
-      className={
-        isV2
-          ? `flex flex-col gap-3 rounded-[var(--r-input)] bg-app-input p-5 ${
-              recommended ? "ring-1 ring-[var(--brand-1)]/40" : ""
-            }`
-          : `flex flex-col gap-3 rounded-[var(--r-input)] border bg-app-input p-4 ${
-              recommended ? "border-[var(--brand-1)]/40" : "border-app-border"
-            }`
-      }
+      className={`flex flex-col gap-3 rounded-[var(--r-input)] border bg-app-input p-4 ${
+        recommended ? "border-[var(--brand-1)]/40" : "border-app-border"
+      }`}
     >
       <div className="flex items-center gap-3">
         <span
@@ -94,16 +114,39 @@ const MfaMethod: React.FC<MfaMethodProps> = ({
 };
 
 /** Two-factor authentication card (all methods are "coming soon"). */
-export const MfaMethods: React.FC = () => (
-  <Card
-    title="Two-factor authentication"
-    subtitle="Add a second step when signing in"
-    icon={faFingerprint}
-  >
-    <div className="grid gap-4 sm:grid-cols-3">
-      {MFA_METHODS.map((m) => (
-        <MfaMethod key={m.title} {...m} />
-      ))}
-    </div>
-  </Card>
-);
+export const MfaMethods: React.FC = () => {
+  const [ui] = useUiVersion();
+  if (ui === "v2") {
+    // ui-v2-switch: a flat card listing the methods as divided rows.
+    return (
+      <Card padding="none">
+        <div className="flex flex-col gap-1 px-4 pt-4 pb-3">
+          <h2 className="font-display text-lg font-semibold tracking-[-0.02em] text-app-text">
+            Two-factor authentication
+          </h2>
+          <p className="text-[13px] text-app-muted">
+            Add a second step when signing in
+          </p>
+        </div>
+        <div className="flex flex-col divide-y divide-app-border">
+          {MFA_METHODS.map((m) => (
+            <MfaMethod key={m.title} {...m} />
+          ))}
+        </div>
+      </Card>
+    );
+  }
+  return (
+    <Card
+      title="Two-factor authentication"
+      subtitle="Add a second step when signing in"
+      icon={faFingerprint}
+    >
+      <div className="grid gap-4 sm:grid-cols-3">
+        {MFA_METHODS.map((m) => (
+          <MfaMethod key={m.title} {...m} />
+        ))}
+      </div>
+    </Card>
+  );
+};

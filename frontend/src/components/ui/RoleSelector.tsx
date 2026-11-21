@@ -36,15 +36,18 @@ export function RoleSelector({
   iconOnly = false,
 }: RoleSelectorProps): JSX.Element {
   const [ui] = useUiVersion();
-  // ui-v2-switch: the active segment is the raised fill in v2.
-  const activeBgClass = ui === "v2" ? "bg-app-raised" : "bg-app-surface";
+  // ui-v2-switch: v2 uses the SegmentedControl's own active pill/track, so no
+  // per-option background override (Selector ignores activeBgClass in v2).
+  const isV2 = ui === "v2";
+  const activeBgClass = isV2 ? undefined : "bg-app-surface";
   return (
     <Selector<WalletRole>
       value={value}
       onChange={onChange}
       size={size}
       fullWidth={fullWidth}
-      className={className}
+      // ui-v2-switch: a content-width track must not shrink below its buttons.
+      className={isV2 && !fullWidth ? `w-max shrink-0 ${className}` : className}
       options={[
         {
           value: "VIEWER",

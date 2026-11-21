@@ -61,8 +61,14 @@ export const TransactionsHero: React.FC = () => {
   ]);
   const label = periodLabel(dateRange, datePreset);
 
+  // Without investment tiles, Income and Spent stack in one column beside Net.
+  const outerCols = hasInvestments
+    ? "lg:grid-cols-[1.5fr_1fr]"
+    : "lg:grid-cols-[2fr_1fr]";
+  const tilesCols = hasInvestments ? "" : " lg:grid-cols-1";
+
   return (
-    <div className="grid gap-3.5 lg:grid-cols-[1.5fr_1fr] mb-6">
+    <div className={`grid gap-3.5 ${outerCols} mb-6`}>
       <WalletHeroCard
         color={wallet.color}
         label={label ? `Net in ${label}` : "Net in this period"}
@@ -77,7 +83,7 @@ export const TransactionsHero: React.FC = () => {
       />
       <div
         ref={tilesRef}
-        className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3.5"
+        className={`grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3.5${tilesCols}`}
       >
         <StatTile
           label="Income"

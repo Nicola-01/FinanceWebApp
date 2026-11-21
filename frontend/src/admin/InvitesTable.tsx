@@ -6,6 +6,14 @@ import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { Collapse } from "../components/ui/Collapse.tsx";
+import Button from "../components/ui/Button";
+import { StatusPill, type Status } from "../components/ui/StatusPill";
+import { useUiVersion } from "../hooks/useUiVersion";
+
+const STATUS_TONE: Record<string, Status> = {
+  ACCEPTED: "ok",
+  PENDING: "warn",
+};
 
 export interface AdminInvite {
   email: string;
@@ -26,6 +34,7 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({
   onRevoke,
 }) => {
   const now = useNow();
+  const [ui] = useUiVersion();
 
   const getTimeRemaining = (expiresAt: string) => {
     const total = new Date(expiresAt).getTime() - now;
@@ -50,6 +59,80 @@ export const InvitesTable: React.FC<InvitesTableProps> = ({
   if (invites.length === 0) return null;
 
   const hasPending = invites.some((i) => i.status === "PENDING");
+
+  if (ui === "v2") {
+    // ui-v2-switch: one card of list rows, status as a StatusPill.
+    return (
+      <Card padding="none">
+        <ul className="divide-y divide-app-border">
+          {invites.map((invite) => {
+            const isExpired =
+              invite.status === "PENDING" &&
+              new Date(invite.expiresAt).getTime() - now <= 0;
+            const displayStatus = isExpired ? "EXPIRED" : invite.status;
+            const isActive = displayStatus === "PENDING";
+            const label =
+              displayStatus.charAt(0) + displayStatus.slice(1).toLowerCase();
+            return (
+              <li
+                key={`${invite.email}-${invite.createdAt}`}
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 sm:px-6"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[14px] font-semibold text-app-text">
+                    {invite.email}
+                  </div>
+                  <div className="truncate text-[13px] text-app-muted">
+                    {invite.note || "No note"}
+                  </div>
+                </div>
+                <StatusPill status={STATUS_TONE[displayStatus] ?? "danger"}>
+                  {label}
+                </StatusPill>
+                <span className="min-w-[7rem] text-right text-[13px] tabular-nums text-app-muted">
+                  {isActive ? (
+                    <>
+                      <FontAwesomeIcon
+                        icon={faClock}
+                        className="mr-1.5 opacity-60"
+                      />
+                      {getTimeRemaining(invite.expiresAt)}
+                    </>
+                  ) : (
+                    "—"
+                  )}
+                </span>
+                <div className="flex items-center gap-1">
+                  {isActive && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Copy invite link"
+                      aria-label={`Copy invite link for ${invite.email}`}
+                      onClick={() => handleCopyUrl(invite.url)}
+                    >
+                      <FontAwesomeIcon icon={faCopy} />
+                    </Button>
+                  )}
+                  {isActive && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      title="Revoke invitation"
+                      aria-label={`Revoke invitation for ${invite.email}`}
+                      onClick={() => onRevoke(invite.email)}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </Button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
+    );
+  }
 
   return (
     <Collapse

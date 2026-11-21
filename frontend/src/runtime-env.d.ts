@@ -5,6 +5,7 @@ interface RuntimeEnv {
   apiUrl?: string;
   version?: string;
   date?: string;
+  mcpUrl?: string;
 }
 
 interface Window {

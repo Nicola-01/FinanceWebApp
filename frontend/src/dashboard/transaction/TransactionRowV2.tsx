@@ -48,13 +48,14 @@ export const TransactionRowV2: React.FC<TransactionRowV2Props> = ({
     }
   };
 
+  // Hard-coded amber (the dark-theme warn colour): the light --color-app-warn is a dark text colour, too heavy for a bar.
   return (
     <div
       role="button"
       tabIndex={0}
       onClick={() => onClick(tx)}
       onKeyDown={onKeyDown}
-      className={`grid cursor-pointer ${tx.needsReview ? "grid-cols-[40px_minmax(0,1fr)_auto] sm:grid-cols-[40px_minmax(0,1fr)_auto_auto]" : "grid-cols-[40px_minmax(0,1fr)_auto]"} items-center gap-x-3 gap-y-1.5 rounded-[var(--r-input)] px-3 py-2.5 hover:bg-app-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-text ${tx.needsReview ? "shadow-[inset_3px_0_0_var(--color-app-warn)]" : ""}`}
+      className={`grid cursor-pointer ${tx.needsReview ? "grid-cols-[40px_minmax(0,1fr)_auto] sm:grid-cols-[40px_minmax(0,1fr)_auto_auto]" : "grid-cols-[40px_minmax(0,1fr)_auto]"} items-center gap-x-3 gap-y-1.5 rounded-[var(--r-input)] px-3 py-2.5 hover:bg-app-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-app-text ${tx.needsReview ? "shadow-[inset_3px_0_0_#f0b85a]" : ""}`}
     >
       {tx.needsReview ? (
         <span className="grid h-10 w-10 place-items-center rounded-[11px] bg-app-raised text-app-muted">

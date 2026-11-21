@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { faCalendarDays, faHashtag } from "@fortawesome/free-solid-svg-icons";
 import Button from "../../../../components/ui/Button";
 import { FieldLabel } from "../../../../components/ui/FieldLabel";
+import { FormRow } from "../../../../components/ui/FormRow";
 import { AmountInput } from "../../../../components/ui/AmountInput";
 import { TagTreePicker } from "../../../../components/tags/TagTreePicker";
 import CustomDatePicker from "../../../../components/datePicker/CustomDatePicker";
@@ -12,6 +14,7 @@ import {
 } from "../../../common/SchedulingRules";
 import { CURRENCY_META, type CurrencyCode } from "../../../../utils/currencies";
 import { toLocalIsoDate } from "../../../../utils/localDate";
+import { useUiVersion } from "../../../../hooks/useUiVersion";
 import type {
   SubscriptionRequest,
   TagRequest,
@@ -55,6 +58,8 @@ export function SubscriptionCreateMode({
   // Bumped on every add to remount the date picker: it reads `initialStartDate`
   // only at mount, so resetting the state alone wouldn't clear its display.
   const [resetNonce, setResetNonce] = useState(0);
+  const [ui] = useUiVersion();
+  const isV2 = ui === "v2"; // ui-v2-switch
 
   const currencySymbol =
     CURRENCY_META[currency as CurrencyCode]?.symbol ?? currency;
@@ -99,6 +104,101 @@ export function SubscriptionCreateMode({
     setResetNonce((n) => n + 1);
   };
 
+  const amountBlock = (
+    <div className="flex flex-col items-center justify-center py-2">
+      <AmountInput
+        value={amount}
+        type={type}
+        setType={setType}
+        currencySymbol={currencySymbol}
+        autoFocus={false}
+        onAmountChange={setAmount}
+      />
+      <TransactionTypeToggle type={type} setType={setType} />
+    </div>
+  );
+
+  const cta = (
+    <Button
+      type="button"
+      fullWidth
+      ripple
+      size="lg"
+      accentColor={accentColor}
+      onClick={handleAdd}
+      disabled={!canAdd}
+      aria-label="Add subscription"
+    >
+      Add subscription
+    </Button>
+  );
+
+  if (isV2) {
+    // ui-v2-switch: sentence-case groups of FormRow cards, like the v2 form.
+    return (
+      <div className="flex flex-col gap-6 text-left">
+        {!hasTags && (
+          <p className="rounded-[var(--r-input)] bg-app-raised px-3 py-2 text-[13px] text-app-warn shadow-[inset_3px_0_0_var(--color-app-warn)]">
+            Add at least one tag in the previous step to categorise a custom
+            subscription.
+          </p>
+        )}
+
+        {amountBlock}
+
+        <div className="rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+          <FormRow icon={faHashtag} label="Category">
+            <TagTreePicker
+              tags={tags}
+              color={accentColor}
+              selectedTagName={tagName}
+              onSelectTag={setTagName}
+            />
+          </FormRow>
+        </div>
+
+        <div className="flex flex-col">
+          <h3 className="mb-2 px-1 text-[13px] text-app-muted">Schedule</h3>
+          <div className="divide-y divide-app-border rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
+            <FormRow icon={faCalendarDays} label="Start date">
+              <CustomDatePicker
+                key={resetNonce}
+                isRange={false}
+                color={accentColor}
+                initialPreset="custom"
+                initialStartDate={startDate}
+                onChange={(val) => {
+                  if (val instanceof Date) setStartDate(val);
+                }}
+                triggerClassName="bg-transparent shadow-none justify-end px-0"
+                triggerAlign="right"
+                dropdownAlign="right"
+              />
+            </FormRow>
+            {/* Status is hidden: a subscription staged for a brand-new wallet is always ACTIVE. */}
+            <SchedulingRules
+              variant="rows"
+              frequencyInterval={frequencyInterval}
+              onFrequencyIntervalChange={setFrequencyInterval}
+              frequencyType={frequencyType}
+              onFrequencyTypeChange={setFrequencyType}
+              duration={duration}
+              onDurationChange={setDuration}
+              durationTimes={durationTimes}
+              onDurationTimesChange={setDurationTimes}
+              durationUntil={durationUntil}
+              onDurationUntilChange={setDurationUntil}
+              showStatus={false}
+              accentColor={accentColor}
+            />
+          </div>
+        </div>
+
+        {cta}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 rounded-[var(--r-card)] border border-app-border bg-app-surface p-4 text-left">
       {!hasTags && (
@@ -109,17 +209,7 @@ export function SubscriptionCreateMode({
       )}
 
       {/* 1. AMOUNT AREA — same block as the subscription modal */}
-      <div className="flex flex-col items-center justify-center py-2">
-        <AmountInput
-          value={amount}
-          type={type}
-          setType={setType}
-          currencySymbol={currencySymbol}
-          autoFocus={false}
-          onAmountChange={setAmount}
-        />
-        <TransactionTypeToggle type={type} setType={setType} />
-      </div>
+      {amountBlock}
 
       {/* 2. CATEGORY & START DATE */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -165,18 +255,7 @@ export function SubscriptionCreateMode({
         accentColor={accentColor}
       />
 
-      <Button
-        type="button"
-        fullWidth
-        ripple
-        size="lg"
-        accentColor={accentColor}
-        onClick={handleAdd}
-        disabled={!canAdd}
-        aria-label="Add subscription"
-      >
-        Add subscription
-      </Button>
+      {cta}
     </div>
   );
 }
