@@ -319,7 +319,21 @@ export const WalletsBar: React.FC<WalletsAreaProps> = ({
                   </>
                 )}
                 <div className={label}>Wallets</div>
-                {walletList}
+                {/* Claim touches on the wallet list so MUI's swipe-to-close
+                    skips them and dnd-kit's long-press reorder wins; the grab
+                    handle, labels, invites and empty areas still swipe to close. */}
+                <div
+                  className="grid gap-2"
+                  onTouchStart={(e) => {
+                    (
+                      e.nativeEvent as TouchEvent & {
+                        defaultMuiPrevented?: boolean;
+                      }
+                    ).defaultMuiPrevented = true;
+                  }}
+                >
+                  {walletList}
+                </div>
                 {!loading && (
                   <Button
                     variant="ghost"

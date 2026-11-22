@@ -395,3 +395,35 @@ describe("StatisticsV2", () => {
     ).toBe(false);
   });
 });
+
+describe("StatisticsV2 loading", () => {
+  it("keeps the page instead of the empty state and tells the charts they are loading", () => {
+    for (const k of Object.keys(calls)) delete calls[k];
+    render(
+      <StatisticsV2
+        transactions={[]}
+        currency="EUR"
+        walletId={WALLET_ID}
+        accentColor="#123456"
+        isLoading
+      />,
+    );
+    expect(screen.queryByText("No statistics yet")).not.toBeInTheDocument();
+    expect(last("MonthByMonthChart").loading).toBe(true);
+    expect(last("MonthByMonthChart").rows).toEqual([]);
+    expect(last("StatisticsSummaryV2").loading).toBe(true);
+    expect(last("WorthKnowingCard").loading).toBe(true);
+    // No insights are computed from the empty list while loading.
+    expect(last("WorthKnowingCard").insights).toEqual([]);
+    expect(last("YearWaterfallChart").loading).toBe(true);
+    expect(last("BalanceProjectionChart").loading).toBe(true);
+  });
+
+  it("renders the real charts with data once loaded", () => {
+    for (const k of Object.keys(calls)) delete calls[k];
+    renderPage();
+    expect(last("MonthByMonthChart").loading).toBe(false);
+    expect(last("MonthByMonthChart").rows.length).toBeGreaterThan(0);
+    expect(last("BalanceProjectionChart").loading).toBe(false);
+  });
+});

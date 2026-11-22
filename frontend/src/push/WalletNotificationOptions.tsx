@@ -11,6 +11,9 @@ interface Props {
   onChange: (next: WalletNotificationPrefs) => void;
   /** Flat accent for the toggles (e.g. `wallet.color`); brand gradient otherwise. */
   accentColor?: string;
+  size?: "sm" | "md";
+  /** Greys out every toggle (e.g. while the wallet is muted). */
+  disabled?: boolean;
 }
 
 /**
@@ -21,6 +24,8 @@ export const WalletNotificationOptions: React.FC<Props> = ({
   prefs,
   onChange,
   accentColor,
+  size = "sm",
+  disabled = false,
 }) => {
   const [ui] = useUiVersion();
   const isV2 = ui === "v2"; // ui-v2-switch
@@ -44,10 +49,11 @@ export const WalletNotificationOptions: React.FC<Props> = ({
             </span>
           </div>
           <Toggle
-            size="sm"
+            size={size}
             checked={prefs[opt.key]}
             onChange={(next) => onChange({ ...prefs, [opt.key]: next })}
             accentColor={accentColor}
+            disabled={disabled}
             aria-label={opt.label}
           />
         </div>

@@ -4,12 +4,17 @@ import userEvent from "@testing-library/user-event";
 import { setUiVersion } from "../../../utils/uiVersion";
 import { SubscriptionTab } from "../../../dashboard/subscription/SubscriptionTab";
 
+const loading = vi.hoisted(() => ({
+  isLoading: false,
+  subscriptions: [{ id: "s1" }] as unknown[],
+}));
+
 vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
   useWalletContext: () => ({
-    subscriptions: [{ id: "s1" }],
+    subscriptions: loading.subscriptions,
     transactions: [],
     fetchData: vi.fn(),
-    isLoading: false,
+    isLoading: loading.isLoading,
     wallet: { id: "w1", color: "#ff0000", currency: "EUR" },
     tags: [],
   }),
@@ -42,6 +47,26 @@ vi.mock("../../../modals/transaction/TransactionModal.tsx", () => ({
 describe("SubscriptionTab view toggle", () => {
   afterEach(() => {
     setUiVersion("v1");
+    loading.isLoading = false;
+    loading.subscriptions = [{ id: "s1" }];
+  });
+
+  it("v2 loading: shows the summary and list skeletons, not the v1 grid", () => {
+    setUiVersion("v2");
+    loading.isLoading = true;
+    loading.subscriptions = [];
+    const { container } = render(<SubscriptionTab />);
+    expect(
+      screen.getByRole("status", { name: "Loading subscriptions" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("subscription-summary-skeleton"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("subscription-list-skeleton"),
+    ).toBeInTheDocument();
+    expect(container.querySelector(".lg\\:grid-cols-3")).toBeNull();
+    expect(screen.queryByText("No subscriptions found")).toBeNull();
   });
 
   it("v2: renders the summary before the List | Calendar toggle", () => {

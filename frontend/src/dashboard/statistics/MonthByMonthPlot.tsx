@@ -13,12 +13,11 @@ import {
 } from "@/components/ui/charts";
 import { MONTH_LABELS } from "../../utils/months.ts";
 import { compactAmount } from "./kitChartData.ts";
+import { MONTH_BY_MONTH_MARGIN } from "./plotMargins.ts";
 import type { MonthByMonthRow } from "./statsChartRows.ts";
 import { useChartPalette } from "./useChartPalette.ts";
 
 export const INVEST_COLOR = "var(--color-app-invest)";
-
-const margin = { top: 16, right: 12, bottom: 28, left: 44 };
 
 export interface MonthByMonthPlotProps {
   /** Plain rows: the transparent overlay and the x axis read these. */
@@ -57,7 +56,7 @@ export const MonthByMonthPlot: React.FC<MonthByMonthPlotProps> = ({
         stacked
         yDomains={yDomains}
         aspectRatio="5 / 2"
-        margin={margin}
+        margin={MONTH_BY_MONTH_MARGIN}
         maxBarSize={28}
         animationDuration={animationDuration}
         ariaLabel="Earned, spent and kept per month"
@@ -116,7 +115,7 @@ export const MonthByMonthPlot: React.FC<MonthByMonthPlotProps> = ({
           stacked
           yDomains={yDomains}
           aspectRatio="5 / 2"
-          margin={margin}
+          margin={MONTH_BY_MONTH_MARGIN}
           maxBarSize={28}
           animationDuration={animationDuration}
           ariaLabel="Kept per month"

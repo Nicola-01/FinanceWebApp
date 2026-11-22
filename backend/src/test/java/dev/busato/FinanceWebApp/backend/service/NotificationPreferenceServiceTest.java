@@ -60,6 +60,8 @@ class NotificationPreferenceServiceTest {
     access.setNotifyTransactions(false);
     access.setNotifyRecurringExecutions(false);
     access.setNotifyBudgets(false);
+    access.setIncludeInMonthlyReport(false);
+    access.setIncludeInYearlyReport(true);
     when(walletAccessRepository.findAllByUserIdAndStatus(
             userId, WalletAccess.InvitationStatus.ACCEPTED))
         .thenReturn(List.of(access));
@@ -78,6 +80,8 @@ class NotificationPreferenceServiceTest {
     assertTrue(w.isSubscriptions());
     assertFalse(w.isRecurringExecutions());
     assertFalse(w.isBudgets());
+    assertFalse(w.isMonthlyReport());
+    assertTrue(w.isYearlyReport());
   }
 
   @Test
@@ -125,6 +129,58 @@ class NotificationPreferenceServiceTest {
     assertFalse(access.isNotifyRecurringExecutions());
     assertTrue(access.isNotifyBudgets());
     verify(walletAccessRepository).save(access);
+  }
+
+  @Test
+  void setWalletPreferences_setsEachReportFlagWhenProvided() {
+    UUID walletId = UUID.randomUUID();
+    WalletAccess access = new WalletAccess();
+    access.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+    when(walletAccessRepository.findByWalletIdAndUserId(walletId, userId))
+        .thenReturn(Optional.of(access));
+
+    service.setWalletPreferences(
+        userId,
+        walletId,
+        WalletNotificationPrefsRequest.builder().monthlyReport(false).yearlyReport(false).build());
+
+    assertFalse(access.isIncludeInMonthlyReport());
+    assertFalse(access.isIncludeInYearlyReport());
+    verify(walletAccessRepository).save(access);
+  }
+
+  @Test
+  void setWalletPreferences_nullReportFlagsKeepStoredValues() {
+    UUID walletId = UUID.randomUUID();
+    WalletAccess access = new WalletAccess();
+    access.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+    access.setIncludeInMonthlyReport(false);
+    access.setIncludeInYearlyReport(false);
+    when(walletAccessRepository.findByWalletIdAndUserId(walletId, userId))
+        .thenReturn(Optional.of(access));
+
+    service.setWalletPreferences(
+        userId, walletId, WalletNotificationPrefsRequest.builder().muted(true).build());
+
+    assertFalse(access.isIncludeInMonthlyReport());
+    assertFalse(access.isIncludeInYearlyReport());
+    assertTrue(access.isNotificationsMuted());
+  }
+
+  @Test
+  void setWalletPreferences_updatesOnlyTheReportFlagProvided() {
+    UUID walletId = UUID.randomUUID();
+    WalletAccess access = new WalletAccess();
+    access.setStatus(WalletAccess.InvitationStatus.ACCEPTED);
+    access.setIncludeInYearlyReport(false);
+    when(walletAccessRepository.findByWalletIdAndUserId(walletId, userId))
+        .thenReturn(Optional.of(access));
+
+    service.setWalletPreferences(
+        userId, walletId, WalletNotificationPrefsRequest.builder().monthlyReport(false).build());
+
+    assertFalse(access.isIncludeInMonthlyReport());
+    assertFalse(access.isIncludeInYearlyReport());
   }
 
   @Test

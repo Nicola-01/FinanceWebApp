@@ -494,3 +494,21 @@ describe("StatisticsSummaryV2", () => {
     });
   });
 });
+
+describe("StatisticsSummaryV2 loading", () => {
+  it("shows skeleton values, sub-lines and sparkline blocks instead of numbers and sparklines", async () => {
+    for (const k of Object.keys(calls)) delete calls[k];
+    const { container } = await renderSettled(
+      <StatisticsSummaryV2 transactions={[]} hasInvestments={false} loading />,
+    );
+    expect(screen.getByText("Kept")).toBeInTheDocument();
+    // Sparklines are replaced by skeleton blocks, so the real charts never mount.
+    expect(calls.AreaSparkline).toBeUndefined();
+    expect(calls.LineSparkline).toBeUndefined();
+    // Four value skeletons, four sub-line skeletons, four sparkline blocks.
+    expect(
+      container.querySelectorAll("[data-stat-value] .animate-pulse"),
+    ).toHaveLength(4);
+    expect(container.querySelectorAll(".animate-pulse")).toHaveLength(12);
+  });
+});

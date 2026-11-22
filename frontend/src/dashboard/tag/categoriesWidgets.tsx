@@ -25,6 +25,8 @@ export interface CategoriesWidgetCtx {
   currencySymbol: string;
   /** Names of the wallet's investment tags (the pies' "↗ Investments" chip). */
   investmentTags: Set<string>;
+  /** Wallet data still loading: the charts and lists draw their skeletons. */
+  loading: boolean;
 }
 
 /**
@@ -47,6 +49,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
         currency={ctx.currencyCode}
         bare={bare}
         investmentTags={ctx.investmentTags}
+        loading={ctx.loading}
       />
     ),
   },
@@ -65,6 +68,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
         currency={ctx.currencyCode}
         bare={bare}
         investmentTags={ctx.investmentTags}
+        loading={ctx.loading}
       />
     ),
   },
@@ -82,6 +86,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
         title="Top Income Categories"
         currency={ctx.currencySymbol}
         bare={bare}
+        loading={ctx.loading}
       />
     ),
   },
@@ -99,6 +104,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
         title="Top Expense Categories"
         currency={ctx.currencySymbol}
         bare={bare}
+        loading={ctx.loading}
       />
     ),
   },
@@ -114,6 +120,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
         transactions={ctx.transactions}
         currency={ctx.currencySymbol}
         bare={bare}
+        loading={ctx.loading}
       />
     ),
   },
@@ -130,6 +137,7 @@ export const CATEGORIES_WIDGETS: WidgetDef<CategoriesWidgetCtx>[] = [
         transactions={ctx.transactions}
         currency={ctx.currencySymbol}
         bare={bare}
+        loading={ctx.loading}
       />
     ),
   },

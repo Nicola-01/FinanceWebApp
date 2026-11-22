@@ -57,6 +57,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
+          aria-invalid={invalid || undefined}
           className={`w-full bg-transparent text-app-text outline-none ${
             // ui-v2-switch
             isV2

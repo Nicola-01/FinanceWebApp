@@ -16,6 +16,7 @@ import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { ConfirmModal } from "../../modals/common/ConfirmModal.tsx";
 
 import { InviteSection } from "./InviteSection";
+import { Skeleton } from "../../components/ui/Skeleton.tsx";
 import { MemberCategory } from "./MemberCategory";
 
 import { useWalletContext } from "../wallet/WalletContext.tsx";
@@ -142,9 +143,20 @@ export const ShareSettingsSection: React.FC = () => {
           )}
 
           {isLoading ? (
-            <div className="flex justify-center py-10 text-app-muted">
-              <FontAwesomeIcon icon={faSpinner} spin className="text-2xl" />
-            </div>
+            isV2 ? ( // ui-v2-switch: member rows (avatar + name line)
+              <div aria-hidden="true" className="flex flex-col gap-3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+                    <Skeleton className="h-3.5 w-1/3" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex justify-center py-10 text-app-muted">
+                <FontAwesomeIcon icon={faSpinner} spin className="text-2xl" />
+              </div>
+            )
           ) : (
             <div className="flex flex-col gap-4">
               <MemberCategory

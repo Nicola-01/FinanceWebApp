@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { faTag } from "@fortawesome/free-solid-svg-icons";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 vi.mock("../../../dashboard/wallet/WalletContext.tsx", () => ({
   useWalletContext: vi.fn(),
@@ -74,6 +75,7 @@ const storedLayout = (layout: TabLayout) =>
 describe("WidgetGrid", () => {
   beforeEach(() => {
     localStorage.clear();
+    setUiVersion("v1");
     mockedCtx.mockReturnValue({
       wallet: { id: "w1", color: "#8b5cf6" },
     });

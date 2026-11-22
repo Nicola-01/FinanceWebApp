@@ -18,6 +18,7 @@ import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { AnimatedNumber } from "../../components/ui/AnimatedNumber.tsx";
 import Button from "../../components/ui/Button.tsx";
 import { isInvestmentTx } from "../../utils/investments.ts";
+import { PieLoadingSkeleton } from "./CategoriesLoadingV2.tsx";
 
 const NO_INVESTMENTS = new Set<string>();
 
@@ -119,6 +120,7 @@ export const TransactionPieChart = ({
   currency = "EUR",
   bare = false,
   investmentTags,
+  loading = false,
 }: {
   transactions: Transaction[];
   type: "INCOME" | "EXPENSE";
@@ -129,6 +131,8 @@ export const TransactionPieChart = ({
   bare?: boolean;
   /** Investment tag names. Given on the Categories tab: shows the "↗ Investments" chip; omitted: no chip. */
   investmentTags?: Set<string>;
+  /** Data still loading: draw the donut skeleton instead of the "no data" state. */
+  loading?: boolean;
 }) => {
   const { resolvedTheme } = useTheme();
   const muiTheme = useMuiTheme();
@@ -190,7 +194,7 @@ export const TransactionPieChart = ({
       </div>
     ) : null;
 
-  if (totalAmount === 0) {
+  if (totalAmount === 0 && !loading) {
     return (
       <div className={shellClass}>
         {header(
@@ -335,10 +339,15 @@ export const TransactionPieChart = ({
                 }
               : {}),
           }}
-          slots={v2 ? { pieArcLabel: V2ArcLabel } : undefined} // ui-v2-switch
+          slots={
+            v2 // ui-v2-switch
+              ? { pieArcLabel: V2ArcLabel, loadingOverlay: PieLoadingSkeleton }
+              : undefined
+          }
+          loading={loading}
           hideLegend
         >
-          {v2 ? ( // ui-v2-switch
+          {loading ? null : v2 ? ( // ui-v2-switch
             <V2CenterLabel
               total={totalAmount}
               currency={currency}

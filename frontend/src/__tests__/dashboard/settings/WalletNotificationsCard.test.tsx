@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -15,6 +15,7 @@ vi.mock("../../../components/ui/ToastNotification.tsx", () => ({
 import api from "../../../api/axiosConfig";
 import { triggerToast } from "../../../components/ui/ToastNotification.tsx";
 import { WalletNotificationsCard } from "../../../dashboard/settings/WalletNotificationsCard";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 const mockedGet = api.get as unknown as ReturnType<typeof vi.fn>;
 const mockedPut = api.put as unknown as ReturnType<typeof vi.fn>;
@@ -27,6 +28,8 @@ const entry = (overrides = {}) => ({
   subscriptions: false,
   recurringExecutions: true,
   budgets: true,
+  monthlyReport: true,
+  yearlyReport: true,
   ...overrides,
 });
 
@@ -60,6 +63,8 @@ describe("WalletNotificationsCard", () => {
         subscriptions: true,
         recurringExecutions: true,
         budgets: true,
+        monthlyReport: true,
+        yearlyReport: true,
       },
     );
   });
@@ -87,6 +92,8 @@ describe("WalletNotificationsCard", () => {
         subscriptions: true,
         recurringExecutions: true,
         budgets: true,
+        monthlyReport: true,
+        yearlyReport: true,
       },
     );
     expect(screen.getByRole("switch", { name: "Transactions" })).toBeChecked();
@@ -118,5 +125,106 @@ describe("WalletNotificationsCard", () => {
       "/wallets/w1/notification-preferences",
       expect.objectContaining({ budgets: false }),
     );
+  });
+
+  it("the monthly report toggle PUTs monthlyReport without touching push prefs", async () => {
+    mockedGet.mockResolvedValue({ data: { wallets: [entry()] } });
+    render(<WalletNotificationsCard />);
+
+    await userEvent.click(
+      await screen.findByRole("switch", { name: "Include in monthly report" }),
+    );
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      "/wallets/w1/notification-preferences",
+      {
+        muted: false,
+        transactions: true,
+        subscriptions: false,
+        recurringExecutions: true,
+        budgets: true,
+        monthlyReport: false,
+        yearlyReport: true,
+      },
+    );
+  });
+});
+
+describe("WalletNotificationsCard (v2)", () => {
+  beforeEach(() => {
+    setUiVersion("v2");
+    mockedGet.mockReset();
+    mockedPut.mockReset();
+    mockedPut.mockResolvedValue({});
+  });
+
+  afterEach(() => {
+    setUiVersion("v1");
+  });
+
+  it("the chevron opens the event options and flips aria-expanded", async () => {
+    mockedGet.mockResolvedValue({ data: { wallets: [entry()] } });
+    render(<WalletNotificationsCard />);
+
+    const chevron = await screen.findByRole("button", {
+      name: "Notification options for this wallet",
+    });
+    expect(chevron).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("switch", { name: "Subscriptions" }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(chevron);
+
+    expect(chevron).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("switch", { name: "Subscriptions" })).toBeEnabled();
+  });
+
+  it("a report toggle PUTs monthlyReport without touching push prefs", async () => {
+    mockedGet.mockResolvedValue({ data: { wallets: [entry()] } });
+    render(<WalletNotificationsCard />);
+
+    await userEvent.click(
+      await screen.findByRole("switch", { name: "Include in monthly report" }),
+    );
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      "/wallets/w1/notification-preferences",
+      expect.objectContaining({ monthlyReport: false, yearlyReport: true }),
+    );
+  });
+
+  it("the yearly report toggle PUTs yearlyReport", async () => {
+    mockedGet.mockResolvedValue({ data: { wallets: [entry()] } });
+    render(<WalletNotificationsCard />);
+
+    await userEvent.click(
+      await screen.findByRole("switch", { name: "Include in yearly wrap-up" }),
+    );
+
+    expect(mockedPut).toHaveBeenCalledWith(
+      "/wallets/w1/notification-preferences",
+      expect.objectContaining({ monthlyReport: true, yearlyReport: false }),
+    );
+  });
+
+  it("muted: the options panel opens with every event toggle disabled", async () => {
+    mockedGet.mockResolvedValue({
+      data: { wallets: [entry({ muted: true })] },
+    });
+    render(<WalletNotificationsCard />);
+
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "Notification options for this wallet",
+      }),
+    );
+
+    expect(
+      screen.getByRole("switch", { name: "Transactions" }),
+    ).toHaveAttribute("aria-disabled", "true");
+    expect(
+      screen.getByRole("switch", { name: "Budget alerts" }),
+    ).toHaveAttribute("aria-disabled", "true");
   });
 });

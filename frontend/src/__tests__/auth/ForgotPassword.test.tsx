@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -19,6 +19,7 @@ vi.mock("../../components/ui/ToastNotification", () => ({
 import ForgotPassword from "../../auth/ForgotPassword";
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ui/ToastNotification";
+import { setUiVersion } from "../../utils/uiVersion";
 
 const post = (api as unknown as { post: ReturnType<typeof vi.fn> }).post;
 const toast = triggerToast as unknown as ReturnType<typeof vi.fn>;
@@ -104,5 +105,26 @@ describe("ForgotPassword", () => {
       ),
     );
     expect(screen.queryByText(/Check your email/i)).not.toBeInTheDocument();
+  });
+});
+
+describe("ForgotPassword (v2 layout)", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("renders the heading above the card with no brand lockup", () => {
+    renderForm();
+    const heading = screen.getByRole("heading", {
+      level: 1,
+      name: "Forgot password?",
+    });
+    const input = screen.getByLabelText("Email");
+    expect(
+      heading.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.queryByAltText("My Wallet")).not.toBeInTheDocument();
+    expect(screen.queryByAltText("Finance")).not.toBeInTheDocument();
+    expect(input).toHaveAttribute("inputmode", "email");
+    expect(input).toHaveAttribute("enterkeyhint", "send");
   });
 });

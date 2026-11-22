@@ -55,14 +55,22 @@ export const WalletPermissionSelector: React.FC<
     return (
       <div className="divide-y divide-app-border overflow-visible rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]">
         {walletPerms.map((wp) => (
-          <div
-            key={wp.walletId}
-            className="flex min-h-14 items-center gap-3 px-4"
-          >
-            <span className="min-w-0 truncate text-[15px] text-app-text">
-              {wp.walletName}
+          // Name on its own line: the three-way control needs the full width.
+          <div key={wp.walletId} className="flex flex-col gap-2.5 px-4 py-3">
+            <span className="flex min-w-0 items-center gap-3">
+              <span
+                className="flex size-7 shrink-0 items-center justify-center rounded-[var(--r-sm)] text-[13px]"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${wp.walletColor || "#6b7280"} 16%, transparent)`,
+                }}
+              >
+                <Icon icon={wp.walletIcon} color={wp.walletColor} />
+              </span>
+              <span className="min-w-0 truncate text-[15px] text-app-text">
+                {wp.walletName}
+              </span>
             </span>
-            <div className="ml-auto shrink-0">{permissionControl(wp)}</div>
+            {permissionControl(wp)}
           </div>
         ))}
       </div>

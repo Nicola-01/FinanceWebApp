@@ -6,6 +6,7 @@ import api from "../../api/axiosConfig";
 import {
   saveWalletNotificationPrefs,
   setWalletEnabled,
+  withReportDefaults,
 } from "../../push/walletNotifications";
 
 const entry = {
@@ -16,6 +17,8 @@ const entry = {
   subscriptions: false,
   recurringExecutions: true,
   budgets: true,
+  monthlyReport: true,
+  yearlyReport: true,
 };
 
 describe("setWalletEnabled", () => {
@@ -34,6 +37,32 @@ describe("setWalletEnabled", () => {
     const on = { ...entry, muted: false };
     expect(setWalletEnabled(on, false)).toEqual({ ...on, muted: true });
   });
+
+  it("leaves the report opt-ins untouched in both directions", () => {
+    const excluded = {
+      ...entry,
+      muted: false,
+      monthlyReport: false,
+      yearlyReport: false,
+    };
+    for (const enabled of [true, false]) {
+      const next = setWalletEnabled(excluded, enabled);
+      expect(next.monthlyReport).toBe(false);
+      expect(next.yearlyReport).toBe(false);
+    }
+  });
+
+  it("withReportDefaults treats missing report flags as included", () => {
+    const legacy = {
+      ...entry,
+      monthlyReport: undefined,
+      yearlyReport: undefined,
+    };
+    expect(withReportDefaults(legacy as never)).toMatchObject({
+      monthlyReport: true,
+      yearlyReport: true,
+    });
+  });
 });
 
 describe("saveWalletNotificationPrefs", () => {
@@ -47,6 +76,8 @@ describe("saveWalletNotificationPrefs", () => {
         subscriptions: false,
         recurringExecutions: true,
         budgets: true,
+        monthlyReport: true,
+        yearlyReport: true,
       },
     );
   });

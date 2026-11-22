@@ -34,5 +34,7 @@ public class NotificationPreferencesResponse {
     private boolean subscriptions;
     private boolean recurringExecutions;
     private boolean budgets;
+    private boolean monthlyReport;
+    private boolean yearlyReport;
   }
 }

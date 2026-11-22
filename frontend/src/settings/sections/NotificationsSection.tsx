@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import api from "../../api/axiosConfig";
-import Button from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import Toggle from "../../components/ui/Toggle";
 import { triggerToast } from "../../components/ui/ToastNotification";
@@ -17,11 +14,18 @@ import { WalletNotificationOptions } from "../../push/WalletNotificationOptions"
 import {
   saveWalletNotificationPrefs,
   setWalletEnabled,
+  withReportDefaults,
   type WalletNotificationPrefs,
   type WalletPrefsEntry,
 } from "../../push/walletNotifications";
+import { ExpandableRow } from "../../components/ui/ExpandableRow";
+import { V2Group, V2ToggleRow } from "../../components/ui/V2Group";
 
-type PrefKey = "invites" | "monthlyReport" | "yearlyReport";
+type ReportKey = "monthlyReport" | "yearlyReport";
+type PrefKey = "invites" | ReportKey;
+
+/** Solid on-state fill for every toggle here (the app accent, resolved by Toggle). */
+const ACCENT = "var(--brand-1)";
 
 type NotificationPrefs = Record<PrefKey, boolean>;
 
@@ -29,7 +33,7 @@ interface PreferencesResponse extends NotificationPrefs {
   wallets: WalletPrefsEntry[];
 }
 
-const REPORT_PREFS: { key: PrefKey; label: string; hint: string }[] = [
+const REPORT_PREFS: { key: ReportKey; label: string; hint: string }[] = [
   {
     key: "monthlyReport",
     label: "Monthly report",
@@ -38,42 +42,13 @@ const REPORT_PREFS: { key: PrefKey; label: string; hint: string }[] = [
   { key: "yearlyReport", label: "Yearly wrap-up", hint: "Your year in review" },
 ];
 
-/** ui-v2-switch: a group label above a flat divided card (no inner titles). */
-const V2Group: React.FC<{
-  label: string;
-  hint?: React.ReactNode;
-  children: React.ReactNode;
-}> = ({ label, hint, children }) => (
-  <section className="flex flex-col">
-    <h3 className="mb-2 px-1 text-[13px] text-app-muted">{label}</h3>
-    <Card padding="none">
-      <div className="flex flex-col divide-y divide-app-border">{children}</div>
-    </Card>
-    {hint && <p className="mt-2 px-1 text-[13px] text-app-muted">{hint}</p>}
-  </section>
-);
-
-/** ui-v2-switch: one toggle row — label + muted sub line left, switch right. */
-const V2ToggleRow: React.FC<{
-  label: string;
-  sub?: string;
-  children: React.ReactNode;
-}> = ({ label, sub, children }) => (
-  <div className="flex min-h-14 items-center justify-between gap-4 px-4 py-3">
-    <div className="min-w-0">
-      <span className="block text-[15px] text-app-text">{label}</span>
-      {sub && <span className="block text-[13px] text-app-muted">{sub}</span>}
-    </div>
-    {children}
-  </div>
-);
-
 /**
  * Settings → Notifications: cards managing all notification preferences —
  *  1. this device's browser subscription (enroll / unenroll),
  *  2. per-wallet switches (plus the global invitations toggle); an enabled
  *     wallet expands into its per-event-type options,
- *  3. periodic report opt-ins (each gates both the email and its push).
+ *  3. periodic reports (each gates its email and push); an enabled report
+ *     expands into the wallets it covers.
  * Outside a wallet, so it uses the brand tokens (no per-wallet accent).
  */
 export const NotificationsSection: React.FC = () => {
@@ -83,6 +58,9 @@ export const NotificationsSection: React.FC = () => {
   const [prefs, setPrefs] = useState<NotificationPrefs | null>(null);
   const [wallets, setWallets] = useState<WalletPrefsEntry[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [reportExpanded, setReportExpanded] = useState<
+    Record<ReportKey, boolean>
+  >({ monthlyReport: false, yearlyReport: false });
   const [ui] = useUiVersion();
   const isV2 = ui === "v2"; // ui-v2-switch
 
@@ -100,7 +78,7 @@ export const NotificationsSection: React.FC = () => {
           monthlyReport: rest.monthlyReport,
           yearlyReport: rest.yearlyReport,
         });
-        setWallets(entries ?? []);
+        setWallets((entries ?? []).map(withReportDefaults));
       } catch {
         triggerToast("Failed to load notification preferences", false);
       }
@@ -172,8 +150,140 @@ export const NotificationsSection: React.FC = () => {
     void handleWalletChange(w.walletId, setWalletEnabled(w, enabled));
   };
 
+  const handleWalletReportToggle = (
+    w: WalletPrefsEntry,
+    key: ReportKey,
+    included: boolean,
+  ) => void handleWalletChange(w.walletId, { ...w, [key]: included });
+
   const deviceDisabled =
     deviceBusy || enrollment === "disabled-server" || enrollment === "denied";
+
+  // ─── Shared row builders (both UIs) ────────────────────────────────────────
+
+  const walletRows =
+    wallets.length === 0 ? (
+      <p
+        className={
+          isV2
+            ? "px-4 py-3 text-[15px] text-app-muted" // ui-v2-switch
+            : "pt-3 text-sm text-app-muted"
+        }
+      >
+        You have no wallets yet.
+      </p>
+    ) : (
+      wallets.map((w) => {
+        const enabled = !w.muted;
+        const isOpen = enabled && expanded === w.walletId;
+        return (
+          <ExpandableRow
+            key={w.walletId}
+            isV2={isV2}
+            label={w.walletName}
+            open={isOpen}
+            onToggleOpen={
+              enabled
+                ? () => setExpanded(isOpen ? null : w.walletId)
+                : undefined
+            }
+            chevronLabel={`Options for ${w.walletName}`}
+            control={
+              <Toggle
+                accentColor={ACCENT}
+                checked={enabled}
+                onChange={(nextVal) => handleWalletToggle(w, nextVal)}
+                aria-label={`Notifications for ${w.walletName}`}
+              />
+            }
+          >
+            <WalletNotificationOptions
+              prefs={w}
+              onChange={(next) => void handleWalletChange(w.walletId, next)}
+              accentColor={ACCENT}
+              size="md"
+            />
+          </ExpandableRow>
+        );
+      })
+    );
+
+  const reportRows = REPORT_PREFS.map((pref) => {
+    const on = prefs ? prefs[pref.key] : false;
+    const isOpen = reportExpanded[pref.key];
+    return (
+      <ExpandableRow
+        key={pref.key}
+        isV2={isV2}
+        label={pref.label}
+        sub={pref.hint}
+        open={isOpen}
+        onToggleOpen={() =>
+          setReportExpanded((prev) => ({
+            ...prev,
+            [pref.key]: !prev[pref.key],
+          }))
+        }
+        chevronLabel={`Wallets for ${pref.label}`}
+        control={
+          <Toggle
+            accentColor={ACCENT}
+            checked={on}
+            onChange={(nextVal) => handlePrefToggle(pref.key, nextVal)}
+            disabled={!prefs}
+            aria-label={pref.label}
+          />
+        }
+      >
+        {!on && (
+          <p
+            className={
+              isV2
+                ? "pb-2 text-[13px] text-app-muted" // ui-v2-switch
+                : "pb-2 text-xs text-app-muted"
+            }
+          >
+            Turn on the report to choose wallets.
+          </p>
+        )}
+        {wallets.length === 0 ? (
+          <p
+            className={
+              isV2
+                ? "py-1 text-[15px] text-app-muted" // ui-v2-switch
+                : "text-sm text-app-muted"
+            }
+          >
+            You have no wallets yet.
+          </p>
+        ) : (
+          <div className="flex flex-col divide-y divide-app-border">
+            {wallets.map((w) => (
+              <div
+                key={w.walletId}
+                className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
+              >
+                <span
+                  className={`min-w-0 flex-1 truncate ${isV2 ? "text-[15px]" : "text-sm"} text-app-text`}
+                >
+                  {w.walletName}
+                </span>
+                <Toggle
+                  accentColor={ACCENT}
+                  checked={w[pref.key]}
+                  onChange={(nextVal) =>
+                    handleWalletReportToggle(w, pref.key, nextVal)
+                  }
+                  disabled={!on}
+                  aria-label={`Include ${w.walletName} in ${pref.label.toLowerCase()}`}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </ExpandableRow>
+    );
+  });
 
   if (isV2) {
     // ui-v2-switch
@@ -214,74 +324,21 @@ export const NotificationsSection: React.FC = () => {
             sub="When someone invites you to a wallet"
           >
             <Toggle
+              accentColor={ACCENT}
               checked={prefs ? prefs.invites : false}
               onChange={(nextVal) => handlePrefToggle("invites", nextVal)}
               disabled={!prefs}
               aria-label="Wallet invitations"
             />
           </V2ToggleRow>
-          {wallets.length === 0 ? (
-            <p className="px-4 py-3 text-[15px] text-app-muted">
-              You have no wallets yet.
-            </p>
-          ) : (
-            wallets.map((w) => {
-              const enabled = !w.muted;
-              const isOpen = enabled && expanded === w.walletId;
-              return (
-                <div key={w.walletId} className="flex flex-col gap-3 px-4 py-3">
-                  <div className="flex min-h-14 items-center justify-between gap-4">
-                    <span className="min-w-0 flex-1 truncate text-[15px] text-app-text">
-                      {w.walletName}
-                    </span>
-                    {enabled && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpanded(isOpen ? null : w.walletId)}
-                        aria-expanded={isOpen}
-                        aria-label={`Options for ${w.walletName}`}
-                      >
-                        <FontAwesomeIcon
-                          icon={faChevronDown}
-                          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                        />
-                      </Button>
-                    )}
-                    <Toggle
-                      checked={enabled}
-                      onChange={(nextVal) => handleWalletToggle(w, nextVal)}
-                      aria-label={`Notifications for ${w.walletName}`}
-                    />
-                  </div>
-                  {isOpen && (
-                    <WalletNotificationOptions
-                      prefs={w}
-                      onChange={(next) =>
-                        void handleWalletChange(w.walletId, next)
-                      }
-                    />
-                  )}
-                </div>
-              );
-            })
-          )}
+          {walletRows}
         </V2Group>
 
         <V2Group
           label="Periodic reports"
           hint="Emailed as a PDF, with a push notification when it's ready."
         >
-          {REPORT_PREFS.map((pref) => (
-            <V2ToggleRow key={pref.key} label={pref.label} sub={pref.hint}>
-              <Toggle
-                checked={prefs ? prefs[pref.key] : false}
-                onChange={(nextVal) => handlePrefToggle(pref.key, nextVal)}
-                disabled={!prefs}
-                aria-label={pref.label}
-              />
-            </V2ToggleRow>
-          ))}
+          {reportRows}
         </V2Group>
       </div>
     );
@@ -347,84 +404,18 @@ export const NotificationsSection: React.FC = () => {
               aria-label="Wallet invitations"
             />
           </div>
-
-          {wallets.length === 0 ? (
-            <p className="pt-3 text-sm text-app-muted">
-              You have no wallets yet.
-            </p>
-          ) : (
-            wallets.map((w) => {
-              const enabled = !w.muted;
-              const isOpen = enabled && expanded === w.walletId;
-              return (
-                <div key={w.walletId} className="py-3 last:pb-0">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-app-text">
-                      {w.walletName}
-                    </span>
-                    {enabled && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpanded(isOpen ? null : w.walletId)}
-                        aria-expanded={isOpen}
-                        aria-label={`Options for ${w.walletName}`}
-                      >
-                        <FontAwesomeIcon
-                          icon={faChevronDown}
-                          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
-                        />
-                      </Button>
-                    )}
-                    <Toggle
-                      checked={enabled}
-                      onChange={(nextVal) => handleWalletToggle(w, nextVal)}
-                      aria-label={`Notifications for ${w.walletName}`}
-                    />
-                  </div>
-                  {isOpen && (
-                    <div className="mt-3 rounded-[var(--r-input)] border border-app-border bg-app-surface px-4 py-3">
-                      <WalletNotificationOptions
-                        prefs={w}
-                        onChange={(next) =>
-                          void handleWalletChange(w.walletId, next)
-                        }
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
+          {walletRows}
         </div>
       </Card>
 
       {/* 3. Periodic report emails (each toggle also gates its push notification) */}
       <Card title="Periodic reports">
-        <p className="mb-3 text-xs text-app-muted">
+        <div className="flex flex-col divide-y divide-app-border">
+          {reportRows}
+        </div>
+        <p className="mt-3 text-xs text-app-muted">
           Emailed as a PDF, with a push notification when it's ready.
         </p>
-        <div className="flex flex-col divide-y divide-app-border">
-          {REPORT_PREFS.map((pref) => (
-            <div
-              key={pref.key}
-              className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
-            >
-              <div className="min-w-0">
-                <span className="block text-sm font-medium text-app-text">
-                  {pref.label}
-                </span>
-                <span className="text-xs text-app-muted">{pref.hint}</span>
-              </div>
-              <Toggle
-                checked={prefs ? prefs[pref.key] : false}
-                onChange={(nextVal) => handlePrefToggle(pref.key, nextVal)}
-                disabled={!prefs}
-                aria-label={pref.label}
-              />
-            </div>
-          ))}
-        </div>
       </Card>
     </div>
   );

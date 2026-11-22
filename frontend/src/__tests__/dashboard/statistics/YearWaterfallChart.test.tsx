@@ -15,6 +15,7 @@ const { calls, record } = vi.hoisted(() => {
 });
 
 vi.mock("@/components/ui/charts", () => ({
+  BarChartLoading: (p: Record<string, unknown>) => record("BarChartLoading", p),
   WaterfallChart: (props: { children?: React.ReactNode }) => (
     <div data-testid="waterfall">
       {record("WaterfallChart", props as Record<string, unknown>)}
@@ -164,5 +165,24 @@ describe("YearWaterfallChart bare mode", () => {
     expect(screen.queryByText("How the year added up")).toBeNull();
     expect(container.firstElementChild).not.toHaveClass("bg-app-card");
     expect(calls.WaterfallChart).toHaveLength(1);
+  });
+});
+
+describe("YearWaterfallChart loading", () => {
+  it("draws the bar placeholder at the waterfall's 3:1 size while loading", () => {
+    for (const k of Object.keys(calls)) delete calls[k];
+    render(
+      <YearWaterfallChart
+        rows={[]}
+        byYear={false}
+        currencySymbol="€"
+        loading
+      />,
+    );
+    expect(calls.BarChartLoading.at(-1)).toMatchObject({
+      aspectRatio: "3 / 1",
+      margin: { top: 24, right: 12, bottom: 28, left: 44 },
+    });
+    expect(calls.WaterfallChart).toBeUndefined();
   });
 });

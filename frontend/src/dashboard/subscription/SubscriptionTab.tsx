@@ -15,6 +15,11 @@ import type { CurrencyCode } from "../../utils/currencies/index.ts";
 import { SubscriptionCalendar } from "./SubscriptionCalendar.tsx";
 import { SubscriptionList } from "./SubscriptionList.tsx";
 import { SubscriptionSummaryV2 } from "./SubscriptionSummaryV2.tsx";
+import {
+  SubscriptionListSkeletonV2,
+  SubscriptionSummarySkeletonV2,
+} from "./SubscriptionSkeletonV2.tsx";
+import { Skeleton } from "../../components/ui/Skeleton.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { FloatingActionButton } from "../../components/ui/FloatingActionButton.tsx";
 import {
@@ -27,6 +32,7 @@ import {
 } from "../../modals/transaction/TransactionModal.tsx";
 import * as walletOps from "../../api/walletOps.ts";
 import { Selector } from "../../components/ui/Selector.tsx";
+import { TabHeader } from "../wallet/TabHeader.tsx"; // ui-v2-switch
 
 type ViewMode = "list" | "calendar";
 
@@ -79,19 +85,25 @@ export const SubscriptionTab = () => {
       className={`flex flex-col flex-1 animate-[fadeIn_0.3s_ease-out] ${ui === "v2" ? "pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] lg:pb-8" : ""}`} // ui-v2-switch: main's pb-28 already clears the dock; this only lifts the last row above the FAB (top at 136px phone, 80px lg)
     >
       {/* Header: v1 keeps the view toggle here; v2 only holds the title */}
-      <div
-        className={`flex items-center gap-4 mb-6 ${ui === "v2" ? "flex-wrap justify-between" : "justify-end"}`} // ui-v2-switch
-      >
-        {ui === "v2" && (
-          <h2 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">
-            Subscriptions
-          </h2>
-        )}
-        {ui !== "v2" && viewToggle}
-      </div>
+      {ui === "v2" ? ( // ui-v2-switch
+        <TabHeader title="Subscriptions" />
+      ) : (
+        <div className="flex items-center gap-4 mb-6 justify-end">
+          {viewToggle}
+        </div>
+      )}
 
       {/* v2 summary box: recurring totals + cost split */}
-      {ui === "v2" && subscriptions.length > 0 && (
+      {ui === "v2" && isLoading && (
+        <div
+          className="mb-6 w-full"
+          role="status"
+          aria-label="Loading subscriptions"
+        >
+          <SubscriptionSummarySkeletonV2 />
+        </div>
+      )}
+      {ui === "v2" && !isLoading && subscriptions.length > 0 && (
         <div className="mb-6 w-full">
           <SubscriptionSummaryV2
             subscriptions={subscriptions}
@@ -106,7 +118,14 @@ export const SubscriptionTab = () => {
 
       {/* Active view */}
       <div className="flex-1 relative">
-        {isLoading ? (
+        {isLoading && ui === "v2" ? (
+          viewMode === "list" ? (
+            <SubscriptionListSkeletonV2 />
+          ) : (
+            // Calendar cells are square, so its height is content-driven; a fixed block approximates it.
+            <Skeleton className="h-[420px] w-full rounded-[var(--r-card)]" />
+          )
+        ) : isLoading ? (
           <div className="w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-6">
               {Array.from({ length: 6 }).map((_, i) => (

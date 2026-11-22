@@ -5,11 +5,13 @@ import type { Budget } from "../../types/domain";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { useBudgets } from "./useBudgets";
 import { BudgetCard } from "./BudgetCard";
+import { BudgetCardSkeletonV2 } from "./BudgetCardSkeletonV2"; // ui-v2-switch
 import { BudgetFormOverlay } from "./BudgetFormOverlay";
 import Button from "../../components/ui/Button";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useDeleteModal } from "../../modals/common/DeleteModalContext.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion";
+import { TabHeader } from "../wallet/TabHeader.tsx"; // ui-v2-switch
 
 export const BudgetTab: React.FC = () => {
   const { wallet, tags } = useWalletContext();
@@ -43,31 +45,26 @@ export const BudgetTab: React.FC = () => {
 
   return (
     <div
-      className={`flex flex-col ${isV2 ? "gap-6" : "gap-4"} animate-[fadeIn_0.3s_ease-out]`}
+      className={`flex flex-col ${isV2 ? "" : "gap-4"} animate-[fadeIn_0.3s_ease-out]`}
     >
-      {/* ui-v2-switch */}
-      <div className="flex items-center justify-between gap-3">
-        {isV2 ? (
-          <div className="flex min-w-0 items-baseline gap-3">
-            <h2 className="font-display text-[22px] font-semibold tracking-[-0.02em] text-app-text">
-              Budgets
-            </h2>
-          </div>
-        ) : (
+      {/* ui-v2-switch: v2 uses the dashed card in the grid as its only "New budget". */}
+      {isV2 ? (
+        <TabHeader title="Budgets" />
+      ) : (
+        <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-app-text">Budgets</h2>
-        )}
-        {/* ui-v2-switch: v2 uses the dashed card in the grid as its only "New budget". */}
-        {canEdit && !isV2 && (
-          <Button
-            accentColor={wallet.color}
-            ripple
-            onClick={() => setCreating(true)}
-          >
-            <FontAwesomeIcon icon={faPlus} />
-            New budget
-          </Button>
-        )}
-      </div>
+          {canEdit && (
+            <Button
+              accentColor={wallet.color}
+              ripple
+              onClick={() => setCreating(true)}
+            >
+              <FontAwesomeIcon icon={faPlus} />
+              New budget
+            </Button>
+          )}
+        </div>
+      )}
 
       {!isLoading && budgets.length === 0 && isV2 && !canEdit && (
         <EmptyState
@@ -92,12 +89,17 @@ export const BudgetTab: React.FC = () => {
       )}
 
       <div
+        role={isV2 && isLoading ? "status" : undefined} // ui-v2-switch
+        aria-label={isV2 && isLoading ? "Loading budgets" : undefined} // ui-v2-switch
         className={
           isV2
             ? "grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3" // ui-v2-switch
             : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
         }
       >
+        {isV2 &&
+          isLoading &&
+          [0, 1, 2].map((i) => <BudgetCardSkeletonV2 key={i} />)}
         {budgets.map((budget) => (
           <BudgetCard
             key={budget.id}

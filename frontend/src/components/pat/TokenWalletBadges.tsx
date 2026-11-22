@@ -8,11 +8,14 @@ import { useUiVersion } from "../../hooks/useUiVersion";
 interface TokenWalletBadgesProps {
   token: PatToken;
   walletsMap: Record<string, Wallet>;
+  /** Rendered inside the row's text column (v2): no icon-width indent. */
+  inline?: boolean;
 }
 
 export const TokenWalletBadges: React.FC<TokenWalletBadgesProps> = ({
   token,
   walletsMap,
+  inline = false,
 }) => {
   const [ui] = useUiVersion();
   // ui-v2-switch
@@ -21,7 +24,13 @@ export const TokenWalletBadges: React.FC<TokenWalletBadgesProps> = ({
     return null;
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2 pl-[52px]">
+    <div
+      className={
+        inline
+          ? "mt-2 flex flex-wrap gap-2"
+          : "mt-3 flex flex-wrap gap-2 pl-[52px]"
+      }
+    >
       {token.walletPermissions.map((wp) => {
         const wallet = walletsMap[wp.walletId];
         const canWrite = wp.permissions?.includes("WRITE");

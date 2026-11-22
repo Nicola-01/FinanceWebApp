@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { stampLabel } from "./notificationStamp";
 import { ResponsiveOverlay } from "../../components/ui/ResponsiveOverlay";
 import { useUiVersion } from "../../hooks/useUiVersion";
 import type { AppNotification } from "./useNotifications";
@@ -31,7 +32,7 @@ const STYLE = {
     dot: "bg-app-warn",
     title: "block truncate text-[15px] text-app-text",
     body: "line-clamp-2 block text-[13px] text-app-muted",
-    time: "block shrink-0 text-[13px] text-app-faint tabular-nums",
+    time: "mb-0.5 block text-xs text-app-faint",
   },
 } as const;
 
@@ -93,14 +94,16 @@ export const NotificationCenterOverlay: React.FC<
                   className={s.row}
                 >
                   {ui === "v2" ? (
-                    // ui-v2-switch: time sits top-right, outside the text column.
+                    // ui-v2-switch: date and time sit above the title so the text gets the full width.
                     <>
                       {dot}
                       <span className="min-w-0 flex-1">
+                        <span className={s.time}>
+                          {stampLabel(new Date(n.createdAt))}
+                        </span>
                         {title}
                         {body}
                       </span>
-                      <span className={s.time}>{when}</span>
                     </>
                   ) : (
                     <>

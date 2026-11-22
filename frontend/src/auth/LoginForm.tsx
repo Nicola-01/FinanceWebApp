@@ -13,9 +13,15 @@ import { setMustChangePWD, setToken } from "../utils/authHelper";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Checkbox } from "../components/ui/Checkbox";
-import { AUTH_GLASS_CARD, shakeClass } from "./authCardClass";
-import { AUTH_CARD_V2 } from "./AuthCard";
+import {
+  AUTH_GLASS_CARD,
+  AUTH_V2_CARD,
+  AUTH_V2_H1,
+  AUTH_V2_SUBTITLE,
+  shakeClass,
+} from "./authCardClass";
 import { AuthBrandLockup, AuthHeading, AuthSubtitle } from "./AuthBrandLockup";
+import { LoginWalletFan } from "./LoginWalletFan";
 import { useUiVersion } from "../hooks/useUiVersion";
 import { PasswordVisibilityToggle } from "./PasswordVisibilityToggle";
 import { useShake } from "./useShake";
@@ -35,6 +41,8 @@ export const LoginForm: React.FC = () => {
   const [require, setRequire] = useState<Requirements>({});
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+  // Set when the API rejects the credentials; marks both fields invalid until the user edits or resubmits.
+  const [authFailed, setAuthFailed] = useState(false);
 
   const { shake, triggerShake, clearShake } = useShake();
   const [ui] = useUiVersion();
@@ -42,6 +50,14 @@ export const LoginForm: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  // ui-v2-switch: Enter in a filled username moves to the password instead of submitting.
+  const handleUsernameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (v2 && e.key === "Enter" && username.current?.value) {
+      e.preventDefault();
+      password.current?.focus();
+    }
+  };
 
   // If redirected from a protected page (e.g., OAuth consent), go back after login
   const returnTo: string =
@@ -53,6 +69,7 @@ export const LoginForm: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     clearShake();
+    setAuthFailed(false);
 
     const requirements: Requirements = {};
     let isValid = true;
@@ -96,6 +113,7 @@ export const LoginForm: React.FC = () => {
     } catch (err: unknown) {
       // Error handling & shake animation
       triggerShake();
+      setAuthFailed(true);
 
       const title = getApiErrorTitle(err, "Connection Error.");
       triggerToast(title, false);
@@ -109,24 +127,37 @@ export const LoginForm: React.FC = () => {
     <div
       className={
         v2
-          ? "relative z-10 flex w-full max-w-[400px] flex-col gap-4"
+          ? "relative z-10 flex w-full flex-col items-center" // ui-v2-switch
           : "relative z-10 flex w-full max-w-[400px] flex-col"
       }
     >
+      {/* ui-v2-switch: the fan, heading and subtitle sit above the card in v2 */}
+      {v2 && (
+        <>
+          <LoginWalletFan />
+          <h1 className={`${AUTH_V2_H1} mt-4 sm:mt-[30px]`}>Welcome back.</h1>
+          <p className={AUTH_V2_SUBTITLE}>
+            Sign in to your financial workspace.
+          </p>
+        </>
+      )}
       <form
-        // v2: the form gap (gap-4) spaces the fields; [&>div]:mb-0 drops the v1 field margins.
+        // v2: the card is full width (the wrapper caps it at 480px); the gap spaces the fields.
         className={
           v2
-            ? `${AUTH_CARD_V2} gap-4 [&>div]:mb-0 ${shakeClass(shake)}`
+            ? `${AUTH_V2_CARD} ${shakeClass(shake)}` // ui-v2-switch
             : `flex w-full flex-col ${AUTH_GLASS_CARD} ${shakeClass(shake)}`
         }
         onSubmit={handleSubmit}
         noValidate
       >
-        <AuthBrandLockup />
-
-        <AuthHeading>Welcome back</AuthHeading>
-        <AuthSubtitle>Sign in to your financial workspace</AuthSubtitle>
+        {!v2 && (
+          <>
+            <AuthBrandLockup />
+            <AuthHeading>Welcome back</AuthHeading>
+            <AuthSubtitle>Sign in to your financial workspace</AuthSubtitle>
+          </>
+        )}
 
         {/* Username Input */}
         <div className="relative mb-6">
@@ -136,7 +167,18 @@ export const LoginForm: React.FC = () => {
             placeholder="Username"
             aria-label="Username"
             autoComplete="username"
-            invalid={!!require.username}
+            invalid={!!require.username || authFailed}
+            onChange={() => setAuthFailed(false)}
+            {...(v2 && {
+              // ui-v2-switch: mobile keyboard hints and no autocorrect on the login id
+              enterKeyHint: "next",
+              autoCapitalize: "none",
+              autoCorrect: "off",
+              spellCheck: false,
+              onKeyDown: handleUsernameKeyDown,
+              // Input's v2 tabular-nums forces mono; placeholders must stay sans
+              className: "font-sans!",
+            })}
             leadingIcon={<FontAwesomeIcon icon={faUser} />}
           />
           {require.username && (
@@ -161,7 +203,12 @@ export const LoginForm: React.FC = () => {
             placeholder="Password"
             aria-label="Password"
             autoComplete="current-password"
-            invalid={!!require.password}
+            invalid={!!require.password || authFailed}
+            onChange={() => setAuthFailed(false)}
+            {...(v2 && {
+              enterKeyHint: "go", // ui-v2-switch
+              className: "font-sans!", // ui-v2-switch: see username
+            })}
             leadingIcon={<FontAwesomeIcon icon={faLock} />}
             rightSlot={
               <PasswordVisibilityToggle

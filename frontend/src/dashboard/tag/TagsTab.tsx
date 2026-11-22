@@ -17,6 +17,7 @@ import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import Button from "../../components/ui/Button.tsx";
 import { CategoryManagerDrawer } from "./CategoryManagerDrawer.tsx";
 import { CategoryStrip } from "./CategoryStrip.tsx";
+import { TabHeader } from "../wallet/TabHeader.tsx"; // ui-v2-switch
 import { useTabLayout } from "../layout/useTabLayout.ts";
 import { WidgetGrid } from "../layout/WidgetGrid.tsx";
 import { CustomizePageButton } from "../layout/CustomizePageButton.tsx";
@@ -36,11 +37,12 @@ const darkTheme = createTheme({
 });
 
 export const TagsTab: React.FC = () => {
-  const { filteredTransactions, wallet, tags } = useWalletContext();
+  const { filteredTransactions, wallet, tags, isLoading } = useWalletContext();
   const { resolvedTheme } = useTheme();
   const [managerOpen, setManagerOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [ui] = useUiVersion(); // ui-v2-switch: v2 moves the range summary to the bottom
+  const loading = ui === "v2" && isLoading; // ui-v2-switch: only v2 draws loading skeletons
 
   const currencySymbol = getCurrencySymbol(wallet.currency);
   const investmentTags = useInvestmentTags();
@@ -56,6 +58,7 @@ export const TagsTab: React.FC = () => {
     currencyCode: wallet.currency,
     currencySymbol,
     investmentTags,
+    loading,
   };
 
   return (
@@ -65,15 +68,19 @@ export const TagsTab: React.FC = () => {
       >
         {ui !== "v2" && <DateRangeBanner />}
 
-        {ui === "v2" ? ( // ui-v2-switch: the strip replaces the title row and its buttons
-          <div className="mb-6">
-            <CategoryStrip
-              transactions={ctx.transactions}
-              tags={tags}
-              invest={investmentTags}
-              onManage={() => setManagerOpen(true)}
-            />
-          </div>
+        {ui === "v2" ? ( // ui-v2-switch: the title, then the strip replaces the title row and its buttons
+          <>
+            <TabHeader title="Categories" />
+            <div className="mb-6">
+              <CategoryStrip
+                transactions={ctx.transactions}
+                tags={tags}
+                invest={investmentTags}
+                onManage={() => setManagerOpen(true)}
+                loading={loading}
+              />
+            </div>
+          </>
         ) : (
           <div className="mb-4 mt-2 flex flex-wrap items-end justify-between gap-3">
             <div>

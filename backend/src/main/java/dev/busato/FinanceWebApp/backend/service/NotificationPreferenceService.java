@@ -50,6 +50,8 @@ public class NotificationPreferenceService {
                         .subscriptions(a.isNotifySubscriptions())
                         .recurringExecutions(a.isNotifyRecurringExecutions())
                         .budgets(a.isNotifyBudgets())
+                        .monthlyReport(a.isIncludeInMonthlyReport())
+                        .yearlyReport(a.isIncludeInYearlyReport())
                         .build())
             .toList();
     return NotificationPreferencesResponse.builder()
@@ -85,6 +87,10 @@ public class NotificationPreferenceService {
     access.setNotifySubscriptions(request.isSubscriptions());
     access.setNotifyRecurringExecutions(request.isRecurringExecutions());
     access.setNotifyBudgets(request.isBudgets());
+    if (request.getMonthlyReport() != null)
+      access.setIncludeInMonthlyReport(request.getMonthlyReport());
+    if (request.getYearlyReport() != null)
+      access.setIncludeInYearlyReport(request.getYearlyReport());
     walletAccessRepository.save(access);
   }
 

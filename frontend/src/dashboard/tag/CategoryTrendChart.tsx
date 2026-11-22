@@ -18,6 +18,10 @@ import {
   formatCompactAxis,
 } from "./chartStyleV2.ts";
 import { tooltipSxV2 } from "../statistics/chartTheme.ts";
+import {
+  BarsLoadingSkeleton,
+  LegendLoadingSkeleton,
+} from "./CategoriesLoadingV2.tsx";
 
 interface CategoryTrendChartProps {
   transactions: Transaction[];
@@ -25,6 +29,8 @@ interface CategoryTrendChartProps {
   currency: string;
   /** Render without the card shell + title (the parent group card provides them). */
   bare?: boolean;
+  /** Data still loading: draw the skeleton bars instead of the "no data" state. */
+  loading?: boolean;
 }
 
 /**
@@ -35,6 +41,7 @@ export const CategoryTrendChart: React.FC<CategoryTrendChartProps> = ({
   transactions,
   currency,
   bare = false,
+  loading = false,
 }) => {
   const [ui] = useUiVersion();
   const v2 = ui === "v2"; // ui-v2-switch
@@ -94,6 +101,8 @@ export const CategoryTrendChart: React.FC<CategoryTrendChartProps> = ({
       }
       zoomData={zoomData}
       onZoomChange={setZoomData}
+      loading={loading}
+      slots={{ loadingOverlay: BarsLoadingSkeleton }}
       xAxis={[
         {
           id: "x-axis",
@@ -148,7 +157,7 @@ export const CategoryTrendChart: React.FC<CategoryTrendChartProps> = ({
       subtitle="Top categories per month, stacked over time."
       bare={bare}
       controls={<FlowTypeToggle value={type} onChange={setType} />}
-      isEmpty={dataset.length === 0}
+      isEmpty={!loading && dataset.length === 0}
       emptyMinHeightClass="min-h-[300px]"
     >
       {v2 ? <div ref={wrapRef}>{chart}</div> : chart}
@@ -156,19 +165,23 @@ export const CategoryTrendChart: React.FC<CategoryTrendChartProps> = ({
 
       {/* Legend */}
       <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-        {series.map((s) => (
-          <div key={s.dataKey} className="flex items-center gap-1.5">
-            <span
-              className={
-                v2 // ui-v2-switch
-                  ? "w-2 h-2 rounded-full shrink-0"
-                  : "w-3 h-3 rounded-sm shrink-0"
-              }
-              style={{ backgroundColor: s.color }}
-            />
-            <span className="text-xs text-app-muted">{s.label}</span>
-          </div>
-        ))}
+        {loading ? (
+          <LegendLoadingSkeleton />
+        ) : (
+          series.map((s) => (
+            <div key={s.dataKey} className="flex items-center gap-1.5">
+              <span
+                className={
+                  v2 // ui-v2-switch
+                    ? "w-2 h-2 rounded-full shrink-0"
+                    : "w-3 h-3 rounded-sm shrink-0"
+                }
+                style={{ backgroundColor: s.color }}
+              />
+              <span className="text-xs text-app-muted">{s.label}</span>
+            </div>
+          ))
+        )}
       </div>
     </ChartCard>
   );

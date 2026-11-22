@@ -12,9 +12,9 @@ describe("useUiVersion", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns v1 by default", () => {
+  it("returns v2 by default", () => {
     const { result } = renderHook(() => useUiVersion());
-    expect(result.current[0]).toBe("v1");
+    expect(result.current[0]).toBe("v2");
   });
 
   it("re-renders when setUiVersion is called", () => {

@@ -66,7 +66,7 @@ describe("auth screens (v2)", () => {
     );
     const root = container.firstElementChild as HTMLElement;
     expect(root).not.toHaveClass("dark");
-    expect(root).toHaveClass("bg-app-bg", "grid", "min-h-dvh");
+    expect(root).toHaveClass("bg-app-bg", "flex", "min-h-dvh");
     expect(screen.queryByTestId("bg")).not.toBeInTheDocument();
     expect(screen.getByText("child")).toBeInTheDocument();
   });

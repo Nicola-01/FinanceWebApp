@@ -8,12 +8,12 @@ export type UiVersion = "v1" | "v2";
 const STORAGE_KEY = "ui-version";
 const listeners = new Set<() => void>();
 
-/** Any storage failure (private mode, blocked site data) falls back to v1. */
+/** Defaults to v2; only an explicit stored "v1" opts out. Any storage failure (private mode, blocked site data) falls back to v2. */
 export function getUiVersion(): UiVersion {
   try {
-    return localStorage.getItem(STORAGE_KEY) === "v2" ? "v2" : "v1";
+    return localStorage.getItem(STORAGE_KEY) === "v1" ? "v1" : "v2";
   } catch {
-    return "v1";
+    return "v2";
   }
 }
 

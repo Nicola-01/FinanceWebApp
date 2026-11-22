@@ -16,12 +16,17 @@ describe("uiVersion", () => {
     vi.restoreAllMocks();
   });
 
-  it("defaults to v1 with empty storage", () => {
-    expect(getUiVersion()).toBe("v1");
+  it("defaults to v2 with empty storage", () => {
+    expect(getUiVersion()).toBe("v2");
   });
 
-  it("treats an unknown stored value as v1", () => {
+  it("treats an unknown stored value as v2", () => {
     localStorage.setItem("ui-version", "v9");
+    expect(getUiVersion()).toBe("v2");
+  });
+
+  it("honours an explicit v1 opt-out", () => {
+    localStorage.setItem("ui-version", "v1");
     expect(getUiVersion()).toBe("v1");
   });
 
@@ -41,7 +46,7 @@ describe("uiVersion", () => {
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
-  it("does not throw when storage throws and falls back to v1", () => {
+  it("does not throw when storage throws and falls back to v2", () => {
     vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new Error("blocked");
     });
@@ -49,7 +54,7 @@ describe("uiVersion", () => {
       throw new Error("blocked");
     });
 
-    expect(getUiVersion()).toBe("v1");
+    expect(getUiVersion()).toBe("v2");
     expect(() => setUiVersion("v2")).not.toThrow();
     expect(document.documentElement.dataset.ui).toBe("v2");
   });

@@ -32,6 +32,7 @@ import {
 } from "./groupTransactionsByDate.ts";
 import { useWalletContext } from "../wallet/WalletContext.tsx";
 import { useTransactionDeepLink } from "./useTransactionDeepLink.ts";
+import { SkeletonGroupV2 } from "./TransactionSkeletonV2.tsx"; // ui-v2-switch
 
 interface TransactionsTableProps {
   wallet: Wallet;
@@ -58,25 +59,6 @@ const SkeletonRow = () => (
       <div className="h-2.5 w-1/4 rounded-md bg-app-input"></div>
     </div>
     <div className="h-4 w-16 rounded-md bg-app-surface"></div>
-  </div>
-);
-
-// ui-v2-switch: one surface box, three rows shaped like TransactionRowV2
-const SkeletonGroupV2 = () => (
-  <div className="animate-pulse rounded-[var(--r-card)] bg-app-card p-2 shadow-[var(--box-ring)]">
-    {[0, 1, 2].map((i) => (
-      <div
-        key={i}
-        className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5"
-      >
-        <div className="h-10 w-10 rounded-[11px] bg-app-raised"></div>
-        <div className="flex flex-col gap-2">
-          <div className="h-3.5 w-1/3 rounded-md bg-app-raised"></div>
-          <div className="h-2.5 w-1/4 rounded-md bg-app-raised"></div>
-        </div>
-        <div className="h-4 w-16 rounded-md bg-app-raised"></div>
-      </div>
-    ))}
   </div>
 );
 

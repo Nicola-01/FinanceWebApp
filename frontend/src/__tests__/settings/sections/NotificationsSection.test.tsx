@@ -21,6 +21,7 @@ import {
   unsubscribeThisDevice,
 } from "../../../push/pushClient";
 import { NotificationsSection } from "../../../settings/sections/NotificationsSection";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 const mockedGet = api.get as unknown as ReturnType<typeof vi.fn>;
 const mockedPut = api.put as unknown as ReturnType<typeof vi.fn>;
@@ -49,6 +50,8 @@ function preferences(overrides = {}) {
           subscriptions: false,
           recurringExecutions: true,
           budgets: true,
+          monthlyReport: true,
+          yearlyReport: true,
         },
       ],
       ...overrides,
@@ -105,7 +108,7 @@ describe("NotificationsSection", () => {
 
   it("the invitations toggle PUTs all the global booleans", async () => {
     render(<NotificationsSection />);
-    await screen.findByText("Casa");
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
 
     await userEvent.click(
       screen.getByRole("switch", { name: "Wallet invitations" }),
@@ -121,7 +124,7 @@ describe("NotificationsSection", () => {
 
   it("a report toggle PUTs with that report flag flipped", async () => {
     render(<NotificationsSection />);
-    await screen.findByText("Casa");
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
 
     await userEvent.click(
       screen.getByRole("switch", { name: "Monthly report" }),
@@ -137,7 +140,7 @@ describe("NotificationsSection", () => {
 
   it("turning a wallet off mutes it and hides the expand button", async () => {
     render(<NotificationsSection />);
-    await screen.findByText("Casa");
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
 
     await userEvent.click(
       screen.getByRole("switch", { name: "Notifications for Casa" }),
@@ -152,6 +155,8 @@ describe("NotificationsSection", () => {
           subscriptions: false,
           recurringExecutions: true,
           budgets: true,
+          monthlyReport: true,
+          yearlyReport: true,
         },
       ),
     );
@@ -172,12 +177,14 @@ describe("NotificationsSection", () => {
             subscriptions: false,
             recurringExecutions: false,
             budgets: false,
+            monthlyReport: true,
+            yearlyReport: true,
           },
         ],
       }),
     );
     render(<NotificationsSection />);
-    await screen.findByText("Casa");
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
 
     await userEvent.click(
       screen.getByRole("switch", { name: "Notifications for Casa" }),
@@ -191,6 +198,8 @@ describe("NotificationsSection", () => {
         subscriptions: true,
         recurringExecutions: true,
         budgets: true,
+        monthlyReport: true,
+        yearlyReport: true,
       },
     );
     expect(screen.getByRole("switch", { name: "Subscriptions" })).toBeChecked();
@@ -198,7 +207,7 @@ describe("NotificationsSection", () => {
 
   it("an enabled wallet expands to its event toggles", async () => {
     render(<NotificationsSection />);
-    await screen.findByText("Casa");
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
     expect(
       screen.queryByRole("switch", { name: "Transactions" }),
     ).not.toBeInTheDocument();
@@ -218,6 +227,8 @@ describe("NotificationsSection", () => {
         subscriptions: false,
         recurringExecutions: false,
         budgets: true,
+        monthlyReport: true,
+        yearlyReport: true,
       },
     );
   });
@@ -234,5 +245,173 @@ describe("NotificationsSection", () => {
         name: "Enable push notifications on this device",
       }),
     ).not.toBeInTheDocument();
+  });
+
+  it("report chevrons open and close the wallet list independently of the toggle", async () => {
+    render(<NotificationsSection />);
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
+
+    const chevron = screen.getByRole("button", {
+      name: "Wallets for Monthly report",
+    });
+    expect(chevron).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("switch", { name: "Include Casa in monthly report" }),
+    ).not.toBeInTheDocument();
+
+    await userEvent.click(chevron);
+
+    expect(chevron).toHaveAttribute("aria-expanded", "true");
+    expect(
+      screen.getByRole("switch", { name: "Include Casa in monthly report" }),
+    ).toBeEnabled();
+    // Opening the panel must not touch the report's own toggle.
+    expect(mockedPut).not.toHaveBeenCalled();
+  });
+
+  it("the wallet toggles are disabled while the report is off", async () => {
+    mockedGet.mockResolvedValue(
+      preferences({ monthlyReport: false, yearlyReport: false }),
+    );
+    render(<NotificationsSection />);
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Wallets for Yearly wrap-up" }),
+    );
+
+    expect(
+      screen.getByRole("switch", { name: "Include Casa in yearly wrap-up" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByText("Turn on the report to choose wallets."),
+    ).toBeInTheDocument();
+  });
+
+  it("toggling a wallet under Monthly PUTs monthlyReport and keeps the other prefs", async () => {
+    render(<NotificationsSection />);
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Wallets for Monthly report" }),
+    );
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Include Casa in monthly report" }),
+    );
+
+    await waitFor(() =>
+      expect(mockedPut).toHaveBeenCalledWith(
+        "/wallets/w1/notification-preferences",
+        {
+          muted: false,
+          transactions: true,
+          subscriptions: false,
+          recurringExecutions: true,
+          budgets: true,
+          monthlyReport: false,
+          yearlyReport: true,
+        },
+      ),
+    );
+  });
+
+  it("the Yearly wallet list is independent of Monthly", async () => {
+    mockedGet.mockResolvedValue(
+      preferences({
+        wallets: [
+          {
+            walletId: "w1",
+            walletName: "Casa",
+            muted: false,
+            transactions: true,
+            subscriptions: false,
+            recurringExecutions: true,
+            budgets: true,
+            monthlyReport: true,
+            yearlyReport: false,
+          },
+        ],
+      }),
+    );
+    render(<NotificationsSection />);
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Wallets for Monthly report" }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Wallets for Yearly wrap-up" }),
+    );
+
+    expect(
+      screen.getByRole("switch", { name: "Include Casa in monthly report" }),
+    ).toBeChecked();
+    expect(
+      screen.getByRole("switch", { name: "Include Casa in yearly wrap-up" }),
+    ).not.toBeChecked();
+
+    await userEvent.click(
+      screen.getByRole("switch", { name: "Include Casa in yearly wrap-up" }),
+    );
+
+    await waitFor(() =>
+      expect(mockedPut).toHaveBeenCalledWith(
+        "/wallets/w1/notification-preferences",
+        expect.objectContaining({ monthlyReport: true, yearlyReport: true }),
+      ),
+    );
+  });
+
+  it("treats wallets without report flags (older backend) as included", async () => {
+    mockedGet.mockResolvedValue({
+      data: {
+        invites: true,
+        monthlyReport: true,
+        yearlyReport: true,
+        wallets: [
+          {
+            walletId: "w1",
+            walletName: "Casa",
+            muted: false,
+            transactions: true,
+            subscriptions: false,
+            recurringExecutions: true,
+            budgets: true,
+          },
+        ],
+      },
+    });
+    render(<NotificationsSection />);
+    await screen.findByRole("switch", { name: "Notifications for Casa" });
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Wallets for Monthly report" }),
+    );
+
+    expect(
+      screen.getByRole("switch", { name: "Include Casa in monthly report" }),
+    ).toBeChecked();
+  });
+
+  it("v2 expands a wallet into a raised panel and flips aria-expanded", async () => {
+    setUiVersion("v2");
+    try {
+      render(<NotificationsSection />);
+      const chevron = await screen.findByRole("button", {
+        name: "Options for Casa",
+      });
+      expect(chevron).toHaveAttribute("aria-expanded", "false");
+
+      await userEvent.click(chevron);
+
+      expect(chevron).toHaveAttribute("aria-expanded", "true");
+      const panelToggle = screen.getByRole("switch", { name: "Transactions" });
+      expect(panelToggle.closest(".bg-app-raised")).toBeInTheDocument();
+
+      await userEvent.click(chevron);
+      expect(chevron).toHaveAttribute("aria-expanded", "false");
+    } finally {
+      setUiVersion("v1");
+    }
   });
 });

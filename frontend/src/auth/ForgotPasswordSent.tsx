@@ -41,13 +41,18 @@ export const ForgotPasswordSent: React.FC<Props> = ({
       >
         <FontAwesomeIcon icon={faCircleCheck} className="text-2xl" />
       </div>
-      <AuthHeading>Check your email</AuthHeading>
-      <AuthSubtitle className="mb-1">
-        We've sent a password reset link to
-      </AuthSubtitle>
-      <p className="mb-5 break-all text-sm font-semibold text-app-text">
-        {email}
-      </p>
+      {/* ui-v2-switch: v2 shows the heading and the email above the card */}
+      {!v2 && (
+        <>
+          <AuthHeading>Check your email</AuthHeading>
+          <AuthSubtitle className="mb-1">
+            We've sent a password reset link to
+          </AuthSubtitle>
+          <p className="mb-5 break-all text-sm font-semibold text-app-text">
+            {email}
+          </p>
+        </>
+      )}
 
       <div
         className={

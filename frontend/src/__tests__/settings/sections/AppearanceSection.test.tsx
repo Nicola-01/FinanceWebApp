@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AppearanceSection } from "../../../settings/sections/AppearanceSection";
+import { setUiVersion } from "../../../utils/uiVersion";
 
 describe("AppearanceSection", () => {
   beforeEach(() => {
@@ -9,10 +10,10 @@ describe("AppearanceSection", () => {
     delete document.documentElement.dataset.ui;
   });
 
-  it("renders the switch unchecked by default", () => {
+  it("renders the switch checked by default (v2)", () => {
     render(<AppearanceSection />);
     const toggle = screen.getByRole("switch", { name: "New interface (beta)" });
-    expect(toggle).toHaveAttribute("aria-checked", "false");
+    expect(toggle).toHaveAttribute("aria-checked", "true");
     expect(
       screen.getByText(
         "Try the redesigned interface. Saved on this device only.",
@@ -21,9 +22,11 @@ describe("AppearanceSection", () => {
   });
 
   it("turns the new interface on and persists it", async () => {
+    setUiVersion("v1");
     const user = userEvent.setup();
     render(<AppearanceSection />);
     const toggle = screen.getByRole("switch", { name: "New interface (beta)" });
+    expect(toggle).toHaveAttribute("aria-checked", "false");
 
     await user.click(toggle);
 

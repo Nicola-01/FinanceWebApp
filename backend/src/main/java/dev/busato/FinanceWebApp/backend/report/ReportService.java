@@ -59,7 +59,7 @@ public class ReportService {
 
   private boolean sendMonthly(User user, YearMonth period) throws Exception {
     List<WalletMonthlyReport> reports = new ArrayList<>();
-    for (Wallet wallet : acceptedWallets(user)) {
+    for (Wallet wallet : acceptedWallets(user, WalletAccess::isIncludeInMonthlyReport)) {
       WalletMonthlyReport r =
           aggregator.monthly(
               wallet, transactionRepository.getAllByWalletId(wallet.getId()), period);
@@ -83,7 +83,7 @@ public class ReportService {
 
   private boolean sendYearly(User user, int year) throws Exception {
     List<WalletYearlyReport> reports = new ArrayList<>();
-    for (Wallet wallet : acceptedWallets(user)) {
+    for (Wallet wallet : acceptedWallets(user, WalletAccess::isIncludeInYearlyReport)) {
       WalletYearlyReport r =
           aggregator.yearly(wallet, transactionRepository.getAllByWalletId(wallet.getId()), year);
       if (r.transactionCount() > 0) reports.add(r);
@@ -135,10 +135,12 @@ public class ReportService {
     return "sent %d, skipped %d (no data), failed %d".formatted(sent, skipped, failed);
   }
 
-  private List<Wallet> acceptedWallets(User user) {
+  /** ACCEPTED wallets whose access row passes the report-specific opt-out flag. */
+  private List<Wallet> acceptedWallets(User user, Predicate<WalletAccess> included) {
     return walletAccessRepository
         .findAllByUserIdAndStatus(user.getId(), InvitationStatus.ACCEPTED)
         .stream()
+        .filter(included)
         .map(WalletAccess::getWallet)
         .toList();
   }

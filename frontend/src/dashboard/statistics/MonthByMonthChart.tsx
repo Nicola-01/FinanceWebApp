@@ -5,7 +5,9 @@ import { formatKitAmount } from "./kitChartData.ts";
 import { RevealOnView } from "../../components/ui/RevealOnView.tsx";
 import { KitLegend, KitNoData } from "./KitChartShared.tsx";
 import { StatCard } from "./StatCard.tsx";
+import { BarChartLoading } from "@/components/ui/charts";
 import { INVEST_COLOR, MonthByMonthPlot } from "./MonthByMonthPlot.tsx";
+import { MONTH_BY_MONTH_MARGIN } from "./plotMargins.ts";
 import { monthByMonthBound, type MonthByMonthRow } from "./statsChartRows.ts";
 import { useChartPalette } from "./useChartPalette.ts";
 import { useShowInvestments } from "./useShowInvestments.ts";
@@ -16,6 +18,8 @@ export interface MonthByMonthChartProps {
   currencySymbol: string;
   /** Offers the Investments chip and series; false when no tag is flagged as investment. */
   hasInvestments: boolean;
+  /** Rows are still loading: draw the bar placeholder in the plot's slot. */
+  loading?: boolean;
   /** Render without the card shell + heading (the parent group card provides them). */
   bare?: boolean;
 }
@@ -39,6 +43,7 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
   byYear,
   currencySymbol,
   hasInvestments,
+  loading = false,
   bare = false,
 }) => {
   const { income, expense, kept } = useChartPalette();
@@ -173,25 +178,32 @@ export const MonthByMonthChart: React.FC<MonthByMonthChartProps> = ({
 
   return (
     <StatCard title={title} subtitle={sub} action={action} bare={bare}>
-      {rows.some((r) => hasAmount(r, showInvestments)) ? (
+      {loading || rows.some((r) => hasAmount(r, showInvestments)) ? (
         <div className="flex flex-1 flex-col justify-center gap-4">
           {/* The plot's aspect ratio is fixed, so a stretched card centres plot + legend in the spare height. */}
           {/* Mounted once it's laid out and in view, so the kit's entrance runs where the user can see it (as the widgets do). */}
-          <RevealOnView>
-            {/* Keyed so toggling the chip remounts the plot and the kit replays its entrance animation. */}
-            <MonthByMonthPlot
-              key={showInvestments ? "with-investments" : "base"}
-              rows={rows}
-              data={showInvestments ? investData : rows}
-              showInvestments={showInvestments}
-              yDomains={yDomains}
-              byYear={byYear}
-              tickLabels={tickLabels}
-              tooltipLabels={tooltipLabels}
-              tooltipRows={tooltipRows}
-              animationDuration={toggled ? 450 : undefined}
+          {loading ? (
+            <BarChartLoading
+              aspectRatio="5 / 2"
+              margin={MONTH_BY_MONTH_MARGIN}
             />
-          </RevealOnView>
+          ) : (
+            <RevealOnView>
+              {/* Keyed so toggling the chip remounts the plot and the kit replays its entrance animation. */}
+              <MonthByMonthPlot
+                key={showInvestments ? "with-investments" : "base"}
+                rows={rows}
+                data={showInvestments ? investData : rows}
+                showInvestments={showInvestments}
+                yDomains={yDomains}
+                byYear={byYear}
+                tickLabels={tickLabels}
+                tooltipLabels={tooltipLabels}
+                tooltipRows={tooltipRows}
+                animationDuration={toggled ? 450 : undefined}
+              />
+            </RevealOnView>
+          )}
           <div className="flex flex-wrap items-center justify-center gap-x-4 [&>*]:mt-0">
             <KitLegend series={series} />
             {showInvestments && (

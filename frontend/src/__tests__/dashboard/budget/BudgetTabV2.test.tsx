@@ -169,3 +169,39 @@ describe("BudgetTab (v2)", () => {
     ).not.toBeInTheDocument();
   });
 });
+
+describe("BudgetTab (v2 loading)", () => {
+  beforeEach(() => {
+    setUiVersion("v2");
+    mockContext.mockReturnValue({ wallet, tags: [] });
+    mockUseBudgets.mockReturnValue({
+      budgets: [],
+      isLoading: true,
+      refresh: vi.fn(),
+      createBudget: vi.fn(),
+      updateBudget: vi.fn(),
+      deleteBudget: vi.fn(),
+    });
+  });
+
+  afterEach(() => {
+    setUiVersion("v1");
+  });
+
+  it("shows three budget-card skeletons in a labelled status region", () => {
+    const { container } = render(<BudgetTab />);
+    const status = screen.getByRole("status", { name: "Loading budgets" });
+    expect(status.children).toHaveLength(3);
+    expect(status.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
+    expect(container.querySelector(".animate-spin")).toBeNull();
+  });
+
+  it("shows no loading text and no New budget control while loading", () => {
+    render(<BudgetTab />);
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /new budget/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("No budgets yet")).not.toBeInTheDocument();
+  });
+});

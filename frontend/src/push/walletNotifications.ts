@@ -7,6 +7,9 @@ export interface WalletNotificationPrefs {
   subscriptions: boolean;
   recurringExecutions: boolean;
   budgets: boolean;
+  /** Included in the monthly / yearly report; independent of `muted`. */
+  monthlyReport: boolean;
+  yearlyReport: boolean;
 }
 
 /** One entry of `wallets` in GET /users/me/notification-preferences. */
@@ -15,7 +18,19 @@ export interface WalletPrefsEntry extends WalletNotificationPrefs {
   walletName: string;
 }
 
-export type WalletEventKey = Exclude<keyof WalletNotificationPrefs, "muted">;
+export type WalletEventKey = Exclude<
+  keyof WalletNotificationPrefs,
+  "muted" | "monthlyReport" | "yearlyReport"
+>;
+
+/** Older backends omit the report flags; a missing one counts as included. */
+export function withReportDefaults(entry: WalletPrefsEntry): WalletPrefsEntry {
+  return {
+    ...entry,
+    monthlyReport: entry.monthlyReport ?? true,
+    yearlyReport: entry.yearlyReport ?? true,
+  };
+}
 
 export const WALLET_EVENT_OPTIONS: {
   key: WalletEventKey;
@@ -69,6 +84,8 @@ export function saveWalletNotificationPrefs(
     subscriptions,
     recurringExecutions,
     budgets,
+    monthlyReport,
+    yearlyReport,
   }: WalletNotificationPrefs,
 ) {
   return api.put(`/wallets/${walletId}/notification-preferences`, {
@@ -77,5 +94,7 @@ export function saveWalletNotificationPrefs(
     subscriptions,
     recurringExecutions,
     budgets,
+    monthlyReport,
+    yearlyReport,
   });
 }

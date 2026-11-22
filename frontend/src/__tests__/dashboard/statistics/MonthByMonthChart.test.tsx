@@ -18,6 +18,7 @@ const { calls, record } = vi.hoisted(() => {
 });
 
 vi.mock("@/components/ui/charts", () => ({
+  BarChartLoading: (p: Record<string, unknown>) => record("BarChartLoading", p),
   curveMonotoneX: "monotoneX",
   ComposedChart: (props: { children?: React.ReactNode }) => (
     <div data-testid="composed">
@@ -498,6 +499,7 @@ describe("MonthByMonthChart investments chip", () => {
 
   beforeEach(() => {
     localStorage.clear();
+    setUiVersion("v1");
   });
 
   it("is off by default and keeps the plain stacks and a single kept line", () => {
@@ -600,6 +602,7 @@ describe("MonthByMonthChart investments chip", () => {
 describe("MonthByMonthChart investments toggle", () => {
   beforeEach(() => {
     localStorage.clear();
+    setUiVersion("v1");
   });
 
   const chip = () => screen.getByRole("switch", { name: /Investments/ });
@@ -843,5 +846,47 @@ describe("MonthByMonthChart reveal", () => {
 
     act(() => callback([{ isIntersecting: true }]));
     expect(screen.getAllByTestId("composed")).toHaveLength(2);
+  });
+});
+
+describe("MonthByMonthChart loading", () => {
+  beforeEach(() => {
+    for (const k of Object.keys(calls)) delete calls[k];
+    setUiVersion("v2");
+  });
+
+  it("draws the bar placeholder in the plot's slot, with no real bars", () => {
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={[]}
+          byYear={false}
+          currencySymbol="€"
+          hasInvestments={false}
+          loading
+        />,
+      ),
+    );
+    expect(calls.BarChartLoading.at(-1)).toMatchObject({
+      aspectRatio: "5 / 2",
+      margin: { top: 16, right: 12, bottom: 28, left: 44 },
+    });
+    expect(calls.ComposedChart).toBeUndefined();
+    expect(calls.SeriesBar).toBeUndefined();
+  });
+
+  it("draws the real plot and no placeholder once loaded", () => {
+    render(
+      withTheme(
+        <MonthByMonthChart
+          rows={monthRows}
+          byYear={false}
+          currencySymbol="€"
+          hasInvestments={false}
+        />,
+      ),
+    );
+    expect(calls.BarChartLoading).toBeUndefined();
+    expect(calls.ComposedChart).toBeDefined();
   });
 });

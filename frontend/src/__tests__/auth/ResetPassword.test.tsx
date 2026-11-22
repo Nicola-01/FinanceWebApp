@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -21,6 +21,7 @@ vi.mock("../../components/ui/ToastNotification", () => ({
 import ResetPassword from "../../auth/ResetPassword";
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ui/ToastNotification";
+import { setUiVersion } from "../../utils/uiVersion";
 
 const get = (api as unknown as { get: ReturnType<typeof vi.fn> }).get;
 const post = (api as unknown as { post: ReturnType<typeof vi.fn> }).post;
@@ -107,5 +108,24 @@ describe("ResetPassword", () => {
       true,
     );
     expect(navigateMock).toHaveBeenCalledWith("/login");
+  });
+});
+
+describe("ResetPassword (v2 layout)", () => {
+  beforeEach(() => setUiVersion("v2"));
+  afterEach(() => setUiVersion("v1"));
+
+  it("renders the heading above the card with no brand lockup", async () => {
+    renderAt("/reset-password?token=abc");
+    const heading = await screen.findByRole("heading", {
+      level: 1,
+      name: "Reset password",
+    });
+    const input = screen.getByLabelText("New password");
+    expect(
+      heading.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.queryByAltText("My Wallet")).not.toBeInTheDocument();
+    expect(screen.queryByAltText("Finance")).not.toBeInTheDocument();
   });
 });

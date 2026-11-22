@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import { AnimateBackground } from "./AnimateBackground.tsx";
+import { AuthBackdrop } from "./AuthBackdrop.tsx";
 import { useUiVersion } from "../hooks/useUiVersion";
 
 /**
@@ -12,15 +13,19 @@ import { useUiVersion } from "../hooks/useUiVersion";
  * background — only the inner card changes.
  *
  * v1: `dark` forces the dark token palette regardless of the user's theme.
- * v2: no forced dark and no sphere background — the auth screens follow the theme.
+ * v2: no forced dark and no sphere background — the auth screens follow the theme
+ * and sit on the flat dot-grid backdrop, top-aligned on phone, centred on desktop.
  */
 const AuthLayout: React.FC = () => {
   const [ui] = useUiVersion();
   // ui-v2-switch
   if (ui === "v2") {
     return (
-      <div className="grid min-h-dvh place-items-center bg-app-bg px-4 py-10">
-        <Outlet />
+      <div className="flex min-h-dvh flex-col items-center bg-app-bg px-4 pt-6 pb-10 sm:justify-center sm:px-6 sm:py-16">
+        <AuthBackdrop />
+        <div className="relative z-10 flex w-full flex-col items-center">
+          <Outlet />
+        </div>
       </div>
     );
   }

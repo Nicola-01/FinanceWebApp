@@ -6,7 +6,6 @@ import {
   faTrash,
   faPause,
   faPlay,
-  faHandPointer,
 } from "@fortawesome/free-solid-svg-icons";
 import { Card } from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -25,6 +24,25 @@ import { McpConnectGuide } from "../tokens/McpConnectGuide";
 import { useTokens } from "../tokens/useTokens";
 import { useTokenDialog } from "../tokens/useTokenDialog";
 import { useUiVersion } from "../../hooks/useUiVersion";
+import { Skeleton } from "../../components/ui/Skeleton";
+
+// ui-v2-switch: three placeholder rows shaped like TokenListItem (icon chip + two lines)
+const TokenRowsSkeletonV2 = () => (
+  <div
+    aria-hidden="true"
+    className="divide-y divide-app-border overflow-hidden rounded-[var(--r-card)] bg-app-card shadow-[var(--box-ring)]"
+  >
+    {[0, 1, 2].map((i) => (
+      <div key={i} className="flex items-center gap-3 px-4 py-3">
+        <Skeleton className="h-10 w-10 shrink-0 rounded-[11px]" />
+        <div className="flex flex-1 flex-col gap-2">
+          <Skeleton className="h-3.5 w-1/3" />
+          <Skeleton className="h-2.5 w-1/4" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 export const TokensSection: React.FC = () => {
   const deleteModalRef = useDeleteModal();
@@ -83,32 +101,20 @@ export const TokensSection: React.FC = () => {
           onChange={setFilter}
         />
 
-        {/* Bulk action bar — always visible while there are tokens; actions
-            stay disabled until at least one row is long-press-selected. */}
-        {tokens.length > 0 && (
+        {/* Bulk action bar: only while at least one row is long-press-selected. */}
+        {selectionMode && (
           <div
             className={
               isV2
                 ? "flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-input)] bg-app-raised px-3 py-2"
-                : `mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-input)] border px-3 py-2 ${
-                    selectionMode
-                      ? "border-app-purple/30 bg-app-purple/5"
-                      : "border-app-border bg-app-input"
-                  }`
+                : "mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--r-input)] border border-app-purple/30 bg-app-purple/5 px-3 py-2"
             }
           >
-            {selectionMode ? (
-              <span className="text-sm font-semibold text-app-text">
-                {selected.size} selected
-              </span>
-            ) : (
-              <span className="flex items-center gap-2 text-sm text-app-muted">
-                <FontAwesomeIcon icon={faHandPointer} className="text-xs" />
-                Hold a token to select
-              </span>
-            )}
+            <span className="text-sm font-semibold text-app-text">
+              {selected.size} selected
+            </span>
             <div className="flex flex-wrap items-center gap-2">
-              {selectionMode && selected.size < filtered.length && (
+              {selected.size < filtered.length && (
                 <Button
                   variant="secondary"
                   size="sm"
@@ -117,16 +123,14 @@ export const TokensSection: React.FC = () => {
                   Select all ({filtered.length})
                 </Button>
               )}
-              {selectionMode && (
-                <Button variant="secondary" size="sm" onClick={clearSelection}>
-                  Clear
-                </Button>
-              )}
+              <Button variant="secondary" size="sm" onClick={clearSelection}>
+                Clear
+              </Button>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={() => handleBulkPause(true)}
-                disabled={!selectionMode || bulkPausing}
+                disabled={bulkPausing}
               >
                 <FontAwesomeIcon icon={faPause} />
                 Pause
@@ -135,7 +139,7 @@ export const TokensSection: React.FC = () => {
                 variant="secondary"
                 size="sm"
                 onClick={() => handleBulkPause(false)}
-                disabled={!selectionMode || bulkPausing}
+                disabled={bulkPausing}
               >
                 <FontAwesomeIcon icon={faPlay} />
                 Resume
@@ -144,7 +148,6 @@ export const TokensSection: React.FC = () => {
                 variant="danger"
                 size="sm"
                 onClick={() => setBulkConfirm(true)}
-                disabled={!selectionMode}
               >
                 <FontAwesomeIcon icon={faTrash} />
                 Delete
@@ -155,11 +158,15 @@ export const TokensSection: React.FC = () => {
 
         {/* List */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div
-              className={`h-6 w-6 animate-spin rounded-full border-2 border-app-border ${isV2 ? "border-t-app-text" : "border-t-app-purple"}`}
-            />
-          </div>
+          isV2 ? ( // ui-v2-switch
+            <TokenRowsSkeletonV2 />
+          ) : (
+            <div className="flex items-center justify-center py-12">
+              <div
+                className={`h-6 w-6 animate-spin rounded-full border-2 border-app-border ${isV2 ? "border-t-app-text" : "border-t-app-purple"}`}
+              />
+            </div>
+          )
         ) : tokens.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div

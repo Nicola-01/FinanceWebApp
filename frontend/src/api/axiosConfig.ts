@@ -18,22 +18,21 @@ const api = axios.create({
   withCredentials: true, // Required to send/receive cookies (refresh_token)
 });
 
+const PUBLIC_AUTH_ENDPOINTS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/demo",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+];
+
+const isPublicAuthUrl = (url?: string) =>
+  PUBLIC_AUTH_ENDPOINTS.some((endpoint) => url?.includes(endpoint));
+
 // ==================== REQUEST INTERCEPTOR ====================
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const publicEndpoints = [
-      "/auth/login",
-      "/auth/register",
-      "/auth/demo",
-      "/auth/forgot-password",
-      "/auth/reset-password",
-    ];
-
-    const isPublic = publicEndpoints.some((endpoint) =>
-      config.url?.includes(endpoint),
-    );
-
-    if (isPublic) return config;
+    if (isPublicAuthUrl(config.url)) return config;
 
     const token = getToken();
 
@@ -92,6 +91,12 @@ api.interceptors.response.use(
   async (error) => {
     const config = error.config;
     if (!config) return Promise.reject(error);
+
+    // Bad credentials on a public auth endpoint: surface the error to the form,
+    // do not treat it as an expired session (no refresh, no redirect).
+    if (error.response?.status === 401 && isPublicAuthUrl(config.url)) {
+      return Promise.reject(error);
+    }
 
     // ---- Auto-refresh on 401 ----
     if (error.response?.status === 401 && !config._retry) {
