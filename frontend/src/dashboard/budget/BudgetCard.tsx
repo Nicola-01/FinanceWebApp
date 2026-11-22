@@ -192,7 +192,7 @@ const Fact: React.FC<{
     <b className="block truncate text-[15px] font-semibold tracking-[-0.01em] text-app-text tabular-nums">
       {value}
     </b>
-    <span className="mt-0.5 flex items-center gap-1.5 whitespace-nowrap text-[13px] text-app-muted">
+    <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] text-app-muted">
       {color && (
         <span
           aria-hidden="true"
@@ -200,7 +200,7 @@ const Fact: React.FC<{
           style={{ backgroundColor: color }}
         />
       )}
-      {label}
+      <span className="truncate">{label}</span>
     </span>
   </div>
 );
@@ -267,7 +267,7 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-3 rounded-[var(--r-card)] bg-app-card p-5 shadow-[var(--box-ring)] sm:p-6">
+    <div className="@container min-w-0 flex flex-col gap-3 rounded-[var(--r-card)] bg-app-card p-5 shadow-[var(--box-ring)] sm:p-6">
       <div className="flex items-start gap-3">
         <CategoryIcon
           icon={tag ? tag.icon : wallet.icon}
@@ -328,9 +328,9 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
         )}
       </div>
 
-      <div className="flex items-center gap-4 max-[379px]:flex-col">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-4 gap-y-4">
         {/* Arc clamps at full; the centre shows the real percentage (centerValue, not value). */}
-        <div className="relative w-[120px] shrink-0 text-app-text sm:w-[128px] max-[379px]:self-center [&_.ts-bkm-center-stat-value]:!text-[20px]">
+        <div className="relative w-[104px] @md:row-span-2 @md:w-[128px] shrink-0 text-app-text [&_.ts-bkm-center-stat-value]:!text-[20px]">
           <Gauge
             arcStyle="solid"
             arcThickness={0.05}
@@ -407,7 +407,7 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-2.5 max-[379px]:w-full">
+        <div className="flex min-w-0 flex-col @md:row-span-1">
           {goalHero ??
             (overspend > 0 ? (
               <p
@@ -430,33 +430,46 @@ const BudgetCardV2: React.FC<BudgetCardProps> = ({
                 </span>
               </p>
             ))}
-
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            <Fact
-              color={gaugeColor(budget.status)}
-              value={<AnimatedNumber value={budget.spent} currency={symbol} />}
-              label="spent"
-            />
-            {!goal && (
-              <Fact
-                color={DUE_COLOUR}
-                value={<AnimatedNumber value={upcoming} currency={symbol} />}
-                label="still due"
-              />
-            )}
-            <Fact
-              value={
-                <>
-                  <span className="tabular-nums">{daysLeft(budget)}</span>{" "}
-                  <span className="text-[13px] font-normal text-app-muted">
-                    days
-                  </span>
-                </>
-              }
-              label="left in period"
-            />
-          </div>
         </div>
+
+        <div className="col-span-2 grid grid-cols-3 gap-3 border-t border-app-border pt-3 @md:col-span-1 @md:col-start-2 @md:flex @md:flex-wrap @md:gap-x-4 @md:gap-y-2 @md:border-0 @md:pt-0">
+          <Fact
+            color={gaugeColor(budget.status)}
+            value={<AnimatedNumber value={budget.spent} currency={symbol} />}
+            label="spent"
+          />
+          {!goal && (
+            <Fact
+              color={DUE_COLOUR}
+              value={<AnimatedNumber value={upcoming} currency={symbol} />}
+              label="still due"
+            />
+          )}
+          <Fact
+            value={
+              <>
+                <span className="tabular-nums">{daysLeft(budget)}</span>{" "}
+                <span className="text-[13px] font-normal text-app-muted">
+                  days
+                </span>
+              </>
+            }
+            label="left in period"
+          />
+        </div>
+
+        {pacePoint && (
+          <p
+            data-testid="pace-legend"
+            className="col-span-2 flex items-center gap-1.5 text-[13px] text-app-muted @md:col-span-1 @md:col-start-2"
+          >
+            <span
+              aria-hidden="true"
+              className="size-2.5 shrink-0 rounded-full border-[1.5px] border-app-text bg-app-card"
+            />
+            {`At this pace: ${money(projected)} by period end`}
+          </p>
+        )}
       </div>
 
       {!budget.active && (
