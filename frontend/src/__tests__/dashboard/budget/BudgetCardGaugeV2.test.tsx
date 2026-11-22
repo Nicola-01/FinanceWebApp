@@ -200,6 +200,24 @@ describe("BudgetCard gauge (v2)", () => {
     expect(screen.queryByText(/Over by/)).not.toBeInTheDocument();
   });
 
+  it("explains the pace marker with a legend next to the figures", () => {
+    const { container } = renderCard(makeBudget({ spent: 250 }));
+
+    expect(container.querySelector("[data-pace-marker]")).not.toBeNull();
+    expect(screen.getByTestId("pace-legend")).toHaveTextContent(
+      /^At this pace: .+ by period end$/,
+    );
+  });
+
+  it("omits the pace legend for a goal, which has no pace marker", () => {
+    const { container } = renderCard(
+      makeBudget({ goal: true, status: "OK", percentUsed: 83 }),
+    );
+
+    expect(container.querySelector("[data-pace-marker]")).toBeNull();
+    expect(screen.queryByTestId("pace-legend")).not.toBeInTheDocument();
+  });
+
   it("shows the overspend in the gauge area once the budget is exceeded", () => {
     renderCard(
       makeBudget({
