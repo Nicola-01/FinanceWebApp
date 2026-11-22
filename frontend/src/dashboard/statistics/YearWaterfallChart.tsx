@@ -1,4 +1,5 @@
 import {
+  BarChartLoading,
   BarXAxis,
   BarYAxis,
   ChartTooltip,
@@ -17,6 +18,8 @@ interface YearWaterfallChartProps {
   /** True for the all-time view (one step per year), false for the year view (one step per month). */
   byYear: boolean;
   currencySymbol: string;
+  /** Rows are still loading: draw the bar placeholder at the chart's size. */
+  loading?: boolean;
   /** Render without the card shell + heading (the parent group card provides them). */
   bare?: boolean;
 }
@@ -26,6 +29,7 @@ export function YearWaterfallChart({
   rows,
   byYear,
   currencySymbol,
+  loading = false,
   bare = false,
 }: YearWaterfallChartProps) {
   const { income, expense, neutral } = useChartPalette();
@@ -41,7 +45,12 @@ export function YearWaterfallChart({
 
   return (
     <StatCard title={title} subtitle={sub} bare={bare}>
-      {rows.length === 0 || rows.every((r) => !r.value) ? (
+      {loading ? (
+        <BarChartLoading
+          aspectRatio="3 / 1"
+          margin={{ top: 24, right: 12, bottom: 28, left: 44 }}
+        />
+      ) : rows.length === 0 || rows.every((r) => !r.value) ? (
         <KitNoData />
       ) : (
         <WaterfallChart

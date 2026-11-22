@@ -58,6 +58,10 @@ class ReportServiceTest {
   private void wireHappyPath(int txCount) {
     WalletAccess access = new WalletAccess();
     access.setWallet(wallet);
+    wireHappyPath(txCount, access);
+  }
+
+  private void wireHappyPath(int txCount, WalletAccess access) {
     lenient().when(userRepository.findAll()).thenReturn(List.of(user));
     when(walletAccessRepository.findAllByUserIdAndStatus(user.getId(), InvitationStatus.ACCEPTED))
         .thenReturn(List.of(access));
@@ -103,6 +107,118 @@ class ReportServiceTest {
             any(byte[].class));
     verify(notificationService)
         .notifyUser(eq(user), eq(NotificationType.MONTHLY_REPORT), isNull(), any());
+  }
+
+  @Test
+  void sendMonthlyReports_LeavesOutOnlyWalletExcludedFromMonthly() throws Exception {
+    Wallet excludedWallet =
+        Wallet.builder().id(UUID.randomUUID()).name("Shared").currency("EUR").build();
+    WalletAccess included = new WalletAccess();
+    included.setWallet(wallet);
+    WalletAccess excluded = new WalletAccess();
+    excluded.setWallet(excludedWallet);
+    excluded.setIncludeInMonthlyReport(false);
+    when(userRepository.findAll()).thenReturn(List.of(user));
+    when(walletAccessRepository.findAllByUserIdAndStatus(user.getId(), InvitationStatus.ACCEPTED))
+        .thenReturn(List.of(included, excluded));
+    when(transactionRepository.getAllByWalletId(wallet.getId())).thenReturn(List.of());
+    when(aggregator.monthly(eq(wallet), anyList(), eq(period)))
+        .thenReturn(
+            new WalletMonthlyReport(
+                "Main",
+                null,
+                "EUR",
+                period,
+                new PeriodTotals(
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO),
+                null,
+                BigDecimal.ZERO,
+                List.of(),
+                List.of(),
+                3,
+                null,
+                null));
+    when(htmlBuilder.monthlyEmailBody(any(), any(), anyList())).thenReturn("<body/>");
+    when(htmlBuilder.monthlyPdfHtml(any(), any(), anyList())).thenReturn("<pdf/>");
+    when(pdfRenderer.render(any())).thenReturn("%PDF".getBytes());
+
+    String summary = reportService.sendMonthlyReports(period);
+
+    assertEquals("sent 1, skipped 0 (no data), failed 0", summary);
+    verify(aggregator, never()).monthly(eq(excludedWallet), anyList(), any());
+    verify(htmlBuilder).monthlyPdfHtml(eq("nicola"), eq(period), argThat(l -> l.size() == 1));
+  }
+
+  @Test
+  void sendYearlyReports_SkipsWalletExcludedFromYearly() throws Exception {
+    WalletAccess excluded = new WalletAccess();
+    excluded.setWallet(wallet);
+    excluded.setIncludeInYearlyReport(false);
+    when(userRepository.findAll()).thenReturn(List.of(user));
+    when(walletAccessRepository.findAllByUserIdAndStatus(user.getId(), InvitationStatus.ACCEPTED))
+        .thenReturn(List.of(excluded));
+
+    String summary = reportService.sendYearlyReports(2025);
+
+    assertEquals("sent 0, skipped 1 (no data), failed 0", summary);
+    verify(aggregator, never()).yearly(any(), anyList(), anyInt());
+    verify(sendEmailService, never()).sendReportEmail(any(), any(), any(), any(), any());
+  }
+
+  @Test
+  void sendMonthlyReports_IgnoresYearlyOnlyExclusion() throws Exception {
+    WalletAccess access = new WalletAccess();
+    access.setWallet(wallet);
+    access.setIncludeInYearlyReport(false);
+    wireHappyPath(3, access);
+    when(htmlBuilder.monthlyEmailBody(any(), any(), anyList())).thenReturn("<body/>");
+    when(htmlBuilder.monthlyPdfHtml(any(), any(), anyList())).thenReturn("<pdf/>");
+    when(pdfRenderer.render(any())).thenReturn("%PDF".getBytes());
+
+    assertEquals("sent 1, skipped 0 (no data), failed 0", reportService.sendMonthlyReports(period));
+  }
+
+  @Test
+  void sendYearlyReports_IgnoresMonthlyOnlyExclusion() throws Exception {
+    WalletAccess access = new WalletAccess();
+    access.setWallet(wallet);
+    access.setIncludeInMonthlyReport(false);
+    when(userRepository.findAll()).thenReturn(List.of(user));
+    when(walletAccessRepository.findAllByUserIdAndStatus(user.getId(), InvitationStatus.ACCEPTED))
+        .thenReturn(List.of(access));
+    when(transactionRepository.getAllByWalletId(wallet.getId())).thenReturn(List.of());
+    when(aggregator.yearly(eq(wallet), anyList(), eq(2025)))
+        .thenReturn(
+            new WalletYearlyReport(
+                "Main",
+                null,
+                "EUR",
+                2025,
+                new PeriodTotals(
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO,
+                    BigDecimal.ZERO),
+                null,
+                List.of(),
+                null,
+                null,
+                List.of(),
+                List.of(),
+                new YearRecords(null, null, null, null, null, null, 0, 5, null, null),
+                5,
+                null,
+                null));
+    when(htmlBuilder.yearlyEmailBody(any(), anyInt(), anyList())).thenReturn("<body/>");
+    when(htmlBuilder.yearlyPdfHtml(any(), anyInt(), anyList())).thenReturn("<pdf/>");
+    when(pdfRenderer.render(any())).thenReturn("%PDF".getBytes());
+
+    assertEquals("sent 1, skipped 0 (no data), failed 0", reportService.sendYearlyReports(2025));
   }
 
   @Test

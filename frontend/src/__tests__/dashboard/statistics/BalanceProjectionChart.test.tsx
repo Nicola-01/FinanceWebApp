@@ -16,6 +16,8 @@ const { calls, record } = vi.hoisted(() => {
 });
 
 vi.mock("@/components/ui/charts", () => ({
+  LineChartLoading: (p: Record<string, unknown>) =>
+    record("LineChartLoading", p),
   curveMonotoneX: "monotoneX",
   ComposedChart: (props: { children?: React.ReactNode; data: unknown }) => (
     <div data-testid="composed">
@@ -257,5 +259,21 @@ describe("BalanceProjectionChart bare mode", () => {
       screen.getByRole("button", { name: "How the projection and range work" }),
     ).toBeInTheDocument();
     expect(calls.ComposedChart).toHaveLength(1);
+  });
+});
+
+describe("BalanceProjectionChart loading", () => {
+  it("draws the line placeholder and no projection while history loads", () => {
+    for (const k of Object.keys(calls)) delete calls[k];
+    render(
+      withTheme(
+        <BalanceProjectionChart history={[]} currencySymbol="€" loading />,
+      ),
+    );
+    expect(calls.LineChartLoading.at(-1)).toMatchObject({
+      aspectRatio: "5 / 2",
+    });
+    expect(calls.ComposedChart).toBeUndefined();
+    expect(screen.queryByText(/usual pace/)).not.toBeInTheDocument();
   });
 });

@@ -196,6 +196,9 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
                 </>
               )}
             </div>
+            {isV2 && (
+              <TokenWalletBadges token={token} walletsMap={walletsMap} inline />
+            )}
           </div>
         </div>
 
@@ -220,7 +223,7 @@ export const TokenListItem: React.FC<TokenListItemProps> = ({
         )}
       </div>
 
-      <TokenWalletBadges token={token} walletsMap={walletsMap} />
+      {!isV2 && <TokenWalletBadges token={token} walletsMap={walletsMap} />}
     </Wrapper>
   );
 };

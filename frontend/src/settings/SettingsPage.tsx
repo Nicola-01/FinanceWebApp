@@ -81,7 +81,7 @@ const SettingsPage: React.FC = () => {
             // On lg the column stretches and the inner bar handles stickiness.
             <div className="min-w-0 sticky top-16 z-20 self-start lg:static lg:top-auto lg:z-auto lg:self-auto">
               <div
-                className={`${navBleed} border-b border-app-border/60 bg-app-bg/85 py-3 backdrop-blur lg:sticky lg:top-20 lg:z-20 lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none`}
+                className={`${navBleed} border-b border-app-border/60 bg-app-bg/85 py-3 backdrop-blur lg:sticky lg:top-24 lg:z-20 lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none`}
               >
                 {/* Back link sits as the header of the settings nav, above the sections. */}
                 <button

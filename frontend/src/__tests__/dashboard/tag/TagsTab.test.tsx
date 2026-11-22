@@ -74,6 +74,15 @@ describe("TagsTab", () => {
       expect(screen.getByText("Food 100%")).toBeInTheDocument();
     });
 
+    it("shows the Categories heading above the strip", () => {
+      setUiVersion("v2");
+      setCtx();
+      render(<TagsTab />);
+      expect(
+        screen.getByRole("heading", { name: "Categories" }),
+      ).toBeInTheDocument();
+    });
+
     it("opens the category manager from the strip", () => {
       setUiVersion("v2");
       setCtx();

@@ -20,6 +20,7 @@ import { V2_DESKTOP_QUERY } from "./wallet/WalletsBar.tsx";
 import { HeaderActions } from "../header/HeaderActions.tsx";
 import { OfflineBanner } from "../components/ui/OfflineBanner.tsx";
 import { EmptyState } from "../components/ui/EmptyState.tsx";
+import { WalletDashboardSkeleton } from "./wallet/WalletDashboardSkeleton.tsx";
 
 const UserDashboard: React.FC = () => {
   const { walletId } = useParams<{ walletId: string }>();
@@ -125,7 +126,7 @@ const UserDashboard: React.FC = () => {
                 headerActions={isDesktop ? actions : undefined}
               />
             ) : loading ? (
-              <p className="py-24 text-center text-app-muted">Loading…</p>
+              <WalletDashboardSkeleton />
             ) : (
               <EmptyState
                 title="No wallets yet"

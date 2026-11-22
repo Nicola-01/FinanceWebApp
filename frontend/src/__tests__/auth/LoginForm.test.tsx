@@ -23,6 +23,7 @@ vi.mock("../../components/ui/ToastNotification", () => ({
 import { LoginForm } from "../../auth/LoginForm";
 import api from "../../api/axiosConfig";
 import { triggerToast } from "../../components/ui/ToastNotification";
+import { setUiVersion } from "../../utils/uiVersion";
 
 const post = (api as unknown as { post: ReturnType<typeof vi.fn> }).post;
 const toast = triggerToast as unknown as ReturnType<typeof vi.fn>;
@@ -104,5 +105,91 @@ describe("LoginForm", () => {
     expect(sessionStorage.getItem("jwtToken")).toBeNull();
     expect(localStorage.getItem("jwtToken")).toBeNull();
     expect(navigateMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("LoginForm (v2 layout)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    navigateMock.mockReset();
+    post.mockReset();
+    toast.mockReset();
+    setUiVersion("v2");
+  });
+
+  afterEach(() => setUiVersion("v1"));
+
+  it("renders the wallet fan, the 'Welcome back.' heading and no brand lockup", () => {
+    const { container } = renderForm();
+    expect(
+      container.querySelectorAll('img[src="/hero-cat.webp"]'),
+    ).toHaveLength(3);
+    expect(
+      screen.getByRole("heading", { name: "Welcome back." }),
+    ).toBeInTheDocument();
+    expect(screen.queryByAltText("My Wallet")).not.toBeInTheDocument();
+    expect(screen.queryByAltText("Finance")).not.toBeInTheDocument();
+  });
+
+  it("a rejected login marks both fields invalid until either field is edited", async () => {
+    const user = userEvent.setup();
+    const err = new AxiosError("bad", "ERR");
+    err.response = {
+      status: 401,
+      data: { title: "Invalid credentials" },
+    } as unknown as AxiosResponse;
+    post.mockRejectedValue(err);
+    renderForm();
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: /sign in/i }));
+
+    await waitFor(() =>
+      expect(screen.getByLabelText("Username")).toHaveAttribute(
+        "aria-invalid",
+        "true",
+      ),
+    );
+    expect(screen.getByLabelText("Password")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+
+    await user.type(screen.getByLabelText("Username"), "x");
+    expect(screen.getByLabelText("Username")).not.toHaveAttribute(
+      "aria-invalid",
+    );
+    expect(screen.getByLabelText("Password")).not.toHaveAttribute(
+      "aria-invalid",
+    );
+  });
+
+  it("Enter in a filled username focuses the password without calling the API", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    await user.type(screen.getByLabelText("Username"), "alice");
+    await user.keyboard("{Enter}");
+    expect(screen.getByLabelText("Password")).toHaveFocus();
+    expect(post).not.toHaveBeenCalled();
+  });
+
+  it("Enter in an empty username still submits (validation)", async () => {
+    const user = userEvent.setup();
+    renderForm();
+    await user.click(screen.getByLabelText("Username"));
+    await user.keyboard("{Enter}");
+    expect(post).not.toHaveBeenCalled();
+    expect(screen.getByText("Username is required")).toBeInTheDocument();
+  });
+});
+
+describe("LoginForm (v1 layout)", () => {
+  it("still renders the brand lockup and the in-card heading", () => {
+    renderForm();
+    expect(screen.getByAltText("Finance")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Welcome back" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Welcome back.")).not.toBeInTheDocument();
   });
 });

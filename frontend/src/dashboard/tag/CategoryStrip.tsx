@@ -7,6 +7,7 @@ import {
   rankExpenseCategories,
   type StripCategory,
 } from "./categoryStripData.ts";
+import { StripChipsLoadingSkeleton } from "./CategoriesLoadingV2.tsx";
 
 interface CategoryStripProps {
   /** Categorised transactions of the period (the tab's filtered set). */
@@ -16,6 +17,8 @@ interface CategoryStripProps {
   /** Investment tag names; their spending is not counted as a category. */
   invest: Set<string>;
   onManage: () => void;
+  /** Wallet data still loading: show skeleton chips instead of "No spending". */
+  loading?: boolean;
 }
 
 /** Chips shown on wide screens; phones show one fewer (the 4th is `max-sm:hidden`). */
@@ -43,6 +46,7 @@ export const CategoryStrip: React.FC<CategoryStripProps> = ({
   tags,
   invest,
   onManage,
+  loading = false,
 }) => {
   const ranked = useMemo(
     () => rankExpenseCategories(transactions, tags, invest),
@@ -57,7 +61,9 @@ export const CategoryStrip: React.FC<CategoryStripProps> = ({
       </span>
 
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 overflow-hidden max-sm:order-last max-sm:basis-full sm:flex-nowrap">
-        {ranked.length === 0 ? (
+        {loading ? (
+          <StripChipsLoadingSkeleton />
+        ) : ranked.length === 0 ? (
           <span className="text-[13px] text-app-muted">
             No spending in this period
           </span>

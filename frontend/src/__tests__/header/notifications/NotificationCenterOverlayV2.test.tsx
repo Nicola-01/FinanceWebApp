@@ -10,6 +10,7 @@ vi.mock("react-router-dom", async (importOriginal) => {
 import { NotificationCenterOverlay } from "../../../header/notifications/NotificationCenterOverlay";
 import type { AppNotification } from "../../../header/notifications/useNotifications";
 import { setUiVersion } from "../../../utils/uiVersion";
+import { stampLabel } from "../../../header/notifications/notificationStamp";
 
 /** Force the desktop breakpoint so ResponsiveOverlay renders its drawer. */
 function setDesktop(isDesktop: boolean) {
@@ -55,7 +56,7 @@ describe("NotificationCenterOverlay (v2)", () => {
   });
   afterEach(() => setUiVersion("v1"));
 
-  it("renders title, body and relative time for each row in one card", () => {
+  it("renders date/time, title and body for each row in one card", () => {
     render(
       <NotificationCenterOverlay
         open
@@ -72,11 +73,15 @@ describe("NotificationCenterOverlay (v2)", () => {
       "text-[13px]",
     );
     expect(screen.getByText("Wallet invitation")).toBeInTheDocument();
-    expect(screen.getAllByText(/ago$/)).toHaveLength(2);
-    expect(screen.getAllByText(/ago$/)[0]).toHaveClass(
-      "text-app-faint",
-      "tabular-nums",
-    );
+    // Old fixture dates: absolute "d MMM, HH:mm" stamp placed before the title.
+    const stamps = screen.getAllByText(/^10 Jul, \d\d:\d\d$/);
+    expect(stamps).toHaveLength(2);
+    expect(stamps[0]).toHaveClass("text-app-faint");
+    expect(
+      stamps[0].compareDocumentPosition(
+        screen.getByText("New transaction by @nicola"),
+      ) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(document.querySelector("ul")).toHaveClass(
       "divide-y",
       "bg-app-card",
@@ -127,5 +132,23 @@ describe("NotificationCenterOverlay (v2)", () => {
       "text-[13px]",
       "text-app-muted",
     );
+  });
+});
+
+describe("stampLabel", () => {
+  it("says Today / Yesterday, else day and month, always with the time", () => {
+    const now = new Date();
+    const today = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      9,
+      14,
+    );
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    expect(stampLabel(today)).toBe("Today, 09:14");
+    expect(stampLabel(yesterday)).toBe("Yesterday, 09:14");
+    expect(stampLabel(new Date(2025, 10, 3, 18, 2))).toBe("3 Nov, 18:02");
   });
 });

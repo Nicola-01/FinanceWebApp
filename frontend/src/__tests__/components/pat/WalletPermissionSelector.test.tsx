@@ -187,7 +187,7 @@ describe("WalletPermissionSelector v2", () => {
     localStorage.clear();
   });
 
-  it("renders one card with one row per wallet, without the inline wallet tint", () => {
+  it("renders one card with one row per wallet: full name above a full-width control", () => {
     render(
       <WalletPermissionSelector
         walletPerms={[
@@ -197,7 +197,9 @@ describe("WalletPermissionSelector v2", () => {
         setPermission={vi.fn()}
       />,
     );
-    const row = screen.getByText("Alpha").parentElement as HTMLElement;
+    // name span → name line (icon chip + name) → row
+    const row = screen.getByText("Alpha").parentElement!
+      .parentElement as HTMLElement;
     const card = row.parentElement as HTMLElement;
     expect(card).toHaveClass(
       "bg-app-card",
@@ -205,7 +207,7 @@ describe("WalletPermissionSelector v2", () => {
       "rounded-[var(--r-card)]",
     );
     expect(card.children).toHaveLength(2);
-    expect(row).toHaveClass("min-h-14", "px-4");
+    expect(row).toHaveClass("flex-col", "px-4");
     expect(row.style.backgroundColor).toBe("");
     expect(row.style.borderColor).toBe("");
     expect(row.querySelector('[role="tab"]')).not.toBeNull();

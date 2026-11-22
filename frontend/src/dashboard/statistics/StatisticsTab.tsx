@@ -43,7 +43,7 @@ const CHART_TABS = [
 ];
 
 export const StatisticsTab: React.FC = () => {
-  const { transactions: all, wallet } = useWalletContext();
+  const { transactions: all, wallet, isLoading } = useWalletContext();
   // Bank imports join the statistics only once they've been categorised.
   const transactions = useMemo(() => all.filter(isCategorised), [all]);
   const { resolvedTheme } = useTheme();
@@ -89,6 +89,7 @@ export const StatisticsTab: React.FC = () => {
         currency={wallet.currency}
         walletId={wallet.id}
         accentColor={wallet.color}
+        isLoading={isLoading}
         renderLayoutControls={({ editing, setEditing, hiddenCount, reset }) =>
           editing ? (
             <LayoutEditBar

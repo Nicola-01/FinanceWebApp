@@ -12,7 +12,7 @@ import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { getApiErrorTitle } from "../utils/apiError";
 import Button from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import { AuthCard } from "./AuthCard";
+import { AuthCard, AuthV2Page } from "./AuthCard";
 import { AuthBrandLockup, AuthHeading, AuthSubtitle } from "./AuthBrandLockup";
 import { useUiVersion } from "../hooks/useUiVersion";
 import { useShake } from "./useShake";
@@ -84,62 +84,77 @@ const ForgotPassword: React.FC = () => {
     }
   }, [email, cooldown, setCooldown]);
 
-  return (
-    <AuthCard shake={shake}>
-      <AuthBrandLockup />
+  const subtitle = emailSent ? (
+    <>
+      We've sent a password reset link to{" "}
+      <strong className="text-app-text">{email}</strong>
+    </>
+  ) : (
+    "Enter the email associated with your account and we'll send you a link to reset your password."
+  );
 
-      {!emailSent ? (
-        /* ========== EMAIL INPUT STATE ========== */
+  // Form or confirmation state; shared by the v1 and v2 layouts.
+  const content = (
+    <>
+      {!v2 && !emailSent && (
         <>
           <AuthHeading>Forgot password?</AuthHeading>
           <AuthSubtitle className="mb-7 leading-relaxed">
             Enter the email associated with your account and we'll send you a
             link to reset your password.
           </AuthSubtitle>
-
-          <form
-            onSubmit={handleSubmit}
-            // v2: the form gap spaces the fields; [&>div]:mb-0 drops the v1 field margins.
-            className={
-              v2 ? "flex flex-col gap-4 [&>div]:mb-0" : "flex flex-col"
-            }
-            noValidate
-          >
-            <div className="mb-6">
-              <Input
-                type="email"
-                placeholder="Email address"
-                aria-label="Email"
-                autoComplete="email"
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                leadingIcon={<FontAwesomeIcon icon={faEnvelope} />}
-              />
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              fullWidth
-              ripple
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-                  Sending…
-                </>
-              ) : (
-                <>
-                  <FontAwesomeIcon icon={faPaperPlane} />
-                  Send reset link
-                </>
-              )}
-            </Button>
-          </form>
         </>
+      )}
+
+      {!emailSent ? (
+        /* ========== EMAIL INPUT STATE ========== */
+        <form
+          onSubmit={handleSubmit}
+          // v2: the form gap spaces the fields; [&>div]:mb-0 drops the v1 field margins.
+          className={v2 ? "flex flex-col gap-4 [&>div]:mb-0" : "flex flex-col"}
+          noValidate
+        >
+          <div className="mb-6">
+            <Input
+              type="email"
+              placeholder="Email address"
+              aria-label="Email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              leadingIcon={<FontAwesomeIcon icon={faEnvelope} />}
+              {...(v2 && {
+                // ui-v2-switch: mobile keyboard hints; sans placeholder (Input's v2 tabular-nums forces mono)
+                autoCapitalize: "none",
+                inputMode: "email",
+                enterKeyHint: "send",
+                className: "font-sans!",
+              })}
+            />
+          </div>
+
+          <Button
+            type="submit"
+            variant="primary"
+            size="lg"
+            fullWidth
+            ripple
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+                Sending…
+              </>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faPaperPlane} />
+                Send reset link
+              </>
+            )}
+          </Button>
+        </form>
       ) : (
         /* ========== EMAIL SENT / CONFIRMATION STATE ========== */
         <ForgotPasswordSent
@@ -164,7 +179,26 @@ const ForgotPassword: React.FC = () => {
         <FontAwesomeIcon icon={faArrowLeft} />
         Back to login
       </button>
-    </AuthCard>
+    </>
+  );
+
+  if (!v2)
+    return (
+      <AuthCard shake={shake}>
+        <AuthBrandLockup />
+        {content}
+      </AuthCard>
+    );
+
+  // ui-v2-switch: heading and subtitle above the card, no brand lockup
+  return (
+    <AuthV2Page
+      shake={shake}
+      title={emailSent ? "Check your email" : "Forgot password?"}
+      subtitle={subtitle}
+    >
+      {content}
+    </AuthV2Page>
   );
 };
 

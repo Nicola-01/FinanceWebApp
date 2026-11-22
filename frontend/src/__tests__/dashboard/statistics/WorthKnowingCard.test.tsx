@@ -95,3 +95,12 @@ describe("WorthKnowingCard bare mode", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(insights.length);
   });
 });
+
+describe("WorthKnowingCard loading", () => {
+  it("keeps the card with skeleton lines while insights load", () => {
+    const { container } = render(<WorthKnowingCard insights={[]} loading />);
+    expect(screen.getByText("Worth knowing")).toBeInTheDocument();
+    // Three rows, each an icon plus two text lines.
+    expect(container.querySelectorAll(".animate-pulse")).toHaveLength(9);
+  });
+});

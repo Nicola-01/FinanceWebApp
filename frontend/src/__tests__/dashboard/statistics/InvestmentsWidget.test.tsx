@@ -19,6 +19,7 @@ const { calls, record } = vi.hoisted(() => {
 });
 
 vi.mock("@/components/ui/charts", () => ({
+  BarChartLoading: (p: Record<string, unknown>) => record("BarChartLoading", p),
   curveMonotoneX: "monotoneX",
   ComposedChart: (props: { children?: React.ReactNode }) => (
     <div data-testid="composed">
@@ -282,5 +283,24 @@ describe("InvestmentsWidget", () => {
     const { base, overlay } = baseAndOverlay();
     expect(kids(base, ChartTooltip)).toHaveLength(1);
     expect(kids(overlay, ChartTooltip)).toEqual([]);
+  });
+});
+
+describe("InvestmentsWidget loading", () => {
+  it("draws the bar placeholder instead of hiding the widget while loading", () => {
+    for (const k of Object.keys(calls)) delete calls[k];
+    render(
+      <InvestmentsWidget
+        transactions={[]}
+        period={{ kind: "year", year: 2026 }}
+        currencySymbol="€"
+        loading
+      />,
+    );
+    expect(screen.getByText("Investments")).toBeInTheDocument();
+    expect(calls.BarChartLoading.at(-1)).toMatchObject({
+      aspectRatio: "5 / 2",
+    });
+    expect(calls.ComposedChart).toBeUndefined();
   });
 });

@@ -11,6 +11,20 @@ import { TransactionsHero } from "../transaction/TransactionsHero.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion";
 import { walletVars } from "../../utils/color";
 import { BankRuleDraftHost } from "../settings/BankRuleDraftHost.tsx";
+import {
+  loadBudgetTab,
+  loadSettingsTab,
+  loadStatisticsTab,
+  loadTagsTab,
+  usePrefetchTabs,
+} from "./tabLoaders.ts";
+import {
+  BudgetTabSkeletonV2,
+  SettingsTabSkeletonV2,
+  StatisticsTabSkeletonV2,
+  TagsTabSkeletonV2,
+} from "./TabSkeletonsV2.tsx";
+import type { TabType } from "./walletTabs.ts";
 
 interface WalletDashboardProps {
   _wallet: Wallet;
@@ -21,22 +35,26 @@ interface WalletDashboardProps {
 }
 
 // Code-split: these tabs pull in the chart kit (keeps the main chunk under the PWA precache limit).
-const StatisticsTab = lazy(() =>
-  import("../statistics/StatisticsTab").then((m) => ({
-    default: m.StatisticsTab,
-  })),
-);
-const BudgetTab = lazy(() =>
-  import("../budget/BudgetTab").then((m) => ({ default: m.BudgetTab })),
-);
-const TagsTab = lazy(() =>
-  import("../tag/TagsTab.tsx").then((m) => ({ default: m.TagsTab })),
-);
-const SettingsTab = lazy(() =>
-  import("../settings/SettingsTab.tsx").then((m) => ({
-    default: m.SettingsTab,
-  })),
-);
+// Loaders live in tabLoaders.ts so the idle prefetch warms the same chunks.
+const StatisticsTab = lazy(loadStatisticsTab);
+const BudgetTab = lazy(loadBudgetTab);
+const TagsTab = lazy(loadTagsTab);
+const SettingsTab = lazy(loadSettingsTab);
+
+/** v2 per-tab loading fallbacks, each shaped like its real tab. */
+const V2_TAB_SKELETONS: Partial<Record<TabType, React.FC>> = {
+  statistics: StatisticsTabSkeletonV2,
+  budget: BudgetTabSkeletonV2,
+  category: TagsTabSkeletonV2,
+  settings: SettingsTabSkeletonV2,
+};
+
+/** Mounts inside WalletProvider: warms the lazy tab chunks once wallet data has loaded. */
+const TabPrefetch: React.FC = () => {
+  const { isLoading } = useWalletContext();
+  usePrefetchTabs(!isLoading);
+  return null;
+};
 
 /** v2 (D13): wallet title row, tabs under it, the hero card on Transactions only. */
 const WalletHeaderV2: React.FC<{ actions?: React.ReactNode }> = ({
@@ -104,6 +122,8 @@ const WalletHeader: React.FC = () => {
 
 const WalletBody: React.FC<{ bare?: boolean }> = ({ bare = false }) => {
   const { activeTab } = useWalletContext();
+  const [ui] = useUiVersion();
+  const V2Skeleton = ui === "v2" ? V2_TAB_SKELETONS[activeTab] : undefined;
 
   const content = (
     <>
@@ -111,7 +131,12 @@ const WalletBody: React.FC<{ bare?: boolean }> = ({ bare = false }) => {
       {activeTab === "subscription" && <SubscriptionTab />}
       <Suspense
         fallback={
-          <div className="h-[400px] bg-app-card rounded-[var(--r-card)] animate-pulse" />
+          // ui-v2-switch: v2 shows the active tab's own skeleton
+          V2Skeleton ? (
+            <V2Skeleton />
+          ) : (
+            <div className="h-[400px] bg-app-card rounded-[var(--r-card)] animate-pulse" />
+          )
         }
       >
         {activeTab === "statistics" && <StatisticsTab />}
@@ -162,6 +187,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({
         onWalletUpdate={onWalletUpdate}
       >
         <WalletRootV2>
+          <TabPrefetch />
           <WalletHeaderV2 actions={headerActions} />
           <WalletBody bare />
           <BankRuleDraftHost />
@@ -175,6 +201,7 @@ export const WalletDashboard: React.FC<WalletDashboardProps> = ({
       onWalletDelete={onWalletDelete}
       onWalletUpdate={onWalletUpdate}
     >
+      <TabPrefetch />
       <WalletHeader />
       <WalletBody />
       <BankRuleDraftHost />

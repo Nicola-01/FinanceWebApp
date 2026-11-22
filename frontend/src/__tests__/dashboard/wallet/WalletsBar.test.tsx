@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   render,
   screen,
+  createEvent,
   fireEvent,
   waitFor,
   within,
@@ -244,6 +245,20 @@ describe("WalletsBar (v2)", () => {
           name: "Respond to invitation for Shared Trip",
         }),
       ).toBeInTheDocument();
+    });
+
+    it("claims touchstart on a wallet in the open drawer so MUI swipe-to-close yields to the long-press reorder", () => {
+      renderBar();
+
+      fireEvent.click(screen.getByRole("button", { name: "Switch wallet" }));
+      const holidayCard = screen.getByRole("button", { name: /Holiday/ });
+      const touch = createEvent.touchStart(holidayCard);
+      fireEvent(holidayCard, touch);
+
+      expect(
+        (touch as Event & { defaultMuiPrevented?: boolean })
+          .defaultMuiPrevented,
+      ).toBe(true);
     });
 
     it("selects the clicked wallet and closes the drawer", async () => {

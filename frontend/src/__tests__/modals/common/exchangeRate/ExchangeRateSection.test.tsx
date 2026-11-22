@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ExchangeRateSection } from "../../../../modals/common/exchangeRate/ExchangeRateSection";
 import type { CurrencyCode } from "../../../../utils/currencies";
+import { setUiVersion } from "../../../../utils/uiVersion";
 
 vi.mock("../../../../components/ui/ToastNotification", () => ({
   triggerToast: vi.fn(),
@@ -51,6 +52,7 @@ describe("ExchangeRateSection", () => {
       () => new Promise(() => {}),
     ) as unknown as typeof fetch;
     localStorage.clear();
+    setUiVersion("v1");
     vi.clearAllMocks();
   });
 

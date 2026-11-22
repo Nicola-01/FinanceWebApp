@@ -266,4 +266,20 @@ describe("response interceptor — 401 auto-refresh", () => {
     await Promise.all([p1, p2]);
     expect(refreshCalls).toBe(1);
   });
+
+  it("does not refresh or redirect when /auth/login returns 401 (bad credentials)", async () => {
+    const adapter = vi.fn(
+      async (config: InternalAxiosRequestConfig): Promise<AxiosResponse> =>
+        resp(config, {}),
+    );
+    api.defaults.adapter = adapter as unknown as AxiosAdapter;
+    const before = loc.href;
+    const error: FakeError = {
+      config: cfg({ url: "/auth/login", method: "post" }),
+      response: { status: 401 },
+    };
+    await expect(resHandler.rejected(error)).rejects.toBe(error);
+    expect(adapter).not.toHaveBeenCalled();
+    expect(loc.href).toBe(before);
+  });
 });

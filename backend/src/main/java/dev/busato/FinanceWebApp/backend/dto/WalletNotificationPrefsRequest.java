@@ -16,4 +16,10 @@ public class WalletNotificationPrefsRequest {
   private boolean subscriptions;
   private boolean recurringExecutions;
   private boolean budgets;
+
+  /** Optional: null keeps the stored value (backward compatible with older clients). */
+  private Boolean monthlyReport;
+
+  /** Optional: null keeps the stored value (backward compatible with older clients). */
+  private Boolean yearlyReport;
 }

@@ -11,6 +11,7 @@ import { ChartCard } from "./ChartCard.tsx";
 import { FlowTypeToggle } from "./FlowTypeToggle.tsx";
 import { useUiVersion } from "../../hooks/useUiVersion.ts";
 import { heatmapRamp, V2_AXIS } from "./chartStyleV2.ts";
+import { HeatmapLoadingSkeleton } from "./CategoriesLoadingV2.tsx";
 
 // Soft sequential scales (low-alpha tint → soft 400 tint), per flow type.
 const COLOR_SCALE: Record<FlowType, readonly [string, string]> = {
@@ -24,6 +25,8 @@ interface CategoryHeatmapChartProps {
   currency: string;
   /** Render without the card shell + title (the parent group card provides them). */
   bare?: boolean;
+  /** Data still loading: draw the cell-grid skeleton instead of the "no data" state. */
+  loading?: boolean;
 }
 
 /**
@@ -34,6 +37,7 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
   transactions,
   currency,
   bare = false,
+  loading = false,
 }) => {
   const [ui] = useUiVersion();
   const v2 = ui === "v2"; // ui-v2-switch
@@ -60,12 +64,14 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
       subtitle="Where the money concentrates, by category and month."
       bare={bare}
       controls={<FlowTypeToggle value={type} onChange={setType} expenseFirst />}
-      isEmpty={cells.length === 0}
+      isEmpty={!loading && cells.length === 0}
       emptyMinHeightClass="min-h-[240px]"
     >
       <div className="w-full">
         <Heatmap
           height={height}
+          loading={loading}
+          slots={{ loadingOverlay: HeatmapLoadingSkeleton }}
           zoomData={zoomData}
           onZoomChange={setZoomData}
           xAxis={[
@@ -110,7 +116,7 @@ export const CategoryHeatmapChart: React.FC<CategoryHeatmapChartProps> = ({
             },
           ]}
         >
-          <ChartZoomSlider />
+          {loading ? null : <ChartZoomSlider />}
         </Heatmap>
       </div>
     </ChartCard>

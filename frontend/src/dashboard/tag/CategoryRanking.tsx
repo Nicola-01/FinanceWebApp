@@ -17,6 +17,7 @@ import { useGrowIn } from "../../hooks/useGrowIn.ts";
 import { toSentenceCase } from "../../utils/format.ts";
 import { isInvestmentTx } from "../../utils/investments.ts";
 import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
+import { RankRowsLoadingSkeleton } from "./CategoriesLoadingV2.tsx";
 
 const INITIAL_VISIBLE = 7;
 const STEP = 5;
@@ -122,6 +123,8 @@ interface CategoryRankingProps {
   currency: string;
   /** Render without the card shell + title (the parent group card provides them). */
   bare?: boolean;
+  /** Data still loading: show skeleton rows instead of the "no data" state. */
+  loading?: boolean;
 }
 
 /**
@@ -135,6 +138,7 @@ export const CategoryRanking: React.FC<CategoryRankingProps> = ({
   title,
   currency,
   bare = false,
+  loading = false,
 }) => {
   const invest = useInvestmentTags();
   const { items, total } = useMemo(() => {
@@ -175,7 +179,9 @@ export const CategoryRanking: React.FC<CategoryRankingProps> = ({
         </h3>
       )}
 
-      {total === 0 ? (
+      {loading ? (
+        <RankRowsLoadingSkeleton />
+      ) : total === 0 ? (
         <div
           className={
             v2 // ui-v2-switch

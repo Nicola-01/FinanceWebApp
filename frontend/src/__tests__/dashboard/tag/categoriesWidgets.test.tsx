@@ -25,6 +25,7 @@ describe("CATEGORIES_WIDGETS", () => {
       currencyCode: "EUR",
       currencySymbol: "€",
       investmentTags,
+      loading: false,
     };
     const sankey = CATEGORIES_WIDGETS.find((w) => w.id === "sankey");
     render(<>{sankey!.render(ctx, false)}</>);

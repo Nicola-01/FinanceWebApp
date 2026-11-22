@@ -14,6 +14,7 @@ import { formatLongLocalDate } from "../../utils/longDate";
 import { AccountRow as Row } from "../account/AccountRow";
 import { UsernameRow } from "../account/UsernameRow";
 import { EmailChangeRow } from "../account/EmailChangeRow";
+import { Skeleton } from "../../components/ui/Skeleton";
 
 interface UserProfile {
   id: string;
@@ -45,9 +46,23 @@ export const AccountSection: React.FC = () => {
   return (
     <Card>
       {loading ? (
-        <div className="flex items-center justify-center py-10">
-          <FontAwesomeIcon icon={faSpinner} spin className="text-app-muted" />
-        </div>
+        isV2 ? ( // ui-v2-switch: rows shaped like AccountRow (label + value)
+          <div aria-hidden="true" className="divide-y divide-app-border">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between gap-4 py-4"
+              >
+                <Skeleton className="h-3.5 w-24" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-10">
+            <FontAwesomeIcon icon={faSpinner} spin className="text-app-muted" />
+          </div>
+        )
       ) : (
         <div
           className={

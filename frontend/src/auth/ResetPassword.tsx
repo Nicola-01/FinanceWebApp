@@ -7,7 +7,7 @@ import { triggerToast } from "../components/ui/ToastNotification.tsx";
 import { PasswordRequirements } from "../components/password/PasswordRequirements.tsx";
 import { isPasswordValid } from "../components/password/passwordRequirements.ts";
 import { getApiErrorTitle } from "../utils/apiError";
-import { AuthCard } from "./AuthCard";
+import { AuthCard, AuthV2Page } from "./AuthCard";
 import { AuthBrandLockup } from "./AuthBrandLockup";
 import { AuthErrorCard } from "./AuthErrorCard";
 import { PasswordVisibilityToggle } from "./PasswordVisibilityToggle";
@@ -69,10 +69,8 @@ const ResetPassword: React.FC = () => {
     }
   };
 
-  return (
-    <AuthCard shake={shake}>
-      <AuthBrandLockup />
-
+  const content = (
+    <>
       {/* STATE 1: LOADING */}
       {isLoading ? (
         <div className="flex flex-col items-center justify-center gap-4 py-10 text-app-muted">
@@ -98,11 +96,15 @@ const ResetPassword: React.FC = () => {
           className={v2 ? "flex flex-col gap-4 [&>div]:mb-0" : "flex flex-col"}
           noValidate
         >
-          <AuthHeading>Reset password</AuthHeading>
-          <AuthSubtitle className="mb-6">
-            Set a new password for{" "}
-            <strong className="text-app-text">{inviteData?.email}</strong>
-          </AuthSubtitle>
+          {!v2 && (
+            <>
+              <AuthHeading>Reset password</AuthHeading>
+              <AuthSubtitle className="mb-6">
+                Set a new password for{" "}
+                <strong className="text-app-text">{inviteData?.email}</strong>
+              </AuthSubtitle>
+            </>
+          )}
 
           {/* Password Requirements */}
           <PasswordRequirements
@@ -121,6 +123,7 @@ const ResetPassword: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               leadingIcon={<FontAwesomeIcon icon={faLock} />}
+              {...(v2 && { enterKeyHint: "next", className: "font-sans!" })}
               rightSlot={
                 <PasswordVisibilityToggle
                   visible={showPassword}
@@ -140,6 +143,7 @@ const ResetPassword: React.FC = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               leadingIcon={<FontAwesomeIcon icon={faLock} />}
+              {...(v2 && { enterKeyHint: "go", className: "font-sans!" })}
             />
           </div>
 
@@ -161,7 +165,35 @@ const ResetPassword: React.FC = () => {
           </Button>
         </form>
       )}
-    </AuthCard>
+    </>
+  );
+
+  if (!v2)
+    return (
+      <AuthCard shake={shake}>
+        <AuthBrandLockup />
+        {content}
+      </AuthCard>
+    );
+
+  // ui-v2-switch: heading and subtitle above the card; loading and error states are bare
+  const formState = !isLoading && !error;
+  return (
+    <AuthV2Page
+      shake={shake}
+      bare={!formState}
+      title={formState ? "Reset password" : undefined}
+      subtitle={
+        formState ? (
+          <>
+            Set a new password for{" "}
+            <strong className="text-app-text">{inviteData?.email}</strong>
+          </>
+        ) : undefined
+      }
+    >
+      {content}
+    </AuthV2Page>
   );
 };
 

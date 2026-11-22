@@ -54,7 +54,11 @@ const Login: React.FC = () => {
     // only the card so the background persists across auth navigation.
     <div
       className={`relative z-10 flex w-full flex-col items-center gap-6 ${
-        demoEnabled ? "max-w-[420px]" : "max-w-[400px]"
+        v2 && !demoEnabled // ui-v2-switch
+          ? "max-w-[480px]"
+          : demoEnabled
+            ? "max-w-[420px]"
+            : "max-w-[400px]"
       }`}
     >
       {/* Conditionally Render Form vs Demo Card */}

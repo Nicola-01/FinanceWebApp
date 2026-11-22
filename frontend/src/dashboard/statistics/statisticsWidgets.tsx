@@ -27,13 +27,19 @@ export interface StatisticsWidgetCtx {
   /** True for the all-time view (one step per year), false for a single year. */
   byYear: boolean;
   currencySymbol: string;
+  /** Transactions are still loading: widgets show their placeholders. */
+  loading?: boolean;
 }
 
 /** The period the widget ctx describes: all-time when `byYear`, else the year of the month rows. */
 const periodOf = (ctx: StatisticsWidgetCtx): StatsPeriod =>
   ctx.byYear
     ? { kind: "all" }
-    : { kind: "year", year: ctx.rows[0].date.getFullYear() };
+    : {
+        kind: "year",
+        // shortcut: rows are empty while loading, so the current year stands in until data arrives; no widget reads it then.
+        year: ctx.rows[0]?.date.getFullYear() ?? new Date().getFullYear(),
+      };
 
 /** The v2 Statistics registry (below the pinned summary + month-by-month row). Order here = the default layout. */
 const ALL_STATISTICS_WIDGETS: WidgetDef<StatisticsWidgetCtx>[] = [
@@ -49,6 +55,7 @@ const ALL_STATISTICS_WIDGETS: WidgetDef<StatisticsWidgetCtx>[] = [
         transactions={ctx.transactions}
         period={periodOf(ctx)}
         currencySymbol={ctx.currencySymbol}
+        loading={ctx.loading}
         bare={bare}
       />
     ),
@@ -65,6 +72,7 @@ const ALL_STATISTICS_WIDGETS: WidgetDef<StatisticsWidgetCtx>[] = [
         rows={ctx.waterfall}
         byYear={ctx.byYear}
         currencySymbol={ctx.currencySymbol}
+        loading={ctx.loading}
         bare={bare}
       />
     ),
@@ -80,6 +88,7 @@ const ALL_STATISTICS_WIDGETS: WidgetDef<StatisticsWidgetCtx>[] = [
       <BalanceProjectionChart
         history={ctx.history}
         currencySymbol={ctx.currencySymbol}
+        loading={ctx.loading}
         bare={bare}
       />
     ),
@@ -93,7 +102,10 @@ const ALL_STATISTICS_WIDGETS: WidgetDef<StatisticsWidgetCtx>[] = [
     icon: faTableCells,
     render: (ctx) => (
       <Collapse title="Show the numbers" size="sm">
-        <OverviewTableV2 transactions={ctx.transactions} />
+        <OverviewTableV2
+          transactions={ctx.transactions}
+          loading={ctx.loading}
+        />
       </Collapse>
     ),
   },

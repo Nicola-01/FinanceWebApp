@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Transaction } from "../../types/domain.ts";
 import { SwitchableCard } from "../../components/ui/SwitchableCard.tsx";
 import Button from "../../components/ui/Button.tsx";
+import { Skeleton } from "../../components/ui/Skeleton.tsx";
 import { formatAmount } from "../../utils/format.ts";
 import { useOverviewData, type ViewMode } from "./useOverviewData.ts";
 import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
@@ -57,11 +58,14 @@ interface Period {
 
 interface OverviewTableV2Props {
   transactions: Transaction[];
+  /** Transactions are still loading: show skeleton rows instead of the table. */
+  loading?: boolean;
 }
 
 /** v2 overview: one row per month (or year) with income, spent and net. */
 export const OverviewTableV2: React.FC<OverviewTableV2Props> = ({
   transactions,
+  loading = false,
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>("monthly");
   const invest = useInvestmentTags();
@@ -126,55 +130,63 @@ export const OverviewTableV2: React.FC<OverviewTableV2Props> = ({
       noPadding
       selectorWidth="w-[220px]"
     >
-      <div role="table" aria-label={title} className="text-app-text">
-        <div
-          role="row"
-          className={`hidden sm:grid ${COLS} px-5 sm:px-6 py-2.5 text-[13px] text-app-muted border-b border-app-border`}
-        >
-          <div role="columnheader">{isMonthly ? "Month" : "Year"}</div>
-          <div role="columnheader" className="text-right">
-            Income
-          </div>
-          <div role="columnheader" className="text-right">
-            Spent
-          </div>
-          <div role="columnheader" className="text-right">
-            Kept
-          </div>
+      {loading ? (
+        <div className="flex flex-col gap-3 px-5 py-3 sm:px-6">
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-3.5 w-full" />
+          ))}
         </div>
-        {periods.map((p) => {
-          const net = p.income - p.expense;
-          return (
-            <div
-              key={p.key}
-              role="row"
-              className={`grid ${ROW} ${isCurrent(p.key) ? "bg-app-raised" : ""}`}
-            >
-              <div
-                role="rowheader"
-                className="col-span-3 font-medium sm:col-span-1"
-              >
-                {isMonthly ? fullMonth(Number(p.key)) : p.label}
-              </div>
-              <Value caption="Income" value={p.income} kind="income" />
-              <Value caption="Spent" value={p.expense} kind="spent" />
-              <Value caption="Kept" value={net} kind="net" />
+      ) : (
+        <div role="table" aria-label={title} className="text-app-text">
+          <div
+            role="row"
+            className={`hidden sm:grid ${COLS} px-5 sm:px-6 py-2.5 text-[13px] text-app-muted border-b border-app-border`}
+          >
+            <div role="columnheader">{isMonthly ? "Month" : "Year"}</div>
+            <div role="columnheader" className="text-right">
+              Income
             </div>
-          );
-        })}
-        <div role="row" className={`grid ${ROW} border-b-0 font-semibold`}>
-          <div role="rowheader" className="col-span-3 sm:col-span-1">
-            Total
+            <div role="columnheader" className="text-right">
+              Spent
+            </div>
+            <div role="columnheader" className="text-right">
+              Kept
+            </div>
           </div>
-          <Value caption="Income" value={totals.income} kind="income" />
-          <Value caption="Spent" value={totals.expense} kind="spent" />
-          <Value
-            caption="Kept"
-            value={totals.income - totals.expense}
-            kind="net"
-          />
+          {periods.map((p) => {
+            const net = p.income - p.expense;
+            return (
+              <div
+                key={p.key}
+                role="row"
+                className={`grid ${ROW} ${isCurrent(p.key) ? "bg-app-raised" : ""}`}
+              >
+                <div
+                  role="rowheader"
+                  className="col-span-3 font-medium sm:col-span-1"
+                >
+                  {isMonthly ? fullMonth(Number(p.key)) : p.label}
+                </div>
+                <Value caption="Income" value={p.income} kind="income" />
+                <Value caption="Spent" value={p.expense} kind="spent" />
+                <Value caption="Kept" value={net} kind="net" />
+              </div>
+            );
+          })}
+          <div role="row" className={`grid ${ROW} border-b-0 font-semibold`}>
+            <div role="rowheader" className="col-span-3 sm:col-span-1">
+              Total
+            </div>
+            <Value caption="Income" value={totals.income} kind="income" />
+            <Value caption="Spent" value={totals.expense} kind="spent" />
+            <Value
+              caption="Kept"
+              value={totals.income - totals.expense}
+              kind="net"
+            />
+          </div>
         </div>
-      </div>
+      )}
     </SwitchableCard>
   );
 };

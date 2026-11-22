@@ -116,7 +116,7 @@ Each: component + Vitest test + both themes. Spec in style §4.
 - [ ] Known gaps (checked 2026-11-21):
   - [x] Filter bar: v2 branch is a plain toolbar, not sticky (`TransactionsFilter.tsx:61-62`); v1 still `sticky top-17` (line 139).
   - [x] `Menu` "More" dark shadow: `WalletTabs.tsx:163` boxShadow.
-  - [ ] Drag-reorder in the drawer vs swipe-to-close: STILL OPEN. `WalletsBar.tsx:263` sets only `disableSwipeToOpen`; needs a device check.
+  - [x] Drag-reorder in the drawer vs swipe-to-close: FIXED 2026-11-22 (wallet list claims touchstart via `defaultMuiPrevented`; swipe-to-close from handle/labels/empty areas). Needs a real-phone recheck.
   - [x] Members count in the meta line: NO (Nicola 2026-11-21).
 
 ### D17 — Component library: MUI (2026-11-12)
@@ -256,10 +256,13 @@ source proposals). Order top → bottom. Period selector in the header: one year
       (account, security, tokens, notifications, about) · `AppHeader` v1 removal.
 
 ## Phase 11 — Cut-over & cleanup
-- [ ] Default `uiVersion` → v2, then remove the toggle, every `// ui-v2-switch`, old
-      components, v1 tokens, Plus Jakarta / JetBrains Mono fonts, `DashboardBackground`.
-- [ ] Legacy `theme-*` usages in touched files gone; style.md = v2 only; CLAUDE.md updated;
-      `graphify update .`; move this file to `DONE/`.
+- [x] Default `uiVersion` → v2 (2026-11-22): empty/unknown storage → v2, a stored "v1" opts out;
+      `src/test/setup.ts` pins v1 so legacy tests keep their meaning.
+- [x] ~~Remove v1~~ DECISION (Nicola 2026-11-22): KEEP BOTH styles. v1 stays selectable via the
+      Appearance toggle; no removal of `// ui-v2-switch` forks, v1 components, tokens or fonts.
+      No optional proposals wanted (invite CTA, admin extras, StatTile integer animation: dropped).
+- [ ] style.md: document both UIs (fix the v2 mono-amounts contradiction); CLAUDE.md "dual UI"
+      note says v2 is the default; `graphify update .`; move this file to `DONE/`.
 
 ## Findings (to handle in their phase)
 - F6 (2026-11-12): `--box-ring` is now `0 0 0 0 transparent` in dark (was `none`, which broke shadow

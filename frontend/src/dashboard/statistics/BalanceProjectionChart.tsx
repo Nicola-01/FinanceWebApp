@@ -4,6 +4,7 @@ import {
   ChartTooltip,
   Grid,
   Line,
+  LineChartLoading,
   ComposedChart,
   TooltipContent,
   XAxis,
@@ -22,11 +23,14 @@ import { compactAmount } from "./kitChartData.ts";
 import { InfoTip } from "../../components/ui/InfoTip.tsx";
 import { useChartPalette } from "./useChartPalette.ts";
 import { StatCard } from "./StatCard.tsx";
+import { Skeleton } from "../../components/ui/Skeleton.tsx";
 
 interface BalanceProjectionChartProps {
   /** End-of-month balances, oldest first; `date` is the 1st of the month. */
   history: { date: Date; balance: number }[];
   currencySymbol: string;
+  /** History is still loading: draw the line placeholder and a skeleton sub-line. */
+  loading?: boolean;
   /** Render without the card shell + heading and sub-line (the parent group card provides them); the controls stay. */
   bare?: boolean;
 }
@@ -47,6 +51,7 @@ const monthYear = (d: Date) =>
 export const BalanceProjectionChart = ({
   history,
   currencySymbol,
+  loading = false,
   bare = false,
 }: BalanceProjectionChartProps) => {
   const { warn } = useChartPalette();
@@ -75,11 +80,14 @@ export const BalanceProjectionChart = ({
   );
   const lastRealIndex = chartRows.findLastIndex((r) => r.balance !== undefined);
 
-  if (!lastHistory || !projection) return null;
+  if (!loading && (!lastHistory || !projection)) return null;
 
   const whole = (v: number) =>
     `${Math.round(v).toLocaleString("it-IT")} ${currencySymbol}`;
-  const signedPace = `${projection.pace < 0 ? "−" : "+"}${whole(Math.abs(projection.pace))}`;
+  // No projection yet while loading; the subtitle shows a skeleton then.
+  const signedPace = projection
+    ? `${projection.pace < 0 ? "−" : "+"}${whole(Math.abs(projection.pace))}`
+    : "";
 
   const tooltipRows = (point: Record<string, unknown>) => {
     const p = point as ProjectionRow;
@@ -126,19 +134,25 @@ export const BalanceProjectionChart = ({
     <StatCard
       title="Where you're heading"
       subtitle={
-        <>
-          At your usual pace of{" "}
-          <strong className="font-semibold text-app-text">{signedPace}</strong>{" "}
-          a month you&apos;d have about{" "}
-          <strong className="font-semibold text-app-text">
-            {whole(projection.end)}
-          </strong>{" "}
-          by{" "}
-          <strong className="font-semibold text-app-text">
-            {monthYear(projection.endDate)}
-          </strong>{" "}
-          (likely {whole(projection.endLow)} – {whole(projection.endHigh)}).
-        </>
+        loading || !projection ? (
+          <Skeleton className="h-3.5 w-3/4" />
+        ) : (
+          <>
+            At your usual pace of{" "}
+            <strong className="font-semibold text-app-text">
+              {signedPace}
+            </strong>{" "}
+            a month you&apos;d have about{" "}
+            <strong className="font-semibold text-app-text">
+              {whole(projection.end)}
+            </strong>{" "}
+            by{" "}
+            <strong className="font-semibold text-app-text">
+              {monthYear(projection.endDate)}
+            </strong>{" "}
+            (likely {whole(projection.endLow)} – {whole(projection.endHigh)}).
+          </>
+        )
       }
       action={
         <>
@@ -148,50 +162,57 @@ export const BalanceProjectionChart = ({
       }
       bare={bare}
     >
-      <ComposedChart
-        data={chartRows}
-        xDataKey="date"
-        aspectRatio="5 / 2"
-        margin={{ top: 16, right: 24, bottom: 28, left: 44 }}
-        ariaLabel="Balance and projected balance"
-      >
-        <Grid horizontal />
-        <Band
-          lowerKey="low"
-          upperKey="high"
-          fill={warn}
-          fillOpacity={0.14}
-          label="Likely range"
-          showInTooltip={false}
+      {loading ? (
+        <LineChartLoading
+          aspectRatio="5 / 2"
+          margin={{ top: 16, right: 24, bottom: 28, left: 44 }}
         />
-        <Line
-          dataKey="value"
-          label="Balance"
-          stroke={warn}
-          strokeWidth={2}
-          curve={curveMonotoneX}
-          showMarkers={false}
-          dashFromIndex={lastRealIndex}
-          dashArray="6,4"
-        />
-        <XAxis
-          numTicks={{ base: 4, md: 6, lg: 8 }}
-          formatValue={(d) =>
-            `${MONTH_LABELS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`
-          }
-        />
-        <YAxis numTicks={5} formatValue={compactAmount} />
-        <ChartTooltip
-          dateLabels={rows.map((r) => monthYear(r.date))}
-          rows={tooltipRows}
-          content={({ point }) => (
-            <TooltipContent
-              title={monthYear(point.date as Date)}
-              rows={tooltipRows(point)}
-            />
-          )}
-        />
-      </ComposedChart>
+      ) : (
+        <ComposedChart
+          data={chartRows}
+          xDataKey="date"
+          aspectRatio="5 / 2"
+          margin={{ top: 16, right: 24, bottom: 28, left: 44 }}
+          ariaLabel="Balance and projected balance"
+        >
+          <Grid horizontal />
+          <Band
+            lowerKey="low"
+            upperKey="high"
+            fill={warn}
+            fillOpacity={0.14}
+            label="Likely range"
+            showInTooltip={false}
+          />
+          <Line
+            dataKey="value"
+            label="Balance"
+            stroke={warn}
+            strokeWidth={2}
+            curve={curveMonotoneX}
+            showMarkers={false}
+            dashFromIndex={lastRealIndex}
+            dashArray="6,4"
+          />
+          <XAxis
+            numTicks={{ base: 4, md: 6, lg: 8 }}
+            formatValue={(d) =>
+              `${MONTH_LABELS[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`
+            }
+          />
+          <YAxis numTicks={5} formatValue={compactAmount} />
+          <ChartTooltip
+            dateLabels={rows.map((r) => monthYear(r.date))}
+            rows={tooltipRows}
+            content={({ point }) => (
+              <TooltipContent
+                title={monthYear(point.date as Date)}
+                rows={tooltipRows(point)}
+              />
+            )}
+          />
+        </ComposedChart>
+      )}
     </StatCard>
   );
 };

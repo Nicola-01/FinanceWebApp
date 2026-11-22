@@ -103,6 +103,21 @@ describe("Settings tokens + nav (v2)", () => {
     expect(hoisted.handleRevoke).toHaveBeenCalledWith("t-manual");
   });
 
+  it("shows no bulk action bar and no selection hint without a selection", () => {
+    render(<TokensSection />);
+
+    expect(screen.queryByText(/selected$/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Hold a token to select/),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Pause" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Delete" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("filters the list when a filter pill is chosen", async () => {
     const user = userEvent.setup();
     render(<TokensSection />);

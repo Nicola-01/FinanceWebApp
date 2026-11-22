@@ -64,6 +64,14 @@ public class WalletAccess {
   @Column(nullable = false, columnDefinition = "boolean default true")
   private boolean notifyBudgets = true;
 
+  /** When false, this member's monthly report skips this wallet. */
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  private boolean includeInMonthlyReport = true;
+
+  /** When false, this member's yearly wrap-up skips this wallet. */
+  @Column(nullable = false, columnDefinition = "boolean default true")
+  private boolean includeInYearlyReport = true;
+
   @PrePersist
   void onCreate() {
     if (status == null) {

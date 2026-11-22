@@ -8,6 +8,7 @@ import { useChartPalette } from "./useChartPalette.ts";
 import { summarizePeriod } from "./summaryStats.ts";
 import { useInvestmentTags } from "../wallet/useInvestmentTags.ts";
 import { defaultPeriod, periodLabel, type StatsPeriod } from "./statsPeriod.ts";
+import { Skeleton } from "../../components/ui/Skeleton.tsx";
 
 interface StatisticsSummaryV2Props {
   transactions: Transaction[];
@@ -16,6 +17,8 @@ interface StatisticsSummaryV2Props {
   currencySymbol?: string;
   /** Shows the Invested tile; false when no tag is flagged as investment. */
   hasInvestments: boolean;
+  /** Transactions are still loading: tiles show skeleton values and sparkline blocks. */
+  loading?: boolean;
 }
 
 const pct = (fraction: number) => Math.round(fraction * 100);
@@ -30,6 +33,7 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
   today: todayProp,
   currencySymbol = "€",
   hasInvestments,
+  loading = false,
 }) => {
   const [mountedToday] = useState(() => new Date());
   const today = todayProp ?? mountedToday;
@@ -43,6 +47,10 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
     [transactions, period, today, invest],
   );
   const palette = useChartPalette();
+  // Placeholders keep each tile's height; sparklines are too short for the kit's labelled loader, so they use a block.
+  const valueSkeleton = <Skeleton className="h-[22px] w-20" />;
+  const subSkeleton = <Skeleton className="h-3 w-28" />;
+  const sparkSkeleton = <Skeleton className="h-9 w-full" />;
 
   const label = periodLabel(period);
   const isAll = period.kind === "all";
@@ -166,13 +174,15 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
     >
       <StatTile
         label={isAll ? "Earned" : `Earned in ${label}`}
-        value={summary.earned}
+        value={loading ? valueSkeleton : summary.earned}
         currency={currencySymbol}
         tone="income"
         signed
-        sub={earnedSub}
+        sub={loading ? subSkeleton : earnedSub}
         footer={
-          drawable(earnedRows) ? (
+          loading ? (
+            sparkSkeleton
+          ) : drawable(earnedRows) ? (
             <AreaSparkline
               data={earnedRows}
               dataKey="v"
@@ -189,11 +199,13 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
       />
       <StatTile
         label={isAll ? "Spent" : `Spent in ${label}`}
-        value={summary.spent}
+        value={loading ? valueSkeleton : summary.spent}
         currency={currencySymbol}
-        sub={spentSub}
+        sub={loading ? subSkeleton : spentSub}
         footer={
-          drawable(spentRows) ? (
+          loading ? (
+            sparkSkeleton
+          ) : drawable(spentRows) ? (
             <AreaSparkline
               data={spentRows}
               dataKey="v"
@@ -210,24 +222,30 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
       {hasInvestments && (
         <StatTile
           label={isAll ? "Invested" : `Invested in ${label}`}
-          value={summary.invested}
+          value={loading ? valueSkeleton : summary.invested}
           currency={currencySymbol}
           signed
           sub={
-            <>
-              {amount(summary.bought)} in · {amount(summary.cashedOut)} out
-            </>
+            loading ? (
+              subSkeleton
+            ) : (
+              <>
+                {amount(summary.bought)} in · {amount(summary.cashedOut)} out
+              </>
+            )
           }
         />
       )}
       <StatTile
         label="Kept"
-        value={summary.kept}
+        value={loading ? valueSkeleton : summary.kept}
         currency={currencySymbol}
         signed
-        sub={keptSub}
+        sub={loading ? subSkeleton : keptSub}
         footer={
-          drawable(keptRows) ? (
+          loading ? (
+            sparkSkeleton
+          ) : drawable(keptRows) ? (
             <LineSparkline
               data={keptRows}
               dataKey="v"
@@ -243,12 +261,20 @@ export const StatisticsSummaryV2: React.FC<StatisticsSummaryV2Props> = ({
       />
       <StatTile
         label="Savings rate"
-        value={summary.savingsRate === null ? "—" : summary.savingsRate * 100}
+        value={
+          loading
+            ? valueSkeleton
+            : summary.savingsRate === null
+              ? "—"
+              : summary.savingsRate * 100
+        }
         kind="percent"
         className="col-span-2 lg:col-span-1"
-        sub={rateSub}
+        sub={loading ? subSkeleton : rateSub}
         footer={
-          drawable(rateRows) ? (
+          loading ? (
+            sparkSkeleton
+          ) : drawable(rateRows) ? (
             <LineSparkline
               data={rateRows}
               dataKey="v"
