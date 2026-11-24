@@ -78,7 +78,7 @@ export function BankAccountsList({
       {connections.length === 0 ? (
         <p className="text-sm text-app-muted">No bank accounts linked yet.</p>
       ) : (
-        <ul className="divide-y divide-app-border overflow-hidden rounded-[var(--r-input)] bg-app-raised">
+        <ul className="divide-y divide-app-border rounded-[var(--r-input)] bg-app-raised">
           {connections.map((c) => {
             const pill = STATUS[c.status];
             const consent = c.validUntil
